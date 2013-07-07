@@ -47,7 +47,7 @@ import org.immutables.common.javascript.ClasspathModuleSourceProvider;
 import org.immutables.common.javascript.RhinoInvoker;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-public class ModellingGeneratorProcessor extends AbstractProcessor {
+public class Processor extends AbstractProcessor {
 
   private static final String GENERATE_MAIN_JS = "org/immutables/generate/template/generate.js";
 
