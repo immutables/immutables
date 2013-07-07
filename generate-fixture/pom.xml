@@ -12,6 +12,12 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>check</artifactId>
+      <version>1-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>common</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency>
@@ -20,5 +26,68 @@
       <artifactId>annotation</artifactId>
       <version>1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.1.2</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongo-java-driver</artifactId>
+      <version>2.11.0</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency><!-- temporarily here -->
+      <groupId>de.undercouch</groupId>
+      <artifactId>bson4jackson</artifactId>
+      <optional>true</optional>
+      <version>2.1.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-databind</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>generate</artifactId>
+      <version>1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <!-- Java modelling annotation processing -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <!-- autodiscovery of processors via /META-INF/services caused problems, so specifing explicitly -->
+          <annotationProcessors>
+            <annotationProcessor>org.immutables.generate.processing.ModellingGeneratorProcessor
+            </annotationProcessor>
+          </annotationProcessors>
+          <compilerVersion>1.7</compilerVersion>
+          <source>1.7</source>
+          <target>1.7</target>
+          <showWarnings>false</showWarnings>
+          <generatedSourcesDirectory>${project.build.directory}/generated-sources/annotation</generatedSourcesDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

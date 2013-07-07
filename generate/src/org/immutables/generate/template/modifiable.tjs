@@ -1,0 +1,212 @@
+[requirejs align('org/immutables/generate/template/align.js')]
+
+[template generateModifiableType(type)]
+package `type.packageName`;
+
+// Generated imports
+
+/**
+ * Modifiable implementation of `type.name`.
+ * Attributes may be generated compactable by specifying {@link org.immutables.annotation.GenerateAlign} annotation.
+ * <p>
+ * Use static static factory method {@link Modifiable`type.name`#create()} to create new instances.
+ */
+@SuppressWarnings("unused")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"modifiable.tjs", "`type.name`"})
+@javax.annotation.concurrent.NotThreadSafe
+public final class Modifiable`type.name`
+    extends `type.name` {
+  private Modifiable`type.name`() {
+  }
+[apply generateModifiable(type)]  
+}
+[/template]
+
+[template generateModifiable(type)]
+  /**
+   * Creates new modifiable instance of `type.name`.
+   * @return new `type.name`.
+   */
+  public static Modifiable`type.name` create() {
+    return new Modifiable`type.name`();
+  }
+
+  private static void checkArgumentRange(long value, long min, long max, String message) {
+    if (value < min || value > max) {
+      com.google.common.base.Preconditions.checkArgument(false, message, value);
+    }
+  }
+[if(type.useBuilder)]
+
+  public `type.name` toImmutable`type.name`() {
+    return Immutable`type.name`.builder()
+    [foreach (let a in type.settableAttributes)]
+    [if (a.collectionType)]
+        .add`a.name.toUpperFirst()`(`a.name`())
+    [else]
+        .`a.name`(`a.name`())
+    [/if]
+    [/foreach]
+        .build();
+  }
+[/if]
+  [apply attributes(type)]
+[/template]
+
+[template attributes(type)]
+[foreach (let a in type.implementedAttributes)]
+[if (!a.aligned)]
+[apply simpleAttribute(type, a)]
+[/if]
+[/foreach]
+
+[let (cx = align.newLongFieldsAlignment())]
+[foreach (let a in type.alignedAttributes)]
+[apply alignedAttribute(type, a, cx)]
+[/foreach]
+[let (longCount = cx.index)]
+
+public void copyAlignedFrom(
+#for (let i = 0; i <= longCount; i++) {
+  `(i==0?'':',')` long data_`i`
+#}
+    ) {
+#for (let i = 0; i <= longCount; i++) {
+  _`i` = data_`i`;  
+#}
+}
+
+[if (longCount == 0)]
+public long toAligned() {
+  return _0;
+}
+[/if]
+
+public void copyAlignedTo(long`'[]'` data) {
+#for (let i = 0; i <= longCount; i++) {
+  data`'['``i``']'` = _`i`;  
+#}
+}
+
+public void copyAlignedFrom(long`'[]'` data) {
+#for (let i = 0; i <= longCount; i++) {
+  _`i` = data`'['``i``']'`;  
+#}
+}
+
+public void copyAlignedFrom(long`'[]'` data, int offset) {
+#for (let i = 0; i <= longCount; i++) {
+  _`i` = data`'['`offset++`']'`;  
+#}
+}
+
+public void copyAlignedFrom(java.nio.LongBuffer data, int offset) {
+#for (let i = 0; i <= longCount; i++) {
+  _`i` = data.get(offset++);
+#}
+}
+
+public Modifiable`type.name` copyFrom(Modifiable`type.name` instance) {
+[foreach (let a in type.implementedAttributes)]
+[if (!a.aligned)]
+  this.`a.name` = instance.`a.name`;
+[/if]
+[/foreach]
+#for (let i = 0; i <= longCount; i++) {
+  this._`i` = instance._`i`;  
+#}
+  return this;
+}
+
+public static final int SIZE = `longCount + 1`;
+[/let]
+[/let]
+[/template]
+
+[template alignedAttribute(type, a, cx)]
+
+[if (cx.nextAttribute(a.type, a.minValue, a.maxValue))]
+private long _`cx.index`;
+[/if]
+[let (constantBase = '_' + cx.index + '_' + a.name.toUpperCase())]
+private static final int `constantBase`_OFFSET = `cx.offset`;
+private static final int `constantBase`_SIZE = `cx.size`;
+private static final long `constantBase`_OFFSET_MASK = `cx.mask`L << `constantBase`_OFFSET; //`cx.bin` << `cx.offset`
+private static final long `constantBase`_INVERSE_MASK = ~`constantBase`_OFFSET_MASK;
+  [if (a.type == 'boolean')]
+
+/**
+ * Modifies value {@link `type.name`#`a.name`()} attribute.
+ * @param `a.name` new value for {@code `a.name`} attribute
+ * @return {@code this} for chained invocation
+ */
+public Modifiable`type.name` set`a.name.toUpperFirst()`(boolean `a.name`) {
+  if (`a.name`) {
+    _`cx.index` |= `constantBase`_OFFSET_MASK;
+  } else {
+    _`cx.index` &= `constantBase`_INVERSE_MASK;
+  }
+  return this;
+}
+
+/**
+ * {@inheritDoc}
+ * @return value for {@link `type.name`#`a.name`()} attribute.
+ */
+@Override
+public boolean `a.name`() {
+  return (_`cx.index` & `constantBase`_OFFSET_MASK) > 0;
+}
+  [else] 
+private static final long `constantBase`_MIN_VALUE = `cx.min`L;
+private static final long `constantBase`_MAX_VALUE = `cx.max`L;
+private static final String `constantBase`_RANGE_VIOLATION = "`a.name` = %s, out of range [`cx.min`, `cx.max`]";
+
+/**
+ * Modifies value {@link `type.name`#`a.name`()} attribute.
+ * @param `a.name` new value for {@code `a.name`} attribute
+ * @return {@code this} for chained invocation
+ */
+public Modifiable`type.name` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
+  checkArgumentRange(`a.name`, `constantBase`_MIN_VALUE, `constantBase`_MAX_VALUE, `constantBase`_RANGE_VIOLATION);
+  _`cx.index` &= `constantBase`_INVERSE_MASK;
+  _`cx.index` |= ((`a.name` - `constantBase`_MIN_VALUE) << `constantBase`_OFFSET) & `constantBase`_OFFSET_MASK;
+  return this;
+}
+
+/**
+ * {@inheritDoc}
+ * @return value for {@link `type.name`#`a.name`()} attribute.
+ */
+@Override
+public `a.type` `a.name`() {
+  return (`a.type`)(((_`cx.index` & `constantBase`_OFFSET_MASK) >>> `constantBase`_OFFSET) + `constantBase`_MIN_VALUE);
+}
+  [/if]
+[/let]
+[/template]
+
+[template simpleAttribute(type, a)]
+
+private `a.type` `a.name`;
+
+/**
+ * Modifies value {@link `type.name`#`a.name`()} attribute.
+ * @param `a.name` new value for {@code `a.name`} attribute
+ * @return {@code this} for chained invocation
+ */
+public Modifiable`type.name` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
+  this.`a.name` = `a.name`;
+  return this;
+}
+
+/**
+ * {@inheritDoc}
+ * @return value for {@link `type.name`#`a.name`()} attribute.
+ */
+@Override
+public `a.type` `a.name`() {
+  return `a.name`;
+}
+[/template]

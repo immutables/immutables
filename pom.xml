@@ -9,6 +9,7 @@
 
   <modules>
     <module>annotation</module>
+    <module>check</module>
     <module>common</module>
     <module>generate</module>
     <module>generate-fixture</module>

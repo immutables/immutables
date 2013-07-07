@@ -1,0 +1,572 @@
+[template generateRepository(type)]
+package `type.packageName`.repository;
+
+// Generated imports
+import `type.packageName`.*;
+import com.google.common.collect.*;
+import com.google.common.util.concurrent.*;
+import org.immutables.common.repository.*;
+[apply generateImportRoutines(type)]
+import static org.immutables.common.marshal.MarshalingSupport.*;
+import static org.immutables.common.repository.ConstraintSupport.*;
+
+/**
+ * {@code `type.name`Repository} used as access point for storing and
+ * retreiving JSON-like documents in remote repository.
+ */
+@SuppressWarnings({"unused"})
+@javax.annotation.Generated({"repository.tjs", "`type.name`"})
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.concurrent.ThreadSafe
+public final class `type.name`Repository extends RepositorySupport.Repository<`type.name`> {
+  private static final String DOCUMENT_COLLECTION_NAME = "`type.documentName`";
+
+  private `type.name`Repository(RepositoryConfiguration configuration) {
+    super(configuration, DOCUMENT_COLLECTION_NAME, `type.name`Marshaler.instance());
+  }
+
+  /**
+   * Creates {@link `type.name`} repository using {@link RepositoryConfiguration configuration}.
+   * @param configuration the repository configuration
+   * @return new repository instance
+   */
+  public static `type.name`Repository create(RepositoryConfiguration configuration) {
+    return new `type.name`Repository(configuration);
+  }
+  
+  public ListenableFuture<Integer> insert(`type.name` document) {
+    return super.doInsert(ImmutableList.of(document));
+  }
+  
+  public ListenableFuture<Integer> deleteAll(Criteria criteria) {
+    return super.doDelete((ConstraintSupport.ConstraintHost) criteria);
+  }
+  
+  public ListenableFuture<Integer> insert(Iterable<`type.name`> documents) {
+    return super.doInsert(ImmutableList.copyOf(documents));
+  }
+[let (a = type.idAttribute)]
+[-- It will rarely be otherwise --]
+[if (a)]
+
+  public Fetcher findById(`a.type` `a.name`) {
+    return find(where().`a.name`(`a.name`));
+  }
+  
+  public ListenableFuture<Void> upsert(`type.name` `type.name.toLowerFirst()`) {
+    Criteria byId = where().`a.name`(`type.name.toLowerFirst()`.`a.name`());
+    return super.doUpsert((ConstraintSupport.ConstraintHost) byId, `type.name.toLowerFirst()`);
+  }
+[/if]
+[/let]
+
+  [apply generateFetcher(type)]
+  [apply generateUpdater(type)]
+  [apply generateModifier(type)]
+  [apply generateIndexer(type)]
+  [apply generateCriteriaApi(type)]
+  [apply generateInternalCriteria(type)]
+  [apply generateMarshalWrappers(type)]
+}
+[/template]
+
+[template generateOrderingAndExcludes(type, T)]
+  [foreach (a in type.implementedAttributes)]
+
+public `T` orderBy`a.name.toUpperFirst()`() {
+  ordering = ordering.equal("`a.marshaledName`", false, 1);
+  return this;
+}
+
+public `T` orderBy`a.name.toUpperFirst()`Desceding() {
+  ordering = ordering.equal("`a.marshaledName`", false, -1);
+  return this;
+}
+  [/foreach]
+  [foreach (a in type.excludableAttributes)]
+    
+public `T` exclude`a.name.toUpperFirst()`() {
+  exclusion = exclusion.equal("`a.marshaledName`", false, -1);
+  return this;
+}
+  [/foreach]
+[/template]
+
+[template generateFetcher(type)]
+
+public Fetcher find(Criteria criteria) {
+  return new Fetcher(this, criteria);
+}
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Fetcher extends RepositorySupport.Fetcher<`type.name`, Fetcher> {
+  private Fetcher(`type.name`Repository repository, Criteria criteria) {
+    super(repository);
+    this.criteria = (ConstraintSupport.ConstraintHost) criteria;
+  }
+  [apply generateOrderingAndExcludes(type, 'Fetcher')]
+  [apply generateAndModifyFirst(type)]
+}
+[/template]
+
+[template generateAndModifyFirst(type)]
+public Modifier andModifyFirst() {
+  return new Modifier(repository, criteria, ordering, exclusion);
+}
+[/template]
+
+[template generateIndexer(type)]
+
+public Indexer indexer() {
+  return new Indexer(this);
+}
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Indexer extends RepositorySupport.Indexer<`type.name`, Indexer> {
+  private Indexer(`type.name`Repository repository) {
+    super(repository);
+  }
+[foreach (a in type.implementedAttributes)]
+  
+  public Indexer with`a.name.toUpperFirst()`() {
+    fields = fields.equal("`a.marshaledName`", false, 1);
+    return this;
+  }
+    
+  public Indexer with`a.name.toUpperFirst()`Desceding() {
+    fields = fields.equal("`a.marshaledName`", false, -1);
+    return this;
+  }
+[/foreach]
+}
+[/template]
+
+[template generateUpdater(type)]
+  
+public Updater update(Criteria criteria) {
+  return new Updater(this, criteria);
+}
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Updater extends RepositorySupport.Updater<`type.name`> {
+  private Updater(`type.name`Repository repository, Criteria criteria) {
+    super(repository);
+    this.criteria = (ConstraintSupport.ConstraintHost) criteria;
+  }
+[apply generateUpdatingMethods(type, 'Updater')]
+}
+[/template]
+
+[template generateModifier(type)]
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Modifier extends RepositorySupport.Modifier<`type.name`, Modifier> {
+  private Modifier(
+      RepositorySupport.Repository<`type.name`> repository,
+      ConstraintSupport.ConstraintHost criteria,
+      ConstraintSupport.Constraint ordering,
+      ConstraintSupport.Constraint exclusion) {
+    super(repository);
+    this.criteria = criteria;
+    this.ordering = ordering;
+    this.exclusion = exclusion;
+  }
+[apply generateUpdatingMethods(type, 'Modifier')]
+}
+[/template]
+
+[template generateUpdatingMethods(type, T)]
+  [foreach (a in type.implementedAttributes)]
+[let (W = a.wrappedElementType, U = a.unwrappedElementType)]
+  [if (a.collectionType)]
+
+  public `T` clear`a.name.toUpperFirst()`() {
+  [if (a.forceEmpty)]
+    setFields = setFields.equal("`a.marshaledName`", false, com.google.common.collect.ImmutableList.<Object>of());
+  [else]
+    unsetFields = unsetFields.equal("`a.marshaledName`", false, 1);
+  [/if]
+    return this;
+  }
+    
+  public `T` remove`a.name.toUpperFirst()`(`U` value) {
+    pullFields = pullFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
+    return this;
+  }
+
+  public `T` add`a.name.toUpperFirst()`(`U` value) {
+  [if (a.setType)]
+    addToSetFields = addToSetFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
+  [else]
+    pushFields = pushFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
+  [/if]
+    return this;
+  }
+  
+  public `T` addAll`a.name.toUpperFirst()`(Iterable<`W`> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for (`W` v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    if (wrappedValues.isEmpty()) {
+      return this;
+    }
+    Object v;
+    if (wrappedValues.size() == 1) {
+      v = wrappedValues.get(0);
+    } else {
+      v = RepositorySupport.bsonObjectAttribute("$each", wrappedValues);
+    }
+  [if (a.setType)]
+    addToSetFields = addToSetFields.equal("`a.marshaledName`", false, v);
+  [else]
+    pushFields = pushFields.equal("`a.marshaledName`", false, v);
+  [/if]
+    return this;
+  }
+    
+[/if]
+[if (!a.collectionType)]
+  [if (a.mapType)]
+  public `T` clear`a.name.toUpperFirst()`() {
+    setFields = setFields.equal("`a.marshaledName`", false, RepositorySupport.emptyBsonObject());
+    return this;
+  }
+  
+  public `T` put`a.name.toUpperFirst()`(`U` key, `a.unwrappedSecondaryElementType` value) {
+    setFields = setFields.equal("`a.marshaledName`." + key, false, wrapMarshalable(value));
+    return this;
+  }
+  
+  public `T` remove`a.name.toUpperFirst()`(`U` key) {
+    unsetFields = unsetFields.equal("`a.marshaledName`." + key, false, 1);
+    return this;
+  }
+  [else]
+    [if (a.optionalType)]
+  public `T` clear`a.name.toUpperFirst()`() {
+      [if (a.forceEmpty)]
+    setFields = setFields.equal("`a.marshaledName`", false, null);
+      [else]
+    unsetFields = unsetFields.equal("`a.marshaledName`", false, 1);
+      [/if]
+    return this;
+  }
+    [/if]
+    
+  public `T` set`a.name.toUpperFirst()`(`U` value) {
+    setFields = setFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
+    return this;
+  }
+  
+  public `T` init`a.name.toUpperFirst()`(`U` value) {
+    setOnInsertFields = setOnInsertFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
+    return this;
+  }   
+  
+    [if (a.numberType)]
+  public `T` increment`a.name.toUpperFirst()`(`U` increment) {
+    incrementFields = incrementFields.equal("`a.marshaledName`", false, increment);
+    return this;
+  }        
+      [/if]
+    [/if]
+  [/if]
+[/let]
+  [/foreach]
+[/template]
+
+[template generateInternalCriteria(type)]
+
+@SuppressWarnings("unchecked")
+private static final class InternalCriteria extends Criteria implements ConstraintHost {
+  final ConstraintSupport.Constraint constraint;
+  
+  InternalCriteria(ConstraintSupport.Constraint constraint) {
+    this.constraint = constraint;
+  }
+  
+  public <V extends ConstraintVisitor<V>> V accept(V visitor) {
+    return constraint.accept(visitor);
+  }
+[foreach (a in type.implementedAttributes)]
+[let (W = a.wrappedElementType, U = a.unwrappedElementType)]
+[if (a.collectionType)]
+
+  @Override
+  public InternalCriteria `a.name`Empty() {
+    return new InternalCriteria(constraint.size("`a.marshaledName`", false, 0));
+  }
+
+  @Override
+  public InternalCriteria `a.name`NonEmpty() {
+    return new InternalCriteria(constraint.size("`a.marshaledName`", true, 0));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`Size(int size) {
+    return new InternalCriteria(constraint.size("`a.marshaledName`", false, size));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`Contains(`U` value) {
+    return new InternalCriteria(constraint.equal("`a.marshaledName`", false, wrapMarshalable(value)));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`ContainsAll(Iterable<`W`> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for (`W` v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.nested("`a.marshaledName`", nilConstraint().equal("$all", false, wrappedValues)));
+  }
+[/if]
+[if (!a.collectionType)]
+  [if (a.documentElement)]
+  
+  [-- @Override ]
+  [-- public InternalCriteria `a.name`(`U`s.Criteria `a.name`Constraints) { ]
+  [-- return new InternalCriteria(constraint.nested("`a.marshaledName`", (ConstraintHost) `a.name`Constraints)); ]
+  [-- } ]
+  [/if]
+
+  @Override
+  public InternalCriteria `a.name`(`U` value) {
+    return new InternalCriteria(constraint.equal("`a.marshaledName`", false, wrapMarshalable(value)));
+  }
+  [if (U != 'boolean')]
+
+  @Override
+  public InternalCriteria `a.name`Not(`U` value) {
+    return new InternalCriteria(constraint.equal("`a.marshaledName`", true, wrapMarshalable(value)));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`In(Iterable<`W`> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for (`W` v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.in("`a.marshaledName`", false, wrappedValues));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`In(`U` first, `U` second, `U`... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add(wrapMarshalable(first));
+    values.add(wrapMarshalable(second));
+    for (`U` value : rest) {
+      values.add(wrapMarshalable(value));
+    }
+    return new InternalCriteria(constraint.in("`a.marshaledName`", false, values));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`NotIn(Iterable<`W`> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for (`W` v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.in("`a.marshaledName`", true, wrappedValues));
+  }
+    
+  @Override
+  public InternalCriteria `a.name`NotIn(`U` first, `U` second, `U`... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add(wrapMarshalable(first));
+    values.add(wrapMarshalable(second));
+    for (`U` value : rest) {
+      values.add(wrapMarshalable(value));
+    }
+    return new InternalCriteria(constraint.in("`a.marshaledName`", true, values));
+  }
+  [/if]
+[if (a.type == 'java.lang.String')]
+  
+  @Override
+  public InternalCriteria `a.name`StartsWith(String prefix) {
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, prefixPatternOf(prefix)));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`Matches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, pattern));
+  }
+
+  @Override
+  public InternalCriteria `a.name`NotMatches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("`a.marshaledName`", true, pattern));
+  }
+[/if]
+[if (a.optionalType)]
+  
+  @Override
+  public InternalCriteria `a.name`Present() {
+  [if (a.forceEmpty || type.useConstructorOnly)]
+    return new InternalCriteria(constraint.equal("`a.marshaledName`", true, null));
+  [else]
+    return new InternalCriteria(constraint.present("`a.marshaledName`", false));
+  [/if]
+  }
+
+  @Override
+  public InternalCriteria `a.name`Absent() {
+  [if (a.forceEmpty || type.useConstructorOnly)]
+    return new InternalCriteria(constraint.equal("`a.marshaledName`", false, null));
+  [else]
+    return new InternalCriteria(constraint.present("`a.marshaledName`", true));
+  [/if]
+  }
+[/if]
+[if (a.comparable)]
+  
+  @Override
+  public InternalCriteria `a.name`GreaterThan(`U` lower) {
+    return `a.name`In(com.google.common.collect.Range.greaterThan(lower));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`LessThan(`U` upper) {
+    return `a.name`In(com.google.common.collect.Range.lessThan(upper));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`AtMost(`U` upperInclusive) {
+    return `a.name`In(com.google.common.collect.Range.atMost(upperInclusive));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`AtLeast(`U` lowerInclusive) {
+    return `a.name`In(com.google.common.collect.Range.atLeast(lowerInclusive));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`In(com.google.common.collect.Range<`W`> range) {
+    return new InternalCriteria(constraint.range("`a.marshaledName`", false, wrappedRange`a.name.toUpperFirst()`(range)));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`NotIn(com.google.common.collect.Range<`W`> range) {
+    return new InternalCriteria(constraint.range("`a.marshaledName`", true, wrappedRange`a.name.toUpperFirst()`(range)));
+  }
+  
+  private static com.google.common.collect.Range<Comparable<Object>> wrappedRange`a.name.toUpperFirst()`(com.google.common.collect.Range<`W`> range) {
+    if (range.hasLowerBound() && range.hasUpperBound()) {
+      return com.google.common.collect.Range.range(
+          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
+          range.lowerBoundType(),
+          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
+          range.upperBoundType());
+    } else if (range.hasLowerBound()) {
+      return com.google.common.collect.Range.downTo(
+          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
+          range.lowerBoundType());
+    } else if (range.hasUpperBound()) {
+      return com.google.common.collect.Range.upTo(
+          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
+          range.upperBoundType());
+    }
+    throw new AssertionError();
+  }
+  
+[/if]
+[/if]
+[/let]
+[/foreach]
+
+  @Override
+  public InternalCriteria or() {
+    return new InternalCriteria(constraint.disjunction());
+  } 
+}
+[/template]
+
+[template generateCriteriaApi(type)]
+
+/**
+ * @return empty immutable criteria
+ */
+public static Criteria where() {
+  return new InternalCriteria(nilConstraint());
+}
+
+/**
+ * TODO Complete documentation comments in generation template
+ * {@code `type.name`.Criteria} is a document query.
+ */
+@javax.annotation.concurrent.Immutable
+public static abstract class Criteria {
+  Criteria() {}
+[foreach (a in type.implementedAttributes)]
+[let (W = a.wrappedElementType, U = a.unwrappedElementType)]
+
+[if (a.collectionType)]
+  public abstract Criteria `a.name`Empty();
+  public abstract Criteria `a.name`NonEmpty();
+  public abstract Criteria `a.name`Size(int size);
+  public abstract Criteria `a.name`Contains(`U` value);
+  public abstract Criteria `a.name`ContainsAll(Iterable<`W`> values);
+[else]
+  [if (a.documentElement)]
+  [-- public abstract Criteria `a.name`(`U`s.Criteria `a.name`Constraints);]
+  [/if]
+  public abstract Criteria `a.name`(`U` value);
+  [if (U != 'boolean')]
+  public abstract Criteria `a.name`Not(`U` value);
+  public abstract Criteria `a.name`In(Iterable<`W`> values);
+  public abstract Criteria `a.name`In(`U` first, `U` second, `U`... rest);
+  public abstract Criteria `a.name`NotIn(Iterable<`W`> values);
+  public abstract Criteria `a.name`NotIn(`U` first, `U` second, `U`... rest);
+  [/if]
+  [if (a.type == 'java.lang.String')]
+  public abstract Criteria `a.name`StartsWith(String prefix);
+  public abstract Criteria `a.name`Matches(java.util.regex.Pattern pattern);
+  public abstract Criteria `a.name`NotMatches(java.util.regex.Pattern pattern);
+  [/if]
+  [if (a.optionalType)]
+  public abstract Criteria `a.name`Present();
+  public abstract Criteria `a.name`Absent();
+  [/if]
+  [if (a.comparable)]
+  public abstract Criteria `a.name`GreaterThan(`U` lower);
+  public abstract Criteria `a.name`LessThan(`U` upper);
+  public abstract Criteria `a.name`AtMost(`U` upperInclusive);
+  public abstract Criteria `a.name`AtLeast(`U` lowerInclusive);
+  public abstract Criteria `a.name`In(com.google.common.collect.Range<`W`> range);
+  public abstract Criteria `a.name`NotIn(com.google.common.collect.Range<`W`> range);
+  [/if]
+[/if]
+[/let]
+[/foreach]
+  /**
+   * Returns chained criteria handle used to "OR" new constraint set to form logical disjunctive.
+   * @return disjunction criteria handle
+   */
+  public abstract Criteria or();
+}
+[/template]
+
+[template generateImportRoutines(type)]
+[foreach (let s in type.generateMarshaledImportRoutines)]
+import static `s`.*;
+[/foreach]
+[/template]
+
+[template generateMarshalWrappers(type)]
+private static Object wrapMarshalable(Object value) {
+  return value;
+}
+
+  [foreach (let T in type.generateMarshaledTypes)]
+private static Object wrapMarshalable(final `T` value) {
+  return new RepositorySupport.MarshalableWrapper(value) {
+    @Override
+    protected void marshalWrapped(com.fasterxml.jackson.core.JsonGenerator generator) throws java.io.IOException {
+      marshal(generator, value);
+    }
+  };
+}
+  [/foreach]
+
+[/template]

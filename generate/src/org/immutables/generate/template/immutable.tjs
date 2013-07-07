@@ -1,0 +1,412 @@
+[template generateImmutableType(type)]
+package `type.packageName`;
+
+// Generated imports
+
+[let (setters = type.settableAttributes)]
+/**
+ * Immutable implementation of {@link `type.name`}.
+ * <p>
+ * Use static static factory methods to create instances: {@code of()} or
+ * {@code builder()}.
+ */
+@SuppressWarnings("unused")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"immutable.tjs", "`type.name`"})
+@javax.annotation.concurrent.Immutable
+public final class Immutable`type.name`
+    extends `type.name` {
+[if (type.useSingleton)]
+  
+  private static final Immutable`type.name` `type.name.toUpperCase()`_INSTANCE = validated(new Immutable`type.name`());
+  
+  /**
+   * Returns default immutable singleton value of `type.name` 
+   * @return immutable instance of `type.name` 
+   */
+  public static `type.name` of() {
+    return `type.name.toUpperCase()`_INSTANCE;
+  }
+[/if]
+[if (type.useConstructor)]
+
+  /**
+   * Constructs new immutable instance of `type.name`.
+[foreach (let v in type.constructorArguments)]
+   * @param `v.name` value for {@code `v.name`}
+[/foreach]
+   * @return immutable `type.name` instance
+   */
+  public static `type.name` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
+    return validated(new Immutable`type.name`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
+  }
+[/if]
+
+  private static Immutable`type.name` validated(Immutable`type.name` instance) {
+[if (type.validationMethodName)]
+    instance.`type.validationMethodName`();
+[/if]
+    return instance;
+  }
+[apply generateImmutable(type)]
+[if (type.useBuilder)]
+
+  /**
+   * Creates builder for {@link `type.name`}.
+   * @return new `type.name` builder
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+  [apply generateBuilder(type)]
+[/if]  
+}
+[/let]
+[/template]
+
+[template generateBuilder(type)]
+
+[let(setters = type.settableAttributes, getters = type.implementedAttributes)]
+/**
+ * Builds instances of {@link `type.name`}.
+ * Builder is not thread safe and generally should not be stored in fields and collections,
+ * but used immediately to create instances.
+ */
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Builder {
+  private static final String REQUIRED_ATTRIBUTE =
+      "Cannot build `type.name`: required attribute '%s' is not set";
+
+  [foreach (let v in setters)]
+[if (v.collectionType)]
+  private com.google.common.collect.Immutable`v.rawCollectionType`.Builder<`v.elementType`> `v.name`Builder =
+      com.google.common.collect.Immutable`v.rawCollectionType`.builder();
+[elseif (v.optionalType)]
+  private `v.type` `v.name` = com.google.common.base.Optional.absent();
+[elseif (v.mapType)]
+  private com.google.common.collect.ImmutableMap.Builder<`v.wrappedElementType`, `v.wrappedSecondaryElementType`> `v.name`Builder =
+      com.google.common.collect.ImmutableMap.builder();
+[elseif (v.primitive)]
+  private `v.type` `v.name`;
+  private boolean `v.name`IsSet;
+[else]
+  @javax.annotation.Nullable  
+  private `v.type` `v.name`;
+[/if]
+  [/foreach]
+
+  private Builder() {
+  }
+
+  /**
+   * Adjust builder with values from provided {@link `type.name`} instance.
+   * Absent optional values will not be copied (will not override current).
+   * Collection elements will be added, not replaced.
+   * @param fromInstance instance to copy values from
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder copy(`type.name` fromInstance) {
+    com.google.common.base.Preconditions.checkNotNull(fromInstance);
+  [foreach (let v in setters)]
+    [if (v.collectionType)]
+    addAll`v.name.toUpperFirst()`(fromInstance.`v.name`());
+    [elseif (v.optionalType)]
+    `v.type` optional`v.name.toUpperFirst()` = fromInstance.`v.name`();
+    if (optional`v.name.toUpperFirst()`.isPresent()) {
+      `v.name` = optional`v.name.toUpperFirst()`;
+    }
+    [elseif (v.mapType)]
+    putAll`v.name.toUpperFirst()`(fromInstance.`v.name`());
+    [else]
+    `v.name`(fromInstance.`v.name`());
+    [/if]
+  [/foreach]
+    return this;
+  }
+  [foreach (let v in setters)]
+    [if (v.collectionType)]
+
+  /**
+   * Adds one element to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
+   * @param `v.name`Element single `v.name` element
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder add`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`Element) {
+    `v.name`Builder.add(`v.name`Element);
+    return this;
+  }
+
+  /**
+   * Adds elements to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
+   * @param `v.name`Elements iterable of `v.name` elements
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder addAll`v.name.toUpperFirst()`(Iterable<? extends `v.elementType`> `v.name`Elements) {
+    `v.name`Builder.addAll(`v.name`Elements);
+    return this;
+  }
+
+  /**
+   * Clears all previously added elements for {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder clear`v.name.toUpperFirst()`() {
+    `v.name`Builder = com.google.common.collect.Immutable`v.rawCollectionType`.builder();
+    return this;
+  }
+    [/if]
+    [if (v.optionalType)]
+
+  /**
+   * Initializes present value for optional {@link `type.name`#`v.name`()}.
+   * @param `v.name` value for `v.name`, nonull
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder `v.name`(`v.unwrappedElementType` `v.name`) {
+    this.`v.name`(Optional.of(`v.name`));
+    return this;
+  }
+    [/if]
+    [if (!v.collectionType)]
+    [if (v.mapType)]
+    [let (UK = v.unwrappedElementType, WK = v.wrappedElementType, UV = v.unwrappedSecondaryElementType, WV = v.wrappedSecondaryElementType)]
+
+  /**
+   * Put one entry to {@link `type.name`#`v.name`()} map.
+   * @param key the key in `v.name` map
+   * @param value the associated value in `v.name` map
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder put`v.name.toUpperFirst()`(`UK` key, `UV` value) {
+    `v.name`Builder.put(key, value);
+    return this;
+  }
+  
+  /**
+   * Put one entry to {@link `type.name`#`v.name`()} map. Nulls are not permitted
+   * @param entry the key and value entry
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder put`v.name.toUpperFirst()`(java.util.Map.Entry<? extends `WK`, ? extends `WV`> entry) {
+    `v.name`Builder.put(entry);
+    return this;
+  }
+
+  /**
+   * Put all mappings from specified map as entries to {@link `type.name`#`v.name`()} map. Nulls are not permitted
+   * @param `v.name`Entries to be added to `v.name` map
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder putAll`v.name.toUpperFirst()`(java.util.Map<? extends `WK`, ? extends `WV`> `v.name`Entries) {
+    `v.name`Builder.putAll(`v.name`Entries);
+    return this;
+  }
+
+  /**
+   * Clears all previously put entries for {@link `type.name`#`v.name`()} map.
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder clear`v.name.toUpperFirst()`() {
+    `v.name`Builder = com.google.common.collect.ImmutableMap.builder();
+    return this;
+  }    
+    [/let]
+    [else]
+  
+  /**
+   * Initializes value for {@link `type.name`#`v.name`()}.
+   * @param `v.name` value for `v.name`, nonnull
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder `v.name`(`v.type` `v.name`) {
+    [if (v.primitive)]
+    this.`v.name` = `v.name`;
+    `v.name`IsSet = true;
+    [else]
+    this.`v.name` = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+    [/if]
+    return this;
+  }
+    [/if]
+  [/if]
+  [/foreach]
+  
+  /**
+   * Builds new {@link `type.name`}.
+   * @return immutable instance of `type.name`
+   */
+  public `type.name` build() {
+    [foreach (let v in setters)]
+  [if (!v.generateDefault)]
+    [if (v.primitive)]
+    com.google.common.base.Preconditions.checkState(`v.name`IsSet, REQUIRED_ATTRIBUTE, "`v.name`");
+    [elseif (!v.containerType)]
+    com.google.common.base.Preconditions.checkState(`v.name` != null, REQUIRED_ATTRIBUTE, "`v.name`");
+    [/if]
+  [/if]
+    [/foreach]
+    return validated(new Immutable`type.name`(this));
+  }
+}
+[/let]
+[/template]
+
+[template generateConstructorDefaultAttibutes(type, attributes)]
+[foreach (let v in attributes)]
+[let (n = v.name)]
+  [if (v.optionalType)]
+this.`n` = com.google.common.base.Optional.absent();
+  [elseif (v.mapType)]
+this.`n` = com.google.common.collect.ImmutableMap.of();
+  [elseif (v.collectionType)]
+this.`n` = com.google.common.collect.Immutable`v.rawCollectionType`.of();  
+  [elseif (v.primitive && v.generateDefault)]
+this.`n` = super.`n`();
+  [elseif (v.generateDefault)]
+this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
+  [/if]
+  [if (v.generateDerived)]
+    [if (v.primitive)]
+this.`n` = super.`n`();
+    [else]
+this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
+    [/if]
+  [/if]
+[/let]
+[/foreach]
+[/template]
+
+[template generateImmutable(type)]
+[let (setters = type.settableAttributes, getters = type.implementedAttributes)]
+
+[foreach (let v in getters)]
+  private final `v.type` `v.name`;
+[/foreach]
+[if (type.useSingleton)]
+  private Immutable`type.name`() {
+    [apply generateConstructorDefaultAttibutes(type, type.implementedAttributes)]
+  }
+[/if]
+[if (type.useConstructor)]
+
+  private Immutable`type.name`(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
+[foreach (let v in type.constructorArguments)]
+[let (n = v.name)]
+  [if (v.generateEnumSet)]
+    this.`n` = com.google.common.collect.Sets.immutableEnumSet(`n`);
+  [elseif (v.collectionType)]
+    this.`n` = com.google.common.collect.Immutable`v.rawCollectionType`.copyOf(`n`);
+  [elseif (v.mapType)]
+    [if (v.generateEnumMap)]
+    this.`n` = com.google.common.collect.Maps.immutableEnumMap(`n`);
+    [else]
+    this.`n` = com.google.common.collect.ImmutableMap.copyOf(`n`);
+    [/if]
+  [elseif (v.primitive)]
+    this.`n` = `n`;
+  [else]
+    this.`n` = com.google.common.base.Preconditions.checkNotNull(`n`);
+  [/if]
+[/let]
+[/foreach]
+    [apply generateConstructorDefaultAttibutes(type, type.constructorOmited)]
+  }
+[/if]
+[if (type.useBuilder)]
+
+  private Immutable`type.name`(Builder builder) {
+[foreach (let v in getters)]
+[if (!v.generateDerived)]
+[let (n = v.name)]
+  [if (v.generateEnumSet)]
+    this.`n` = com.google.common.collect.Sets.immutableEnumSet(builder.`n`Builder.build());
+  [elseif (v.generateEnumMap)]
+    this.`n` = com.google.common.collect.Maps.immutableEnumMap(builder.`n`Builder.build());
+  [elseif (v.collectionType || v.mapType)]
+    this.`n` = builder.`n`Builder.build();
+  [elseif (v.primitive && !v.generateDefault)]
+    this.`n` = builder.`n`;
+  [elseif (!v.generateDefault)]
+    this.`n` = com.google.common.base.Preconditions.checkNotNull(builder.`n`);
+  [/if]  
+[/let]
+[/if]
+[/foreach]
+[-- Generate default values comes after required values]
+[foreach (let v in getters)]
+[let (n = v.name)]
+[if (v.primitive && v.generateDefault)]
+    this.`n` = builder.`n`IsSet
+        ? builder.`n`
+        : super.`n`();
+[elseif (v.generateDefault)]
+    this.`n` = builder.`n` != null
+        ? builder.`n`
+        : super.`n`();
+[elseif (v.primitive && v.generateDerived)]
+    this.`n` = super.`n`();
+[elseif (v.generateDerived)]
+    this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
+[/if]
+[/let]
+[/foreach]
+  }
+[/if]
+[foreach (let v in getters)]
+
+  @Override
+  public `v.type` `v.name`() {
+    return `v.name`;
+  }
+[/foreach]
+  [apply generateAccessorMethods(type, getters)]
+[/let]
+[/template]
+
+[template generateAccessorMethods(type, getters)]
+@Override
+public boolean equals(Object another) {
+  return this == another
+      || (another instanceof Immutable`type.name` && equalTo((Immutable`type.name`) another));
+}
+
+# let compareFields = function(v)
+#   let (n = v.name)
+#      v.primitive ? (n + ' == another.' + n) : (n + '.equals(another.' + n + ')');
+#
+private boolean equalTo(Immutable`type.name` another) {
+  return true`[ '\n          && ' + compareFields(v) for each (v in getters) ].join('')`;
+}
+[if (!type.hashCodeDefined)]  
+
+@Override
+public int hashCode() {
+  [if (getters.length == 0)]
+  return `hashOf(type.name)`;
+  [else]
+  int h = 31;
+[foreach (let v in getters)]
+[if (!v.primitive)]
+  h = h * 17 + `v.name`.hashCode();
+[elseif (v.primitive && v.type == 'int')]
+  h = h * 17 + `v.name`;
+[else]
+  h = h * 17 + com.google.common.primitives.`v.type.toUpperFirst()`s.hashCode(`v.name`);
+[/if]
+[/foreach]
+  return h;
+  [/if]
+}
+[/if]
+[if (!type.toStringDefined)]
+
+@Override
+public String toString() {
+  return com.google.common.base.Objects.toStringHelper("`type.name`")
+  [foreach (let v in getters)]
+      .add("`v.name`", `v.name`)
+  [/foreach]
+      .toString();
+}
+[/if]    
+[/template]
