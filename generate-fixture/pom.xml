@@ -28,7 +28,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>generate</artifactId>
+      <artifactId>generate-tool</artifactId>
       <scope>provided</scope>
       <version>1-SNAPSHOT</version>
     </dependency>

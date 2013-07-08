@@ -13,7 +13,7 @@
     <module>common</module>
     <module>generate</module>
     <module>generate-fixture</module>
-    <module>generate-assembly</module>
+    <module>generate-tool</module>
   </modules>
 
   <properties>
@@ -27,7 +27,7 @@
     <testSourceDirectory>test</testSourceDirectory>
     <resources>
       <resource>
-        <directory>src</directory>
+        <directory>res</directory>
         <excludes>
           <exclude>**/*.java</exclude>
         </excludes>
@@ -45,7 +45,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.5.1</version>
+        <version>3.1</version>
         <configuration>
           <compilerVersion>1.7</compilerVersion>
           <source>1.7</source>
