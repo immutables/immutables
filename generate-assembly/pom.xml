@@ -8,8 +8,7 @@
   <packaging>pom</packaging>
 
   <description>
-    Special single-jar packaging of modelling tool to be used for eclipse IDE.
-    Separated to not cause build problems
+    Single-jar packaging of generate tool to be used for an IDE.
   </description>
 
   <profiles>
