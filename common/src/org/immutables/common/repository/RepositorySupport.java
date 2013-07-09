@@ -11,9 +11,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -30,6 +27,8 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import org.bson.BSONObject;
+import org.immutables.common.concurrent.FluentFuture;
+import org.immutables.common.concurrent.FluentFutures;
 import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.repository.ConstraintSupport.Constraint;
 import org.immutables.common.repository.ConstraintSupport.ConstraintHost;
@@ -63,8 +62,12 @@ public final class RepositorySupport {
       return configuration.database.getCollection(collectionName);
     }
 
-    protected final ListenableFuture<Void> doIndex(final Constraint fields, final Constraint options) {
-      return configuration.executor.submit(new Callable<Void>() {
+    private <V> FluentFuture<V> submit(Callable<V> callable) {
+      return FluentFutures.from(configuration.executor.submit(callable));
+    }
+
+    protected final FluentFuture<Void> doIndex(final Constraint fields, final Constraint options) {
+      return submit(new Callable<Void>() {
         @Override
         public Void call() {
           collection().ensureIndex(
@@ -75,8 +78,8 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<Integer> doInsert(final ImmutableList<T> documents) {
-      return configuration.executor.submit(new Callable<Integer>() {
+    protected final FluentFuture<Integer> doInsert(final ImmutableList<T> documents) {
+      return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
           DBCollection collection = collection();
@@ -91,7 +94,7 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<Optional<T>> doModify(
+    protected final FluentFuture<Optional<T>> doModify(
         final ConstraintHost criteria,
         final Constraint ordering,
         final Constraint exclusion,
@@ -101,7 +104,7 @@ public final class RepositorySupport {
         final boolean remove) {
       checkArgument(!upsert || !remove);
       checkArgument(!remove || !newOrOld);
-      return configuration.executor.submit(new Callable<Optional<T>>() {
+      return submit(new Callable<Optional<T>>() {
         @Override
         public Optional<T> call() throws Exception {
           DBCollection collection = collection();
@@ -125,13 +128,13 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<Integer> doUpdate(
+    protected final FluentFuture<Integer> doUpdate(
         final ConstraintHost criteria,
         final ConstraintSupport.Constraint update,
         final boolean upsert,
         final boolean multiple) {
       checkArgument(!multiple || !upsert);
-      return configuration.executor.submit(new Callable<Integer>() {
+      return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
           DBCollection collection = collection();
@@ -149,9 +152,9 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<Integer> doDelete(
+    protected final FluentFuture<Integer> doDelete(
         final ConstraintHost criteria) {
-      return configuration.executor.submit(new Callable<Integer>() {
+      return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
           DBCollection collection = collection();
@@ -164,10 +167,10 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<Void> doUpsert(
+    protected final FluentFuture<Void> doUpsert(
         final ConstraintHost criteria,
         final T document) {
-      return configuration.executor.submit(new Callable<Void>() {
+      return submit(new Callable<Void>() {
         @Override
         public Void call() {
           DBCollection collection = collection();
@@ -186,13 +189,13 @@ public final class RepositorySupport {
       });
     }
 
-    protected final ListenableFuture<List<T>> doFetch(
+    protected final FluentFuture<List<T>> doFetch(
         final @Nullable ConstraintHost criteria,
         final ConstraintSupport.Constraint ordering,
         final ConstraintSupport.Constraint exclusion,
         final @Nonnegative int skip,
         final @Nonnegative int limit) {
-      return configuration.executor.submit(new Callable<List<T>>() {
+      return submit(new Callable<List<T>>() {
         @Override
         public List<T> call() throws Exception {
           DBCollection collection = collection();
@@ -288,15 +291,15 @@ public final class RepositorySupport {
       super(repository);
     }
 
-    public ListenableFuture<Integer> upsert() {
+    public FluentFuture<Integer> upsert() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), true, false);
     }
 
-    public ListenableFuture<Integer> updateFirst() {
+    public FluentFuture<Integer> updateFirst() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), false, false);
     }
 
-    public ListenableFuture<Integer> updateAll() {
+    public FluentFuture<Integer> updateAll() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), false, true);
     }
   }
@@ -324,24 +327,12 @@ public final class RepositorySupport {
       return (M) this;
     }
 
-    public ListenableFuture<Optional<T>> upsert() {
+    public FluentFuture<Optional<T>> upsert() {
       return repository.doModify(criteria, ordering, exclusion, collectRequiredUpdate(), true, returnNewOrOld, false);
     }
 
-    public ListenableFuture<Optional<T>> update() {
+    public FluentFuture<Optional<T>> update() {
       return repository.doModify(criteria, ordering, exclusion, collectRequiredUpdate(), false, returnNewOrOld, false);
-    }
-
-    public ListenableFuture<Optional<T>> update(FutureCallback<T> callback) {
-      ListenableFuture<Optional<T>> future = update();
-      Futures.addCallback(future, new OptionalDereferencingFutureCallback<>(callback));
-      return future;
-    }
-
-    public ListenableFuture<Optional<T>> upsert(FutureCallback<T> callback) {
-      ListenableFuture<Optional<T>> future = upsert();
-      Futures.addCallback(future, new OptionalDereferencingFutureCallback<>(callback));
-      return future;
     }
   }
 
@@ -371,30 +362,8 @@ public final class RepositorySupport {
       return (I) this;
     }
 
-    public final ListenableFuture<Void> ensure() {
+    public final FluentFuture<Void> ensure() {
       return repository.doIndex(fields, options);
-    }
-  }
-
-  private static final class OptionalDereferencingFutureCallback<T> implements FutureCallback<Optional<T>> {
-    private final FutureCallback<T> callback;
-
-    OptionalDereferencingFutureCallback(FutureCallback<T> callback) {
-      this.callback = callback;
-    }
-
-    @Override
-    public void onSuccess(Optional<T> result) {
-      try {
-        callback.onSuccess(result.get());
-      } catch (IllegalStateException ex) {
-        onFailure(ex);
-      }
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-      callback.onFailure(t);
     }
   }
 
@@ -419,17 +388,17 @@ public final class RepositorySupport {
       return (F) this;
     }
 
-    public final ListenableFuture<List<T>> fetchWithLimit(@Nonnegative int limit) {
+    public final FluentFuture<List<T>> fetchWithLimit(@Nonnegative int limit) {
       checkArgument(limit >= 0, "limit cannot be negative");
       return repository.doFetch(criteria, ordering, exclusion, numberToSkip, limit);
     }
 
-    public final ListenableFuture<List<T>> fetchAll() {
+    public final FluentFuture<List<T>> fetchAll() {
       return fetchWithLimit(0);
     }
 
-    public final ListenableFuture<Optional<T>> fetchFirst() {
-      return Futures.transform(fetchWithLimit(1), new Function<List<T>, Optional<T>>() {
+    public final FluentFuture<Optional<T>> fetchFirst() {
+      return fetchWithLimit(1).transform(new Function<List<T>, Optional<T>>() {
         @Override
         public Optional<T> apply(List<T> input) {
           return FluentIterable.from(input).first();
@@ -437,36 +406,10 @@ public final class RepositorySupport {
       });
     }
 
-    public final ListenableFuture<List<T>> fetchAll(FutureCallback<List<T>> callback) {
-      ListenableFuture<List<T>> future = fetchAll();
-      Futures.addCallback(future, callback);
-      return future;
-    }
-
-    public final ListenableFuture<Optional<T>> fetchFirst(final FutureCallback<T> callback) {
-      ListenableFuture<Optional<T>> future = fetchFirst();
-      Futures.addCallback(future, new OptionalDereferencingFutureCallback<>(callback));
-      return future;
-    }
-
-    public final Optional<T> getFirstUnchecked() {
-      return Futures.getUnchecked(fetchFirst());
-    }
-
-    public final List<T> getAllUnchecked() {
-      return Futures.getUnchecked(fetchAll());
-    }
-
-    public ListenableFuture<Optional<T>> deleteFirst() {
+    public FluentFuture<Optional<T>> deleteFirst() {
       checkState(numberToSkip == 0, "Cannot use skip() with .removeFirst()");
       return repository.doModify(
           criteria, ordering, exclusion, ConstraintSupport.nilConstraint(), false, false, true);
-    }
-
-    public ListenableFuture<Optional<T>> deleteFirst(FutureCallback<T> callback) {
-      ListenableFuture<Optional<T>> future = deleteFirst();
-      Futures.addCallback(future, new OptionalDereferencingFutureCallback<>(callback));
-      return future;
     }
   }
 

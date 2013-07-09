@@ -6,6 +6,7 @@ import `type.packageName`.*;
 import com.google.common.collect.*;
 import com.google.common.util.concurrent.*;
 import org.immutables.common.repository.*;
+import org.immutables.common.concurrent.*;
 [apply generateImportRoutines(type)]
 import static org.immutables.common.marshal.MarshalingSupport.*;
 import static org.immutables.common.repository.ConstraintSupport.*;
@@ -34,15 +35,15 @@ public final class `type.name`Repository extends RepositorySupport.Repository<`t
     return new `type.name`Repository(configuration);
   }
   
-  public ListenableFuture<Integer> insert(`type.name` document) {
+  public FluentFuture<Integer> insert(`type.name` document) {
     return super.doInsert(ImmutableList.of(document));
   }
   
-  public ListenableFuture<Integer> deleteAll(Criteria criteria) {
+  public FluentFuture<Integer> deleteAll(Criteria criteria) {
     return super.doDelete((ConstraintSupport.ConstraintHost) criteria);
   }
   
-  public ListenableFuture<Integer> insert(Iterable<`type.name`> documents) {
+  public FluentFuture<Integer> insert(Iterable<`type.name`> documents) {
     return super.doInsert(ImmutableList.copyOf(documents));
   }
 [let (a = type.idAttribute)]
@@ -53,7 +54,7 @@ public final class `type.name`Repository extends RepositorySupport.Repository<`t
     return find(where().`a.name`(`a.name`));
   }
   
-  public ListenableFuture<Void> upsert(`type.name` `type.name.toLowerFirst()`) {
+  public FluentFuture<Void> upsert(`type.name` `type.name.toLowerFirst()`) {
     Criteria byId = where().`a.name`(`type.name.toLowerFirst()`.`a.name`());
     return super.doUpsert((ConstraintSupport.ConstraintHost) byId, `type.name.toLowerFirst()`);
   }

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.bson.LazyBSONCallback;
+import org.immutables.common.concurrent.FluentFutures;
 import org.immutables.common.repository.RepositoryConfiguration;
 import org.immutables.common.time.TimeMeasure;
 import org.immutables.generate.silly.repository.SillyEntityRepository;
@@ -119,7 +120,8 @@ public final class Bigotri {
         .putPayload("ff", 888)
         .removeInts(2)
         .returnNew()
-        .update(new FutureCallback<SillyEntity>() {
+        .update()
+        .addCallback(FluentFutures.presentOnly(new FutureCallback<SillyEntity>() {
           @Override
           public void onSuccess(SillyEntity result) {
             System.out.println(result);
@@ -128,7 +130,8 @@ public final class Bigotri {
           @Override
           public void onFailure(Throwable t) {
           }
-        }).get();
+        }))
+        .get();
 
     executor.shutdown();
 
@@ -174,11 +177,12 @@ public final class Bigotri {
                 .valStartsWith("1")
                 .derAtLeast(UnsignedInteger.valueOf(2)))
             .orderByIdDesceding()
-            .getAllUnchecked();
+            .fetchAll()
+            .getUnchecked();
 
     System.out.println(unchecked);
 
-    System.out.println(repository.findById(5).getFirstUnchecked().get().val());
+    System.out.println(repository.findById(5).fetchFirst().getUnchecked().get().val());
 
     System.out.println();
 
@@ -198,7 +202,8 @@ public final class Bigotri {
     List<SillyEntity> unchecked =
         repository.find(SillyEntityRepository.where())
             .orderByIdDesceding()
-            .getAllUnchecked();
+            .fetchAll()
+            .getUnchecked();
 
     System.out.println(w.stop());
     return unchecked;

@@ -13,7 +13,7 @@ public class CriteriaBuilderTest {
 
   @Test
   public void ranges() {
-    check(stringify(where().attr1AtLeast("1")))
+    check(stringify(SillyStructureWithIdRepository.where().attr1AtLeast("1")))
         .is("{ 'attr1' : { '$gte' : '1'}}");
 
     check(stringify(where().attr1LessThan("ZZZ")))
