@@ -16,6 +16,16 @@
     <module>generate-tool</module>
   </modules>
 
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>artifacts</id>
+      <name>Filesystem Repository</name>
+      <url>file:~/git/m2repo</url>
+      <layout>default</layout>
+    </repository>
+  </distributionManagement>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
