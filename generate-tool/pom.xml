@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <description>
-    Single-jar packaging of generate tool to be used for an IDE.
+    Single-jar packaging of generate tool to be used in builds and IDE.
   </description>
 
   <dependencies>
