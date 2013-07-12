@@ -10,6 +10,21 @@
   </parent>
   <artifactId>generate-tool</artifactId>
 
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>For all code which is used in runtime</comments>
+    </license>
+    <license>
+      <name>Mozilla Public License, Version 2.0</name>
+      <url>http://www.mozilla.org/MPL/2.0/index.txt</url>
+      <distribution>repo</distribution>
+      <comments>Used for build time generation tool component in addition to ASL</comments>
+    </license>
+  </licenses>
+
   <description>
     Single-jar packaging of generate tool to be used in builds and IDE.
   </description>

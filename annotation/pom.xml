@@ -9,6 +9,14 @@
     <version>1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>For all code which is used in runtime</comments>
+    </license>
+  </licenses>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>

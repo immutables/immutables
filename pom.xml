@@ -26,6 +26,32 @@
     </repository>
   </distributionManagement>
 
+  <organization>
+    <name>The Immutables.org authors</name>
+    <url>http://immutables.org</url>
+  </organization>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>For all code which is used in runtime</comments>
+    </license>
+    <license>
+      <name>Mozilla Public License, Version 2.0</name>
+      <url>http://www.mozilla.org/MPL/2.0/index.txt</url>
+      <distribution>repo</distribution>
+      <comments>Used for build time generation tool component in addition to ASL</comments>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:git@github.com:immutables/org.immutables.git</connection>
+    <developerConnection>scm:git:git@github.com:immutables/org.immutables.git</developerConnection>
+    <url>https://github.com/immutables/org.immutables</url>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

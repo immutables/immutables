@@ -10,6 +10,14 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <description>Checkers toolkit built on top of hamcrest matchers. Expected to be used only in test scope</description>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>For all code which is used in runtime</comments>
+    </license>
+  </licenses>
   <dependencies>
     <dependency>
       <groupId>com.google.guava</groupId>
