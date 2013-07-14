@@ -322,6 +322,17 @@ private static final class InternalCriteria extends Criteria implements Constrai
     }
     return new InternalCriteria(constraint.nested("`a.marshaledName`", nilConstraint().equal("$all", false, wrappedValues)));
   }
+  [if (W == 'java.lang.String')]
+  @Override
+  public InternalCriteria `a.name`AnyStartsWith(String prefix) {
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, prefixPatternOf(prefix)));
+  }
+  
+  @Override
+  public InternalCriteria `a.name`AnyMatches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, pattern));
+  }
+  [/if]
 [/if]
 [if (!a.collectionType)]
   [if (a.documentElement)]
@@ -508,6 +519,10 @@ public static abstract class Criteria {
   public abstract Criteria `a.name`Size(int size);
   public abstract Criteria `a.name`Contains(`U` value);
   public abstract Criteria `a.name`ContainsAll(Iterable<`W`> values);
+  [if (W == 'java.lang.String')]
+  public abstract Criteria `a.name`AnyStartsWith(String prefix);
+  public abstract Criteria `a.name`AnyMatches(java.util.regex.Pattern pattern);
+  [/if]
 [else]
   [if (a.documentElement)]
   [-- public abstract Criteria `a.name`(`U`s.Criteria `a.name`Constraints);]
