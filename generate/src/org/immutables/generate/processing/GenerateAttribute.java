@@ -101,9 +101,9 @@ public abstract class GenerateAttribute {
     return options != null ? options.forceEmpty() : false;
   }
 
-  protected abstract TypeMirror internalTypeMirror();
-
   private List<String> typeParameters = Collections.emptyList();
+
+  protected abstract TypeMirror internalTypeMirror();
 
   @GenerateAsDefault
   public boolean isGenerateFunction() {
@@ -130,13 +130,13 @@ public abstract class GenerateAttribute {
     return false;
   }
 
+  protected abstract String internalTypeName();
+
   protected abstract String internalName();
 
   public String getName() {
     return internalName();
   }
-
-  protected abstract String internalTypeName();
 
   public String getType() {
     return internalTypeName();
@@ -517,6 +517,7 @@ public abstract class GenerateAttribute {
   public boolean isAligned() {
     String t = internalTypeName();
     return element.getAnnotation(GenerateAlign.class) != null
+        && isPrimitive()
         && (!double.class.getName().equals(t)
             && !float.class.getName().equals(t)
             && !long.class.getName().equals(t));
