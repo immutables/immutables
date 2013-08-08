@@ -13,5 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+/**
+ * The logging is facade for usage of high-level semantic event logging as opposed to tracing-like
+ * logging (log4j and followers). Instead of plumbing all kind of logging into low level framework,
+ * {@code org.immutables.common.logging} provides simple, yet powerful log event abstraction. Framework include backend
+ * interfaces like {@link org.immutables.common.logging.LogEventDispatcher}
+ * and {@link org.immutables.common.logging.LogEventListener}, and also provides high
+ * level consumer API based on proxying interfaces that define logging events via annotated method
+ * declarations.
+ */
 @javax.annotation.ParametersAreNonnullByDefault
 package org.immutables.common.logging;

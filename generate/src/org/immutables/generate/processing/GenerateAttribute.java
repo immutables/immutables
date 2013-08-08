@@ -264,12 +264,16 @@ public abstract class GenerateAttribute {
     return Iterables.getFirst(extendedClassesNames, null);
   }
 
-  public List<String> getExpectedSubclasses() {
-    List<String> classNames =
-        GenerateType.extractedClassNamesFromAnnotationMirrors(
-            GenerateMarshaledAs.class.getName(), "expectedSubclasses", element.getAnnotationMirrors());
+  @Nullable
+  private List<String> expectedSubclasses;
 
-    return classNames;
+  public List<String> getExpectedSubclasses() {
+    if (expectedSubclasses == null) {
+      expectedSubclasses =
+          GenerateType.extractedClassNamesFromAnnotationMirrors(
+              GenerateMarshaledAs.class.getName(), "expectedSubclasses", element.getAnnotationMirrors());
+    }
+    return expectedSubclasses;
   }
 
   private volatile boolean introspected;
@@ -320,7 +324,7 @@ public abstract class GenerateAttribute {
         List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
 
         if (!typeArguments.isEmpty()) {
-          // BOGUS 1? can it be reused for map for example
+          // XXX 1? can it be reused for map for example
           if (typeArguments.size() == 1) {
             TypeMirror typeArgument = typeArguments.get(0);
             if (typeArgument instanceof DeclaredType) {

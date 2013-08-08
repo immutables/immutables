@@ -1,12 +1,5 @@
 package org.immutables.generate.silly;
 
-import org.immutables.generate.silly.SillyDumb;
-import org.immutables.generate.silly.SillyIntWrap;
-import org.immutables.generate.silly.SillyMapHolder;
-import org.immutables.generate.silly.SillyMapTup;
-import org.immutables.generate.silly.SillyStructure;
-import org.immutables.generate.silly.SillySubstructure;
-import org.immutables.generate.silly.SillyTuplie;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -49,6 +42,31 @@ public class MarshallingGenerationTest {
 
     check(fromJsonIterable(toJsonIterable(tuplies, m2), m2)).is(tuplies);
     check(fromBsonIterable(toBsonIterable(tuplies, m2), m2)).is(tuplies);
+  }
+
+  @Test
+  public void marshalingPolymorphicTypes() throws IOException {
+    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
+
+    SillyPolyHost host = fromJsonIterable("[{ s:[{a:1},{b:'b'},{a:14}] }]", m).get(0);
+
+    check(host.s()).isOf(
+        ImmutableSillySub1.builder().a(1).build(),
+        ImmutableSillySub2.builder().b("b").build(),
+        ImmutableSillySub1.builder().a(14).build());
+  }
+
+  @Test
+  public void marshalingPolymorphicTypes2() throws IOException {
+    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
+
+    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]} },{s:{b:'b'}}]", m);
+
+    check(list.get(0).s()).is(
+        ImmutableSillySub3.builder().addB(1).addB(2).build());
+    
+    check(list.get(1).s()).is(
+        ImmutableSillySub2.builder().b("b").build());
   }
 
   @Test

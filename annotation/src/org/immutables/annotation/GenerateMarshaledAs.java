@@ -23,6 +23,8 @@ import java.lang.annotation.Target;
 /**
  * Use {@code GenerateMarshaledAs} to customize marshaling of annotated attribute.
  * Typical usage is to customize name in JSON/BSON representation
+ * <p>
+ * This example used to define JSON attribute name as "_id" during marshaling and unmarshaling.
  * 
  * <pre>
  * @GenerateMarshaledAs("_id")
@@ -52,8 +54,6 @@ public @interface GenerateMarshaledAs {
    * result in error due to undecidable situation.
    * @return subclasses of an attributes' abstract type that annotated with
    *         {@link GenerateMarshaler}
-   * @deprecated needlessly complicated feature
    */
-  @Deprecated
   Class<?>[] expectedSubclasses() default {};
 }

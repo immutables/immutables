@@ -18,8 +18,11 @@ package org.immutables.common.marshal;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -28,60 +31,6 @@ import javax.annotation.Nullable;
 public final class MarshalingSupport {
   private MarshalingSupport() {
   }
-
-//
-//  /**
-//   * Unmarshal contextual hook to provide fallback behaviour when no other more specific
-//   * overloaded method found.
-//   * @param <T> type of expected value
-//   * @param parser the parser
-//   * @param objectNull ignored attribute value (casted {@code null} used for static overload
-//   *          resolution)
-//   * @param expectedClass the expected class
-//   * @param hostNull ignored the host type value (casted {@code null} used for static overload
-//   *          resolution)
-//   * @param hostAttribute the host attribute
-//   * @return always returns {@code null} signalling that it is not suited
-//   * @throws IOException never throw by this method
-//   */
-//  @Nullable
-//  public static <T> T unmarshalContextualAttribute(
-//      JsonParser parser,
-//      @Nullable Object objectNull,
-//      Class<?> expectedClass,
-//      @Nullable Object hostNull,
-//      String hostAttribute) throws IOException {
-//    return null;
-//  }
-
-//  [-- We do this kind of contextual attribute parsing only for top level object]
-//      @Nullable
-//      `a.type` value = unmarshalContextualAttribute(parser, (`a.type`) null, `a.rawType`.class, (`type.name`) null, "`a.name`");
-//      if (value == null) {
-//        value = unmarshal(parser, (`a.type`) null, `a.rawType`.class);
-//      }
-//      builder.`a.name`(value);  
-
-  // TODO Note sure about this one
-//  /**
-//   * Catch all fallback for unmarshaling arbitrary object that will always fail
-//   * <p>
-//   * Used in generated code via static imports method overload resolution by compiler.
-//   * @param <T> expected enum type
-//   * @param parser the parser
-//   * @param enumNull the enum null, always {@code null}
-//   * @param expectedClass the expected class
-//   * @return nothing
-//   * @throws IOException is never thrown
-//   * @throws RuntimeException always throw marshal mismatch exception
-//   */
-//  public static <T> T unmarshal(
-//      JsonParser parser,
-//      @Nullable Object enumNull,
-//      Class<?> expectedClass) throws IOException {
-//    ensureMarshalCondition(false, "*", "*", expectedClass.getSimpleName(), "Cannot handle marshaling");
-//    return null;// unreachable
-//  }
 
   /**
    * Default unmarshal for enum object.
@@ -276,7 +225,7 @@ public final class MarshalingSupport {
       boolean value) throws IOException {
     generator.writeBoolean(value);
   }
-  
+
   public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) {
     if (expected != actual) {
       throw new UnmarshalMismatchException(marshaledType.getName(), "~", "", actual);
@@ -318,5 +267,56 @@ public final class MarshalingSupport {
     public String getMessage() {
       return String.format("[%s.%s : %s] %s", hostType, attributeName, attributeType, super.getMessage());
     }
+  }
+
+  public static Object unmarshalUsing(
+      JsonParser parser,
+      String hostType,
+      String attributeName,
+      String attributeType,
+      Marshaler<?>... marshalers) throws IOException {
+
+    TokenBuffer tokenBuffer = new TokenBuffer(null); // intentional null
+    tokenBuffer.copyCurrentStructure(parser);
+
+    List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
+    @Nullable
+    IOException lastIoException = null;
+    @Nullable
+    Object result = null;
+
+    for (Marshaler<?> marshaler : marshalers) {
+      try {
+        JsonParser tokenBufferParser = tokenBuffer.asParser();
+        tokenBufferParser.nextToken();
+        result = marshaler.unmarshalInstance(tokenBufferParser);
+      } catch (RuntimeException ex) {
+        exceptions.add(ex);
+      } catch (IOException ex) {
+        if (lastIoException != null) {
+          ex.addSuppressed(lastIoException);
+        }
+        lastIoException = ex;
+      }
+      if (result != null) {
+        break;
+      }
+    }
+    if (lastIoException != null) {
+      throw lastIoException;
+    }
+    if (result == null) {
+      UnmarshalMismatchException mismatchException =
+          new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
+
+      if (!exceptions.isEmpty()) {
+        for (RuntimeException ex : exceptions) {
+          mismatchException.addSuppressed(ex);
+        }
+      }
+      
+      throw mismatchException;
+    }
+    return result;
   }
 }

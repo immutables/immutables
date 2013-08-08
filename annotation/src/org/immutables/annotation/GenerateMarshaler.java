@@ -20,9 +20,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Instructs generator to generate marshaller
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface GenerateMarshaler {
 
+  /**
+   * Specify classes that will be used to with a static import .
+   * @return class literals
+   */
   Class<?>[] importRoutines() default {};
 }

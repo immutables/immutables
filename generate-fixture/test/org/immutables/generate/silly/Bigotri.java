@@ -3,6 +3,9 @@ package org.immutables.generate.silly;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
@@ -35,6 +38,7 @@ import org.immutables.common.repository.RepositoryConfiguration;
 import org.immutables.common.time.TimeMeasure;
 import org.immutables.generate.silly.repository.SillyEntityRepository;
 import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
+import static org.immutables.check.Checkers.*;
 import static org.immutables.generate.silly.repository.SillyEntityRepository.*;
 
 @SuppressWarnings("unused")
@@ -82,6 +86,17 @@ public final class Bigotri {
   }
 
   public static void main(String... args) throws Exception {
+    JsonParser parser = jsonFactory.createJsonParser("{a:1,b:2}");
+    TokenBuffer tokenBuffer = new TokenBuffer(new ObjectMapper());
+
+    JsonToken t = parser.nextToken();
+    check(t).is(JsonToken.START_OBJECT);
+
+    tokenBuffer.copyCurrentStructure(parser);
+    System.out.println(tokenBuffer.asParser());
+  }
+
+  public static void main44(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     MongoClient mongo = new MongoClient();

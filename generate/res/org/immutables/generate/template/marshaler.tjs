@@ -172,7 +172,7 @@ generator.writeStartObject();
 for (java.util.Map.Entry<`a.wrappedElementType`,`a.wrappedSecondaryElementType`> e : `a.name`Map.entrySet()) {
     [-- only use toString with objects and boxed primitives ]
     generator.writeFieldName(marshalKey(e.getKey()));
-  [-- here we assign to a unwrapped variable so overload resolution will precisely ]
+  [-- here we assign to a unwrapped variable so overload resolution will precise ]
   `a.unwrappedSecondaryElementType` value = e.getValue();
   marshal(generator, value);
 }
@@ -310,10 +310,7 @@ static `type.name` unmarshal`type.name`(JsonParser parser)
   while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
     ensure(t == JsonToken.FIELD_NAME, "*", "", t);
     String attributeName = parser.getText();
-    try {
     unmarshalAttribute(parser, builder, attributeName);
-    [-- FIXME is this needed now to catch and to sysout??!!]
-    } catch (Exception ex) {System.out.println(ex.toString());}
   }
   
   return builder.build();  
@@ -376,7 +373,7 @@ if (t != JsonToken.VALUE_NULL) {
   ensure(t.isScalarValue(), "`a.name`", "`a.type`", t);
   return Optional.<`a.elementType`>of(parser.get`a.unwrappedElementType.toUpperFirst()`Value());
     [else]
-  `a.wrappedElementType` value = unmarshal(parser, (`a.wrappedElementType`) null, `a.unwrapperOrRawElementType`.class);
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.wrappedElementType, a.unwrapperOrRawElementType)]
   return Optional.of(value);
     [/if]
 }
@@ -386,7 +383,7 @@ java.util.List<`a.elementType`> elements = com.google.common.collect.Lists.newAr
 [apply generateCollectionUnmarshalCode(type, a, 'elements.add')]
 return com.google.common.collect.Immutable`a.rawCollectionType`.copyOf(elements);
   [else]
-`a.type` value = unmarshal(parser, (`a.type`) null, `a.rawType`.class);
+[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.type, a.rawType)]
 return value;
   [/if]
 [/template]
@@ -449,7 +446,7 @@ private static `a.type` unmarshalMap`a.name.toUpperFirst()`(JsonParser parser)
 [elseif (a.wrappedSecondaryElementType == 'java.lang.String')]
     String value = parser.getText();
 [else]
-    `a.wrappedSecondaryElementType` value = unmarshal(parser, (`a.wrappedSecondaryElementType`) null, `a.unwrapperOrRawSecondaryElementType`.class);
+    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.wrappedSecondaryElementType, a.unwrapperOrRawSecondaryElementType)]
 [/if]
     builder.put(key, value);
   }
@@ -472,11 +469,11 @@ if (t == JsonToken.START_ARRAY) {
   [else]
 if (t == JsonToken.START_ARRAY) {
   while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
-    `a.wrappedElementType` value = unmarshal(parser, (`a.wrappedElementType`) null, `a.unwrapperOrRawElementType`.class);
+    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.wrappedElementType, a.unwrapperOrRawElementType)]
     `collectorExpression`(value);
   }
 } else if (t != JsonToken.VALUE_NULL) {
-  `a.wrappedElementType` value = unmarshal(parser, (`a.wrappedElementType`) null, `a.unwrapperOrRawElementType`.class);
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.wrappedElementType, a.unwrapperOrRawElementType)]
   `collectorExpression`(value);
 }
   [/if]
@@ -490,7 +487,7 @@ if (t != JsonToken.VALUE_NULL) {
   ensure(t.isScalarValue(), "`a.name`", "`a.type`", t);
   builder.`a.name`(parser.get`a.unwrappedElementType.toUpperFirst()`Value());
     [else]
-  `a.wrappedElementType` value = unmarshal(parser, (`a.wrappedElementType`) null, `a.unwrapperOrRawElementType`.class);
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.wrappedElementType, a.unwrapperOrRawElementType)]
   builder.`a.name`(value);
     [/if]
 }
@@ -498,7 +495,25 @@ if (t != JsonToken.VALUE_NULL) {
   [elseif (a.collectionType)]
 [apply generateCollectionUnmarshalCode(type, a, 'builder.add' + a.name.toUpperFirst())]
   [else]
-`a.type` value = unmarshal(parser, (`a.type`) null, `a.rawType`.class);
+[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, a, a.type, a.rawType)]
 builder.`a.name`(value);
   [/if]
+[/template]
+
+[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue(type, attribute, genericType, rawType)]
+  [let (cx = attribute.expectedSubclasses)]
+    [if (cx.length != 0)]
+[apply generatePolymorphicUnmarshalValue(type, attribute, genericType, rawType, cx)]
+    [else]
+`genericType` value = unmarshal(parser, (`genericType`) null, `rawType`.class);
+    [/if]
+  [/let]
+[/template]
+
+[template generatePolymorphicUnmarshalValue(type, attribute, genericType, rawType, expectedSubclasses)]
+`genericType` value = (`genericType`) unmarshalUsing(parser, "`type.name`", "`attribute.name`", "`genericType`"
+  [foreach (let sc in expectedSubclasses)]
+    , `sc`Marshaler.instance()
+  [/foreach]
+  );
 [/template]
