@@ -45,7 +45,7 @@ public class MarshallingGenerationTest {
   }
 
   @Test
-  public void marshalingPolymorphicTypes() throws IOException {
+  public void unmarshalingPolymorphicTypesList() throws IOException {
     Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
 
     SillyPolyHost host = fromJsonIterable("[{ s:[{a:1},{b:'b'},{a:14}] }]", m).get(0);
@@ -57,16 +57,50 @@ public class MarshallingGenerationTest {
   }
 
   @Test
-  public void marshalingPolymorphicTypes2() throws IOException {
+  public void unmarshalingPolymorphicTypes() throws IOException {
     Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
 
-    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]} },{s:{b:'b'}}]", m);
+    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]}},{s:{b:'b'}}]", m);
 
     check(list.get(0).s()).is(
         ImmutableSillySub3.builder().addB(1).addB(2).build());
-    
+
     check(list.get(1).s()).is(
         ImmutableSillySub2.builder().b("b").build());
+  }
+
+  @Test
+  public void marshalingPolymorphicTypesList() throws IOException {
+    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
+    ImmutableList<SillyPolyHost> list = fromJsonIterable("[{s:[{a:1},{b:'b'},{a:14}]}]", m);
+    check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
+  }
+
+  @Test
+  public void marshalingPolymorphicTypes() throws IOException {
+    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
+    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]}},{s:{b:'b'}}]", m);
+    check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
+  }
+
+  @Test
+  public void marshalingPolymorphicOptionalTypes() throws IOException {
+    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
+    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]},o:{b:'b'}}]", m);
+    check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
+    check(list.get(0).o()).isOf(ImmutableSillySub2.builder().b("b").build());
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void marshalingPolymorphicTypesFailedOnUnexpectedValues() throws IOException {
+    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
+    fromJsonIterable("[{s:{b:['a']}}}]", m);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void marshalingPolymorphicTypesFailedOnMismatchedAttributes() throws IOException {
+    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
+    fromJsonIterable("[{s:{c:1}}]", m);
   }
 
   @Test
@@ -136,7 +170,7 @@ public class MarshallingGenerationTest {
     return ImmutableList.copyOf(marshaler.unmarshalIterable(jsonParser));
   }
 
-  private <T> String toJsonIterable(ImmutableList<T> it, Marshaler<T> m) throws IOException {
+  private <T> String toJsonIterable(Iterable<T> it, Marshaler<T> m) throws IOException {
     StringWriter writer = new StringWriter();
     JsonGenerator jsonGen = strictierJsonFactory.createGenerator(writer);
     m.marshalIterable(jsonGen, it);
@@ -151,7 +185,7 @@ public class MarshallingGenerationTest {
     return ImmutableList.copyOf(marshaler.unmarshalIterable(bsonParser));
   }
 
-  private <T> byte[] toBsonIterable(ImmutableList<T> it, Marshaler<T> marshaler) throws IOException {
+  private <T> byte[] toBsonIterable(Iterable<T> it, Marshaler<T> marshaler) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     BsonGenerator bsonGen = bsonFactory.createJsonGenerator(baos);
     marshaler.marshalIterable(bsonGen, it);

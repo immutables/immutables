@@ -269,54 +269,59 @@ public final class MarshalingSupport {
     }
   }
 
-  public static Object unmarshalUsing(
+  @SafeVarargs
+  @SuppressWarnings("unchecked")
+  public static <T> void marshalWithOneOfMarshalers(
+      JsonGenerator generator,
+      T instance,
+      Marshaler<? extends T>... marshalers) throws IOException {
+    for (Marshaler<?> marshaler : marshalers) {
+      if (marshaler.getExpectedType().isInstance(instance)) {
+        ((Marshaler<Object>) marshaler).marshalInstance(generator, instance);
+      }
+    }
+  }
+
+  /**
+   * Support method that is used for parsing polymorphic/variant types.
+   * @param parser the parser pointing to object start
+   * @param hostType the host type
+   * @param attributeName the attribute name
+   * @param attributeType the attribute type
+   * @param marshalers the marshalers to try
+   * @return the object
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Object unmarshalWithOneOfMarshalers(
       JsonParser parser,
       String hostType,
       String attributeName,
       String attributeType,
       Marshaler<?>... marshalers) throws IOException {
 
-    TokenBuffer tokenBuffer = new TokenBuffer(null); // intentional null
-    tokenBuffer.copyCurrentStructure(parser);
+    TokenBuffer buffer = new TokenBuffer(null); // intentional null
+    buffer.copyCurrentStructure(parser);
 
+    @Nullable
     List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
-    @Nullable
-    IOException lastIoException = null;
-    @Nullable
-    Object result = null;
 
     for (Marshaler<?> marshaler : marshalers) {
       try {
-        JsonParser tokenBufferParser = tokenBuffer.asParser();
-        tokenBufferParser.nextToken();
-        result = marshaler.unmarshalInstance(tokenBufferParser);
+        JsonParser bufferParser = buffer.asParser();
+        bufferParser.nextToken();
+        return marshaler.unmarshalInstance(bufferParser);
       } catch (RuntimeException ex) {
         exceptions.add(ex);
-      } catch (IOException ex) {
-        if (lastIoException != null) {
-          ex.addSuppressed(lastIoException);
-        }
-        lastIoException = ex;
-      }
-      if (result != null) {
-        break;
       }
     }
-    if (lastIoException != null) {
-      throw lastIoException;
-    }
-    if (result == null) {
-      UnmarshalMismatchException mismatchException =
-          new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
 
-      if (!exceptions.isEmpty()) {
-        for (RuntimeException ex : exceptions) {
-          mismatchException.addSuppressed(ex);
-        }
-      }
-      
-      throw mismatchException;
+    UnmarshalMismatchException exception =
+        new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
+
+    for (RuntimeException ex : exceptions) {
+      exception.addSuppressed(ex);
     }
-    return result;
+
+    throw exception;
   }
 }
