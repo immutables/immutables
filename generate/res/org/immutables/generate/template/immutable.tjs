@@ -18,14 +18,38 @@ public final class Immutable`type.name`
     extends `type.name` {
 [if (type.useSingleton)]
   
-  private static final Immutable`type.name` `type.name.toUpperCase()`_INSTANCE = validated(new Immutable`type.name`());
+  private static final Immutable`type.name` INSTANCE = validated(new Immutable`type.name`());
   
   /**
    * Returns default immutable singleton value of `type.name` 
    * @return immutable instance of `type.name` 
    */
   public static `type.name` of() {
-    return `type.name.toUpperCase()`_INSTANCE;
+    return INSTANCE;
+  }
+[/if]
+[if (type.useInterned)]
+
+  private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
+  
+  private static class InternProxy {
+    final Immutable`type.name` instance;
+    
+    InternProxy(Immutable`type.name` instance) {
+      this.instance = instance;
+    }
+
+    public boolean equals(Object another) {
+      return instance.equalTo(((InternProxy) another).instance);
+    }
+    
+    public int hashCode() {
+      return instance.computeHashCode();
+    }
+  }
+  
+  private static Immutable`type.name` intern(Immutable`type.name` instance) {
+    return INTERNER.intern(new InternProxy(instance)).instance;
   }
 [/if]
 [if (type.useConstructor)]
@@ -45,6 +69,9 @@ public final class Immutable`type.name`
   private static Immutable`type.name` validated(Immutable`type.name` instance) {
 [if (type.validationMethodName)]
     instance.`type.validationMethodName`();
+[/if]
+[if (type.useInterned)]
+    instance = intern(instance);
 [/if]
     return instance;
   }
@@ -282,9 +309,13 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [foreach (let v in getters)]
   private final `v.type` `v.name`;
 [/foreach]
+[if (type.usePrehashed)]
+  private final int hashCode;
+[/if]
 [if (type.useSingleton)]
   private Immutable`type.name`() {
     [apply generateConstructorDefaultAttibutes(type, type.implementedAttributes)]
+    [apply generateAfterConstruction(type)]
   }
 [/if]
 [if (type.useConstructor)]
@@ -310,6 +341,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/let]
 [/foreach]
     [apply generateConstructorDefaultAttibutes(type, type.constructorOmited)]
+    [apply generateAfterConstruction(type)]
   }
 [/if]
 [if (type.useBuilder)]
@@ -350,6 +382,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [/let]
 [/foreach]
+    [apply generateAfterConstruction(type)]
   }
 [/if]
 [foreach (let v in getters)]
@@ -364,11 +397,18 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/template]
 
 [template generateAccessorMethods(type, getters)]
+[if (!type.equalToDefined)]
+
 @Override
 public boolean equals(Object another) {
+  [if (type.useInterned)]
+  return this == another;
+  [else]
   return this == another
       || (another instanceof Immutable`type.name` && equalTo((Immutable`type.name`) another));
+  [/if]
 }
+[/if]
 
 # let compareFields = function(v)
 #   let (n = v.name)
@@ -377,10 +417,8 @@ public boolean equals(Object another) {
 private boolean equalTo(Immutable`type.name` another) {
   return true`[ '\n          && ' + compareFields(v) for each (v in getters) ].join('')`;
 }
-[if (!type.hashCodeDefined)]  
 
-@Override
-public int hashCode() {
+private int computeHashCode() {
   [if (getters.length == 0)]
   return `hashOf(type.name)`;
   [else]
@@ -397,6 +435,16 @@ public int hashCode() {
   return h;
   [/if]
 }
+[if (!type.hashCodeDefined)]  
+
+@Override
+public int hashCode() {
+  [if (type.usePrehashed)]
+  return hashCode;
+  [else]
+  return computeHashCode();
+  [/if]
+}
 [/if]
 [if (!type.toStringDefined)]
 
@@ -409,4 +457,10 @@ public String toString() {
       .toString();
 }
 [/if]    
+[/template]
+
+[template generateAfterConstruction(type)]
+  [if (type.usePrehashed)]
+this.hashCode = this.computeHashCode();
+  [/if]
 [/template]

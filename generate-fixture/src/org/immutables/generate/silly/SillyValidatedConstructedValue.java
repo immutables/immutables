@@ -5,7 +5,7 @@ import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateCheck;
 import static com.google.common.base.Preconditions.*;
 
-@GenerateImmutable(useBuilder = false)
+@GenerateImmutable(builder = false)
 public abstract class SillyValidatedConstructedValue {
   @GenerateConstructorArgument(order = 0)
   public abstract int value();

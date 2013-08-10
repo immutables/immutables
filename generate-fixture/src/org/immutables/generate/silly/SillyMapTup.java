@@ -6,7 +6,7 @@ import org.immutables.annotation.GenerateConstructorArgument;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 
-@GenerateImmutable(useBuilder = false)
+@GenerateImmutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyMapTup {
 

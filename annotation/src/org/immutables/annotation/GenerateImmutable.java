@@ -15,6 +15,7 @@
  */
 package org.immutables.annotation;
 
+import com.google.common.collect.Interners;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,13 +34,26 @@ import java.lang.annotation.Target;
 public @interface GenerateImmutable {
 
   /**
-   * If {@code true}, generates internal singleton object constructed without any specified
-   * parameters (all default)
+   * If {@code useSingleton=true}, generates internal singleton object constructed without any
+   * specified parameters (all default).
    */
-  boolean useSingleton() default false;
+  boolean singleton() default false;
 
   /**
-   * If {@code false}, disables generation of {@code builder()}.
+   * If {@code interned=true} then instances will be strong interned on construction.
+   * @see Interners#newStrongInterner()
    */
-  boolean useBuilder() default true;
+  boolean interned() default false;
+
+  /**
+   * If {@code prehashed=true} then {@code hashCode} will be precomputed on construction.
+   * This could speed up collection lookups for objects with lots of attributes and nested objects
+   * or, in general, when {@code hashCode} computation is expensive and will be used a lot.
+   */
+  boolean prehashed() default false;
+
+  /**
+   * If {@code useBuilder=false}, disables generation of {@code builder()}.
+   */
+  boolean builder() default true;
 }

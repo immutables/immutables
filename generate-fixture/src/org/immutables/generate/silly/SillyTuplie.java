@@ -6,7 +6,7 @@ import org.immutables.annotation.GenerateMarshaler;
 import com.google.common.base.Optional;
 import java.util.Set;
 
-@GenerateImmutable(useBuilder = false)
+@GenerateImmutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyTuplie {
 

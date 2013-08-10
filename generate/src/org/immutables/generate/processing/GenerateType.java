@@ -81,7 +81,15 @@ public abstract class GenerateType {
   }
 
   public boolean isUseSingleton() {
-    return internalTypeElement().getAnnotation(GenerateImmutable.class).useSingleton();
+    return internalTypeElement().getAnnotation(GenerateImmutable.class).singleton();
+  }
+
+  public boolean isUseInterned() {
+    return internalTypeElement().getAnnotation(GenerateImmutable.class).interned();
+  }
+
+  public boolean isUsePrehashed() {
+    return isUseInterned() || internalTypeElement().getAnnotation(GenerateImmutable.class).prehashed();
   }
 
   public boolean isGenerateMarshaled() {

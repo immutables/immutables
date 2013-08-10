@@ -95,7 +95,7 @@ public class Processor extends AbstractProcessor {
 
     String fullyQualifiedTypeName = type.getSimpleName().toString();
 
-    boolean useBuilder = annotation.useBuilder();
+    boolean useBuilder = annotation.builder();
 
     GenerateTypes.Builder typeBuilder =
         GenerateTypes.builder()
@@ -121,7 +121,9 @@ public class Processor extends AbstractProcessor {
 
     Name name = attributeMethodCandidate.getSimpleName();
     List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
-    if (name.contentEquals("equalTo")
+    if (name.contentEquals("equals")
+        && parameters.size() == 1
+        && parameters.get(0).asType().toString().equals(Object.class.getName())
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
       type.isEqualToDefined(true);
       return;
