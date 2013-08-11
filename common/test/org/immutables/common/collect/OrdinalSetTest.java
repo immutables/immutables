@@ -16,19 +16,19 @@ public class OrdinalSetTest {
   Ord b0 = d2.get(0);
   Ord b1 = d2.get(1);
 
+  // not using IterableChecker in all cases to cover correct code paths
+  
   @Test
   public void emptySet() {
-    // not using IterableChecker to cover correct code paths
-    check(ImmutableOrdinalSet.of().isEmpty());
-    check(ImmutableOrdinalSet.of().size()).is(0);
+    check(ImmutableOrdinalSet.<Ord>of().isEmpty());
+    check(ImmutableOrdinalSet.<Ord>of().size()).is(0);
 
-    check(ImmutableOrdinalSet.of()).same(ImmutableOrdinalSet.of());
-    check(ImmutableOrdinalSet.of()).asString().notEmpty();
+    check(ImmutableOrdinalSet.<Ord>of()).same(ImmutableOrdinalSet.<Ord>of());
+    check(ImmutableOrdinalSet.<Ord>of()).asString().notEmpty();
   }
 
   @Test
   public void singletonSet() {
-    // not using IterableChecker to cover correct code paths
     check(!ImmutableOrdinalSet.of(a0).isEmpty());
     check(ImmutableOrdinalSet.of(a0).size()).is(1);
     check(ImmutableOrdinalSet.of(a0)).asString().notEmpty();
@@ -64,7 +64,6 @@ public class OrdinalSetTest {
 
   @Test
   public void regularSetBasic() {
-    // not using IterableChecker to cover correct code paths
     check(!ImmutableOrdinalSet.of(a0, a1).isEmpty());
     check(ImmutableOrdinalSet.of(b0, b1).size()).is(2);
   }

@@ -30,7 +30,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   private ImmutableOrdinalSet() {
   }
 
-  private static final ImmutableOrdinalSet<?> EMPTY_SET = new EmptyImmutableOrdinalSet<>();
+  private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet<>();
 
   @SuppressWarnings("unchecked")
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of() {
