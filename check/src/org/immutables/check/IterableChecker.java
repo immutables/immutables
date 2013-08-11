@@ -17,6 +17,7 @@ package org.immutables.check;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import java.util.Collection;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.matchers.JUnitMatchers;
@@ -28,8 +29,14 @@ import org.junit.matchers.JUnitMatchers;
  */
 public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> {
 
-  IterableChecker(Z value) {
-    super(value);
+  IterableChecker(Z value, boolean negate) {
+    super(value, negate);
+  }
+
+  @Override
+  public IterableChecker<Z, T> not() {
+    ensureNonNegative();
+    return new IterableChecker<>(actualValue, true);
   }
 
   public void any(Matcher<? extends T> elementMatcher) {
@@ -43,14 +50,22 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
   }
 
   public void has(T element) {
+    if (actualValue instanceof Collection<?>) {
+
+    }
+
     // better output than hamcrest hasItem
     verifyUsingMatcher(JUnitMatchers.hasItem(element));
   }
 
   @SafeVarargs
-  public final void hasAll(T... element) {
+  public final void hasAll(T... elements) {
     // better output than hamcrest hasItem
-    verifyUsingMatcher(JUnitMatchers.hasItems(element));
+    verifyUsingMatcher(JUnitMatchers.hasItems(elements));
+  }
+
+  public final void hasAll(Iterable<? extends T> elements) {
+    verifyUsingMatcher(JUnitMatchers.hasItems((T[]) Iterables.toArray(elements, Object.class)));
   }
 
   public void isOf(Iterable<?> elements) {
@@ -73,7 +88,7 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
   }
 
   public void hasSize(int size) {
-    verifyUsingMatcher(ImmutableList.copyOf(actualValue), Matchers.hasSize(size));
+    new IterableChecker<>(ImmutableList.copyOf(actualValue), negate).verifyUsingMatcher(Matchers.hasSize(size));
   }
 
   public void notEmpty() {

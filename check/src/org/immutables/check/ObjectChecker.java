@@ -16,6 +16,7 @@
 package org.immutables.check;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import java.util.Collection;
@@ -37,9 +38,11 @@ import org.hamcrest.core.IsNull;
 public class ObjectChecker<T> {
 
   final T actualValue;
+  final boolean negate;
 
-  ObjectChecker(T actualValue) {
+  ObjectChecker(T actualValue, boolean negate) {
     this.actualValue = actualValue;
+    this.negate = negate;
   }
 
   static void fail(@Nullable Object actualValue, Matcher<?> matcher) {
@@ -120,7 +123,7 @@ public class ObjectChecker<T> {
   }
 
   public StringChecker asString() {
-    return new StringChecker(actualValue != null ? actualValue.toString() : null);
+    return new StringChecker(actualValue != null ? actualValue.toString() : null, negate);
   }
 
   public void hasToString(String expectedToStringValue) {
@@ -163,6 +166,21 @@ public class ObjectChecker<T> {
     verifyUsingMatcher(CoreMatchers.not(matcher));
   }
 
+  /**
+   * Makes checker negative.
+   * @return negative checker
+   */
+  public ObjectChecker<T> not() {
+    ensureNonNegative();
+    return new ObjectChecker<>(actualValue, true);
+  }
+
+  protected void ensureNonNegative() {
+    if (negate) {
+      throw new IllegalStateException("Already negated checker, simply check expression to avoid double negation");
+    }
+  }
+
   public void not(@Nullable T value) {
     if (value == null) {
       notNull();
@@ -179,7 +197,7 @@ public class ObjectChecker<T> {
    * Creates a new instance of IsSame
    * @param object The predicate evaluates to true only when the argument is this object.
    */
-  public void sameInstance(T object) {
+  public void same(T object) {
     verifyUsingMatcher(CoreMatchers.sameInstance(object));
   }
 
@@ -193,10 +211,16 @@ public class ObjectChecker<T> {
   }
 
   public void satisfies(Predicate<? super T> predicate) {
+    if (negate) {
+      predicate = Predicates.not(predicate);
+    }
     verifyUsingMatcher(predicate.apply(actualValue), Is.is(true));
   }
 
   protected void verifyUsingMatcher(Matcher<? super T> matcher) {
+    if (negate) {
+      matcher = CoreMatchers.not(matcher);
+    }
     verifyUsingMatcher(actualValue, matcher);
   }
 

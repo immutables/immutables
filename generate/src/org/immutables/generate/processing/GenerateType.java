@@ -41,16 +41,8 @@ import static com.google.common.base.Preconditions.*;
 
 public abstract class GenerateType {
 
-  private static final String REPOSITORY_ID_FIELD = "_id";
-
   @Nullable
   private String validationMethodName;
-
-  public abstract String packageFullyQualifiedName();
-
-  public abstract String internalName();
-
-  public abstract TypeElement internalTypeElement();
 
   @Nullable
   public String getValidationMethodName() {
@@ -69,15 +61,8 @@ public abstract class GenerateType {
     return internalName();
   }
 
-  public abstract List<GenerateAttribute> attributes();
-
   public boolean isUseConstructorOnly() {
     return isUseConstructor() && !isUseBuilder();
-  }
-
-  @GenerateAsDefault
-  public boolean isUseBuilder() {
-    return true;
   }
 
   public boolean isUseSingleton() {
@@ -145,7 +130,7 @@ public abstract class GenerateType {
   @Nullable
   public GenerateAttribute getIdAttribute() {
     for (GenerateAttribute attribute : getImplementedAttributes()) {
-      if (attribute.getMarshaledName().equals(REPOSITORY_ID_FIELD)) {
+      if (attribute.getMarshaledName().equals("_id")) {
         return attribute;
       }
     }
@@ -223,26 +208,6 @@ public abstract class GenerateType {
     return ImmutableList.copyOf(collectClassNames);
   }
 
-  @GenerateAsDefault
-  public boolean isGenerateModifiable() {
-    return true;
-  }
-
-  @GenerateAsDefault
-  public boolean isHashCodeDefined() {
-    return false;
-  }
-
-  @GenerateAsDefault
-  public boolean isEqualToDefined() {
-    return false;
-  }
-
-  @GenerateAsDefault
-  public boolean isToStringDefined() {
-    return false;
-  }
-
   public List<GenerateAttribute> getSettableAttributes() {
     return FluentIterable.from(attributes())
         .filter(Predicates.or(
@@ -318,5 +283,38 @@ public abstract class GenerateType {
             GenerateAttributes.isGenerateFunction(),
             GenerateAttributes.isGeneratePredicate()))
         .toList();
+  }
+
+  public abstract String packageFullyQualifiedName();
+
+  public abstract String internalName();
+
+  public abstract TypeElement internalTypeElement();
+
+  public abstract List<GenerateAttribute> attributes();
+
+  @GenerateAsDefault
+  public boolean isGenerateModifiable() {
+    return true;
+  }
+
+  @GenerateAsDefault
+  public boolean isHashCodeDefined() {
+    return false;
+  }
+
+  @GenerateAsDefault
+  public boolean isEqualToDefined() {
+    return false;
+  }
+
+  @GenerateAsDefault
+  public boolean isToStringDefined() {
+    return false;
+  }
+
+  @GenerateAsDefault
+  public boolean isUseBuilder() {
+    return true;
   }
 }

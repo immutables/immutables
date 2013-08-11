@@ -36,7 +36,7 @@ public class OptionalChecker<T> {
     return new StringChecker(
         optionalValue.isPresent()
             ? optionalValue.get().toString()
-            : null);
+            : null, false);
   }
 
   public void isAbsent() {

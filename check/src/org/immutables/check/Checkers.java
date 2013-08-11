@@ -35,11 +35,11 @@ public class Checkers {
   }
 
   public static ObjectChecker<Boolean> check(Boolean actualValue) {
-    return new ObjectChecker<>(actualValue);
+    return new ObjectChecker<>(actualValue, false);
   }
 
   public static <I extends Iterable<E>, E> IterableChecker<I, E> check(I actualValue) {
-    return new IterableChecker<>(actualValue);
+    return new IterableChecker<>(actualValue, false);
   }
 
   public static <E> IterableChecker<List<E>, E> check(E[] actualValue) {
@@ -71,7 +71,7 @@ public class Checkers {
   }
 
   public static StringChecker check(String actualString) {
-    return new StringChecker(actualString);
+    return new StringChecker(actualString, false);
   }
 
   public static void check(String description, boolean actualCheckResult) {
@@ -79,7 +79,7 @@ public class Checkers {
   }
 
   public static <T> ObjectChecker<T> check(T actualValue) {
-    return new ObjectChecker<>(actualValue);
+    return new ObjectChecker<>(actualValue, false);
   }
 
 }

@@ -22,8 +22,14 @@ import org.junit.Assert;
 /** The string match wrapper. */
 public class StringChecker extends ObjectChecker<String> {
 
-  StringChecker(String actualValue) {
-    super(actualValue);
+  StringChecker(String actualValue, boolean negate) {
+    super(actualValue, negate);
+  }
+
+  @Override
+  public StringChecker not() {
+    ensureNonNegative();
+    return new StringChecker(actualValue, true);
   }
 
   public void contains(String substring) {

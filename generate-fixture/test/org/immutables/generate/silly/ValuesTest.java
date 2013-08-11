@@ -8,14 +8,14 @@ public class ValuesTest {
   @Test
   public void internedInstanceConstruction() {
     check(ImmutableSillyInterned.of(1, 2)).is(ImmutableSillyInterned.of(1, 2));
-    check(ImmutableSillyInterned.of(1, 2)).sameInstance(ImmutableSillyInterned.of(1, 2));
+    check(ImmutableSillyInterned.of(1, 2)).same(ImmutableSillyInterned.of(1, 2));
     check(ImmutableSillyInterned.of(1, 2)).not(ImmutableSillyInterned.of(2, 2));
 
     check(ImmutableSillyInterned.builder()
         .arg1(1)
         .arg2(2)
         .build())
-        .sameInstance(ImmutableSillyInterned.of(1, 2));
+        .same(ImmutableSillyInterned.of(1, 2));
 
     check(ImmutableSillyInterned.of(1, 2).hashCode()).is(ImmutableSillyInterned.of(1, 2).hashCode());
     check(ImmutableSillyInterned.of(1, 2).hashCode()).not(ImmutableSillyInterned.of(2, 2).hashCode());
