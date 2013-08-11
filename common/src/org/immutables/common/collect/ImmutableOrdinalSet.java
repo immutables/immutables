@@ -19,7 +19,6 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.ObjectArrays;
 import java.util.Collection;
 import java.util.Set;
 import static com.google.common.base.Preconditions.*;
@@ -47,7 +46,27 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     if (restElements.length == 0) {
       return new SingletonImmutableOrdinalSet<>(element);
     }
-    return new RegularImmutableOrdinalSet<>(domain, ObjectArrays.concat(element, restElements));
+    OrdinalValue<?>[] array = new OrdinalValue<?>[1 + restElements.length];
+    array[0] = element;
+    System.arraycopy(restElements, 0, array, 1, restElements.length);
+    return new RegularImmutableOrdinalSet<>(domain, array);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(Iterable<E> elements) {
+    if (elements instanceof ImmutableOrdinalSet) {
+      return (ImmutableOrdinalSet<E>) elements;
+    }
+    OrdinalValue<?>[] array = Iterables.toArray(elements, OrdinalValue.class);
+    switch (array.length) {
+    case 0:
+      return of();
+    case 1:
+      // Safe unchecked as element is known to be of type E
+      return new SingletonImmutableOrdinalSet<>((E) array[0]);
+    default:
+      return new RegularImmutableOrdinalSet<>(((E) array[0]).ordinalDomain(), array);
+    }
   }
 
   /**
@@ -179,20 +198,22 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     private final long[] vector;
     private final int size;
 
-    RegularImmutableOrdinalSet(OrdinalDomain<E> domain, E[] elements) {
+    RegularImmutableOrdinalSet(OrdinalDomain<E> domain, OrdinalValue<?>[] elements) {
       int maxOrdinal = 0;
-      for (E e : elements) {
+      int count = 0;
+      for (OrdinalValue<?> e : elements) {
         checkArgument(e.ordinalDomain().equals(domain), "Element has different domain %s", e);
         maxOrdinal = Math.max(maxOrdinal, e.ordinal());
+        count++;
       }
       this.domain = domain;
-      this.size = elements.length;
+      this.size = count;
       this.vector = new long[(maxOrdinal >>> POWER_OF_TWO_WORD_BITS) + 1];
       fillVector(elements);
     }
 
-    private void fillVector(E[] elements) {
-      for (E e : elements) {
+    private void fillVector(OrdinalValue<?>[] elements) {
+      for (OrdinalValue<?> e : elements) {
         int ordinal = e.ordinal();
         int wordIndex = ordinal >>> POWER_OF_TWO_WORD_BITS;
         int bitIndex = ordinal - (wordIndex << POWER_OF_TWO_WORD_BITS);

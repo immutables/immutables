@@ -1,6 +1,7 @@
 package org.immutables.common.collect;
 
 import com.google.common.collect.ImmutableSet;
+import java.util.Arrays;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -30,9 +31,12 @@ public class OrdinalSetTest {
     // not using IterableChecker to cover correct code paths
     check(!ImmutableOrdinalSet.of(a0).isEmpty());
     check(ImmutableOrdinalSet.of(a0).size()).is(1);
+    check(ImmutableOrdinalSet.of(a0)).asString().notEmpty();
 
     check(ImmutableOrdinalSet.of(a0)).isOf(a0);
     check(ImmutableOrdinalSet.of(a0)).has(a0);
+    check(ImmutableOrdinalSet.of(a0).contains(a0));
+    check(!ImmutableOrdinalSet.of(a0).contains(a1));
     check(ImmutableOrdinalSet.of(a0)).not(ImmutableOrdinalSet.of(d1.get(4)));
     check(ImmutableOrdinalSet.of(a0).containsAll(ImmutableOrdinalSet.of(a0)));
     check(ImmutableOrdinalSet.of(a0).containsAll(ImmutableSet.of(a0)));
@@ -40,16 +44,33 @@ public class OrdinalSetTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void wrongRegularSet() {
+  public void differentDomainInRegularSet() {
     ImmutableOrdinalSet.of(a0, b0);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void duplicateInRegularSet() {
+    ImmutableOrdinalSet.of(a0, a0);
+  }
+
   @Test
-  public void regularSet() {
+  public void copyOfIterable() {
+    ImmutableOrdinalSet<Ord> s1 = ImmutableOrdinalSet.of(a1);
+    check(ImmutableOrdinalSet.copyOf(s1)).same(s1);
+    check(ImmutableOrdinalSet.copyOf(Arrays.<Ord>asList())).same(ImmutableOrdinalSet.<Ord>of());
+    check(ImmutableOrdinalSet.copyOf(Arrays.asList(b0))).isOf(b0);
+    check(ImmutableOrdinalSet.copyOf(Arrays.asList(a0, a1))).isOf(a0, a1);
+  }
+
+  @Test
+  public void regularSetBasic() {
     // not using IterableChecker to cover correct code paths
     check(!ImmutableOrdinalSet.of(a0, a1).isEmpty());
     check(ImmutableOrdinalSet.of(b0, b1).size()).is(2);
+  }
 
+  @Test
+  public void regularSetContains() {
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableOrdinalSet.of(b0)));
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableOrdinalSet.of(b0, b1)));
 
