@@ -39,8 +39,9 @@ import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 import static com.google.common.base.Preconditions.*;
 
-public abstract class GenerateType {
+public abstract class GenerateType extends TypeInstrospectionBase {
 
+  private static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.common.collect.OrdinalValue";
   @Nullable
   private String validationMethodName;
 
@@ -59,6 +60,11 @@ public abstract class GenerateType {
 
   public String getName() {
     return internalName();
+  }
+
+  public boolean isGenerateOrdinalValue() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(ORDINAL_VALUE_INTERFACE_TYPE);
   }
 
   public boolean isUseConstructorOnly() {
@@ -283,6 +289,11 @@ public abstract class GenerateType {
             GenerateAttributes.isGenerateFunction(),
             GenerateAttributes.isGeneratePredicate()))
         .toList();
+  }
+
+  @Override
+  protected TypeMirror internalTypeMirror() {
+    return internalTypeElement().asType();
   }
 
   public abstract String packageFullyQualifiedName();

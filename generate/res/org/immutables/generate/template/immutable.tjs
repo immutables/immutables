@@ -28,10 +28,8 @@ public final class Immutable`type.name`
     return INSTANCE;
   }
 [/if]
-[if (type.useInterned)]
+[if (type.useInterned || type.generateOrdinalValue)]
 
-  private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
-  
   private static class InternProxy {
     final Immutable`type.name` instance;
     
@@ -47,6 +45,44 @@ public final class Immutable`type.name`
       return instance.computeHashCode();
     }
   }
+[/if]
+[if (type.generateOrdinalValue)]
+
+  /**
+   * Copy constructor used for interning of objects implementing
+   * {@link org.immutables.common.collect.OrdinalValue}
+   */
+  private Immutable`type.name`(Immutable`type.name` instance, int ordinal) {
+  [foreach (let v in type.implementedAttributes)]
+    this.`v.name` = instance.`v.name`;
+  [/foreach]
+  [if (type.usePrehashed)]
+    this.hashCode = instance.hashCode;
+  [/if]
+    this.ordinal = ordinal;
+  }
+
+  private static final org.immutables.common.collect.InterningOrdinalDomain<InternProxy, `type.name`> ORDINAL_DOMAIN =
+      new org.immutables.common.collect.InterningOrdinalDomain<InternProxy, `type.name`>() {
+        protected `type.name` extractValue(InternProxy proxy, int ordinal) {
+          return new Immutable`type.name`(proxy.instance, ordinal);
+        }
+      };
+  
+  public static org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomainInstance() {
+    return ORDINAL_DOMAIN;
+  }
+  
+  public org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomain() {
+    return ORDINAL_DOMAIN;
+  }
+  
+  private static Immutable`type.name` intern(Immutable`type.name` instance) {
+    return (Immutable`type.name`) ORDINAL_DOMAIN.internOrdinal(new InternProxy(instance));
+  }
+[elseif (type.useInterned)]
+
+  private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
   
   private static Immutable`type.name` intern(Immutable`type.name` instance) {
     return INTERNER.intern(new InternProxy(instance)).instance;
@@ -70,7 +106,7 @@ public final class Immutable`type.name`
 [if (type.validationMethodName)]
     instance.`type.validationMethodName`();
 [/if]
-[if (type.useInterned)]
+[if (type.useInterned || type.generateOrdinalValue)]
     instance = intern(instance);
 [/if]
     return instance;
@@ -312,6 +348,10 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [if (type.usePrehashed)]
   private final int hashCode;
 [/if]
+[if (type.generateOrdinalValue)]
+  private final int ordinal;
+[/if]
+
 [if (type.useSingleton)]
   private Immutable`type.name`() {
     [apply generateConstructorDefaultAttibutes(type, type.implementedAttributes)]
@@ -392,6 +432,13 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
     return `v.name`;
   }
 [/foreach]
+[if (type.generateOrdinalValue)]
+
+  @Override
+  public int ordinal() {
+    return ordinal;
+  }
+[/if]
   [apply generateAccessorMethods(type, getters)]
 [/let]
 [/template]
@@ -462,5 +509,9 @@ public String toString() {
 [template generateAfterConstruction(type)]
   [if (type.usePrehashed)]
 this.hashCode = this.computeHashCode();
+  [/if]
+  [if (type.generateOrdinalValue)]
+// Assigning dummy ordinal value to be changed on interning
+this.ordinal = 0;
   [/if]
 [/template]

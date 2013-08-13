@@ -15,7 +15,6 @@
  */
 package org.immutables.generate.processing;
 
-import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -23,12 +22,9 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +35,6 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.annotation.GenerateAlign;
 import org.immutables.annotation.GenerateAsDefault;
@@ -48,7 +43,7 @@ import org.immutables.annotation.GenerateMarshaledAs;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 
-public abstract class GenerateAttribute {
+public abstract class GenerateAttribute extends TypeInstrospectionBase {
 
   private static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
@@ -103,6 +98,7 @@ public abstract class GenerateAttribute {
 
   private List<String> typeParameters = Collections.emptyList();
 
+  @Override
   protected abstract TypeMirror internalTypeMirror();
 
   @GenerateAsDefault
@@ -276,22 +272,12 @@ public abstract class GenerateAttribute {
     return expectedSubclasses;
   }
 
-  private volatile boolean introspected;
-  private ImmutableList<String> extendedClassesNames;
-  private ImmutableSet<String> implementedInterfacesNames;
   private boolean marshaledElement;
   private boolean marshaledSecondaryElement;
   private boolean hasEnumFirstTypeParameter;
   private TypeElement containedTypeElement;
   private boolean specialMarshaledElement;
   private boolean specialMarshaledSecondaryElement;
-
-  private void ensureTypeIntrospected() {
-    if (!introspected) {
-      introspectType();
-      introspected = true;
-    }
-  }
 
   public boolean isDocumentElement() {
     ensureTypeIntrospected();
@@ -307,10 +293,8 @@ public abstract class GenerateAttribute {
     return marshaledSecondaryElement;
   }
 
-  private void introspectType() {
-    List<TypeMirror> extendedClasses = Lists.newArrayList();
-    Set<TypeMirror> implementedInterfaces = Sets.newLinkedHashSet();
-
+  @Override
+  protected void introspectType() {
     TypeMirror typeMirror = internalTypeMirror();
 
     if (isContainerType()) {
@@ -371,19 +355,7 @@ public abstract class GenerateAttribute {
       specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
     }
 
-    if (typeMirror.getKind() == TypeKind.DECLARED) {
-      collectHierarchyMirrors(typeMirror, extendedClasses, implementedInterfaces);
-    }
-
-    extendedClassesNames = FluentIterable.from(extendedClasses)
-        .filter(DeclaredType.class)
-        .transform(ToNameOfTypeElement.FUNCTION)
-        .toList();
-
-    implementedInterfacesNames = FluentIterable.from(implementedInterfaces)
-        .filter(DeclaredType.class)
-        .transform(ToNameOfTypeElement.FUNCTION)
-        .toSet();
+    super.introspectType();
   }
 
   public boolean isSpecialMarshaledElement() {
@@ -409,38 +381,6 @@ public abstract class GenerateAttribute {
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
   }
 
-  private void collectHierarchyMirrors(
-      TypeMirror topClass,
-      List<TypeMirror> extendedClasses,
-      Set<TypeMirror> implementedInterfaces) {
-    if (topClass.getKind() != TypeKind.DECLARED || topClass.toString().equals(Object.class.getName())) {
-      return;
-    }
-    collectInterfacesMirrors(topClass, implementedInterfaces);
-
-    TypeElement e = toTypeElement(topClass);
-    TypeMirror superClass = e.getSuperclass();
-
-    extendedClasses.add(superClass);
-    collectHierarchyMirrors(superClass, extendedClasses, implementedInterfaces);
-
-    for (TypeMirror typeMirror : e.getInterfaces()) {
-      collectInterfacesMirrors(typeMirror, implementedInterfaces);
-    }
-  }
-
-  private void collectInterfacesMirrors(
-      TypeMirror topClass,
-      Set<TypeMirror> implementedInterfaces) {
-    TypeElement e = toTypeElement(topClass);
-
-    if (e.getKind().isInterface()) {
-      implementedInterfaces.add(topClass);
-      for (TypeMirror typeMirror : e.getInterfaces()) {
-        collectInterfacesMirrors(typeMirror, implementedInterfaces);
-      }
-    }
-  }
 
   public int getMinValue() {
     return isAligned()
@@ -452,26 +392,6 @@ public abstract class GenerateAttribute {
     return isAligned()
         ? element.getAnnotation(GenerateAlign.class).max()
         : 0;
-  }
-
-  private TypeElement toTypeElement(TypeMirror input) {
-    return ToDeclaredTypeElement.FUNCTION.apply(input);
-  }
-
-  private enum ToDeclaredTypeElement implements Function<TypeMirror, TypeElement> {
-    FUNCTION;
-    @Override
-    public TypeElement apply(TypeMirror input) {
-      return (TypeElement) ((DeclaredType) input).asElement();
-    }
-  }
-
-  private enum ToNameOfTypeElement implements Function<TypeMirror, String> {
-    FUNCTION;
-    @Override
-    public String apply(TypeMirror input) {
-      return ToDeclaredTypeElement.FUNCTION.apply(input).getQualifiedName().toString();
-    }
   }
 
   public String getRawCollectionType() {
