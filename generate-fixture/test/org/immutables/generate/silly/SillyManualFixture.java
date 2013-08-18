@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -31,9 +32,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import org.bson.LazyBSONCallback;
-import org.immutables.common.concurrent.FluentFutures;
 import org.immutables.common.repository.RepositoryConfiguration;
 import org.immutables.common.time.TimeMeasure;
 import org.immutables.generate.silly.repository.SillyEntityRepository;
@@ -42,18 +41,7 @@ import static org.immutables.check.Checkers.*;
 import static org.immutables.generate.silly.repository.SillyEntityRepository.*;
 
 @SuppressWarnings("unused")
-public final class Bigotri {
-
-  class Query<T> {
-
-  }
-
-  class SillyDumbQuery extends Query<SillyDumb> {
-
-    public Future<SillyDumb> find() {
-      return null;
-    }
-  }
+public final class SillyManualFixture {
 
   static BsonFactory bsonFactory = new BsonFactory();
 
@@ -136,16 +124,15 @@ public final class Bigotri {
         .removeInts(2)
         .returnNew()
         .update()
-        .addCallback(FluentFutures.presentOnly(new FutureCallback<SillyEntity>() {
+        .addCallback(new FutureCallback<Optional<SillyEntity>>() {
           @Override
-          public void onSuccess(SillyEntity result) {
+          public void onSuccess(Optional<SillyEntity> result) {
             System.out.println(result);
           }
-
           @Override
           public void onFailure(Throwable t) {
           }
-        }))
+        })
         .get();
 
     executor.shutdown();

@@ -24,9 +24,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Convenient wrappers for matcher checking, desined for better code assist and discoverability for
- * most commonly used
- * matchers.
+ * Convenient wrappers for matcher checking, desined for better code assist(completion) and
+ * discoverability for most commonly used matchers.
  */
 public class Checkers {
 
@@ -81,5 +80,4 @@ public class Checkers {
   public static <T> ObjectChecker<T> check(T actualValue) {
     return new ObjectChecker<>(actualValue, false);
   }
-
 }

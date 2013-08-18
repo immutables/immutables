@@ -1,7 +1,6 @@
 package org.immutables.common.concurrent;
 
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
@@ -85,40 +84,4 @@ public final class FluentFutures {
     }
     return new WrapingFluentFuture<>(future);
   }
-
-  /**
-   * Dereferencing only present optional value, otherwise {@link IllegalStateException} will be
-   * notified as failure.
-   * @param <T> the generic type
-   * @param callback the callback
-   * @return the future callback
-   */
-  // XXX Have some doubt that it pulls it conceptual weight. i.e. is barely useful
-  public static <T> FutureCallback<Optional<T>> presentOnly(FutureCallback<T> callback) {
-    return new OptionalDereferencingFutureCallback<>(callback);
-  }
-
-  private static final class OptionalDereferencingFutureCallback<T>
-      implements FutureCallback<Optional<T>> {
-    private final FutureCallback<T> callback;
-
-    OptionalDereferencingFutureCallback(FutureCallback<T> callback) {
-      this.callback = callback;
-    }
-
-    @Override
-    public void onSuccess(Optional<T> result) {
-      try {
-        callback.onSuccess(result.get());
-      } catch (IllegalStateException ex) {
-        onFailure(ex);
-      }
-    }
-
-    @Override
-    public void onFailure(Throwable t) {
-      callback.onFailure(t);
-    }
-  }
-
 }
