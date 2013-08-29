@@ -71,16 +71,18 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
   FluentFuture<V> withFallbackValue(V value);
 
   /**
-   * Asyncronous transform.
-   * @see Futures#transform(ListenableFuture, AsyncFunction)
+   * Transform future.
+   * @see Futures#transform(ListenableFuture, Function)
    * @param <T> transformed type
-   * @param function the function
-   * @return the fluent future
+   * @param function A Function to transform the results of the provided future
+   *          to the results of the returned future. This will be run in the thread
+   *          that notifies input it is complete.
+   * @return A future that holds result of the transformation.
    */
   <T> FluentFuture<T> transform(Function<? super V, ? extends T> function);
 
   /**
-   * Transform future.
+   * Asyncronous transform.
    * @see Futures#transform(ListenableFuture, Function)
    * @param <T> transformed type
    * @param function A function to transform the result of the input future
