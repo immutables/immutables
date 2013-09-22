@@ -1,4 +1,4 @@
-package org.immutables.common.repository;
+package org.immutables.common.repository.internal;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;

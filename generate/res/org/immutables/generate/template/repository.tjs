@@ -8,8 +8,9 @@ import com.google.common.util.concurrent.*;
 import org.immutables.common.repository.*;
 import org.immutables.common.concurrent.*;
 [apply generateImportRoutines(type)]
-import static org.immutables.common.marshal.MarshalingSupport.*;
-import static org.immutables.common.repository.ConstraintSupport.*;
+import org.immutables.common.repository.internal.ConstraintSupport;
+import org.immutables.common.repository.internal.RepositorySupport;
+import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
  * {@code `type.name`Repository} used as access point for storing and
@@ -19,7 +20,7 @@ import static org.immutables.common.repository.ConstraintSupport.*;
 @javax.annotation.Generated({"repository.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-public final class `type.name`Repository extends RepositorySupport.Repository<`type.name`> {
+public final class `type.name`Repository extends Repositories.Repository<`type.name`> {
   private static final String DOCUMENT_COLLECTION_NAME = "`type.documentName`";
 
   private `type.name`Repository(RepositoryConfiguration configuration) {
@@ -100,7 +101,7 @@ public Fetcher find(Criteria criteria) {
 }
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Fetcher extends RepositorySupport.Fetcher<`type.name`, Fetcher> {
+public static final class Fetcher extends Repositories.Fetcher<`type.name`, Fetcher> {
   private Fetcher(`type.name`Repository repository, Criteria criteria) {
     super(repository);
     this.criteria = (ConstraintSupport.ConstraintHost) criteria;
@@ -123,7 +124,7 @@ public Indexer indexer() {
 }
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Indexer extends RepositorySupport.Indexer<`type.name`, Indexer> {
+public static final class Indexer extends Repositories.Indexer<`type.name`, Indexer> {
   private Indexer(`type.name`Repository repository) {
     super(repository);
   }
@@ -149,7 +150,7 @@ public Updater update(Criteria criteria) {
 }
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Updater extends RepositorySupport.Updater<`type.name`> {
+public static final class Updater extends Repositories.Updater<`type.name`> {
   private Updater(`type.name`Repository repository, Criteria criteria) {
     super(repository);
     this.criteria = (ConstraintSupport.ConstraintHost) criteria;
@@ -161,9 +162,9 @@ public static final class Updater extends RepositorySupport.Updater<`type.name`>
 [template generateModifier(type)]
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Modifier extends RepositorySupport.Modifier<`type.name`, Modifier> {
+public static final class Modifier extends Repositories.Modifier<`type.name`, Modifier> {
   private Modifier(
-      RepositorySupport.Repository<`type.name`> repository,
+      Repositories.Repository<`type.name`> repository,
       ConstraintSupport.ConstraintHost criteria,
       ConstraintSupport.Constraint ordering,
       ConstraintSupport.Constraint exclusion) {
@@ -280,14 +281,14 @@ public static final class Modifier extends RepositorySupport.Modifier<`type.name
 [template generateInternalCriteria(type)]
 
 @SuppressWarnings("unchecked")
-private static final class InternalCriteria extends Criteria implements ConstraintHost {
+private static final class InternalCriteria extends Criteria implements ConstraintSupport.ConstraintHost {
   final ConstraintSupport.Constraint constraint;
   
   InternalCriteria(ConstraintSupport.Constraint constraint) {
     this.constraint = constraint;
   }
   
-  public <V extends ConstraintVisitor<V>> V accept(V visitor) {
+  public <V extends ConstraintSupport.ConstraintVisitor<V>> V accept(V visitor) {
     return constraint.accept(visitor);
   }
 [foreach (a in type.implementedAttributes)]
@@ -320,12 +321,12 @@ private static final class InternalCriteria extends Criteria implements Constrai
     for (`W` v : values) {
       wrappedValues.add(wrapMarshalable(v));
     }
-    return new InternalCriteria(constraint.nested("`a.marshaledName`", nilConstraint().equal("$all", false, wrappedValues)));
+    return new InternalCriteria(constraint.nested("`a.marshaledName`", ConstraintSupport.nilConstraint().equal("$all", false, wrappedValues)));
   }
   [if (W == 'java.lang.String')]
   @Override
   public InternalCriteria `a.name`AnyStartsWith(String prefix) {
-    return new InternalCriteria(constraint.match("`a.marshaledName`", false, prefixPatternOf(prefix)));
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, ConstraintSupport.prefixPatternOf(prefix)));
   }
   
   @Override
@@ -339,7 +340,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
   
   [-- @Override ]
   [-- public InternalCriteria `a.name`(`U`s.Criteria `a.name`Constraints) { ]
-  [-- return new InternalCriteria(constraint.nested("`a.marshaledName`", (ConstraintHost) `a.name`Constraints)); ]
+  [-- return new InternalCriteria(constraint.nested("`a.marshaledName`", (ConstraintSupport.ConstraintHost) `a.name`Constraints)); ]
   [-- } ]
   [/if]
 
@@ -398,7 +399,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
   
   @Override
   public InternalCriteria `a.name`StartsWith(String prefix) {
-    return new InternalCriteria(constraint.match("`a.marshaledName`", false, prefixPatternOf(prefix)));
+    return new InternalCriteria(constraint.match("`a.marshaledName`", false, ConstraintSupport.prefixPatternOf(prefix)));
   }
   
   @Override
@@ -500,7 +501,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
  * @return empty immutable criteria
  */
 public static Criteria where() {
-  return new InternalCriteria(nilConstraint());
+  return new InternalCriteria(ConstraintSupport.nilConstraint());
 }
 
 /**

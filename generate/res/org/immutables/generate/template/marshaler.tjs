@@ -96,7 +96,7 @@ import javax.annotation.*;
 import java.io.IOException;
 // Generated imports
 [apply generateImportRoutines(type)]
-import static org.immutables.common.marshal.MarshalingSupport.*;
+import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
  * Internal routines for marshaling and unmarshaling instances of `type.name`.

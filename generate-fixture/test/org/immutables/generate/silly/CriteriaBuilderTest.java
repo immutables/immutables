@@ -1,11 +1,11 @@
 package org.immutables.generate.silly;
 
-import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
-import org.immutables.generate.silly.repository.SillyStructureWithIdRepository.Criteria;
 import com.google.common.collect.Range;
 import java.util.regex.Pattern;
-import org.immutables.common.repository.ConstraintSupport.ConstraintHost;
-import org.immutables.common.repository.RepositorySupport;
+import org.immutables.common.repository.internal.ConstraintSupport.ConstraintHost;
+import org.immutables.common.repository.internal.RepositorySupport;
+import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
+import org.immutables.generate.silly.repository.SillyStructureWithIdRepository.Criteria;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 

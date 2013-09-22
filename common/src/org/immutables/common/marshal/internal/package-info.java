@@ -13,9 +13,5 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-/**
- * Base and support classes for generated MongoDB repositories using
- * {@code org.immutables.annotation.GenerateRepository} annotation.
- */
 @javax.annotation.ParametersAreNonnullByDefault
-package org.immutables.common.repository;
+package org.immutables.common.marshal.internal;

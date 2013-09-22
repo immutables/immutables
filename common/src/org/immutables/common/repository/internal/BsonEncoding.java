@@ -1,4 +1,4 @@
-package org.immutables.common.repository;
+package org.immutables.common.repository.internal;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -38,21 +38,20 @@ import org.bson.BasicBSONDecoder;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
 import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.repository.RepositorySupport.MarshalableWrapper;
 
 public final class BsonEncoding {
   private static final BsonFactory BSON_FACTORY = new BsonFactory().enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
 
   /**
    * This field name will cause an mongodb confuse if not unwraped correctly so it's may be a good
-   * choise.
+   * choice.
    */
   private static final String PREENCODED_VALUE_WRAPPER_FIELD_NAME = "$";
 
   private BsonEncoding() {
   }
 
-  public static Object unwrapBsonable(MarshalableWrapper marshalableValue) {
+  public static Object unwrapBsonable(RepositorySupport.MarshalableWrapper marshalableValue) {
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
@@ -70,7 +69,7 @@ public final class BsonEncoding {
     }
   }
 
-  static <T> T unmarshalDbObject(DBObject dbObject, Marshaler<T> marshaler) throws IOException {
+  public static <T> T unmarshalDbObject(DBObject dbObject, Marshaler<T> marshaler) throws IOException {
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     encoder().writeObject(buffer, dbObject);
     JsonParser parser = BSON_FACTORY.createJsonParser(buffer.toByteArray());
@@ -101,7 +100,7 @@ public final class BsonEncoding {
     }
   }
 
-  static DBEncoder encoder() {
+  public static DBEncoder encoder() {
     return Encoder.ENCODER;
   }
 
@@ -121,11 +120,11 @@ public final class BsonEncoding {
     }
   }
 
-  static <T> DBObject wrapUpdateObject(T instance, Marshaler<T> marshaler) {
+  public static <T> DBObject wrapUpdateObject(T instance, Marshaler<T> marshaler) {
     return new UpdateObject<>(instance, marshaler);
   }
 
-  static <T> List<DBObject> wrapInsertObjectList(ImmutableList<T> list, Marshaler<T> marshaler) {
+  public static <T> List<DBObject> wrapInsertObjectList(ImmutableList<T> list, Marshaler<T> marshaler) {
     return new InsertObjectList<>(list, marshaler);
   }
 
@@ -429,7 +428,7 @@ public final class BsonEncoding {
     return ImmutableList.copyOf(results);
   }
 
-  static <T> DBDecoderFactory newResultDecoderFor(Marshaler<T> marshaler, int expectedSize) {
+  public static <T> DBDecoderFactory newResultDecoderFor(Marshaler<T> marshaler, int expectedSize) {
     return new ResultDecoder<>(marshaler, expectedSize);
   }
 

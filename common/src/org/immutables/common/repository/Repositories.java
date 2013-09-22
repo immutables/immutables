@@ -1,45 +1,33 @@
 package org.immutables.common.repository;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.collect.BoundType;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Range;
 import com.google.common.primitives.Ints;
-import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
-import com.mongodb.QueryOperators;
 import com.mongodb.WriteResult;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import org.bson.BSONObject;
 import org.immutables.common.concurrent.FluentFuture;
 import org.immutables.common.concurrent.FluentFutures;
 import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.repository.ConstraintSupport.Constraint;
-import org.immutables.common.repository.ConstraintSupport.ConstraintHost;
-import org.immutables.common.repository.ConstraintSupport.ConstraintVisitor;
+import org.immutables.common.repository.internal.BsonEncoding;
+import org.immutables.common.repository.internal.ConstraintSupport;
 import static com.google.common.base.Preconditions.*;
+import static org.immutables.common.repository.internal.RepositorySupport.*;
 
-public final class RepositorySupport {
+public final class Repositories {
   private static final int LARGE_BATCH_SIZE = 2000;
   private static final int DEFAULT_EXPECTED_RESULT_SIZE = 500;
 
-  private RepositorySupport() {
+  private Repositories() {
   }
 
   @ThreadSafe
@@ -66,7 +54,9 @@ public final class RepositorySupport {
       return FluentFutures.from(configuration.executor.submit(callable));
     }
 
-    protected final FluentFuture<Void> doIndex(final Constraint fields, final Constraint options) {
+    protected final FluentFuture<Void> doIndex(
+        final ConstraintSupport.Constraint fields,
+        final ConstraintSupport.Constraint options) {
       return submit(new Callable<Void>() {
         @Override
         public Void call() {
@@ -95,10 +85,10 @@ public final class RepositorySupport {
     }
 
     protected final FluentFuture<Optional<T>> doModify(
-        final ConstraintHost criteria,
-        final Constraint ordering,
-        final Constraint exclusion,
-        final Constraint update,
+        final ConstraintSupport.ConstraintHost criteria,
+        final ConstraintSupport.Constraint ordering,
+        final ConstraintSupport.Constraint exclusion,
+        final ConstraintSupport.Constraint update,
         final boolean upsert,
         final boolean newOrOld,
         final boolean remove) {
@@ -129,7 +119,7 @@ public final class RepositorySupport {
     }
 
     protected final FluentFuture<Integer> doUpdate(
-        final ConstraintHost criteria,
+        final ConstraintSupport.ConstraintHost criteria,
         final ConstraintSupport.Constraint update,
         final boolean upsert,
         final boolean multiple) {
@@ -153,7 +143,7 @@ public final class RepositorySupport {
     }
 
     protected final FluentFuture<Integer> doDelete(
-        final ConstraintHost criteria) {
+        final ConstraintSupport.ConstraintHost criteria) {
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
@@ -168,7 +158,7 @@ public final class RepositorySupport {
     }
 
     protected final FluentFuture<Void> doUpsert(
-        final ConstraintHost criteria,
+        final ConstraintSupport.ConstraintHost criteria,
         final T document) {
       return submit(new Callable<Void>() {
         @Override
@@ -190,7 +180,7 @@ public final class RepositorySupport {
     }
 
     protected final FluentFuture<List<T>> doFetch(
-        final @Nullable ConstraintHost criteria,
+        final @Nullable ConstraintSupport.ConstraintHost criteria,
         final ConstraintSupport.Constraint ordering,
         final ConstraintSupport.Constraint exclusion,
         final @Nonnegative int skip,
@@ -280,7 +270,9 @@ public final class RepositorySupport {
     }
 
     private ConstraintSupport.Constraint appendFields(
-        ConstraintSupport.Constraint fields, String name, Constraint setOfFields) {
+        ConstraintSupport.Constraint fields,
+        String name,
+        ConstraintSupport.Constraint setOfFields) {
       return !setOfFields.isNil() ? fields.equal(name, false, setOfFields) : fields;
     }
   }
@@ -413,211 +405,4 @@ public final class RepositorySupport {
     }
   }
 
-  private static BasicDBObject extractDbObject(final ConstraintHost fields) {
-    BasicDBObject asDbObject = fields.accept(new ConstraintBuilder("")).asDbObject();
-    return asDbObject;
-  }
-
-  @NotThreadSafe
-  public static class ConstraintBuilder implements ConstraintVisitor<ConstraintBuilder> {
-
-    private final String keyPrefix;
-    private BasicDBObject constraints = new BasicDBObject();
-
-    public ConstraintBuilder(String keyPrefix) {
-      this.keyPrefix = keyPrefix;
-    }
-
-    private ConstraintBuilder newBuilderForKey(String key) {
-      return new ConstraintBuilder(keyPrefix + "." + key);
-    }
-
-    private void addContraint(String name, Object constraint) {
-      String path = keyPrefix.concat(name);
-      @Nullable
-      Object existingConstraint = constraints.get(path);
-      if (existingConstraint != null) {
-        constraints.put(path, mergeConstraints(constraint, existingConstraint));
-      } else {
-        constraints.put(path, constraint);
-      }
-    }
-
-    /**
-     * Merge constraints.
-     * @param constraint the constraint
-     * @param existingConstraint the existing constraint
-     * @return the object
-     */
-    private Object mergeConstraints(Object constraint, Object existingConstraint) {
-      // TODO implement
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ConstraintBuilder in(String name, boolean negate, Iterable<?> values) {
-      addContraint(name,
-          new BasicDBObject(
-              negate ? QueryOperators.NIN : QueryOperators.IN,
-              ImmutableSet.copyOf(unwrapBsonableIterable(values))));
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder equal(String name, boolean negate, @Nullable Object value) {
-      addContraint(name, negate ? new BasicDBObject(QueryOperators.NE, unwrapBsonable(value)) : unwrapBsonable(value));
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder range(String name, boolean negate, Range<?> range) {
-
-      if (range.hasLowerBound() && range.hasUpperBound()) {
-        if (range.lowerEndpoint().equals(range.upperEndpoint()) && !range.isEmpty()) {
-          equal(name, negate, range.lowerEndpoint());
-        } else {
-          BasicDBObject rangeObject = new BasicDBObject(2)
-              .append(boundToOperator(true, false, range.lowerBoundType()), unwrapBsonable(range.lowerEndpoint()))
-              .append(boundToOperator(false, false, range.upperBoundType()), unwrapBsonable(range.upperEndpoint()));
-
-          addContraint(name, negateConstraint(negate, rangeObject));
-        }
-
-      } else if (range.hasLowerBound()) {
-        BasicDBObject rangeObject =
-            new BasicDBObject(
-                boundToOperator(true, negate, range.lowerBoundType()),
-                unwrapBsonable(range.lowerEndpoint()));
-
-        addContraint(name, rangeObject);
-
-      } else if (range.hasUpperBound()) {
-        BasicDBObject rangeObject =
-            new BasicDBObject(
-                boundToOperator(false, negate, range.upperBoundType()),
-                unwrapBsonable(range.upperEndpoint()));
-
-        addContraint(name, rangeObject);
-      }
-      return this;
-    }
-
-    private String boundToOperator(boolean lower, boolean negate, BoundType lowerBoundType) {
-      boolean closedBound = lowerBoundType == BoundType.CLOSED;
-      return comparisonOperators[lower ^ negate ? 1 : 0][closedBound ^ negate ? 1 : 0];
-    }
-
-    private static final String[][] comparisonOperators = {
-        { QueryOperators.LT, QueryOperators.LTE },
-        { QueryOperators.GT, QueryOperators.GTE }
-    };
-
-    private Object negateConstraint(boolean negate, Object constraint) {
-      return negate ? new BasicDBObject(QueryOperators.NOT, constraint) : constraint;
-    }
-
-    public BasicDBObject asDbObject() {
-      return constraints;
-    }
-
-    @Override
-    public ConstraintBuilder size(String name, boolean negate, int size) {
-      addContraint(name, negateConstraint(negate, new BasicDBObject(QueryOperators.SIZE, size)));
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder present(String name, boolean negate) {
-      addContraint(name, new BasicDBObject(QueryOperators.EXISTS, !negate));
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder match(String name, boolean negate, Pattern pattern) {
-      addContraint(name, negateConstraint(negate, pattern));
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder nested(String name, ConstraintHost nestedConstraints) {
-      constraints.putAll((BSONObject) nestedConstraints.accept(newBuilderForKey(name)).asDbObject());
-      return this;
-    }
-
-    @Override
-    public ConstraintBuilder disjunction() {
-      // TODO implement
-      throw new UnsupportedOperationException();
-    }
-  }
-
-  public static Object unwrapBsonable(Object value) {
-    if (value instanceof BasicDBObject) {
-      for (Entry<String, Object> entry : ((BasicDBObject) value).entrySet()) {
-        entry.setValue(unwrapBsonable(entry.getValue()));
-      }
-      return value;
-    }
-
-    if (value instanceof Iterable<?>) {
-      return ImmutableList.copyOf(unwrapBsonableIterable((Iterable<?>) value));
-    }
-
-    if (value instanceof ConstraintHost) {
-      return extractDbObject((ConstraintHost) value);
-    }
-
-    if (value == null
-        || value instanceof Number
-        || value instanceof Boolean
-        || value instanceof String) {
-      return value;
-    }
-
-    if (value instanceof MarshalableWrapper) {
-      return BsonEncoding.unwrapBsonable((MarshalableWrapper) value);
-    }
-
-    return String.valueOf(value);
-  }
-
-  public static abstract class MarshalableWrapper implements Comparable<MarshalableWrapper> {
-    private final Object value;
-
-    protected MarshalableWrapper(Object value) {
-      this.value = value;
-    }
-
-    protected abstract void marshalWrapped(JsonGenerator generator) throws IOException;
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public int compareTo(MarshalableWrapper o) {
-      return ((Comparable<Object>) value).compareTo(o.value);
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper("MarshalableWrapper")
-          .addValue(value)
-          .toString();
-    }
-  }
-
-  static Iterable<?> unwrapBsonableIterable(Iterable<?> values) {
-    return Iterables.transform(values, new Function<Object, Object>() {
-      @Override
-      public Object apply(Object input) {
-        return unwrapBsonable(input);
-      }
-    });
-  }
-
-  public static Object emptyBsonObject() {
-    return new BasicDBObject();
-  }
-
-  public static Object bsonObjectAttribute(String name, Object value) {
-    return new BasicDBObject(name, value);
-  }
 }
