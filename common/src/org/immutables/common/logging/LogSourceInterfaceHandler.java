@@ -15,12 +15,6 @@
  */
 package org.immutables.common.logging;
 
-import org.immutables.common.tracing.Stringification;
-import org.immutables.common.logging.Logging.Details;
-import org.immutables.common.logging.Logging.ERROR;
-import org.immutables.common.logging.Logging.INFO;
-import org.immutables.common.logging.Logging.Message;
-import org.immutables.common.logging.Logging.WARNING;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import java.lang.annotation.Annotation;
@@ -31,7 +25,13 @@ import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import javax.annotation.Nullable;
-import org.joda.time.DateTimeUtils;
+import org.immutables.common.logging.Logging.Details;
+import org.immutables.common.logging.Logging.ERROR;
+import org.immutables.common.logging.Logging.INFO;
+import org.immutables.common.logging.Logging.Message;
+import org.immutables.common.logging.Logging.WARNING;
+import org.immutables.common.time.TimeInstantSource;
+import org.immutables.common.tracing.Stringification;
 
 class LogSourceInterfaceHandler implements InvocationHandler {
 
@@ -65,7 +65,7 @@ class LogSourceInterfaceHandler implements InvocationHandler {
 
   private class MethodDefinedLogEvent implements LogEvent {
 
-    private final long timestamp = DateTimeUtils.currentTimeMillis();
+    private final long timestamp = TimeInstantSource.systemSource().read();
 
     private final String eventDescriptiveCode;
 

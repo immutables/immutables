@@ -18,7 +18,6 @@ package org.immutables.common.time;
 import com.google.common.base.Ticker;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.ThreadSafe;
-import org.joda.time.DateTimeUtils;
 import static com.google.common.base.Preconditions.*;
 
 /**
@@ -26,8 +25,7 @@ import static com.google.common.base.Preconditions.*;
  * {@link TimeInstantSource}.
  * <p>
  * <em>
- * Hint: joda do not provide public API for this (only static global {@link DateTimeUtils}
- * methods) and Guava's {@link Ticker} has different purpose and precision.</em>
+ * Hint: Guava's {@link Ticker} has different purpose and precision.</em>
  */
 @ThreadSafe
 public abstract class TimeInstantSource {
@@ -40,38 +38,6 @@ public abstract class TimeInstantSource {
 
   public final TimeInstant now() {
     return TimeInstant.of(read());
-  }
-
-  /**
-   * Time instant source that uses {@link DateTimeUtils#currentTimeMillis()}. Note that there are
-   * methods to augment instants provided by joda via
-   * {@link DateTimeUtils#setCurrentMillisFixed(long)} or
-   * {@link DateTimeUtils#setCurrentMillisOffset(long)}. This is inevitable overlaps with
-   * functionality of {@link #offsetingFrom(TimeInstantSource, long)} and
-   * {@link #newSettableSource()}. But joda's mechanism uses static global state and can't be
-   * customized for different contexts in the same JVM.
-   * @return the time instant source
-   */
-  public static TimeInstantSource jodaSource() {
-    return JodaTimeInstantSource.INSTANCE;
-  }
-
-  /**
-   * Extractec to nested singleton class to be able to work with {@link TimeInstantSource} without
-   * Joda time dependency.
-   */
-  private static final class JodaTimeInstantSource extends TimeInstantSource {
-    static final JodaTimeInstantSource INSTANCE = new JodaTimeInstantSource();
-
-    @Override
-    public long read() {
-      return DateTimeUtils.currentTimeMillis();
-    }
-
-    @Override
-    public String toString() {
-      return TimeInstantSource.class.getSimpleName() + ".jodaSource()";
-    }
   }
 
   /**
