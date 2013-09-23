@@ -15,24 +15,27 @@
  */
 package org.immutables.common.marshal.internal;
 
-import org.immutables.common.marshal.Marshaler;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.annotation.Nullable;
+import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.common.marshal.Marshaler;
 
 //TODO move to .internal
 /**
  * The marshaling support.
  */
 public final class MarshalingSupport {
-  private MarshalingSupport() {
-  }
+  private MarshalingSupport() {}
 
   /**
    * Default unmarshal for enum object.
@@ -326,4 +329,38 @@ public final class MarshalingSupport {
 
     throw exception;
   }
+
+  @SuppressWarnings("unchecked")
+  public static <T> Marshaler<T> loadMarshalerFor(Class<T> type) {
+    @Nullable
+    Class<?> marshaledType = getBaseMarshaledType(type);
+    Preconditions.checkArgument(marshaledType != null,
+        "Type %s must have base type with @GenerateMarshaler annotation", type);
+
+    try {
+      ClassLoader classLoader = marshaledType.getClassLoader();
+      Class<?> companionClass = classLoader.loadClass(marshaledType.getName() + "Marshaler");
+      Method unmarshalMethod = companionClass.getMethod("instance");
+      return (Marshaler<T>) unmarshalMethod.invoke(null);
+    } catch (Exception ex) {
+      throw Throwables.propagate(ex);
+    }
+  }
+
+  public static boolean hasAssociatedMarshaler(Class<?> type) {
+    return getBaseMarshaledType(type) != null;
+  }
+
+  @Nullable
+  private static Class<?> getBaseMarshaledType(Class<?> type) {
+    if (type.isAnnotationPresent(GenerateMarshaler.class)) {
+      return type;
+    }
+    type = type.getSuperclass();
+    if (type != null && type.isAnnotationPresent(GenerateMarshaler.class)) {
+      return type;
+    }
+    return null;
+  }
+
 }
