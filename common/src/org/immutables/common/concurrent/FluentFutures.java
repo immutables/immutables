@@ -62,7 +62,8 @@ public final class FluentFutures {
 
   /**
    * Unnecessary conversion, already have a fluent future. This method exists solely to detect
-   * unnecessary conversion from a simple time.
+   * unnecessary conversion from a {@link FluentFuture}.
+   * @deprecated you don't need to convert to a fluent future, it is already is
    * @param <V> value type
    * @param future future
    * @return same instance
