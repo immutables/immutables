@@ -22,10 +22,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Generate compact mutable implementation
+ * Generate modifiable implementation of abstract data type
  */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface GenerateModifiable {
-}
+public @interface GenerateModifiable {}

@@ -20,6 +20,10 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+/**
+ * This resource is being picked by classpath scanning and instantiated/injected via HK2.
+ * However, actual {@link Injector} dependecy comes from HK2-Guice bridge.
+ */
 @Path("/res2")
 public class SillyTopLevelResource2 {
 

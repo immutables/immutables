@@ -36,7 +36,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.annotation.GenerateAlign;
+import org.immutables.annotation.GeneratePackedBits;
 import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateConstructorArgument;
 import org.immutables.annotation.GenerateMarshaled;
@@ -384,13 +384,13 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
 
   public int getMinValue() {
     return isAligned()
-        ? element.getAnnotation(GenerateAlign.class).min()
+        ? element.getAnnotation(GeneratePackedBits.class).min()
         : 0;
   }
 
   public int getMaxValue() {
     return isAligned()
-        ? element.getAnnotation(GenerateAlign.class).max()
+        ? element.getAnnotation(GeneratePackedBits.class).max()
         : 0;
   }
 
@@ -440,7 +440,7 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
 
   public boolean isAligned() {
     String t = internalTypeName();
-    return element.getAnnotation(GenerateAlign.class) != null
+    return element.getAnnotation(GeneratePackedBits.class) != null
         && isPrimitive()
         && (!double.class.getName().equals(t)
             && !float.class.getName().equals(t)
@@ -457,7 +457,7 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
   }
 
   public int getAlignOrder() {
-    GenerateAlign annotation = element.getAnnotation(GenerateAlign.class);
+    GeneratePackedBits annotation = element.getAnnotation(GeneratePackedBits.class);
     return annotation != null ? annotation.order() : -1;
   }
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -28,10 +29,10 @@ import java.lang.annotation.Target;
  * When applied to package it will include imported routines as static imports for each generated
  * marshaler in the package.
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.PACKAGE })
 public @interface GenerateMarshaler {
-
   /**
    * Specify classes that will be imported with a static import.
    * In order to share imported routines between classes in a package, you can place this

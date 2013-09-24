@@ -21,9 +21,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Hint to generate predicate corresponding to annotated boolean method. */
+/** annotation-directive to generate predicate corresponding to annotated boolean method. */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface GeneratePredicate {
-}
+public @interface GeneratePredicate {}

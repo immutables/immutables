@@ -29,7 +29,7 @@ public @interface GenerateRepository {
 
   /**
    * Specifies document collection name. Use of default value ( {@value #DEFAULT_NAME}) implies
-   * automatic naming.
+   * automatic naming, i.e. "myDocument" for {@code MyDocument} class.
    */
   String value() default DEFAULT_NAME;
 }
