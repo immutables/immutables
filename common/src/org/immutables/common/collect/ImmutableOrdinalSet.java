@@ -19,16 +19,25 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Set;
 import static com.google.common.base.Preconditions.*;
 
+/**
+ * Immutable set that take advantage of elements being and {@link OrdinalValue} instances to provide
+ * very compact storage and efficient {@code Set#contains(Object)} and
+ * {@code Set#containsAll(Collection)} operations.
+ * @see OrdinalValue
+ * @see OrdinalDomain
+ * @see BitSet BitSet for similar internal implementation
+ * @param <E> element type
+ */
 @Beta
 public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     extends ForwardingSet<E> {
 
-  private ImmutableOrdinalSet() {
-  }
+  private ImmutableOrdinalSet() {}
 
   private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet<>();
 
@@ -70,9 +79,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -81,9 +90,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -92,9 +101,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -103,9 +112,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -114,9 +123,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -125,9 +134,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Guaranteed to throw an exception and leave the collection unmodified.
+   * Will throw an exception and leave the collection unmodified.
    * @throws UnsupportedOperationException always
-   * @deprecated Unsupported operation.
+   * @deprecated Modification operation are not supported.
    */
   @Deprecated
   @Override
@@ -264,8 +273,8 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       long[] vector = this.vector;
 
       if (vector.length < otherVector.length) {
-        // If other set contains more words - then it contains higher ordinals that we
-        // just don't have and containsAll will be false
+        // If other set contains more words - then it contains higher ordinals that this
+        // just don't posses, so containsAll will be false
         return false;
       }
 

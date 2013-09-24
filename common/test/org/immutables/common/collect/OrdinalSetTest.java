@@ -31,8 +31,8 @@ public class OrdinalSetTest {
   Ord b0 = d2.get(0);
   Ord b1 = d2.get(1);
 
-  // not using IterableChecker in all cases to cover correct code paths
-  
+  // not using IterableChecker in all cases (to cover correct code paths)
+
   @Test
   public void emptySet() {
     check(ImmutableOrdinalSet.<Ord>of().isEmpty());
