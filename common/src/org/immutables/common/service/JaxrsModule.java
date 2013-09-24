@@ -13,20 +13,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.generate.silly;
+package org.immutables.common.service;
 
-import java.util.List;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaledAs;
-import org.immutables.annotation.GenerateMarshaler;
+import com.google.inject.AbstractModule;
 
-@GenerateImmutable
-@GenerateMarshaler
-public abstract class SillyPolyHost {
-
-  @GenerateMarshaledAs(expectedSubclasses = {
-      SillySub1.class,
-      SillySub2.class
-  })
-  public abstract List<SillyAbstract> s();
+public class JaxrsModule extends AbstractModule {
+  @Override
+  protected void configure() {
+//    Multibinder.newSetBinder(binder(), Service.class).addBinding().to(HttpService.c);
+  }
+//  
+//  @Provides
+//  @Singleton
+//  public HttpService
 }

@@ -13,12 +13,21 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.javascript;
+package org.immutables.generate.silly.routine;
 
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.net.HostAndPort;
+import java.io.IOException;
+import javax.annotation.Nullable;
 
-public class Predefined {
-  public static int hashOf(Object o) {
-    return Objects.firstNonNull(o, 0).hashCode();
+@SuppressWarnings("unused")
+public class SillyMarshalingRoutines2 {
+
+  public static HostAndPort unmarshal(
+      JsonParser parser,
+      @Nullable HostAndPort nullSample,
+      Class<HostAndPort> expectedClass) throws IOException {
+    String text = parser.getText();
+    return HostAndPort.fromString(text);
   }
 }

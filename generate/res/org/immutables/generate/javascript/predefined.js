@@ -8,7 +8,7 @@
     return self.println
   }
   
-  self.hashOf = function(object) Packages.org.immutables.common.javascript.Predefined.hashOf(object)
+  self.hashOf = function(object) Packages.org.immutables.generate.javascript.Predefined.hashOf(object)
   
   self.assert = function (condition) {
     if (!condition) throw new java.lang.AssertionError()

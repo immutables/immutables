@@ -13,19 +13,21 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.tracing;
+package org.immutables.common.service.testscan;
 
-/**
- */
-public final class Tracing {
-  static {
-    // Trying to call as early as possible before any library tries to use JDK logging with default
-    // log manager. But anyway some kind of laucher should also reference and trigger this class
-    // initialisation in the early beginning. For the same reason class specified as string
-    // rather than 'class literal get name'
-    System.setProperty("java.util.logging.manager", "org.immutables.common.tracing.JdkLogManager");
-  }
+import com.google.inject.Injector;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 
-  public static void init() {
+@Path("/res2")
+public class SillyTopLevelResource2 {
+
+  @Inject
+  Injector injectedByGuiceFromHk2Bridge;
+
+  @GET
+  public String get() {
+    return injectedByGuiceFromHk2Bridge + "";
   }
 }

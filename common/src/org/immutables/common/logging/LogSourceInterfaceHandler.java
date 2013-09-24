@@ -31,7 +31,6 @@ import org.immutables.common.logging.Logging.INFO;
 import org.immutables.common.logging.Logging.Message;
 import org.immutables.common.logging.Logging.WARNING;
 import org.immutables.common.time.TimeInstantSource;
-import org.immutables.common.tracing.Stringification;
 
 class LogSourceInterfaceHandler implements InvocationHandler {
 

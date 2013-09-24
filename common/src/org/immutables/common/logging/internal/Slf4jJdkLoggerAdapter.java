@@ -13,8 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.tracing;
+package org.immutables.common.logging.internal;
 
+import org.immutables.common.logging.Stringification;
 import java.util.logging.Filter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -22,22 +23,20 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.slf4j.LoggerFactory;
 
-class JdkLoggerAdapter extends Logger {
+class Slf4jJdkLoggerAdapter extends Logger {
 
   private final org.slf4j.Logger log;
 
-  JdkLoggerAdapter(String name) {
+  Slf4jJdkLoggerAdapter(String name) {
     super(name, null);
-    log = LoggerFactory.getLogger(name);
+    this.log = LoggerFactory.getLogger(name);
   }
 
   @Override
-  public void addHandler(Handler handler) {
-  }
+  public void addHandler(Handler handler) {}
 
   @Override
-  public void removeHandler(Handler handler) {
-  }
+  public void removeHandler(Handler handler) {}
 
   @Override
   public void config(String msg) {
@@ -80,20 +79,16 @@ class JdkLoggerAdapter extends Logger {
   }
 
   @Override
-  public void setFilter(Filter newFilter) throws SecurityException {
-  }
+  public void setFilter(Filter newFilter) throws SecurityException {}
 
   @Override
-  public void setParent(Logger parent) {
-  }
+  public void setParent(Logger parent) {}
 
   @Override
-  public void setLevel(Level newLevel) throws SecurityException {
-  }
+  public void setLevel(Level newLevel) throws SecurityException {}
 
   @Override
-  public synchronized void setUseParentHandlers(boolean useParentHandlers) {
-  }
+  public synchronized void setUseParentHandlers(boolean useParentHandlers) {}
 
   @Override
   public Level getLevel() {

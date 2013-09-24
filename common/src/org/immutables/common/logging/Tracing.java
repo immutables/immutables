@@ -13,15 +13,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.javascript;
+package org.immutables.common.logging;
 
-public class RhinoEvaluationException extends RuntimeException {
-  public RhinoEvaluationException(String messageWithSourceLocation, Throwable cause) {
-    super(messageWithSourceLocation, cause);
-  }
-
-  @Override
-  public String toString() {
-    return getLocalizedMessage();
+/**
+ */
+public final class Tracing {
+  public static void init() {
+    // Trying to call as early as possible before any library tries to use JDK logging with default
+    // log manager. But anyway some kind of laucher should also reference and trigger this class
+    // initialisation in the early beginning. For the same reason class specified as string
+    // rather than 'Literal.class.getName()'
+    System.setProperty("java.util.logging.manager", "org.immutables.common.logging.internal.Slf4jJdkLogManager");
   }
 }

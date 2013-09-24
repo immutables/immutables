@@ -126,11 +126,19 @@ public abstract class GenerateType extends TypeInstrospectionBase {
         }
       }
 
-      imports.addAll(extractClassNames(GenerateMarshaler.class, "importRoutines"));
+      collectImportRoutines(imports);
       importedMarshalledRoutines = ImmutableSet.copyOf(imports);
     }
 
     return importedMarshalledRoutines;
+  }
+
+  private void collectImportRoutines(Set<String> imports) {
+    imports.addAll(extractClassNamesFromMirrors(GenerateMarshaler.class, "importRoutines",
+        internalTypeElement().getAnnotationMirrors()));
+
+    imports.addAll(extractClassNamesFromMirrors(GenerateMarshaler.class, "importRoutines",
+        internalTypeElement().getEnclosingElement().getAnnotationMirrors()));
   }
 
   @Nullable
@@ -173,8 +181,10 @@ public abstract class GenerateType extends TypeInstrospectionBase {
     }
   }
 
-  private List<String> extractClassNames(Class<?> annotationType, String annotationValueName) {
-    List<? extends AnnotationMirror> annotationMirrors = internalTypeElement().getAnnotationMirrors();
+  private List<String> extractClassNamesFromMirrors(
+      Class<?> annotationType,
+      String annotationValueName,
+      List<? extends AnnotationMirror> annotationMirrors) {
     return extractedClassNamesFromAnnotationMirrors(annotationType.getName(),
         annotationValueName,
         annotationMirrors);

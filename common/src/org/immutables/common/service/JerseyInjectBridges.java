@@ -1,14 +1,31 @@
-package org.immutables.common.web;
+/*
+    Copyright 2013 Immutables.org authors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+package org.immutables.common.service;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.inject.Injector;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.glassfish.hk2.api.ActiveDescriptor;
 import org.glassfish.hk2.api.Descriptor;
 import org.glassfish.hk2.api.Filter;
@@ -19,38 +36,41 @@ import org.glassfish.hk2.api.ServiceLocator;
 import org.glassfish.hk2.api.ServiceLocatorState;
 import org.glassfish.hk2.extension.ServiceLocatorGenerator;
 import org.glassfish.jersey.internal.inject.Injections;
+import org.jvnet.hk2.guice.bridge.api.GuiceBridge;
+import org.jvnet.hk2.guice.bridge.api.GuiceIntoHK2Bridge;
 
-class JerseyInjectHooks {
-  private JerseyInjectHooks() {}
+class JerseyInjectBridges {
+  private JerseyInjectBridges() {}
 
   private static final ThreadLocal<Set<Object>> skipInjectionInstancesTransfer = new ThreadLocal<>();
+  private static final ThreadLocal<Injector> currentBridgeInjector = new ThreadLocal<>();
 
-  private static Field generatorField;
-
-  static void installInjectionSkippingCapableServiceLocatorGenerator() {
+  static void installBridgingServiceLocatorGenerator() {
     try {
-      aquireAccessibleGeneratorField();
+      Field generatorField = aquireAccessibleGeneratorField();
       ServiceLocatorGenerator generator = (ServiceLocatorGenerator) generatorField.get(null);
-      generatorField.set(null, new LocatorGenerator(generator));
+      LocatorGenerator wrappedLocatorGenerator = new LocatorGenerator(generator);
+      generatorField.set(null, wrappedLocatorGenerator);
     } catch (Exception ex) {
       throw Throwables.propagate(ex);
     }
   }
 
-  private static void aquireAccessibleGeneratorField() throws Exception {
-    generatorField = Injections.class.getDeclaredField("generator");
+  private static Field aquireAccessibleGeneratorField() throws Exception {
+    Field generatorField = Injections.class.getDeclaredField("generator");
     generatorField.setAccessible(true);
     Field modifiersField = Field.class.getDeclaredField("modifiers");
     modifiersField.setAccessible(true);
     modifiersField.setInt(generatorField, generatorField.getModifiers() & ~Modifier.FINAL);
+    return generatorField;
+  }
+
+  static void bridgeInjector(Injector injector) {
+    currentBridgeInjector.set(injector);
   }
 
   static void skipInjectionForInstances(Set<Object> instances) {
     skipInjectionInstancesTransfer.set(instances);
-  }
-
-  private static Set<Object> getSkipInjectionInstances() {
-    return Objects.firstNonNull(skipInjectionInstancesTransfer.get(), ImmutableSet.of());
   }
 
   private final static class LocatorGenerator implements ServiceLocatorGenerator {
@@ -62,24 +82,40 @@ class JerseyInjectHooks {
 
     @Override
     public ServiceLocator create(String name, ServiceLocator parent) {
-      if (parent instanceof InjectionSkippingWrapperLocator) {
-        parent = ((InjectionSkippingWrapperLocator) parent).delegate;
+      if (parent instanceof WrapperLocator) {
+        parent = ((WrapperLocator) parent).delegate;
       }
-      return new InjectionSkippingWrapperLocator(delegate.create(name, parent));
+      return new WrapperLocator(delegate.create(name, parent));
     }
   }
 
   /**
-   * Skip instance injection for instances that supplied in instance set
+   * Skip instance injection for instances that supplied in instance set.
+   * Bridges to thread local Guice injector if available
    */
-  private final static class InjectionSkippingWrapperLocator implements ServiceLocator {
+  private final static class WrapperLocator implements ServiceLocator {
 
     final ServiceLocator delegate;
     private final Set<Object> instances;
 
-    public InjectionSkippingWrapperLocator(ServiceLocator delegate) {
+    public WrapperLocator(ServiceLocator delegate) {
       this.delegate = delegate;
       this.instances = getSkipInjectionInstances();
+      initBridgeInjectorIfAvailable(delegate);
+    }
+
+    private static Set<Object> getSkipInjectionInstances() {
+      return Objects.firstNonNull(skipInjectionInstancesTransfer.get(), ImmutableSet.of());
+    }
+
+    private static void initBridgeInjectorIfAvailable(ServiceLocator serviceLocator) {
+      @Nullable
+      Injector injector = currentBridgeInjector.get();
+      if (injector != null) {
+        GuiceBridge.getGuiceBridge().initializeGuiceBridge(serviceLocator);
+        GuiceIntoHK2Bridge guiceBridge = serviceLocator.getService(GuiceIntoHK2Bridge.class);
+        guiceBridge.bridgeGuiceInjector(injector);
+      }
     }
 
     /**

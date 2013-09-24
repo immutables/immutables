@@ -1,3 +1,18 @@
+/*
+    Copyright 2013 Immutables.org authors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
 package org.immutables.generate.silly;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -10,6 +25,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import org.immutables.common.marshal.Marshaler;
+import org.immutables.generate.silly.routine.SillyRoutineImport;
+import org.immutables.generate.silly.routine.SillyRoutineImportMarshaler;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -148,6 +165,14 @@ public class MarshallingGenerationTest {
 
     check(fromJson(toJson(structure))).is(structure);
     check(fromBson(toBson(structure))).is(structure);
+  }
+
+  @Test
+  public void importRoutinesFromPackageAnnotation() throws IOException {
+    ImmutableList<SillyRoutineImport> imports =
+        fromJsonIterable("['127.0.0.1:8080']", SillyRoutineImportMarshaler.instance());
+
+    check(imports.get(0).hostAndPort().getHostText()).is("127.0.0.1");
   }
 
   @Test

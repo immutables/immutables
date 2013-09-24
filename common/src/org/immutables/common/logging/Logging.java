@@ -52,8 +52,7 @@ public final class Logging {
   private static final LogEventDispatcher DISPATCHER =
       new DefaultEventLogDispatcher(DISPATCH_EXECUTOR, MAX_RECENT_EVENTS);
 
-  private Logging() {
-  }
+  private Logging() {}
 
   /**
    * Gets the log event dispatcher.
@@ -98,8 +97,7 @@ public final class Logging {
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target(ElementType.PARAMETER)
-  public static @interface Details {
-  }
+  public static @interface Details {}
 
   /**
    * {@link Severity#ERROR}.

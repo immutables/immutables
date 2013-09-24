@@ -13,20 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.generate.silly;
+package org.immutables.generate.javascript;
 
-import java.util.List;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaledAs;
-import org.immutables.annotation.GenerateMarshaler;
+public class RhinoEvaluationException extends RuntimeException {
+  public RhinoEvaluationException(String messageWithSourceLocation, Throwable cause) {
+    super(messageWithSourceLocation, cause);
+  }
 
-@GenerateImmutable
-@GenerateMarshaler
-public abstract class SillyPolyHost {
-
-  @GenerateMarshaledAs(expectedSubclasses = {
-      SillySub1.class,
-      SillySub2.class
-  })
-  public abstract List<SillyAbstract> s();
+  @Override
+  public String toString() {
+    return getLocalizedMessage();
+  }
 }

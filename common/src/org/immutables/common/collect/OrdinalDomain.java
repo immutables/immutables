@@ -19,6 +19,10 @@ import com.google.common.annotations.Beta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
+ * Ordinal domain represent (potentially growing) set of objects of some kind (among {@code E})
+ * which has distinct and contiguos range of {@link OrdinalValue#ordinal() ordinal} values. Equal
+ * objects expected to have same ordinal value. This, usually, imply that object will be interned in
+ * {@link OrdinalDomain}, but it is not strictly required.
  * <p>
  * <em>Implementations must be thread safe.</em>
  * </p>

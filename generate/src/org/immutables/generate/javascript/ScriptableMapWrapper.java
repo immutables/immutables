@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.javascript;
+package org.immutables.generate.javascript;
 
 import java.util.Map;
 import org.mozilla.javascript.Scriptable;

@@ -13,20 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.generate.silly;
+@javax.annotation.ParametersAreNonnullByDefault
+@org.immutables.annotation.GenerateMarshaler(importRoutines = SillyMarshalingRoutines2.class)
+package org.immutables.generate.silly.routine;
 
-import java.util.List;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaledAs;
-import org.immutables.annotation.GenerateMarshaler;
-
-@GenerateImmutable
-@GenerateMarshaler
-public abstract class SillyPolyHost {
-
-  @GenerateMarshaledAs(expectedSubclasses = {
-      SillySub1.class,
-      SillySub2.class
-  })
-  public abstract List<SillyAbstract> s();
-}

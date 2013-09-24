@@ -15,6 +15,8 @@
  */
 package org.immutables.generate.processing;
 
+import org.immutables.generate.javascript.ClasspathModuleSourceProvider;
+import org.immutables.generate.javascript.RhinoInvoker;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
@@ -43,8 +45,6 @@ import org.immutables.annotation.GenerateFunction;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateModifiable;
 import org.immutables.annotation.GeneratePredicate;
-import org.immutables.common.javascript.ClasspathModuleSourceProvider;
-import org.immutables.common.javascript.RhinoInvoker;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class Processor extends AbstractProcessor {
@@ -153,7 +153,9 @@ public class Processor extends AbstractProcessor {
         type.validationMethodName(attributeMethodCandidate.getSimpleName().toString());
       } else {
         error(attributeMethodCandidate,
-            "Type annotated with @Validate must be protected parameter-less method and have void return type.");
+            "Type annotated with @"
+                + GenerateCheck.class.getSimpleName()
+                + " must be protected parameter-less method and have void return type.");
       }
     }
 

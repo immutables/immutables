@@ -15,6 +15,9 @@
  */
 package org.immutables.common.logging;
 
+/**
+ * Listen to log event dispatched using.
+ */
 public interface LogEventListener {
 
   /**

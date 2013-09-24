@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.common.marshal.Marshaler;
 
-//TODO move to .internal
 /**
  * The marshaling support.
  */

@@ -23,11 +23,11 @@ import com.google.common.annotations.Beta;
  * are expected to be {@link Object#equals(Object) equal} if they have the same value of
  * {@link #ordinal()}.
  * <p>
- * In essense this interface models {@link Enum}-like ordinal indexing for object types that cannot
+ * In essense, this type expresses {@link Enum}-like ordinal indexing for object types that cannot
  * be represented as Java {@code enum}s. One of the justifications of such usage is sophisticated
  * optimisations possible with data-structures that relies on tha fact that number of different
- * values of some type is countable and limited (usually by the problem domain that is being
- * modelled).
+ * values of some type is countable and limited (usually, in correspondence to the problem domain
+ * that is being modelled).
  * @see ImmutableOrdinalSet
  * @param <E> element type
  */

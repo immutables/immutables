@@ -21,14 +21,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Instructs generator to generate marshaller
+ * Instructs generator to generate marshaller.
+ * When applied to abstract {@link GenerateImmutable immutable} it will generate corresponding
+ * marshaler class in the same package. It will have name of abstract immutable class with
+ * 'Marshaler' suffix.
+ * When applied to package it will include imported routines as static imports for each generated
+ * marshaler in the package.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ ElementType.TYPE, ElementType.PACKAGE })
 public @interface GenerateMarshaler {
 
   /**
-   * Specify classes that will be used to with a static import .
+   * Specify classes that will be imported with a static import.
+   * In order to share imported routines between classes in a package, you can place this
+   * annotation on a enclosing package (using package-info.java).
    * @return class literals
    */
   Class<?>[] importRoutines() default {};

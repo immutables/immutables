@@ -13,5 +13,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-@javax.annotation.ParametersAreNonnullByDefault
-package org.immutables.common.tracing;
+package org.immutables.generate.javascript;
+
+import com.google.common.base.Objects;
+
+public class Predefined {
+  public static int hashOf(Object o) {
+    return Objects.firstNonNull(o, 0).hashCode();
+  }
+}
