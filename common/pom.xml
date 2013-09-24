@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>common</artifactId>
@@ -124,7 +124,7 @@
       <groupId>org.immutables</groupId>
       <artifactId>check</artifactId>
       <scope>test</scope>
-      <version>1-SNAPSHOT</version>
+      <version>0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 </project>

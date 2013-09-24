@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>1-SNAPSHOT</version>
+    <version>0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>generate-tool</artifactId>
@@ -34,7 +34,7 @@
       <groupId>org.immutables</groupId>
       <artifactId>generate</artifactId>
       <scope>runtime</scope>
-      <version>1-SNAPSHOT</version>
+      <version>0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 
