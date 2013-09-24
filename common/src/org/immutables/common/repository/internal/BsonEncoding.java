@@ -54,6 +54,9 @@ import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
 import org.immutables.common.marshal.Marshaler;
 
+/**
+ * MongoDB driver specific encoding and jumping hoops.
+ */
 public final class BsonEncoding {
   private static final BsonFactory BSON_FACTORY = new BsonFactory().enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
 
@@ -63,8 +66,7 @@ public final class BsonEncoding {
    */
   private static final String PREENCODED_VALUE_WRAPPER_FIELD_NAME = "$";
 
-  private BsonEncoding() {
-  }
+  private BsonEncoding() {}
 
   public static Object unwrapBsonable(RepositorySupport.MarshalableWrapper marshalableValue) {
     try {
@@ -211,8 +213,7 @@ public final class BsonEncoding {
     }
 
     @Override
-    public void markAsPartialObject() {
-    }
+    public void markAsPartialObject() {}
 
     @Override
     public boolean isPartialObject() {
@@ -625,8 +626,7 @@ public final class BsonEncoding {
     }
 
     @Override
-    public void markAsPartialObject() {
-    }
+    public void markAsPartialObject() {}
 
     @Override
     public boolean isPartialObject() {

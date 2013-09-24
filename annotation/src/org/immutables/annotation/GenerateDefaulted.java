@@ -22,9 +22,10 @@ import java.lang.annotation.Target;
 
 /**
  * Annotates accessor that should be turned in settable generated attribute. Hoverever, it is
- * non-mandatory to set it via builder (or constructor).
+ * non-mandatory to set it via builder. Default value will be assigned to attribute if none
+ * supplied, this value will be obtained by calling method annotated this annotation.
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateAsDefault {
+public @interface GenerateDefaulted {
 }

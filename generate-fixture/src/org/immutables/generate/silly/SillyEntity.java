@@ -24,7 +24,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import org.immutables.annotation.GenerateDerived;
 import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaledAs;
+import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 
@@ -33,16 +33,16 @@ import org.immutables.annotation.GenerateRepository;
 @GenerateRepository
 public abstract class SillyEntity {
 
-  @GenerateMarshaledAs("_id")
+  @GenerateMarshaled("_id")
   public abstract int id();
 
-  @GenerateMarshaledAs("v")
+  @GenerateMarshaled("v")
   public abstract String val();
 
-  @GenerateMarshaledAs("p")
+  @GenerateMarshaled("p")
   public abstract Map<String, Integer> payload();
 
-  @GenerateMarshaledAs("i")
+  @GenerateMarshaled("i")
   public abstract List<Integer> ints();
 
   @GenerateDerived

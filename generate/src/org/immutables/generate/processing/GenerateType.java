@@ -33,7 +33,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
-import org.immutables.annotation.GenerateAsDefault;
+import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
@@ -314,27 +314,27 @@ public abstract class GenerateType extends TypeInstrospectionBase {
 
   public abstract List<GenerateAttribute> attributes();
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGenerateModifiable() {
     return true;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isHashCodeDefined() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isEqualToDefined() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isToStringDefined() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isUseBuilder() {
     return true;
   }

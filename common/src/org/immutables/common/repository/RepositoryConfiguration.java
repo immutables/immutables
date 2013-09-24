@@ -22,10 +22,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import static com.google.common.base.Preconditions.*;
 
+/**
+ * 
+ */
 @ThreadSafe
 public final class RepositoryConfiguration {
-  public final ListeningExecutorService executor;
-  public final DB database;
+  final ListeningExecutorService executor;
+  final DB database;
 
   private RepositoryConfiguration(ListeningExecutorService executor, DB database) {
     this.executor = executor;
@@ -43,8 +46,7 @@ public final class RepositoryConfiguration {
     @Nullable
     private DB database;
 
-    private Builder() {
-    }
+    private Builder() {}
 
     public Builder executor(ListeningExecutorService executor) {
       this.executor = checkNotNull(executor);
@@ -57,8 +59,8 @@ public final class RepositoryConfiguration {
     }
 
     public RepositoryConfiguration build() {
-      checkState(executor != null);
-      checkState(database != null);
+      checkState(executor != null, "executor is not set");
+      checkState(database != null, "database is not set");
       return new RepositoryConfiguration(executor, database);
     }
   }

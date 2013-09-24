@@ -27,13 +27,13 @@ import java.lang.annotation.Target;
  * This example used to define JSON attribute name as "_id" during marshaling and unmarshaling.
  * 
  * <pre>
- * @GenerateMarshaledAs("_id")
+ * @GenerateMarshaled("_id")
  * public abstract String id()
  * </pre>
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateMarshaledAs {
+public @interface GenerateMarshaled {
   String value() default "";
 
   /**

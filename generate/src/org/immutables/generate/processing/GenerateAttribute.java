@@ -37,9 +37,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.annotation.GenerateAlign;
-import org.immutables.annotation.GenerateAsDefault;
+import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateConstructorArgument;
-import org.immutables.annotation.GenerateMarshaledAs;
+import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 
@@ -75,7 +75,7 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
 
   public String getMarshaledName() {
     @Nullable
-    GenerateMarshaledAs options = element.getAnnotation(GenerateMarshaledAs.class);
+    GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
     if (options != null) {
       String name = options.value();
       if (!name.isEmpty()) {
@@ -92,7 +92,7 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
 
   public boolean isForceEmpty() {
     @Nullable
-    GenerateMarshaledAs options = element.getAnnotation(GenerateMarshaledAs.class);
+    GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
     return options != null ? options.forceEmpty() : false;
   }
 
@@ -101,27 +101,27 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
   @Override
   protected abstract TypeMirror internalTypeMirror();
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGenerateFunction() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGeneratePredicate() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGenerateDefault() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGenerateDerived() {
     return false;
   }
 
-  @GenerateAsDefault
+  @GenerateDefaulted
   public boolean isGenerateAbstract() {
     return false;
   }
@@ -267,7 +267,7 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
     if (expectedSubclasses == null) {
       expectedSubclasses =
           GenerateType.extractedClassNamesFromAnnotationMirrors(
-              GenerateMarshaledAs.class.getName(), "expectedSubclasses", element.getAnnotationMirrors());
+              GenerateMarshaled.class.getName(), "expectedSubclasses", element.getAnnotationMirrors());
     }
     return expectedSubclasses;
   }

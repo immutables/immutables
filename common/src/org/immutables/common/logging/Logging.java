@@ -46,7 +46,7 @@ public final class Logging {
       Executors.newSingleThreadExecutor(
           new ThreadFactoryBuilder()
               .setDaemon(true)
-              .setNameFormat("tw.technology.logging")
+              .setNameFormat(Logging.class.getPackage().getName())
               .build());
 
   private static final LogEventDispatcher DISPATCHER =

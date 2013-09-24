@@ -1,5 +1,5 @@
 /*
-    Copyright 2013 Immutables.org authors
+x    Copyright 2013 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,12 +38,16 @@ import org.immutables.common.repository.internal.ConstraintSupport;
 import static com.google.common.base.Preconditions.*;
 import static org.immutables.common.repository.internal.RepositorySupport.*;
 
+/**
+ * Umbrella class which contains abstract supertypes of repository and operations object that
+ * inherited by generated repositories. These base classes performs bridging to underlying MongoDB
+ * java driver.
+ */
 public final class Repositories {
   private static final int LARGE_BATCH_SIZE = 2000;
   private static final int DEFAULT_EXPECTED_RESULT_SIZE = 500;
 
-  private Repositories() {
-  }
+  private Repositories() {}
 
   @ThreadSafe
   public static abstract class Repository<T> {

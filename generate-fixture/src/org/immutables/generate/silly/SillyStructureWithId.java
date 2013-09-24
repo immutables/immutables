@@ -16,7 +16,7 @@
 package org.immutables.generate.silly;
 
 import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaledAs;
+import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 import com.google.common.base.Optional;
@@ -27,7 +27,7 @@ import java.util.List;
 @GenerateMarshaler
 public abstract class SillyStructureWithId {
 
-  @GenerateMarshaledAs("_id")
+  @GenerateMarshaled("_id")
   public abstract String id();
 
   public abstract String attr1();

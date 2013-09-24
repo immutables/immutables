@@ -23,8 +23,7 @@ import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.*;
 
 public final class ConstraintSupport {
-  private ConstraintSupport() {
-  }
+  private ConstraintSupport() {}
 
   private static final CharMatcher NON_LITERAL_REGEX_CHARACTERS = CharMatcher.anyOf("\\^$[]().*+").precomputed();
 

@@ -38,7 +38,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import org.immutables.annotation.GenerateAsDefault;
+import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateCheck;
 import org.immutables.annotation.GenerateDerived;
 import org.immutables.annotation.GenerateFunction;
@@ -166,7 +166,7 @@ public class Processor extends AbstractProcessor {
 
       if (isAbstract(attributeMethodCandidate)) {
         attributeBuilder.isGenerateAbstract(true);
-      } else if (hasAnnotation(attributeMethodCandidate, GenerateAsDefault.class)) {
+      } else if (hasAnnotation(attributeMethodCandidate, GenerateDefaulted.class)) {
         attributeBuilder.isGenerateDefault(true);
       } else if (hasAnnotation(attributeMethodCandidate, GenerateDerived.class)) {
         attributeBuilder.isGenerateDerived(true);
@@ -201,7 +201,7 @@ public class Processor extends AbstractProcessor {
   }
 
   private static boolean hasGenerateAnnotation(ExecutableElement attributeMethodCandidate) {
-    return hasAnnotation(attributeMethodCandidate, GenerateAsDefault.class)
+    return hasAnnotation(attributeMethodCandidate, GenerateDefaulted.class)
         || hasAnnotation(attributeMethodCandidate, GenerateDerived.class)
         || hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
         || hasAnnotation(attributeMethodCandidate, GenerateFunction.class);

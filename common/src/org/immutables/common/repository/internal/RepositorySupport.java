@@ -31,7 +31,11 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BSONObject;
+import org.immutables.common.repository.Repositories;
 
+/**
+ * Routines and classes used by generated code and briging code in {@link Repositories}
+ */
 public final class RepositorySupport {
   private RepositorySupport() {
   }
