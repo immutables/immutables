@@ -40,5 +40,11 @@
       <version>${project.version}</version>
       <type>pom</type>
     </dependency>
+    <dependency>
+      <groupId>org.immutables.dependency</groupId>
+      <artifactId>logging-set</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+    </dependency>
   </dependencies>
 </project>
