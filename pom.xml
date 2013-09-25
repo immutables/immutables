@@ -88,6 +88,9 @@
           <compilerVersion>1.7</compilerVersion>
           <source>1.7</source>
           <target>1.7</target>
+          <compilerArgs>
+            <arg>-Xlint:deprecation</arg>
+          </compilerArgs>
         </configuration>
         <executions>
           <execution>

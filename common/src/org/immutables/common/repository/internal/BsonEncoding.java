@@ -34,6 +34,7 @@ import com.mongodb.DBEncoder;
 import com.mongodb.DBObject;
 import com.mongodb.DefaultDBEncoder;
 import de.undercouch.bson4jackson.BsonFactory;
+import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -71,7 +72,7 @@ public final class BsonEncoding {
   public static Object unwrapBsonable(RepositorySupport.MarshalableWrapper marshalableValue) {
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-      JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
+      BsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
       generator.writeStartObject();
       generator.writeFieldName(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
       marshalableValue.marshalWrapped(generator);
@@ -89,7 +90,7 @@ public final class BsonEncoding {
   public static <T> T unmarshalDbObject(DBObject dbObject, Marshaler<T> marshaler) throws IOException {
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     encoder().writeObject(buffer, dbObject);
-    JsonParser parser = BSON_FACTORY.createJsonParser(buffer.toByteArray());
+    JsonParser parser = BSON_FACTORY.createParser(buffer.toByteArray());
     parser.nextToken();
     T instance = marshaler.unmarshalInstance(parser);
     parser.close();
@@ -197,6 +198,7 @@ public final class BsonEncoding {
       throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     @Override
     public boolean containsKey(String s) {
       throw new UnsupportedOperationException();
@@ -302,6 +304,7 @@ public final class BsonEncoding {
       throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     @Override
     public boolean containsKey(String s) {
       throw new UnsupportedOperationException();
@@ -531,7 +534,7 @@ public final class BsonEncoding {
       if (parser != null) {
         parser.close();
       }
-      parser = BSON_FACTORY.createJsonParser(bufferStream);
+      parser = BSON_FACTORY.createParser(bufferStream);
     }
 
     @Override
@@ -610,6 +613,7 @@ public final class BsonEncoding {
       throw new UnsupportedOperationException();
     }
 
+    @Deprecated
     @Override
     public boolean containsKey(String s) {
       throw new UnsupportedOperationException();

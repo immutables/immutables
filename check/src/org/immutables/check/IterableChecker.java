@@ -17,7 +17,6 @@ package org.immutables.check;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import java.util.Collection;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -27,6 +26,7 @@ import org.hamcrest.Matchers;
  * @param <Z> the generic type
  * @param <T> the generic type
  */
+@SuppressWarnings("unchecked")
 public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> {
 
   IterableChecker(Z value, boolean negate) {
@@ -48,9 +48,6 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
   }
 
   public void has(T element) {
-    if (actualValue instanceof Collection<?>) {
-
-    }
     verifyUsingMatcher(CoreMatchers.hasItem(element));
   }
 
@@ -72,7 +69,6 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
     verifyUsingMatcher(Matchers.contains(elements));
   }
 
-  @SuppressWarnings("unchecked")
   public void hasContentInAnyOrder(Iterable<?> elements) {
     verifyUsingMatcher((Matcher<? super Z>) Matchers.containsInAnyOrder(ImmutableList.copyOf(elements)));
   }
