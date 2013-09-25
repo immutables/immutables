@@ -6,7 +6,6 @@
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
     <version>0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>generate-tool</artifactId>
 
@@ -88,6 +87,7 @@
                   <pattern>com.google.common</pattern>
                   <shadedPattern>org.immutables.generate.internal.guava</shadedPattern>
                 </relocation>
+                <!-- Problem with reflective object creation in rhino -->
               </relocations>
 
               <filters>
@@ -101,9 +101,6 @@
                 </filter>
               </filters>
 
-              <relocations>
-                <!-- Problem with reflective object creation in rhino -->
-              </relocations>
             </configuration>
           </execution>
         </executions>
