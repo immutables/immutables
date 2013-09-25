@@ -1,4 +1,4 @@
-[requirejs align('org/immutables/generate/template/align.js')]
+[requirejs support('org/immutables/generate/template/support.js')]
 
 [template generateModifiableType(type)]
 package `type.packageName`;
@@ -61,7 +61,7 @@ public final class Modifiable`type.name`
 [/if]
 [/foreach]
 
-[let (cx = align.newLongFieldsAlignment())]
+[let (cx = support.newLongFieldsAlignment())]
 [foreach (let a in type.alignedAttributes)]
 [apply alignedAttribute(type, a, cx)]
 [/foreach]

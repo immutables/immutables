@@ -15,10 +15,11 @@
  */
 package org.immutables.generate.internal.processing;
 
-import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
-import org.immutables.generate.internal.javascript.RhinoInvoker;
+import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Files;
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
@@ -38,13 +39,15 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateCheck;
+import org.immutables.annotation.GenerateDefaulted;
 import org.immutables.annotation.GenerateDerived;
 import org.immutables.annotation.GenerateFunction;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateModifiable;
 import org.immutables.annotation.GeneratePredicate;
+import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
+import org.immutables.generate.internal.javascript.RhinoInvoker;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class Processor extends AbstractProcessor {
@@ -54,7 +57,20 @@ public class Processor extends AbstractProcessor {
   static final String GENERATE_IMMUTABLE_ANNOTATION_TYPE =
       GenerateImmutable.class.getName();
 
-  private final RhinoInvoker invoker = new RhinoInvoker(new ClasspathModuleSourceProvider(getClass()));
+  private final RhinoInvoker invoker;
+  {
+    try {
+      invoker = new RhinoInvoker(new ClasspathModuleSourceProvider(getClass()));
+    } catch (Throwable e) {
+      try {
+        Files.asCharSink(new File("/Users/elucash/Development/tmp"), Charsets.UTF_8).write(
+            Throwables.getStackTraceAsString(Throwables.getRootCause(e)));
+      } catch (Throwable ex) {
+
+      }
+      throw Throwables.propagate(e);
+    }
+  }
 
   @Override
   public Set<String> getSupportedAnnotationTypes() {

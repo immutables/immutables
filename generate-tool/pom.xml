@@ -90,17 +90,6 @@
                 <!-- Problem with reflective object creation in rhino -->
               </relocations>
 
-              <filters>
-                <filter>
-                  <artifact>com.google.guava:guava</artifact>
-                  <includes>
-                    <include>com/google/common/base/**</include>
-                    <include>com/google/common/collect/**</include>
-                    <include>com/google/common/io/**</include>
-                  </includes>
-                </filter>
-              </filters>
-
             </configuration>
           </execution>
         </executions>

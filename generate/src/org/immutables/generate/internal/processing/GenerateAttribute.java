@@ -160,7 +160,11 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
   }
 
   public boolean isOptionalType() {
-    return internalTypeName().startsWith("com.google.common.base.Optional");
+    return internalTypeName().startsWith("com.go" + hideFromShadePlugin("ogle.common.base.Optional"));
+  }
+
+  private String hideFromShadePlugin(Object string) {
+    return string.toString();
   }
 
   public boolean isMarshaledElement() {

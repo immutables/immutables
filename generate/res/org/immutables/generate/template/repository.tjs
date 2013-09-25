@@ -1,3 +1,5 @@
+[requirejs support('org/immutables/generate/template/support.js')]
+
 [template generateRepository(type)]
 package `type.packageName`.repository;
 
