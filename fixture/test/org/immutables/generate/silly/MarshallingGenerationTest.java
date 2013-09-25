@@ -190,7 +190,7 @@ public class MarshallingGenerationTest {
   }
 
   private <T> ImmutableList<T> fromJsonIterable(String string, Marshaler<T> marshaler) throws IOException {
-    JsonParser jsonParser = jsonFactory.createJsonParser(string);
+    JsonParser jsonParser = jsonFactory.createParser(string);
     jsonParser.nextToken();
     return ImmutableList.copyOf(marshaler.unmarshalIterable(jsonParser));
   }
@@ -219,7 +219,7 @@ public class MarshallingGenerationTest {
   }
 
   private SillyStructure fromJson(String string) throws IOException {
-    JsonParser jsonParser = jsonFactory.createJsonParser(string);
+    JsonParser jsonParser = jsonFactory.createParser(string);
     jsonParser.nextToken();
     return SillyStructureMarshaler.instance().unmarshalInstance(jsonParser);
   }

@@ -74,7 +74,7 @@ public final class SillyManualFixture {
         .flag2(true)
         .or();
 
-    JsonParser jsonParser = jsonFactory.createJsonParser(string);
+    JsonParser jsonParser = jsonFactory.createParser(string);
     jsonParser.nextToken();
     return SillyStructureWithIdMarshaler.unmarshal(jsonParser, null, null);
   }
@@ -89,7 +89,7 @@ public final class SillyManualFixture {
   }
 
   public static void main(String... args) throws Exception {
-    JsonParser parser = jsonFactory.createJsonParser("{a:1,b:2}");
+    JsonParser parser = jsonFactory.createParser("{a:1,b:2}");
     TokenBuffer tokenBuffer = new TokenBuffer(new ObjectMapper());
 
     JsonToken t = parser.nextToken();
@@ -234,7 +234,7 @@ public final class SillyManualFixture {
                 .join(Splitter.on(' ')
                     .split("26 00 00 00 10 5F 69 64 00 05 00 00 00 03 70 00 15 00 00 00 10 43 43 00 05 00 00 00 10 44 44 00 05 00 00 00 00 00")));
 
-    BsonParser p = new BsonFactory().createJsonParser(new ByteArrayInputStream(data));
+    BsonParser p = new BsonFactory().createParser(new ByteArrayInputStream(data));
     p.nextToken();
 
     SillyEntity unmarshal = SillyEntityMarshaler.instance().unmarshalInstance(p);

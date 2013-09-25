@@ -23,7 +23,7 @@
       <uniqueVersion>false</uniqueVersion>
       <id>artifacts</id>
       <name>Filesystem Repository</name>
-      <url>file:~/git/m2repo</url>
+      <url>file:${user.home}/git/m2repo</url>
       <layout>default</layout>
     </repository>
   </distributionManagement>

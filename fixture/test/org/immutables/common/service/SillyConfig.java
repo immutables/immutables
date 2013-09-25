@@ -1,6 +1,5 @@
 package org.immutables.common.service;
 
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import javax.inject.Provider;
