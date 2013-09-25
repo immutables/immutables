@@ -15,11 +15,8 @@
  */
 package org.immutables.generate.internal.processing;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
@@ -57,20 +54,7 @@ public class Processor extends AbstractProcessor {
   static final String GENERATE_IMMUTABLE_ANNOTATION_TYPE =
       GenerateImmutable.class.getName();
 
-  private final RhinoInvoker invoker;
-  {
-    try {
-      invoker = new RhinoInvoker(new ClasspathModuleSourceProvider(getClass()));
-    } catch (Throwable e) {
-      try {
-        Files.asCharSink(new File("/Users/elucash/Development/tmp"), Charsets.UTF_8).write(
-            Throwables.getStackTraceAsString(Throwables.getRootCause(e)));
-      } catch (Throwable ex) {
-
-      }
-      throw Throwables.propagate(e);
-    }
-  }
+  private final RhinoInvoker invoker = new RhinoInvoker(new ClasspathModuleSourceProvider(getClass()));
 
   @Override
   public Set<String> getSupportedAnnotationTypes() {
