@@ -6,43 +6,36 @@
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
     <version>0-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>common</artifactId>
+  <artifactId>service</artifactId>
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>annotation</artifactId>
       <version>${project.version}</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>check</artifactId>
+      <artifactId>common</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>utility-set</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>repository-set</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>service-set</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-      <optional>true</optional>
     </dependency>
-
   </dependencies>
 </project>

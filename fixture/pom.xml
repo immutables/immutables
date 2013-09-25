@@ -8,14 +8,8 @@
     <version>0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <artifactId>common</artifactId>
+  <artifactId>generate-fixture</artifactId>
   <dependencies>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>annotation</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>check</artifactId>
@@ -23,26 +17,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility-set</artifactId>
+      <groupId>org.immutables</groupId>
+      <artifactId>service</artifactId>
       <version>${project.version}</version>
-      <type>pom</type>
-      <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>repository-set</artifactId>
+      <groupId>org.immutables</groupId>
+      <artifactId>generate-tool</artifactId>
+      <scope>provided</scope>
       <version>${project.version}</version>
-      <type>pom</type>
-      <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>service-set</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-      <optional>true</optional>
-    </dependency>
-
   </dependencies>
 </project>

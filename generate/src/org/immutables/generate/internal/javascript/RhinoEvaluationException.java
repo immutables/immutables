@@ -13,16 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.logging;
+package org.immutables.generate.internal.javascript;
 
-/**
- * Listen to log event dispatched using {@link LogEventDispatcher}.
- */
-public interface LogEventListener {
+public class RhinoEvaluationException extends RuntimeException {
+  public RhinoEvaluationException(String messageWithSourceLocation, Throwable cause) {
+    super(messageWithSourceLocation, cause);
+  }
 
-  /**
-   * Log event posted.
-   * @param event the event
-   */
-  void logEventPosted(LogEvent event);
+  @Override
+  public String toString() {
+    return getLocalizedMessage();
+  }
 }

@@ -18,9 +18,9 @@ package org.immutables.check;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.util.Collection;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.junit.matchers.JUnitMatchers;
 
 /**
  * The iterable match wrapper.
@@ -39,33 +39,28 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
     return new IterableChecker<>(actualValue, true);
   }
 
-  public void any(Matcher<? extends T> elementMatcher) {
-    // better output than hamcrest
-    verifyUsingMatcher(JUnitMatchers.hasItem(elementMatcher));
+  public void any(Matcher<? super T> elementMatcher) {
+    verifyUsingMatcher(CoreMatchers.hasItem(elementMatcher));
   }
 
   public void every(Matcher<T> elementMatcher) {
-    // better output than hamcrest
-    verifyUsingMatcher(JUnitMatchers.everyItem(elementMatcher));
+    verifyUsingMatcher(CoreMatchers.everyItem(elementMatcher));
   }
 
   public void has(T element) {
     if (actualValue instanceof Collection<?>) {
 
     }
-
-    // better output than hamcrest hasItem
-    verifyUsingMatcher(JUnitMatchers.hasItem(element));
+    verifyUsingMatcher(CoreMatchers.hasItem(element));
   }
 
   @SafeVarargs
   public final void hasAll(T... elements) {
-    // better output than hamcrest hasItem
-    verifyUsingMatcher(JUnitMatchers.hasItems(elements));
+    verifyUsingMatcher(CoreMatchers.hasItems(elements));
   }
 
   public final void hasAll(Iterable<? extends T> elements) {
-    verifyUsingMatcher(JUnitMatchers.hasItems((T[]) Iterables.toArray(elements, Object.class)));
+    verifyUsingMatcher(CoreMatchers.hasItems((T[]) Iterables.toArray(elements, Object.class)));
   }
 
   public void isOf(Iterable<?> elements) {

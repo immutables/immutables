@@ -3,8 +3,8 @@ package `type.packageName`;
 
 import com.fasterxml.jackson.core.*;
 import javax.annotation.*;
-import org.immutables.common.marshal.Marshaler;
 import java.io.IOException;
+import org.immutables.common.marshal.Marshaler;
 // Generated imports
 
 /**
@@ -84,6 +84,11 @@ public final class `type.name`Marshaler
   @Override
   public Class<`type.name`> getExpectedType() {
     return `type.name`.class;
+  }
+  
+  @Override
+  public String toString() {
+    return "`type.name`Marshaler.instance()";
   }
 }
 [/template]

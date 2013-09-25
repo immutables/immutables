@@ -19,9 +19,10 @@
   </licenses>
   <dependencies>
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>14.0.1</version>
+      <groupId>org.immutables.dependency</groupId>
+      <artifactId>utility-set</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
       <optional>true</optional>
     </dependency>
   </dependencies>

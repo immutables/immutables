@@ -8,11 +8,13 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>dependency-root</module>
     <module>annotation</module>
     <module>check</module>
     <module>common</module>
     <module>generate</module>
-    <module>generate-fixture</module>
+    <module>service</module>
+    <module>fixture</module>
     <module>generate-tool</module>
   </modules>
 
@@ -111,4 +113,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>

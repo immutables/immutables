@@ -13,16 +13,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.logging;
+package org.immutables.generate.internal.javascript;
 
-/**
- * Listen to log event dispatched using {@link LogEventDispatcher}.
- */
-public interface LogEventListener {
+import com.google.common.base.Objects;
 
-  /**
-   * Log event posted.
-   * @param event the event
-   */
-  void logEventPosted(LogEvent event);
+public class Predefined {
+  public static int hashOf(Object o) {
+    return Objects.firstNonNull(o, 0).hashCode();
+  }
 }

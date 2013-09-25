@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
- * The log event dispatcher sservice.
+ * The log event dispatcher service.
  */
 public interface LogEventDispatcher {
 

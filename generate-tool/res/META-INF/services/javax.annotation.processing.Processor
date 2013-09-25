@@ -1,1 +1,1 @@
-org.immutables.generate.processing.Processor
+org.immutables.generate.internal.processing.Processor

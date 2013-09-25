@@ -40,7 +40,7 @@
 
   <build>
     <plugins>
-      <!-- 1.6 compiler for compartibility with eclipse annotation processing,
+      <!-- 1.6 compiler for compartibility with eclipse-indigo annotation processing,
         will be removed after successfull upgrade -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -84,8 +84,25 @@
               </artifactSet>
 
               <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>org.immutables.generate.internal.guava</shadedPattern>
+                </relocation>
+              </relocations>
+
+              <filters>
+                <filter>
+                  <artifact>com.google.guava:guava</artifact>
+                  <includes>
+                    <include>com/google/common/base/**</include>
+                    <include>com/google/common/collect/**</include>
+                    <include>com/google/common/io/**</include>
+                  </includes>
+                </filter>
+              </filters>
+
+              <relocations>
                 <!-- Problem with reflective object creation in rhino -->
-                <!-- Problem with usage of guava types as type tokens in processor -->
               </relocations>
             </configuration>
           </execution>
