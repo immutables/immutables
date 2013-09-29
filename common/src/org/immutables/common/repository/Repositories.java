@@ -1,5 +1,5 @@
 /*
-x    Copyright 2013 Immutables.org authors
+   Copyright 2013 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.immutables.common.repository;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
@@ -35,11 +36,12 @@ import org.immutables.common.concurrent.FluentFutures;
 import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.repository.internal.BsonEncoding;
 import org.immutables.common.repository.internal.ConstraintSupport;
+import org.immutables.common.time.TimeMeasure;
 import static com.google.common.base.Preconditions.*;
 import static org.immutables.common.repository.internal.RepositorySupport.*;
 
 /**
- * Umbrella class which contains abstract supertypes of repository and operations object that
+ * Umbrella class which contains abstract supertypes of repository and operation objects that
  * inherited by generated repositories. These base classes performs bridging to underlying MongoDB
  * java driver.
  */
@@ -49,6 +51,10 @@ public final class Repositories {
 
   private Repositories() {}
 
+  /**
+   * Base abstract class for repositories.
+   * @param <T> type of document
+   */
   @ThreadSafe
   public static abstract class Repository<T> {
 
@@ -228,9 +234,9 @@ public final class Repositories {
             cursor.limit(limit);
             expectedSize = Math.min(limit, expectedSize);
             if (limit <= LARGE_BATCH_SIZE) {
-              // if limit specified and is smaller than resonable large (but ok) batch size
+              // if limit specified and is smaller than reasonable large batch size
               // then we force batch size to be the same as limit,
-              // but negative, to force cursor close
+              // but negative, this force cursor to close
               cursor.batchSize(-limit);
             }
           }
@@ -246,7 +252,7 @@ public final class Repositories {
   }
 
   @NotThreadSafe
-  public static abstract class Operation<T> {
+  static abstract class Operation<T> {
     protected final Repository<T> repository;
 
     protected Operation(Repository<T> repository) {
@@ -255,7 +261,7 @@ public final class Repositories {
   }
 
   @NotThreadSafe
-  public static abstract class UpdatatingOperation<T> extends Operation<T> {
+  static abstract class UpdatatingOperation<T> extends Operation<T> {
     @Nullable
     protected ConstraintSupport.ConstraintHost criteria;
     protected ConstraintSupport.Constraint setFields = ConstraintSupport.nilConstraint();
@@ -296,27 +302,50 @@ public final class Repositories {
     }
   }
 
+  /**
+   * Base updater
+   * @param <T> document type
+   */
   @NotThreadSafe
   public static abstract class Updater<T> extends UpdatatingOperation<T> {
     protected Updater(Repository<T> repository) {
       super(repository);
     }
 
+    /**
+     * Perform upsert: update single element or inserts a new one if none of the document matches.
+     * @return future of number of processed document (expected to be 1)
+     */
     public FluentFuture<Integer> upsert() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), true, false);
     }
 
+    /**
+     * Updates a single document that matches.
+     * @return number of updated documents. 0 or 1
+     */
     public FluentFuture<Integer> updateFirst() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), false, false);
     }
 
+    /**
+     * Updates all matching document.
+     * @return future of number of updated document
+     */
     public FluentFuture<Integer> updateAll() {
       return repository.doUpdate(criteria, collectRequiredUpdate(), false, true);
     }
   }
 
-  // We expect M to be a self type
-  @SuppressWarnings("unchecked")
+  /**
+   * Provides base configuration methods and action methods to perform 'modify' step in
+   * 'findAndModify'
+   * modify.
+   * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
+   *      boolean)
+   * @param <T> document type
+   * @param <M> a self type of extended modifier class
+   */
   @NotThreadSafe
   public static abstract class Modifier<T, M extends Modifier<T, M>> extends UpdatatingOperation<T> {
     protected ConstraintSupport.Constraint ordering = ConstraintSupport.nilConstraint();
@@ -328,27 +357,68 @@ public final class Repositories {
       super(repository);
     }
 
-    public M returnOld() {
+    /**
+     * Configures this modifier so that old (not updated) version of document will be returned in
+     * case of successful update.
+     * This is default behaviour so it may be called only for explainatory reasons.
+     * @see #returnNew()
+     * @return {@code this}
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
+    public final M returnOld() {
       returnNewOrOld = false;
       return (M) this;
     }
 
-    public M returnNew() {
+    /**
+     * Configures this modifier so that new (updated) version of document will be returned in
+     * case of successful update.
+     * @see #returnOld()
+     * @return {@code this}
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
+    public final M returnNew() {
       returnNewOrOld = true;
       return (M) this;
     }
 
-    public FluentFuture<Optional<T>> upsert() {
+    /**
+     * Performs an upsert. If query will match a document, then it will be modified and old or new
+     * version of document returned (depending if {@link #returnNew()} was configured). When there
+     * isn't any such matching document, a new one will be created and returned if
+     * {@link #returnNew()} was configured.
+     * <p>
+     * <em>Note: Upsert operation requires special care to update or init all required attributes
+     * (including but not limited to '_id'), so that valid document could be inserted into collection. 
+     * </em>
+     * @return future of optional document.
+     * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
+     *      boolean)
+     */
+    public final FluentFuture<Optional<T>> upsert() {
       return repository.doModify(criteria, ordering, exclusion, collectRequiredUpdate(), true, returnNewOrOld, false);
     }
 
-    public FluentFuture<Optional<T>> update() {
+    /**
+     * Performs an update. If query will match a document, then it will be modified and old or new
+     * version of document returned (depending if {@link #returnNew()} was configured). When there
+     * isn't any such matching document, {@link Optional#absent()} will be result of the operation.
+     * @return future of optional document (present if matching document would be found)
+     * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
+     *      boolean)
+     */
+    public final FluentFuture<Optional<T>> update() {
       return repository.doModify(criteria, ordering, exclusion, collectRequiredUpdate(), false, returnNewOrOld, false);
     }
   }
 
-  // We expect I to be a self type
-  @SuppressWarnings("unchecked")
+  /**
+   * Base class for the indexer objects.
+   * @param <T> document type
+   * @param <I> a self type of extended indexer class
+   */
   @NotThreadSafe
   public static abstract class Indexer<T, I extends Indexer<T, I>> extends Operation<T> {
     protected ConstraintSupport.Constraint fields = ConstraintSupport.nilConstraint();
@@ -358,26 +428,62 @@ public final class Repositories {
       super(repository);
     }
 
+    /**
+     * Configures name for an index, that is otherwise will be auto-named by index fields.
+     * @param indexName explicitly provided index name
+     * @return {@code this} indexer
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
     public final I named(String indexName) {
       options = options.equal("name", false, indexName);
       return (I) this;
     }
 
+    /**
+     * Makes an index to enforce unique constraint.
+     * @return {@code this} indexer
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
     public final I unique() {
       options = options.equal("unique", false, true);
       return (I) this;
     }
 
-    public final I expireAfterSeconds(long ttlSeconds) {
-      options = options.equal("expireAfterSeconds", false, Ints.checkedCast(ttlSeconds));
+    /**
+     * Configures and TTL for an index. Creates an index on a time field, and document will be
+     * removed when TTL will expire.
+     * <p>
+     * <em>Note: Care should be taken to configure TTL only on single time instant field</em>
+     * @param timeToLive time to live for an object, non-zero time in seconds required.
+     * @return {@code this} indexer
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
+    public final I expireAfterSeconds(TimeMeasure timeToLive) {
+      Preconditions.checkArgument(timeToLive.toSeconds() < 1,
+          "unsupported precision for TTL, non-zero time in seconds required");
+      options = options.equal("expireAfterSeconds", false, Ints.checkedCast(timeToLive.toSeconds()));
       return (I) this;
     }
 
+    /**
+     * Creates configured index on a set of fields, if one does not already exist.
+     * @see DBCollection#ensureIndex(DBObject, DBObject)
+     * @return future of indexing operation, future value is insignificant ({@code null} typed as
+     *         {@link Void})
+     */
     public final FluentFuture<Void> ensure() {
       return repository.doIndex(fields, options);
     }
   }
 
+  /**
+   * Base class for the fetcher objects. Fetcher objects are used to configure query.
+   * @param <T> document type
+   * @param <F> a self type of extended fetcher class
+   */
   @NotThreadSafe
   public static abstract class Fetcher<T, F extends Fetcher<T, F>> extends Operation<T> {
     private int numberToSkip;
@@ -391,7 +497,13 @@ public final class Repositories {
       super(repository);
     }
 
-    // extenders should always substitute F with self type
+    /**
+     * Configures fetcher to skip a number of document. Useful for results pagination in
+     * conjunction with {@link #fetchWithLimit(int) limiting}
+     * @param numberToSkip number of documents to skip.
+     * @return {@code this} fetcher
+     */
+    // safe unchecked: we expect F to be a self type
     @SuppressWarnings("unchecked")
     public F skip(@Nonnegative int numberToSkip) {
       checkArgument(numberToSkip >= 0, "number to skip cannot be negative");
@@ -399,15 +511,39 @@ public final class Repositories {
       return (F) this;
     }
 
-    public final FluentFuture<List<T>> fetchWithLimit(@Nonnegative int limit) {
-      checkArgument(limit >= 0, "limit cannot be negative");
-      return repository.doFetch(criteria, ordering, exclusion, numberToSkip, limit);
+    /**
+     * Fetches result list with at most as {@code limitSize} matching documents. It could
+     * be used together with {@link #skip(int)} to paginate results.
+     * <p>
+     * Zero limit ({@code fetchWithLimit(0)}) is equivalent to {@link #fetchAll()}.
+     * <p>
+     * As an performance optimization, when limit is "not so large", then batch size will be set to
+     * a negative limit: this forces a mongodb to sent results in a single batch and immediately
+     * closes cursor.
+     * @param limitSize specify limit on the number of document in result.
+     * @return future of matching document list
+     */
+    public final FluentFuture<List<T>> fetchWithLimit(@Nonnegative int limitSize) {
+      checkArgument(limitSize >= 0, "limit cannot be negative");
+      return repository.doFetch(criteria, ordering, exclusion, numberToSkip, limitSize);
     }
 
+    /**
+     * Fetches all matching documents list.
+     * <p>
+     * If number or results could be very large, then prefer to use {@link #fetchWithLimit(int)} to
+     * always limit result to some large but reasonable size.
+     * @return future of matching document list
+     */
     public final FluentFuture<List<T>> fetchAll() {
       return fetchWithLimit(0);
     }
 
+    /**
+     * Fetches first matching document. If none of the documents matches, then
+     * {@link Optional#absent()} will be returned.
+     * @return future of optional matching document
+     */
     public final FluentFuture<Optional<T>> fetchFirst() {
       return fetchWithLimit(1).transform(new Function<List<T>, Optional<T>>() {
         @Override
@@ -417,6 +553,11 @@ public final class Repositories {
       });
     }
 
+    /**
+     * Deletes and returns first matching document. Returns {@link Optional#absent()} if none
+     * documents matches.
+     * @return future of optional matching deleted document.
+     */
     public FluentFuture<Optional<T>> deleteFirst() {
       checkState(numberToSkip == 0, "Cannot use skip() with .removeFirst()");
       return repository.doModify(

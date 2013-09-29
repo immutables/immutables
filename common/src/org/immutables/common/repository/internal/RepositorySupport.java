@@ -34,7 +34,7 @@ import org.bson.BSONObject;
 import org.immutables.common.repository.Repositories;
 
 /**
- * Routines and classes used by generated code and briging code in {@link Repositories}
+ * Routines and classes used by generated code and bridging code in {@link Repositories}
  */
 public final class RepositorySupport {
   private RepositorySupport() {

@@ -26,15 +26,17 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.concurrent.CancellationException;
 
 /**
- * Future that is enhanced with ability to invoke several operations from {@link Futures}.
- * @param <V> value type
+ * {@link ListenableFuture} that is enhanced with ability to invoke several operations from
+ * {@link Futures} as instance methods rather than static methods.
+ * @param <V> The result type returned by this Future's <tt>get</tt> method
  */
 public interface FluentFuture<V> extends ListenableFuture<V> {
 
   /**
-   * Get value in unchecked way
+   * Get value or throw unchecked exception. This method blocks till value is computed or exception
+   * is thrown.
    * @see Futures#getUnchecked(java.util.concurrent.Future)
-   * @return value
+   * @return result value
    * @throws UncheckedExecutionException if {@code get} throws an {@code ExecutionException} with an
    *           {@code Exception} as its cause
    * @throws ExecutionError if {@code get} throws an {@code ExecutionException} with an
@@ -71,7 +73,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
   FluentFuture<V> withFallbackValue(V value);
 
   /**
-   * Transform future.
+   * Transform future using suppied function.
    * @see Futures#transform(ListenableFuture, Function)
    * @param <T> transformed type
    * @param function A Function to transform the results of the provided future
@@ -82,8 +84,8 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
   <T> FluentFuture<T> transform(Function<? super V, ? extends T> function);
 
   /**
-   * Asyncronous transform.
-   * @see Futures#transform(ListenableFuture, Function)
+   * Asyncronous transform using supplied async function.
+   * @see Futures#transform(ListenableFuture, AsyncFunction)
    * @param <T> transformed type
    * @param function A function to transform the result of the input future
    *          to the result of the output future
