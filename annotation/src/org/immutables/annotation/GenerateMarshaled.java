@@ -15,6 +15,7 @@
  */
 package org.immutables.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -27,33 +28,31 @@ import java.lang.annotation.Target;
  * This example used to define JSON attribute name as "_id" during marshaling and unmarshaling.
  * 
  * <pre>
- * @GenerateMarshaled("_id")
- * public abstract String id()
+ * &#064;GenerateMarshaled(&quot;_id&quot;)
+ * public abstract String id();
  * </pre>
+ * @see GenerateMarshaler
+ * @see GenerateMarshaledSubclasses
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface GenerateMarshaled {
+  /**
+   * Specify attribute's custom name in JSON/BSON representation.
+   * @return custom name string, empty string if attribute's name should be used verbatim (the
+   *         default).
+   */
   String value() default "";
 
   /**
    * For {@link java.util.Set Set} or {@link java.util.List List} this will force output of
-   * JSON empty array
-   * if given collection is empty.
+   * JSON empty array if given collection is empty. By default, empty collection attribute will just
+   * be omitted.
    * <p>
    * For {@link com.google.common.base.Optional Optional} attributes it forces of output JSON
    * {@code null} value for missing value, otherwise (by default) no absent attribute is written
    * @return {@code true} if force output of empty value
    */
   boolean forceEmpty() default false;
-
-  /**
-   * Specifies expected subclasses of an attributes' abstract type that is matched during parsing by
-   * occurence of unique settable attributes (derived does not count, also be careful with omitable
-   * default attribute). If all attributes of subclasses are the same, then it will
-   * result in error due to undecidable situation.
-   * @return subclasses of an attributes' abstract type that annotated with
-   *         {@link GenerateMarshaler}
-   */
-  Class<?>[] expectedSubclasses() default {};
 }

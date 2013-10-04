@@ -1,9 +1,12 @@
 package org.immutables.generate.internal.processing;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.List;
@@ -13,7 +16,10 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
-public abstract class TypeInstrospectionBase {
+public abstract class TypeIntrospectionBase {
+
+  protected static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
+  protected static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.common.collect.OrdinalValue";
 
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;
@@ -26,6 +32,31 @@ public abstract class TypeInstrospectionBase {
       introspectType();
       introspected = true;
     }
+  }
+
+  public boolean isComparable() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(Comparable.class.getName());
+  }
+
+  public boolean isOrdinalValue() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(ORDINAL_VALUE_INTERFACE_TYPE);
+  }
+
+  public boolean isEnumType() {
+    ensureTypeIntrospected();
+    return extendedClassesNames.contains(Enum.class.getName());
+  }
+
+  public boolean isUndefinable() {
+    ensureTypeIntrospected();
+    return FluentIterable.from(implementedInterfacesNames).anyMatch(UNDEFINABLE_PATTERN);
+  }
+
+  public String getDirectSupertype() {
+    ensureTypeIntrospected();
+    return Iterables.getFirst(extendedClassesNames, null);
   }
 
   protected void introspectType() {

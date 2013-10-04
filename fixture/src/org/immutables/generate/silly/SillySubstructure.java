@@ -15,7 +15,7 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateDefaulted;
+import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
@@ -30,7 +30,7 @@ import java.util.Set;
 @GenerateRepository
 public abstract class SillySubstructure {
 
-  @GenerateDefaulted
+  @GenerateDefault
   @GenerateMarshaled("e1")
   public RetentionPolicy enum1() {
     return RetentionPolicy.SOURCE;

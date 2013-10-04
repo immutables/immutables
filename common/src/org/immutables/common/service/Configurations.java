@@ -22,8 +22,7 @@ final class Configurations {
 
   static Module loadModule(String classpathUri, String configurationClassName) {
     return extractModule(unmarshalConfiguration(
-        classpathUri,
-        loadMarshaler(configurationClassName)));
+        classpathUri, loadMarshaler(configurationClassName)));
   }
 
   private static Marshaler<?> loadMarshaler(String configurationClassName) {

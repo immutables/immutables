@@ -10,10 +10,6 @@
   
   self.hashOf = Packages.org.immutables.generate.internal.javascript.Predefined.hashOf
   
-  self.assert = function (condition) {
-    if (!condition) throw new java.lang.AssertionError()
-  }
-  
   self.readLinesForModule = function (moduleId) __moduleSourceProvider__.apply(moduleId)
   
   String.prototype.toUpperFirst = function () this.charAt(0).toUpperCase() + this.substring(1)

@@ -19,15 +19,17 @@ import com.google.common.annotations.Beta;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * Immutable set that take advantage of elements being and {@link OrdinalValue} instances to provide
- * very compact storage and efficient {@code Set#contains(Object)} and
- * {@code Set#containsAll(Collection)} operations.
+ * Immutable set that take advantage of elements being an {@link OrdinalValue}s to provide
+ * compact storage and efficient {@link Set#contains(Object)} and
+ * {@link Set#containsAll(Collection)} operations.
  * @see OrdinalValue
  * @see OrdinalDomain
  * @see BitSet BitSet for similar internal implementation
@@ -37,30 +39,51 @@ import static com.google.common.base.Preconditions.*;
 public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     extends ForwardingSet<E> {
 
-  private ImmutableOrdinalSet() {}
+  ImmutableOrdinalSet() {}
 
   private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet<>();
 
+  /**
+   * Returns singleton empty immutable ordinal set
+   * @param <E> element type
+   * @return empty set
+   */
   @SuppressWarnings("unchecked")
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of() {
     // safe unchecked: will contain no elements
     return (ImmutableOrdinalSet<E>) EMPTY_SET;
   }
 
+  /**
+   * Creates immutable ordinal set from 1 or more elements.
+   * All elements expected to have same {@link OrdinalValue#ordinalDomain()} as the first element,
+   * otherwise exception will be thrown.
+   * @param <E> element type
+   * @param first first element
+   * @param rest the rest of elements
+   * @return empty set
+   */
   @SafeVarargs
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of(
-      E element,
-      E... restElements) {
-    OrdinalDomain<E> domain = element.ordinalDomain();
-    if (restElements.length == 0) {
-      return new SingletonImmutableOrdinalSet<>(element);
+      E first, E... rest) {
+    OrdinalDomain<E> domain = first.ordinalDomain();
+    if (rest.length == 0) {
+      return new SingletonImmutableOrdinalSet<>(first);
     }
-    OrdinalValue<?>[] array = new OrdinalValue<?>[1 + restElements.length];
-    array[0] = element;
-    System.arraycopy(restElements, 0, array, 1, restElements.length);
+    OrdinalValue<?>[] array = new OrdinalValue<?>[1 + rest.length];
+    array[0] = first;
+    System.arraycopy(rest, 0, array, 1, rest.length);
     return new RegularImmutableOrdinalSet<>(domain, array);
   }
 
+  /**
+   * Creates immutable ordinal set from iterable of elements.
+   * All elements expected to have same {@link OrdinalValue#ordinalDomain()} as the first element,
+   * otherwise exception will be thrown.
+   * @param <E> the element type
+   * @param elements the elements
+   * @return the immutable ordinal set
+   */
   @SuppressWarnings("unchecked")
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(Iterable<E> elements) {
     if (elements instanceof ImmutableOrdinalSet) {
@@ -313,6 +336,51 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     @Override
     public int size() {
       return size;
+    }
+  }
+
+  /**
+   * Build instances of {@link ImmutableOrdinalSet}
+   * @param <E> element type
+   * @return builder
+   */
+  public static <E extends OrdinalValue<E>> Builder<E> builder() {
+    return new Builder<>();
+  }
+
+  /**
+   * Build instances of {@link ImmutableOrdinalSet}.
+   * @param <E> element type
+   */
+  public static class Builder<E extends OrdinalValue<E>> {
+    private final List<E> builder = Lists.newArrayListWithExpectedSize(4);
+
+    /**
+     * Adds add elements from the iterable.
+     * @param elements the elements
+     * @return {@code this} builder for chained invokation
+     */
+    public Builder<E> addAll(Iterable<E> elements) {
+      Iterables.addAll(builder, checkNotNull(elements));
+      return this;
+    }
+
+    /**
+     * Adds element.
+     * @param element the element
+     * @return {@code this} builder for chained invokation
+     */
+    public Builder<E> add(E element) {
+      builder.add(checkNotNull(element));
+      return this;
+    }
+
+    /**
+     * Builds instances of {@link ImmutableOrdinalSet} using all added elements.
+     * @return immutable ordinal set
+     */
+    public ImmutableOrdinalSet<E> build() {
+      return ImmutableOrdinalSet.copyOf(builder);
     }
   }
 }

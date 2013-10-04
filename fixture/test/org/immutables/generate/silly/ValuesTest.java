@@ -16,6 +16,7 @@
 package org.immutables.generate.silly;
 
 import java.util.Arrays;
+import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -36,6 +37,15 @@ public class ValuesTest {
 
     check(ImmutableSillyOrdinal.of("a")).same(a);
     check(ImmutableSillyOrdinal.of("b")).same(b);
+  }
+
+  @Test
+  public void ordinalValueSet() {
+    check(ImmutableSillyOrdinalHolder.builder()
+        .addSet(ImmutableSillyOrdinal.of("a"))
+        .build()
+        .set())
+        .isA(ImmutableOrdinalSet.class);
   }
 
   @Test

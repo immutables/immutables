@@ -60,6 +60,8 @@ let transformInterpolationLine = function(l) {
     let p = parts[i]
     if (i % 2 == 0) {
       p = JSON.stringify(p)
+    } else if (p.trim().length == 0) {
+      p = '""';
     }
     result.push(p)
   }
@@ -82,10 +84,10 @@ let transformTemplateSyntaxToJs = function(lines) {
     }
 
     let statementLineMatch = openBracketIndex >= 0 ? (statementLineRegex.exec(l)) : null
-    if (statementLineMatch && (backtickInterpolationIndex < 0 || openBracketIndex < backtickInterpolationIndex)) {
-      resultLines.push(transformStatementLine(statementLineMatch))
-    } else if (literalStatementIndex >= 0 && (backtickInterpolationIndex < 0 || literalStatementIndex < backtickInterpolationIndex)) {
+    if (literalStatementIndex >= 0 && l.trim().charAt(0) == '#') {
       resultLines.push(transformLiteralLine(l))
+    } else if (statementLineMatch && (backtickInterpolationIndex < 0 || openBracketIndex < backtickInterpolationIndex)) {
+      resultLines.push(transformStatementLine(statementLineMatch))
     } else {
       resultLines.push(transformInterpolationLine(l))
     }
@@ -108,7 +110,7 @@ let templateLib = {
         this.indent = oldIndent
       },
       out: function() {
-        this.resultLines.push(this.indent + copyAsArray(arguments).join(''))
+        this.resultLines.push(this.indent + Array.prototype.join.call(arguments, ''))
       },
       result: function() this.resultLines.join('\n')
     }
@@ -131,7 +133,7 @@ let requireTemplates = function(moduleId) {
       try {
         return new Function('__templateExports__', '__templateLib__', '__', functionCode)
       } catch (e) {
-        throw 'Template Compile error: ' + e + '\nBody: ***\n' + functionCode + '\n***' 
+        throw 'Template Compile Error: ' + e + (!isNaN(+e.lineNumber) && ('\nLINE: ', lines[e.lineNumber - 1])) 
       }
     }()
     let noOp = function() {}

@@ -17,20 +17,20 @@ package org.immutables.generate.silly;
 
 import com.google.common.base.Optional;
 import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaled;
+import org.immutables.annotation.GenerateMarshaledSubclasses;
 import org.immutables.annotation.GenerateMarshaler;
 
 @GenerateImmutable
 @GenerateMarshaler
 public abstract class SillyPolyHost2 {
 
-  @GenerateMarshaled(expectedSubclasses = {
+  @GenerateMarshaledSubclasses({
       SillySub2.class,
       SillySub3.class
   })
   public abstract SillyAbstract s();
 
-  @GenerateMarshaled(expectedSubclasses = {
+  @GenerateMarshaledSubclasses({
       SillySub2.class,
       SillySub3.class
   })

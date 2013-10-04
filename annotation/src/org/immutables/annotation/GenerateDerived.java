@@ -15,6 +15,7 @@
  */
 package org.immutables.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,6 +25,7 @@ import java.lang.annotation.Target;
  * This kind of attribute cannot be set during building, but they are eagerly computed from other
  * attributes and stored in field.
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface GenerateDerived {}

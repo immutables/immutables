@@ -13,12 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.generate.silly;
-
-import org.immutables.annotation.GenerateMarshaledSubclasses;
-
-@GenerateMarshaledSubclasses({
-    SillySub1.class,
-    SillySub2.class
-})
-public abstract class SillyAbstract {}
+/**
+ * Annotations that directs code generation toolkit 'org.immutables'.
+ * See documentation on <a href="http://immutables.org">immutables.org</a>
+ */
+@javax.annotation.ParametersAreNonnullByDefault
+package org.immutables.annotation;

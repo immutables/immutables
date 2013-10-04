@@ -15,16 +15,18 @@
  */
 package org.immutables.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates accessor that should be turned in settable generated attribute. Hoverever, it is
+ * Annotates accessor that should be turned in settable generated attribute. Howerever, it is
  * non-mandatory to set it via builder. Default value will be assigned to attribute if none
  * supplied, this value will be obtained by calling method annotated this annotation.
  */
+@Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateDefaulted {}
+public @interface GenerateDefault {}

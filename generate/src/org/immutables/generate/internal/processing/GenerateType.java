@@ -33,15 +33,14 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
-import org.immutables.annotation.GenerateDefaulted;
+import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 import static com.google.common.base.Preconditions.*;
 
-public abstract class GenerateType extends TypeInstrospectionBase {
+public abstract class GenerateType extends TypeIntrospectionBase {
 
-  private static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.common.collect.OrdinalValue";
   @Nullable
   private String validationMethodName;
 
@@ -63,8 +62,7 @@ public abstract class GenerateType extends TypeInstrospectionBase {
   }
 
   public boolean isGenerateOrdinalValue() {
-    ensureTypeIntrospected();
-    return implementedInterfacesNames.contains(ORDINAL_VALUE_INTERFACE_TYPE);
+    return isOrdinalValue();
   }
 
   public boolean isUseConstructorOnly() {
@@ -84,7 +82,7 @@ public abstract class GenerateType extends TypeInstrospectionBase {
   }
 
   public boolean isGenerateMarshaled() {
-    return internalTypeElement().getAnnotation(GenerateMarshaler.class) != null;
+    return (internalTypeElement().getAnnotation(GenerateMarshaler.class) != null) || isGenerateDocument();
   }
 
   public boolean isGenerateDocument() {
@@ -94,7 +92,7 @@ public abstract class GenerateType extends TypeInstrospectionBase {
   public String getDocumentName() {
     @Nullable
     GenerateRepository annotation = internalTypeElement().getAnnotation(GenerateRepository.class);
-    if (annotation != null && !annotation.value().equals(GenerateRepository.DEFAULT_NAME)) {
+    if (annotation != null && !annotation.value().isEmpty()) {
       return annotation.value();
     }
     return inferDocumentCollectionName(getName());
@@ -314,27 +312,27 @@ public abstract class GenerateType extends TypeInstrospectionBase {
 
   public abstract List<GenerateAttribute> attributes();
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGenerateModifiable() {
     return true;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isHashCodeDefined() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isEqualToDefined() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isToStringDefined() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isUseBuilder() {
     return true;
   }

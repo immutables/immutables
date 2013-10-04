@@ -20,6 +20,9 @@ import com.google.common.collect.ComparisonChain;
 import com.google.common.primitives.Longs;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * An instant in time in UTC milliseconds. (No timezone binding implied)
+ */
 public final class TimeInstant implements Comparable<TimeInstant> {
   private long value;
 

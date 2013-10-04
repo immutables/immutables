@@ -24,7 +24,6 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.immutables.annotation.GenerateMarshaler;
@@ -35,200 +34,6 @@ import org.immutables.common.marshal.Marshaler;
  */
 public final class MarshalingSupport {
   private MarshalingSupport() {}
-
-  /**
-   * Default unmarshal for enum object.
-   * <p>
-   * Used in generated code via static imports method overload resolution by compiler.
-   * @param <T> expected enum type
-   * @param parser the parser
-   * @param enumNull the enum null, always {@code null}
-   * @param expectedClass the expected class
-   * @return the t
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static <T extends Enum<T>> T unmarshal(
-      JsonParser parser,
-      @Nullable Enum<T> enumNull,
-      Class<T> expectedClass) throws IOException {
-    return Enum.valueOf(expectedClass, parser.getText());
-  }
-
-  /**
-   * Default unmarshal for String.
-   * <p>
-   * Used in generated code via static imports method overload resolution by compiler.
-   * @param parser the parser
-   * @param stringNull the string null, always {@code null}
-   * @param expectedClass the expected class
-   * @return the string
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static String unmarshal(
-      JsonParser parser,
-      @Nullable String stringNull,
-      Class<?> expectedClass) throws IOException {
-    return parser.getText();
-  }
-
-  /**
-   * Marshal key by default via {@link Object#toString()}.
-   * @param object the object
-   * @return the string
-   */
-  public static String marshalKey(Object object) {
-    return object.toString();
-  }
-
-  /**
-   * Default catch-all marshal for objects, does {@link Object#toString()} or writes null-literal if
-   * object is {@code null}.
-   * @param generator the generator
-   * @param instance the instance
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      @Nullable Object instance) throws IOException {
-    if (instance == null) {
-      generator.writeNull();
-    } else {
-      generator.writeString(instance.toString());
-    }
-  }
-
-  /**
-   * Default marshal for {@link BigDecimal}, does {@link JsonGenerator#writeNumber(BigDecimal)}.
-   * @param generator the generator
-   * @param instance the instance
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      BigDecimal instance) throws IOException {
-    generator.writeNumber(instance);
-  }
-
-  /**
-   * Default marshal for any other {@link Number}, does {@link JsonGenerator#writeNumber(double)}
-   * for {@link Number#doubleValue()}.
-   * @param generator the generator
-   * @param instance the instance
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      Number instance) throws IOException {
-    generator.writeNumber(instance.doubleValue());
-  }
-
-  /**
-   * Default marshal for {@link Enum}, does {@link JsonGenerator#writeString(String)} for.
-   * @param generator the generator
-   * @param instance the instance
-   * @throws IOException Signals that an I/O exception has occurred. {@link Enum#name()}.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      Enum<?> instance) throws IOException {
-    generator.writeString(instance.name());
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      byte value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      char value) throws IOException {
-    generator.writeString(String.valueOf(value));
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      short value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      int value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      long value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      float value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      double value) throws IOException {
-    generator.writeNumber(value);
-  }
-
-  /**
-   * Marshal.
-   * @param generator the generator
-   * @param value the value
-   * @throws IOException Signals that an I/O exception has occurred.
-   */
-  public static void marshal(
-      JsonGenerator generator,
-      boolean value) throws IOException {
-    generator.writeBoolean(value);
-  }
 
   public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) {
     if (expected != actual) {
@@ -330,7 +135,7 @@ public final class MarshalingSupport {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> Marshaler<T> loadMarshalerFor(Class<T> type) {
+  public static <T> Marshaler<T> loadMarshalerFor(Class<? extends T> type) {
     @Nullable
     Class<?> marshaledType = getBaseMarshaledType(type);
     Preconditions.checkArgument(marshaledType != null,
@@ -361,5 +166,4 @@ public final class MarshalingSupport {
     }
     return null;
   }
-
 }

@@ -37,12 +37,15 @@ import org.immutables.common.repository.Repositories;
  * Routines and classes used by generated code and bridging code in {@link Repositories}
  */
 public final class RepositorySupport {
-  private RepositorySupport() {
-  }
+  private RepositorySupport() {}
 
   public static BasicDBObject extractDbObject(final ConstraintSupport.ConstraintHost fields) {
     BasicDBObject asDbObject = fields.accept(new ConstraintBuilder("")).asDbObject();
     return asDbObject;
+  }
+
+  public static String stringify(final ConstraintSupport.ConstraintHost constraints) {
+    return extractDbObject(constraints).toString();
   }
 
   @NotThreadSafe

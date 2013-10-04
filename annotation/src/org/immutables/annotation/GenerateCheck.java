@@ -23,11 +23,11 @@ import java.lang.annotation.Target;
 
 /**
  * Annotates method that should be invoked internally to validate instance's invariants
- * after instance being created (but before returned to client).
- * Must be protected parameter-less method and have a {@code void} return type.
+ * after instance being created, but before returned to client.
+ * Annotated method must be protected parameter-less method and have a {@code void} return type and
+ * should not throw.
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateCheck {
-}
+public @interface GenerateCheck {}

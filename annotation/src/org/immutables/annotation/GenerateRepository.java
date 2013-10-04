@@ -21,15 +21,24 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Abstract immutable classes annotated with this annotation will have repository generated to store
+ * and retreive documents from MongoDB collection named by class name or explicitly named as
+ * specified by {@link #value()}.
+ * <p>
+ * {@link GenerateRepository} requires marshaler for the annotated class, so one will be generated
+ * regardless of the presense of @{@link GenerateMarshaler} annotation. However, care should be
+ * taken for all attributes to be recursively marshalable by being either built-in types or
+ * marshalable documents (annotated with @{@link GenerateMarshaler}) or ensuring some marhaling
+ * {@link GenerateMarshaler#importRoutines() routines} exists to marshal types.
+ */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface GenerateRepository {
-  public static final String DEFAULT_NAME = "##default";
-
   /**
-   * Specifies document collection name. Use of default value ( {@value #DEFAULT_NAME}) implies
-   * automatic naming, i.e. "myDocument" for {@code MyDocument} class.
+   * Specify document collection name. If not specified, then collection name will be given
+   * automatically by document class name, i.e. {@code "myDocument"} for {@code MyDocument} class.
    */
-  String value() default DEFAULT_NAME;
+  String value() default "";
 }

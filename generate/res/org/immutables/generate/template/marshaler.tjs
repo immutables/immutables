@@ -33,8 +33,8 @@ public final class `type.name`Marshaler
   /**
    * Unmarshal instance of {@link `type.name`}.
    * <p>
-   * `''`{@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
-   * `''`and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
+   * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
+   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
    * @param parser jackson JSON parser
    * @param nullSample always {@code null}, used for static method overload resolution
    * @param expectedClass will be an {@code `type.name`.class}
@@ -101,6 +101,7 @@ import javax.annotation.*;
 import java.io.IOException;
 // Generated imports
 [apply generateImportRoutines(type)]
+import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**

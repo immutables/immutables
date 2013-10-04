@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
+import com.google.common.util.concurrent.Futures;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -52,18 +53,37 @@ public final class Repositories {
   private Repositories() {}
 
   /**
+   * Call methods on Criteria to add contraint for search query.
+   * As each constraint that is added, new immutable criteria created and returned. {@code Criteria}
+   * objects are immutable so they can be passed along when needed in situations
+   * such as when you need to separate how you choose documents from how you process them.
+   * <p>
+   * Constraints keeps adding up as using 'AND' condition and could be separated in 'OR' blocks
+   * using {@link #or()} method, and ultimately, these blocks form a so called disjunctive normal
+   * form. Such approach (DNF) was taken to achieve fine power/expressiveness balance in criteria
+   * DSL embedded into Java language.
+   */
+  public static abstract class Criteria {
+    /**
+     * Returns chained criteria handle used to "OR" new constraint set to form logical DNF.
+     * @return disjunction separated criteria handle
+     */
+    public abstract Criteria or();
+  }
+
+  /**
    * Base abstract class for repositories.
    * @param <T> type of document
    */
   @ThreadSafe
   public static abstract class Repository<T> {
 
-    private final RepositoryConfiguration configuration;
+    private final RepositorySetup configuration;
     private final String collectionName;
     private final Marshaler<T> marshaler;
 
     protected Repository(
-        RepositoryConfiguration configuration,
+        RepositorySetup configuration,
         String collectionName,
         Marshaler<T> marshaler) {
       this.configuration = configuration;
@@ -94,6 +114,10 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Integer> doInsert(final ImmutableList<T> documents) {
+      if (documents.isEmpty()) {
+        return FluentFutures.from(
+            Futures.immediateFuture(0));
+      }
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
@@ -182,12 +206,12 @@ public final class Repositories {
       });
     }
 
-    protected final FluentFuture<Void> doUpsert(
+    protected final FluentFuture<Integer> doUpsert(
         final ConstraintSupport.ConstraintHost criteria,
         final T document) {
-      return submit(new Callable<Void>() {
+      return submit(new Callable<Integer>() {
         @Override
-        public Void call() {
+        public Integer call() {
           DBCollection collection = collection();
 
           WriteResult result = collection.update(
@@ -198,8 +222,7 @@ public final class Repositories {
               collection.getWriteConcern(),
               BsonEncoding.encoder());
 
-          result.getN();
-          return null;
+          return result.getN();
         }
       });
     }
@@ -303,7 +326,7 @@ public final class Repositories {
   }
 
   /**
-   * Base updater
+   * Base updater.
    * @param <T> document type
    */
   @NotThreadSafe
@@ -314,6 +337,10 @@ public final class Repositories {
 
     /**
      * Perform upsert: update single element or inserts a new one if none of the document matches.
+     * <p>
+     * <em>Note: Upsert operation requires special care to set or init all required attributes in case of insertion
+     * (including but not limited to '_id'), so that valid document could be inserted into collection. 
+     * </em>
      * @return future of number of processed document (expected to be 1)
      */
     public FluentFuture<Integer> upsert() {
@@ -339,8 +366,7 @@ public final class Repositories {
 
   /**
    * Provides base configuration methods and action methods to perform 'modify' step in
-   * 'findAndModify'
-   * modify.
+   * 'findAndModify' operation.
    * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
    *      boolean)
    * @param <T> document type
@@ -362,7 +388,7 @@ public final class Repositories {
      * case of successful update.
      * This is default behaviour so it may be called only for explainatory reasons.
      * @see #returnNew()
-     * @return {@code this}
+     * @return {@code this} modifier for chained invokation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -375,7 +401,7 @@ public final class Repositories {
      * Configures this modifier so that new (updated) version of document will be returned in
      * case of successful update.
      * @see #returnOld()
-     * @return {@code this}
+     * @return {@code this} modifier for chained invokation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -390,7 +416,7 @@ public final class Repositories {
      * isn't any such matching document, a new one will be created and returned if
      * {@link #returnNew()} was configured.
      * <p>
-     * <em>Note: Upsert operation requires special care to update or init all required attributes
+     * <em>Note: Upsert operation requires special care to set or init all required attributes
      * (including but not limited to '_id'), so that valid document could be inserted into collection. 
      * </em>
      * @return future of optional document.
@@ -404,7 +430,7 @@ public final class Repositories {
     /**
      * Performs an update. If query will match a document, then it will be modified and old or new
      * version of document returned (depending if {@link #returnNew()} was configured). When there
-     * isn't any such matching document, {@link Optional#absent()} will be result of the operation.
+     * isn't any matching document, {@link Optional#absent()} will be result of the operation.
      * @return future of optional document (present if matching document would be found)
      * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
      *      boolean)
@@ -431,7 +457,7 @@ public final class Repositories {
     /**
      * Configures name for an index, that is otherwise will be auto-named by index fields.
      * @param indexName explicitly provided index name
-     * @return {@code this} indexer
+     * @return {@code this} indexer for chained invokation indexer
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -442,7 +468,7 @@ public final class Repositories {
 
     /**
      * Makes an index to enforce unique constraint.
-     * @return {@code this} indexer
+     * @return {@code this} indexer for chained invokation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -457,7 +483,7 @@ public final class Repositories {
      * <p>
      * <em>Note: Care should be taken to configure TTL only on single time instant field</em>
      * @param timeToLive time to live for an object, non-zero time in seconds required.
-     * @return {@code this} indexer
+     * @return {@code this} indexer for chained invokation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -480,12 +506,12 @@ public final class Repositories {
   }
 
   /**
-   * Base class for the fetcher objects. Fetcher objects are used to configure query.
+   * Base class for the finder objects. Fetcher objects are used to configure query.
    * @param <T> document type
-   * @param <F> a self type of extended fetcher class
+   * @param <F> a self type of extended finder class
    */
   @NotThreadSafe
-  public static abstract class Fetcher<T, F extends Fetcher<T, F>> extends Operation<T> {
+  public static abstract class Finder<T, F extends Finder<T, F>> extends Operation<T> {
     private int numberToSkip;
 
     @Nullable
@@ -493,15 +519,15 @@ public final class Repositories {
     protected ConstraintSupport.Constraint ordering = ConstraintSupport.nilConstraint();
     protected ConstraintSupport.Constraint exclusion = ConstraintSupport.nilConstraint();
 
-    protected Fetcher(Repository<T> repository) {
+    protected Finder(Repository<T> repository) {
       super(repository);
     }
 
     /**
-     * Configures fetcher to skip a number of document. Useful for results pagination in
+     * Configures finder to skip a number of document. Useful for results pagination in
      * conjunction with {@link #fetchWithLimit(int) limiting}
      * @param numberToSkip number of documents to skip.
-     * @return {@code this} fetcher
+     * @return {@code this} finder for chained invokation
      */
     // safe unchecked: we expect F to be a self type
     @SuppressWarnings("unchecked")
@@ -564,5 +590,4 @@ public final class Repositories {
           criteria, ordering, exclusion, ConstraintSupport.nilConstraint(), false, false, true);
     }
   }
-
 }

@@ -5,18 +5,19 @@ package `type.packageName`.repository;
 
 // Generated imports
 import `type.packageName`.*;
-import com.google.common.collect.*;
-import com.google.common.util.concurrent.*;
-import org.immutables.common.repository.*;
-import org.immutables.common.concurrent.*;
 [apply generateImportRoutines(type)]
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import org.immutables.common.repository.*;
+import org.immutables.common.concurrent.FluentFuture;
 import org.immutables.common.repository.internal.ConstraintSupport;
 import org.immutables.common.repository.internal.RepositorySupport;
+import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
- * {@code `type.name`Repository} used as access point for storing and
- * retreiving JSON-like documents in remote repository.
+ * {@code `type.name`Repository} provides type safe access for storing and retreiving documents
+ * from the MongoDB collection "`type.documentName`".
  */
 @SuppressWarnings({"unused"})
 @javax.annotation.Generated({"repository.tjs", "`type.name`"})
@@ -25,46 +26,73 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 public final class `type.name`Repository extends Repositories.Repository<`type.name`> {
   private static final String DOCUMENT_COLLECTION_NAME = "`type.documentName`";
 
-  private `type.name`Repository(RepositoryConfiguration configuration) {
+  private `type.name`Repository(RepositorySetup configuration) {
     super(configuration, DOCUMENT_COLLECTION_NAME, `type.name`Marshaler.instance());
   }
 
   /**
-   * Creates {@link `type.name`} repository using {@link RepositoryConfiguration configuration}.
+   * Creates {@link `type.name`} repository using {@link RepositorySetup configuration}.
    * @param configuration the repository configuration
    * @return new repository instance
    */
-  public static `type.name`Repository create(RepositoryConfiguration configuration) {
+  public static `type.name`Repository create(RepositorySetup configuration) {
     return new `type.name`Repository(configuration);
   }
   
+  /**
+   * Insert single document into the collection.
+   * @param document `type.name.toLowerFirst()` to insert
+   * @return future of number of inserted documents (1) if WriteConcern allows.
+   */
   public FluentFuture<Integer> insert(`type.name` document) {
-    return super.doInsert(ImmutableList.of(document));
+    return super.doInsert(com.google.common.collect.ImmutableList.of(document));
+  }
+
+  /**
+   * Insert documents into the collection.
+   * @param documents documents to insert
+   * @return future of number of inserted documents if WriteConcern allows.
+   */  
+  public FluentFuture<Integer> insert(Iterable<`type.name`> documents) {
+    return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
   
+  /**
+   * Delete documents from the collection if they matches {@link Criteria}.
+   * @param criteria specifies deletion criteria 
+   * @return future of number of deleted documents if WriteConcern allows.
+   */  
   public FluentFuture<Integer> deleteAll(Criteria criteria) {
     return super.doDelete((ConstraintSupport.ConstraintHost) criteria);
-  }
-  
-  public FluentFuture<Integer> insert(Iterable<`type.name`> documents) {
-    return super.doInsert(ImmutableList.copyOf(documents));
   }
 [let (a = type.idAttribute)]
 [-- It will rarely be otherwise --]
 [if (a)]
 
-  public Fetcher findById(`a.type` `a.name`) {
+  /**
+   * Find document by {@link `type.name`#`a.name`() `a.name`} identity attribute. Use returned {@link Finder} object to complete
+   * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+   * @param `a.name` the exact {@code `a.name`} value
+   * @return finder object to complete operation
+   */
+  @javax.annotation.CheckReturnValue
+  public Finder findById(`a.type` `a.name`) {
     return find(where().`a.name`(`a.name`));
   }
   
-  public FluentFuture<Void> upsert(`type.name` `type.name.toLowerFirst()`) {
-    Criteria byId = where().`a.name`(`type.name.toLowerFirst()`.`a.name`());
-    return super.doUpsert((ConstraintSupport.ConstraintHost) byId, `type.name.toLowerFirst()`);
+  /**
+   * Update or insert document, matched by identifier value of '`a.name`' attribute.
+   * @param document `type.name.toLowerFirst()` to upsert
+   * @return future of number of inserted documents (1) if WriteConcern allows.
+   */
+  public FluentFuture<Integer> upsert(`type.name` document) {
+    Criteria byId = where().`a.name`(document.`a.name`());
+    return super.doUpsert((ConstraintSupport.ConstraintHost) byId, document);
   }
 [/if]
 [/let]
 
-  [apply generateFetcher(type)]
+  [apply generateFinder(type)]
   [apply generateUpdater(type)]
   [apply generateModifier(type)]
   [apply generateIndexer(type)]
@@ -77,18 +105,34 @@ public final class `type.name`Repository extends Repositories.Repository<`type.n
 [template generateOrderingAndExcludes(type, T)]
   [foreach (a in type.implementedAttributes)]
 
+/**
+ * Order by {@link `type.name`#`a.name`() `a.name`} in the ascending direction.
+ * Specify next attribute to sort will be {@link `type.name`#`a.name`() `a.name`} attribute using ascending order
+ * in the the chain of comparisons performed to sort results.
+ * @return {@code this} `T.toLowerFirst()` for chained invokation
+ */
 public `T` orderBy`a.name.toUpperFirst()`() {
   ordering = ordering.equal("`a.marshaledName`", false, 1);
   return this;
 }
 
+/**
+ * Order by {@link `type.name`#`a.name`() `a.name`} in the descending direction.
+ * Specify next attribute to sort will be {@link `type.name`#`a.name`() `a.name`} attribute using descending order
+ * in the the chain of comparisons performed to sort results.
+ * @return {@code this} `T.toLowerFirst()` for chained invokation
+ */
 public `T` orderBy`a.name.toUpperFirst()`Desceding() {
   ordering = ordering.equal("`a.marshaledName`", false, -1);
   return this;
 }
   [/foreach]
   [foreach (a in type.excludableAttributes)]
-    
+ 
+/**
+ * Exclude {@link `type.name`#`a.name`() `a.name`} attribute from each document in results.
+ * @return {@code this} `T.toLowerFirst()` for chained invokation
+ */    
 public `T` exclude`a.name.toUpperFirst()`() {
   exclusion = exclusion.equal("`a.marshaledName`", false, -1);
   return this;
@@ -96,24 +140,45 @@ public `T` exclude`a.name.toUpperFirst()`() {
   [/foreach]
 [/template]
 
-[template generateFetcher(type)]
+[template generateFinder(type)]
 
-public Fetcher find(Criteria criteria) {
-  return new Fetcher(this, criteria);
+/**
+ * Find document by {@link `type.name`Repository#where() criteria}. Use returned {@link Finder} object to complete
+ * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+ * @param criteria search criteria
+ * @return finder object to complete operation
+ */
+@javax.annotation.CheckReturnValue
+public Finder find(Criteria criteria) {
+  return new Finder(this, criteria);
 }
 
+/**
+ * Finder object used to proceed with find operation by using methods
+ * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()} or {@link Finder#deleteFirst()} methods.
+ * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods. 
+ * @see `type.name`Repository#find(Criteria)
+ */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Fetcher extends Repositories.Fetcher<`type.name`, Fetcher> {
-  private Fetcher(`type.name`Repository repository, Criteria criteria) {
+public static final class Finder extends Repositories.Finder<`type.name`, Finder> {
+  private Finder(`type.name`Repository repository, Criteria criteria) {
     super(repository);
     this.criteria = (ConstraintSupport.ConstraintHost) criteria;
   }
-  [apply generateOrderingAndExcludes(type, 'Fetcher')]
+  [apply generateOrderingAndExcludes(type, 'Finder')]
   [apply generateAndModifyFirst(type)]
 }
 [/template]
 
 [template generateAndModifyFirst(type)]
+
+/**
+ * Turn find operation into atomic {@link DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean, boolean) findAndModify}
+ * operation. Use family of {@code set*()}, {@code unset*()}, {@code add*()}, {@code remove*()}, {@code put*()} and {@code init*()}
+ * and other attribute specific methods to describe modification. 
+ * @return modifier object to complete {@code findAndModify} operation
+ */
+@javax.annotation.CheckReturnValue 
 public Modifier andModifyFirst() {
   return new Modifier(repository, criteria, ordering, exclusion);
 }
@@ -121,10 +186,24 @@ public Modifier andModifyFirst() {
 
 [template generateIndexer(type)]
 
-public Indexer indexer() {
+/**
+ * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure index} on collection "`type.documentName`" by one or
+ * more attributes using family of {@code with*()} attribute specific methods.
+ * While indexes usually will be maintained by special administration scripts, for simple cases it is convenient
+ * to ensure index on application startup.
+ * @see Indexer#named(String)
+ * @see Indexer#unique()
+ * @return indexer object to complete with {@link Indexer#ensure()} operation.
+ */
+@javax.annotation.CheckReturnValue 
+public Indexer index() {
   return new Indexer(this);
 }
 
+/**
+ * Indexer used to create index on the "`type.documentName`" collection if it does not exist by one or more attributes.
+ * @see DBCollection#ensureIndex(DBObject, DBObject)
+ */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Indexer extends Repositories.Indexer<`type.name`, Indexer> {
   private Indexer(`type.name`Repository repository) {
@@ -132,11 +211,19 @@ public static final class Indexer extends Repositories.Indexer<`type.name`, Inde
   }
 [foreach (a in type.implementedAttributes)]
   
+  /**
+   * Specify next attribute to in index will be {@link `type.name`#`a.name`() `a.name`} in the ascending direction.
+   * @return {@code this} indexer for chained invokation
+   */
   public Indexer with`a.name.toUpperFirst()`() {
     fields = fields.equal("`a.marshaledName`", false, 1);
     return this;
   }
-    
+  
+  /**
+   * Specify next attribute to in index will be {@link `type.name`#`a.name`() `a.name`} in the descending direction.
+   * @return {@code this} indexer for chained invokation
+   */
   public Indexer with`a.name.toUpperFirst()`Desceding() {
     fields = fields.equal("`a.marshaledName`", false, -1);
     return this;
@@ -146,11 +233,20 @@ public static final class Indexer extends Repositories.Indexer<`type.name`, Inde
 [/template]
 
 [template generateUpdater(type)]
-  
+/**
+ * Update set of "`type.documentName`" documents.
+ * @param criteria search criteria for update
+ * @return updater object to complete update. 
+ */
+@javax.annotation.CheckReturnValue
 public Updater update(Criteria criteria) {
   return new Updater(this, criteria);
 }
 
+/**
+ * {@link #update(Criteria) Given} the criteria updater describes how to perform
+ * update operation on a set of documents.
+ */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Updater extends Repositories.Updater<`type.name`> {
   private Updater(`type.name`Repository repository, Criteria criteria) {
@@ -181,9 +277,16 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
 
 [template generateUpdatingMethods(type, T)]
   [foreach (a in type.implementedAttributes)]
+[if (a.marshaledName != '_id')]
 [let (W = a.wrappedElementType, U = a.unwrappedElementType)]
   [if (a.collectionType)]
 
+  /**
+   * Clear `a.name.toUpperFirst()` `a.rawCollectionType.toLowerFirst()` attribute.
+   * <p>
+   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `a.forceEmpty && 'with reset to empty array'`
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` clear`a.name.toUpperFirst()`() {
   [if (a.forceEmpty)]
     setFields = setFields.equal("`a.marshaledName`", false, com.google.common.collect.ImmutableList.<Object>of());
@@ -192,12 +295,26 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   [/if]
     return this;
   }
-    
+  
+  /**
+   * Remove value from `a.name.toUpperFirst()` `a.rawCollectionType.toLowerFirst()` attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $pull} operator.
+   * @param value value to remove
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` remove`a.name.toUpperFirst()`(`U` value) {
     pullFields = pullFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
     return this;
   }
 
+  /**
+   * Add value to `a.name.toUpperFirst()` `a.rawCollectionType.toLowerFirst()` attribute.
+   * <p>
+   * Corresponds to MongoDB {@code `a.setType?'$addToSet':'push'`} operator.
+   * @param value value to add
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` add`a.name.toUpperFirst()`(`U` value) {
   [if (a.setType)]
     addToSetFields = addToSetFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
@@ -206,7 +323,14 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   [/if]
     return this;
   }
-  
+
+  /**
+   * Add all values to `a.name.toUpperFirst()` `a.rawCollectionType.toLowerFirst()` attribute.
+   * <p>
+   * Corresponds to MongoDB {@code `a.setType?'$addToSet':'push'`} operator with {@code $each} modifier.
+   * @param values values to add
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */  
   public `T` addAll`a.name.toUpperFirst()`(Iterable<`W`> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
     for (`W` v : values) {
@@ -232,22 +356,51 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
 [/if]
 [if (!a.collectionType)]
   [if (a.mapType)]
+
+  /**
+   * Clear `a.name.toUpperFirst()` map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator to reset to empty object
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` clear`a.name.toUpperFirst()`() {
     setFields = setFields.equal("`a.marshaledName`", false, RepositorySupport.emptyBsonObject());
     return this;
   }
-  
+
+  /**
+   * Put key, value into the map of `a.name.toUpperFirst()` map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator for nested object
+   * @param key key
+   * @param value value
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` put`a.name.toUpperFirst()`(`U` key, `a.unwrappedSecondaryElementType` value) {
     setFields = setFields.equal("`a.marshaledName`." + key, false, wrapMarshalable(value));
     return this;
   }
   
+  /**
+   * Remove key, value mapping from `a.name.toUpperFirst()` map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $unset} operator for nested object
+   * @param key key
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` remove`a.name.toUpperFirst()`(`U` key) {
     unsetFields = unsetFields.equal("`a.marshaledName`." + key, false, 1);
     return this;
   }
   [else]
     [if (a.optionalType)]
+
+  /**
+   * Clear `a.name.toUpperFirst()` optional attribute.
+   * <p>
+   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `a.forceEmpty && 'with reset to {@code null}'`
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` clear`a.name.toUpperFirst()`() {
       [if (a.forceEmpty)]
     setFields = setFields.equal("`a.marshaledName`", false, null);
@@ -257,18 +410,41 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
     return this;
   }
     [/if]
-    
+
+  /**
+   * Specify new value for the '`a.name.toUpperFirst()`' attribute. 
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator.
+   * @param value new value for the `a.name.toUpperFirst()` attribute
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */     
   public `T` set`a.name.toUpperFirst()`(`U` value) {
     setFields = setFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
     return this;
   }
   
+  /**
+   * Specify inital value for the '`a.name.toUpperFirst()`' attribute which will be used if document is
+   * to be inserted. If one or more documents are found for an update, this value will not be used.
+   * <p>
+   * Corresponds to MongoDB {@code $setOnInsert} operator.
+   * @param value `a.name.toUpperFirst()` value for an insert.
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */
   public `T` init`a.name.toUpperFirst()`(`U` value) {
     setOnInsertFields = setOnInsertFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
     return this;
   }   
   
     [if (a.numberType)]
+  /**
+   * Specify increment amount for the '`a.name.toUpperFirst()`' attribute. If document is to inserted
+   * and no initial value provided, then {@code 0} will be the default value and increment will adjust it. 
+   * <p>
+   * Corresponds to MongoDB {@code $inc} operator.
+   * @param increment an amount to increment `a.name.toUpperFirst()` attribute (may be negative)
+   * @return {@code this} `T.toLowerFirst()` to complete update operation
+   */    
   public `T` increment`a.name.toUpperFirst()`(`U` increment) {
     incrementFields = incrementFields.equal("`a.marshaledName`", false, increment);
     return this;
@@ -277,6 +453,7 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
     [/if]
   [/if]
 [/let]
+[/if]
   [/foreach]
 [/template]
 
@@ -339,7 +516,6 @@ private static final class InternalCriteria extends Criteria implements Constrai
 [/if]
 [if (!a.collectionType)]
   [if (a.documentElement)]
-  
   [-- @Override ]
   [-- public InternalCriteria `a.name`(`U`s.Criteria `a.name`Constraints) { ]
   [-- return new InternalCriteria(constraint.nested("`a.marshaledName`", (ConstraintSupport.ConstraintHost) `a.name`Constraints)); ]
@@ -493,13 +669,20 @@ private static final class InternalCriteria extends Criteria implements Constrai
   @Override
   public InternalCriteria or() {
     return new InternalCriteria(constraint.disjunction());
-  } 
+  }
+
+  @Override
+  public String toString() {
+    return "`type.name`Repository.where(" + RepositorySupport.stringify(this) + ")";
+  }
 }
 [/template]
 
 [template generateCriteriaApi(type)]
 
 /**
+ * Specify search criteria.
+ * Returns initial object to create criteria by invoking methods that describe attribute specific constrains.
  * @return empty immutable criteria
  */
 public static Criteria where() {
@@ -507,11 +690,11 @@ public static Criteria where() {
 }
 
 /**
- * TODO Complete documentation comments in generation template
- * {@code `type.name`.Criteria} is a document query.
+ * {@code `type.name`Repository.Criteria} is a `type.name` document search query.
+ * Call methods on criteria to add contraint for search query.
  */
 @javax.annotation.concurrent.Immutable
-public static abstract class Criteria {
+public static abstract class Criteria extends Repositories.Criteria {
   Criteria() {}
 [foreach (a in type.implementedAttributes)]
 [let (W = a.wrappedElementType, U = a.unwrappedElementType)]
@@ -558,10 +741,7 @@ public static abstract class Criteria {
 [/if]
 [/let]
 [/foreach]
-  /**
-   * Returns chained criteria handle used to "OR" new constraint set to form logical disjunctive.
-   * @return disjunction criteria handle
-   */
+  @Override
   public abstract Criteria or();
 }
 [/template]

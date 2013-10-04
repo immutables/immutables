@@ -49,15 +49,16 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class MarshalingMessageBodyProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
-  public static final JsonFactory jsonFactory = new JsonFactory();
+  private final JsonFactory jsonFactory = new JsonFactory();
 
-  final LoadingCache<Class<?>, Marshaler<?>> marshalerCache = CacheBuilder.newBuilder()
-      .build(new CacheLoader<Class<?>, Marshaler<?>>() {
-        @Override
-        public Marshaler<?> load(Class<?> type) throws Exception {
-          return MarshalingSupport.loadMarshalerFor(type);
-        }
-      });
+  final LoadingCache<Class<?>, Marshaler<Object>> marshalerCache =
+      CacheBuilder.newBuilder()
+          .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
+            @Override
+            public Marshaler<Object> load(Class<?> type) throws Exception {
+              return MarshalingSupport.loadMarshalerFor(type);
+            }
+          });
 
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
@@ -78,9 +79,8 @@ public class MarshalingMessageBodyProvider implements MessageBodyReader<Object>,
       InputStream entityStream) throws IOException, WebApplicationException {
 
     try (JsonParser parser = jsonFactory.createParser(entityStream)) {
-      Marshaler<?> marshaler = marshalerCache.getUnchecked(type);
       parser.nextToken();
-      return marshaler.unmarshalInstance(parser);
+      return marshalerCache.getUnchecked(type).unmarshalInstance(parser);
     } catch (IOException e) {
       throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
     }
@@ -110,15 +110,8 @@ public class MarshalingMessageBodyProvider implements MessageBodyReader<Object>,
       MultivaluedMap<String, Object> httpHeaders,
       OutputStream entityStream) throws IOException, WebApplicationException {
 
-    if (genericType instanceof Class<?>) {
-      Class<?> declaredType = (Class<?>) genericType;
-      try (JsonGenerator generator = jsonFactory.createGenerator(entityStream)) {
-        @SuppressWarnings("unchecked")
-        Marshaler<Object> marshaler =
-            (Marshaler<Object>) marshalerCache.getUnchecked(declaredType);
-
-        marshaler.marshalInstance(generator, o);
-      }
+    try (JsonGenerator generator = jsonFactory.createGenerator(entityStream)) {
+      marshalerCache.getUnchecked(actualType).marshalInstance(generator, o);
     }
   }
 }

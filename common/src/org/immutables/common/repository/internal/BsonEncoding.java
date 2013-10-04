@@ -69,6 +69,13 @@ public final class BsonEncoding {
 
   private BsonEncoding() {}
 
+  /**
+   * Althought it may seem that reparsing is bizzare, but it is one [of not so many] ways to do
+   * proper marshaling. This kind of inneficiency will only hit query constraints that have many
+   * object with custom marshaling, which considered to be a rare case.
+   * @param marshalableValue the value in a marshalable wrapper
+   * @return object converted to MongoDB driver's {@link BSONObject}.
+   */
   public static Object unwrapBsonable(RepositorySupport.MarshalableWrapper marshalableValue) {
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

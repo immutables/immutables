@@ -15,6 +15,7 @@
  */
 package org.immutables.common.collect;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import org.junit.Test;
@@ -32,7 +33,6 @@ public class OrdinalSetTest {
   Ord b1 = d2.get(1);
 
   // not using IterableChecker in all cases (to cover correct code paths)
-
   @Test
   public void emptySet() {
     check(ImmutableOrdinalSet.<Ord>of().isEmpty());
@@ -40,6 +40,15 @@ public class OrdinalSetTest {
 
     check(ImmutableOrdinalSet.<Ord>of()).same(ImmutableOrdinalSet.<Ord>of());
     check(ImmutableOrdinalSet.<Ord>of()).asString().notEmpty();
+  }
+
+  @Test
+  public void builder() {
+    check(ImmutableOrdinalSet.<Ord>builder()
+        .add(a0)
+        .addAll(ImmutableList.of(a1))
+        .build())
+        .is(ImmutableOrdinalSet.of(a0, a1));
   }
 
   @Test

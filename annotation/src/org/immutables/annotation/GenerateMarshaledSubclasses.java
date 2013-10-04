@@ -22,14 +22,22 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Generate modifiable implementation of abstract data type.
- * This annotation could be used only as companion to {@link GenerateImmutable} to provide
- * modifiable variant that is convertible back and forth to immutable form.
- * <p>
- * There's additional usage for such modifiable classes: generation of highly compact data holders
- * by having special integer-encoded data attributes annotated with {@link GeneratePackedBits}.
+ * Expected subclasses for marshaling could be specified on attribute level or an abstract
+ * supertype directly, however the former declaration site has precedence.
+ * @see #value()
+ * @see GenerateMarshaled
  */
 @Documented
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.CLASS)
-public @interface GenerateModifiable {}
+@Retention(RetentionPolicy.SOURCE)
+@Target({ ElementType.METHOD, ElementType.TYPE })
+public @interface GenerateMarshaledSubclasses {
+
+  /**
+   * Specifies expected subclasses of an abstract type that is matched during parsing by
+   * occurence of unique settable attributes ({@link GenerateDerived derived} does not count, also
+   * be careful with omitable {@link GenerateDefault default} attributes). If all attributes of
+   * subclasses are the same, then it will result in error due to undecidable situation.
+   * @return subclasses of an abstract type that annotated with {@link GenerateMarshaler}
+   */
+  Class<?>[] value() default {};
+}

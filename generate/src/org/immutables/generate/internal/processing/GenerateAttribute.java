@@ -17,10 +17,8 @@ package org.immutables.generate.internal.processing;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Objects;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -31,20 +29,21 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.annotation.GenerateConstructorArgument;
-import org.immutables.annotation.GenerateDefaulted;
+import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateMarshaled;
+import org.immutables.annotation.GenerateMarshaledSubclasses;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GeneratePackedBits;
 import org.immutables.annotation.GenerateRepository;
 
-public abstract class GenerateAttribute extends TypeInstrospectionBase {
+public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
-  private static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
   static {
@@ -66,8 +65,6 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
     BOXED_TO_PRIMITIVE_TYPES = builder.build();
   }
 
-  // XXX Departure from immutability, sorry.
-  // Was bored to regenerate: self-processing not used
   public void setAttributeElement(ExecutableElement element) {
     this.element = element;
   }
@@ -84,11 +81,6 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
     return internalName();
   }
 
-  public boolean isComparable() {
-    ensureTypeIntrospected();
-    return implementedInterfacesNames.contains(Comparable.class.getName());
-  }
-
   public boolean isForceEmpty() {
     @Nullable
     GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
@@ -100,27 +92,27 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
   @Override
   protected abstract TypeMirror internalTypeMirror();
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGenerateFunction() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGeneratePredicate() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGenerateDefault() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGenerateDerived() {
     return false;
   }
 
-  @GenerateDefaulted
+  @GenerateDefault
   public boolean isGenerateAbstract() {
     return false;
   }
@@ -248,31 +240,27 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
     return firstTypeParameter();
   }
 
-  public boolean isEnumType() {
-    ensureTypeIntrospected();
-    return extendedClassesNames.contains(Enum.class.getName());
-  }
-
-  public boolean isUndefinable() {
-    ensureTypeIntrospected();
-    return FluentIterable.from(implementedInterfacesNames).anyMatch(UNDEFINABLE_PATTERN);
-  }
-
-  public String getDirectSupertype() {
-    ensureTypeIntrospected();
-    return Iterables.getFirst(extendedClassesNames, null);
-  }
-
   @Nullable
   private List<String> expectedSubclasses;
 
   public List<String> getExpectedSubclasses() {
     if (expectedSubclasses == null) {
-      expectedSubclasses =
-          GenerateType.extractedClassNamesFromAnnotationMirrors(
-              GenerateMarshaled.class.getName(), "expectedSubclasses", element.getAnnotationMirrors());
+      if (element.getAnnotation(GenerateMarshaledSubclasses.class) != null) {
+        expectedSubclasses = listExpectedSubclassesFromElement(element);
+      } else {
+        ensureTypeIntrospected();
+        expectedSubclasses =
+            containedTypeElement != null
+                ? listExpectedSubclassesFromElement(containedTypeElement)
+                : ImmutableList.<String>of();
+      }
     }
     return expectedSubclasses;
+  }
+
+  private static List<String> listExpectedSubclassesFromElement(Element element) {
+    return GenerateType.extractedClassNamesFromAnnotationMirrors(
+        GenerateMarshaledSubclasses.class.getName(), "value", element.getAnnotationMirrors());
   }
 
   private boolean marshaledElement;
@@ -281,6 +269,15 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
   private TypeElement containedTypeElement;
   private boolean specialMarshaledElement;
   private boolean specialMarshaledSecondaryElement;
+  private boolean generateOrdinalValueSet;
+
+  public boolean isGenerateOrdinalValueSet() {
+    if (!isSetType()) {
+      return false;
+    }
+    ensureTypeIntrospected();
+    return generateOrdinalValueSet;
+  }
 
   public boolean isDocumentElement() {
     ensureTypeIntrospected();
@@ -313,9 +310,18 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
         if (!typeArguments.isEmpty()) {
           // XXX 1? can it be reused for map for example
           if (typeArguments.size() == 1) {
-            TypeMirror typeArgument = typeArguments.get(0);
+            final TypeMirror typeArgument = typeArguments.get(0);
             if (typeArgument instanceof DeclaredType) {
               typeMirror = typeArgument;
+            }
+
+            if (isSetType()) {
+              generateOrdinalValueSet = new TypeIntrospectionBase() {
+                @Override
+                protected TypeMirror internalTypeMirror() {
+                  return typeArgument;
+                }
+              }.isOrdinalValue();
             }
           }
 
@@ -383,7 +389,6 @@ public abstract class GenerateAttribute extends TypeInstrospectionBase {
         || PRIMITIVE_TYPES.containsKey(name)
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
   }
-
 
   public int getMinValue() {
     return isAligned()

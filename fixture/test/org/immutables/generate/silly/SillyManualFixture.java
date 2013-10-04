@@ -48,12 +48,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import org.bson.LazyBSONCallback;
-import org.immutables.common.repository.RepositoryConfiguration;
+import org.immutables.common.repository.RepositorySetup;
 import org.immutables.common.time.TimeMeasure;
 import org.immutables.generate.silly.repository.SillyEntityRepository;
+import org.immutables.generate.silly.repository.SillyEntitySecondRepository;
 import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
 import static org.immutables.check.Checkers.*;
-import static org.immutables.generate.silly.repository.SillyEntityRepository.*;
 
 @SuppressWarnings("unused")
 public final class SillyManualFixture {
@@ -88,7 +88,16 @@ public final class SillyManualFixture {
     return baos.toByteArray();
   }
 
-  public static void main(String... args) throws Exception {
+  public static void main(String... args) {
+
+    RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
+    SillyEntitySecondRepository repository = SillyEntitySecondRepository.create(setup);
+
+    repository.upsert(ImmutableSillyEntitySecond.builder().build()).getUnchecked();
+
+  }
+
+  public static void main3(String... args) throws Exception {
     JsonParser parser = jsonFactory.createParser("{a:1,b:2}");
     TokenBuffer tokenBuffer = new TokenBuffer(new ObjectMapper());
 
@@ -105,7 +114,7 @@ public final class SillyManualFixture {
     MongoClient mongo = new MongoClient();
 
     SillyEntityRepository repository = SillyEntityRepository.create(
-        RepositoryConfiguration.builder()
+        RepositorySetup.builder()
             .database(mongo.getDB("test"))
             .executor(executor)
             .build());
@@ -161,12 +170,12 @@ public final class SillyManualFixture {
     MongoClient mongo = new MongoClient();
 
     SillyEntityRepository repository = SillyEntityRepository.create(
-        RepositoryConfiguration.builder()
+        RepositorySetup.builder()
             .database(mongo.getDB("test"))
             .executor(executor)
             .build());
 
-    repository.indexer()
+    repository.index()
         .withIdDesceding()
         .withPayload()
         .named("myindex")
@@ -189,7 +198,7 @@ public final class SillyManualFixture {
     TimeMeasure.seconds(1).sleep();
     List<SillyEntity> unchecked =
         repository.find(
-            where()
+            SillyEntityRepository.where()
                 .idNot(15)
                 .valStartsWith("1")
                 .derAtLeast(UnsignedInteger.valueOf(2)))

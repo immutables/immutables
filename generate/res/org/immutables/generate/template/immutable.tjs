@@ -365,6 +365,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [let (n = v.name)]
   [if (v.generateEnumSet)]
     this.`n` = com.google.common.collect.Sets.immutableEnumSet(`n`);
+  [elseif (v.generateOrdinalValueSet)]
+    this.`n` = org.immutables.common.collect.ImmutableOrdinalSet.copyOf(`n`);
   [elseif (v.collectionType)]
     this.`n` = com.google.common.collect.Immutable`v.rawCollectionType`.copyOf(`n`);
   [elseif (v.mapType)]
@@ -392,6 +394,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [let (n = v.name)]
   [if (v.generateEnumSet)]
     this.`n` = com.google.common.collect.Sets.immutableEnumSet(builder.`n`Builder.build());
+  [elseif (v.generateOrdinalValueSet)]
+    this.`n` = org.immutables.common.collect.ImmutableOrdinalSet.copyOf(builder.`n`Builder.build());
   [elseif (v.generateEnumMap)]
     this.`n` = com.google.common.collect.Maps.immutableEnumMap(builder.`n`Builder.build());
   [elseif (v.collectionType || v.mapType)]
