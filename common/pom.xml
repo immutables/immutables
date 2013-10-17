@@ -41,6 +41,13 @@
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
+      <artifactId>logging-set</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables.dependency</groupId>
       <artifactId>service-set</artifactId>
       <version>${project.version}</version>
       <type>pom</type>

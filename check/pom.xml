@@ -9,9 +9,9 @@
     <artifactId>root</artifactId>
     <version>0-SNAPSHOT</version>
   </parent>
-  
+
   <description>Checkers toolkit built on top of hamcrest matchers. Expected to be used only in test scope</description>
-  
+
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>

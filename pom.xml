@@ -2,6 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
   <groupId>org.immutables</groupId>
   <artifactId>root</artifactId>
   <version>0-SNAPSHOT</version>
@@ -18,40 +25,45 @@
     <module>generate-tool</module>
   </modules>
 
-  <distributionManagement>
-    <repository>
-      <uniqueVersion>false</uniqueVersion>
-      <id>artifacts</id>
-      <name>Filesystem Repository</name>
-      <url>file:${user.home}/git/m2repo</url>
-      <layout>default</layout>
-    </repository>
-  </distributionManagement>
-
   <organization>
     <name>The Immutables.org authors</name>
     <url>http://immutables.org</url>
   </organization>
+
+  <developers>
+    <developer>
+      <id>elucash</id>
+      <name>Ievgen Lukash</name>
+      <email>e.lucash@gmail.com</email>
+      <timezone>+2</timezone>
+    </developer>
+    <developer>
+      <id>ivysharev</id>
+      <name>Ilya Vysharev</name>
+      <email>ivysharev@gmail.com</email>
+      <timezone>+2</timezone>
+    </developer>
+    <developer>
+      <id>augustotravillio</id>
+      <name>Augusto Travillio</name>
+      <email>augusto.travillio@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
 
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
-      <comments>For all code which is used in runtime</comments>
-    </license>
-    <license>
-      <name>Mozilla Public License, Version 2.0</name>
-      <url>http://www.mozilla.org/MPL/2.0/index.txt</url>
-      <distribution>repo</distribution>
-      <comments>Used for build time generation tool component in addition to ASL</comments>
+      <comments>For all code which is used at runtime</comments>
     </license>
   </licenses>
 
   <scm>
     <connection>scm:git:git@github.com:immutables/org.immutables.git</connection>
     <developerConnection>scm:git:git@github.com:immutables/org.immutables.git</developerConnection>
-    <url>https://github.com/immutables/org.immutables</url>
+    <url>https://github.com/immutables/org.immutables.git</url>
   </scm>
 
   <properties>
@@ -59,24 +71,16 @@
   </properties>
 
   <build>
-    <!-- Traditional, simpler compared to maven, convention for simple java projects.
-      This parent should be used only to simple java projects -->
     <sourceDirectory>src</sourceDirectory>
     <testSourceDirectory>test</testSourceDirectory>
     <resources>
       <resource>
         <directory>res</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
       </resource>
     </resources>
     <testResources>
       <testResource>
-        <directory>test</directory>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
+        <directory>testres</directory>
       </testResource>
     </testResources>
     <plugins>
@@ -100,21 +104,37 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>sonatype-oss-release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9</version>
+            <configuration>
+              <quiet>true</quiet>
+              <nonavbar>true</nonavbar>
+              <notree>true</notree>
+              <nocomment>true</nocomment>
+              <nohelp>true</nohelp>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>
