@@ -28,8 +28,8 @@ import java.lang.annotation.Target;
  * <ul>
  * <li>No constructor generated, if none of methods have {@link GenerateConstructorArgument}
  * annotation</li>
- * <li>For object to be constructable with constructor all non-defaulted and non-derived attributes
- * should be annotated with {@link GenerateConstructorArgument}.
+ * <li>For object to be constructable with a constructor - all non-default and non-derived
+ * attributes should be annotated with {@link GenerateConstructorArgument}.
  * </ul>
  */
 @Target(ElementType.METHOD)
@@ -37,11 +37,12 @@ import java.lang.annotation.Target;
 public @interface GenerateConstructorArgument {
   /**
    * Used to specify order of constructor argument. It's defaults to zero and allows for
-   * non-contigous order values (arguments are sorted ascending by this order value).
+   * non-contiguous order values (arguments are sorted ascending by this order value).
    * <p>
    * <em>This attribute was introduced as JDT annotation processor internally tracks alphabetical order
-   * of members, this differs from Javac, which uses order of declaration appearance. Thus, in order
-   * to support portable constructor argument definitions, developer should supply argument order explicitly.</em>
+   * of members (non-standart as of Java 6), this differs from Javac, which uses order of declaration appearance
+   * in a source file. Thus, in order to support portable constructor argument definitions,
+   * developer should supply argument order explicitly.</em>
    * @return order
    */
   int order() default 0;

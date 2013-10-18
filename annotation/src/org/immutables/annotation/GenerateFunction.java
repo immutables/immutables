@@ -21,9 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Annotation-directive to generate function corresponding to annotated method. */
+/**
+ * Annotation-directive to generate function corresponding to annotated method.
+ * Such functions can be found as static attributes on a separate class named by abstract immutable
+ * class with 'Functions' suffix.
+ * @see GeneratePredicate
+ */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface GenerateFunction {
-}
+public @interface GenerateFunction {}

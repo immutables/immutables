@@ -22,10 +22,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates method that should be invoked internally to validate instance's invariants
- * after instance being created, but before returned to client.
- * Annotated method must be protected parameter-less method and have a {@code void} return type and
- * should not throw.
+ * Annotates method that should be invoked internally to validate invariants
+ * after instance had been created, but before returned to a client.
+ * Annotated method must be protected parameter-less method and have a {@code void} return type,
+ * which also should not throw a checked exceptions.
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)

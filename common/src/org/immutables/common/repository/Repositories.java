@@ -86,9 +86,9 @@ public final class Repositories {
         RepositorySetup configuration,
         String collectionName,
         Marshaler<T> marshaler) {
-      this.configuration = configuration;
-      this.collectionName = collectionName;
-      this.marshaler = marshaler;
+      this.configuration = checkNotNull(configuration);
+      this.collectionName = checkNotNull(collectionName);
+      this.marshaler = checkNotNull(marshaler);
     }
 
     private DBCollection collection() {
@@ -143,6 +143,7 @@ public final class Repositories {
         final boolean remove) {
       checkArgument(!upsert || !remove);
       checkArgument(!remove || !newOrOld);
+      checkNotNull(criteria);
       return submit(new Callable<Optional<T>>() {
         @Override
         public Optional<T> call() throws Exception {
@@ -173,6 +174,7 @@ public final class Repositories {
         final boolean upsert,
         final boolean multiple) {
       checkArgument(!multiple || !upsert);
+      checkNotNull(criteria);
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
@@ -193,6 +195,7 @@ public final class Repositories {
 
     protected final FluentFuture<Integer> doDelete(
         final ConstraintSupport.ConstraintHost criteria) {
+      checkNotNull(criteria);
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
@@ -209,6 +212,8 @@ public final class Repositories {
     protected final FluentFuture<Integer> doUpsert(
         final ConstraintSupport.ConstraintHost criteria,
         final T document) {
+      checkNotNull(criteria);
+      checkNotNull(document);
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {

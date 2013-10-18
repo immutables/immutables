@@ -34,9 +34,9 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE, ElementType.PACKAGE })
 public @interface GenerateMarshaler {
   /**
-   * Specify classes whose members will be imported with a static star-import (i.e.
-   * {@code import static ...*;}). These classes expected to include
-   * In order to share imported routines between classes in a package, you can place this
+   * Specify classes whose members will be imported with a static star-import (
+   * {@code import static ...*;}).
+   * In order to share imported routines among classes in a package, you can place this
    * annotation on a enclosing package (using package-info.java).
    * @return class literals
    */

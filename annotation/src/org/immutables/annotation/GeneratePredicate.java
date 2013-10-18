@@ -21,7 +21,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** annotation-directive to generate predicate corresponding to annotated boolean method. */
+/**
+ * Annotation-directive to generate predicate corresponding to annotated boolean attribute methods.
+ * Such predicates can be found as static attributes on a separate class named by abstract
+ * immutable class with 'Functions' suffix.
+ * @see GenerateFunction
+ */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
