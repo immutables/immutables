@@ -11,6 +11,12 @@
   </parent>
 
   <artifactId>common</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>
+    Common support packages for the generated classes that exceeds capabilities
+    of the basic immutable implementaions. Includes JSON marshaling,
+    MongoDB repository utilities and JAX-RS microservices support.
+  </description>
 
   <dependencies>
     <dependency>

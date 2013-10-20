@@ -10,6 +10,8 @@
   </parent>
 
   <artifactId>generate</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Annotation processor code including the model and templates for the code generation</description>  
 
   <dependencies>
     <dependency>

@@ -11,6 +11,8 @@
   
   <artifactId>logging-set</artifactId>
   <packaging>pom</packaging>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Logging set of dependencies</description>
 
   <dependencies>
     <dependency>

@@ -11,6 +11,8 @@
 
   <groupId>org.immutables.dependency</groupId>
   <artifactId>dependency-root</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Set of dependencies</description>
  
   <packaging>pom</packaging>
 

@@ -11,6 +11,8 @@
 
   <artifactId>utility-set</artifactId>
   <packaging>pom</packaging>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Core set of dependencies, required for generated classes</description>
 
   <dependencies>
     <dependency>

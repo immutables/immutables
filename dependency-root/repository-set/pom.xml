@@ -10,6 +10,9 @@
   </parent>
   
   <artifactId>repository-set</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Repository set of dependencies</description>
+  
   <packaging>pom</packaging>
   
   <dependencies>

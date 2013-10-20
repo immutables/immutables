@@ -10,6 +10,11 @@
   </parent>
 
   <artifactId>service</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>
+    Immutables.org full stack aggregator artifact for using all immutables.org features,
+    including core generation, mongodb repositories and JAX-RS microservices with guice integration
+  </description>
 
   <dependencies>
     <dependency>

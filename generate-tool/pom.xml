@@ -7,8 +7,11 @@
     <artifactId>root</artifactId>
     <version>0-SNAPSHOT</version>
   </parent>
+  
   <artifactId>generate-tool</artifactId>
-
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Single-jar packaging of generate tool to be used in builds and IDE</description>  
+  
   <licenses>
     <license>
       <name>The Apache Software License, Version 2.0</name>
@@ -23,10 +26,6 @@
       <comments>Used by build time generation tool</comments>
     </license>
   </licenses>
-
-  <description>
-    Single-jar packaging of generate tool to be used in builds and IDE.
-  </description>
 
   <dependencies>
     <dependency>
