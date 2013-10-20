@@ -279,7 +279,7 @@ public static final class Builder {
   /**
    * Initializes value for {@link `type.name`#`v.name`()}.
   [if (v.generateDefault)]
-   * <p><em>This attribute has will have default initial {@link `type.name`#`v.name`() value} if not set.</em>
+   * <p><em>If not set, this attribute will have {@link `type.name`#`v.name`() default value}.</em>
   [/if]
    * @param `v.name` value for `v.name`, non-null
    * @return {@code this} builder for chained invocation
