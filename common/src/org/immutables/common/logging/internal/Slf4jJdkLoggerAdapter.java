@@ -15,12 +15,12 @@
  */
 package org.immutables.common.logging.internal;
 
-import org.immutables.common.logging.Stringification;
 import java.util.logging.Filter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import org.immutables.common.logging.Stringification;
 import org.slf4j.LoggerFactory;
 
 class Slf4jJdkLoggerAdapter extends Logger {
@@ -64,7 +64,7 @@ class Slf4jJdkLoggerAdapter extends Logger {
   }
 
   @Override
-  public synchronized Handler[] getHandlers() {
+  public Handler[] getHandlers() {
     return new Handler[0];
   }
 
@@ -88,7 +88,7 @@ class Slf4jJdkLoggerAdapter extends Logger {
   public void setLevel(Level newLevel) throws SecurityException {}
 
   @Override
-  public synchronized void setUseParentHandlers(boolean useParentHandlers) {}
+  public void setUseParentHandlers(boolean useParentHandlers) {}
 
   @Override
   public Level getLevel() {

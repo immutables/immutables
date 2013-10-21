@@ -22,6 +22,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Convenient wrappers for matcher checking, desined for better code assist(completion) and
@@ -33,7 +34,7 @@ public class Checkers {
     check("failed", actualCheckResult);
   }
 
-  public static ObjectChecker<Boolean> check(Boolean actualValue) {
+  public static ObjectChecker<Boolean> check(@Nullable Boolean actualValue) {
     return new ObjectChecker<>(actualValue, false);
   }
 
@@ -69,7 +70,7 @@ public class Checkers {
     return new OptionalChecker<>(actualValue);
   }
 
-  public static StringChecker check(String actualString) {
+  public static StringChecker check(@Nullable String actualString) {
     return new StringChecker(actualString, false);
   }
 
@@ -77,7 +78,7 @@ public class Checkers {
     ObjectChecker.verifyCheck(description, actualCheckResult);
   }
 
-  public static <T> ObjectChecker<T> check(T actualValue) {
+  public static <T> ObjectChecker<T> check(@Nullable T actualValue) {
     return new ObjectChecker<>(actualValue, false);
   }
 }

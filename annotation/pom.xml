@@ -12,7 +12,7 @@
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Annotations to generate support classes. Also, this artifact declares required dependencies for the generated classes to be compiled.
+    Annotations to generate support classes. This artifact declares required dependencies for the generated classes to be compiled.
   </description>
 
   <licenses>
@@ -20,7 +20,7 @@
       <name>The Apache Software License, Version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
-      <comments>For all code which is used in runtime</comments>
+      <comments>For all code which is used at runtime</comments>
     </license>
   </licenses>
 
@@ -30,7 +30,6 @@
       <artifactId>utility-set</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-      <optional>true</optional>
     </dependency>
   </dependencies>
 

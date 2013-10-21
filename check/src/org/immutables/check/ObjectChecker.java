@@ -37,10 +37,11 @@ import org.hamcrest.core.IsNull;
  */
 public class ObjectChecker<T> {
 
+  @Nullable
   final T actualValue;
   final boolean negate;
 
-  ObjectChecker(T actualValue, boolean negate) {
+  ObjectChecker(@Nullable T actualValue, boolean negate) {
     this.actualValue = actualValue;
     this.negate = negate;
   }

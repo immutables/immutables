@@ -15,6 +15,7 @@
  */
 package org.immutables.check;
 
+import javax.annotation.Nullable;
 import org.hamcrest.Matchers;
 import org.hamcrest.text.IsEmptyString;
 import org.junit.Assert;
@@ -22,7 +23,7 @@ import org.junit.Assert;
 /** The string match wrapper. */
 public class StringChecker extends ObjectChecker<String> {
 
-  StringChecker(String actualValue, boolean negate) {
+  StringChecker(@Nullable String actualValue, boolean negate) {
     super(actualValue, negate);
   }
 

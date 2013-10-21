@@ -76,7 +76,7 @@ public final class SillyManualFixture {
 
     JsonParser jsonParser = jsonFactory.createParser(string);
     jsonParser.nextToken();
-    return SillyStructureWithIdMarshaler.unmarshal(jsonParser, null, null);
+    return SillyStructureWithIdMarshaler.unmarshal(jsonParser, null, SillyStructureWithId.class);
   }
 
   private static byte[] toBson(SillyStructureWithId structure) throws IOException {

@@ -37,8 +37,8 @@ public final class Immutable`type.name`
       this.instance = instance;
     }
 
-    public boolean equals(Object another) {
-      return instance.equalTo(((InternProxy) another).instance);
+    public boolean equals(@javax.annotation.Nullable Object another) {
+      return another != null && instance.equalTo(((InternProxy) another).instance);
     }
     
     public int hashCode() {
@@ -66,6 +66,10 @@ public final class Immutable`type.name`
       new org.immutables.common.collect.InterningOrdinalDomain<InternProxy, `type.name`>() {
         protected `type.name` extractValue(InternProxy proxy, int ordinal) {
           return new Immutable`type.name`(proxy.instance, ordinal);
+        }
+        @Override
+        public String toString() {
+          return "Immutable`type.name`.ordinalDomainInstance()";
         }
       };
   
