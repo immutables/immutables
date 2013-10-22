@@ -47,7 +47,7 @@ class JerseyInjectBridges {
 
   static void installBridgingServiceLocatorGenerator() {
     try {
-      Field generatorField = aquireAccessibleGeneratorField();
+      Field generatorField = getAccessibleGeneratorField();
       ServiceLocatorGenerator generator = (ServiceLocatorGenerator) generatorField.get(null);
       LocatorGenerator wrappedLocatorGenerator = new LocatorGenerator(generator);
       generatorField.set(null, wrappedLocatorGenerator);
@@ -56,7 +56,7 @@ class JerseyInjectBridges {
     }
   }
 
-  private static Field aquireAccessibleGeneratorField() throws Exception {
+  private static Field getAccessibleGeneratorField() throws Exception {
     Field generatorField = Injections.class.getDeclaredField("generator");
     generatorField.setAccessible(true);
     Field modifiersField = Field.class.getDeclaredField("modifiers");

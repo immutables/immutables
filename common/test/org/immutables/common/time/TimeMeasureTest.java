@@ -49,8 +49,8 @@ public class TimeMeasureTest {
 
   @Test
   public void adding() throws Exception {
-    check(TimeMeasure.days(2).add(TimeMeasure.hours(2))).is(TimeMeasure.hours(50));
-    check(TimeMeasure.millis(1).add(TimeMeasure.seconds(1))).is(TimeMeasure.millis(1001));
+    check(TimeMeasure.days(2).plus(TimeMeasure.hours(2))).is(TimeMeasure.hours(50));
+    check(TimeMeasure.millis(1).plus(TimeMeasure.seconds(1))).is(TimeMeasure.millis(1001));
   }
 
   @Test

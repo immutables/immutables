@@ -155,7 +155,7 @@ public final class TimeMeasure implements Comparable<TimeMeasure> {
     }
   }
 
-  public TimeMeasure add(TimeMeasure o) {
+  public TimeMeasure plus(TimeMeasure o) {
     return unit.compareTo(o.unit) < 0
         ? new TimeMeasure(value + unit.convert(o.value, o.unit), unit)
         : new TimeMeasure(o.value + o.unit.convert(value, unit), o.unit);

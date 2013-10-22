@@ -11,6 +11,7 @@ import java.util.Date;
 import javax.annotation.Nullable;
 import org.immutables.common.repository.Id;
 import org.immutables.common.time.TimeInstant;
+import org.immutables.common.time.TimeMeasure;
 
 /** Marshaling for built-in types and alike. */
 public final class BuiltinMarshalingRoutines {
@@ -284,5 +285,27 @@ public final class BuiltinMarshalingRoutines {
       generator.writeNumber(value.value());
     }
 
+  }
+
+  // TimeMeasure
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param instantNull the instant null
+   * @param expectedClass the expected class
+   * @return the time measure
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static TimeMeasure unmarshal(
+      JsonParser parser,
+      @Nullable TimeMeasure instantNull,
+      Class<TimeInstant> expectedClass) throws IOException {
+    return TimeMeasure.fromString(parser.getText());
+  }
+
+  public static void marshal(
+      JsonGenerator generator,
+      TimeMeasure value) throws IOException {
+    generator.writeString(value.toString());
   }
 }

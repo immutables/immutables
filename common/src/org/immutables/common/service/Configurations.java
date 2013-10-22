@@ -42,8 +42,8 @@ final class Configurations {
     TypeToken<?> typeOfConfiguration = TypeToken.of(unmarshaledConfiguration.getClass());
     if (PROVIDER_MODULE_TYPE.isAssignableFrom(typeOfConfiguration)) {
       return ((Provider<Module>) unmarshaledConfiguration).get();
-
     }
+
     throw new RuntimeException(
         String.format("Configuration object of type %s should be instance of %s",
             unmarshaledConfiguration.getClass(),
