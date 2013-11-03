@@ -284,7 +284,7 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   /**
    * Clear `a.name.toUpperFirst()` `a.rawCollectionType.toLowerFirst()` attribute.
    * <p>
-   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `a.forceEmpty && 'with reset to empty array'`
+   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `(a.forceEmpty && 'with reset to empty array') || ''`
    * @return {@code this} `T.toLowerFirst()` to complete update operation
    */
   public `T` clear`a.name.toUpperFirst()`() {
@@ -398,7 +398,7 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   /**
    * Clear `a.name.toUpperFirst()` optional attribute.
    * <p>
-   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `a.forceEmpty && 'with reset to {@code null}'`
+   * Corresponds to MongoDB {@code `a.forceEmpty?'$set':'$unset'`} operator `(a.forceEmpty && 'with reset to {@code null}') || ''`
    * @return {@code this} `T.toLowerFirst()` to complete update operation
    */
   public `T` clear`a.name.toUpperFirst()`() {

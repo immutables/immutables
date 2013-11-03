@@ -358,8 +358,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [if (type.generateOrdinalValue)]
   private final int ordinal;
 [/if]
-
 [if (type.useSingleton)]
+
   private Immutable`type.name`() {
     [apply generateConstructorDefaultAttibutes(type, type.implementedAttributes)]
     [apply generateAfterConstruction(type)]
@@ -407,10 +407,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
     this.`n` = com.google.common.collect.Maps.immutableEnumMap(builder.`n`Builder.build());
   [elseif (v.collectionType || v.mapType)]
     this.`n` = builder.`n`Builder.build();
-  [elseif (v.primitive && !v.generateDefault)]
-    this.`n` = builder.`n`;
   [elseif (!v.generateDefault)]
-    this.`n` = com.google.common.base.Preconditions.checkNotNull(builder.`n`);
+    this.`n` = builder.`n`;
   [/if]  
 [/let]
 [/if]

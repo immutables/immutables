@@ -284,7 +284,6 @@ public final class BuiltinMarshalingRoutines {
     } else {
       generator.writeNumber(value.value());
     }
-
   }
 
   // TimeMeasure
