@@ -15,6 +15,7 @@
  */
 package org.immutables.common.service;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Binding;
@@ -35,6 +36,7 @@ import static com.google.common.base.Preconditions.*;
 /**
  * Combines power of Grizzly, Jersey and Guice to provide embedded JAX-RS 2.0 enpoints over http.
  */
+@Beta
 @ThreadSafe
 public class JaxrsService extends AbstractIdleService {
   static {

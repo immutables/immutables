@@ -15,10 +15,14 @@
  */
 package org.immutables.common.service;
 
+import com.google.common.annotations.Beta;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
+import com.google.common.util.concurrent.ServiceManager.Listener;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
@@ -26,6 +30,8 @@ import com.google.inject.Stage;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.util.Modules;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.inject.Provider;
 import org.immutables.common.logging.Logging;
 import org.immutables.common.logging.Tracing;
@@ -39,9 +45,12 @@ import org.immutables.common.logging.TracingLogEventListener;
  * {@link Modules#combine(Iterable)} and queried
  * for a {@link Set} of {@link Service}s that will be used by {@link ServiceManager} to bootstrap
  * and manage services. Those services may be contributed by individual modules using
- * {@link Multibinder}.
+ * {@link Multibinder}. There's shutdown hook to close all services in a at most 2 seconds.
  */
-public class ServiceLauncher {
+@Beta
+public final class ServiceLauncher {
+  private ServiceLauncher() {}
+
   static {
     Tracing.init();
   }
@@ -49,11 +58,28 @@ public class ServiceLauncher {
   public static void main(String... args) {
     Logging.dispatcher().register(new TracingLogEventListener());
     Injector injector = Guice.createInjector(stage(), loadModule(args[0]));
-    ServiceManager manager = injector.getInstance(ServiceManager.class);
 
-    // TODO For now lifecycle is simplistic
+    final ServiceManager manager = injector.getInstance(ServiceManager.class);
+
+    Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
+      @Override
+      public void run() {
+        try {
+          manager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
+        } catch (TimeoutException timeout) {
+          // stopping timed out
+        }
+      }
+    });
+
+    manager.addListener(new Listener() {
+      @Override
+      public void failure(Service service) {
+        System.err.println(Joiner.on('\n').withKeyValueSeparator(":").join(manager.servicesByState().entries()));
+        System.exit(1);
+      }
+    }, MoreExecutors.sameThreadExecutor());
     manager.startAsync().awaitHealthy();
-    manager.awaitStopped();
   }
 
   private static Module loadModule(String configurationClassName) {

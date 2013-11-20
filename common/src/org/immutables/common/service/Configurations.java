@@ -2,6 +2,7 @@ package org.immutables.common.service;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.annotations.Beta;
 import com.google.common.io.Resources;
 import com.google.common.reflect.TypeToken;
 import com.google.inject.Module;
@@ -9,7 +10,8 @@ import javax.inject.Provider;
 import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
-final class Configurations {
+@Beta
+public final class Configurations {
   private Configurations() {}
 
   private static final JsonFactory JS_JSON_CONFIG_FACTORY = new JsonFactory()
@@ -20,7 +22,7 @@ final class Configurations {
   private static final TypeToken<Provider<Module>> PROVIDER_MODULE_TYPE =
       new TypeToken<Provider<Module>>() {};
 
-  static Module loadModule(String classpathUri, String configurationClassName) {
+  public static Module loadModule(String classpathUri, String configurationClassName) {
     return extractModule(unmarshalConfiguration(
         classpathUri, loadMarshaler(configurationClassName)));
   }

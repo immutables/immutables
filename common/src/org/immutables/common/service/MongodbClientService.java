@@ -1,11 +1,13 @@
 package org.immutables.common.service;
 
+import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.AbstractIdleService;
 
 /**
- * 
+ * totally incomplete
  */
-public class MongodbClientService extends AbstractIdleService {
+@Beta
+class MongodbClientService extends AbstractIdleService {
 
   public MongodbClientService() {}
 
