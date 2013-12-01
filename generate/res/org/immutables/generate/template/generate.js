@@ -1,6 +1,6 @@
 let template = require('org/immutables/generate/template/template.js')
 
-exports.main = function(type, javaSinkFactory) {
+exports.main = function (type, javaSinkFactory) {
 
   javaSinkFactory.sinkFor(type.packageName + '.Immutable' + type.name).write(
       template.require('org/immutables/generate/template/immutable.tjs').generateImmutableType(type))

@@ -1,16 +1,12 @@
-let functionIdentifierRegex = /\s?([a-zA-Z0-9][a-zA-Z0-9\.]*)\s*(\(.*)?/
-let commentLineRegex = /\s*\[--.*/
-let statementLineRegex = /(\s*)(\[\/?)([a-z]*)([^\]]*)\]\s*/
+let functionIdentifierRegex = /\s?([a-zA-Z0-9][a-zA-Z0-9\.]*)\s*(\(.*)?/,
+    commentLineRegex = /\s*\[--.*/,
+    statementLineRegex = /(\s*)(\[\/?)([a-z]*)([^\]]*)\]\s*/
   
-function error(s) {
-  throw s || new Error
-}
-
 let statementTransformations = {
-  '[apply': function(whole, identifier, rest, whitespace)
+  '[apply': function (whole, identifier, rest, whitespace)
       '__.apply(' + identifier + ', __templateLib__.copyArguments' + (rest || '') + ',' + JSON.stringify(whitespace) + ');',
-  '[template': function(whole, identifier, rest)
-      'var ' + identifier + ' = __templateExports__.' + identifier + ' = function ' + (rest || '()')
+  '[template': function (whole, identifier, rest)
+      'let ' + identifier + ' = __templateExports__.' + identifier + ' = function ' + (rest || '()')
           + ' { let (__ = this.__context || __templateLib__.newContext()) {',
   '[/template': ';if (!this.__context) return __.result() }};',
   '[let': ['let', '{'],
@@ -25,7 +21,7 @@ let statementTransformations = {
   '[require': function (whole, identifier, rest) 'let ' + identifier + ' = __templateLib__.require' + rest + ';'
 }
 
-let applyTransformation = function(match, whitespace, rest, transformation) {
+function applyTransformation(match, whitespace, rest, transformation) {
   if (transformation instanceof String || typeof transformation == 'string') {
     return whitespace + transformation
   }
@@ -33,14 +29,14 @@ let applyTransformation = function(match, whitespace, rest, transformation) {
     return whitespace + transformation[0] + rest + transformation[1]
   }
   if (transformation instanceof Function || typeof transformation == 'function') {
-    let [w, i, r] = functionIdentifierRegex.exec(rest) || (function() { throw match.toSource() }())
+    let [w, i, r] = functionIdentifierRegex.exec(rest) || (function () { throw match.toSource() }())
     return whitespace + transformation.apply(null, [w, i, r, whitespace])
   }
 
-  throw match.toSource()
+  throw new Error(match.toSource())
 }
 
-let transformStatementLine = function(match) {
+function transformStatementLine(match) {
   match = match || []
   let [, whitespace, symbol, statement, rest] = match
   let transformation = statementTransformations[symbol + statement]
@@ -50,9 +46,9 @@ let transformStatementLine = function(match) {
   throw new Error(match.toSource())
 }
 
-let transformLiteralLine = function(l) l.replace('#', '')
+let transformLiteralLine = function (l) l.replace('#', '')
 
-let transformInterpolationLine = function(l) {
+function transformInterpolationLine(l) {
   let parts = l.split('`'),
       result = []
 
@@ -69,7 +65,7 @@ let transformInterpolationLine = function(l) {
   return '__.out(' + result.join(', ') + ');'
 }
 
-let transformTemplateSyntaxToJs = function(lines) {
+function transformTemplateSyntaxToJs(lines) {
   let resultLines = []
 
   for each(let l in lines) {
@@ -97,37 +93,37 @@ let transformTemplateSyntaxToJs = function(lines) {
 }
 
 let templateLib = {
-  newContext: function() {
+  newContext: function () {
     return {
       lib: this,
       resultLines: [],
       indent: '',
-      apply: function(templateFunction, templateArguments, whitespace) {
+      apply: function (templateFunction, templateArguments, whitespace) {
         let a = templateArguments instanceof Array ? templateArguments : []
         let oldIndent = this.indent
         this.indent += whitespace
         templateFunction.apply({ __context:this }, a)
         this.indent = oldIndent
       },
-      out: function() {
+      out: function () {
         this.resultLines.push(this.indent + Array.prototype.join.call(arguments, ''))
       },
-      result: function() this.resultLines.join('\n')
+      result: function () this.resultLines.join('\n')
     }
   },
 
-  require: function(moduleId) exports.require(moduleId),
+  require: function (moduleId) requireTemplates(moduleId),
 
-  copyArguments: function() copyAsArray(arguments)
+  copyArguments: function () Array.prototype.slice.call(arguments)
 }
 
-var templateCache = {}
+let templateCache = {}
 
-let requireTemplates = function(moduleId) {
+function requireTemplates(moduleId) {
   let templateObject = templateCache[moduleId]
   if (!templateObject) {
     templateObject = {}
-    let lines = transformTemplateSyntaxToJs(readLinesForModule(moduleId))
+    let lines = transformTemplateSyntaxToJs(__moduleSourceProvider__.apply(moduleId))
     let functionCode = lines.join('\n');
     let compiledFunction = function () {
       try {
@@ -136,7 +132,7 @@ let requireTemplates = function(moduleId) {
         throw 'Template Compile Error: ' + e + (!isNaN(+e.lineNumber) && ('\nLINE: ', lines[e.lineNumber - 1])) 
       }
     }()
-    let noOp = function() {}
+    let noOp = function () {}
     compiledFunction(templateObject, templateLib, { out:noOp, apply:noOp, result:noOp })
     templateCache[moduleId] = templateObject
   }

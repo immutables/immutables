@@ -476,7 +476,7 @@ private boolean equalTo(Immutable`type.name` another) {
 
 private int computeHashCode() {
   [if (getters.length == 0)]
-  return `hashOf(type.name)`;
+  return "`type.name`".hashCode();
   [else]
   int h = 31;
 [foreach (let v in getters)]
