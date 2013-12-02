@@ -21,14 +21,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Used in conjuction with {@link GenerateModifiable}. This annotation, being applied to accesor
+ * Use in conjuction with {@link GenerateModifiable}. This annotation, being applied to accessor
  * methods with return types of {@code boolean}, {@code byte}, {@code short} or {@code int} used to
- * generate values as compactly packed bits. Given that many
+ * generate value stored as compactly packed bits. Many
  * datatypes could be effectively reduced to fixed size enumerations or limited range integer
  * values, this gives ultimate opportunity for data size minimization while maintaining efficient
  * access. Internally, generated {@code long} fields are used to store sequences of bits. Any other
  * attributes of the {@code Modifiable*} subclass (which are not annotated with
- * {@code GenerateAlign}) will be unaffected by such packing.
+ * {@code GeneratePackedBits}) will be unaffected by such packing.
  * <p>
  * You should definitely try and see generated {@code Modifiable*} subclass for the details.
  * @see GenerateModifiable

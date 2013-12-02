@@ -7,9 +7,9 @@ package `type.packageName`;
 
 /**
  * Modifiable implementation of `type.name`.
- * Attributes may be generated compactable by specifying {@link org.immutables.annotation.GenerateAlign} annotation.
  * <p>
  * Use static static factory method {@link Modifiable`type.name`#create()} to create new instances.
+ * @see org.immutables.annotation.GeneratePackedBits
  */
 @SuppressWarnings("unused")
 @javax.annotation.ParametersAreNonnullByDefault
