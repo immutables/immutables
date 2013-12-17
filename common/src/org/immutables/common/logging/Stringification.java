@@ -141,7 +141,7 @@ public final class Stringification {
         }
 
         if (formatPattern.indexOf('%') >= 0) {
-
+          @SuppressWarnings("resource")
           Formatter formatter = locale != null
               ? new Formatter(locale)
               : new Formatter();

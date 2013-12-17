@@ -106,6 +106,7 @@ public final class SillyManualFixture {
 
     tokenBuffer.copyCurrentStructure(parser);
     System.out.println(tokenBuffer.asParser());
+    tokenBuffer.close();
   }
 
   public static void main44(String... args) throws Exception {

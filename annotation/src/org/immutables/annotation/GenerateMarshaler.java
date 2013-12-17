@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Instructs generator to generate marshaller.
+ * Instructs generator to generate marshaler.
  * When applied to abstract {@link GenerateImmutable immutable} it will generate corresponding
  * marshaler class in the same package. It will have name of abstract immutable class with
  * 'Marshaler' suffix.
- * When applied to package it may provide imports for marshaling routines for
+ * When applied to a package, it is used to specify imports of marshaling routines for
  * each generated marshaler in a package.
  */
 @Documented

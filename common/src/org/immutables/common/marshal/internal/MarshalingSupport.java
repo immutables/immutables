@@ -108,36 +108,37 @@ public final class MarshalingSupport {
       String attributeType,
       Marshaler<?>... marshalers) throws IOException {
 
-    TokenBuffer buffer = new TokenBuffer(null); // intentional null
-    buffer.copyCurrentStructure(parser);
+    try (TokenBuffer buffer = new TokenBuffer(null)) { // intentional null
+      buffer.copyCurrentStructure(parser);
 
-    @Nullable
-    List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
+      @Nullable
+      List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
 
-    for (Marshaler<?> marshaler : marshalers) {
-      try {
-        JsonParser bufferParser = buffer.asParser();
-        bufferParser.nextToken();
-        return marshaler.unmarshalInstance(bufferParser);
-      } catch (RuntimeException ex) {
-        exceptions.add(ex);
+      for (Marshaler<?> marshaler : marshalers) {
+        try {
+          JsonParser bufferParser = buffer.asParser();
+          bufferParser.nextToken();
+          return marshaler.unmarshalInstance(bufferParser);
+        } catch (RuntimeException ex) {
+          exceptions.add(ex);
+        }
       }
+
+      UnmarshalMismatchException exception =
+          new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
+
+      for (RuntimeException ex : exceptions) {
+        exception.addSuppressed(ex);
+      }
+
+      throw exception;
     }
-
-    UnmarshalMismatchException exception =
-        new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
-
-    for (RuntimeException ex : exceptions) {
-      exception.addSuppressed(ex);
-    }
-
-    throw exception;
   }
 
   @SuppressWarnings("unchecked")
   public static <T> Marshaler<T> loadMarshalerFor(Class<? extends T> type) {
     @Nullable
-    Class<?> marshaledType = getBaseMarshaledType(type);
+    Class<?> marshaledType = extractBaseMarshaledType(type);
     Preconditions.checkArgument(marshaledType != null,
         "Type %s must have base type with @GenerateMarshaler annotation", type);
 
@@ -152,11 +153,11 @@ public final class MarshalingSupport {
   }
 
   public static boolean hasAssociatedMarshaler(Class<?> type) {
-    return getBaseMarshaledType(type) != null;
+    return extractBaseMarshaledType(type) != null;
   }
 
   @Nullable
-  private static Class<?> getBaseMarshaledType(Class<?> type) {
+  private static Class<?> extractBaseMarshaledType(Class<?> type) {
     if (type.isAnnotationPresent(GenerateMarshaler.class)) {
       return type;
     }
