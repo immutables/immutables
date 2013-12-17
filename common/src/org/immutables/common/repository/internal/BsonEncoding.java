@@ -58,6 +58,7 @@ import org.immutables.common.marshal.Marshaler;
 /**
  * MongoDB driver specific encoding and jumping hoops.
  */
+@SuppressWarnings("resource")
 public final class BsonEncoding {
   private static final BsonFactory BSON_FACTORY = new BsonFactory().enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
 
@@ -255,8 +256,10 @@ public final class BsonEncoding {
     }
 
     private void closeGenerator() throws IOException {
-      generator.close();
-      generator = null;
+      if (generator != null) {
+        generator.close();
+        generator = null;
+      }
     }
 
     private void createGeneratorIfNecessary(OutputBuffer buffer) throws IOException {
@@ -537,18 +540,18 @@ public final class BsonEncoding {
       this.results = Lists.newArrayListWithExpectedSize(expectedSize);
     }
 
-    private void createParserIfNecessary() throws IOException {
+    public BsonParser createParserIfNecessary() throws IOException {
       if (parser != null) {
         parser.close();
       }
       parser = BSON_FACTORY.createParser(bufferStream);
+      return parser;
     }
 
     @Override
     public DBObject decode(InputStream inputStream, DBCollection collection) throws IOException {
       bufferStream.resetObjectFrom(inputStream);
       createParserIfNecessary();
-
       parser.nextToken();
       T unmarshaledObject = marshaler.unmarshalInstance(parser);
       results.add(unmarshaledObject);

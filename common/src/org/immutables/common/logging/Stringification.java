@@ -185,10 +185,10 @@ public final class Stringification {
     try {
       builder.append('!' + e.getClass().getSimpleName() + ": " + e.getMessage() + "!");
     } catch (IOException ex) {
-      intendedSwallow();
+      intendedSwallow(ex);
     }
   }
 
-  private static void intendedSwallow() {
-  }
+  @SuppressWarnings("unused")
+  private static void intendedSwallow(Exception ex) {}
 }

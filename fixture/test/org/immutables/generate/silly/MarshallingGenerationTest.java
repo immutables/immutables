@@ -30,6 +30,7 @@ import org.immutables.generate.silly.routine.SillyRoutineImportMarshaler;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
+@SuppressWarnings("resource")
 public class MarshallingGenerationTest {
 
   JsonFactory jsonFactory = new JsonFactory()

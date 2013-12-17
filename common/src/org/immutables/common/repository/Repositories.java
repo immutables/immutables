@@ -239,6 +239,7 @@ public final class Repositories {
         final @Nonnegative int skip,
         final @Nonnegative int limit) {
       return submit(new Callable<List<T>>() {
+        @SuppressWarnings("resource")
         @Override
         public List<T> call() throws Exception {
           DBCollection collection = collection();
@@ -272,7 +273,6 @@ public final class Repositories {
           cursor.setDecoderFactory(BsonEncoding.newResultDecoderFor(marshaler, expectedSize));
 
           List<DBObject> array = cursor.toArray();
-
           return BsonEncoding.unwrapResultObjectList(array);
         }
       });

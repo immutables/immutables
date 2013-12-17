@@ -115,8 +115,7 @@ public final class MarshalingSupport {
       List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
 
       for (Marshaler<?> marshaler : marshalers) {
-        try {
-          JsonParser bufferParser = buffer.asParser();
+        try (JsonParser bufferParser = buffer.asParser()) {
           bufferParser.nextToken();
           return marshaler.unmarshalInstance(bufferParser);
         } catch (RuntimeException ex) {

@@ -55,7 +55,7 @@ import org.immutables.generate.silly.repository.SillyEntitySecondRepository;
 import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
 import static org.immutables.check.Checkers.*;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "resource"})
 public final class SillyManualFixture {
 
   static BsonFactory bsonFactory = new BsonFactory();

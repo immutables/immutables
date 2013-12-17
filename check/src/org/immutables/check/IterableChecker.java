@@ -15,6 +15,7 @@
  */
 package org.immutables.check;
 
+import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.hamcrest.CoreMatchers;
@@ -29,7 +30,7 @@ import org.hamcrest.Matchers;
 @SuppressWarnings("unchecked")
 public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> {
 
-  IterableChecker(Z value, boolean negate) {
+  IterableChecker(@Nullable Z value, boolean negate) {
     super(value, negate);
   }
 

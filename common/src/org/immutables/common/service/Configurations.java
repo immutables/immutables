@@ -53,8 +53,7 @@ public final class Configurations {
   }
 
   private static Object unmarshalConfiguration(String classpathUri, Marshaler<?> marshaler) {
-    try {
-      JsonParser parser = JS_JSON_CONFIG_FACTORY.createParser(Resources.getResource(classpathUri));
+    try (JsonParser parser = JS_JSON_CONFIG_FACTORY.createParser(Resources.getResource(classpathUri))) {
       parser.nextToken();
       return marshaler.unmarshalInstance(parser);
     } catch (Exception e) {

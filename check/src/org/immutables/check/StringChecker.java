@@ -69,8 +69,12 @@ public class StringChecker extends ObjectChecker<String> {
   }
 
   public void matches(String pattern) {
-    verifyCheck("\nExpected: string that match regex /" + pattern + "/" +
-        "\n     but: was \"" + actualValue + "\"", actualValue.matches(pattern));
+    String expectedButWasMessage = "\nExpected: string that match regex /" + pattern + "/" +
+        "\n     but: was ";
+    
+    verifyCheck(expectedButWasMessage + "null", actualValue != null);
+    assert actualValue != null;
+    verifyCheck(expectedButWasMessage + "\"" + actualValue + "\"", actualValue.matches(pattern));
   }
 
   public void startsWith(String prefix) {
