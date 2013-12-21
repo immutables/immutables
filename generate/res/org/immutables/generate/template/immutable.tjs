@@ -18,7 +18,7 @@ public final class Immutable`type.name`
     extends `type.name` {
 [if (type.useSingleton)]
   
-  private static final Immutable`type.name` INSTANCE = validated(new Immutable`type.name`());
+  private static final Immutable`type.name` INSTANCE = checkPreconditions(new Immutable`type.name`());
   
   /**
    * Returns default immutable singleton value of `type.name` 
@@ -102,11 +102,11 @@ public final class Immutable`type.name`
    * @return immutable `type.name` instance
    */
   public static `type.name` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
-    return validated(new Immutable`type.name`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
+    return checkPreconditions(new Immutable`type.name`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
   }
 [/if]
 
-  private static Immutable`type.name` validated(Immutable`type.name` instance) {
+  private static Immutable`type.name` checkPreconditions(Immutable`type.name` instance) {
 [if (type.validationMethodName)]
     instance.`type.validationMethodName`();
 [/if]
@@ -140,7 +140,12 @@ public final class Immutable`type.name`
  * but used immediately to create instances.
  */
 @javax.annotation.concurrent.NotThreadSafe
+[if (type.hasAbstractBuilder)]
+public static final class Builder
+    extends `type.name`.Builder {
+[else]
 public static final class Builder {
+[/if]
   private static final String REQUIRED_ATTRIBUTE =
       "Cannot build `type.name`: required attribute '%s' is not set";
 
@@ -200,6 +205,21 @@ public static final class Builder {
    */
   public Builder add`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`Element) {
     `v.name`Builder.add(`v.name`Element);
+    return this;
+  }
+  
+  /**
+   * Add two or more elements to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
+   * @param `v.name`Element single `v.name` element
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder add`v.name.toUpperFirst()`(
+      `v.unwrappedElementType` first,
+      `v.unwrappedElementType` second,
+      `v.unwrappedElementType`... rest) {
+    `v.name`Builder.add(first);
+    `v.name`Builder.add(second);
+    
     return this;
   }
 
@@ -315,7 +335,7 @@ public static final class Builder {
     [/if]
   [/if]
     [/foreach]
-    return validated(new Immutable`type.name`(this));
+    return checkPreconditions(new Immutable`type.name`(this));
   }
 }
 [/let]

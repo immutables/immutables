@@ -21,6 +21,11 @@ import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
 public class ValuesTest {
+  
+  @Test
+  public void builderInheritence() {
+    check(ImmutableSillyExtendedBuilder.builder().base);
+  }
 
   @Test
   public void ordinalValue() {

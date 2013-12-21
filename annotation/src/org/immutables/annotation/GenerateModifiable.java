@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Generate modifiable implementation of abstract data type.
+ * Generate modifiable implementation of abstract value class.
  * This annotation could be used only as companion to {@link GenerateImmutable} to provide
  * modifiable variant that is convertible back and forth to immutable form.
  * <p>

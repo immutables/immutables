@@ -25,7 +25,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Convenient wrappers for matcher checking, desined for better code assist(completion) and
+ * Convenient wrappers for matcher checking, designed for better code assist(completion) and
  * discoverability for most commonly used matchers.
  */
 public class Checkers {

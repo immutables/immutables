@@ -57,8 +57,7 @@ public class OptionalChecker<T> {
   public void of(Matcher<? super T> matcher) {
     if (optionalValue.isPresent()) {
       Checkers.check(optionalValue.get()).is(matcher);
-    }
-    else {
+    } else {
       // We fail any matcher on absent value in this check
       ObjectChecker.fail(optionalValue, matcher);
     }

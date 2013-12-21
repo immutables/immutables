@@ -15,7 +15,7 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorArgument;
+import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 
@@ -23,6 +23,6 @@ import org.immutables.annotation.GenerateMarshaler;
 @GenerateMarshaler
 public abstract class SillyIntWrap {
 
-  @GenerateConstructorArgument
+  @GenerateConstructorParameter
   public abstract int value();
 }

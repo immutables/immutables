@@ -29,6 +29,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -87,6 +89,28 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public boolean isGenerateDocument() {
     return internalTypeElement().getAnnotation(GenerateRepository.class) != null;
+  }
+
+  private Boolean hasAbstractBuilder;
+
+  public boolean isHasAbstractBuilder() {
+    if (hasAbstractBuilder == null) {
+      boolean abstractBuilderDeclared = false;
+      List<? extends Element> enclosedElements = internalTypeElement().getEnclosedElements();
+      for (Element element : enclosedElements) {
+        if (element.getKind() == ElementKind.CLASS) {
+          if (element.getSimpleName().contentEquals("Builder")) {
+            // We do not handle here if builder class is abstract static and not private
+            // It's all to discretion compilation checking
+            abstractBuilderDeclared = true;
+            break;
+          }
+        }
+      }
+
+      hasAbstractBuilder = abstractBuilderDeclared;
+    }
+    return hasAbstractBuilder;
   }
 
   public String getDocumentName() {

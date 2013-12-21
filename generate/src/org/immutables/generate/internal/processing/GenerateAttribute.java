@@ -34,7 +34,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.annotation.GenerateConstructorArgument;
+import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaledSubclasses;
@@ -460,7 +460,7 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   }
 
   public int getConstructorArgumentOrder() {
-    GenerateConstructorArgument annotation = element.getAnnotation(GenerateConstructorArgument.class);
+    GenerateConstructorParameter annotation = element.getAnnotation(GenerateConstructorParameter.class);
     return annotation != null ? annotation.order() : -1;
   }
 
