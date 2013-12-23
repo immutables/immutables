@@ -31,10 +31,11 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
  * Contains convenient methods for marshaling and unmarshaling documents annotated with
  * {@link GenerateMarshaler} to and from standard textual JSON.
  * <p>
- * You can avoid using this class in favour of using Marshalers directly due to the fact of using
+ * You can avoid using this class in favor of using Marshalers directly due to the fact of using
  * static marshaler cache with weak class keys. Nevertheless, this class provides easy to use static
  * methods for simplest use cases.
  */
+@SuppressWarnings("unchecked")
 public final class Marshaling {
   private Marshaling() {}
 
