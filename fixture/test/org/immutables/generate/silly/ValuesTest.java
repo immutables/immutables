@@ -29,9 +29,9 @@ public class ValuesTest {
 
   @Test
   public void ordinalValue() {
-    SillyOrdinal a = ImmutableSillyOrdinal.of("a");
-    SillyOrdinal b = ImmutableSillyOrdinal.of("b");
-    SillyOrdinal c = ImmutableSillyOrdinal.of("c");
+    ImmutableSillyOrdinal a = ImmutableSillyOrdinal.of("a");
+    ImmutableSillyOrdinal b = ImmutableSillyOrdinal.of("b");
+    ImmutableSillyOrdinal c = ImmutableSillyOrdinal.of("c");
 
     check(Arrays.asList(a.ordinal(), b.ordinal(), c.ordinal())).isOf(0, 1, 2);
 

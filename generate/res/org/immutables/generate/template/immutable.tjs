@@ -10,7 +10,7 @@ package `type.packageName`;
  * Use static static factory methods to create instances: {@code of()} or
  * {@code builder()}.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"immutable.tjs", "`type.name`"})
 @javax.annotation.concurrent.Immutable
@@ -24,7 +24,7 @@ public final class Immutable`type.name`
    * Returns default immutable singleton value of `type.name` 
    * @return immutable instance of `type.name` 
    */
-  public static `type.name` of() {
+  public static Immutable`type.name` of() {
     return INSTANCE;
   }
 [/if]
@@ -101,7 +101,7 @@ public final class Immutable`type.name`
 [/foreach]
    * @return immutable `type.name` instance
    */
-  public static `type.name` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
+  public static Immutable`type.name` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
     return checkPreconditions(new Immutable`type.name`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
   }
 [/if]
@@ -207,21 +207,6 @@ public static final class Builder {
     `v.name`Builder.add(`v.name`Element);
     return this;
   }
-  
-  /**
-   * Add two or more elements to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
-   * @param `v.name`Element single `v.name` element
-   * @return {@code this} builder for chained invocation
-   */
-  public Builder add`v.name.toUpperFirst()`(
-      `v.unwrappedElementType` first,
-      `v.unwrappedElementType` second,
-      `v.unwrappedElementType`... rest) {
-    `v.name`Builder.add(first);
-    `v.name`Builder.add(second);
-    
-    return this;
-  }
 
   /**
    * Adds elements to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
@@ -246,7 +231,7 @@ public static final class Builder {
 
   /**
    * Initializes present value for optional {@link `type.name`#`v.name`()}.
-   * @param `v.name` value for `v.name`, nonull
+   * @param `v.name` value for `v.name`, non-null
    * @return {@code this} builder for chained invocation
    */
   public Builder `v.name`(`v.unwrappedElementType` `v.name`) {
@@ -325,7 +310,7 @@ public static final class Builder {
    * Builds new {@link `type.name`}.
    * @return immutable instance of `type.name`
    */
-  public `type.name` build() {
+  public Immutable`type.name` build() {
     [foreach (let v in setters)]
   [if (!v.generateDefault)]
     [if (v.primitive)]
@@ -370,7 +355,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [let (setters = type.settableAttributes, getters = type.implementedAttributes)]
 
 [foreach (let v in getters)]
-  private final `v.type` `v.name`;
+  private final `v.implementationType` `v.name`;
 [/foreach]
 [if (type.usePrehashed)]
   private final int hashCode;
@@ -457,7 +442,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [foreach (let v in getters)]
 
   @Override
-  public `v.type` `v.name`() {
+  public `v.implementationType` `v.name`() {
     return `v.name`;
   }
 [/foreach]

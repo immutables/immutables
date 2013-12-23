@@ -26,7 +26,6 @@ import com.google.common.primitives.Primitives;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
@@ -44,6 +43,7 @@ import org.immutables.annotation.GenerateRepository;
 
 public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
+  private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
   static {
@@ -129,34 +129,72 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return internalTypeName();
   }
 
+  private String implementationType;
+
+  public String getImplementationType() {
+    if (implementationType == null) {
+      String type = getType();
+      if (isMapType()) {
+        implementationType = type.replace(Map.class.getName(),
+                googleCommonHiddenFromShadePlugin("collect.ImmutableMap"));
+      } else if (isListType()) {
+        implementationType = type.replace(List.class.getName(),
+                googleCommonHiddenFromShadePlugin("collect.ImmutableList"));
+      } else if (isSetType()) {
+        implementationType = type.replace(Set.class.getName(),
+            isGenerateOrdinalValueSet()
+                ? "org.immutables.common.collect.".concat("ImmutableOrdinalSet")
+                : googleCommonHiddenFromShadePlugin("collect.ImmutableSet"));
+      } else {
+        implementationType = type;
+      }
+    }
+    return implementationType;
+  }
+
   public List<String> typeParameters() {
     ensureTypeIntrospected();
     return typeParameters;
   }
 
+  private Boolean isMapType;
+
   public boolean isMapType() {
-    return internalTypeName().startsWith(Map.class.getName());
-    // || internalTypeName().startsWith(NavigableMap.class.getName());
+    if (isMapType == null) {
+      isMapType = internalTypeName().startsWith(Map.class.getName());
+    }
+    return isMapType;
   }
 
-  public boolean isSortedMapType() {
-    return internalTypeName().startsWith(NavigableMap.class.getName());
-  }
+  private Boolean isListType;
 
   public boolean isListType() {
-    return internalTypeName().startsWith(List.class.getName());
+    if (isListType == null) {
+      isListType = internalTypeName().startsWith(List.class.getName());
+    }
+    return isListType;
   }
+
+  private Boolean isSetType;
 
   public boolean isSetType() {
-    return internalTypeName().startsWith(Set.class.getName());
+    if (isSetType == null) {
+      isSetType = internalTypeName().startsWith(Set.class.getName());
+    }
+    return isSetType;
   }
+
+  private Boolean isOptionalType;
 
   public boolean isOptionalType() {
-    return internalTypeName().startsWith("com.go" + hideFromShadePlugin("ogle.common.base.Optional"));
+    if (isOptionalType == null) {
+      isOptionalType = internalTypeName().startsWith(googleCommonHiddenFromShadePlugin("base.Optional"));
+    }
+    return isOptionalType;
   }
 
-  private String hideFromShadePlugin(Object string) {
-    return string.toString();
+  private String googleCommonHiddenFromShadePlugin(Object string) {
+    return GOOGLE_COMMON_PREFIX + string;
   }
 
   public boolean isMarshaledElement() {

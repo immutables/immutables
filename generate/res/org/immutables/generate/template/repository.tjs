@@ -19,7 +19,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
  * {@code `type.name`Repository} provides type safe access for storing and retreiving documents
  * from the MongoDB collection "`type.documentName`".
  */
-@SuppressWarnings({"unused"})
+@SuppressWarnings("all")
 @javax.annotation.Generated({"repository.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
@@ -53,7 +53,7 @@ public final class `type.name`Repository extends Repositories.Repository<`type.n
    * @param documents documents to insert
    * @return future of number of inserted documents if WriteConcern allows.
    */  
-  public FluentFuture<Integer> insert(Iterable<`type.name`> documents) {
+  public FluentFuture<Integer> insert(Iterable<? extends `type.name`> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
   
