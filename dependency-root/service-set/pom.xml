@@ -28,7 +28,13 @@
     <dependency>
       <groupId>org.glassfish.hk2</groupId>
       <artifactId>guice-bridge</artifactId>
-      <version>2.2.0-b27</version>
+      <version>2.2.0-b21</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.google.inject</groupId>
+          <artifactId>guice</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <!-- this dependendency drags all other jersey server dependencies -->
@@ -46,6 +52,12 @@
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
       <version>2.5</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.glassfish.hk2.external</groupId>
+          <artifactId>javax.inject</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 </project>

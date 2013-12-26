@@ -61,21 +61,18 @@ public class JaxrsService extends AbstractIdleService {
         uri,
         createApplicationHandler());
 
-//    httpServer.getServerConfiguration()
-//        .addHttpHandler(new CLStaticHttpHandler(getClass().getClassLoader()), "/static");
-
     httpServer.start();
   }
 
   @Override
   protected void shutDown() throws Exception {
-    httpServer.stop();
+    httpServer.shutdown().get();
   }
 
   private ApplicationHandler createApplicationHandler() {
     if (packagesToScan.length > 0) {
       // Resources from scanned packages will be instantiated by HK2
-      // so we need to bridge guice injector
+      // so we need to bridge Guice injector
       JerseyInjectBridges.bridgeInjector(injector);
     }
     Set<Object> resourceAndProviderInstances = instantiateResourceAndProviderInstances();

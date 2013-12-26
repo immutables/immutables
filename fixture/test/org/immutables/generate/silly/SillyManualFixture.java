@@ -97,18 +97,6 @@ public final class SillyManualFixture {
 
   }
 
-  public static void main3(String... args) throws Exception {
-    JsonParser parser = jsonFactory.createParser("{a:1,b:2}");
-    TokenBuffer tokenBuffer = new TokenBuffer(new ObjectMapper());
-
-    JsonToken t = parser.nextToken();
-    check(t).is(JsonToken.START_OBJECT);
-
-    tokenBuffer.copyCurrentStructure(parser);
-    System.out.println(tokenBuffer.asParser());
-    tokenBuffer.close();
-  }
-
   public static void main44(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 

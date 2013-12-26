@@ -120,7 +120,7 @@ class JerseyInjectBridges {
     }
 
     /**
-     * Overriden to skip injection for supplied instances. {@inheritDoc}
+     * Overridden to skip injection for supplied instances. {@inheritDoc}
      */
     @Override
     public void inject(Object injectMe) {
@@ -130,7 +130,7 @@ class JerseyInjectBridges {
     }
 
     /**
-     * Overriden to skip injection for supplied instances. {@inheritDoc}
+     * Overridden to skip injection for supplied instances. {@inheritDoc}
      */
     @Override
     public void inject(Object injectMe, String strategy) {

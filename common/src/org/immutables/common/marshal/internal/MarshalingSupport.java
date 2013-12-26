@@ -108,7 +108,7 @@ public final class MarshalingSupport {
       String attributeType,
       Marshaler<?>... marshalers) throws IOException {
 
-    try (TokenBuffer buffer = new TokenBuffer(null)) { // intentional null
+    try (TokenBuffer buffer = new TokenBuffer(parser)) {
       buffer.copyCurrentStructure(parser);
 
       @Nullable
