@@ -15,6 +15,7 @@
  */
 package org.immutables.common.service;
 
+import org.immutables.common.marshal.JaxrsMessageBodyProvider;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -84,7 +85,7 @@ public class JaxrsService extends AbstractIdleService {
         new ResourceConfig()
             .packages(packagesToScan)
             .registerInstances(resourceAndProviderInstances)
-            .register(MarshalingMessageBodyProvider.class);
+            .register(JaxrsMessageBodyProvider.class);
 
     return new ApplicationHandler(resourceConfig);
   }

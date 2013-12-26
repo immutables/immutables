@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.service;
+package org.immutables.common.marshal;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -37,7 +37,6 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -48,10 +47,10 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class MarshalingMessageBodyProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
+public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
   private final JsonFactory jsonFactory = new JsonFactory();
 
-  final LoadingCache<Class<?>, Marshaler<Object>> marshalerCache =
+  private final LoadingCache<Class<?>, Marshaler<Object>> marshalerCache =
       CacheBuilder.newBuilder()
           .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
             @Override
