@@ -13,7 +13,7 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
     Immutables.org full stack aggregator artifact for using all immutables.org features,
-    including core generation, mongodb repositories and JAX-RS microservices with guice integration
+    including core generation, mongodb repositories and JAX-RS micro-services with guice integration
   </description>
 
   <dependencies>
@@ -26,6 +26,12 @@
       <groupId>org.immutables</groupId>
       <artifactId>common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>generate-tool</artifactId>
+      <version>0.8-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>

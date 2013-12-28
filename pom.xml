@@ -13,7 +13,7 @@
   <artifactId>root</artifactId>
   <version>0-SNAPSHOT</version>
   <packaging>pom</packaging>
-  
+
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
     Java toolkit based around usage of immutable objects and fluent interfaces.
@@ -81,14 +81,21 @@
     <testSourceDirectory>test</testSourceDirectory>
     <resources>
       <resource>
-        <directory>res</directory>
+        <directory>src</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
       </resource>
     </resources>
     <testResources>
       <testResource>
-        <directory>testres</directory>
+        <directory>test</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+        </excludes>
       </testResource>
     </testResources>
+
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

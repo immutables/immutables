@@ -12,8 +12,7 @@
   <artifactId>fixture</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Module that contains all tests for the code generation capability,
-    as well as integration tests for the repository and miscroservices
+    Module that contains all tests for the code generation capability
   </description>
 
   <dependencies>
