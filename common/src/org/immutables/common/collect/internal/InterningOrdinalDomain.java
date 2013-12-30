@@ -13,8 +13,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.collect;
+package org.immutables.common.collect.internal;
 
+import org.immutables.common.collect.OrdinalDomain;
+import org.immutables.common.collect.OrdinalValue;
 import com.google.common.annotations.Beta;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -25,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 @Beta
-public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> implements OrdinalDomain<E> {
+public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> extends OrdinalDomain<E> {
 
   private final List<E> values = new CopyOnWriteArrayList<>();
 

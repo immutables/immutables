@@ -19,7 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-class Domain implements OrdinalDomain<Ord> {
+class Domain extends OrdinalDomain<Ord> {
   private final LoadingCache<Integer, Ord> values =
       CacheBuilder.newBuilder()
           .build(new CacheLoader<Integer, Ord>() {

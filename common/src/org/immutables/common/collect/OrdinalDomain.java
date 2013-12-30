@@ -15,12 +15,14 @@
  */
 package org.immutables.common.collect;
 
+import com.google.common.collect.AbstractIterator;
+import java.util.Iterator;
 import com.google.common.annotations.Beta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Ordinal domain represent (potentially growing) set of objects of some kind (among {@code E})
- * which has distinct and contiguos range of {@link OrdinalValue#ordinal() ordinal} values. Equal
+ * which has distinct and contiguous range of {@link OrdinalValue#ordinal() ordinal} values. Equal
  * objects expected to have same ordinal value. This, usually, imply that object will be interned in
  * {@link OrdinalDomain}, but it is not strictly required.
  * <p>
@@ -30,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @Beta
-public interface OrdinalDomain<E extends OrdinalValue<E>> {
+public abstract class OrdinalDomain<E extends OrdinalValue<E>> implements Iterable<E> {
   /**
    * Gets element from domain by corresponding ordinal value. It is guaranteed that returned element
    * will have {@link OrdinalValue#ordinal()} value equal to supplied {@code ordinal} parameter.
@@ -38,12 +40,31 @@ public interface OrdinalDomain<E extends OrdinalValue<E>> {
    * @return the element by ordinal value
    * @throws IndexOutOfBoundsException if no such element exists
    */
-  E get(int ordinal);
+  public abstract E get(int ordinal);
 
   /**
    * Current length of ordinal domain. Be caution that length is not required to be stable and could
    * grow, as such it could be used as a hint.
    * @return the domain length: current max ordinal value plus one
    */
-  int length();
+  public abstract int length();
+
+  /**
+   * Returned iterator may reflect some previous state o {@inheritDoc}
+   */
+  @Override
+  public Iterator<E> iterator() {
+    return new AbstractIterator<E>() {
+      private int index = 0, length = length();
+
+      @Override
+      protected E computeNext() {
+        int p = index++;
+        if (p < length) {
+          return get(p);
+        }
+        return endOfData();
+      }
+    };
+  }
 }

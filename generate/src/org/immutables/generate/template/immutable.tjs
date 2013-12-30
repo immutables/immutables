@@ -37,8 +37,8 @@ public final class Immutable`type.name`
       this.instance = instance;
     }
 
-    public boolean equals(@javax.annotation.Nullable Object another) {
-      return another != null && instance.equalTo(((InternProxy) another).instance);
+    public boolean equals(Object another) {
+      return instance.equalTo(((InternProxy) another).instance);
     }
     
     public int hashCode() {
@@ -62,18 +62,18 @@ public final class Immutable`type.name`
     this.ordinal = ordinal;
   }
 
-  private static final org.immutables.common.collect.InterningOrdinalDomain<InternProxy, `type.name`> ORDINAL_DOMAIN =
-      new org.immutables.common.collect.InterningOrdinalDomain<InternProxy, `type.name`>() {
+  private static final org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> ORDINAL_DOMAIN =
+      new org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`>() {
         protected `type.name` extractValue(InternProxy proxy, int ordinal) {
           return new Immutable`type.name`(proxy.instance, ordinal);
         }
         @Override
         public String toString() {
-          return "Immutable`type.name`.ordinalDomainInstance()";
+          return "Immutable`type.name`.interningOrdinalDomain()";
         }
       };
   
-  public static org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomainInstance() {
+  public static org.immutables.common.collect.OrdinalDomain<`type.name`> interningOrdinalDomain() {
     return ORDINAL_DOMAIN;
   }
   
@@ -462,7 +462,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 
 @Override
 public boolean equals(Object another) {
-  [if (type.useInterned)]
+  [if (type.useInterned || type.generateOrdinalValue)]
   return this == another;
   [else]
   return this == another

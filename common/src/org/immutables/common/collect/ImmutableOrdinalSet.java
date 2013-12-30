@@ -321,9 +321,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       if (size == 1) {
         return contains(Iterables.get(collection, 0));
       }
-      if (collection instanceof RegularImmutableOrdinalSet) {
-        RegularImmutableOrdinalSet<?> set = (RegularImmutableOrdinalSet<?>) collection;
-        return set.domain.equals(domain) && containsAllOrdinals(set);
+      if (collection instanceof RegularImmutableOrdinalSet<?>) {
+        RegularImmutableOrdinalSet<?> otherOrdinalSet = (RegularImmutableOrdinalSet<?>) collection;
+        return otherOrdinalSet.domain.equals(domain) && containsAllOrdinals(otherOrdinalSet);
       }
       return super.containsAll(collection);
     }
@@ -358,7 +358,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     /**
      * Adds add elements from the iterable.
      * @param elements the elements
-     * @return {@code this} builder for chained invokation
+     * @return {@code this} builder for chained invocation
      */
     public Builder<E> addAll(Iterable<E> elements) {
       Iterables.addAll(builder, checkNotNull(elements));
@@ -368,7 +368,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     /**
      * Adds element.
      * @param element the element
-     * @return {@code this} builder for chained invokation
+     * @return {@code this} builder for chained invocation
      */
     public Builder<E> add(E element) {
       builder.add(checkNotNull(element));

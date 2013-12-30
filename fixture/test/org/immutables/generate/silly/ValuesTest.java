@@ -34,16 +34,15 @@ public class ValuesTest {
     ImmutableSillyOrdinal c = ImmutableSillyOrdinal.of("c");
 
     check(Arrays.asList(a.ordinal(), b.ordinal(), c.ordinal())).isOf(0, 1, 2);
-
-    check(a.ordinalDomain().get(1)).same(b);
-    check(a.ordinalDomain().get(0)).same(a);
-
-    check(a.ordinalDomain().length()).is(3);
-
     check(ImmutableSillyOrdinal.of("a")).same(a);
     check(ImmutableSillyOrdinal.of("b")).same(b);
+    
+    check(a.ordinalDomain().get(1)).same(b);
+    check(a.ordinalDomain().get(0)).same(a);
+    check(a.ordinalDomain().length()).is(3);
+    check(a.ordinalDomain()).isOf(a, b, c);
   }
-
+  
   @Test
   public void ordinalValueSet() {
     check(ImmutableSillyOrdinalHolder.builder()
