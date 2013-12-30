@@ -65,7 +65,7 @@
                   <pattern>com.google.common</pattern>
                   <shadedPattern>org.immutables.generate.internal.guava</shadedPattern>
                 </relocation>
-                <!-- Problem with reflective object creation in rhino -->
+                <!-- add Rhino relocation? but problem with reflective object creation in rhino -->
               </relocations>
             </configuration>
           </execution>
