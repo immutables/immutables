@@ -46,7 +46,7 @@ import org.immutables.annotation.GeneratePredicate;
 import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
 import org.immutables.generate.internal.javascript.RhinoInvoker;
 
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class Processor extends AbstractProcessor {
 
   private static final String GENERATE_MAIN_JS = "org/immutables/generate/template/generate.js";
