@@ -109,7 +109,7 @@ public final class `type.name`Repository extends Repositories.Repository<`type.n
  * Order by {@link `type.name`#`a.name`() `a.name`} in the ascending direction.
  * Specify next attribute to sort will be {@link `type.name`#`a.name`() `a.name`} attribute using ascending order
  * in the the chain of comparisons performed to sort results.
- * @return {@code this} `T.toLowerFirst()` for chained invokation
+ * @return {@code this} `T.toLowerFirst()` for chained invocation
  */
 public `T` orderBy`a.name.toUpperFirst()`() {
   ordering = ordering.equal("`a.marshaledName`", false, 1);
@@ -120,7 +120,7 @@ public `T` orderBy`a.name.toUpperFirst()`() {
  * Order by {@link `type.name`#`a.name`() `a.name`} in the descending direction.
  * Specify next attribute to sort will be {@link `type.name`#`a.name`() `a.name`} attribute using descending order
  * in the the chain of comparisons performed to sort results.
- * @return {@code this} `T.toLowerFirst()` for chained invokation
+ * @return {@code this} `T.toLowerFirst()` for chained invocation
  */
 public `T` orderBy`a.name.toUpperFirst()`Desceding() {
   ordering = ordering.equal("`a.marshaledName`", false, -1);
@@ -131,7 +131,7 @@ public `T` orderBy`a.name.toUpperFirst()`Desceding() {
  
 /**
  * Exclude {@link `type.name`#`a.name`() `a.name`} attribute from each document in results.
- * @return {@code this} `T.toLowerFirst()` for chained invokation
+ * @return {@code this} `T.toLowerFirst()` for chained invocation
  */    
 public `T` exclude`a.name.toUpperFirst()`() {
   exclusion = exclusion.equal("`a.marshaledName`", false, -1);
@@ -213,7 +213,7 @@ public static final class Indexer extends Repositories.Indexer<`type.name`, Inde
   
   /**
    * Specify next attribute to in index will be {@link `type.name`#`a.name`() `a.name`} in the ascending direction.
-   * @return {@code this} indexer for chained invokation
+   * @return {@code this} indexer for chained invocation
    */
   public Indexer with`a.name.toUpperFirst()`() {
     fields = fields.equal("`a.marshaledName`", false, 1);
@@ -222,7 +222,7 @@ public static final class Indexer extends Repositories.Indexer<`type.name`, Inde
   
   /**
    * Specify next attribute to in index will be {@link `type.name`#`a.name`() `a.name`} in the descending direction.
-   * @return {@code this} indexer for chained invokation
+   * @return {@code this} indexer for chained invocation
    */
   public Indexer with`a.name.toUpperFirst()`Desceding() {
     fields = fields.equal("`a.marshaledName`", false, -1);

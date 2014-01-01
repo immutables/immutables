@@ -135,7 +135,7 @@ public final class SillyManualFixture {
         .setVal("UU1")
         .putPayload("ff", 888)
         .removeInts(2)
-        .returnNew()
+        .returningNew()
         .update()
         .addCallback(new FutureCallback<Optional<SillyEntity>>() {
           @Override

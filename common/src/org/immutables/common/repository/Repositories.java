@@ -265,7 +265,7 @@ public final class Repositories {
             if (limit <= LARGE_BATCH_SIZE) {
               // if limit specified and is smaller than reasonable large batch size
               // then we force batch size to be the same as limit,
-              // but negative, this force cursor to close
+              // but negative, this force cursor to close right after result is sent
               cursor.batchSize(-limit);
             }
           }
@@ -391,13 +391,13 @@ public final class Repositories {
     /**
      * Configures this modifier so that old (not updated) version of document will be returned in
      * case of successful update.
-     * This is default behaviour so it may be called only for explainatory reasons.
-     * @see #returnNew()
-     * @return {@code this} modifier for chained invokation
+     * This is default behavior so it may be called only for explanatory reasons.
+     * @see #returningNew()
+     * @return {@code this} modifier for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
-    public final M returnOld() {
+    public final M returningOld() {
       returnNewOrOld = false;
       return (M) this;
     }
@@ -405,21 +405,21 @@ public final class Repositories {
     /**
      * Configures this modifier so that new (updated) version of document will be returned in
      * case of successful update.
-     * @see #returnOld()
-     * @return {@code this} modifier for chained invokation
+     * @see #returningOld()
+     * @return {@code this} modifier for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
-    public final M returnNew() {
+    public final M returningNew() {
       returnNewOrOld = true;
       return (M) this;
     }
 
     /**
      * Performs an upsert. If query will match a document, then it will be modified and old or new
-     * version of document returned (depending if {@link #returnNew()} was configured). When there
+     * version of document returned (depending if {@link #returningNew()} was configured). When there
      * isn't any such matching document, a new one will be created and returned if
-     * {@link #returnNew()} was configured.
+     * {@link #returningNew()} was configured.
      * <p>
      * <em>Note: Upsert operation requires special care to set or init all required attributes
      * (including but not limited to '_id'), so that valid document could be inserted into collection. 
@@ -434,7 +434,7 @@ public final class Repositories {
 
     /**
      * Performs an update. If query will match a document, then it will be modified and old or new
-     * version of document returned (depending if {@link #returnNew()} was configured). When there
+     * version of document returned (depending if {@link #returningNew()} was configured). When there
      * isn't any matching document, {@link Optional#absent()} will be result of the operation.
      * @return future of optional document (present if matching document would be found)
      * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
@@ -462,7 +462,7 @@ public final class Repositories {
     /**
      * Configures name for an index, that is otherwise will be auto-named by index fields.
      * @param indexName explicitly provided index name
-     * @return {@code this} indexer for chained invokation indexer
+     * @return {@code this} indexer for chained invocation indexer
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -473,7 +473,7 @@ public final class Repositories {
 
     /**
      * Makes an index to enforce unique constraint.
-     * @return {@code this} indexer for chained invokation
+     * @return {@code this} indexer for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -488,7 +488,7 @@ public final class Repositories {
      * <p>
      * <em>Note: Care should be taken to configure TTL only on single time instant field</em>
      * @param timeToLive time to live for an object, non-zero time in seconds required.
-     * @return {@code this} indexer for chained invokation
+     * @return {@code this} indexer for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -532,7 +532,7 @@ public final class Repositories {
      * Configures finder to skip a number of document. Useful for results pagination in
      * conjunction with {@link #fetchWithLimit(int) limiting}
      * @param numberToSkip number of documents to skip.
-     * @return {@code this} finder for chained invokation
+     * @return {@code this} finder for chained invocation
      */
     // safe unchecked: we expect F to be a self type
     @SuppressWarnings("unchecked")
@@ -549,7 +549,7 @@ public final class Repositories {
      * Zero limit ({@code fetchWithLimit(0)}) is equivalent to {@link #fetchAll()}.
      * <p>
      * As an performance optimization, when limit is "not so large", then batch size will be set to
-     * a negative limit: this forces a mongodb to sent results in a single batch and immediately
+     * a negative limit: this forces a MongoDB to sent results in a single batch and immediately
      * closes cursor.
      * @param limitSize specify limit on the number of document in result.
      * @return future of matching document list
@@ -590,7 +590,7 @@ public final class Repositories {
      * @return future of optional matching deleted document.
      */
     public FluentFuture<Optional<T>> deleteFirst() {
-      checkState(numberToSkip == 0, "Cannot use skip() with .removeFirst()");
+      checkState(numberToSkip == 0, "Cannot use skip() with .deleteFirst()");
       return repository.doModify(
           criteria, ordering, exclusion, ConstraintSupport.nilConstraint(), false, false, true);
     }
