@@ -1,5 +1,5 @@
 /*
-   Copyright 2013 Immutables.org authors
+   Copyright 2013-2014 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import static com.google.common.base.Preconditions.*;
 import static org.immutables.common.repository.internal.RepositorySupport.*;
 
 /**
- * Umbrella class which contains abstract supertypes of repository and operation objects that
+ * Umbrella class which contains abstract super-types of repository and operation objects that
  * inherited by generated repositories. These base classes performs bridging to underlying MongoDB
  * java driver.
  */
@@ -53,7 +53,7 @@ public final class Repositories {
   private Repositories() {}
 
   /**
-   * Call methods on Criteria to add contraint for search query.
+   * Call methods on Criteria to add constraint for search query.
    * As each constraint that is added, new immutable criteria created and returned. {@code Criteria}
    * objects are immutable so they can be passed along when needed in situations
    * such as when you need to separate how you choose documents from how you process them.

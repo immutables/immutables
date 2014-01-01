@@ -1,5 +1,5 @@
 /*
-   Copyright 2013 Immutables.org authors
+   Copyright 2013-2014 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.immutables.common.repository;
 
+import javax.annotation.concurrent.Immutable;
 import org.bson.types.ObjectId;
 
 /**
@@ -22,6 +23,7 @@ import org.bson.types.ObjectId;
  * real need to use special {@link Id} type and some other simple or special value types will
  * perfectly work. But if for some reason this type is expected.
  */
+@Immutable
 public final class Id {
   private final int time;
   private final int machine;
