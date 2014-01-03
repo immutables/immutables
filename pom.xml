@@ -68,8 +68,8 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:git@github.com:immutables/org.immutables.git</connection>
-    <developerConnection>scm:git:git@github.com:immutables/org.immutables.git</developerConnection>
+    <connection>scm:git:https://github.com/immutables/org.immutables.git</connection>
+    <developerConnection>scm:git:https://github.com/immutables/org.immutables.git</developerConnection>
     <url>https://github.com/immutables/org.immutables.git</url>
   </scm>
 
