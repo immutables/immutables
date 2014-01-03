@@ -17,8 +17,9 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
     Java toolkit based around usage of immutable objects and fluent interfaces.
-    Includes support for JSON marshaling, MongoDB repositories and JAX-RS micro-services.
+    Includes support for JSON marshaling, MongoDB, JAX-RS and Guice.
   </description>
+  <url>http://immutables.org</url>
 
   <modules>
     <module>dependency-root</module>
