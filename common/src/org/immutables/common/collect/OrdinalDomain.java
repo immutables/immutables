@@ -15,16 +15,16 @@
  */
 package org.immutables.common.collect;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.AbstractIterator;
 import java.util.Iterator;
-import com.google.common.annotations.Beta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Ordinal domain represent (potentially growing) set of objects of some kind (among {@code E})
  * which has distinct and contiguous range of {@link OrdinalValue#ordinal() ordinal} values. Equal
- * objects expected to have same ordinal value. This, usually, imply that object will be interned in
- * {@link OrdinalDomain}, but it is not strictly required.
+ * objects expected to have same ordinal value. Usually, ordinal values will be interned
+ * in {@link OrdinalDomain}, but it is not strictly required.
  * <p>
  * <em>Implementations must be thread safe.</em>
  * </p>
@@ -55,7 +55,8 @@ public abstract class OrdinalDomain<E extends OrdinalValue<E>> implements Iterab
   @Override
   public Iterator<E> iterator() {
     return new AbstractIterator<E>() {
-      private int index = 0, length = length();
+      private final int length = length();
+      private int index = 0;
 
       @Override
       protected E computeNext() {

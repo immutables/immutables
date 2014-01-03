@@ -62,27 +62,33 @@ public final class Immutable`type.name`
     this.ordinal = ordinal;
   }
 
-  private static final org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> ORDINAL_DOMAIN =
+  private static final org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> DOMAIN =
       new org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`>() {
         protected `type.name` extractValue(InternProxy proxy, int ordinal) {
           return new Immutable`type.name`(proxy.instance, ordinal);
         }
         @Override
         public String toString() {
-          return "Immutable`type.name`.interningOrdinalDomain()";
+          return "Immutable`type.name`.ordinalDomain()";
         }
       };
   
-  public static org.immutables.common.collect.OrdinalDomain<`type.name`> interningOrdinalDomain() {
-    return ORDINAL_DOMAIN;
+  /**
+   * Returns static singleton instance of {@link OrdinalDomain}.
+   * All instances of {@code Immutable`type.name`} will be interned and registered with the domain.
+   * @return ordinal domain of all instances
+   */ 
+  public static org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomain() {
+    return DOMAIN;
   }
   
-  public org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomain() {
-    return ORDINAL_DOMAIN;
+  @Override
+  public org.immutables.common.collect.OrdinalDomain<`type.name`> domain() {
+    return DOMAIN;
   }
   
   private static Immutable`type.name` intern(Immutable`type.name` instance) {
-    return (Immutable`type.name`) ORDINAL_DOMAIN.internOrdinal(new InternProxy(instance));
+    return (Immutable`type.name`) DOMAIN.internOrdinal(new InternProxy(instance));
   }
 [elseif (type.useInterned)]
 

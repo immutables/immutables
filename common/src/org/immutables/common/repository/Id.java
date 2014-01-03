@@ -15,6 +15,7 @@
  */
 package org.immutables.common.repository;
 
+import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
 import org.bson.types.ObjectId;
 
@@ -91,6 +92,25 @@ public final class Id {
    */
   public int time() {
     return time;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(time, machine, inc);
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (other instanceof Id) {
+      Id id = (Id) other;
+      return time == id.time
+          && machine == id.machine
+          && inc == id.inc;
+    }
+    return false;
   }
 
   /**

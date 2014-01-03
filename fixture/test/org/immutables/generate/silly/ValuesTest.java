@@ -37,10 +37,10 @@ public class ValuesTest {
     check(ImmutableSillyOrdinal.of("a")).same(a);
     check(ImmutableSillyOrdinal.of("b")).same(b);
     
-    check(a.ordinalDomain().get(1)).same(b);
-    check(a.ordinalDomain().get(0)).same(a);
-    check(a.ordinalDomain().length()).is(3);
-    check(a.ordinalDomain()).isOf(a, b, c);
+    check(a.domain().get(1)).same(b);
+    check(a.domain().get(0)).same(a);
+    check(a.domain().length()).is(3);
+    check(a.domain()).isOf(a, b, c);
   }
   
   @Test

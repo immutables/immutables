@@ -23,11 +23,10 @@ import com.google.common.annotations.Beta;
  * are expected to be {@link Object#equals(Object) equal} if they have the same value of
  * {@link #ordinal()}.
  * <p>
- * In essense, this type expresses {@link Enum}-like ordinal indexing for object types that cannot
- * be represented as Java {@code enum}s. One of the justifications of such usage is sophisticated
- * optimisations possible with data-structures that relies on tha fact that number of different
- * values of some type is countable and limited (usually, in correspondence to the problem domain
- * that is being modelled).
+ * In essence, this type expresses enumeration for object types that cannot be represented as Java
+ * {@code enum}s. One of the justifications of such usage is sophisticated optimizations possible
+ * with data-structures that relies on the fact that number of different values of some type is
+ * countable and limited (usually, in correspondence to the problem domain that is being modeled).
  * @see ImmutableOrdinalSet
  * @param <E> element type
  */
@@ -40,8 +39,8 @@ public interface OrdinalValue<E extends OrdinalValue<E>> {
   int ordinal();
 
   /**
-   * Domain that handles these types or family of objects.
+   * Domain that contains family of objects, arranged by ordinal
    * @return the domain
    */
-  OrdinalDomain<E> ordinalDomain();
+  OrdinalDomain<E> domain();
 }

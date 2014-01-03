@@ -30,7 +30,7 @@ class Ord implements OrdinalValue<Ord> {
   }
 
   @Override
-  public OrdinalDomain<Ord> ordinalDomain() {
+  public OrdinalDomain<Ord> domain() {
     return domain;
   }
 }

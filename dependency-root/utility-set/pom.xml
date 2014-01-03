@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.immutables.dependency</groupId>
     <artifactId>dependency-root</artifactId>
-    <version>0.10-SNAPSHOT</version>
+    <version>0.11-SNAPSHOT</version>
   </parent>
 
   <artifactId>utility-set</artifactId>

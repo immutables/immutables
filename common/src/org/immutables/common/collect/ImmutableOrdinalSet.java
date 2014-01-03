@@ -56,7 +56,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
   /**
    * Creates immutable ordinal set from 1 or more elements.
-   * All elements expected to have same {@link OrdinalValue#ordinalDomain()} as the first element,
+   * All elements expected to have same {@link OrdinalValue#domain()} as the first element,
    * otherwise exception will be thrown.
    * @param <E> element type
    * @param first first element
@@ -66,7 +66,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   @SafeVarargs
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of(
       E first, E... rest) {
-    OrdinalDomain<E> domain = first.ordinalDomain();
+    OrdinalDomain<E> domain = first.domain();
     if (rest.length == 0) {
       return new SingletonImmutableOrdinalSet<>(first);
     }
@@ -78,7 +78,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
   /**
    * Creates immutable ordinal set from iterable of elements.
-   * All elements expected to have same {@link OrdinalValue#ordinalDomain()} as the first element,
+   * All elements expected to have same {@link OrdinalValue#domain()} as the first element,
    * otherwise exception will be thrown.
    * @param <E> the element type
    * @param elements the elements
@@ -97,7 +97,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       // Safe unchecked as element is known to be of type E
       return new SingletonImmutableOrdinalSet<>((E) array[0]);
     default:
-      return new RegularImmutableOrdinalSet<>(((E) array[0]).ordinalDomain(), array);
+      return new RegularImmutableOrdinalSet<>(((E) array[0]).domain(), array);
     }
   }
 
@@ -234,7 +234,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       int maxOrdinal = 0;
       int count = 0;
       for (OrdinalValue<?> e : elements) {
-        checkArgument(e.ordinalDomain().equals(domain), "Element has different domain %s", e);
+        checkArgument(e.domain().equals(domain), "Element has different domain %s", e);
         maxOrdinal = Math.max(maxOrdinal, e.ordinal());
         count++;
       }
@@ -278,7 +278,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     public boolean contains(Object object) {
       if (object instanceof OrdinalValue<?>) {
         OrdinalValue<?> value = (OrdinalValue<?>) object;
-        if (value.ordinalDomain().equals(domain)) {
+        if (value.domain().equals(domain)) {
           return containsOrdinal(value.ordinal());
         }
       }

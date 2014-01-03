@@ -34,8 +34,8 @@ public @interface GenerateMarshaledSubclasses {
 
   /**
    * Specifies expected subclasses of an abstract type that is matched during parsing by
-   * occurence of unique settable attributes ({@link GenerateDerived derived} does not count, also
-   * be careful with omitable {@link GenerateDefault default} attributes). If all attributes of
+   * occurrence of unique settable attributes ({@link GenerateDerived derived} does not count, also
+   * be careful with non-mandatory {@link GenerateDefault default} attributes). If all attributes of
    * subclasses are the same, then it will result in error due to undecidable situation.
    * @return subclasses of an abstract type that annotated with {@link GenerateMarshaler}
    */
