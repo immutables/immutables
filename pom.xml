@@ -10,7 +10,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>root</artifactId>
-  <version>0.12-SNAPSHOT</version>
+  <version>0.12</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
