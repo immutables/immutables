@@ -20,6 +20,7 @@ import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Longs;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -183,6 +184,19 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     public int size() {
       return 0;
     }
+
+    @Override
+    public boolean containsAll(Collection<?> collection) {
+      return collection.isEmpty();
+    }
+
+    @Override
+    public boolean containsAny(Collection<?> collection) {
+      return false;
+    }
+
+    @Override
+    public void incrementCounters(int[] countersByOrdinal) {}
   }
 
   private static class SingletonImmutableOrdinalSet<E extends OrdinalValue<E>>
@@ -207,6 +221,11 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     }
 
     @Override
+    public boolean containsAny(Collection<?> collection) {
+      return collection.contains(element);
+    }
+
+    @Override
     protected Set<E> delegate() {
       return ImmutableSet.of(element);
     }
@@ -220,10 +239,15 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     public boolean isEmpty() {
       return false;
     }
+
+    @Override
+    public void incrementCounters(int[] counters) {
+      counters[element.ordinal()]++;
+    }
   }
 
   private static class RegularImmutableOrdinalSet<E extends OrdinalValue<E>> extends ImmutableOrdinalSet<E> {
-    private static final int WORD_BITS = 64;
+    private static final int BITS_PER_WORD = Longs.BYTES * Byte.SIZE;
     private static final int POWER_OF_TWO_WORD_BITS = 6;
 
     private final OrdinalDomain<E> domain;
@@ -253,7 +277,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
         if (((word >>> bitIndex) & 1) != 0) {
           checkArgument(false, "Duplicate element %s", e);
         }
-        vector[wordIndex] = word | (1 << bitIndex);
+        vector[wordIndex] = word | (1L << bitIndex);
       }
     }
 
@@ -263,9 +287,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
       for (int i = 0; i < vector.length; i++) {
         long word = vector[i];
-        for (int j = 0; j < WORD_BITS; j++) {
+        for (int j = 0; j < BITS_PER_WORD; j++) {
           if (((word >> j) & 1) != 0) {
-            int ordinal = i * WORD_BITS + j;
+            int ordinal = i * BITS_PER_WORD + j;
             builder.add(domain.get(ordinal));
           }
         }
@@ -297,7 +321,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
       if (vector.length < otherVector.length) {
         // If other set contains more words - then it contains higher ordinals that this
-        // just don't posses, so containsAll will be false
+        // just don't possess, so containsAll will be false
         return false;
       }
 
@@ -312,6 +336,35 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       return true;
     }
 
+    private boolean containsAnyOrdinal(RegularImmutableOrdinalSet<?> ordinalSet) {
+      long[] otherVector = ordinalSet.vector;
+      long[] vector = this.vector;
+
+      for (int i = 0; i < otherVector.length && i < vector.length; i++) {
+        if ((vector[i] & otherVector[i]) > 0) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public boolean containsAny(Collection<?> collection) {
+      int size = collection.size();
+      if (size == 0) {
+        return false;
+      }
+      if (size == 1) {
+        return contains(Iterables.get(collection, 0));
+      }
+      if (collection instanceof RegularImmutableOrdinalSet<?>) {
+        RegularImmutableOrdinalSet<?> otherSet = (RegularImmutableOrdinalSet<?>) collection;
+        return otherSet.domain.equals(domain) && containsAnyOrdinal(otherSet);
+      }
+      return super.containsAny(collection);
+    }
+
     @Override
     public boolean containsAll(Collection<?> collection) {
       int size = collection.size();
@@ -322,8 +375,8 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
         return contains(Iterables.get(collection, 0));
       }
       if (collection instanceof RegularImmutableOrdinalSet<?>) {
-        RegularImmutableOrdinalSet<?> otherOrdinalSet = (RegularImmutableOrdinalSet<?>) collection;
-        return otherOrdinalSet.domain.equals(domain) && containsAllOrdinals(otherOrdinalSet);
+        RegularImmutableOrdinalSet<?> otherSet = (RegularImmutableOrdinalSet<?>) collection;
+        return otherSet.domain.equals(domain) && containsAllOrdinals(otherSet);
       }
       return super.containsAll(collection);
     }
@@ -337,6 +390,47 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     public int size() {
       return size;
     }
+
+    @Override
+    public void incrementCounters(int[] counters) {
+      long[] vector = this.vector;
+      for (int i = 0; i < vector.length; i++) {
+        long v = vector[i];
+        word: for (int ordinal = i << POWER_OF_TWO_WORD_BITS; v > 0;) {
+          if (v == -9223372036854775808L) {
+            System.out.println("BOrd " + ordinal);
+          }
+          int zeroes = Long.numberOfTrailingZeros(v);
+          if (zeroes == BITS_PER_WORD) {
+            break word;
+          }
+          // consume zeroes as well as set bit
+          v >>>= zeroes + 1;
+          ordinal += zeroes;
+          counters[ordinal++]++;
+        }
+      }
+    }
+  }
+
+  /**
+   * Coarse grained method to effectively collect containment information without
+   * re-packing internal structures to temporary collections.
+   * <p>
+   * For any contained element, corresponding value in array by ordinal index will be incremented.
+   * @param counters array of counters where indexes corresponds to ordinal values
+   * @exception RuntimeException if counters array length do not correspond to ordinal indexes of
+   *              contained values
+   */
+  public abstract void incrementCounters(int[] counters);
+
+  public boolean containsAny(Collection<?> collection) {
+    for (Object object : collection) {
+      if (contains(object)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

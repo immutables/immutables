@@ -50,7 +50,8 @@ public abstract class OrdinalDomain<E extends OrdinalValue<E>> implements Iterab
   public abstract int length();
 
   /**
-   * Returned iterator may reflect some previous state o {@inheritDoc}
+   * Iterator over all present inhabitants of ordinal domain.
+   * @return snapshot iterator of elements in ordinal domain.
    */
   @Override
   public Iterator<E> iterator() {

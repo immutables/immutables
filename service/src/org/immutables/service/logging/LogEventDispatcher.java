@@ -27,7 +27,7 @@ public interface LogEventDispatcher {
 
   /**
    * Post an event generation callback to dispatch.
-   * @param eventCallaback the event callaback
+   * @param eventCallaback the event callback
    * @return future of when dispatch will happen
    */
   Future<LogEvent> post(Callable<LogEvent> eventCallaback);
@@ -40,7 +40,7 @@ public interface LogEventDispatcher {
 
   /**
    * Recent log events. Ordered by insertion order.
-   * @return the iterable that is snapshop of N recent events
+   * @return the iterable holds snapshot of N recent events
    */
   List<LogEvent> recentLogEvents();
 

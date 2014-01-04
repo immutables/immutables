@@ -38,7 +38,7 @@ public interface LogEvent {
   Severity getSeverity();
 
   /**
-   * Annotation constructs instance with given values.
+   * Queries special meta-data for the following event
    * @param <A> the generic type
    * @param annotationType the annotation type
    * @return the optional annotation value
@@ -59,7 +59,7 @@ public interface LogEvent {
 
   /**
    * Event source is category. Is category of event, or more precisely subsystem or type of
-   * activity where error occured
+   * activity where error occurred
    * @return the source category
    */
   String getSourceCategory();

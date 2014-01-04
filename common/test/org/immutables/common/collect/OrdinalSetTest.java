@@ -23,14 +23,14 @@ import static org.immutables.check.Checkers.*;
 
 public class OrdinalSetTest {
 
-  Domain d1 = new Domain();
-  Domain d2 = new Domain();
+  Domain da = new Domain();
+  Domain db = new Domain();
 
-  Ord a0 = d1.get(0);
-  Ord a1 = d1.get(1);
+  Ord a0 = da.get(0);
+  Ord a1 = da.get(1);
 
-  Ord b0 = d2.get(0);
-  Ord b1 = d2.get(1);
+  Ord b0 = db.get(0);
+  Ord b1 = db.get(1);
 
   // not using IterableChecker in all cases (to cover correct code paths)
   @Test
@@ -61,10 +61,10 @@ public class OrdinalSetTest {
     check(ImmutableOrdinalSet.of(a0)).has(a0);
     check(ImmutableOrdinalSet.of(a0).contains(a0));
     check(!ImmutableOrdinalSet.of(a0).contains(a1));
-    check(ImmutableOrdinalSet.of(a0)).not(ImmutableOrdinalSet.of(d1.get(4)));
+    check(ImmutableOrdinalSet.of(a0)).not(ImmutableOrdinalSet.of(da.get(4)));
     check(ImmutableOrdinalSet.of(a0).containsAll(ImmutableOrdinalSet.of(a0)));
     check(ImmutableOrdinalSet.of(a0).containsAll(ImmutableSet.of(a0)));
-    check(ImmutableOrdinalSet.of(a0)).not().hasAll(ImmutableSet.of(d1.get(5)));
+    check(ImmutableOrdinalSet.of(a0)).not().hasAll(ImmutableSet.of(da.get(5)));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -93,18 +93,51 @@ public class OrdinalSetTest {
   }
 
   @Test
-  public void regularSetContains() {
+  public void incrementCountersSmall() {
+    int[] counters = new int[da.length()];
+
+    ImmutableOrdinalSet.of(a1).incrementCounters(counters);
+    ImmutableOrdinalSet.of(a0).incrementCounters(counters);
+    ImmutableOrdinalSet.of(a1).incrementCounters(counters);
+    ImmutableOrdinalSet.of().incrementCounters(counters);
+
+    check(counters).isOf(1, 2);
+  }
+
+  @Test
+  public void incrementCountersLarge() {
+    Domain dc = new Domain();
+    Ord[] cs = new Ord[120];
+    for (int i = 0; i < cs.length; i++) {
+      cs[i] = dc.get(i);
+    }
+
+    int[] counters = new int[dc.length()];
+    ImmutableOrdinalSet.of(cs[62], cs[119], cs[98]).incrementCounters(counters);
+    ImmutableOrdinalSet.of(cs[119], cs[1]).incrementCounters(counters);
+
+    check(new int[] { counters[0], counters[1], counters[62], counters[98], counters[119] })
+        .isOf(0, 1, 1, 1, 2);
+  }
+
+  @Test
+  public void setContains() {
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableOrdinalSet.of(b0)));
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableOrdinalSet.of(b0, b1)));
+
+    check(ImmutableOrdinalSet.of(b0, b1).containsAny(ImmutableOrdinalSet.of(b0)));
+    check(ImmutableOrdinalSet.of(b1).containsAny(ImmutableOrdinalSet.of(b0, b1)));
+    check(ImmutableOrdinalSet.of(b0, b1).containsAny(ImmutableOrdinalSet.of(b0, b1)));
+    check(!ImmutableOrdinalSet.of().containsAny(ImmutableOrdinalSet.of(b0, b1)));
 
     check(!ImmutableOrdinalSet.of(b0, b1)
         .containsAll(ImmutableOrdinalSet.of(a0, a1)));
 
     check(!ImmutableOrdinalSet.of(b0, b1)
-        .containsAll(ImmutableOrdinalSet.of(d2.get(120), d2.get(130))));
+        .containsAll(ImmutableOrdinalSet.of(db.get(120), db.get(130))));
 
-    check(!ImmutableOrdinalSet.of(d2.get(30), d2.get(70))
-        .containsAll(ImmutableOrdinalSet.of(d2.get(30), d2.get(60))));
+    check(!ImmutableOrdinalSet.of(db.get(30), db.get(70))
+        .containsAll(ImmutableOrdinalSet.of(db.get(30), db.get(60))));
 
     check(ImmutableOrdinalSet.of(b0, b1)).hasAll(b0);
     check(ImmutableOrdinalSet.of(b0, b1)).not().hasAll(a0, a1);

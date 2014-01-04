@@ -15,11 +15,6 @@
  */
 package org.immutables.service.logging;
 
-import org.immutables.service.logging.Logging.Details;
-import org.immutables.service.logging.Logging.ERROR;
-import org.immutables.service.logging.Logging.INFO;
-import org.immutables.service.logging.Logging.Message;
-import org.immutables.service.logging.Logging.WARNING;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import java.lang.annotation.Annotation;
@@ -31,6 +26,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 import org.immutables.common.time.TimeInstantSource;
+import org.immutables.service.logging.Logging.Details;
+import org.immutables.service.logging.Logging.ERROR;
+import org.immutables.service.logging.Logging.INFO;
+import org.immutables.service.logging.Logging.Message;
+import org.immutables.service.logging.Logging.WARNING;
 
 class LogSourceInterfaceHandler implements InvocationHandler {
 

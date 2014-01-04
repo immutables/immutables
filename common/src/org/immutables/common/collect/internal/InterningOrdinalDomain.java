@@ -15,15 +15,16 @@
  */
 package org.immutables.common.collect.internal;
 
-import org.immutables.common.collect.OrdinalDomain;
-import org.immutables.common.collect.OrdinalValue;
 import com.google.common.annotations.Beta;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.concurrent.ThreadSafe;
+import org.immutables.common.collect.OrdinalDomain;
+import org.immutables.common.collect.OrdinalValue;
 
 @ThreadSafe
 @Beta
@@ -48,6 +49,11 @@ public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> exten
   }
 
   protected abstract E extractValue(S valueSample, int ordinal);
+
+  @Override
+  public Iterator<E> iterator() {
+    return values.iterator();
+  }
 
   @Override
   public final E get(int ordinal) {

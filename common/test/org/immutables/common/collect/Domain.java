@@ -15,6 +15,7 @@
  */
 package org.immutables.common.collect;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -37,5 +38,12 @@ class Domain extends OrdinalDomain<Ord> {
   @Override
   public int length() {
     return values.asMap().size();
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .addValue(length())
+        .toString();
   }
 }
