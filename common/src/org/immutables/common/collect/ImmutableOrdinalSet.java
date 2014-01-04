@@ -20,6 +20,7 @@ import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Longs;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -223,7 +224,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   private static class RegularImmutableOrdinalSet<E extends OrdinalValue<E>> extends ImmutableOrdinalSet<E> {
-    private static final int WORD_BITS = 64;
+    private static final int WORD_BITS = Longs.BYTES * Byte.SIZE;
     private static final int POWER_OF_TWO_WORD_BITS = 6;
 
     private final OrdinalDomain<E> domain;
@@ -253,7 +254,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
         if (((word >>> bitIndex) & 1) != 0) {
           checkArgument(false, "Duplicate element %s", e);
         }
-        vector[wordIndex] = word | (1 << bitIndex);
+        vector[wordIndex] = word | (1L << bitIndex);
       }
     }
 
@@ -297,7 +298,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
       if (vector.length < otherVector.length) {
         // If other set contains more words - then it contains higher ordinals that this
-        // just don't posses, so containsAll will be false
+        // just don't possess, so containsAll will be false
         return false;
       }
 
@@ -322,8 +323,8 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
         return contains(Iterables.get(collection, 0));
       }
       if (collection instanceof RegularImmutableOrdinalSet<?>) {
-        RegularImmutableOrdinalSet<?> otherOrdinalSet = (RegularImmutableOrdinalSet<?>) collection;
-        return otherOrdinalSet.domain.equals(domain) && containsAllOrdinals(otherOrdinalSet);
+        RegularImmutableOrdinalSet<?> otherSet = (RegularImmutableOrdinalSet<?>) collection;
+        return otherSet.domain.equals(domain) && containsAllOrdinals(otherSet);
       }
       return super.containsAll(collection);
     }

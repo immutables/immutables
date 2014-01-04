@@ -15,7 +15,6 @@
  */
 package org.immutables.service;
 
-import org.immutables.common.marshal.JaxrsMessageBodyProvider;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -32,10 +31,11 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.immutables.common.marshal.JaxrsMessageBodyProvider;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * Combines power of Grizzly, Jersey and Guice to provide embedded JAX-RS 2.0 enpoints over http.
+ * Combines power of Grizzly, Jersey and Guice to provide embedded JAX-RS 2.0 endpoints over HTTP.
  */
 @Beta
 @ThreadSafe

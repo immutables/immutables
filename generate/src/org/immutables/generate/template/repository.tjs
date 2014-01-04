@@ -16,7 +16,7 @@ import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
- * {@code `type.name`Repository} provides type safe access for storing and retreiving documents
+ * {@code `type.name`Repository} provides type safe access for storing and retrieving documents
  * from the MongoDB collection "`type.documentName`".
  */
 @SuppressWarnings("all")
