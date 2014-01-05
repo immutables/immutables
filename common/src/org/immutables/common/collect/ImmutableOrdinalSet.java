@@ -399,9 +399,6 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       for (int i = 0; i < vector.length; i++) {
         long v = vector[i];
         word: for (int ordinal = i << POWER_OF_TWO_WORD_BITS; v > 0;) {
-          if (v == -9223372036854775808L) {
-            System.out.println("BOrd " + ordinal);
-          }
           int zeroes = Long.numberOfTrailingZeros(v);
           if (zeroes == BITS_PER_WORD) {
             break word;
