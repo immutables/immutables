@@ -298,7 +298,7 @@ public final class BuiltinMarshalingRoutines {
   public static TimeMeasure unmarshal(
       JsonParser parser,
       @Nullable TimeMeasure instantNull,
-      Class<TimeInstant> expectedClass) throws IOException {
+      Class<TimeMeasure> expectedClass) throws IOException {
     return TimeMeasure.fromString(parser.getText());
   }
 
