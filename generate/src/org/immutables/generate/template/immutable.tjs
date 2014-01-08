@@ -467,7 +467,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [/let]
 [/foreach]
-    [apply generateAfterConstruction(type)]
+    [apply generateAfterConstruction(type, true)]
   }
 [/if]
 [foreach (let v in getters)]
@@ -551,14 +551,14 @@ public String toString() {
 [/if]    
 [/template]
 
-[template generateAfterConstruction(type, builder)]
+[template generateAfterConstruction(type, usingBuilder)]
   [if (type.usePrehashed)]
 this.hashCode = this.computeHashCode();
   [/if]
   [if (type.generateOrdinalValue)]
 [-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
-    [if (builder)]
+    [if (usingBuilder)]
 this.domain = builder.domain;
     [else]
 [-- Default static ordinal domain --]

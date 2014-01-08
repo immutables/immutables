@@ -19,7 +19,7 @@ import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.common.collect.OrdinalValue;
 
-@GenerateImmutable(builder = false)
+@GenerateImmutable
 public abstract class SillyOrdinal implements OrdinalValue<SillyOrdinal> {
 
   @GenerateConstructorParameter
