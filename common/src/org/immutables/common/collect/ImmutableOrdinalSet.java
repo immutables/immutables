@@ -287,10 +287,10 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
       for (int i = 0; i < vector.length; i++) {
         long word = vector[i];
-        for (int j = 0; j < BITS_PER_WORD; j++) {
-          if (((word >> j) & 1) != 0) {
-            int ordinal = i * BITS_PER_WORD + j;
-            builder.add(domain.get(ordinal));
+        int wordOrdinal = i * BITS_PER_WORD;
+        for (int bitIndex = 0; bitIndex < BITS_PER_WORD; bitIndex++) {
+          if (((word >>> bitIndex) & 1) != 0) {
+            builder.add(domain.get(wordOrdinal + bitIndex));
           }
         }
       }
@@ -312,7 +312,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     private boolean containsOrdinal(int ordinal) {
       int wordIndex = ordinal >>> POWER_OF_TWO_WORD_BITS;
       int bitIndex = ordinal - (wordIndex << POWER_OF_TWO_WORD_BITS);
-      return ((vector[wordIndex] >> bitIndex) & 1) != 0;
+      return ((vector[wordIndex] >>> bitIndex) & 1) != 0;
     }
 
     private boolean containsAllOrdinals(RegularImmutableOrdinalSet<?> ordinalSet) {
