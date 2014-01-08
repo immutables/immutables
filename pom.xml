@@ -29,6 +29,7 @@
     <module>service</module>
     <module>fixture</module>
     <module>generate-tool</module>
+    <module>bench</module>
   </modules>
 
   <organization>
