@@ -59,36 +59,52 @@ public final class Immutable`type.name`
   [if (type.usePrehashed)]
     this.hashCode = instance.hashCode;
   [/if]
+    this.domain = instance.domain;
     this.ordinal = ordinal;
   }
 
-  private static final org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> DOMAIN =
-      new org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`>() {
-        protected `type.name` extractValue(InternProxy proxy, int ordinal) {
-          return new Immutable`type.name`(proxy.instance, ordinal);
-        }
-        @Override
-        public String toString() {
-          return "Immutable`type.name`.ordinalDomain()";
-        }
-      };
-  
   /**
-   * Returns static singleton instance of {@link OrdinalDomain}.
-   * All instances of {@code Immutable`type.name`} will be interned and registered with the domain.
-   * @return ordinal domain of all instances
-   */ 
-  public static org.immutables.common.collect.OrdinalDomain<`type.name`> ordinalDomain() {
-    return DOMAIN;
+   * Instances of {@code Immutable`type.name`} will be interned and registered with the domain.
+   */
+  public static final class Domain
+      extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> {
+    
+    private static final Domain INSTANCE = new Domain();
+
+    /** Construct ordinal domain of `type.name` values. */
+    public Domain() {
+    }
+      
+    protected `type.name` extractValue(InternProxy proxy, int ordinal) {
+      return new Immutable`type.name`(proxy.instance, ordinal);
+    }
+    @Override
+    public String toString() {
+      if (this == INSTANCE) {
+        return "Immutable`type.name`.Domain.get()";
+      }
+      return com.google.common.base.Objects.toStringHelper("Immutable`type.name`.Domain")
+        .add("length", length())
+        .toString();
+    }
+    
+    /**
+     * Gets static singleton instance of {@link OrdinalDomain}.
+     * All instances that was not build with specified domain will be bound to static domain.
+     * @return ordinal domain of all instances
+     */
+    public static Domain get() {
+      return INSTANCE;
+    }
   }
   
   @Override
   public org.immutables.common.collect.OrdinalDomain<`type.name`> domain() {
-    return DOMAIN;
+    return domain;
   }
   
   private static Immutable`type.name` intern(Immutable`type.name` instance) {
-    return (Immutable`type.name`) DOMAIN.internOrdinal(new InternProxy(instance));
+    return (Immutable`type.name`) instance.domain.internOrdinal(new InternProxy(instance));
   }
 [elseif (type.useInterned)]
 
@@ -172,6 +188,14 @@ public static final class Builder {
   private `v.type` `v.name`;
 [/if]
   [/foreach]
+  [if (type.generateOrdinalValue)]
+  private Domain domain = Domain.get();
+  
+  public Builder domain(Domain domain) {
+    this.domain = com.google.common.base.Preconditions.checkNotNull(domain);
+    return this;
+  }
+  [/if]
 
   private Builder() {
   }
@@ -368,6 +392,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [if (type.generateOrdinalValue)]
   private final int ordinal;
+  private final Domain domain;
 [/if]
 [if (type.useSingleton)]
 
@@ -526,12 +551,18 @@ public String toString() {
 [/if]    
 [/template]
 
-[template generateAfterConstruction(type)]
+[template generateAfterConstruction(type, builder)]
   [if (type.usePrehashed)]
 this.hashCode = this.computeHashCode();
   [/if]
   [if (type.generateOrdinalValue)]
-// Assigning dummy ordinal value to be changed on interning
+[-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
+    [if (builder)]
+this.domain = builder.domain;
+    [else]
+[-- Default static ordinal domain --]
+this.domain = Domain.get();
+    [/if]
   [/if]
 [/template]
