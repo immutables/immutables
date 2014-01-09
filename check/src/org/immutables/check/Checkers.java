@@ -38,6 +38,11 @@ public class Checkers {
     return new ObjectChecker<>(actualValue, false);
   }
 
+  @SafeVarargs
+  public static <E> IterableChecker<Iterable<E>, E> checkAll(E... actualValues) {
+    return new IterableChecker<Iterable<E>, E>(Arrays.asList(actualValues), false);
+  }
+
   public static <I extends Iterable<E>, E> IterableChecker<I, E> check(I actualValue) {
     return new IterableChecker<>(actualValue, false);
   }

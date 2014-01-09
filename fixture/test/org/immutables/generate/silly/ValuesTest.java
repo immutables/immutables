@@ -15,7 +15,6 @@
  */
 package org.immutables.generate.silly;
 
-import java.util.Arrays;
 import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
@@ -28,12 +27,25 @@ public class ValuesTest {
   }
 
   @Test
+  public void lazyValue() {
+    SillyLazy v = ImmutableSillyLazy.builder().build();
+
+    check(v.counter.get()).is(0);
+    check(v.val1()).is(1);
+    check(v.counter.get()).is(1);
+
+    check(v.val2()).is(2);
+    check(v.val1()).is(1);
+    check(v.counter.get()).is(2);
+  }
+
+  @Test
   public void ordinalValue() {
     ImmutableSillyOrdinal a = ImmutableSillyOrdinal.of("a");
     ImmutableSillyOrdinal b = ImmutableSillyOrdinal.of("b");
     ImmutableSillyOrdinal c = ImmutableSillyOrdinal.of("c");
 
-    check(Arrays.asList(a.ordinal(), b.ordinal(), c.ordinal())).isOf(0, 1, 2);
+    checkAll(a.ordinal(), b.ordinal(), c.ordinal()).isOf(0, 1, 2);
     check(ImmutableSillyOrdinal.of("a")).same(a);
     check(ImmutableSillyOrdinal.of("b")).same(b);
 

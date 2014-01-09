@@ -305,6 +305,16 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return excludables;
   }
 
+  public List<GenerateAttribute> getLazyAttributes() {
+    List<GenerateAttribute> lazyAttributes = Lists.newArrayList();
+    for (GenerateAttribute attribute : attributes()) {
+      if (attribute.isGenerateLazy()) {
+        lazyAttributes.add(attribute);
+      }
+    }
+    return lazyAttributes;
+  }
+
   @SuppressWarnings("unchecked")
   public List<GenerateAttribute> getImplementedAttributes() {
     return FluentIterable.from(attributes())

@@ -148,9 +148,44 @@ public final class Immutable`type.name`
     return new Builder();
   }
   [apply generateBuilder(type)]
-[/if]  
+[/if]
+[apply generateLazyValues(type)]
 }
 [/let]
+[/template]
+
+[template generateLazyValues(type)]
+  [let(laziers = type.lazyAttributes)]
+    [if (laziers.length)] 
+
+  @javax.annotation.concurrent.GuardedBy("this")
+  private volatile int lazyBitmap;
+# let lazyIndex = 0;
+[foreach (let l in laziers)]
+# let lazyMask = 1 << (lazyIndex++)
+
+  @javax.annotation.concurrent.GuardedBy("this")
+  private `l.type` `l.name`;
+
+  @Override
+  public `l.type` `l.name`() {
+    if ((lazyBitmap & `lazyMask`) == 0) {
+      synchronized (this) {
+        if ((lazyBitmap & `lazyMask`) == 0) {
+            [if (l.primitive)]
+          this.`l.name` = super.`l.name`();
+            [else]
+          this.`l.name` = com.google.common.base.Preconditions.checkNotNull(super.`l.name`());
+            [/if]
+          lazyBitmap |= `lazyMask`;
+        }
+      }
+    }
+    return `l.name`;
+  }
+[/foreach]
+    [/if]
+  [/let]
 [/template]
 
 [template generateBuilder(type)]

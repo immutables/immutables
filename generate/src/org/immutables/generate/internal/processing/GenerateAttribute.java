@@ -96,7 +96,12 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   public boolean isGenerateFunction() {
     return false;
   }
-
+  
+  @GenerateDefault
+  public boolean isGenerateLazy() {
+    return false;
+  }
+  
   @GenerateDefault
   public boolean isGeneratePredicate() {
     return false;
@@ -136,10 +141,10 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
       String type = getType();
       if (isMapType()) {
         implementationType = type.replace(Map.class.getName(),
-                googleCommonHiddenFromShadePlugin("collect.ImmutableMap"));
+            googleCommonHiddenFromShadePlugin("collect.ImmutableMap"));
       } else if (isListType()) {
         implementationType = type.replace(List.class.getName(),
-                googleCommonHiddenFromShadePlugin("collect.ImmutableList"));
+            googleCommonHiddenFromShadePlugin("collect.ImmutableList"));
       } else if (isSetType()) {
         implementationType = type.replace(Set.class.getName(),
             isGenerateOrdinalValueSet()

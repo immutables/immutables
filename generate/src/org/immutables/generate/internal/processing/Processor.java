@@ -41,6 +41,7 @@ import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateDerived;
 import org.immutables.annotation.GenerateFunction;
 import org.immutables.annotation.GenerateImmutable;
+import org.immutables.annotation.GenerateLazy;
 import org.immutables.annotation.GenerateModifiable;
 import org.immutables.annotation.GeneratePredicate;
 import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
@@ -144,7 +145,7 @@ public class Processor extends AbstractProcessor {
     @Nullable
     GenerateCheck validateAnnotation = attributeMethodCandidate.getAnnotation(GenerateCheck.class);
     if (validateAnnotation != null) {
-      if (attributeMethodCandidate.getReturnType().toString().equals("void")
+      if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
           && attributeMethodCandidate.getModifiers().contains(Modifier.PROTECTED)
           && attributeMethodCandidate.getParameters().isEmpty()
           && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
@@ -153,7 +154,7 @@ public class Processor extends AbstractProcessor {
         type.validationMethodName(attributeMethodCandidate.getSimpleName().toString());
       } else {
         error(attributeMethodCandidate,
-            "Type annotated with @"
+            "Method annotated with @"
                 + GenerateCheck.class.getSimpleName()
                 + " must be protected parameter-less method and have void return type.");
       }
@@ -179,6 +180,17 @@ public class Processor extends AbstractProcessor {
         attributeBuilder.isGenerateFunction(true);
       }
 
+      if (hasAnnotation(attributeMethodCandidate, GenerateLazy.class)) {
+        if (isAbstract(attributeMethodCandidate) || isFinal(attributeMethodCandidate)) {
+          error(attributeMethodCandidate,
+              "Methon annotated with @"
+                  + GenerateLazy.class.getSimpleName()
+                  + " must be non abstract and non-final");
+        } else {
+          attributeBuilder.isGenerateLazy(true);
+        }
+      }
+
       attributeBuilder.internalName(name.toString());
       attributeBuilder.internalTypeName(returnType.toString());
       attributeBuilder.internalTypeMirror(returnType);
@@ -194,6 +206,10 @@ public class Processor extends AbstractProcessor {
     return element.getModifiers().contains(Modifier.ABSTRACT);
   }
 
+  private static boolean isFinal(Element element) {
+    return element.getModifiers().contains(Modifier.FINAL);
+  }
+
   private static boolean isGenerateAttribute(ExecutableElement attributeMethodCandidate) {
     return attributeMethodCandidate.getParameters().isEmpty()
         && attributeMethodCandidate.getReturnType().getKind() != TypeKind.VOID
@@ -204,6 +220,7 @@ public class Processor extends AbstractProcessor {
     return hasAnnotation(attributeMethodCandidate, GenerateDefault.class)
         || hasAnnotation(attributeMethodCandidate, GenerateDerived.class)
         || hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
+        || hasAnnotation(attributeMethodCandidate, GenerateLazy.class)
         || hasAnnotation(attributeMethodCandidate, GenerateFunction.class);
   }
 

@@ -22,11 +22,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This kind of attribute cannot be set during building, but they are eagerly computed from other
- * attributes and stored in field. Should be applied to non-abstract method - attribute value
- * initializer.
+ * This kind of attribute cannot be set during building, but they are lazily computed from other
+ * attributes and stored in non-final field, but initialization is guarded by synchronization with
+ * volatile field check. Should be applied to non-abstract method - attribute value initializer.
  */
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
-public @interface GenerateDerived {}
+public @interface GenerateLazy {}

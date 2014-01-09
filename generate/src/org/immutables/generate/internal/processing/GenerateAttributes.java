@@ -31,8 +31,7 @@ import static com.google.common.base.Preconditions.*;
  * Use static static factory methods to create instances: {@code of()} or {@code builder()}.
  */
 public final class GenerateAttributes {
-  private GenerateAttributes() {
-  }
+  private GenerateAttributes() {}
 
   /**
    * Predicate on instance of GenerateAttribute that evaluates attribute isGenerateFunction.
@@ -173,6 +172,7 @@ public final class GenerateAttributes {
     private final boolean isGenerateFunction;
     private final boolean isGeneratePredicate;
     private final boolean isGenerateDefault;
+    private final boolean isGenerateLazy;
     private final boolean isGenerateDerived;
     private final boolean isGenerateAbstract;
     private final String internalName;
@@ -197,6 +197,9 @@ public final class GenerateAttributes {
       this.isGenerateAbstract = builder.isGenerateAbstractIsSet
           ? builder.isGenerateAbstract
           : super.isGenerateAbstract();
+      this.isGenerateLazy = builder.isGenerateLazyIsSet
+          ? builder.isGenerateLazy
+          : super.isGenerateLazy();
     }
 
     @Override
@@ -207,6 +210,11 @@ public final class GenerateAttributes {
     @Override
     public boolean isGenerateFunction() {
       return isGenerateFunction;
+    }
+
+    @Override
+    public boolean isGenerateLazy() {
+      return isGenerateLazy;
     }
 
     @Override
@@ -316,6 +324,8 @@ public final class GenerateAttributes {
     private boolean isGenerateDerivedIsSet;
     private boolean isGenerateAbstract;
     private boolean isGenerateAbstractIsSet;
+    private boolean isGenerateLazy;
+    private boolean isGenerateLazyIsSet;
     @Nullable
     private String internalName;
     @Nullable
@@ -323,8 +333,7 @@ public final class GenerateAttributes {
     private ImmutableList.Builder<String> typeParametersBuilder =
         ImmutableList.builder();
 
-    private Builder() {
-    }
+    private Builder() {}
 
     /**
      * Fill builder with values from provided {@link GenerateAttribute} instance.
@@ -401,6 +410,12 @@ public final class GenerateAttributes {
     public Builder isGenerateDerived(boolean isGenerateDerived) {
       this.isGenerateDerived = isGenerateDerived;
       isGenerateDerivedIsSet = true;
+      return this;
+    }
+
+    public Builder isGenerateLazy(boolean isGenerateLazy) {
+      this.isGenerateLazy = isGenerateLazy;
+      isGenerateLazyIsSet = true;
       return this;
     }
 
