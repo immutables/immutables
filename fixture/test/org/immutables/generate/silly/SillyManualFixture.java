@@ -18,9 +18,6 @@ package org.immutables.generate.silly;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -53,7 +50,6 @@ import org.immutables.common.time.TimeMeasure;
 import org.immutables.generate.silly.repository.SillyEntityRepository;
 import org.immutables.generate.silly.repository.SillyEntitySecondRepository;
 import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
-import static org.immutables.check.Checkers.*;
 
 @SuppressWarnings({"unused", "resource"})
 public final class SillyManualFixture {
@@ -91,7 +87,7 @@ public final class SillyManualFixture {
   public static void main(String... args) {
 
     RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
-    SillyEntitySecondRepository repository = SillyEntitySecondRepository.create(setup);
+    SillyEntitySecondRepository repository = new SillyEntitySecondRepository(setup);
 
     repository.upsert(ImmutableSillyEntitySecond.builder().build()).getUnchecked();
 
@@ -102,7 +98,7 @@ public final class SillyManualFixture {
 
     MongoClient mongo = new MongoClient();
 
-    SillyEntityRepository repository = SillyEntityRepository.create(
+    SillyEntityRepository repository = new SillyEntityRepository(
         RepositorySetup.builder()
             .database(mongo.getDB("test"))
             .executor(executor)
@@ -158,7 +154,7 @@ public final class SillyManualFixture {
 
     MongoClient mongo = new MongoClient();
 
-    SillyEntityRepository repository = SillyEntityRepository.create(
+    SillyEntityRepository repository = new SillyEntityRepository(
         RepositorySetup.builder()
             .database(mongo.getDB("test"))
             .executor(executor)

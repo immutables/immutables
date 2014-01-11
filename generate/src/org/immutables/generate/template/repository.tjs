@@ -19,6 +19,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
  * {@code `type.name`Repository} provides type safe access for storing and retrieving documents
  * from the MongoDB collection "`type.documentName`".
  */
+@javax.inject.Singleton
 @SuppressWarnings("all")
 @javax.annotation.Generated({"repository.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
@@ -26,17 +27,13 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 public final class `type.name`Repository extends Repositories.Repository<`type.name`> {
   private static final String DOCUMENT_COLLECTION_NAME = "`type.documentName`";
 
-  private `type.name`Repository(RepositorySetup configuration) {
-    super(configuration, DOCUMENT_COLLECTION_NAME, `type.name`Marshaler.instance());
-  }
-
   /**
-   * Creates {@link `type.name`} repository using {@link RepositorySetup configuration}.
+   * Constructs {@link `type.name`} repository using {@link RepositorySetup configuration}.
    * @param configuration the repository configuration
-   * @return new repository instance
    */
-  public static `type.name`Repository create(RepositorySetup configuration) {
-    return new `type.name`Repository(configuration);
+  @javax.inject.Inject
+  public `type.name`Repository(RepositorySetup configuration) {
+    super(configuration, DOCUMENT_COLLECTION_NAME, `type.name`Marshaler.instance());
   }
   
   /**
