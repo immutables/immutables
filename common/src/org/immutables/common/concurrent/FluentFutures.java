@@ -22,20 +22,25 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.Executor;
+import static com.google.common.base.Preconditions.*;
 
 /**
- * Provides default wraping implementation of {@link FluentFuture}
+ * Provides default wrapping implementation of {@link FluentFuture}
  */
 public final class FluentFutures {
-  private FluentFutures() {
-  }
+  private FluentFutures() {}
 
   private static final class WrapingFluentFuture<V>
       extends SimpleForwardingListenableFuture<V>
       implements FluentFuture<V> {
 
-    private WrapingFluentFuture(ListenableFuture<V> future) {
+    private final Executor executor;
+
+    private WrapingFluentFuture(ListenableFuture<V> future, Executor executor) {
       super(future);
+      this.executor = checkNotNull(executor);
     }
 
     @Override
@@ -45,13 +50,13 @@ public final class FluentFutures {
 
     @Override
     public FluentFuture<V> addCallback(FutureCallback<V> callback) {
-      Futures.addCallback(this, callback);
+      Futures.addCallback(this, callback, executor);
       return this;
     }
 
     @Override
     public FluentFuture<V> withFallback(FutureFallback<V> fallback) {
-      return from(Futures.withFallback(this, fallback));
+      return from(Futures.withFallback(this, fallback, executor));
     }
 
     @Override
@@ -66,12 +71,20 @@ public final class FluentFutures {
 
     @Override
     public <T> FluentFuture<T> transform(Function<? super V, ? extends T> function) {
-      return from(Futures.transform(this, function));
+      return from(Futures.transform(this, function, executor));
     }
 
     @Override
     public <T> FluentFuture<T> transform(AsyncFunction<? super V, ? extends T> function) {
-      return from(Futures.transform(this, function));
+      return from(Futures.transform(this, function, executor));
+    }
+
+    @Override
+    public FluentFuture<V> withExecutor(Executor executor) {
+      if (this.executor == executor) {
+        return this;
+      }
+      return new WrapingFluentFuture<>(delegate(), executor);
     }
   }
 
@@ -98,6 +111,6 @@ public final class FluentFutures {
     if (future instanceof FluentFuture<?>) {
       return (FluentFuture<V>) future;
     }
-    return new WrapingFluentFuture<>(future);
+    return new WrapingFluentFuture<>(future, MoreExecutors.sameThreadExecutor());
   }
 }

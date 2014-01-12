@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.Executor;
 
 /**
  * {@link ListenableFuture} that is enhanced with ability to invoke several operations from
@@ -58,7 +59,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
    * With fallback.
    * @see Futures#withFallback(ListenableFuture, FutureFallback)
    * @param fallback the fallback
-   * @return the fluent future wi
+   * @return derived fluent future
    */
   FluentFuture<V> withFallback(FutureFallback<V> fallback);
 
@@ -68,28 +69,30 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
    * @see Futures#immediateFuture(Object)
    * @param fallback the {@link FutureFallback} implementation to be called if {@code input} fails
    * @param value the value
-   * @return the fluent future
+   * @return derived fluent future
    */
   FluentFuture<V> withFallbackValue(V value);
 
+  FluentFuture<V> withExecutor(Executor executor);
+
   /**
-   * Transform future using suppied function.
+   * Transform future using supplied function.
    * @see Futures#transform(ListenableFuture, Function)
    * @param <T> transformed type
    * @param function A Function to transform the results of the provided future
    *          to the results of the returned future. This will be run in the thread
    *          that notifies input it is complete.
-   * @return A future that holds result of the transformation.
+   * @return A derived future that holds result of the transformation.
    */
   <T> FluentFuture<T> transform(Function<? super V, ? extends T> function);
 
   /**
-   * Asyncronous transform using supplied async function.
+   * Asynchronous transform using supplied async-function.
    * @see Futures#transform(ListenableFuture, AsyncFunction)
    * @param <T> transformed type
    * @param function A function to transform the result of the input future
    *          to the result of the output future
-   * @return A future that holds result of the function (if the input succeeded)
+   * @return A derived future that holds result of the function (if the input succeeded)
    *         or the original input's failure (if not)
    * @see Futures#transform(ListenableFuture, AsyncFunction)
    */
