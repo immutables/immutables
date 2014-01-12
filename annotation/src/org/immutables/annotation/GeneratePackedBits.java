@@ -15,16 +15,17 @@
  */
 package org.immutables.annotation;
 
+import com.google.common.annotations.Beta;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Use in conjuction with {@link GenerateModifiable}. This annotation, being applied to accessor
+ * Use in conjunction with {@link GenerateModifiable}. This annotation, being applied to accessor
  * methods with return types of {@code boolean}, {@code byte}, {@code short} or {@code int} used to
  * generate value stored as compactly packed bits. Many
- * datatypes could be effectively reduced to fixed size enumerations or limited range integer
+ * data-types could be effectively reduced to fixed size enumerations or limited range integer
  * values, this gives ultimate opportunity for data size minimization while maintaining efficient
  * access. Internally, generated {@code long} fields are used to store sequences of bits. Any other
  * attributes of the {@code Modifiable*} subclass (which are not annotated with
@@ -35,10 +36,11 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
+@Beta
 public @interface GeneratePackedBits {
   /**
    * Used to specify order of packed fields. It's defaults to zero and allows for
-   * non-contigous order values (arguments are sorted ascending by this order value).
+   * non-contiguous order values (arguments are sorted ascending by this order value).
    * <p>
    * <em>This attribute was introduced as JDT annotation processor internally tracks alphabetical order
    * of members, this differs from Javac, which uses order of declaration appearance. Thus, in order

@@ -15,6 +15,7 @@
  */
 package org.immutables.annotation;
 
+import com.google.common.annotations.Beta;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -26,8 +27,8 @@ import java.lang.annotation.Target;
  * This annotation could be used only as companion to {@link GenerateImmutable} to provide
  * modifiable variant that is convertible back and forth to immutable form.
  * <p>
- * Generated class will have name with "Modifiable" prefix. Use {@code create()} factory method to create
- * instances 
+ * Generated class will have name with "Modifiable" prefix. Use {@code create()} factory method to
+ * create instances.
  * <p>
  * There's additional usage for such modifiable classes: generation of highly compact data holders
  * by having special integer-encoded data attributes annotated with {@link GeneratePackedBits}.
@@ -35,4 +36,5 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.CLASS)
+@Beta
 public @interface GenerateModifiable {}
