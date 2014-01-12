@@ -32,8 +32,7 @@ public final class Stringification {
   private static final String EMPTY_STRING = "";
   private static final String NULL_STRING = "null";
 
-  private Stringification() {
-  }
+  private Stringification() {}
 
   public static String stringify(Object object, String nullString) {
     if (object == null) {
@@ -185,10 +184,7 @@ public final class Stringification {
     try {
       builder.append('!' + e.getClass().getSimpleName() + ": " + e.getMessage() + "!");
     } catch (IOException ex) {
-      intendedSwallow(ex);
+      ex.printStackTrace();
     }
   }
-
-  @SuppressWarnings("unused")
-  private static void intendedSwallow(Exception ex) {}
 }

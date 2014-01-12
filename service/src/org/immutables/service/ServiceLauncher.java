@@ -15,9 +15,6 @@
  */
 package org.immutables.service;
 
-import org.immutables.service.logging.Logging;
-import org.immutables.service.logging.Tracing;
-import org.immutables.service.logging.TracingLogEventListener;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
@@ -36,6 +33,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.inject.Provider;
+import org.immutables.service.logging.Logging;
+import org.immutables.service.logging.Tracing;
+import org.immutables.service.logging.TracingLogEventListener;
 
 /**
  * Conventional service launcher that uses unmarshaled configuration files. When unmarshaled,
@@ -67,7 +67,7 @@ public final class ServiceLauncher {
         try {
           manager.stopAsync().awaitStopped(2, TimeUnit.SECONDS);
         } catch (TimeoutException timeout) {
-          // stopping timed out
+          timeout.printStackTrace();
         }
       }
     });

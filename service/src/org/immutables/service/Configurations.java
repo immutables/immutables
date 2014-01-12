@@ -23,7 +23,7 @@ public final class Configurations {
       new TypeToken<Provider<Module>>() {};
 
   public static Module loadModule(String classpathUri, String configurationClassName) {
-    return extractModule(unmarshalConfiguration(
+    return moduleFrom(unmarshalConfiguration(
         classpathUri, loadMarshaler(configurationClassName)));
   }
 
@@ -39,7 +39,7 @@ public final class Configurations {
   }
 
   @SuppressWarnings("unchecked")
-  private static Module extractModule(Object unmarshaledConfiguration) {
+  private static Module moduleFrom(Object unmarshaledConfiguration) {
     // safe unchecked due to TypeToken#isAssignableFrom check
     TypeToken<?> typeOfConfiguration = TypeToken.of(unmarshaledConfiguration.getClass());
     if (PROVIDER_MODULE_TYPE.isAssignableFrom(typeOfConfiguration)) {
