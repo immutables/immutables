@@ -53,14 +53,15 @@ public final class `type.name`Repository extends Repositories.Repository<`type.n
   public FluentFuture<Integer> insert(Iterable<? extends `type.name`> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
-  
+
   /**
-   * Delete documents from the collection if they matches {@link Criteria}.
-   * @param criteria specifies deletion criteria 
-   * @return future of number of deleted documents if WriteConcern allows.
-   */  
-  public FluentFuture<Integer> deleteAll(Criteria criteria) {
-    return super.doDelete((ConstraintSupport.ConstraintHost) criteria);
+   * Finds all documents. Use returned {@link Finder} object to complete
+   * {@link Finder#fetchAll() fetch all}, {@link Finder#deleteAll() delete all} or other operation.
+   * @return finder object to complete operation
+   */
+  @javax.annotation.CheckReturnValue
+  public Finder find() {
+    return find(where());
   }
 [let (a = type.idAttribute)]
 [-- It will rarely be otherwise --]
@@ -676,6 +677,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
 [/template]
 
 [template generateCriteriaApi(type)]
+private static final Criteria ANY_CRITERIA = new InternalCriteria(ConstraintSupport.nilConstraint());
 
 /**
  * Specify search criteria.
@@ -683,7 +685,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
  * @return empty immutable criteria
  */
 public static Criteria where() {
-  return new InternalCriteria(ConstraintSupport.nilConstraint());
+  return ANY_CRITERIA;
 }
 
 /**

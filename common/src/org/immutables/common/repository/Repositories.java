@@ -344,7 +344,7 @@ public final class Repositories {
      * Perform upsert: update single element or inserts a new one if none of the document matches.
      * <p>
      * <em>Note: Upsert operation requires special care to set or init all required attributes in case of insertion
-     * (including but not limited to '_id'), so that valid document could be inserted into collection. 
+     * (including but not limited to '_id'), so that valid document could be inserted into collection.
      * </em>
      * @return future of number of processed document (expected to be 1)
      */
@@ -422,7 +422,7 @@ public final class Repositories {
      * {@link #returningNew()} was configured.
      * <p>
      * <em>Note: Upsert operation requires special care to set or init all required attributes
-     * (including but not limited to '_id'), so that valid document could be inserted into collection. 
+     * (including but not limited to '_id'), so that valid document could be inserted into collection.
      * </em>
      * @return future of optional document.
      * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
@@ -585,12 +585,21 @@ public final class Repositories {
     }
 
     /**
+     * Delete all matching documents from the collection if they matches {@link Criteria}.
+     * @return future of number of deleted documents if WriteConcern allows.
+     */
+    public FluentFuture<Integer> deleteAll() {
+      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteAll()");
+      return repository.doDelete(criteria);
+    }
+
+    /**
      * Deletes and returns first matching document. Returns {@link Optional#absent()} if none
      * documents matches.
      * @return future of optional matching deleted document.
      */
     public FluentFuture<Optional<T>> deleteFirst() {
-      checkState(numberToSkip == 0, "Cannot use skip() with .deleteFirst()");
+      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteFirst()");
       return repository.doModify(
           criteria, ordering, exclusion, ConstraintSupport.nilConstraint(), false, false, true);
     }
