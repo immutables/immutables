@@ -232,6 +232,8 @@ public final class EventualProvidersModule<T> implements Module {
         : Key.get(futureType);
   }
 
+  // safe unchecked: wrapping and subtyping verifies that type will be ListenableFuture of some type
+  @SuppressWarnings("unchecked")
   TypeLiteral<ListenableFuture<?>> futureTypeLiteralFrom(TypeToken<?> type) {
     return (TypeLiteral<ListenableFuture<?>>) TypeLiteral.get(
         (LISTENABLE_FUTURE.isAssignableFrom(type)
