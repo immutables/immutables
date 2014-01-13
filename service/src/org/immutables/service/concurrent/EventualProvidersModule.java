@@ -154,8 +154,6 @@ public final class EventualProvidersModule<T> implements Module {
 
     verifyMethodAccessibility(methodErrors, method, source);
 
-    boolean exposedBinding = exposedBinding(method);
-
     @Nullable
     Annotation bindingAnnotation =
         Annotations.findBindingAnnotation(methodErrors, method, annotations);
@@ -170,6 +168,7 @@ public final class EventualProvidersModule<T> implements Module {
     }
 
     Key<ListenableFuture<?>> bindingKey = futureKey(method.getReturnType(), bindingAnnotation);
+    boolean exposedBinding = method.isAnnotationPresent(Exposed.class);
 
     return new EventualProvider<>(
         method,
@@ -178,10 +177,6 @@ public final class EventualProvidersModule<T> implements Module {
         bindingKey,
         scopeAnnotation,
         source);
-  }
-
-  private boolean exposedBinding(Invokable<T, ?> method) {
-    return method.isPublic() || method.isAnnotationPresent(Exposed.class);
   }
 
   private void verifyAbsenseOfScopeAnnotation(Errors methodErrors, Annotation[] annotations, Object source) {
