@@ -88,7 +88,7 @@ public class PolygonContainsPointTest {
 
   @Test
   public void withinBounds() {
-    for (Point point : SHAPE_1.shape()) {
+    for (Point point : SHAPE_1.vertices()) {
       check(SHAPE_1.withinBounds(point));
     }
 
@@ -110,7 +110,7 @@ public class PolygonContainsPointTest {
     check(!SHAPE_1.contains(Point.of(0, -5)));
     check(!SHAPE_1.contains(Point.of(-2.11111, 1)));
 
-    for (Point point : SHAPE_1.shape()) {
+    for (Point point : SHAPE_1.vertices()) {
       check(SHAPE_1.contains(point));
     }
 
@@ -128,7 +128,7 @@ public class PolygonContainsPointTest {
 
   @Test
   public void containsInSquare() {
-    for (Point point : SHAPE_2.shape()) {
+    for (Point point : SHAPE_2.vertices()) {
       check(SHAPE_2.contains(point));
     }
 
@@ -153,7 +153,7 @@ public class PolygonContainsPointTest {
 
   @Test
   public void containsInNonConvexPolygon() {
-    for (Point point : SHAPE_3.shape()) {
+    for (Point point : SHAPE_3.vertices()) {
       check(SHAPE_3.contains(point));
     }
 

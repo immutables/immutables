@@ -35,7 +35,7 @@ public final class Polygon {
   private final double minLatitude;
   private final double minLongitude;
 
-  Polygon(ImmutableList<Point> vertices) {
+  private Polygon(ImmutableList<Point> vertices) {
     checkArgument(vertices.size() >= 3, "shape must have at least 3 vertex");
     this.vertices = vertices;
 
@@ -71,7 +71,7 @@ public final class Polygon {
     return new Polygon(ImmutableList.copyOf(points));
   }
 
-  public List<Point> shape() {
+  public List<Point> vertices() {
     return vertices;
   }
 
