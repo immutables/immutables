@@ -45,9 +45,10 @@ public class SampleEventuality {
     return ":";
   }
 
+  @Exposed
   @EventuallyProvides
   @Named("output")
-  public String output(
+  String output(
       @Named("first") String first,
       @Named("second") String second,
       @Named("separator") String separator) {
