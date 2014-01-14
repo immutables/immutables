@@ -2,6 +2,8 @@ package org.immutables.service.concurrent;
 
 import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.inject.Exposed;
+import com.google.inject.Injector;
 import com.google.inject.Provides;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,16 +13,23 @@ import java.lang.annotation.Target;
 /**
  * Async analog to Guice's {@literal @}{@link Provides}. Used to annotate
  * asynchronous provider methods used to describe transformation of async values.
+ * <p>
  * Such methods may return values of type {@code V} or {@link ListenableFuture
- * ListenableFuture&lt;V&gt;} and binding target type will be
- * registered as {@link ListenableFuture ListenableFuture&lt;V&gt;}. Methods will be injected with
- * parameters, these parameters will contain unwrapped values ({@code P}), obtained when
- * all corresponding injectable ListenableFuture&lt;P&gt; is completed with values.
+ * ListenableFuture&lt;V&gt;} and binding target type will be registered as {@link ListenableFuture
+ * ListenableFuture&lt;V&gt;}. Methods will be injected with parameters, these parameters will
+ * contain unwrapped values ({@code P}), obtained when all corresponding injectable
+ * ListenableFuture&lt;P&gt; is completed with values. Binding will be private by default, use
+ * {@literal @}{@link Exposed} annotation to make future binding injectable into other classes in
+ * module. Provider method bindings will inherit scope annotation from declaring class if any.
+ * Scoping is a serious concern which should be carefully crafted for particular use case. Most safe
+ * way to run such group of asynchronous computations is to use {@literal @}Singleton scoped
+ * providers running in a {@link Injector#createChildInjector(Iterable) child injector} created
+ * specifically per computation.
  * 
  * <pre>
  * {@literal @}EventuallyProvides
  * C async(A a, B b) {
- *   return new C(a.value(), b.getProperty());
+ * return new C(a.value(), b.getProperty());
  * }
  * </pre>
  * 
@@ -41,14 +50,15 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  * <p>
+ * Advantage of eventual providers methods is that one could include number of concise mapping
+ * methods to describe sophisticated asynchronous transformations and derivations without much
+ * boilerplate.
+ * <p>
  * Defining class should be instantiable and injectable by Guice, provider methods should not be
  * static, private or abstract.
  * <p>
- * Advantage of eventual providers methods that one could include concise mapping methods to
- * describe sophisticated asynchronous transformations and derivations without much boilerplate.
- * <p>
- * Provider methods will inherit scope annotation from declaring class.
  * @see EventualProvidersModule
+ * @see Exposed
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

@@ -15,8 +15,9 @@ public class SampleEventuality {
   @Inject
   List<Integer> tracker;
 
+  @Exposed
   @EventuallyProvides
-  public ListenableFuture<Boolean> getInput(@Named("input") String input) {
+  ListenableFuture<Boolean> getInput(@Named("input") String input) {
     tracker.add(1);
     return Futures.immediateFuture(Boolean.parseBoolean(input));
   }
