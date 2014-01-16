@@ -42,6 +42,8 @@ public class ValuesTest {
 
   @Test
   public void packagePrivateClassGeneration() {
+    check(Modifier.isPublic(SillyEmpty.class.getModifiers()));
+    check(Modifier.isPublic(ImmutableSillyEmpty.class.getModifiers()));
     check(!Modifier.isPublic(SillyMapHolder.class.getModifiers()));
     check(!Modifier.isPublic(ImmutableSillyMapHolder.class.getModifiers()));
   }

@@ -11,7 +11,7 @@ package `type.packageName`;
  * Use static static factory method {@link Modifiable`type.name`#create()} to create new instances.
  * @see org.immutables.annotation.GeneratePackedBits
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"modifiable.tjs", "`type.name`"})
 @javax.annotation.concurrent.NotThreadSafe

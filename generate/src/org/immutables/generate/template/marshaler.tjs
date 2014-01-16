@@ -8,10 +8,10 @@ import org.immutables.common.marshal.Marshaler;
 // Generated imports
 
 /**
- * Marshaler that could marshal and unmarshal instances of `type.name`.
+ * Marshaler that could marshal and unmarshal instances of {@code `type.name`}.
  * Uses Jackson JSON processor API.
  */
-@SuppressWarnings({"unused"})
+@SuppressWarnings("all")
 @Generated({"marshaler.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
 `type.accessPrefix`final class `type.name`Marshaler
@@ -106,9 +106,9 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
  * Internal routines for marshaling and unmarshaling instances of `type.name`.
- * Uses Jackson JSON processor API. See {@link `type.name`Marshaler} for public entry point to this API
+ * Uses Jackson JSON processor API. See {@code `type.name`Marshaler} for the entry point to this API
  */
-@SuppressWarnings({"unused"})
+@SuppressWarnings("all")
 @Generated({"marshal.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
 final class Internal`type.name`Marshaling {

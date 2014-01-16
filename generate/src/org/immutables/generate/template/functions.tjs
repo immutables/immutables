@@ -6,7 +6,7 @@ package `type.packageName`;
 /**
  * Projection functions and predicates that corresponds to attributes of {@link `type.name`}.
  */
-@SuppressWarnings({"unused"})
+@SuppressWarnings("all")
 @javax.annotation.Generated({"functions.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
 `type.accessPrefix`final class `type.name`Functions {
