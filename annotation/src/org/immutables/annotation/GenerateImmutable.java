@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 public @interface GenerateImmutable {
 
   /**
-   * If {@code useSingleton=true}, generates internal singleton object constructed without any
+   * If {@code singleton=true}, generates internal singleton object constructed without any
    * specified parameters (all default).
    */
   boolean singleton() default false;
@@ -47,7 +47,7 @@ public @interface GenerateImmutable {
   boolean interned() default false;
 
   /**
-   * If {@code prehashed=true} then {@code hashCode} will be precomputed on construction.
+   * If {@code prehashed=true} then {@code hashCode} will be precomputed during construction.
    * This could speed up collection lookups for objects with lots of attributes and nested objects
    * or, in general, when {@code hashCode} computation is expensive and will be used a lot.
    */

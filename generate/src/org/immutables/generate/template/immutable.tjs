@@ -14,7 +14,7 @@ package `type.packageName`;
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"immutable.tjs", "`type.name`"})
 @javax.annotation.concurrent.Immutable
-public final class Immutable`type.name`
+`type.accessPrefix`final class Immutable`type.name`
     extends `type.name` {
 [if (type.useSingleton)]
   

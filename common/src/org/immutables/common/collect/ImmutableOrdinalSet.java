@@ -328,7 +328,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       for (int i = 0; i < otherVector.length; i++) {
         long v = vector[i];
         long ov = otherVector[i];
-        if ((v | ov) != v) {
+        if ((v & ov) != ov) {
           return false;
         }
       }

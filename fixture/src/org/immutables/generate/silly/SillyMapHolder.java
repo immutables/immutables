@@ -15,17 +15,17 @@
  */
 package org.immutables.generate.silly;
 
+import java.lang.annotation.RetentionPolicy;
+import java.util.Map;
+import java.util.Set;
 import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
-import java.lang.annotation.RetentionPolicy;
-import java.util.Map;
-import java.util.Set;
 
 @GenerateImmutable
 @GenerateMarshaler(importRoutines = SillyMarshalingRoutines.class)
-public abstract class SillyMapHolder {
+abstract class SillyMapHolder {
 
   @GenerateConstructorParameter(order = 0)
   @GenerateMarshaled(forceEmpty = true)

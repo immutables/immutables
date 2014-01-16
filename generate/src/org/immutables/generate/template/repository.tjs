@@ -24,7 +24,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 @javax.annotation.Generated({"repository.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-public final class `type.name`Repository extends Repositories.Repository<`type.name`> {
+`type.accessPrefix`final class `type.name`Repository extends Repositories.Repository<`type.name`> {
   private static final String DOCUMENT_COLLECTION_NAME = "`type.documentName`";
 
   /**

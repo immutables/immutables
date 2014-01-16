@@ -15,6 +15,7 @@
  */
 package org.immutables.generate.silly;
 
+import java.lang.reflect.Modifier;
 import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
@@ -37,6 +38,12 @@ public class ValuesTest {
     check(v.val2()).is(2);
     check(v.val1()).is(1);
     check(v.counter.get()).is(2);
+  }
+
+  @Test
+  public void packagePrivateClassGeneration() {
+    check(!Modifier.isPublic(SillyMapHolder.class.getModifiers()));
+    check(!Modifier.isPublic(ImmutableSillyMapHolder.class.getModifiers()));
   }
 
   @Test

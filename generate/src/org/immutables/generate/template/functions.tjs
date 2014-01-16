@@ -9,7 +9,7 @@ package `type.packageName`;
 @SuppressWarnings({"unused"})
 @javax.annotation.Generated({"functions.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
-public final class `type.name`Functions {
+`type.accessPrefix`final class `type.name`Functions {
   private `type.name`Functions() {
   }
   [apply generateHelpers(type)]

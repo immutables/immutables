@@ -14,7 +14,7 @@ import org.immutables.common.marshal.Marshaler;
 @SuppressWarnings({"unused"})
 @Generated({"marshaler.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
-public final class `type.name`Marshaler
+`type.accessPrefix`final class `type.name`Marshaler
     extends Marshaler<`type.name`> {
 
   private static final `type.name`Marshaler INSTANCE = new `type.name`Marshaler();

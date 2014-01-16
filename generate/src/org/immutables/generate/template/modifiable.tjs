@@ -15,7 +15,7 @@ package `type.packageName`;
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"modifiable.tjs", "`type.name`"})
 @javax.annotation.concurrent.NotThreadSafe
-public final class Modifiable`type.name`
+`type.accessPrefix`final class Modifiable`type.name`
     extends `type.name` {
   private Modifiable`type.name`() {
   }
