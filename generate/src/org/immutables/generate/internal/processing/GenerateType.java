@@ -87,7 +87,9 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public boolean isUsePrehashed() {
-    return isUseInterned() || internalTypeElement().getAnnotation(GenerateImmutable.class).prehashed();
+    return isUseInterned()
+        || isGenerateOrdinalValue()
+        || internalTypeElement().getAnnotation(GenerateImmutable.class).prehashed();
   }
 
   public boolean isGenerateMarshaled() {

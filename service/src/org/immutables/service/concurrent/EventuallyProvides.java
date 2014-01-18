@@ -5,6 +5,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Exposed;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -60,6 +61,7 @@ import java.lang.annotation.Target;
  * @see EventualProvidersModule
  * @see Exposed
  */
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Beta
