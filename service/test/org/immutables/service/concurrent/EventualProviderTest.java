@@ -21,7 +21,7 @@ public class EventualProviderTest extends AbstractModule {
   private final List<Integer> tracker = new CopyOnWriteArrayList<>();
 
   @Test
-  public void testAsyncComputationGraph() {
+  public void asyncComputationGraph() {
     Injector injector = Guice.createInjector(Stage.DEVELOPMENT, this);
     Verifiers verifiers = injector.getInstance(Verifiers.class);
 
