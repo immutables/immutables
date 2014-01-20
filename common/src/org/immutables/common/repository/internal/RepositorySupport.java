@@ -18,6 +18,7 @@ package org.immutables.common.repository.internal;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -26,6 +27,8 @@ import com.google.common.collect.Range;
 import com.mongodb.BasicDBObject;
 import com.mongodb.QueryOperators;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -52,10 +55,16 @@ public final class RepositorySupport {
   public static class ConstraintBuilder implements ConstraintSupport.ConstraintVisitor<ConstraintBuilder> {
 
     private final String keyPrefix;
-    private BasicDBObject constraints = new BasicDBObject();
+    private BasicDBObject constraints;
+    private List<BasicDBObject> disjunction;
 
     public ConstraintBuilder(String keyPrefix) {
+      this(keyPrefix, new BasicDBObject());
+    }
+
+    private ConstraintBuilder(String keyPrefix, BasicDBObject constraints) {
       this.keyPrefix = keyPrefix;
+      this.constraints = constraints;
     }
 
     private ConstraintBuilder newBuilderForKey(String key) {
@@ -67,21 +76,10 @@ public final class RepositorySupport {
       @Nullable
       Object existingConstraint = constraints.get(path);
       if (existingConstraint != null) {
-        constraints.put(path, mergeConstraints(constraint, existingConstraint));
+        constraints.put(path, mergeConstraints(path, constraint, existingConstraint));
       } else {
         constraints.put(path, constraint);
       }
-    }
-
-    /**
-     * Merge constraints.
-     * @param constraint the constraint
-     * @param existingConstraint the existing constraint
-     * @return the object
-     */
-    private Object mergeConstraints(Object constraint, Object existingConstraint) {
-      // TODO implement
-      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -147,6 +145,9 @@ public final class RepositorySupport {
     }
 
     public BasicDBObject asDbObject() {
+      if (disjunction != null) {
+        return new BasicDBObject(1).append(QueryOperators.OR, disjunction);
+      }
       return constraints;
     }
 
@@ -176,8 +177,22 @@ public final class RepositorySupport {
 
     @Override
     public ConstraintBuilder disjunction() {
-      // TODO implement
-      throw new UnsupportedOperationException();
+      if (disjunction == null) {
+        disjunction = new ArrayList<>(4);
+        disjunction.add(constraints);
+      }
+      constraints = new BasicDBObject();
+      disjunction.add(constraints);
+      return this;
+    }
+
+    private Object mergeConstraints(String path, Object constraint, Object existingConstraint) {
+      Preconditions.checkState(false,
+          "Cannot add another contraint on '%s': %s. Existing: %s",
+          path,
+          constraint,
+          existingConstraint);
+      return constraint;
     }
   }
 

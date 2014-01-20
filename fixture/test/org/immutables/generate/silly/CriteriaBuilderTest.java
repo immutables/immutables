@@ -25,6 +25,19 @@ import static org.immutables.check.Checkers.*;
 
 public class CriteriaBuilderTest {
 
+  @Test(expected = IllegalStateException.class)
+  public void cannotDuplicateConstraint() {
+    stringify(where().id("1").id("2"));
+  }
+
+  @Test
+  public void disjunction() {
+    check(stringify(where().id("1").or().id("2")))
+        .is("{ '$or' : [ { '_id' : '1'} , { '_id' : '2'}]}");
+    check(stringify(where().id("1").or().attr1Not("2").flag2(true)))
+        .is("{ '$or' : [ { '_id' : '1'} , { 'attr1' : { '$ne' : '2'} , 'flag2' : true}]}");
+  }
+
   @Test
   public void ranges() {
     check(stringify(SillyStructureWithIdRepository.where().attr1AtLeast("1")))
