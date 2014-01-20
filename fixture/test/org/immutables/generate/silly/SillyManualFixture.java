@@ -47,9 +47,6 @@ import java.util.concurrent.Executors;
 import org.bson.LazyBSONCallback;
 import org.immutables.common.repository.RepositorySetup;
 import org.immutables.common.time.TimeMeasure;
-import org.immutables.generate.silly.repository.SillyEntityRepository;
-import org.immutables.generate.silly.repository.SillyEntitySecondRepository;
-import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
 
 @SuppressWarnings({"unused", "resource"})
 public final class SillyManualFixture {

@@ -29,8 +29,7 @@ exports.main = function (type, javaSinkFactory) {
   if (type.generateDocument) {
     let documentTemplates = template.require('org/immutables/generate/template/repository.tjs')
     
-    javaSinkFactory
-        .sinkFor(type.packageName + '.repository.' + type.name + 'Repository')
-        .write(documentTemplates.generateRepository(type))
+    javaSinkFactory.sinkFor(type.packageName + '.' + type.name + 'Repository').write(
+        documentTemplates.generateRepository(type))
   }
 }
