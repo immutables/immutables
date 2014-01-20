@@ -19,8 +19,7 @@ import com.google.common.collect.Range;
 import java.util.regex.Pattern;
 import org.immutables.common.repository.internal.ConstraintSupport.ConstraintHost;
 import org.immutables.common.repository.internal.RepositorySupport;
-import org.immutables.generate.silly.repository.SillyStructureWithIdRepository;
-import org.immutables.generate.silly.repository.SillyStructureWithIdRepository.Criteria;
+import org.immutables.generate.silly.SillyStructureWithIdRepository.Criteria;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
