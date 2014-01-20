@@ -99,6 +99,14 @@ public final class Repositories {
       return FluentFutures.from(configuration.executor.submit(callable));
     }
 
+    private enum GetN implements Function<WriteResult, Integer> {
+      FUNCTION;
+      @Override
+      public Integer apply(WriteResult input) {
+        return input.getN();
+      }
+    }
+
     protected final FluentFuture<Void> doIndex(
         final ConstraintSupport.Constraint fields,
         final ConstraintSupport.Constraint options) {
@@ -118,19 +126,16 @@ public final class Repositories {
         return FluentFutures.from(
             Futures.immediateFuture(0));
       }
-      return submit(new Callable<Integer>() {
+      return submit(new Callable<WriteResult>() {
         @Override
-        public Integer call() {
+        public WriteResult call() {
           DBCollection collection = collection();
-
-          WriteResult result = collection.insert(
+          return collection.insert(
               BsonEncoding.wrapInsertObjectList(documents, marshaler),
               collection.getWriteConcern(),
               BsonEncoding.encoder());
-
-          return result.getN();
         }
-      });
+      }).lazyTransform(GetN.FUNCTION);
     }
 
     protected final FluentFuture<Optional<T>> doModify(
@@ -175,38 +180,33 @@ public final class Repositories {
         final boolean multiple) {
       checkArgument(!multiple || !upsert);
       checkNotNull(criteria);
-      return submit(new Callable<Integer>() {
+      return submit(new Callable<WriteResult>() {
         @Override
-        public Integer call() {
+        public WriteResult call() {
           DBCollection collection = collection();
-
-          WriteResult result = collection.update(
+          return collection.update(
               extractDbObject(criteria),
               extractDbObject(update),
               upsert,
               multiple,
               collection.getWriteConcern(),
               BsonEncoding.encoder());
-
-          return result.getN();
         }
-      });
+      }).lazyTransform(GetN.FUNCTION);
     }
 
     protected final FluentFuture<Integer> doDelete(
         final ConstraintSupport.ConstraintHost criteria) {
       checkNotNull(criteria);
-      return submit(new Callable<Integer>() {
+      return submit(new Callable<WriteResult>() {
         @Override
-        public Integer call() {
+        public WriteResult call() {
           DBCollection collection = collection();
-          WriteResult result = collection.remove(
+          return collection.remove(
               extractDbObject(criteria),
               collection.getWriteConcern());
-
-          return result.getN();
         }
-      });
+      }).lazyTransform(GetN.FUNCTION);
     }
 
     protected final FluentFuture<Integer> doUpsert(
@@ -214,22 +214,19 @@ public final class Repositories {
         final T document) {
       checkNotNull(criteria);
       checkNotNull(document);
-      return submit(new Callable<Integer>() {
+      return submit(new Callable<WriteResult>() {
         @Override
-        public Integer call() {
+        public WriteResult call() {
           DBCollection collection = collection();
-
-          WriteResult result = collection.update(
+          return collection.update(
               extractDbObject(criteria),
               BsonEncoding.wrapUpdateObject(document, marshaler),
               true,
               false,
               collection.getWriteConcern(),
               BsonEncoding.encoder());
-
-          return result.getN();
         }
-      });
+      }).lazyTransform(GetN.FUNCTION);
     }
 
     protected final FluentFuture<List<T>> doFetch(
@@ -417,7 +414,8 @@ public final class Repositories {
 
     /**
      * Performs an upsert. If query will match a document, then it will be modified and old or new
-     * version of document returned (depending if {@link #returningNew()} was configured). When there
+     * version of document returned (depending if {@link #returningNew()} was configured). When
+     * there
      * isn't any such matching document, a new one will be created and returned if
      * {@link #returningNew()} was configured.
      * <p>
@@ -434,7 +432,8 @@ public final class Repositories {
 
     /**
      * Performs an update. If query will match a document, then it will be modified and old or new
-     * version of document returned (depending if {@link #returningNew()} was configured). When there
+     * version of document returned (depending if {@link #returningNew()} was configured). When
+     * there
      * isn't any matching document, {@link Optional#absent()} will be result of the operation.
      * @return future of optional document (present if matching document would be found)
      * @see DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean,
