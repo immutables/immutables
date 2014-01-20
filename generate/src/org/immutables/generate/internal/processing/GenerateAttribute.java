@@ -69,6 +69,11 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     this.element = element;
   }
 
+  @Override
+  public boolean isComparable() {
+    return isNumberType() || super.isComparable();
+  }
+
   public String getMarshaledName() {
     @Nullable
     GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
