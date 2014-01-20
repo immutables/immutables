@@ -23,7 +23,10 @@ import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import static com.google.common.base.Preconditions.*;
 
 /**
@@ -32,7 +35,7 @@ import static com.google.common.base.Preconditions.*;
 public final class FluentFutures {
   private FluentFutures() {}
 
-  private static final class WrapingFluentFuture<V>
+  private static class WrapingFluentFuture<V>
       extends SimpleForwardingListenableFuture<V>
       implements FluentFuture<V> {
 
@@ -45,7 +48,7 @@ public final class FluentFutures {
 
     @Override
     public V getUnchecked() {
-      return Futures.getUnchecked(delegate());
+      return Futures.getUnchecked(this);
     }
 
     @Override
@@ -85,6 +88,37 @@ public final class FluentFutures {
         return this;
       }
       return new WrapingFluentFuture<>(delegate(), executor);
+    }
+
+    @Override
+    public <T> FluentFuture<T> lazyTransform(Function<? super V, ? extends T> function) {
+      return new LazyTransformedFluentFuture<>(this, function, executor);
+    }
+  }
+
+  private static class LazyTransformedFluentFuture<V, F> extends WrapingFluentFuture<V> {
+    private final Function<? super F, ? extends V> function;
+    private final ListenableFuture<F> fromFuture;
+
+    // Any get operation will go through transform function
+    @SuppressWarnings("unchecked")
+    LazyTransformedFluentFuture(
+        ListenableFuture<F> fromFuture,
+        Function<? super F, ? extends V> function,
+        Executor executor) {
+      super((ListenableFuture<V>) fromFuture, executor);
+      this.fromFuture = fromFuture;
+      this.function = function;
+    }
+
+    @Override
+    public V get() throws InterruptedException, ExecutionException {
+      return function.apply(fromFuture.get());
+    }
+
+    @Override
+    public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+      return function.apply(fromFuture.get(timeout, unit));
     }
   }
 

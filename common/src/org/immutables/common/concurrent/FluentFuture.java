@@ -97,4 +97,16 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
    * @see Futures#transform(ListenableFuture, AsyncFunction)
    */
   <T> FluentFuture<T> transform(AsyncFunction<? super V, ? extends T> function);
+
+  /**
+   * Lazily transformed future value.
+   * @see Futures#lazyTransform(java.util.concurrent.Future, Function)
+   * @param <T> transformed type
+   * @param function A function to transform the result of the input future
+   *          to the result of the output future
+   * @return A derived future that holds result of the function (if the input succeeded)
+   *         or the original input's failure (if not)
+   * @see Futures#transform(ListenableFuture, AsyncFunction)
+   */
+  <T> FluentFuture<T> lazyTransform(Function<? super V, ? extends T> function);
 }
