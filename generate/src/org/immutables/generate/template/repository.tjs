@@ -275,8 +275,8 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
 
 [template generateUpdatingMethods(type, T)]
   [foreach (a in type.implementedAttributes)]
-[if (a.marshaledName != '_id')]
 [let (W = a.wrappedElementType, U = a.unwrappedElementType)]
+[if (a.marshaledName != '_id')]
   [if (a.collectionType)]
 
   /**
@@ -422,7 +422,7 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   }
   
   /**
-   * Specify inital value for the '`a.name.toUpperFirst()`' attribute which will be used if document is
+   * Specify initial value for the '`a.name.toUpperFirst()`' attribute which will be used if document is
    * to be inserted. If one or more documents are found for an update, this value will not be used.
    * <p>
    * Corresponds to MongoDB {@code $setOnInsert} operator.
@@ -432,8 +432,8 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
   public `T` init`a.name.toUpperFirst()`(`U` value) {
     setOnInsertFields = setOnInsertFields.equal("`a.marshaledName`", false, wrapMarshalable(value));
     return this;
-  }   
-  
+  }
+
     [if (a.numberType)]
   /**
    * Specify increment amount for the '`a.name.toUpperFirst()`' attribute. If document is to inserted
@@ -450,8 +450,10 @@ public static final class Modifier extends Repositories.Modifier<`type.name`, Mo
       [/if]
     [/if]
   [/if]
-[/let]
+[else]
+  [-- _id init don't works in Mongodb stable yet  --]
 [/if]
+[/let]
   [/foreach]
 [/template]
 
@@ -690,7 +692,7 @@ public static Criteria where() {
 
 /**
  * {@code `type.name`Repository.Criteria} is a `type.name` document search query.
- * Call methods on criteria to add contraint for search query.
+ * Call methods on criteria to add constraint for search query.
  */
 @javax.annotation.concurrent.Immutable
 public static abstract class Criteria extends Repositories.Criteria {
