@@ -20,8 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharStreams;
-import com.google.common.io.OutputSupplier;
+import com.google.common.io.ByteSink;
 import com.google.common.reflect.Reflection;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -63,13 +62,12 @@ public class GeneratedJavaSinkFactory {
     public void write(CharSequence content) throws IOException {
       CharSequence postProcessedLines = postProcessGeneratedLines(content);
 
-      CharStreams.write(postProcessedLines,
-          CharStreams.newWriterSupplier(new OutputSupplier<OutputStream>() {
-            @Override
-            public OutputStream getOutput() throws IOException {
-              return sourceFile.openOutputStream();
-            }
-          }, Charsets.UTF_8));
+      new ByteSink() {
+        @Override
+        public OutputStream openStream() throws IOException {
+          return sourceFile.openOutputStream();
+        }
+      }.asCharSink(Charsets.UTF_8).write(postProcessedLines);
     }
 
     private CharSequence postProcessGeneratedLines(CharSequence content) {

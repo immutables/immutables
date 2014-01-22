@@ -17,11 +17,10 @@ package org.immutables.generate.internal.javascript;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.CharSource;
 import com.google.common.io.Resources;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -60,11 +59,11 @@ public class ClasspathModuleSourceProvider implements ModuleSourceProvider {
     String path = toPath(moduleId);
     URL resource = getExistingResource(path);
 
-    InputSupplier<InputStreamReader> readerSupplier =
-        Resources.newReaderSupplier(resource, Charsets.UTF_8);
+    CharSource readerSupplier =
+        Resources.asCharSource(resource, Charsets.UTF_8);
 
     return new ModuleSource(
-        readerSupplier.getInput(),
+        readerSupplier.openStream(),
         NULL_SECURITY_DOMAIN,
         resource.toURI(),
         stripPath(resource, path),

@@ -20,11 +20,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.util.Map;
@@ -51,14 +50,14 @@ public class RhinoInvoker {
   private static final URL PREDEFINED_SCRIPT_RESOURCE =
       RhinoInvoker.class.getResource("predefined.js");
 
-  private static final InputSupplier<InputStreamReader> PREDEFINED_SCRIPT_READER =
-      Resources.newReaderSupplier(PREDEFINED_SCRIPT_RESOURCE, Charsets.UTF_8);
+  private static final CharSource PREDEFINED_SCRIPT_READER =
+      Resources.asCharSource(PREDEFINED_SCRIPT_RESOURCE, Charsets.UTF_8);
 
   private static final Object NULL_SECURITY_DOMAIN = null;
 
-  private PrecompilingScriptProvider scriptProvider;
-  private RhinoContextFactory contextFactory;
-  private Scriptable sharedScope;
+  private final PrecompilingScriptProvider scriptProvider;
+  private final RhinoContextFactory contextFactory;
+  private final Scriptable sharedScope;
   private final ModuleSourceProvider sourceProvider;
 
   public RhinoInvoker(ModuleSourceProvider sourceProvider) {
@@ -108,7 +107,7 @@ public class RhinoInvoker {
       putVariablesInScope(globals, scopeObject);
 
       context.evaluateReader(scopeObject,
-          PREDEFINED_SCRIPT_READER.getInput(),
+          PREDEFINED_SCRIPT_READER.openStream(),
           PREDEFINED_SCRIPT_RESOURCE.toString(),
           FIRST_LINE_NUMBER,
           NULL_SECURITY_DOMAIN);
