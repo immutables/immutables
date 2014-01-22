@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.QueryOperators;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BSONObject;
 import org.immutables.common.repository.Repositories;
+import org.immutables.common.repository.internal.ConstraintSupport.ConstraintVisitor;
 
 /**
  * Routines and classes used by generated code and bridging code in {@link Repositories}
@@ -42,7 +44,10 @@ import org.immutables.common.repository.Repositories;
 public final class RepositorySupport {
   private RepositorySupport() {}
 
-  public static BasicDBObject extractDbObject(final ConstraintSupport.ConstraintHost fields) {
+  public static DBObject extractDbObject(final ConstraintSupport.ConstraintHost fields) {
+    if (fields instanceof UnmarshalableWrapper) {
+      return BsonEncoding.unwrapJsonable((UnmarshalableWrapper) fields);
+    }
     BasicDBObject asDbObject = fields.accept(new ConstraintBuilder("")).asDbObject();
     return asDbObject;
   }
@@ -196,6 +201,10 @@ public final class RepositorySupport {
     }
   }
 
+  public static Object wrapString(String query, Object... parameters) {
+    return new UnmarshalableWrapper(query, parameters);
+  }
+
   public static Object unwrapBsonable(Object value) {
     if (value instanceof BasicDBObject) {
       for (Entry<String, Object> entry : ((BasicDBObject) value).entrySet()) {
@@ -224,6 +233,28 @@ public final class RepositorySupport {
     }
 
     return String.valueOf(value);
+  }
+
+  public static class UnmarshalableWrapper implements ConstraintSupport.ConstraintHost {
+    private final String value;
+    private final Object[] parameters;
+
+    public UnmarshalableWrapper(String value, Object[] parameters) {
+      this.value = value;
+      this.parameters = parameters;
+    }
+
+    @Override
+    public String toString() {
+      return parameters.length == 0
+          ? value
+          : String.format(value, parameters);
+    }
+
+    @Override
+    public <V extends ConstraintVisitor<V>> V accept(V visitor) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   public static abstract class MarshalableWrapper implements Comparable<MarshalableWrapper> {

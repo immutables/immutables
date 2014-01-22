@@ -48,7 +48,7 @@ import org.bson.LazyBSONCallback;
 import org.immutables.common.repository.RepositorySetup;
 import org.immutables.common.time.TimeMeasure;
 
-@SuppressWarnings({"unused", "resource"})
+@SuppressWarnings({ "unused", "resource" })
 public final class SillyManualFixture {
 
   static BsonFactory bsonFactory = new BsonFactory();
@@ -84,10 +84,16 @@ public final class SillyManualFixture {
   public static void main(String... args) {
 
     RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
+
     SillyEntitySecondRepository repository = new SillyEntitySecondRepository(setup);
 
     repository.upsert(ImmutableSillyEntitySecond.builder().build()).getUnchecked();
 
+    Optional<SillyEntitySecond> unchecked = repository.find("{_id: %s}", "{$ne:null}")
+        .fetchFirst()
+        .getUnchecked();
+
+    System.out.println(unchecked);
   }
 
   public static void main44(String... args) throws Exception {

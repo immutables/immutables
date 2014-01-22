@@ -63,6 +63,18 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
   public Finder find() {
     return find(where());
   }
+  
+ /**
+  * Find document by criteria expressed as JSON string, additional parameters may be supplied to format
+  * string using {@link String#format(String, Object...)}. Use returned {@link Finder} object to complete
+  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+  * @param criteria search criteria
+  * @return finder object to complete operation
+  */
+  @javax.annotation.CheckReturnValue
+  public Finder find(String jsonCriteria, Object... parameters) {
+    return new Finder(this, (ConstraintSupport.ConstraintHost) RepositorySupport.wrapString(jsonCriteria, parameters));
+  }
 [let (a = type.idAttribute)]
 [-- It will rarely be otherwise --]
 [if (a)]
@@ -74,7 +86,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
    * @return finder object to complete operation
    */
   @javax.annotation.CheckReturnValue
-  public Finder findById(`a.type` `a.name`) {
+  public Finder findBy`a.name.toUpperFirst()`(`a.type` `a.name`) {
     return find(where().`a.name`(`a.name`));
   }
   
@@ -148,7 +160,7 @@ public `T` exclude`a.name.toUpperFirst()`() {
  */
 @javax.annotation.CheckReturnValue
 public Finder find(Criteria criteria) {
-  return new Finder(this, criteria);
+  return new Finder(this, (ConstraintSupport.ConstraintHost) criteria);
 }
 
 /**
@@ -159,9 +171,9 @@ public Finder find(Criteria criteria) {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Finder extends Repositories.Finder<`type.name`, Finder> {
-  private Finder(`type.name`Repository repository, Criteria criteria) {
+  private Finder(`type.name`Repository repository, ConstraintSupport.ConstraintHost criteria) {
     super(repository);
-    this.criteria = (ConstraintSupport.ConstraintHost) criteria;
+    this.criteria = criteria;
   }
   [apply generateOrderingAndExcludes(type, 'Finder')]
   [apply generateAndModifyFirst(type)]

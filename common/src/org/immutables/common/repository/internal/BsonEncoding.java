@@ -15,6 +15,7 @@
  */
 package org.immutables.common.repository.internal;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Preconditions;
@@ -33,6 +34,7 @@ import com.mongodb.DBDecoderFactory;
 import com.mongodb.DBEncoder;
 import com.mongodb.DBObject;
 import com.mongodb.DefaultDBEncoder;
+import com.mongodb.LazyDBCallback;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
@@ -54,16 +56,22 @@ import org.bson.BasicBSONDecoder;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
 import org.immutables.common.marshal.Marshaler;
+import org.immutables.common.repository.internal.RepositorySupport.UnmarshalableWrapper;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
  */
 @SuppressWarnings("resource")
 public final class BsonEncoding {
-  private static final BsonFactory BSON_FACTORY = new BsonFactory().enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
+  private static final BsonFactory BSON_FACTORY = new BsonFactory()
+      .enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
+
+  private static final JsonFactory JSON_FACTORY = new JsonFactory()
+      .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
+      .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
   /**
-   * This field name will cause an mongodb confuse if not unwraped correctly so it's may be a good
+   * This field name will cause an MongoDB confuse if not unwrapped correctly so it's may be a good
    * choice.
    */
   private static final String PREENCODED_VALUE_WRAPPER_FIELD_NAME = "$";
@@ -71,8 +79,8 @@ public final class BsonEncoding {
   private BsonEncoding() {}
 
   /**
-   * Althought it may seem that reparsing is bizzare, but it is one [of not so many] ways to do
-   * proper marshaling. This kind of inneficiency will only hit query constraints that have many
+   * Although it may seem that re-parsing is bizarre, but it is one [of not so many] ways to do
+   * proper marshaling. This kind of inefficiency will only hit query constraints that have many
    * object with custom marshaling, which considered to be a rare case.
    * @param marshalableValue the value in a marshalable wrapper
    * @return object converted to MongoDB driver's {@link BSONObject}.
@@ -86,10 +94,24 @@ public final class BsonEncoding {
       marshalableValue.marshalWrapped(generator);
       generator.writeEndObject();
       generator.close();
-
-      BasicBSONDecoder bsonDecoder = new BasicBSONDecoder();
-      BSONObject object = bsonDecoder.readObject(outputStream.toByteArray());
+      BSONObject object = new BasicBSONDecoder().readObject(outputStream.toByteArray());
       return object.get(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
+    } catch (IOException ex) {
+      throw Throwables.propagate(ex);
+    }
+  }
+
+  public static DBObject unwrapJsonable(UnmarshalableWrapper value) {
+    try {
+      JsonParser parser = JSON_FACTORY.createParser(value.toString());
+      parser.nextToken();
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      BsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
+      generator.copyCurrentStructure(parser);
+      generator.close();
+      parser.close();
+      byte[] data = outputStream.toByteArray();
+      return (DBObject) new LazyDBCallback(null).createObject(data, 0);
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
@@ -168,6 +190,7 @@ public final class BsonEncoding {
       this.marshaler = marshaler;
     }
 
+    @Override
     public int writeCurrent(OutputBuffer buffer) throws IOException {
       CountingOutputBufferStream outputStream = new CountingOutputBufferStream(buffer);
       JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
@@ -245,6 +268,7 @@ public final class BsonEncoding {
       this.marshaler = marshaler;
     }
 
+    @Override
     public int writeCurrent(OutputBuffer buffer) throws IOException {
       createGeneratorIfNecessary(buffer);
       int previousByteCount = outputStream.count;
@@ -533,7 +557,7 @@ public final class BsonEncoding {
     @Nullable
     private BsonParser parser;
 
-    private ObjectBufferInputStream bufferStream = new ObjectBufferInputStream(2012);
+    private final ObjectBufferInputStream bufferStream = new ObjectBufferInputStream(2012);
 
     public ResultDecoder(Marshaler<T> marshaler, int expectedSize) {
       this.marshaler = marshaler;
