@@ -18,7 +18,7 @@ package org.immutables.bench;
 import com.google.common.util.concurrent.AbstractScheduledService;
 import java.util.concurrent.ScheduledExecutorService;
 
-public class BenchmarkScheduleService extends AbstractScheduledService {
+class BenchmarkScheduleService extends AbstractScheduledService {
 
   private final ScheduledExecutorService executor;
   private final ScheduleConfiguration schedule;

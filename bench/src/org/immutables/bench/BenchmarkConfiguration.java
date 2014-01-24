@@ -15,10 +15,16 @@
  */
 package org.immutables.bench;
 
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
 import com.google.inject.Provides;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import javax.inject.Named;
+import javax.inject.Singleton;
 import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
@@ -31,16 +37,48 @@ public abstract class BenchmarkConfiguration extends AbstractModule {
   private static final ImmutableScheduleConfiguration DEFAULT_SCHEDULE =
       ImmutableScheduleConfiguration.builder()
           .initialDelay(TimeMeasure.seconds(1))
-          .delay(TimeMeasure.millis(100))
+          .delay(TimeMeasure.millis(50))
+          .build();
+
+  private static final ImmutableScheduleConfiguration DEFAULT_STAT_SCHEDULE =
+      ImmutableScheduleConfiguration.builder()
+          .initialDelay(TimeMeasure.seconds(1))
+          .rate(TimeMeasure.seconds(1))
+          .build();
+
+  private static final ImmutableScheduleConfiguration DEFAULT_DISTRIBUTION_SCHEDULE =
+      ImmutableScheduleConfiguration.builder()
+          .initialDelay(TimeMeasure.seconds(5))
+          .rate(TimeMeasure.seconds(5))
           .build();
 
   @GenerateDefault
   public int queueCapacity() {
-    return 1000;
+    return 10000;
   }
 
   @GenerateDefault
-  public ScheduleConfiguration generateSchedule() {
+  public ScheduleConfiguration enqueSchedule() {
+    return DEFAULT_SCHEDULE;
+  }
+
+  @GenerateDefault
+  public ScheduleConfiguration sampleStatsSchedule() {
+    return DEFAULT_STAT_SCHEDULE;
+  }
+
+  @GenerateDefault
+  public ScheduleConfiguration sampleDistributionSchedule() {
+    return DEFAULT_DISTRIBUTION_SCHEDULE;
+  }
+
+  @GenerateDefault
+  public String loggerName() {
+    return BenchmarkConfiguration.class.getPackage().getName();
+  }
+
+  @GenerateDefault
+  public ScheduleConfiguration executeSchedule() {
     return DEFAULT_SCHEDULE;
   }
 
@@ -50,37 +88,61 @@ public abstract class BenchmarkConfiguration extends AbstractModule {
   }
 
   @GenerateDefault
-  public int requestCount() {
+  public int executionRepeatCount() {
     return 1;
   }
 
   @GenerateDefault
-  public int requestRandomLimit() {
+  public int executionRandomLimit() {
     return 0;
   }
 
-  @GenerateDefault
-  public ScheduleConfiguration sendSchedule() {
-    return DEFAULT_SCHEDULE;
-  }
-
+  @Singleton
   @Provides
   ScheduledExecutorService scheduledService() {
     return Executors.newScheduledThreadPool(10);
   }
 
+  @Singleton
   @Provides
-  BenchmarkScheduleService requestGenerator(ScheduledExecutorService executor) {
-    return new BenchmarkScheduleService(executor, generateSchedule(), new Runnable() {
+  Publisher publisher() {
+    return new Publisher(loggerName());
+  }
+
+  @Provides
+  @Singleton
+  @Named("sampleStatsSchedule")
+  BenchmarkScheduleService sampleStatsSchedule(ScheduledExecutorService executor, final Sampler sampler) {
+    return new BenchmarkScheduleService(executor, sampleStatsSchedule(), new Runnable() {
       @Override
       public void run() {
+        sampler.sampleStats();
+      }
+    });
+  }
 
+  @Provides
+  @Singleton
+  @Named("sampleDistributionSchedule")
+  BenchmarkScheduleService sampleDistributionSchedule(ScheduledExecutorService executor, final Sampler sampler) {
+    return new BenchmarkScheduleService(executor, sampleDistributionSchedule(), new Runnable() {
+      @Override
+      public void run() {
+        sampler.sampleDistribution();
       }
     });
   }
 
   @Override
   protected void configure() {
+    bind(Gatherer.class).in(Singleton.class);
+    bind(Bombardier.class).in(Singleton.class);
+    bind(BenchmarkConfiguration.class).toInstance(this);
 
+    Multibinder<Service> serviceSet = Multibinder.newSetBinder(binder(), Service.class);
+
+    serviceSet.addBinding().to(Key.get(BenchmarkScheduleService.class, Names.named("sampleStatsSchedule")));
+    serviceSet.addBinding().to(Key.get(BenchmarkScheduleService.class, Names.named("sampleDistributionSchedule")));
+    serviceSet.addBinding().to(Bombardier.class);
   }
 }

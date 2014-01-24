@@ -17,6 +17,8 @@ package org.immutables.bench;
 
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.AbstractScheduledService.Scheduler;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.immutables.annotation.GenerateCheck;
 import org.immutables.annotation.GenerateImmutable;
@@ -53,6 +55,27 @@ public abstract class ScheduleConfiguration {
     }
 
     return Scheduler.newFixedRateSchedule(
+        initialDelay,
+        rate().get().toMillis(),
+        TimeUnit.MILLISECONDS);
+  }
+
+  public ScheduledFuture<?> schedule(ScheduledExecutorService executor, Runnable runnable) {
+    long initialDelay =
+        initialDelay().isPresent()
+            ? initialDelay().get().toMillis()
+            : 0;
+
+    if (delay().isPresent()) {
+      return executor.scheduleWithFixedDelay(
+          runnable,
+          initialDelay,
+          delay().get().toMillis(),
+          TimeUnit.MILLISECONDS);
+    }
+
+    return executor.scheduleAtFixedRate(
+        runnable,
         initialDelay,
         rate().get().toMillis(),
         TimeUnit.MILLISECONDS);
