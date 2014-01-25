@@ -15,9 +15,12 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
+
 /**
  * Listen to log event dispatched using {@link LogEventDispatcher}.
  */
+@Beta
 public interface LogEventListener {
 
   /**

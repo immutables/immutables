@@ -15,6 +15,7 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -23,6 +24,7 @@ import java.util.concurrent.Future;
 /**
  * The log event dispatcher service.
  */
+@Beta
 public interface LogEventDispatcher {
 
   /**

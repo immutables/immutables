@@ -70,6 +70,7 @@ class LogSourceInterfaceHandler implements InvocationHandler {
 
     private final String messagePattern;
 
+    @Nullable
     private final Object[] inserts;
 
     private final Severity severity;

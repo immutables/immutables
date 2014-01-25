@@ -15,9 +15,12 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
+
 /**
  * The severity of log event.
  */
+@Beta
 public enum Severity {
 
   /**

@@ -15,6 +15,7 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * declarations.
  */
 // XXX May need to get rid of statics and configure in container
+@Beta
 public final class Logging {
 
   static final Logger LOGGER = LoggerFactory.getLogger(Logging.class);

@@ -15,6 +15,7 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Optional;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
@@ -23,6 +24,7 @@ import javax.annotation.Nullable;
 /**
  * The log event.
  */
+@Beta
 public interface LogEvent {
 
   /**

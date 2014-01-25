@@ -15,6 +15,7 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import java.util.Locale;
@@ -23,9 +24,20 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+@Beta
 public class TracingLogEventListener implements LogEventListener {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass().getPackage().getName());
+  private final Logger logger;
+  private final Locale locale;
+
+  public TracingLogEventListener(Logger logger, Locale locale) {
+    this.logger = logger;
+    this.locale = locale;
+  }
+
+  public TracingLogEventListener() {
+    this(LoggerFactory.getLogger(TracingLogEventListener.class.getPackage().getName()), Locale.ENGLISH);
+  }
 
   @Override
   public void logEventPosted(LogEvent event) {
@@ -46,7 +58,7 @@ public class TracingLogEventListener implements LogEventListener {
     return Joiner.on(System.lineSeparator())
         .skipNulls()
         .join(
-            event.getMessage(Locale.ENGLISH),
+            event.getMessage(locale),
             Strings.emptyToNull(event.getDetails()));
   }
 

@@ -15,8 +15,11 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
+
 /**
  */
+@Beta
 public final class Tracing {
   public static void init() {
     // Trying to call as early as possible before any library tries to use JDK logging with default

@@ -43,7 +43,7 @@ import org.immutables.service.logging.TracingLogEventListener;
  * To provide modules, unmarshaled configuration should implement {@link Provider}{@link Module
  * &lt;Module&gt;}. Then injector will be constructed from module (possible combined using
  * {@link Modules#combine(Iterable)} and queried
- * for a {@link Set} of {@link Service}s that will be used by {@link ServiceManager} to bootstrap
+ * for to {@link Set} of {@link Service}s that will be used by {@link ServiceManager} to bootstrap
  * and manage services. Those services may be contributed by individual modules using
  * {@link Multibinder}. There's shutdown hook to close all services in a at most 2 seconds.
  */
@@ -57,9 +57,9 @@ public final class ServiceLauncher {
 
   public static void main(String... args) {
     Logging.dispatcher().register(new TracingLogEventListener());
-    Injector injector = Guice.createInjector(stage(), loadModule(args[0]));
 
-    final ServiceManager manager = injector.getInstance(ServiceManager.class);
+    Injector injector = Guice.createInjector(stage(), loadModule(args[0]));
+    final ServiceManager manager = ServiceManagers.forServiceSet(injector);
 
     Runtime.getRuntime().addShutdownHook(new Thread("shutdown") {
       @Override

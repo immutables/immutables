@@ -15,6 +15,7 @@
  */
 package org.immutables.service.logging;
 
+import com.google.common.annotations.Beta;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import javax.annotation.Nullable;
 /**
  * String formatting routines.
  */
+@Beta
 public final class Stringification {
 
   private static final String EMPTY_STRING = "";

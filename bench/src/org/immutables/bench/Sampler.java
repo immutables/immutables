@@ -129,7 +129,7 @@ class Sampler {
   }
 
   private void printStats(Object[] inserts) {
-    publisher.stats(String.format("TPS %d, RSP AVG %.2f << %.2f ms \t\t( %d%% has result )", inserts));
+    publisher.stats(String.format("TPS %d, RSP AVG %.2f << %.2f ms \t\t( %d%% )", inserts));
     publisher.csv(String.format("%d;%.2f;%.2f;%d", inserts));
   }
 

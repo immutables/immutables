@@ -84,7 +84,7 @@ public abstract class BenchmarkConfiguration extends AbstractModule {
 
   @GenerateDefault
   public int workers() {
-    return 10;
+    return 50;
   }
 
   @GenerateDefault
