@@ -53,6 +53,24 @@ public final class BuiltinMarshalingRoutines {
   }
 
   /**
+   * Default unmarshal for BigDecimal.
+   * <p/>
+   * Used in generated code via static imports method overload resolution by compiler.
+   *
+   * @param parser        the parser
+   * @param numberNull    the BigDecimal null, always {@code null}
+   * @param expectedClass the expected class
+   * @return the BigDecimal
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static BigDecimal unmarshal(
+          JsonParser parser,
+          @Nullable BigDecimal numberNull,
+          Class<?> expectedClass) throws IOException {
+    return parser.getDecimalValue();
+  }
+
+  /**
    * Marshal key by default via {@link Object#toString()}.
    * @param object the object
    * @return the string
