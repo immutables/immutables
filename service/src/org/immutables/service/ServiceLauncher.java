@@ -79,7 +79,9 @@ public final class ServiceLauncher {
         System.exit(1);
       }
     }, MoreExecutors.sameThreadExecutor());
+
     manager.startAsync().awaitHealthy();
+    manager.awaitStopped();
   }
 
   private static Module loadModule(String configurationClassName) {

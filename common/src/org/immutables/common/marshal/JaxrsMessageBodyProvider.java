@@ -80,8 +80,8 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
     try (JsonParser parser = jsonFactory.createParser(entityStream)) {
       parser.nextToken();
       return marshalerCache.getUnchecked(type).unmarshalInstance(parser);
-    } catch (IOException e) {
-      throw new WebApplicationException(e, Response.Status.BAD_REQUEST);
+    } catch (Exception ex) {
+      throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
     }
   }
 

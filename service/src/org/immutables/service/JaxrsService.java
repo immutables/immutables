@@ -16,7 +16,9 @@
 package org.immutables.service;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+import com.google.common.escape.Escapers;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.inject.Binding;
 import com.google.inject.Injector;
@@ -27,7 +29,9 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.ws.rs.Path;
 import javax.ws.rs.ext.Provider;
+import org.glassfish.grizzly.http.server.ErrorPageGenerator;
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -44,6 +48,25 @@ public class JaxrsService extends AbstractIdleService {
     JerseyInjectBridges.installBridgingServiceLocatorGenerator();
   }
 
+  private static ErrorPageGenerator ERROR_PAGE_GENERATOR = new ErrorPageGenerator() {
+    @Override
+    public String generate(Request request, int status, String reasonPhrase, String description, Throwable exception) {
+      return "{\"error\": ["
+          + status
+          + ", \""
+          + reasonPhrase
+          + "\", \""
+          + description
+          + "\", \""
+          + Escapers.builder()
+              .addEscape('\"', "\\\"")
+              .addEscape('\n', "\\n")
+              .build()
+              .escape(Throwables.getStackTraceAsString(exception))
+          + "\"] }";
+    }
+  };
+
   private final Injector injector;
   private final URI uri;
   private HttpServer httpServer;
@@ -58,9 +81,9 @@ public class JaxrsService extends AbstractIdleService {
   @Override
   protected void startUp() throws Exception {
     httpServer = GrizzlyHttpServerFactory.createHttpServer(
-        uri,
-        createApplicationHandler());
+        uri, createApplicationHandler(), false);
 
+    httpServer.getServerConfiguration().setDefaultErrorPageGenerator(ERROR_PAGE_GENERATOR);
     httpServer.start();
   }
 
