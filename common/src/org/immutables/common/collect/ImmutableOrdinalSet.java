@@ -312,7 +312,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     private boolean containsOrdinal(int ordinal) {
       int wordIndex = ordinal >>> POWER_OF_TWO_WORD_BITS;
       int bitIndex = ordinal - (wordIndex << POWER_OF_TWO_WORD_BITS);
-      return ((vector[wordIndex] >>> bitIndex) & 1) != 0;
+      return (wordIndex < vector.length) && ((vector[wordIndex] >>> bitIndex) & 1) != 0;
     }
 
     private boolean containsAllOrdinals(RegularImmutableOrdinalSet<?> ordinalSet) {
