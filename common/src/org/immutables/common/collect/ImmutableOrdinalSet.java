@@ -396,15 +396,19 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     @Override
     public void incrementCounters(int[] counters) {
       long[] vector = this.vector;
+
       for (int i = 0; i < vector.length; i++) {
         long v = vector[i];
-        word: for (int ordinal = i << POWER_OF_TWO_WORD_BITS; v > 0;) {
+        for (int ordinal = i << POWER_OF_TWO_WORD_BITS; v != 0;) {
           int zeroes = Long.numberOfTrailingZeros(v);
           if (zeroes == BITS_PER_WORD) {
-            break word;
+            break;
           }
-          // consume zeroes as well as set bit
-          v >>>= zeroes + 1;
+          if (zeroes == BITS_PER_WORD - 1) {
+            v = 0;
+          } else {
+            v >>>= zeroes + 1;
+          }
           ordinal += zeroes;
           counters[ordinal++]++;
         }
