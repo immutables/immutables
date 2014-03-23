@@ -131,6 +131,8 @@
               <notree>true</notree>
               <nocomment>true</nocomment>
               <nohelp>true</nohelp>
+              <minmemory>1G</minmemory>
+              <maxmemory>2G</maxmemory>
             </configuration>
             <executions>
               <execution>
