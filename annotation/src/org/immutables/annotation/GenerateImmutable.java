@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 
 /**
  * Instruct processor to generate immutable implementation of abstract value type.
- * <p/>
+ * <p>
  * <em>Be warned that such immutable object may contain attributes that are not recursively immutable, thus
  * not every object will be completely immutable. While this may be useful for some workarounds,
  * one should generally avoid creating immutable object with attribute values that could be mutated</em>
