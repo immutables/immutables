@@ -249,7 +249,7 @@ public final class Repositories {
           DBCursor cursor = collection.find(query, keys);
 
           if (!ordering.isNil()) {
-            cursor.sort(extractDbObject(exclusion));
+            cursor.sort(extractDbObject(ordering));
           }
 
           cursor.skip(skip);
