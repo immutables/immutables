@@ -56,8 +56,8 @@ import java.lang.annotation.Target;
  * {@literal @}Provides
  * ListenableFuture&lt;B&gt; async(ListenableFuture&lt;A&gt; a, ListenableFuture&lt;B&gt; b) {
  *   return Futures.transform(Futures.allAsList(a, b),
- *      new Function&ltList&ltObject&gt;, C&gt;() {
- *        public C apply(List&ltObject&gt; input) {
+ *      new Function&lt;List&lt;Object&gt;, C&gt;() {
+ *        public C apply(List&lt;Object&gt; input) {
  *          A a = input.get(0);
  *          B b = input.get(1);
  *          return new B(a.value(), b.getProperty());

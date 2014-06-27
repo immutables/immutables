@@ -49,14 +49,13 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
   /**
    * Add callback
    * @see Futures#addCallback(ListenableFuture, FutureCallback)
-   * @param future The future attach the callback to.
    * @param callback The callback to invoke when {@code future} is completed.
    * @return {@code this} future
    */
   FluentFuture<V> addCallback(FutureCallback<V> callback);
 
   /**
-   * With fallback.
+   * With fallback that computes value.
    * @see Futures#withFallback(ListenableFuture, FutureFallback)
    * @param fallback the fallback
    * @return derived fluent future
@@ -67,7 +66,6 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
    * With fallback value.
    * @see Futures#withFallback(ListenableFuture, FutureFallback)
    * @see Futures#immediateFuture(Object)
-   * @param fallback the {@link FutureFallback} implementation to be called if {@code input} fails
    * @param value the value
    * @return derived fluent future
    */

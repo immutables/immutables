@@ -54,7 +54,7 @@ public final class BuiltinMarshalingRoutines {
 
   /**
    * Default unmarshal for BigDecimal.
-   * <p/>
+   * <p>
    * Used in generated code via static imports method overload resolution by compiler.
    * @param parser the parser
    * @param numberNull the BigDecimal null, always {@code null}
