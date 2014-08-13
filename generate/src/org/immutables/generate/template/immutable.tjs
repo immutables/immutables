@@ -537,10 +537,20 @@ public boolean equals(Object another) {
 }
 [/if]
 
-# let compareFields = function(v)
-#   let (n = v.name)
-#      v.primitive ? (n + ' == another.' + n) : (n + '.equals(another.' + n + ')');
-#
+# function compareFields(v) {
+#   let equalsSimple = function(n) n + ' == another.' + n
+#   let equalsMethod = function(n) n + '.equals(another.' + n + ')'
+#   let equalsFloatBits = function() 'Float.floatToIntBits(' + n + ') == Float.floatToIntBits(another.' + n + ')'
+#   let equalsDoubleBits = function() 'Double.doubleToLongBits(' + n + ') == Double.doubleToLongBits(another.' + n + ')'
+#  
+#   return let (n = v.name, t = v.type)
+#       v.primitive ? (
+#           t === 'float' ? equalsFloatBits(n)
+#           t === 'double' ? equalsDoubleBits(n)
+#           : equalsSimple(n)
+#         ) : equalsMethod(n)
+# }
+
 private boolean equalTo(Immutable`type.name` another) {
   return true`[ '\n          && ' + compareFields(v) for each (v in getters) ].join('')`;
 }
