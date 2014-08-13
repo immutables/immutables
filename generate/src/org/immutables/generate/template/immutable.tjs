@@ -545,10 +545,9 @@ public boolean equals(Object another) {
 #  
 #   return let (n = v.name, t = v.type)
 #       v.primitive ? (
-#           t === 'float' ? equalsFloatBits(n)
-#           t === 'double' ? equalsDoubleBits(n)
-#           : equalsSimple(n)
-#         ) : equalsMethod(n)
+#           t === 'float' ? equalsFloatBits(n) :
+#           t === 'double' ? equalsDoubleBits(n) : equalsSimple(n)
+#           ) : equalsMethod(n)
 # }
 
 private boolean equalTo(Immutable`type.name` another) {
