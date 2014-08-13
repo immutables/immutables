@@ -33,7 +33,6 @@ import org.glassfish.grizzly.http.server.ErrorPageGenerator;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.Request;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ApplicationHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.immutables.common.marshal.JaxrsMessageBodyProvider;
 import static com.google.common.base.Preconditions.*;
@@ -44,10 +43,6 @@ import static com.google.common.base.Preconditions.*;
 @Beta
 @ThreadSafe
 public class JaxrsService extends AbstractIdleService {
-  static {
-    JerseyInjectBridges.installBridgingServiceLocatorGenerator();
-  }
-
   private static ErrorPageGenerator ERROR_PAGE_GENERATOR = new ErrorPageGenerator() {
     @Override
     public String generate(Request request, int status, String reasonPhrase, String description, Throwable exception) {
@@ -81,7 +76,7 @@ public class JaxrsService extends AbstractIdleService {
   @Override
   protected void startUp() throws Exception {
     httpServer = GrizzlyHttpServerFactory.createHttpServer(
-        uri, createApplicationHandler(), false);
+        uri, createResourceConfig(), false);
 
     httpServer.getServerConfiguration().setDefaultErrorPageGenerator(ERROR_PAGE_GENERATOR);
     httpServer.start();
@@ -92,7 +87,7 @@ public class JaxrsService extends AbstractIdleService {
     httpServer.shutdown().get();
   }
 
-  private ApplicationHandler createApplicationHandler() {
+  private ResourceConfig createResourceConfig() {
     if (packagesToScan.length > 0) {
       // Resources from scanned packages will be instantiated by HK2
       // so we need to bridge Guice injector
@@ -101,13 +96,10 @@ public class JaxrsService extends AbstractIdleService {
     Set<Object> resourceAndProviderInstances = instantiateResourceAndProviderInstances();
     JerseyInjectBridges.skipInjectionForInstances(resourceAndProviderInstances);
 
-    ResourceConfig resourceConfig =
-        new ResourceConfig()
-            .packages(packagesToScan)
-            .registerInstances(resourceAndProviderInstances)
-            .register(JaxrsMessageBodyProvider.class);
-
-    return new ApplicationHandler(resourceConfig);
+    return new ResourceConfig()
+        .packages(packagesToScan)
+        .registerInstances(resourceAndProviderInstances)
+        .register(JaxrsMessageBodyProvider.class);
   }
 
   private Set<Object> instantiateResourceAndProviderInstances() {

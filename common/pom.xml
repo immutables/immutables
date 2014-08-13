@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>0.15-SNAPSHOT</version>
+    <version>0.16-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -45,15 +45,6 @@
       <type>pom</type>
       <optional>true</optional>
     </dependency>
-<!-- 
-    <dependency>
-			<groupId>org.immutables.dependency</groupId>
-			<artifactId>logging-set</artifactId>
-			<version>${project.version}</version>
-			<type>pom</type>
-			<optional>true</optional>
-		</dependency>
- -->
     <dependency>
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
