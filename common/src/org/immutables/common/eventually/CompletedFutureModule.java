@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.service.concurrent;
+package org.immutables.common.eventually;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;

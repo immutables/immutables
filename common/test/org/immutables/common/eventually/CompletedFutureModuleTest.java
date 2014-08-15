@@ -1,5 +1,8 @@
-package org.immutables.service.concurrent;
+package org.immutables.common.eventually;
 
+import org.immutables.common.eventually.CompletedFutureModule;
+import org.immutables.common.eventually.EventualProvidersModule;
+import org.immutables.common.eventually.EventuallyProvides;
 import com.google.inject.Exposed;
 import com.google.inject.Guice;
 import com.google.inject.Injector;

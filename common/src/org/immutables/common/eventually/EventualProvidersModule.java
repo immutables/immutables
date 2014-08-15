@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.service.concurrent;
+package org.immutables.common.eventually;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
@@ -85,7 +85,7 @@ import org.immutables.common.concurrent.FluentFutures;
  * functionality should be implemented or overridden.
  * </em>
  * <p>
- * To customize dispatching injector could provided with binding to {@literal @}{@link Async}
+ * To customize dispatching injector could provided with binding to {@literal @}{@link EventuallyAsync}
  * {@link Executor}
  * @see EventuallyProvides
  * @param <T> defining class type
@@ -299,7 +299,7 @@ public final class EventualProvidersModule<T> implements Module {
     }
 
     @com.google.inject.Inject(optional = true)
-    @Async
+    @EventuallyAsync
     Executor executor = DEFAULT_EXECUTOR;
 
     @Inject

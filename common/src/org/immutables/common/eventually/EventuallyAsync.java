@@ -13,12 +13,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.service.concurrent;
+package org.immutables.common.eventually;
 
 import com.google.common.annotations.Beta;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.concurrent.Executor;
+import javax.annotation.meta.TypeQualifier;
 import javax.inject.Qualifier;
 
 /**
@@ -28,5 +29,6 @@ import javax.inject.Qualifier;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Qualifier
+@TypeQualifier(applicableTo = Executor.class)
 @Beta
-public @interface Async {}
+public @interface EventuallyAsync {}

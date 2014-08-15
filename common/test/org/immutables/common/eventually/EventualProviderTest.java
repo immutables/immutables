@@ -1,5 +1,6 @@
-package org.immutables.service.concurrent;
+package org.immutables.common.eventually;
 
+import org.immutables.common.eventually.EventualProvidersModule;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.inject.AbstractModule;
