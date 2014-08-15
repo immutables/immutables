@@ -101,12 +101,12 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   public boolean isGenerateFunction() {
     return false;
   }
-  
+
   @GenerateDefault
   public boolean isGenerateLazy() {
     return false;
   }
-  
+
   @GenerateDefault
   public boolean isGeneratePredicate() {
     return false;
@@ -258,6 +258,12 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
       endIndex = firstIndexOfGenerics;
     }
     return type.substring(0, endIndex);
+  }
+
+  public String getConsumedElementType() {
+    return (isUnwrappedElementPrimitiveType() || hasEnumFirstTypeParameter)
+        ? getWrappedElementType()
+        : "? extends " + getWrappedElementType();
   }
 
   private String extractRawType(String className) {

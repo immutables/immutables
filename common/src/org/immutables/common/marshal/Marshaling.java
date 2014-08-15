@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.io.StringWriter;
+import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
@@ -32,7 +33,7 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
  * {@link GenerateMarshaler} to and from standard textual JSON.
  * <p>
  * You can avoid using this class in favor of using Marshalers directly due to the fact of using
- * static marshaler cache with weak class keys. Nevertheless, this class provides easy to use static
+ * static marshaler cache with weak class keys. Nevertheless, this class provides easy-to-use static
  * methods for simplest use cases.
  */
 @SuppressWarnings("unchecked")
@@ -52,12 +53,12 @@ public final class Marshaling {
           });
 
   /**
-   * Marshal object to JSON. Output JSON string is pretty-printing.
+   * Marshal object to JSON. Output JSON string is pretty-printed.
    * @param object the object
    * @return JSON string
    */
   public static String toJson(Object object) {
-    Marshaler<Object> marshaler = MARSHALER_CACHE.getUnchecked(object.getClass());
+    Marshaler<Object> marshaler = marshalerFor(object.getClass());
     StringWriter writer = new StringWriter();
     try (JsonGenerator generator = JSON_FACTORY.createGenerator(writer)) {
       generator.useDefaultPrettyPrinter();
@@ -75,23 +76,25 @@ public final class Marshaling {
    * @param expectedType the expected type class
    * @return the unmarshaled instance
    */
-  public static <T> T fromJson(String json, Class<T> expectedType) {
-    Marshaler<Object> marshaler = MARSHALER_CACHE.getUnchecked(expectedType);
+  public static <T> T fromJson(String json, Class<? extends T> expectedType) {
+    Marshaler<T> marshaler = marshalerFor(expectedType);
     try (JsonParser parser = JSON_FACTORY.createParser(json)) {
       parser.nextToken();
-      return expectedType.cast(marshaler.unmarshalInstance(parser));
+      return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
   }
 
   /**
-   * Loads and caches marshaler for the specified expected type
+   * Loads and caches marshaler for the specified expected type.
+   * Expected type should be either abstract value class annotated with {@link GenerateImmutable},
+   * or actual generated immutable subclass.
    * @param <T> expected type
    * @param expectedType expected type to marshal
    * @return marshaler
    */
-  public static <T> Marshaler<T> marshalerFor(Class<T> expectedType) {
+  public static <T> Marshaler<T> marshalerFor(Class<? extends T> expectedType) {
     return (Marshaler<T>) MARSHALER_CACHE.getUnchecked(expectedType);
   }
 }

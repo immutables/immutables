@@ -15,11 +15,11 @@
  */
 package org.immutables.generate.silly;
 
+import com.google.common.base.Optional;
+import java.util.List;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
-import com.google.common.base.Optional;
-import java.util.List;
 
 @GenerateImmutable
 @GenerateMarshaler

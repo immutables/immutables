@@ -123,17 +123,20 @@ function requireTemplates(moduleId) {
   let templateObject = templateCache[moduleId]
   if (!templateObject) {
     templateObject = {}
-    let lines = transformTemplateSyntaxToJs(__moduleSourceProvider__.apply(moduleId))
-    let functionCode = lines.join('\n');
+
+    let templatingLines = __moduleSourceProvider__.apply(moduleId)
+      , lines = transformTemplateSyntaxToJs(templatingLines)
+      , functionCode = lines.join('\n')
+
     let compiledFunction = function () {
       try {
         return new Function('__templateExports__', '__templateLib__', '__', functionCode)
       } catch (e) {
-        throw 'Template Compile Error: ' + e + (!isNaN(+e.lineNumber) && ('\nLINE: ', lines[e.lineNumber - 1])) 
+        throw 'Template Compile Error: ' + e + '\nTemplate line ' + e.lineNumber + ': ' + (templatingLines[e.lineNumber - 1] || '<EOF>')
       }
     }()
-    let noOp = function () {}
-    compiledFunction(templateObject, templateLib, { out:noOp, apply:noOp, result:noOp })
+    let nop = function () {}
+    compiledFunction(templateObject, templateLib, { out:nop, apply:nop, result:nop })
     templateCache[moduleId] = templateObject
   }
 

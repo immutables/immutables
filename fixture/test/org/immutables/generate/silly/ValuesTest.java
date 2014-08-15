@@ -15,7 +15,10 @@
  */
 package org.immutables.generate.silly;
 
+import com.google.common.collect.ImmutableMap;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
@@ -25,6 +28,32 @@ public class ValuesTest {
   @Test
   public void builderInheritence() {
     check(ImmutableSillyExtendedBuilder.builder().base);
+  }
+
+  @Test
+  public void withMethods() {
+    ImmutableSillyValidatedBuiltValue value = ImmutableSillyValidatedBuiltValue.builder()
+        .value(-10)
+        .negativeOnly(true)
+        .build();
+
+    try {
+      value.withValue(10);
+      check(false);
+    } catch (Exception ex) {
+    }
+
+    check(value.withNegativeOnly(false).withValue(5).value()).is(5);
+  }
+
+  @Test
+  public void withMethodSetsAndMaps() {
+    ImmutableSillyMapHolder holder = ImmutableSillyMapHolder.builder()
+        .addZz(RetentionPolicy.CLASS)
+        .build();
+
+    check(holder.withZz(Collections.<RetentionPolicy>emptySet()).zz()).isEmpty();
+    check(holder.withHolder2(ImmutableMap.of(1, "")).holder2().size()).is(1);
   }
 
   @Test

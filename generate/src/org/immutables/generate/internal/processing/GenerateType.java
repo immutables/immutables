@@ -40,7 +40,6 @@ import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
-import static com.google.common.base.Preconditions.*;
 
 public abstract class GenerateType extends TypeIntrospectionBase {
 
@@ -76,6 +75,10 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public boolean isUseConstructorOnly() {
     return isUseConstructor() && !isUseBuilder();
+  }
+
+  public boolean isUseCopyConstructor() {
+    return true;
   }
 
   public boolean isUseSingleton() {
@@ -132,7 +135,6 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   private String inferDocumentCollectionName(String name) {
-    checkPositionIndex(0, name.length());
     char[] a = name.toCharArray();
     a[0] = Character.toLowerCase(a[0]);
     return String.valueOf(a);

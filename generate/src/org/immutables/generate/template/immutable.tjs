@@ -1,3 +1,5 @@
+[requirejs support('org/immutables/generate/template/support.js')]
+
 [template generateImmutableType(type)]
 package `type.packageName`;
 
@@ -261,7 +263,7 @@ public static final class Builder {
     return this;
   }
   [foreach (let v in setters)]
-    [if (v.collectionType)]
+  [if (v.collectionType)]
 
   /**
    * Adds one element to {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
@@ -278,7 +280,7 @@ public static final class Builder {
    * @param `v.name`Elements iterable of `v.name` elements
    * @return {@code this} builder for chained invocation
    */
-  public Builder addAll`v.name.toUpperFirst()`(Iterable<? extends `v.elementType`> `v.name`Elements) {
+  public Builder addAll`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`Elements) {
     `v.name`Builder.addAll(`v.name`Elements);
     return this;
   }
@@ -291,8 +293,7 @@ public static final class Builder {
     `v.name`Builder = com.google.common.collect.Immutable`v.rawCollectionType`.builder();
     return this;
   }
-    [/if]
-    [if (v.optionalType)]
+  [elseif (v.optionalType)]
 
   /**
    * Initializes present value for optional {@link `type.name`#`v.name`()}.
@@ -303,10 +304,18 @@ public static final class Builder {
     this.`v.name`(Optional.of(`v.name`));
     return this;
   }
-    [/if]
-    [if (!v.collectionType)]
-    [if (v.mapType)]
-    [let (UK = v.unwrappedElementType, WK = v.wrappedElementType, UV = v.unwrappedSecondaryElementType, WV = v.wrappedSecondaryElementType)]
+  
+  /**
+   * Initializes optional value for {@link `type.name`#`v.name`()}.
+   * @param `v.name` value for `v.name`, non-null
+   * @return {@code this} builder for chained invocation
+   */
+  public Builder `v.name`(Optional<`v.wrappedElementType`> `v.name`) {
+    this.`v.name` = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+    return this;
+  }
+  [elseif (v.mapType)]
+    [let (GE = v.consumedElementType, UK = v.unwrappedElementType, WK = v.wrappedElementType, UV = v.unwrappedSecondaryElementType, WV = v.wrappedSecondaryElementType)]
 
   /**
    * Put one entry to {@link `type.name`#`v.name`()} map.
@@ -324,7 +333,7 @@ public static final class Builder {
    * @param entry the key and value entry
    * @return {@code this} builder for chained invocation
    */
-  public Builder put`v.name.toUpperFirst()`(java.util.Map.Entry<? extends `WK`, ? extends `WV`> entry) {
+  public Builder put`v.name.toUpperFirst()`(java.util.Map.Entry<`GE`, ? extends `WV`> entry) {
     `v.name`Builder.put(entry);
     return this;
   }
@@ -334,7 +343,7 @@ public static final class Builder {
    * @param `v.name`Entries to be added to `v.name` map
    * @return {@code this} builder for chained invocation
    */
-  public Builder putAll`v.name.toUpperFirst()`(java.util.Map<? extends `WK`, ? extends `WV`> `v.name`Entries) {
+  public Builder putAll`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`Entries) {
     `v.name`Builder.putAll(`v.name`Entries);
     return this;
   }
@@ -348,7 +357,7 @@ public static final class Builder {
     return this;
   }    
     [/let]
-    [else]
+  [else]
   
   /**
    * Initializes value for {@link `type.name`#`v.name`()}.
@@ -367,7 +376,6 @@ public static final class Builder {
     [/if]
     return this;
   }
-    [/if]
   [/if]
   [/foreach]
   
@@ -441,18 +449,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
   private Immutable`type.name`(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
 [foreach (let v in type.constructorArguments)]
 [let (n = v.name)]
-  [if (v.generateEnumSet)]
-    this.`n` = com.google.common.collect.Sets.immutableEnumSet(`n`);
-  [elseif (v.generateOrdinalValueSet)]
-    this.`n` = org.immutables.common.collect.ImmutableOrdinalSet.copyOf(`n`);
-  [elseif (v.collectionType)]
-    this.`n` = com.google.common.collect.Immutable`v.rawCollectionType`.copyOf(`n`);
-  [elseif (v.mapType)]
-    [if (v.generateEnumMap)]
-    this.`n` = com.google.common.collect.Maps.immutableEnumMap(`n`);
-    [else]
-    this.`n` = com.google.common.collect.ImmutableMap.copyOf(`n`);
-    [/if]
+  [if (v.collectionType || v.mapType)]
+    this.`n` = `support.wrappingImmutableCollection(v, n)`;
   [elseif (v.primitive)]
     this.`n` = `n`;
   [else]
@@ -470,12 +468,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [foreach (let v in getters)]
 [if (!v.generateDerived)]
 [let (n = v.name)]
-  [if (v.generateEnumSet)]
-    this.`n` = com.google.common.collect.Sets.immutableEnumSet(builder.`n`Builder.build());
-  [elseif (v.generateOrdinalValueSet)]
-    this.`n` = org.immutables.common.collect.ImmutableOrdinalSet.copyOf(builder.`n`Builder.build());
-  [elseif (v.generateEnumMap)]
-    this.`n` = com.google.common.collect.Maps.immutableEnumMap(builder.`n`Builder.build());
+  [if (v.generateEnumSet || v.generateOrdinalValueSet || v.generateEnumMap)]
+    this.`n` = `support.wrappingImmutableCollection(v, 'builder.' + n + 'Builder.build()')`;
   [elseif (v.collectionType || v.mapType)]
     this.`n` = builder.`n`Builder.build();
   [elseif (!v.generateDefault)]
@@ -505,25 +499,46 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
     [apply generateAfterConstruction(type, true)]
   }
 [/if]
-[foreach (let v in getters)]
+[if (type.useCopyConstructor)]
 
-  @Override
-  public `v.implementationType` `v.name`() {
-    return `v.name`;
-  }
-[/foreach]
-[if (type.generateOrdinalValue)]
-
-  @Override
-  public int ordinal() {
-    return ordinal;
+  private Immutable`type.name`(
+      @javax.annotation.Nonnull(when = javax.annotation.meta.When.NEVER)
+      Void internalCopyContructorDisambiguation` (getters.length ? ',' : '') `
+      `[ (v.implementationType + ' ' + v.name) for each (v in getters) ].join(', ') `) {
+  [foreach (let v in getters)]
+    this.`v.name` = `v.name`;
+  [/foreach]
+    [apply generateAfterConstruction(type)]
   }
 [/if]
-  [apply generateAccessorMethods(type, getters)]
+  [apply generateAccessorMethods(type)]
+  [apply generateCopyMethods(type)]
+  [apply generateObjectUtilityMethods(type)]
 [/let]
 [/template]
 
-[template generateAccessorMethods(type, getters)]
+[template generateAccessorMethods(type)]
+[let (getters = type.implementedAttributes)]
+  [foreach (let v in getters)]
+
+@Override
+public `v.implementationType` `v.name`() {
+  return `v.name`;
+}
+  [/foreach]
+  [if (type.generateOrdinalValue)]
+
+@Override
+public int ordinal() {
+  return ordinal;
+}
+  [/if]
+[/let]
+[/template]
+
+[template generateObjectUtilityMethods(type)]
+[let (getters = type.implementedAttributes)]
+
 [if (!type.equalToDefined)]
 
 @Override
@@ -537,21 +552,8 @@ public boolean equals(Object another) {
 }
 [/if]
 
-# function compareFields(v) {
-#   let equalsSimple = function(n) n + ' == another.' + n
-#   let equalsMethod = function(n) n + '.equals(another.' + n + ')'
-#   let equalsFloatBits = function(n) 'Float.floatToIntBits(' + n + ') == Float.floatToIntBits(another.' + n + ')'
-#   let equalsDoubleBits = function(n) 'Double.doubleToLongBits(' + n + ') == Double.doubleToLongBits(another.' + n + ')'
-#  
-#   return let (n = v.name, t = v.type)
-#       v.primitive ? (
-#           t === 'float' ? equalsFloatBits(n) :
-#           t === 'double' ? equalsDoubleBits(n) : equalsSimple(n)
-#           ) : equalsMethod(n)
-# }
-
 private boolean equalTo(Immutable`type.name` another) {
-  return true`[ '\n          && ' + compareFields(v) for each (v in getters) ].join('')`;
+  return true`[ '\n          && ' + support.compareFields(v) for each (v in getters) ].join('')`;
 }
 
 private int computeHashCode() {
@@ -592,7 +594,8 @@ public String toString() {
   [/foreach]
       .toString();
 }
-[/if]    
+[/if]
+[/let]
 [/template]
 
 [template generateAfterConstruction(type, usingBuilder)]
@@ -609,4 +612,83 @@ this.domain = builder.domain;
 this.domain = Domain.get();
     [/if]
   [/if]
+[/template]
+
+[template generateReturnCopyContextualInternal(getters, name)]
+# let parameters = getters.map(function(a) a.name == name ? (a.name + 'ModifiedValue') : ('this.' + a.name))
+(Void) null`[''].concat(parameters).join(',\n' + __.indent)`));
+[/template]
+
+[template generateReturnCopyContextual(type, getters, modifiedValueName)]
+return checkPreconditions(new Immutable`type.name`(
+    [apply generateReturnCopyContextualInternal(getters, modifiedValueName)]
+[/template]
+
+[template generateCopyMethods(type)]
+[let (setters = type.settableAttributes, getters = type.implementedAttributes)]
+  [foreach (let v in setters)]
+    [if (v.collectionType)]
+
+/**
+ * Copy current immutable object with elements that replace content of {@link `type.name`#`v.name`()}.
+ * @param `v.name`Elements iterable of `v.name` elements to add
+ * @return modified copy of the {@code this} object
+ */
+public Immutable`type.name` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`Elements) {
+  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name + 'Elements')`;
+  [apply generateReturnCopyContextual(type, getters, v.name)]
+}
+    [elseif (v.optionalType)]
+
+/**
+ * Copy current immutable object by setting present value for optional {@link `type.name`#`v.name`()}.
+ * @param `v.name` value for `v.name`, non-null
+ * @return modified copy of the {@code this} object
+ */
+public Immutable`type.name` with`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`) {
+  `v.implementationType` `v.name`ModifiedValue = Optional.of(`v.name`);
+  [apply generateReturnCopyContextual(type, getters, v.name)]
+}
+
+/**
+ * Copy current immutable object by setting optional value for {@link `type.name`#`v.name`()}.
+ * @param `v.name` value for `v.name`, non-null
+ * @return modified copy of the {@code this} object
+ */
+public Immutable`type.name` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> `v.name`) {
+  `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+  [apply generateReturnCopyContextual(type, getters, v.name)]
+}
+    [elseif (v.mapType)]
+    [let (GE = v.consumedElementType, UK = v.unwrappedElementType, WK = v.wrappedElementType, UV = v.unwrappedSecondaryElementType, WV = v.wrappedSecondaryElementType)]
+
+/**
+ * Copy current immutable object by replacing {@link `type.name`#`v.name`()} map with specified map.
+ * Nulls are not permitted as keys of values.
+ * @param `v.name`Entries to be added to `v.name` map
+ * @return modified copy of the {@code this} object
+ */
+public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`Entries) {
+  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name + 'Entries')`;
+  [apply generateReturnCopyContextual(type, getters, v.name)]
+}
+    [/let]
+    [else]
+  
+/**
+ * Copy current immutable object by setting value for {@link `type.name`#`v.name`()}.
+ * @param `v.name` value for `v.name`, non-null
+ * @return modified copy of the {@code this} object
+ */
+public Immutable`type.name` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
+  [if (v.primitive)]
+  `v.implementationType` `v.name`ModifiedValue = `v.name`;
+  [else]
+  `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+  [/if]
+  [apply generateReturnCopyContextual(type, getters, v.name)]
+}
+    [/if]
+  [/foreach]
+[/let]
 [/template]

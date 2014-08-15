@@ -86,7 +86,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * @return the immutable ordinal set
    */
   @SuppressWarnings("unchecked")
-  public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(Iterable<E> elements) {
+  public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(Iterable<? extends E> elements) {
     if (elements instanceof ImmutableOrdinalSet) {
       return (ImmutableOrdinalSet<E>) elements;
     }

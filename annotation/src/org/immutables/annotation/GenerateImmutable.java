@@ -47,6 +47,13 @@ public @interface GenerateImmutable {
   boolean interned() default false;
 
   /**
+   * If {@code withCopyMethods=false} then generation of copying methods starting with
+   * "withAttribute" will be disabled. Default is {@literal true}
+   * @see Interners#newStrongInterner()
+   */
+  boolean withCopyMethods() default true;
+
+  /**
    * If {@code prehashed=true} then {@code hashCode} will be precomputed during construction.
    * This could speed up collection lookups for objects with lots of attributes and nested objects
    * or, in general, when {@code hashCode} computation is expensive and will be used a lot.
