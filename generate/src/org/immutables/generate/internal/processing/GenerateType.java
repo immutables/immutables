@@ -43,6 +43,11 @@ import org.immutables.annotation.GenerateRepository;
 
 public abstract class GenerateType extends TypeIntrospectionBase {
 
+  /**
+   * Something less than half than 255 parameter limit in java methods (not counting 2-slot double
+   * and long).
+   */
+  private static final int SOME_RANDOM_LIMIT = 100;
   @Nullable
   private String validationMethodName;
 
@@ -77,8 +82,9 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
-  public boolean isUseCopyConstructor() {
-    return true;
+  public boolean isUseCopyMethods() {
+    return internalTypeElement().getAnnotation(GenerateImmutable.class).withCopyMethods()
+        && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < SOME_RANDOM_LIMIT;
   }
 
   public boolean isUseSingleton() {
@@ -326,14 +332,19 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return lazyAttributes;
   }
 
+  private List<GenerateAttribute> implementedAttributes;
+
   @SuppressWarnings("unchecked")
   public List<GenerateAttribute> getImplementedAttributes() {
-    return FluentIterable.from(attributes())
-        .filter(Predicates.or(
-            GenerateAttributes.isGenerateAbstract(),
-            GenerateAttributes.isGenerateDefault(),
-            GenerateAttributes.isGenerateDerived()))
-        .toList();
+    if (implementedAttributes == null) {
+      implementedAttributes = FluentIterable.from(attributes())
+          .filter(Predicates.or(
+              GenerateAttributes.isGenerateAbstract(),
+              GenerateAttributes.isGenerateDefault(),
+              GenerateAttributes.isGenerateDerived()))
+          .toList();
+    }
+    return implementedAttributes;
   }
 
   public List<GenerateAttribute> getHelperAttributes() {

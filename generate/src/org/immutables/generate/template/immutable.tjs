@@ -499,7 +499,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
     [apply generateAfterConstruction(type, true)]
   }
 [/if]
-[if (type.useCopyConstructor)]
+[if (type.useCopyMethods)]
 
   private Immutable`type.name`(
       @javax.annotation.Nonnull(when = javax.annotation.meta.When.NEVER)
@@ -510,9 +510,9 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
   [/foreach]
     [apply generateAfterConstruction(type)]
   }
+  [apply generateCopyMethods(type)]
 [/if]
   [apply generateAccessorMethods(type)]
-  [apply generateCopyMethods(type)]
   [apply generateObjectUtilityMethods(type)]
 [/let]
 [/template]
