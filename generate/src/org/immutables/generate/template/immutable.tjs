@@ -284,15 +284,6 @@ public static final class Builder {
     `v.name`Builder.addAll(`v.name`Elements);
     return this;
   }
-
-  /**
-   * Clears all previously added elements for {@link `type.name`#`v.name`()} `v.rawCollectionType.toLowerCase()`.
-   * @return {@code this} builder for chained invocation
-   */
-  public Builder clear`v.name.toUpperFirst()`() {
-    `v.name`Builder = com.google.common.collect.Immutable`v.rawCollectionType`.builder();
-    return this;
-  }
   [elseif (v.optionalType)]
 
   /**
@@ -348,14 +339,6 @@ public static final class Builder {
     return this;
   }
 
-  /**
-   * Clears all previously put entries for {@link `type.name`#`v.name`()} map.
-   * @return {@code this} builder for chained invocation
-   */
-  public Builder clear`v.name.toUpperFirst()`() {
-    `v.name`Builder = com.google.common.collect.ImmutableMap.builder();
-    return this;
-  }    
     [/let]
   [else]
   
