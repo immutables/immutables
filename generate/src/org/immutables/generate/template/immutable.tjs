@@ -509,6 +509,19 @@ public `v.implementationType` `v.name`() {
   return `v.name`;
 }
   [/foreach]
+  [if(type.generateGetters)]
+  [foreach (let v in type.allAccessibleAttributes)]
+/**
+ * Gets value of {@link `type.name`#`v.name`()} attribute.
+ * @param `v.name` value for `v.name`, non-null
+ * @return {@code this} builder for chained invocation
+ */
+@Override
+public `v.implementationType` get`v.name.toUpperFirst()`() {
+  return `v.name`();
+}
+  [/foreach]
+  [/if]
   [if (type.generateOrdinalValue)]
 
 @Override

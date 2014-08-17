@@ -37,6 +37,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
 import org.immutables.annotation.GenerateDefault;
+import org.immutables.annotation.GenerateGetters;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
@@ -55,6 +56,10 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   @Nullable
   public String getValidationMethodName() {
     return validationMethodName;
+  }
+
+  public boolean isGenerateGetters() {
+    return internalTypeElement().getAnnotation(GenerateGetters.class) != null;
   }
 
   public void setValidationMethodName(@Nullable String validationMethodName) {
@@ -331,6 +336,13 @@ public abstract class GenerateType extends TypeIntrospectionBase {
       }
     }
     return lazyAttributes;
+  }
+
+  public List<GenerateAttribute> getAllAccessibleAttributes() {
+    return ImmutableList.<GenerateAttribute>builder()
+        .addAll(getImplementedAttributes())
+        .addAll(getLazyAttributes())
+        .build();
   }
 
   private List<GenerateAttribute> implementedAttributes;
