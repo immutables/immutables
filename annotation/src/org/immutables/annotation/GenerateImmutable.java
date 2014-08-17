@@ -47,11 +47,11 @@ public @interface GenerateImmutable {
   boolean interned() default false;
 
   /**
-   * If {@code withCopyMethods=false} then generation of copying methods starting with
-   * "withAttribute" will be disabled. Default is {@literal true}
+   * If {@code with=false} then generation of copying methods starting with
+   * "withAttributeName" will be disabled. Default is {@literal true}
    * @see Interners#newStrongInterner()
    */
-  boolean withCopyMethods() default true;
+  boolean with() default true;
 
   /**
    * If {@code prehashed=true} then {@code hashCode} will be precomputed during construction.

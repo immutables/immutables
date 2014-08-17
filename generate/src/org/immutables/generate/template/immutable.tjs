@@ -521,7 +521,6 @@ public int ordinal() {
 
 [template generateObjectUtilityMethods(type)]
 [let (getters = type.implementedAttributes)]
-
 [if (!type.equalToDefined)]
 
 @Override

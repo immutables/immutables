@@ -43,6 +43,7 @@ import org.immutables.annotation.GenerateRepository;
 
 public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
+  private static final String STRING_CLASS_NAME = String.class.getName();
   private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
@@ -261,7 +262,9 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   }
 
   public String getConsumedElementType() {
-    return (isUnwrappedElementPrimitiveType() || hasEnumFirstTypeParameter)
+    return (isUnwrappedElementPrimitiveType()
+        || STRING_CLASS_NAME.equals(containmentTypeName())
+        || hasEnumFirstTypeParameter)
         ? getWrappedElementType()
         : "? extends " + getWrappedElementType();
   }
@@ -439,7 +442,7 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   }
 
   static boolean isRegularMashalableType(String name) {
-    return String.class.getName().equals(name)
+    return STRING_CLASS_NAME.equals(name)
         || PRIMITIVE_TYPES.containsKey(name)
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
   }

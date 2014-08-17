@@ -44,10 +44,11 @@ import org.immutables.annotation.GenerateRepository;
 public abstract class GenerateType extends TypeIntrospectionBase {
 
   /**
-   * Something less than half than 255 parameter limit in java methods (not counting 2-slot double
-   * and long).
+   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
+   * and long parameters).
    */
   private static final int SOME_RANDOM_LIMIT = 100;
+
   @Nullable
   private String validationMethodName;
 
@@ -83,7 +84,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public boolean isUseCopyMethods() {
-    return internalTypeElement().getAnnotation(GenerateImmutable.class).withCopyMethods()
+    return internalTypeElement().getAnnotation(GenerateImmutable.class).with()
         && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < SOME_RANDOM_LIMIT;
   }
 
