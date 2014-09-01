@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,6 +34,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
@@ -53,13 +55,27 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   @Nullable
   private String validationMethodName;
 
+  private Element umbrellaElement;
+
   @Nullable
   public String getValidationMethodName() {
     return validationMethodName;
   }
 
+  public <T extends Annotation> T getAnnotationFromThisOrUmbrellaElement(Class<T> annotationType) {
+    T annotation = internalTypeElement().getAnnotation(annotationType);
+    if (annotation == null && umbrellaElement != null) {
+      annotation = umbrellaElement.getAnnotation(annotationType);
+    }
+    return annotation;
+  }
+
   public boolean isGenerateGetters() {
     return internalTypeElement().getAnnotation(GenerateGetters.class) != null;
+  }
+
+  public void setUmbrellaElement(Element umbrellaElement) {
+    this.umbrellaElement = umbrellaElement;
   }
 
   public void setValidationMethodName(@Nullable String validationMethodName) {
@@ -88,27 +104,36 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
+  private GenerateImmutable immutableProperties;
+
+  private GenerateImmutable getGenerataeImmutableProperties() {
+    if (immutableProperties == null) {
+      immutableProperties = getAnnotationFromThisOrUmbrellaElement(GenerateImmutable.class);
+    }
+    return immutableProperties;
+  }
+
   public boolean isUseCopyMethods() {
-    return internalTypeElement().getAnnotation(GenerateImmutable.class).with()
+    return getGenerataeImmutableProperties().withers()
         && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < SOME_RANDOM_LIMIT;
   }
 
   public boolean isUseSingleton() {
-    return internalTypeElement().getAnnotation(GenerateImmutable.class).singleton();
+    return getGenerataeImmutableProperties().singleton();
   }
 
   public boolean isUseInterned() {
-    return internalTypeElement().getAnnotation(GenerateImmutable.class).interned();
+    return getGenerataeImmutableProperties().intern();
   }
 
   public boolean isUsePrehashed() {
     return isUseInterned()
         || isGenerateOrdinalValue()
-        || internalTypeElement().getAnnotation(GenerateImmutable.class).prehashed();
+        || getGenerataeImmutableProperties().prehash();
   }
 
   public boolean isGenerateMarshaled() {
-    return (internalTypeElement().getAnnotation(GenerateMarshaler.class) != null) || isGenerateDocument();
+    return (getAnnotationFromThisOrUmbrellaElement(GenerateMarshaler.class) != null) || isGenerateDocument();
   }
 
   public boolean isGenerateDocument() {
@@ -159,16 +184,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
       Set<String> imports = Sets.newLinkedHashSet();
 
       for (GenerateAttribute a : attributes()) {
-        if (a.isMarshaledElement()) {
-          String typeName = a.isContainerType()
-              ? a.getUnwrappedElementType()
-              : a.getType();
-
-          imports.add(typeName + "Marshaler");
-        }
-        if (a.isMarshaledSecondaryElement()) {
-          imports.add(a.getUnwrappedSecondaryElementType() + "Marshaler");
-        }
+        imports.addAll(a.getMarshaledImportRoutines());
       }
 
       collectImportRoutines(imports);
@@ -179,11 +195,19 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   private void collectImportRoutines(Set<String> imports) {
-    imports.addAll(extractClassNamesFromMirrors(GenerateMarshaler.class, "importRoutines",
-        internalTypeElement().getAnnotationMirrors()));
+    Element element = internalTypeElement();
+    for (;;) {
+      imports.addAll(
+          extractClassNamesFromMirrors(GenerateMarshaler.class,
+              "importRoutines",
+              element.getAnnotationMirrors()));
 
-    imports.addAll(extractClassNamesFromMirrors(GenerateMarshaler.class, "importRoutines",
-        internalTypeElement().getEnclosingElement().getAnnotationMirrors()));
+      Element enclosingElement = element.getEnclosingElement();
+      if (enclosingElement == null || element instanceof PackageElement) {
+        break;
+      }
+      element = enclosingElement;
+    }
   }
 
   @Nullable
@@ -201,29 +225,12 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   public Set<String> getGenerateMarshaledTypes() throws Exception {
     if (generateMarshaledTypes == null) {
       Set<String> marshaledTypes = Sets.newLinkedHashSet();
-
       for (GenerateAttribute a : attributes()) {
-        if (a.isSpecialMarshaledElement()) {
-          String typeName = a.isContainerType()
-              ? a.getUnwrappedElementType()
-              : a.getType();
-
-          addIfSpecialMarshalable(marshaledTypes, typeName);
-        }
-        if (a.isSpecialMarshaledSecondaryElement()) {
-          addIfSpecialMarshalable(marshaledTypes, a.getUnwrappedSecondaryElementType());
-        }
+        marshaledTypes.addAll(a.getSpecialMarshaledTypes());
       }
-
       generateMarshaledTypes = marshaledTypes;
     }
     return generateMarshaledTypes;
-  }
-
-  private void addIfSpecialMarshalable(Set<String> marshaledTypes, String typeName) {
-    if (!GenerateAttribute.isRegularMashalableType(typeName)) {
-      marshaledTypes.add(typeName);
-    }
   }
 
   private List<String> extractClassNamesFromMirrors(

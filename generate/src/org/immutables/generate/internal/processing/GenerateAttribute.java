@@ -16,12 +16,13 @@
 package org.immutables.generate.internal.processing;
 
 import com.google.common.base.Functions;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 import java.util.Collections;
 import java.util.List;
@@ -208,15 +209,6 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return GOOGLE_COMMON_PREFIX + string;
   }
 
-  public boolean isMarshaledElement() {
-    if (isPrimitive()) {
-      return false;
-    }
-
-    ensureTypeIntrospected();
-    return marshaledElement;
-  }
-
   public boolean isCollectionType() {
     return isSetType() || isListType();
   }
@@ -240,11 +232,11 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   }
 
   private String wrapType(String typeName) {
-    return Objects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.inverse().get(typeName), typeName);
+    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.inverse().get(typeName), typeName);
   }
 
   private String unwrapType(String typeName) {
-    return Objects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.get(typeName), typeName);
+    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.get(typeName), typeName);
   }
 
   private String containmentTypeName() {
@@ -322,10 +314,11 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
   private boolean marshaledElement;
   private boolean marshaledSecondaryElement;
-  private boolean hasEnumFirstTypeParameter;
-  private TypeElement containedTypeElement;
   private boolean specialMarshaledElement;
   private boolean specialMarshaledSecondaryElement;
+
+  private boolean hasEnumFirstTypeParameter;
+  private TypeElement containedTypeElement;
   private boolean generateOrdinalValueSet;
 
   public boolean isGenerateOrdinalValueSet() {
@@ -340,14 +333,6 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     ensureTypeIntrospected();
     return containedTypeElement != null
         && containedTypeElement.getAnnotation(GenerateRepository.class) != null;
-  }
-
-  public boolean isMarshaledSecondaryElement() {
-    if (!isMapType()) {
-      return false;
-    }
-    ensureTypeIntrospected();
-    return marshaledSecondaryElement;
   }
 
   @Override
@@ -424,23 +409,6 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     super.introspectType();
   }
 
-  public boolean isSpecialMarshaledElement() {
-    ensureTypeIntrospected();
-    return specialMarshaledElement;
-  }
-
-  public boolean isSpecialMarshaledSecondaryElement() {
-    ensureTypeIntrospected();
-    return specialMarshaledSecondaryElement;
-  }
-
-  private boolean isSpecialMarshaledElement(boolean isMarshaled, Object qualifiedName) {
-    if (isMarshaled) {
-      return true;
-    }
-    return !isRegularMashalableType(qualifiedName.toString());
-  }
-
   static boolean isRegularMashalableType(String name) {
     return STRING_CLASS_NAME.equals(name)
         || PRIMITIVE_TYPES.containsKey(name)
@@ -491,6 +459,12 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
         && !boolean.class.getName().equals(t);
   }
 
+  public boolean isFloatType() {
+    String t = internalTypeName();
+    return float.class.getName().equals(t)
+        || double.class.getName().equals(t);
+  }
+
   public boolean isContainerType() {
     return isCollectionType()
         || isOptionalType()
@@ -524,5 +498,72 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   public int getAlignOrder() {
     GeneratePackedBits annotation = element.getAnnotation(GeneratePackedBits.class);
     return annotation != null ? annotation.order() : -1;
+  }
+
+  public boolean isSpecialMarshaledElement() {
+    ensureTypeIntrospected();
+    return specialMarshaledElement;
+  }
+
+  public boolean isSpecialMarshaledSecondaryElement() {
+    ensureTypeIntrospected();
+    return specialMarshaledSecondaryElement;
+  }
+
+  public boolean isMarshaledElement() {
+    if (isPrimitive()) {
+      return false;
+    }
+
+    ensureTypeIntrospected();
+    return marshaledElement;
+  }
+
+  public boolean isMarshaledSecondaryElement() {
+    ensureTypeIntrospected();
+    return marshaledSecondaryElement;
+  }
+
+  private boolean isSpecialMarshaledElement(boolean isMarshaled, Object qualifiedName) {
+    if (isMarshaled) {
+      return true;
+    }
+    return !isRegularMashalableType(qualifiedName.toString());
+  }
+
+  Set<String> getMarshaledImportRoutines() {
+    Set<String> imports = Sets.newLinkedHashSetWithExpectedSize(2);
+    if (isMarshaledElement()) {
+      String typeName = isContainerType()
+          ? getUnwrappedElementType()
+          : getType();
+
+      imports.add(typeName + "Marshaler");
+    }
+    if (isMapType() && isMarshaledSecondaryElement()) {
+      imports.add(getUnwrappedSecondaryElementType() + "Marshaler");
+    }
+    return imports;
+  }
+
+  Set<String> getSpecialMarshaledTypes() {
+    Set<String> marshaledTypeSet = Sets.newLinkedHashSetWithExpectedSize(2);
+    if (isSpecialMarshaledElement()) {
+      String typeName = isContainerType()
+          ? getUnwrappedElementType()
+          : getType();
+
+      addIfSpecialMarshalable(marshaledTypeSet, typeName);
+    }
+    if (isMapType() && isSpecialMarshaledSecondaryElement()) {
+      addIfSpecialMarshalable(marshaledTypeSet, getUnwrappedSecondaryElementType());
+    }
+    return marshaledTypeSet;
+  }
+
+  static void addIfSpecialMarshalable(Set<String> marshaledTypes, String typeName) {
+    if (!isRegularMashalableType(typeName)) {
+      marshaledTypes.add(typeName);
+    }
   }
 }

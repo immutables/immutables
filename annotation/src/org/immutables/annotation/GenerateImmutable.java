@@ -36,32 +36,33 @@ public @interface GenerateImmutable {
 
   /**
    * If {@code singleton=true}, generates internal singleton object constructed without any
-   * specified parameters (all default).
+   * specified parameters. Default is {@literal false}.
    */
   boolean singleton() default false;
 
   /**
-   * If {@code interned=true} then instances will be strong interned on construction.
+   * If {@code intern=true} then instances will be strong interned on construction.
+   * Default is {@literal false}.
    * @see Interners#newStrongInterner()
    */
-  boolean interned() default false;
+  boolean intern() default false;
 
   /**
-   * If {@code with=false} then generation of copying methods starting with
-   * "withAttributeName" will be disabled. Default is {@literal true}
+   * If {@code withers=false} then generation of copying methods starting with
+   * "withAttributeName" will be disabled. Default is {@literal true}.
    * @see Interners#newStrongInterner()
    */
-  boolean with() default true;
+  boolean withers() default true;
 
   /**
-   * If {@code prehashed=true} then {@code hashCode} will be precomputed during construction.
-   * This could speed up collection lookups for objects with lots of attributes and nested objects
-   * or, in general, when {@code hashCode} computation is expensive and will be used a lot.
+   * If {@code prehash=true} then {@code hashCode} will be precomputed during construction.
+   * This could speed up collection lookups for objects with lots of attributes and nested objects.
+   * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
    */
-  boolean prehashed() default false;
+  boolean prehash() default false;
 
   /**
-   * If {@code useBuilder=false}, disables generation of {@code builder()}.
+   * If {@code builder=false}, disables generation of {@code builder()}. Default is {@literal true}.
    */
   boolean builder() default true;
 }

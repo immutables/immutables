@@ -85,7 +85,7 @@ package `type.packageName`;
       if (this == INSTANCE) {
         return "Immutable`type.name`.Domain.get()";
       }
-      return com.google.common.base.Objects.toStringHelper("Immutable`type.name`.Domain")
+      return com.google.common.base.MoreObjects.toStringHelper("Immutable`type.name`.Domain")
         .add("length", length())
         .toString();
     }
@@ -165,21 +165,24 @@ package `type.packageName`;
 # let lazyIndex = 0;
 [foreach (let l in laziers)]
 # let lazyMask = 1 << (lazyIndex++)
+# let maskConstantName = l.name.toUpperCase() + '_LAZILY_INITIALIZED_BIT'
+
+  private static final int `maskConstantName` = `lazyMask`;
 
   @javax.annotation.concurrent.GuardedBy("this")
   private `l.type` `l.name`;
 
   @Override
   public `l.type` `l.name`() {
-    if ((lazyBitmap & `lazyMask`) == 0) {
+    if ((lazyBitmap & `maskConstantName`) == 0) {
       synchronized (this) {
-        if ((lazyBitmap & `lazyMask`) == 0) {
+        if ((lazyBitmap & `maskConstantName`) == 0) {
             [if (l.primitive)]
           this.`l.name` = super.`l.name`();
             [else]
           this.`l.name` = com.google.common.base.Preconditions.checkNotNull(super.`l.name`());
             [/if]
-          lazyBitmap |= `lazyMask`;
+          lazyBitmap |= `maskConstantName`;
         }
       }
     }
@@ -200,10 +203,10 @@ package `type.packageName`;
  */
 @javax.annotation.concurrent.NotThreadSafe
 [if (type.hasAbstractBuilder)]
-public static final class Builder
+`type.accessPrefix`static final class Builder
     extends `type.name`.Builder {
 [else]
-public static final class Builder {
+`type.accessPrefix`static final class Builder {
 [/if]
   private static final String REQUIRED_ATTRIBUTE =
       "Cannot build `type.name`: required attribute '%s' is not set";
@@ -485,8 +488,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [if (type.useCopyMethods)]
 
   private Immutable`type.name`(
-      @javax.annotation.Nonnull(when = javax.annotation.meta.When.NEVER)
-      Void internalCopyContructorDisambiguation` (getters.length ? ',' : '') `
+      Immutable`type.name` copiedObjectForConstuctorDisambiguation` (getters.length ? ',' : '') `
       `[ (v.implementationType + ' ' + v.name) for each (v in getters) ].join(', ') `) {
   [foreach (let v in getters)]
     this.`v.name` = `v.name`;
@@ -583,7 +585,7 @@ public int hashCode() {
 
 @Override
 public String toString() {
-  return com.google.common.base.Objects.toStringHelper("`type.name`")
+  return com.google.common.base.MoreObjects.toStringHelper("`type.name`")
   [foreach (let v in getters)]
       .add("`v.name`", `v.name`)
   [/foreach]
@@ -611,7 +613,7 @@ this.domain = Domain.get();
 
 [template generateReturnCopyContextualInternal(getters, name)]
 # let parameters = getters.map(function(a) a.name == name ? (a.name + 'ModifiedValue') : ('this.' + a.name))
-(Void) null`[''].concat(parameters).join(',\n' + __.indent)`));
+this`[''].concat(parameters).join(',\n' + __.indent)`));
 [/template]
 
 [template generateReturnCopyContextual(type, getters, modifiedValueName)]
@@ -626,11 +628,15 @@ return checkPreconditions(new Immutable`type.name`(
 
 /**
  * Copy current immutable object with elements that replace content of {@link `type.name`#`v.name`()}.
+ * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param `v.name`Elements iterable of `v.name` elements to add
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`Elements) {
-  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name + 'Elements')`;
+public Immutable`type.name` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`) {
+  if (this.`v.name` == `v.name`) {
+    return this;
+  }
+  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name)`;
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [elseif (v.optionalType)]
@@ -647,10 +653,14 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(`v.unwrappedElementType`
 
 /**
  * Copy current immutable object by setting optional value for {@link `type.name`#`v.name`()}.
+ * Shallow reference equality check on optional value is used to prevent copying of the same value by returning {@code this}.
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
 public Immutable`type.name` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> `v.name`) {
+  if (this.`v.name` == `v.name`) {
+    return this;
+  }
   `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
@@ -660,11 +670,15 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(Optional<`v.wrappedEleme
 /**
  * Copy current immutable object by replacing {@link `type.name`#`v.name`()} map with specified map.
  * Nulls are not permitted as keys of values.
+ * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param `v.name`Entries to be added to `v.name` map
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`Entries) {
-  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name + 'Entries')`;
+public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`) {
+  if (this.`v.name` == `v.name`) {
+    return this;
+  }
+  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name)`;
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [/let]
@@ -672,15 +686,25 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? ex
   
 /**
  * Copy current immutable object by setting value for {@link `type.name`#`v.name`()}.
+ [if (v.primitive && !v.floatType)]
+ * Value equality check is used to prevent copying of the same value by returning {@code this}.
+ [elseif (!v.primitive)]
+ * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+ [/if]
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
 public Immutable`type.name` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
-  [if (v.primitive)]
+    [if (!v.floatType)]
+  if (this.`v.name` == `v.name`) {
+    return this;
+  }
+    [/if]
+    [if (v.primitive)]
   `v.implementationType` `v.name`ModifiedValue = `v.name`;
-  [else]
+    [else]
   `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
-  [/if]
+    [/if]
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [/if]

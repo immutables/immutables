@@ -18,7 +18,7 @@ package org.immutables.generate.silly;
 import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateImmutable;
 
-@GenerateImmutable(interned = true)
+@GenerateImmutable(intern = true)
 public abstract class SillyInterned {
   @GenerateConstructorParameter(order = 0)
   public abstract int arg1();
