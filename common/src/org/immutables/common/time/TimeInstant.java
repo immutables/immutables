@@ -15,7 +15,7 @@
  */
 package org.immutables.common.time;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.primitives.Longs;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  * An instant in time in UTC milliseconds. (No timezone binding implied)
  */
 public final class TimeInstant implements Comparable<TimeInstant> {
-  private long value;
+  private final long value;
 
   private TimeInstant(long instant) {
     this.value = instant;
@@ -79,7 +79,7 @@ public final class TimeInstant implements Comparable<TimeInstant> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .addValue(value)
         .toString();
   }

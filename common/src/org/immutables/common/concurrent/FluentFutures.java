@@ -145,6 +145,6 @@ public final class FluentFutures {
     if (future instanceof FluentFuture<?>) {
       return (FluentFuture<V>) future;
     }
-    return new WrapingFluentFuture<>(future, MoreExecutors.sameThreadExecutor());
+    return new WrapingFluentFuture<>(future, MoreExecutors.directExecutor());
   }
 }

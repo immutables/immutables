@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
@@ -44,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -411,7 +411,7 @@ public final class BsonEncoding {
 
     @Override
     public Iterator<DBObject> iterator() {
-      return Iterators.emptyIterator();
+      return Collections.emptyIterator();
     }
 
     @Override

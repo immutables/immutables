@@ -17,7 +17,7 @@ package org.immutables.common.eventually;
 
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -93,7 +93,7 @@ import org.immutables.common.concurrent.FluentFutures;
 @Beta
 public final class EventualProvidersModule<T> implements Module {
   private static TypeToken<ListenableFuture<?>> LISTENABLE_FUTURE = new TypeToken<ListenableFuture<?>>() {};
-  private static Executor DEFAULT_EXECUTOR = MoreExecutors.sameThreadExecutor();
+  private static Executor DEFAULT_EXECUTOR = MoreExecutors.directExecutor();
 
   private final Class<T> providersClass;
   private final TypeToken<T> type;
@@ -381,7 +381,7 @@ public final class EventualProvidersModule<T> implements Module {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .addValue(source)
           .toString();
     }

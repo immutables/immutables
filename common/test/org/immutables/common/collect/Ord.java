@@ -15,7 +15,7 @@
  */
 package org.immutables.common.collect;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 class Ord implements OrdinalValue<Ord> {
   private final Domain domain;
@@ -38,7 +38,7 @@ class Ord implements OrdinalValue<Ord> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("domain", domain)
         .add("ordinal", ordinal)
         .toString();

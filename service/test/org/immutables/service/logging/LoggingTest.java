@@ -15,7 +15,6 @@
  */
 package org.immutables.service.logging;
 
-import org.immutables.service.logging.Logging;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -54,7 +53,7 @@ interface TestLogEvents {
 
 public class LoggingTest {
 
-  DefaultEventLogDispatcher dispatcher = new DefaultEventLogDispatcher(MoreExecutors.sameThreadExecutor(), 10);
+  DefaultEventLogDispatcher dispatcher = new DefaultEventLogDispatcher(MoreExecutors.newDirectExecutorService(), 10);
   TestLogEvents logProxy = Logging.proxyFor(TestLogEvents.class, dispatcher);
 
   /**

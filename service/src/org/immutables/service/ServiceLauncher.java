@@ -78,7 +78,7 @@ public final class ServiceLauncher {
         System.err.println(Joiner.on('\n').withKeyValueSeparator(":").join(manager.servicesByState().entries()));
         System.exit(1);
       }
-    }, MoreExecutors.sameThreadExecutor());
+    }, MoreExecutors.directExecutor());
 
     manager.startAsync().awaitHealthy();
     manager.awaitStopped();

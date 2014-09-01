@@ -15,7 +15,7 @@
  */
 package org.immutables.generate.internal.processing;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Booleans;
@@ -281,7 +281,7 @@ public final class GenerateAttributes {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("GenerateAttribute")
+      return MoreObjects.toStringHelper("GenerateAttribute")
           .add("internalTypeMirror", internalTypeMirror)
           .add("isGenerateFunction", isGenerateFunction)
           .add("isGeneratePredicate", isGeneratePredicate)

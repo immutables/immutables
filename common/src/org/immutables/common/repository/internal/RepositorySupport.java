@@ -17,7 +17,7 @@ package org.immutables.common.repository.internal;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableList;
@@ -274,7 +274,7 @@ public final class RepositorySupport {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("MarshalableWrapper")
+      return MoreObjects.toStringHelper(this)
           .addValue(value)
           .toString();
     }

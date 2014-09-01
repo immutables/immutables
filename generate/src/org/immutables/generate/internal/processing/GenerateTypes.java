@@ -15,7 +15,7 @@
  */
 package org.immutables.generate.internal.processing;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Booleans;
 import java.util.List;
@@ -150,7 +150,7 @@ public final class GenerateTypes {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("GenerateType")
+      return MoreObjects.toStringHelper("GenerateType")
           .add("packageFullyQualifiedName", packageFullyQualifiedName)
           .add("internalName", internalName)
           .add("internalTypeElement", internalTypeElement)

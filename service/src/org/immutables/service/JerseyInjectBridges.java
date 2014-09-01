@@ -15,7 +15,7 @@
  */
 package org.immutables.service;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Injector;
 import java.lang.annotation.Annotation;
@@ -86,7 +86,7 @@ class JerseyInjectBridges {
     }
 
     private static Set<Object> getSkipInjectionInstances() {
-      return Objects.firstNonNull(skipInjectionInstancesTransfer.get(), ImmutableSet.of());
+      return MoreObjects.firstNonNull(skipInjectionInstancesTransfer.get(), ImmutableSet.of());
     }
 
     private static void initBridgeInjectorIfAvailable(ServiceLocator serviceLocator) {
