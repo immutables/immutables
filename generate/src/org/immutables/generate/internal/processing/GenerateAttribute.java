@@ -34,6 +34,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.annotation.GenerateAuxiliary;
 import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateMarshaled;
@@ -531,6 +532,11 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return !isRegularMashalableType(qualifiedName.toString());
   }
 
+  private static String marshalerNameFor(String typeName) {
+    SegmentedName name = SegmentedName.from(typeName);
+    return name.packageName + "." + name.simpleName + "Marshaler";
+  }
+
   Set<String> getMarshaledImportRoutines() {
     Set<String> imports = Sets.newLinkedHashSetWithExpectedSize(2);
     if (isMarshaledElement()) {
@@ -538,10 +544,11 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
           ? getUnwrappedElementType()
           : getType();
 
-      imports.add(typeName + "Marshaler");
+      imports.add(marshalerNameFor(typeName));
     }
+
     if (isMapType() && isMarshaledSecondaryElement()) {
-      imports.add(getUnwrappedSecondaryElementType() + "Marshaler");
+      imports.add(marshalerNameFor(getUnwrappedSecondaryElementType()));
     }
     return imports;
   }
@@ -565,5 +572,14 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     if (!isRegularMashalableType(typeName)) {
       marshaledTypes.add(typeName);
     }
+  }
+
+  public static String extractSimpleClassName(String className) {
+
+    return className;
+  }
+
+  public boolean isAuxiliary() {
+    return element.getAnnotation(GenerateAuxiliary.class) != null;
   }
 }

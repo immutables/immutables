@@ -14,19 +14,19 @@ import org.immutables.common.marshal.Marshaler;
 @SuppressWarnings("all")
 @Generated({"marshaler.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
-`type.accessPrefix`final class `type.name`Marshaler
+`type.accessPrefix`final class `type.simpleName`Marshaler
     extends Marshaler<`type.name`> {
 
-  private static final `type.name`Marshaler INSTANCE = new `type.name`Marshaler();
+  private static final `type.simpleName`Marshaler INSTANCE = new `type.simpleName`Marshaler();
   
-  private `type.name`Marshaler() {
+  private `type.simpleName`Marshaler() {
   }
   
   /**
    * Singleton marshaler that is bound to marshal and unmarshal instances of `type.name`.
    * @return marshaler
    */
-  public static `type.name`Marshaler instance() {
+  public static `type.simpleName`Marshaler instance() {
     return INSTANCE;
   }
   
@@ -45,40 +45,40 @@ import org.immutables.common.marshal.Marshaler;
       @WillNotClose JsonParser parser,
       @Nullable `type.name` nullSample,
       Class<?> expectedClass) throws java.io.IOException {
-    return Internal`type.name`Marshaling.unmarshal`type.name`(parser);
+    return Internal`type.simpleName`Marshaling.unmarshal`type.simpleName`(parser);
   }
   
   /**
    * Marshal instance of {@link `type.name`}.
    * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
    * @param generator jackson JSON generator
-   * @param instance instance of {@link `type.name`}  to marshal
+   * @param instance instance of {@link `type.name`} to marshal
    * @throws IOException either IO failure or parsing problem
    */
   public static void marshal(
       @WillNotClose JsonGenerator generator,
       `type.name` instance) throws IOException {
-    Internal`type.name`Marshaling.marshal`type.name`(generator, instance);
+    Internal`type.simpleName`Marshaling.marshal`type.simpleName`(generator, instance);
   }
 
   @Override
   public `type.name` unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
-    return Internal`type.name`Marshaling.unmarshal`type.name`(parser);
+    return Internal`type.simpleName`Marshaling.unmarshal`type.simpleName`(parser);
   }
 
   @Override
   public void marshalInstance(@WillNotClose JsonGenerator generator, `type.name` instance) throws IOException {
-    Internal`type.name`Marshaling.marshal`type.name`(generator, instance);
+    Internal`type.simpleName`Marshaling.marshal`type.simpleName`(generator, instance);
   }
 
   @Override
   public Iterable<`type.name`> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
-    return Internal`type.name`Marshaling.unmarshalIterableOf`type.name`(parser);
+    return Internal`type.simpleName`Marshaling.unmarshalIterableOf`type.simpleName`(parser);
   }
 
   @Override
   public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<`type.name`> instance) throws IOException {
-    Internal`type.name`Marshaling.marshalIterableOf`type.name`(generator, instance);
+    Internal`type.simpleName`Marshaling.marshalIterableOf`type.simpleName`(generator, instance);
   }
 
   @Override
@@ -88,7 +88,7 @@ import org.immutables.common.marshal.Marshaler;
   
   @Override
   public String toString() {
-    return "`type.name`Marshaler.instance()";
+    return "`type.simpleName`Marshaler.instance()";
   }
 }
 [/template]
@@ -106,13 +106,13 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
  * Internal routines for marshaling and unmarshaling instances of `type.name`.
- * Uses Jackson JSON processor API. See {@code `type.name`Marshaler} for the entry point to this API
+ * Uses Jackson JSON processor API. See {@code `type.simpleName`Marshaler} for the entry point to this API
  */
 @SuppressWarnings("all")
 @Generated({"marshal.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
-final class Internal`type.name`Marshaling {
-  private Internal`type.name`Marshaling() {
+final class Internal`type.simpleName`Marshaling {
+  private Internal`type.simpleName`Marshaling() {
   }
   [apply generateMarshalingMethods(type)]
   [apply generateUnmarshalingMethods(type)]
@@ -127,16 +127,16 @@ import static `s`.*;
 
 [template generateMarshalingMethods(type)]
 
-static void marshalIterableOf`type.name`(JsonGenerator generator, Iterable<`type.name`> iterable)
+static void marshalIterableOf`type.simpleName`(JsonGenerator generator, Iterable<`type.name`> iterable)
     throws IOException {
   generator.writeStartArray();
   for (`type.name` instance : iterable) {
-    marshal`type.name`(generator, instance);
+    marshal`type.simpleName`(generator, instance);
   }
   generator.writeEndArray();
 }
 
-static void marshal`type.name`(JsonGenerator generator, `type.name` instance)
+static void marshal`type.simpleName`(JsonGenerator generator, `type.name` instance)
     throws IOException {
 [if (type.useConstructorOnly)]
   [let (ca = type.constructorArguments)]
@@ -256,7 +256,7 @@ private static void ensure(boolean condition, String attributeName, String attri
       message);
 }
 
-static Iterable<`type.name`> unmarshalIterableOf`type.name`(JsonParser parser)
+static Iterable<`type.name`> unmarshalIterableOf`type.simpleName`(JsonParser parser)
     throws IOException {
   java.util.List<`type.name`> result = com.google.common.collect.Lists.newArrayList();
   JsonToken t = parser.getCurrentToken();
@@ -265,12 +265,12 @@ static Iterable<`type.name`> unmarshalIterableOf`type.name`(JsonParser parser)
     while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
       ensure(t == JsonToken.FIELD_NAME, "*", "", t);
       parser.nextToken();
-      result.add(unmarshal`type.name`(parser));
+      result.add(unmarshal`type.simpleName`(parser));
     }
   } else {
     ensure(t == JsonToken.START_ARRAY, "*", "List<`type.name`>", t);
     while ((t = parser.nextToken()) != JsonToken.END_ARRAY) {
-      result.add(unmarshal`type.name`(parser));
+      result.add(unmarshal`type.simpleName`(parser));
     }
   }
   return result;
@@ -283,7 +283,7 @@ private static JsonParser nextTokenAdvance(JsonParser parser) throws IOException
   return parser;
 }
 
-static `type.name` unmarshal`type.name`(JsonParser parser)
+static `type.name` unmarshal`type.simpleName`(JsonParser parser)
     throws IOException {
 [if (ca.length == 1)]
   [foreach (let a in ca)]
@@ -307,7 +307,7 @@ static `type.name` unmarshal`type.name`(JsonParser parser)
 [/let]
 [else]    
 
-static `type.name` unmarshal`type.name`(JsonParser parser)
+static `type.name` unmarshal`type.simpleName`(JsonParser parser)
     throws IOException {
   Immutable`type.name`.Builder builder = Immutable`type.name`.builder();
   String attributeName = "";

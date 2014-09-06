@@ -16,7 +16,10 @@
 package org.immutables.generate.internal.processing;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +33,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
@@ -43,6 +45,7 @@ import org.immutables.annotation.GenerateFunction;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateLazy;
 import org.immutables.annotation.GenerateModifiable;
+import org.immutables.annotation.GenerateNested;
 import org.immutables.annotation.GeneratePredicate;
 import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
 import org.immutables.generate.internal.javascript.RhinoInvoker;
@@ -52,56 +55,121 @@ public class Processor extends AbstractProcessor {
 
   private static final String GENERATE_MAIN_JS = "org/immutables/generate/template/generate.js";
 
-  static final String GENERATE_IMMUTABLE_ANNOTATION_TYPE =
-      GenerateImmutable.class.getName();
-
   private final RhinoInvoker invoker = new RhinoInvoker(new ClasspathModuleSourceProvider(getClass()));
 
   @Override
   public Set<String> getSupportedAnnotationTypes() {
-    return ImmutableSet.of(GENERATE_IMMUTABLE_ANNOTATION_TYPE);
+    return ImmutableSet.of(GenerateImmutable.class.getName(), GenerateNested.class.getName());
   }
 
   @Override
-  public boolean process(Set<? extends TypeElement> annotatedTypes, RoundEnvironment environment) {
+  public boolean process(Set<? extends TypeElement> annotationTypes, RoundEnvironment environment) {
     if (!environment.processingOver()) {
-      for (Element type : environment.getElementsAnnotatedWith(GenerateImmutable.class)) {
-        if (type instanceof TypeElement) {
-          processAnnotations((TypeElement) type);
+      Set<Element> allElemenents = Sets.newLinkedHashSet();
+      for (TypeElement annotationType : annotationTypes) {
+        allElemenents.addAll(environment.getElementsAnnotatedWith(annotationType));
+      }
+      List<GenerateType> generateTypes = Lists.newArrayListWithExpectedSize(allElemenents.size());
+
+      for (Element typeElement : allElemenents) {
+        if (typeElement instanceof TypeElement) {
+          TypeElement type = (TypeElement) typeElement;
+
+          if (type.getEnclosingElement().getKind() == ElementKind.PACKAGE
+              || type.getEnclosingElement().getAnnotation(GenerateNested.class) == null) {
+
+            collectGenerateTypeDescriptors(generateTypes, type);
+          }
         }
+      }
+      for (GenerateType generateType : generateTypes) {
+        runSourceCodeGeneration(generateType);
       }
     }
     return true;
   }
 
-  private void processAnnotations(TypeElement type) {
-    if (!isGenerateType(type)) {
-      error(type, "Type annotated with %s must be top-level 'abstract class'", GENERATE_IMMUTABLE_ANNOTATION_TYPE);
+  private void collectGenerateTypeDescriptors(List<GenerateType> generateTypes, TypeElement type) {
+    GenerateImmutable genImmutable = type.getAnnotation(GenerateImmutable.class);
+    GenerateNested genNested = type.getAnnotation(GenerateNested.class);
+    if (genImmutable != null) {
+      GenerateType generateType = inspectGenerateType(type, genImmutable);
+
+      if (genNested != null) {
+        generateType.setNestedChildren(extractNestedChildren(type));
+      }
+
+      generateTypes.add(generateType);
+    } else if (genNested != null) {
+      List<GenerateType> nestedChildren = extractNestedChildren(type);
+      if (!nestedChildren.isEmpty()) {
+        GenerateType emptyNestingType = GenerateTypes.builder()
+            .internalTypeElement(type)
+            .isUseBuilder(false)
+            .isGenerateCompact(false)
+            .build();
+
+        emptyNestingType.setEmptyNesting(true);
+        emptyNestingType.setSegmentedName(SegmentedName.from(type.getQualifiedName()));
+        emptyNestingType.setNestedChildren(nestedChildren);
+
+        generateTypes.add(emptyNestingType);
+      }
+    }
+  }
+
+  private List<GenerateType> extractNestedChildren(TypeElement parent) {
+    ImmutableList.Builder<GenerateType> children = ImmutableList.builder();
+    for (Element element : parent.getEnclosedElements()) {
+      switch (element.getKind()) {
+      case INTERFACE:
+      case CLASS:
+        GenerateImmutable annotation = element.getAnnotation(GenerateImmutable.class);
+        if (annotation != null) {
+          children.add(inspectGenerateType((TypeElement) element, annotation));
+        }
+        break;
+      default:
+      }
+    }
+    return children.build();
+  }
+
+  // runSourceCodeGeneration(, type);
+
+  private boolean isGenerateType(TypeElement type, GenerateImmutable annotation) {
+    boolean nonDefaultPackage = !processingEnv.getElementUtils().getPackageOf(type).isUnnamed();
+    boolean isStaticOrTopLevel =
+        type.getKind() == ElementKind.INTERFACE
+            || (type.getKind() == ElementKind.CLASS
+            && (type.getEnclosingElement().getKind() == ElementKind.PACKAGE || type.getModifiers()
+                .contains(Modifier.STATIC)));
+
+    return nonDefaultPackage
+        && isStaticOrTopLevel
+        && isAbstract(type)
+        && annotation != null;
+  }
+
+  GenerateType inspectGenerateType(TypeElement type, GenerateImmutable annotation) {
+    if (!isGenerateType(type, annotation)) {
+      error(type,
+          "Type %s annotated with @%s must be abstract class or interface (or nested static) in qualified package",
+          type.getSimpleName(),
+          GenerateImmutable.class.getSimpleName());
     }
 
-    runSourceCodeGeneration(inspectGenerateType(type), type);
-  }
+    SegmentedName segmentedName = SegmentedName.from(type.getQualifiedName());
 
-  private static boolean isGenerateType(TypeElement type) {
-    return type.getKind() == ElementKind.CLASS
-        && type.getEnclosingElement().getKind() == ElementKind.PACKAGE
-        && isAbstract(type)
-        && type.getAnnotation(GenerateImmutable.class) != null;
-  }
-
-  GenerateType inspectGenerateType(TypeElement type) {
-    GenerateImmutable annotation = type.getAnnotation(GenerateImmutable.class);
-
-    String packageFullyQualifiedName = ((PackageElement) type.getEnclosingElement()).getQualifiedName().toString();
-
-    String fullyQualifiedTypeName = type.getSimpleName().toString();
-
+    if (!processingEnv.getElementUtils().getPackageOf(type).getQualifiedName().contentEquals(segmentedName.packageName)) {
+      error(type,
+          "Non conventional package name non supported due to limitation of implementation",
+          segmentedName.packageName);
+    }
     boolean useBuilder = annotation.builder();
 
     GenerateTypes.Builder typeBuilder =
         GenerateTypes.builder()
-            .packageFullyQualifiedName(packageFullyQualifiedName)
-            .internalName(fullyQualifiedTypeName)
             .internalTypeElement(type)
             .isUseBuilder(useBuilder)
             .isGenerateCompact(hasAnnotation(type, GenerateModifiable.class));
@@ -113,6 +181,7 @@ public class Processor extends AbstractProcessor {
     }
 
     GenerateType generateType = typeBuilder.build();
+    generateType.setSegmentedName(segmentedName);
     return generateType;
   }
 
@@ -146,8 +215,8 @@ public class Processor extends AbstractProcessor {
     GenerateCheck validateAnnotation = attributeMethodCandidate.getAnnotation(GenerateCheck.class);
     if (validateAnnotation != null) {
       if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
-          && attributeMethodCandidate.getModifiers().contains(Modifier.PROTECTED)
           && attributeMethodCandidate.getParameters().isEmpty()
+          && !attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
           && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
           && !attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
           && !attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
@@ -156,7 +225,7 @@ public class Processor extends AbstractProcessor {
         error(attributeMethodCandidate,
             "Method annotated with @"
                 + GenerateCheck.class.getSimpleName()
-                + " must be protected parameter-less method and have void return type.");
+                + " must be non-private parameter-less method and have void return type.");
       }
     }
 
@@ -232,7 +301,8 @@ public class Processor extends AbstractProcessor {
     processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, String.format(message, parameters), type);
   }
 
-  private void runSourceCodeGeneration(GenerateType generateType, TypeElement type) {
+  private void runSourceCodeGeneration(GenerateType generateType) {
+    TypeElement type = generateType.internalTypeElement();
     try {
       invoker.executeModuleMain(
           GENERATE_MAIN_JS,

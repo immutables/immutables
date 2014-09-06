@@ -16,6 +16,7 @@
 package org.immutables.generate.internal.processing;
 
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -46,26 +47,83 @@ import org.immutables.annotation.GenerateRepository;
 
 public abstract class GenerateType extends TypeIntrospectionBase {
 
+  private SegmentedName segmentedName;
+
+  public SegmentedName getSegmentedName() {
+    return segmentedName;
+  }
+
+  public void setSegmentedName(SegmentedName segmentedName) {
+    this.segmentedName = segmentedName;
+  }
+
+  public String getSimpleName() {
+    return segmentedName.simpleName;
+  }
+
+  private boolean emptyNesting;
+
+  public boolean isEmptyNesting() {
+    return emptyNesting;
+  }
+
+  public void setEmptyNesting(boolean emptyNesting) {
+    this.emptyNesting = emptyNesting;
+  }
+
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
    * and long parameters).
    */
   private static final int SOME_RANDOM_LIMIT = 100;
 
+  private GenerateType nestingParent;
+
+  public void setNestingParent(GenerateType nestingParent) {
+    this.nestingParent = nestingParent;
+  }
+
+  private List<GenerateType> nestedChildren;
+
+  public void setNestedChildren(List<GenerateType> nestedChildren) {
+    this.nestedChildren = nestedChildren;
+    for (GenerateType child : nestedChildren) {
+      child.setNestingParent(this);
+    }
+  }
+
+  public List<GenerateType> getNestedChildren() {
+    return nestedChildren;
+  }
+
+  public boolean isHasNestingParent() {
+    return nestingParent != null;
+  }
+
+  public boolean isHasNestedChildren() {
+    return nestedChildren != null;
+  }
+
   @Nullable
   private String validationMethodName;
-
-  private Element umbrellaElement;
 
   @Nullable
   public String getValidationMethodName() {
     return validationMethodName;
   }
 
-  public <T extends Annotation> T getAnnotationFromThisOrUmbrellaElement(Class<T> annotationType) {
+  public boolean isIface() {
+    return internalTypeElement().getKind() == ElementKind.INTERFACE;
+  }
+
+  public String getInheritsKeyword() {
+    return isIface() ? "implements" : "extends";
+  }
+
+  public <T extends Annotation> T getAnnotationFromThisOrEnclosingElement(Class<T> annotationType) {
     T annotation = internalTypeElement().getAnnotation(annotationType);
-    if (annotation == null && umbrellaElement != null) {
-      annotation = umbrellaElement.getAnnotation(annotationType);
+    if (annotation == null && nestingParent != null) {
+      annotation = nestingParent.internalTypeElement().getAnnotation(annotationType);
     }
     return annotation;
   }
@@ -74,20 +132,20 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return internalTypeElement().getAnnotation(GenerateGetters.class) != null;
   }
 
-  public void setUmbrellaElement(Element umbrellaElement) {
-    this.umbrellaElement = umbrellaElement;
-  }
-
   public void setValidationMethodName(@Nullable String validationMethodName) {
     this.validationMethodName = validationMethodName;
   }
 
   public String getPackageName() {
-    return packageFullyQualifiedName();
+    return segmentedName.packageName;
   }
 
   public String getName() {
-    return internalName();
+    return segmentedName.referenceClassName;
+  }
+
+  public String getDefName() {
+    return isHasNestingParent() ? segmentedName.simpleName : ("Immutable" + segmentedName.simpleName);
   }
 
   public String getAccessPrefix() {
@@ -108,7 +166,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   private GenerateImmutable getGenerataeImmutableProperties() {
     if (immutableProperties == null) {
-      immutableProperties = getAnnotationFromThisOrUmbrellaElement(GenerateImmutable.class);
+      immutableProperties = internalTypeElement().getAnnotation(GenerateImmutable.class);
     }
     return immutableProperties;
   }
@@ -133,7 +191,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateMarshaled() {
-    return (getAnnotationFromThisOrUmbrellaElement(GenerateMarshaler.class) != null) || isGenerateDocument();
+    return (getAnnotationFromThisOrEnclosingElement(GenerateMarshaler.class) != null) || isGenerateDocument();
   }
 
   public boolean isGenerateDocument() {
@@ -307,6 +365,14 @@ public abstract class GenerateType extends TypeIntrospectionBase {
         .toSortedList(Ordering.natural().onResultOf(ToAlignOrder.FUNCTION));
   }
 
+  private enum NonAuxiliary implements Predicate<GenerateAttribute> {
+    PREDICATE;
+    @Override
+    public boolean apply(GenerateAttribute input) {
+      return !input.isAuxiliary();
+    }
+  }
+
   private enum ToConstructorArgumentOrder implements Function<GenerateAttribute, Integer> {
     FUNCTION;
 
@@ -367,6 +433,12 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     return implementedAttributes;
   }
 
+  public List<GenerateAttribute> getEquivalenceAttributes() {
+    return FluentIterable.from(getImplementedAttributes())
+        .filter(NonAuxiliary.PREDICATE)
+        .toList();
+  }
+
   public List<GenerateAttribute> getHelperAttributes() {
     return FluentIterable.from(attributes())
         .filter(Predicates.or(
@@ -379,10 +451,6 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   protected TypeMirror internalTypeMirror() {
     return internalTypeElement().asType();
   }
-
-  public abstract String packageFullyQualifiedName();
-
-  public abstract String internalName();
 
   public abstract TypeElement internalTypeElement();
 

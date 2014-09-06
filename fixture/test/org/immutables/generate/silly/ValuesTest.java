@@ -26,6 +26,20 @@ import static org.immutables.check.Checkers.*;
 public class ValuesTest {
 
   @Test
+  public void ifaceValue() {
+    check(ImmutableIfaceValue.builder().getNumber(1).build()).is(ImmutableIfaceValue.of(1));
+  }
+
+  @Test
+  public void auxiliary() {
+    ImmutableIfaceValue includesAuxiliary = ImmutableIfaceValue.builder().getNumber(1).addAuxiliary("x").build();
+    ImmutableIfaceValue excludesAuxiliary = ImmutableIfaceValue.of(1);
+    check(includesAuxiliary).is(excludesAuxiliary);
+    check(includesAuxiliary.hashCode()).is(excludesAuxiliary.hashCode());
+    check(includesAuxiliary).asString().not().contains("auxiliary");
+  }
+
+  @Test
   public void builderInheritence() {
     check(ImmutableSillyExtendedBuilder.builder().base);
   }

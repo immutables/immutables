@@ -31,14 +31,11 @@ import static com.google.common.base.Preconditions.*;
  * Use static static factory methods to create instances: {@code of()} or {@code builder()}.
  */
 public final class GenerateTypes {
-  private GenerateTypes() {
-  }
+  private GenerateTypes() {}
 
   @Immutable
   private static final class ImmutableGenerateType
       extends GenerateType {
-    private final String packageFullyQualifiedName;
-    private final String internalName;
     private final TypeElement internalTypeElement;
     private final List<GenerateAttribute> attributes;
     private final boolean isUseBuilder;
@@ -48,8 +45,6 @@ public final class GenerateTypes {
     private final boolean isToStringDefined;
 
     ImmutableGenerateType(Builder builder) {
-      this.packageFullyQualifiedName = checkNotNull(builder.packageFullyQualifiedName);
-      this.internalName = checkNotNull(builder.internalName);
       this.internalTypeElement = checkNotNull(builder.internalTypeElement);
       this.attributes = builder.attributesBuilder.build();
       this.isUseBuilder = builder.isUseBuilderIsSet
@@ -67,16 +62,6 @@ public final class GenerateTypes {
       this.isToStringDefined = builder.isToStringDefinedIsSet
           ? builder.isToStringDefined
           : super.isToStringDefined();
-    }
-
-    @Override
-    public String packageFullyQualifiedName() {
-      return packageFullyQualifiedName;
-    }
-
-    @Override
-    public String internalName() {
-      return internalName;
     }
 
     @Override
@@ -122,8 +107,6 @@ public final class GenerateTypes {
 
     private boolean equalTo(ImmutableGenerateType another) {
       return true
-          && packageFullyQualifiedName.equals(another.packageFullyQualifiedName)
-          && internalName.equals(another.internalName)
           && internalTypeElement.equals(another.internalTypeElement)
           && attributes.equals(another.attributes)
           && isUseBuilder == another.isUseBuilder
@@ -136,8 +119,6 @@ public final class GenerateTypes {
     @Override
     public int hashCode() {
       int h = 31;
-      h = h * 17 + packageFullyQualifiedName.hashCode();
-      h = h * 17 + internalName.hashCode();
       h = h * 17 + internalTypeElement.hashCode();
       h = h * 17 + attributes.hashCode();
       h = h * 17 + Booleans.hashCode(isUseBuilder);
@@ -151,8 +132,6 @@ public final class GenerateTypes {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("GenerateType")
-          .add("packageFullyQualifiedName", packageFullyQualifiedName)
-          .add("internalName", internalName)
           .add("internalTypeElement", internalTypeElement)
           .add("attributes", attributes)
           .add("isUseBuilder", isUseBuilder)
@@ -185,10 +164,6 @@ public final class GenerateTypes {
     @Nullable
     private String validationMethodName;
     @Nullable
-    private String packageFullyQualifiedName;
-    @Nullable
-    private String internalName;
-    @Nullable
     private TypeElement internalTypeElement;
     private ImmutableList.Builder<GenerateAttribute> attributesBuilder =
         ImmutableList.builder();
@@ -203,8 +178,7 @@ public final class GenerateTypes {
     private boolean isToStringDefined;
     private boolean isToStringDefinedIsSet;
 
-    private Builder() {
-    }
+    private Builder() {}
 
     /**
      * Fill builder with values from provided {@link GenerateType} instance.
@@ -213,8 +187,6 @@ public final class GenerateTypes {
      */
     public Builder copy(GenerateType fromInstance) {
       checkNotNull(fromInstance);
-      packageFullyQualifiedName(fromInstance.packageFullyQualifiedName());
-      internalName(fromInstance.internalName());
       internalTypeElement(fromInstance.internalTypeElement());
       addAttributes(fromInstance.attributes());
       isUseBuilder(fromInstance.isUseBuilder());
@@ -227,28 +199,6 @@ public final class GenerateTypes {
 
     public Builder validationMethodName(String validationMethodName) {
       this.validationMethodName = validationMethodName;
-      return this;
-    }
-
-    /**
-     * Initializes value for {@link GenerateType#packageFullyQualifiedName()}.
-     * @param packageFullyQualifiedName
-     *          value for packageFullyQualifiedName, not {@code null}
-     * @return {@code this} builder
-     */
-    public Builder packageFullyQualifiedName(String packageFullyQualifiedName) {
-      this.packageFullyQualifiedName = checkNotNull(packageFullyQualifiedName);
-      return this;
-    }
-
-    /**
-     * Initializes value for {@link GenerateType#internalName()}.
-     * @param internalName
-     *          value for internalName, not {@code null}
-     * @return {@code this} builder
-     */
-    public Builder internalName(String internalName) {
-      this.internalName = checkNotNull(internalName);
       return this;
     }
 
@@ -372,10 +322,7 @@ public final class GenerateTypes {
      * @return immutable instance of GenerateType
      */
     public GenerateType build() {
-      checkState(packageFullyQualifiedName != null, REQUIRED_ATTRIBUTE, "packageFullyQualifiedName");
-      checkState(internalName != null, REQUIRED_ATTRIBUTE, "internalName");
       checkState(internalTypeElement != null, REQUIRED_ATTRIBUTE, "internalTypeElement");
-
       ImmutableGenerateType type = new ImmutableGenerateType(this);
       type.setValidationMethodName(validationMethodName);
       return type;

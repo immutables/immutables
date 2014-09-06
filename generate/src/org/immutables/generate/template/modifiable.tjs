@@ -16,7 +16,7 @@ package `type.packageName`;
 @javax.annotation.Generated({"modifiable.tjs", "`type.name`"})
 @javax.annotation.concurrent.NotThreadSafe
 `type.accessPrefix`final class Modifiable`type.name`
-    extends `type.name` {
+    `type.inheritsKeyword` `type.name` {
   private Modifiable`type.name`() {
   }
 [apply generateModifiable(type)]  
@@ -39,7 +39,7 @@ package `type.packageName`;
   }
 [if(type.useBuilder)]
 
-  public `type.name` toImmutable`type.name`() {
+  public Immutable`type.name` toImmutable`type.name`() {
     return Immutable`type.name`.builder()
     [foreach (let a in type.settableAttributes)]
     [if (a.collectionType)]

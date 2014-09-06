@@ -1,9 +1,38 @@
 [requirejs support('org/immutables/generate/template/support.js')]
 
-[template generateImmutableType(type)]
+[template generateImmutableNestingType(type)]
 package `type.packageName`;
 
 // Generated imports
+
+/**
+ * {@code `type.defName`} contains immutable implementation classes generated from
+ * abstract value classes defined as nested inside {@link `type.name`}.
+[foreach (let v in type.nestedChildren)]
+ * @see #`v.defName`
+[/foreach]
+ */
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"immutable.tjs", "`type.name`"})
+`type.accessPrefix`final class `type.defName` {
+  private `type.defName`() {}
+ 
+[foreach (let v in type.nestedChildren)]
+  [apply generateImmutableType(v, 'static ')]
+[/foreach]
+}
+[/template]
+
+[template generateImmutableSimpleType(type)]
+package `type.packageName`;
+
+// Generated imports
+
+[apply generateImmutableType(type)]
+[/template]
+
+[template generateImmutableType(type, staticModifier)]
 
 [let (setters = type.settableAttributes)]
 /**
@@ -16,26 +45,26 @@ package `type.packageName`;
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"immutable.tjs", "`type.name`"})
 @javax.annotation.concurrent.Immutable
-`type.accessPrefix`final class Immutable`type.name`
-    extends `type.name` {
+`type.accessPrefix``staticModifier`final class `type.defName`
+    `type.inheritsKeyword` `type.name` {
 [if (type.useSingleton)]
   
-  private static final Immutable`type.name` INSTANCE = checkPreconditions(new Immutable`type.name`());
+  private static final `type.defName` INSTANCE = checkPreconditions(new `type.defName`());
   
   /**
-   * Returns default immutable singleton value of `type.name` 
+   * Returns default immutable singleton value of `type.defName` 
    * @return immutable instance of `type.name` 
    */
-  public static Immutable`type.name` of() {
+  public static `type.defName` of() {
     return INSTANCE;
   }
 [/if]
 [if (type.useInterned || type.generateOrdinalValue)]
 
   private static class InternProxy {
-    final Immutable`type.name` instance;
+    final `type.defName` instance;
     
-    InternProxy(Immutable`type.name` instance) {
+    InternProxy(`type.defName` instance) {
       this.instance = instance;
     }
 
@@ -54,7 +83,7 @@ package `type.packageName`;
    * Copy constructor used for interning of objects implementing
    * {@link org.immutables.common.collect.OrdinalValue}
    */
-  private Immutable`type.name`(Immutable`type.name` instance, int ordinal) {
+  private `type.defName`(`type.defName` instance, int ordinal) {
   [foreach (let v in type.implementedAttributes)]
     this.`v.name` = instance.`v.name`;
   [/foreach]
@@ -66,7 +95,7 @@ package `type.packageName`;
   }
 
   /**
-   * Instances of {@code Immutable`type.name`} will be interned and registered with the domain.
+   * Instances of {@code `type.defName`} will be interned and registered with the domain.
    */
   public static final class Domain
       extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, `type.name`> {
@@ -78,14 +107,14 @@ package `type.packageName`;
     }
       
     protected `type.name` extractValue(InternProxy proxy, int ordinal) {
-      return new Immutable`type.name`(proxy.instance, ordinal);
+      return new `type.defName`(proxy.instance, ordinal);
     }
     @Override
     public String toString() {
       if (this == INSTANCE) {
-        return "Immutable`type.name`.Domain.get()";
+        return "`type.defName`.Domain.get()";
       }
-      return com.google.common.base.MoreObjects.toStringHelper("Immutable`type.name`.Domain")
+      return com.google.common.base.MoreObjects.toStringHelper("`type.defName`.Domain")
         .add("length", length())
         .toString();
     }
@@ -105,14 +134,14 @@ package `type.packageName`;
     return domain;
   }
   
-  private static Immutable`type.name` intern(Immutable`type.name` instance) {
-    return (Immutable`type.name`) instance.domain.internOrdinal(new InternProxy(instance));
+  private static `type.defName` intern(`type.defName` instance) {
+    return (`type.defName`) instance.domain.internOrdinal(new InternProxy(instance));
   }
 [elseif (type.useInterned)]
 
   private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
   
-  private static Immutable`type.name` intern(Immutable`type.name` instance) {
+  private static `type.defName` intern(`type.defName` instance) {
     return INTERNER.intern(new InternProxy(instance)).instance;
   }
 [/if]
@@ -125,12 +154,12 @@ package `type.packageName`;
 [/foreach]
    * @return immutable `type.name` instance
    */
-  public static Immutable`type.name` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
-    return checkPreconditions(new Immutable`type.name`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
+  public static `type.defName` of(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
+    return checkPreconditions(new `type.defName`(` [ v.name for each (v in type.constructorArguments) ].join(', ') `));
   }
 [/if]
 
-  private static Immutable`type.name` checkPreconditions(Immutable`type.name` instance) {
+  private static `type.defName` checkPreconditions(`type.defName` instance) {
 [if (type.validationMethodName)]
     instance.`type.validationMethodName`();
 [/if]
@@ -152,6 +181,11 @@ package `type.packageName`;
   [apply generateBuilder(type)]
 [/if]
 [apply generateLazyValues(type)]
+[if (type.hasNestedChildren)]
+[foreach (let v in type.nestedChildren)]
+  [apply generateImmutableType(v, 'static ')]
+[/foreach]
+[/if]
 }
 [/let]
 [/template]
@@ -369,7 +403,7 @@ package `type.packageName`;
    * Builds new {@link `type.name`}.
    * @return immutable instance of `type.name`
    */
-  public Immutable`type.name` build() {
+  public `type.defName` build() {
     [foreach (let v in setters)]
   [if (!v.generateDefault)]
     [if (v.primitive)]
@@ -379,7 +413,7 @@ package `type.packageName`;
     [/if]
   [/if]
     [/foreach]
-    return checkPreconditions(new Immutable`type.name`(this));
+    return checkPreconditions(new `type.defName`(this));
   }
 }
 [/let]
@@ -425,14 +459,14 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [if (type.useSingleton)]
 
-  private Immutable`type.name`() {
+  private `type.defName`() {
     [apply generateConstructorDefaultAttibutes(type, type.implementedAttributes)]
     [apply generateAfterConstruction(type)]
   }
 [/if]
 [if (type.useConstructor)]
 
-  private Immutable`type.name`(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
+  private `type.defName`(`[ (v.type + ' ' + v.name) for each (v in type.constructorArguments) ].join(', ') `) {
 [foreach (let v in type.constructorArguments)]
 [let (n = v.name)]
   [if (v.collectionType || v.mapType)]
@@ -450,7 +484,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [if (type.useBuilder)]
 
-  private Immutable`type.name`(Builder builder) {
+  private `type.defName`(Builder builder) {
 [foreach (let v in getters)]
 [if (!v.generateDerived)]
 [let (n = v.name)]
@@ -487,8 +521,8 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [/if]
 [if (type.useCopyMethods)]
 
-  private Immutable`type.name`(
-      Immutable`type.name` copiedObjectForConstuctorDisambiguation` (getters.length ? ',' : '') `
+  private `type.defName`(
+      `type.defName` copiedObjectForConstuctorDisambiguation` (getters.length ? ',' : '') `
       `[ (v.implementationType + ' ' + v.name) for each (v in getters) ].join(', ') `) {
   [foreach (let v in getters)]
     this.`v.name` = `v.name`;
@@ -535,7 +569,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods(type)]
-[let (getters = type.implementedAttributes)]
+[let (getters = type.equivalenceAttributes)]
 [if (!type.equalToDefined)]
 
 @Override
@@ -544,12 +578,12 @@ public boolean equals(Object another) {
   return this == another;
   [else]
   return this == another
-      || (another instanceof Immutable`type.name` && equalTo((Immutable`type.name`) another));
+      || (another instanceof `type.defName` && equalTo((`type.defName`) another));
   [/if]
 }
 [/if]
 
-private boolean equalTo(Immutable`type.name` another) {
+private boolean equalTo(`type.defName` another) {
   return true`[ '\n          && ' + support.compareFields(v) for each (v in getters) ].join('')`;
 }
 
@@ -617,7 +651,7 @@ this`[''].concat(parameters).join(',\n' + __.indent)`));
 [/template]
 
 [template generateReturnCopyContextual(type, getters, modifiedValueName)]
-return checkPreconditions(new Immutable`type.name`(
+return checkPreconditions(new `type.defName`(
     [apply generateReturnCopyContextualInternal(getters, modifiedValueName)]
 [/template]
 
@@ -632,7 +666,7 @@ return checkPreconditions(new Immutable`type.name`(
  * @param `v.name`Elements iterable of `v.name` elements to add
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`) {
   if (this.`v.name` == `v.name`) {
     return this;
   }
@@ -646,7 +680,7 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(Iterable<`v.consumedElem
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`) {
   `v.implementationType` `v.name`ModifiedValue = Optional.of(`v.name`);
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
@@ -657,7 +691,7 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(`v.unwrappedElementType`
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> `v.name`) {
   if (this.`v.name` == `v.name`) {
     return this;
   }
@@ -674,7 +708,7 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(Optional<`v.wrappedEleme
  * @param `v.name`Entries to be added to `v.name` map
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`) {
   if (this.`v.name` == `v.name`) {
     return this;
   }
@@ -694,7 +728,7 @@ public Immutable`type.name` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? ex
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public Immutable`type.name` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
     [if (!v.floatType)]
   if (this.`v.name` == `v.name`) {
     return this;
