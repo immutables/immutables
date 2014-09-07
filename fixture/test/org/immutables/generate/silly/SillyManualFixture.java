@@ -81,7 +81,7 @@ public final class SillyManualFixture {
     return baos.toByteArray();
   }
 
-  public static void main(String... args) {
+  public static void main55(String... args) {
 
     RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
 
@@ -96,7 +96,7 @@ public final class SillyManualFixture {
     System.out.println(unchecked);
   }
 
-  public static void main44(String... args) throws Exception {
+  public static void main77(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     MongoClient mongo = new MongoClient();
@@ -152,7 +152,7 @@ public final class SillyManualFixture {
     TimeMeasure.seconds(2).sleep();
   }
 
-  public static void main33(String... args) throws Exception {
+  public static void main(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     MongoClient mongo = new MongoClient();
@@ -181,7 +181,7 @@ public final class SillyManualFixture {
             .val("455")
             .putPayload("CC", 5)
             .putPayload("DD", 5)
-            .build()));
+            .build())).getUnchecked();
 
     TimeMeasure.seconds(1).sleep();
     List<SillyEntity> unchecked =
