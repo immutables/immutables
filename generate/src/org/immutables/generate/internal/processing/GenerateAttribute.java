@@ -22,8 +22,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -537,8 +537,8 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return name.packageName + "." + name.simpleName + "Marshaler";
   }
 
-  Set<String> getMarshaledImportRoutines() {
-    Set<String> imports = Sets.newLinkedHashSetWithExpectedSize(2);
+  Collection<String> getMarshaledImportRoutines() {
+    Collection<String> imports = Lists.newArrayListWithExpectedSize(2);
     if (isMarshaledElement()) {
       String typeName = isContainerType()
           ? getUnwrappedElementType()
@@ -553,8 +553,8 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return imports;
   }
 
-  Set<String> getSpecialMarshaledTypes() {
-    Set<String> marshaledTypeSet = Sets.newLinkedHashSetWithExpectedSize(2);
+  Collection<String> getSpecialMarshaledTypes() {
+    Collection<String> marshaledTypeSet = Lists.newArrayListWithExpectedSize(2);
     if (isSpecialMarshaledElement()) {
       String typeName = isContainerType()
           ? getUnwrappedElementType()
@@ -568,15 +568,10 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     return marshaledTypeSet;
   }
 
-  static void addIfSpecialMarshalable(Set<String> marshaledTypes, String typeName) {
+  static void addIfSpecialMarshalable(Collection<String> marshaledTypes, String typeName) {
     if (!isRegularMashalableType(typeName)) {
       marshaledTypes.add(typeName);
     }
-  }
-
-  public static String extractSimpleClassName(String className) {
-
-    return className;
   }
 
   public boolean isAuxiliary() {
