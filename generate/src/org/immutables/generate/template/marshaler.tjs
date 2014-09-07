@@ -1,5 +1,7 @@
 [template generateMarshaler(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 import com.fasterxml.jackson.core.*;
 import javax.annotation.*;
@@ -45,7 +47,7 @@ import org.immutables.common.marshal.Marshaler;
       @WillNotClose JsonParser parser,
       @Nullable `type.name` nullSample,
       Class<?> expectedClass) throws java.io.IOException {
-    return Internal`type.simpleName`Marshaling.unmarshal`type.simpleName`(parser);
+    return _Marshaling_`type.simpleName`.unmarshal`type.simpleName`(parser);
   }
   
   /**
@@ -58,27 +60,27 @@ import org.immutables.common.marshal.Marshaler;
   public static void marshal(
       @WillNotClose JsonGenerator generator,
       `type.name` instance) throws IOException {
-    Internal`type.simpleName`Marshaling.marshal`type.simpleName`(generator, instance);
+    _Marshaling_`type.simpleName`.marshal`type.simpleName`(generator, instance);
   }
 
   @Override
   public `type.name` unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
-    return Internal`type.simpleName`Marshaling.unmarshal`type.simpleName`(parser);
+    return _Marshaling_`type.simpleName`.unmarshal`type.simpleName`(parser);
   }
 
   @Override
   public void marshalInstance(@WillNotClose JsonGenerator generator, `type.name` instance) throws IOException {
-    Internal`type.simpleName`Marshaling.marshal`type.simpleName`(generator, instance);
+    _Marshaling_`type.simpleName`.marshal`type.simpleName`(generator, instance);
   }
 
   @Override
   public Iterable<`type.name`> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
-    return Internal`type.simpleName`Marshaling.unmarshalIterableOf`type.simpleName`(parser);
+    return _Marshaling_`type.simpleName`.unmarshalIterableOf`type.simpleName`(parser);
   }
 
   @Override
   public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<`type.name`> instance) throws IOException {
-    Internal`type.simpleName`Marshaling.marshalIterableOf`type.simpleName`(generator, instance);
+    _Marshaling_`type.simpleName`.marshalIterableOf`type.simpleName`(generator, instance);
   }
 
   @Override
@@ -94,7 +96,9 @@ import org.immutables.common.marshal.Marshaler;
 [/template]
 
 [template generateMarshaling(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 import com.fasterxml.jackson.core.*;
 import javax.annotation.*;
@@ -111,8 +115,8 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 @SuppressWarnings("all")
 @Generated({"marshal.tjs", "`type.name`"})
 @ParametersAreNonnullByDefault
-final class Internal`type.simpleName`Marshaling {
-  private Internal`type.simpleName`Marshaling() {
+final class _Marshaling_`type.simpleName` {
+  private _Marshaling_`type.simpleName`() {
   }
   [apply generateMarshalingMethods(type)]
   [apply generateUnmarshalingMethods(type)]

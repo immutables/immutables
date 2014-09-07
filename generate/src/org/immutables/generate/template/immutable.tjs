@@ -1,7 +1,9 @@
 [requirejs support('org/immutables/generate/template/support.js')]
 
 [template generateImmutableNestingType(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 // Generated imports
 
@@ -17,7 +19,6 @@ package `type.packageName`;
 @javax.annotation.Generated({"immutable.tjs", "`type.name`"})
 `type.accessPrefix`final class `type.defName` {
   private `type.defName`() {}
- 
 [foreach (let v in type.nestedChildren)]
   [apply generateImmutableType(v, 'static ')]
 [/foreach]
@@ -25,10 +26,11 @@ package `type.packageName`;
 [/template]
 
 [template generateImmutableSimpleType(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 // Generated imports
-
 [apply generateImmutableType(type)]
 [/template]
 
@@ -522,7 +524,7 @@ this.`n` = com.google.common.base.Preconditions.checkNotNull(super.`n`());
 [if (type.useCopyMethods)]
 
   private `type.defName`(
-      `type.defName` copiedObjectForConstuctorDisambiguation` (getters.length ? ',' : '') `
+      `type.defName` copiedInstance` (getters.length ? ',' : '') `
       `[ (v.implementationType + ' ' + v.name) for each (v in getters) ].join(', ') `) {
   [foreach (let v in getters)]
     this.`v.name` = `v.name`;
@@ -545,19 +547,7 @@ public `v.implementationType` `v.name`() {
   return `v.name`;
 }
   [/foreach]
-  [if(type.generateGetters)]
-  [foreach (let v in type.allAccessibleAttributes)]
-/**
- * Gets value of {@link `type.name`#`v.name`()} attribute.
- * @param `v.name` value for `v.name`, non-null
- * @return {@code this} builder for chained invocation
- */
-@Override
-public `v.implementationType` get`v.name.toUpperFirst()`() {
-  return `v.name`();
-}
-  [/foreach]
-  [/if]
+[apply generateGetters(type)]
   [if (type.generateOrdinalValue)]
 
 @Override
@@ -615,18 +605,22 @@ public int hashCode() {
   [/if]
 }
 [/if]
+[/let]
+[apply generateToString(type)]
+[/template]
+
+[template generateToString(type)]
 [if (!type.toStringDefined)]
 
 @Override
 public String toString() {
-  return com.google.common.base.MoreObjects.toStringHelper("`type.name`")
-  [foreach (let v in getters)]
-      .add("`v.name`", `v.name`)
+  return com.google.common.base.MoreObjects.toStringHelper(this)
+  [foreach (let v in type.equivalenceAttributes)]
+      .add("`v.name`", `v.name`())
   [/foreach]
       .toString();
 }
 [/if]
-[/let]
 [/template]
 
 [template generateAfterConstruction(type, usingBuilder)]
@@ -703,7 +697,7 @@ public `type.defName` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType
 
 /**
  * Copy current immutable object by replacing {@link `type.name`#`v.name`()} map with specified map.
- * Nulls are not permitted as keys of values.
+ * Nulls are not permitted as keys or values.
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param `v.name`Entries to be added to `v.name` map
  * @return modified copy of the {@code this} object
@@ -744,4 +738,33 @@ public `type.defName` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
     [/if]
   [/foreach]
 [/let]
+[/template]
+
+[template generateGetters(type)]
+  [if(type.generateGetters)]
+    [foreach (let v in type.allAccessibleAttributes)]
+
+/**
+ * Gets the value of {@link `type.name`#`v.name`()} attribute.
+[if (v.optionalType)]
+ * @return value of `v.name` if present, {@code null} if absent
+[else]
+ * @return value for `v.name`, non-null
+[/if]
+ */
+  [foreach (let a in v.annotations)]
+`a`
+  [/foreach]
+  [if (v.optionalType)]
+@javax.annotation.Nullable
+public `v.wrappedElementType` get`v.name.toUpperFirst()`() {
+  return `v.name`().orNull();
+}
+  [else]
+public `v.implementationType` `v.type == 'boolean'?'is':'get'``v.name.toUpperFirst()`() {
+  return `v.name`();
+}
+  [/if]
+    [/foreach]
+  [/if]
 [/template]

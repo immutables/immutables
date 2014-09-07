@@ -19,11 +19,31 @@ import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
+import javax.ws.rs.POST;
 import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.junit.Test;
+import simple.GetterAnnotation;
 import static org.immutables.check.Checkers.*;
 
 public class ValuesTest {
+
+  @Test
+  public void generateGetters() throws Exception {
+    ImmutableGetters g = ImmutableGetters.builder().ab(0).cd("").ef(true).build();
+    check(g.getAb()).is(0);
+    check(g.getCd()).is("");
+    check(g.isEf());
+
+    ModifiableGetters mg = ModifiableGetters.create().copy(g);
+    check(g.getAb()).is(0);
+    check(g.getCd()).is("");
+    check(g.isEf());
+    
+    check(ImmutableGetterEncloser.builder().build().getOptional()).isNull();
+
+    check(mg.getClass().getMethod("getCd").isAnnotationPresent(POST.class));
+    check(mg.getClass().getMethod("isEf").getAnnotation(GetterAnnotation.class).value()).hasSize(2);
+  }
 
   @Test
   public void ifaceValue() {

@@ -1,35 +1,38 @@
 [requirejs support('org/immutables/generate/template/support.js')]
+[require immutable('org/immutables/generate/template/immutable.tjs')]
 
 [template generateModifiableType(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 // Generated imports
 
 /**
  * Modifiable implementation of `type.name`.
  * <p>
- * Use static static factory method {@link Modifiable`type.name`#create()} to create new instances.
- * @see org.immutables.annotation.GeneratePackedBits
+ * Use static static factory method {@link Modifiable`type.simpleName`#create()} to create new instances.
  */
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"modifiable.tjs", "`type.name`"})
 @javax.annotation.concurrent.NotThreadSafe
-`type.accessPrefix`final class Modifiable`type.name`
+`type.accessPrefix`final class Modifiable`type.simpleName`
     `type.inheritsKeyword` `type.name` {
-  private Modifiable`type.name`() {
+  private Modifiable`type.simpleName`() {
   }
 [apply generateModifiable(type)]  
 }
 [/template]
 
 [template generateModifiable(type)]
+
   /**
    * Creates new modifiable instance of `type.name`.
    * @return new `type.name`.
    */
-  public static Modifiable`type.name` create() {
-    return new Modifiable`type.name`();
+  public static Modifiable`type.simpleName` create() {
+    return new Modifiable`type.simpleName`();
   }
 
   private static void checkArgumentRange(long value, long min, long max, String message) {
@@ -39,18 +42,27 @@ package `type.packageName`;
   }
 [if(type.useBuilder)]
 
-  public Immutable`type.name` toImmutable`type.name`() {
-    return Immutable`type.name`.builder()
-    [foreach (let a in type.settableAttributes)]
-    [if (a.collectionType)]
-        .add`a.name.toUpperFirst()`(`a.name`())
-    [else]
-        .`a.name`(`a.name`())
-    [/if]
-    [/foreach]
-        .build();
+  /**
+   * Converts to immutable represenation of the same value.
+   * @return `type.immutableReferenceName` instance
+   */
+  public `type.immutableReferenceName` toImmutable() {
+    return `type.immutableReferenceName`.builder().copy(this).build();
   }
 [/if]
+  [apply immutable.generateToString(type)]
+
+  /**
+   * Copies attribute values from provided instance
+   * @param instance instance to copy values
+   * @return {@code this} for chained invocation
+   */
+  public Modifiable`type.simpleName` copy(`type.name` instance) {
+  [foreach (let a in type.implementedAttributes)]
+    set`a.name.toUpperFirst()`(instance.`a.name`());
+  [/foreach]
+    return this;
+  }
   [apply attributes(type)]
 [/template]
 
@@ -60,12 +72,22 @@ package `type.packageName`;
 [apply simpleAttribute(type, a)]
 [/if]
 [/foreach]
+[apply immutable.generateGetters(type)]
+[apply generateAligned(type)]
+[/template]
 
+[template generateAligned(type)]
 [let (cx = support.newLongFieldsAlignment())]
 [foreach (let a in type.alignedAttributes)]
 [apply alignedAttribute(type, a, cx)]
 [/foreach]
 [let (longCount = cx.index)]
+[if (type.alignedAttributes.length > 0)]
+
+/**
+ * Number of longs used to store packed content.
+ */
+public static final int PACKED_LONG_SIZE = `longCount + 1`;
 
 public void copyAlignedFrom(
 #for (let i = 0; i <= longCount; i++) {
@@ -106,8 +128,7 @@ public void copyAlignedFrom(java.nio.LongBuffer data, int offset) {
   _`i` = data.get(offset++);
 #}
 }
-
-public Modifiable`type.name` copyFrom(Modifiable`type.name` instance) {
+public Modifiable`type.simpleName` copy(Modifiable`type.simpleName` instance) {
 [foreach (let a in type.implementedAttributes)]
 [if (!a.aligned)]
   this.`a.name` = instance.`a.name`;
@@ -118,8 +139,7 @@ public Modifiable`type.name` copyFrom(Modifiable`type.name` instance) {
 #}
   return this;
 }
-
-public static final int SIZE = `longCount + 1`;
+[/if]
 [/let]
 [/let]
 [/template]
@@ -141,7 +161,7 @@ private static final long `constantBase`_INVERSE_MASK = ~`constantBase`_OFFSET_M
  * @param `a.name` new value for {@code `a.name`} attribute
  * @return {@code this} for chained invocation
  */
-public Modifiable`type.name` set`a.name.toUpperFirst()`(boolean `a.name`) {
+public Modifiable`type.simpleName` set`a.name.toUpperFirst()`(boolean `a.name`) {
   if (`a.name`) {
     _`cx.index` |= `constantBase`_OFFSET_MASK;
   } else {
@@ -168,7 +188,7 @@ private static final String `constantBase`_RANGE_VIOLATION = "`a.name` = %s, out
  * @param `a.name` new value for {@code `a.name`} attribute
  * @return {@code this} for chained invocation
  */
-public Modifiable`type.name` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
+public Modifiable`type.simpleName` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
   checkArgumentRange(`a.name`, `constantBase`_MIN_VALUE, `constantBase`_MAX_VALUE, `constantBase`_RANGE_VIOLATION);
   _`cx.index` &= `constantBase`_INVERSE_MASK;
   _`cx.index` |= ((`a.name` - `constantBase`_MIN_VALUE) << `constantBase`_OFFSET) & `constantBase`_OFFSET_MASK;
@@ -196,7 +216,7 @@ private `a.type` `a.name`;
  * @param `a.name` new value for {@code `a.name`} attribute
  * @return {@code this} for chained invocation
  */
-public Modifiable`type.name` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
+public Modifiable`type.simpleName` set`a.name.toUpperFirst()`(`a.type` `a.name`) {
   this.`a.name` = `a.name`;
   return this;
 }

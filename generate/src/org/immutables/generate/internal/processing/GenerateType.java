@@ -45,6 +45,11 @@ import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
 
+/**
+ * DISCLAIMER: ALL THIS LOGIC IS A PIECE OF CRAP THAT ACCUMULATED OVER TIME.
+ * QUALITY OF RESULTED GENERATED CLASSES ALWAYS WAS HIGHEST PRIORITY
+ * BUT MODIFIABILITY SUFFERS, SO NEW VERSION WILL REIMPLEMENT IT FROM SCRATCH.
+ */
 public abstract class GenerateType extends TypeIntrospectionBase {
 
   private SegmentedName segmentedName;
@@ -69,6 +74,10 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public void setEmptyNesting(boolean emptyNesting) {
     this.emptyNesting = emptyNesting;
+  }
+
+  public String getImmutableReferenceName() {
+    return "Immutable" + (isHasNestingParent() ? getName() : getSimpleName());
   }
 
   /**
@@ -241,7 +250,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
     if (importedMarshalledRoutines == null) {
       Set<String> imports = Sets.newLinkedHashSet();
 
-      for (GenerateAttribute a : attributes()) {
+      for (GenerateAttribute a : filteredAttributes()) {
         imports.addAll(a.getMarshaledImportRoutines());
       }
 
@@ -283,7 +292,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   public Set<String> getGenerateMarshaledTypes() throws Exception {
     if (generateMarshaledTypes == null) {
       Set<String> marshaledTypes = Sets.newLinkedHashSet();
-      for (GenerateAttribute a : attributes()) {
+      for (GenerateAttribute a : filteredAttributes()) {
         marshaledTypes.addAll(a.getSpecialMarshaledTypes());
       }
       generateMarshaledTypes = marshaledTypes;
@@ -335,7 +344,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public List<GenerateAttribute> getSettableAttributes() {
-    return FluentIterable.from(attributes())
+    return filteredAttributes()
         .filter(Predicates.or(
             GenerateAttributes.isGenerateAbstract(),
             GenerateAttributes.isGenerateDefault()))
@@ -348,19 +357,19 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public List<GenerateAttribute> getConstructorArguments() {
-    return FluentIterable.from(attributes())
+    return filteredAttributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
         .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
   }
 
   public List<GenerateAttribute> getConstructorOmited() {
-    return FluentIterable.from(attributes())
+    return filteredAttributes()
         .filter(Predicates.compose(Predicates.equalTo(-1), ToConstructorArgumentOrder.FUNCTION))
         .toList();
   }
 
   public List<GenerateAttribute> getAlignedAttributes() {
-    return FluentIterable.from(attributes())
+    return filteredAttributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToAlignOrder.FUNCTION))
         .toSortedList(Ordering.natural().onResultOf(ToAlignOrder.FUNCTION));
   }
@@ -393,7 +402,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public List<GenerateAttribute> getExcludableAttributes() {
     List<GenerateAttribute> excludables = Lists.newArrayList();
-    for (GenerateAttribute attribute : attributes()) {
+    for (GenerateAttribute attribute : filteredAttributes()) {
       if (attribute.isGenerateAbstract() && attribute.isContainerType()) {
         excludables.add(attribute);
       }
@@ -403,7 +412,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public List<GenerateAttribute> getLazyAttributes() {
     List<GenerateAttribute> lazyAttributes = Lists.newArrayList();
-    for (GenerateAttribute attribute : attributes()) {
+    for (GenerateAttribute attribute : filteredAttributes()) {
       if (attribute.isGenerateLazy()) {
         lazyAttributes.add(attribute);
       }
@@ -420,10 +429,14 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   private List<GenerateAttribute> implementedAttributes;
 
+  private FluentIterable<GenerateAttribute> filteredAttributes() {
+    return FluentIterable.from(attributes());
+  }
+
   @SuppressWarnings("unchecked")
   public List<GenerateAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
-      implementedAttributes = FluentIterable.from(attributes())
+      implementedAttributes = filteredAttributes()
           .filter(Predicates.or(
               GenerateAttributes.isGenerateAbstract(),
               GenerateAttributes.isGenerateDefault(),
@@ -440,7 +453,7 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public List<GenerateAttribute> getHelperAttributes() {
-    return FluentIterable.from(attributes())
+    return filteredAttributes()
         .filter(Predicates.or(
             GenerateAttributes.isGenerateFunction(),
             GenerateAttributes.isGeneratePredicate()))

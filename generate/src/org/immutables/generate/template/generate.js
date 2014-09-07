@@ -1,13 +1,13 @@
-let template = require('org/immutables/generate/template/template.js')
+let templating = require('org/immutables/generate/template/template.js')
 
 exports.main = function (type, javaSinkFactory) {
+  let filer = packageFiler()
 
-  let immutableTjs = template.require('org/immutables/generate/template/immutable.tjs'),
-      immutableSink = javaSinkFactory.sinkFor(type.packageName + '.' + type.defName)
+  let immutableTemplate = template('immutable')
 
-   immutableSink.write(type.emptyNesting
-      ? immutableTjs.generateImmutableNestingType(type)
-      : immutableTjs.generateImmutableSimpleType(type))
+  filer(type.defName)(type.emptyNesting
+      ? immutableTemplate.generateImmutableNestingType(type)
+      : immutableTemplate.generateImmutableSimpleType(type))
   
   if (type.hasNestedChildren) {
     type.nestedChildren.forEach(generateOtherArtifacts)
@@ -17,33 +17,41 @@ exports.main = function (type, javaSinkFactory) {
 
   function generateOtherArtifacts(type) {
     if (type.generateMarshaled) {
-      let marshalerTemplate = template.require('org/immutables/generate/template/marshaler.tjs')
+      let marshalerTemplate = template('marshaler')
       
-      javaSinkFactory.sinkFor(type.packageName + '.' + type.simpleName + "Marshaler").write(
-          marshalerTemplate.generateMarshaler(type))
-      
-      javaSinkFactory.sinkFor(type.packageName + '.Internal' + type.simpleName + "Marshaling").write(
-          marshalerTemplate.generateMarshaling(type))
+      filer(type.simpleName, 'Marshaler')(marshalerTemplate.generateMarshaler(type))
+      filer('_Marshaling_', type.simpleName)(marshalerTemplate.generateMarshaling(type))
     }
-    
-    // For now disable generation of additional artifacts to nested classes (with parent annotated @GenerateNested)
-    if (type.hasNestingParent) return
-  
+
     if (type.generateModifiable) {
-      javaSinkFactory.sinkFor(type.packageName + '.Modifiable' + type.name).write(
-          template.require('org/immutables/generate/template/modifiable.tjs').generateModifiableType(type))    
+      filer('Modifiable', type.simpleName)(template('modifiable').generateModifiableType(type))    
     }
     
+    // For now disable generation of additional artifacts to nested classes
+    if (type.name != type.simpleName) return
+  
     if (type.helperAttributes.length > 0) {
-      javaSinkFactory.sinkFor(type.packageName + '.' + type.name + 'Functions').write(
-          template.require('org/immutables/generate/template/functions.tjs').generateFunctions(type))
+      filer(type.name, 'Functions')(template('functions').generateFunctions(type))
     }
     
     if (type.generateDocument) {
-      let documentTemplates = template.require('org/immutables/generate/template/repository.tjs')
-      
-      javaSinkFactory.sinkFor(type.packageName + '.' + type.name + 'Repository').write(
-          documentTemplates.generateRepository(type))
+      filer(type.name,'Repository')(template('repository').generateRepository(type))
+    }
+  }
+  
+  function template(name) {
+    return templating.require('org/immutables/generate/template/' + name + '.tjs')
+  }
+  
+  function packageFiler() {
+    return function() {
+      let packagePrefix = (type.packageName ? type.packageName + '.' : ''),
+          className = [].slice.call(arguments, 0).filter(Boolean).join(''),
+          sink = javaSinkFactory.sinkFor(packagePrefix + className)
+          
+      return function(sourceCode) {
+        sink.write(sourceCode)
+      }
     }
   }
 }

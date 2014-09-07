@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
  * Annotation-directive to generate function corresponding to annotated method.
  * Such functions can be found as static attributes on a separate class named by abstract immutable
  * class with 'Functions' suffix.
+ * <p>
+ * <em>Note: This annotation works only for top level classes.</em>
  * @see GeneratePredicate
  */
 @Documented

@@ -1,7 +1,9 @@
 [requirejs support('org/immutables/generate/template/support.js')]
 
 [template generateRepository(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 // Generated imports
 import `type.packageName`.*;

@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
  * Annotation-directive to generate predicate corresponding to annotated boolean attribute methods.
  * Such predicates can be found as static attributes on a separate class named by abstract
  * immutable class with 'Functions' suffix.
+ * <p>
+ * <em>Note: This annotation works only for top level classes.</em>
  * @see GenerateFunction
  */
 @Documented

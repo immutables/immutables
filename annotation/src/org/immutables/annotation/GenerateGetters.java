@@ -22,8 +22,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Generate getter accesor method for each attribute. I resisted to add this, but anyway it's
- * needed sometimes for interoperability.
+ * Generate bean-style getter accesor method for each attribute.
+ * It needed sometimes for interoperability.
+ * Methods with 'get' (or 'is') prefixes and attribute name joined in camel-case.
+ * <p>
+ * Generated methods have annotation copied from original accessor method. However
+ * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
+ * work with immutable types as they can with beans, using getters and annotations on them.
  */
 @Documented
 @Target(ElementType.TYPE)

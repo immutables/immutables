@@ -38,7 +38,7 @@ public class GeneratedJavaSinkFactory {
   private final ProcessingEnvironment environment;
   private final TypeElement originatingElement;
 
-  public GeneratedJavaSinkFactory(ProcessingEnvironment environment, TypeElement originatingElement) {
+  GeneratedJavaSinkFactory(ProcessingEnvironment environment, TypeElement originatingElement) {
     this.environment = environment;
     this.originatingElement = originatingElement;
   }

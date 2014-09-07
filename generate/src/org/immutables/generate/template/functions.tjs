@@ -1,5 +1,7 @@
 [template generateFunctions(type)]
+[if (type.packageName)]
 package `type.packageName`;
+[/if]
 
 // Generated imports
 
@@ -9,8 +11,8 @@ package `type.packageName`;
 @SuppressWarnings("all")
 @javax.annotation.Generated({"functions.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
-`type.accessPrefix`final class `type.name`Functions {
-  private `type.name`Functions() {
+`type.accessPrefix`final class `type.simpleName`Functions {
+  private `type.simpleName`Functions() {
   }
   [apply generateHelpers(type)]
 }

@@ -28,10 +28,15 @@ import java.lang.annotation.Target;
  * modifiable variant that is convertible back and forth to immutable form.
  * <p>
  * Generated class will have name with "Modifiable" prefix. Use {@code create()} factory method to
- * create instances.
+ * create instances. Generated modifiable class will have setter methods that return {@code this}
+ * for chained invocation. If you need bean-style getters consider using {@link GenerateGetters}
  * <p>
  * There's additional usage for such modifiable classes: generation of highly compact data holders
  * by having special integer-encoded data attributes annotated with {@link GeneratePackedBits}.
+ * <p>
+ * <em>Note: unlike {@literal @}{@link GenerateImmutable}, this annotation works only for top level classes</em>
+ * @see GeneratePackedBits
+ * @see GenerateGetters
  */
 @Documented
 @Target(ElementType.TYPE)

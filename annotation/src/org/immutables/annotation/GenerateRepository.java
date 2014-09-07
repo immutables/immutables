@@ -32,6 +32,8 @@ import java.lang.annotation.Target;
  * taken for all attributes to be recursively marshalable by being either built-in types or
  * marshalable documents (annotated with @{@link GenerateMarshaler}) or ensuring some marshaling
  * {@link GenerateMarshaler#importRoutines() routines} exists to marshal types.
+ * <p>
+ * <em>Note: This annotation works only for top level classes.</em>
  */
 @Documented
 @Target(ElementType.TYPE)

@@ -3,6 +3,13 @@ package org.immutables.generate.internal.processing;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import java.util.LinkedList;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 
 final class SegmentedName {
   private static final Joiner JOINER = Joiner.on('.').skipNulls();
@@ -14,9 +21,9 @@ final class SegmentedName {
   final String fullyQualifedName;
 
   private SegmentedName(String packageName, String enclosingClassName, String simpleName) {
-    this.packageName = packageName;
-    this.enclosingClassName = enclosingClassName;
-    this.simpleName = simpleName;
+    this.packageName = Preconditions.checkNotNull(packageName);
+    this.enclosingClassName = Preconditions.checkNotNull(enclosingClassName);
+    this.simpleName = Preconditions.checkNotNull(simpleName);
     this.referenceClassName = enclosingClassName.isEmpty()
         ? simpleName
         : JOINER.join(
@@ -39,52 +46,68 @@ final class SegmentedName {
     return String.format("[%s].[%s].[%s]", packageName, enclosingClassName, simpleName);
   }
 
+  public static SegmentedName of(String packageName, String enclosingClassName, String simpleName) {
+    return new SegmentedName(packageName, enclosingClassName, simpleName);
+  }
+
+  public static SegmentedName from(ProcessingEnvironment environment, TypeElement type) {
+    PackageElement packageElement = environment.getElementUtils().getPackageOf(type);
+    String packageName = packageElement.getQualifiedName().toString();
+    String simpleName = type.getSimpleName().toString();
+    LinkedList<String> enclosingTypes = Lists.newLinkedList();
+    for (Element e = type;;) {
+      e = e.getEnclosingElement();
+      if (e.getKind() == ElementKind.PACKAGE) {
+        break;
+      }
+      enclosingTypes.addFirst(e.getSimpleName().toString());
+    }
+    return of(packageName, JOINER.join(enclosingTypes), simpleName);
+  }
+
   public static SegmentedName from(CharSequence name) {
     Preconditions.checkArgument(name.length() > 1);
 
-    int lastDotAfterPackageIndex = 0;
+    int lastDotAfterPackageIndex = -1;
     int startOfSimpleName = -1;
 
-    for (int i = name.length() - 2; i >= 0; i--) {
-      char c = name.charAt(i);
+    for (int i = name.length() - 1; i >= 0; i--) {
+      char prevChar = i == 0 ? '\0' : name.charAt(i - 1);
 
-      if (c == '.') {
-        char nextChar = name.charAt(i + 1);
-        if (Character.isUpperCase(nextChar)) {
-          lastDotAfterPackageIndex = i;
-
+      if (prevChar == '.' || prevChar == '\0') {
+        char c = name.charAt(i);
+        if (Character.isUpperCase(c)) {
+          lastDotAfterPackageIndex = i - 1;
           if (startOfSimpleName < 0) {
-            startOfSimpleName = i + 1;
+            startOfSimpleName = i;
           }
         }
-        if (Character.isLowerCase(nextChar)) {
+        if (Character.isLowerCase(c)) {
           break;
         }
       }
-      if (i == 0) {
-        lastDotAfterPackageIndex = 0;
-      }
     }
 
-    if (startOfSimpleName < 0) {
-      if (Character.isUpperCase(name.charAt(0))) {
-        return new SegmentedName("", "", name.toString());
-      }
-      return new SegmentedName(name.toString(), "", "");
+    if (startOfSimpleName < 0 && lastDotAfterPackageIndex < 0) {
+      lastDotAfterPackageIndex = name.length();
     }
 
-    return new SegmentedName(
-        name.subSequence(0, lastDotAfterPackageIndex).toString(),
-        (lastDotAfterPackageIndex != 0 && lastDotAfterPackageIndex + 1 < startOfSimpleName)
-            ? name.subSequence(lastDotAfterPackageIndex + 1, startOfSimpleName - 1).toString() :
-            (lastDotAfterPackageIndex == 0 && startOfSimpleName > 0)
-                ? name.subSequence(0, startOfSimpleName - 1).toString()
-                : "",
-        name.subSequence(startOfSimpleName, name.length()).toString());
+    String packageName = name.subSequence(0, Math.max(0, lastDotAfterPackageIndex)).toString();
+    String simpleName = startOfSimpleName < 0 ? "" : name.subSequence(startOfSimpleName, name.length()).toString();
+    String enclosingName =
+        name.subSequence(
+            Math.max(0,
+                Math.min(lastDotAfterPackageIndex + 1, startOfSimpleName - 1)),
+            Math.max(0, startOfSimpleName - 1)).toString();
+
+    return of(packageName, enclosingName, simpleName);
   }
 
   public static void main(String... args) {
+    System.out.println(from("packages.of.Fata"));
+    System.out.println(from("packages.Fata"));
     System.out.println(from("xx.ss.Mm"));
+    System.out.println(from("xx.fg.Ss.Mm"));
     System.out.println(from("Mm"));
     System.out.println(from("Mss.Mm"));
     System.out.println(from("Mss.Zdd.Mm"));

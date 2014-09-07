@@ -43,6 +43,11 @@ import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GeneratePackedBits;
 import org.immutables.annotation.GenerateRepository;
 
+/**
+ * DISCLAIMER: ALL THIS LOGIC IS A PIECE OF CRAP THAT ACCUMULATED OVER TIME.
+ * QUALITY OF RESULTED GENERATED CLASSES ALWAYS WAS HIGHEST PRIORITY
+ * BUT MODIFIABILITY SUFFERS, SO NEW VERSION WILL REIMPLEMENT IT FROM SCRATCH.
+ */
 public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
   private static final String STRING_CLASS_NAME = String.class.getName();
@@ -140,6 +145,10 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
   public String getType() {
     return internalTypeName();
+  }
+
+  public List<String> getAnnotations() {
+    return AnnotationPrinter.extractAnnotationLines(element);
   }
 
   private String implementationType;

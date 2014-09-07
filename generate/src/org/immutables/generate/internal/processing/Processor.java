@@ -50,6 +50,11 @@ import org.immutables.annotation.GeneratePredicate;
 import org.immutables.generate.internal.javascript.ClasspathModuleSourceProvider;
 import org.immutables.generate.internal.javascript.RhinoInvoker;
 
+/**
+ * DISCLAIMER: ALL THIS LOGIC IS A PIECE OF CRAP THAT ACCUMULATED OVER TIME.
+ * QUALITY OF RESULTED GENERATED CLASSES ALWAYS WAS HIGHEST PRIORITY
+ * BUT MODIFIABILITY SUFFERS, SO NEW VERSION WILL REIMPLEMENT IT FROM SCRATCH.
+ */
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class Processor extends AbstractProcessor {
 
@@ -75,9 +80,7 @@ public class Processor extends AbstractProcessor {
         if (typeElement instanceof TypeElement) {
           TypeElement type = (TypeElement) typeElement;
 
-          if (type.getEnclosingElement().getKind() == ElementKind.PACKAGE
-              || type.getEnclosingElement().getAnnotation(GenerateNested.class) == null) {
-
+          if (type.getEnclosingElement().getAnnotation(GenerateNested.class) == null) {
             collectGenerateTypeDescriptors(generateTypes, type);
           }
         }
@@ -135,37 +138,32 @@ public class Processor extends AbstractProcessor {
     return children.build();
   }
 
-  // runSourceCodeGeneration(, type);
-
   private boolean isGenerateType(TypeElement type, GenerateImmutable annotation) {
-    boolean nonDefaultPackage = !processingEnv.getElementUtils().getPackageOf(type).isUnnamed();
     boolean isStaticOrTopLevel =
         type.getKind() == ElementKind.INTERFACE
             || (type.getKind() == ElementKind.CLASS
             && (type.getEnclosingElement().getKind() == ElementKind.PACKAGE || type.getModifiers()
                 .contains(Modifier.STATIC)));
 
-    return nonDefaultPackage
+    return annotation != null
         && isStaticOrTopLevel
-        && isAbstract(type)
-        && annotation != null;
+        && isNonFinal(type);
+  }
+
+  private boolean isNonFinal(TypeElement type) {
+    return !type.getModifiers().contains(Modifier.FINAL);
   }
 
   GenerateType inspectGenerateType(TypeElement type, GenerateImmutable annotation) {
     if (!isGenerateType(type, annotation)) {
       error(type,
-          "Type %s annotated with @%s must be abstract class or interface (or nested static) in qualified package",
+          "Type '%s' annotated with @%s must be non-final class or interface",
           type.getSimpleName(),
           GenerateImmutable.class.getSimpleName());
     }
 
-    SegmentedName segmentedName = SegmentedName.from(type.getQualifiedName());
+    SegmentedName segmentedName = SegmentedName.from(processingEnv, type);
 
-    if (!processingEnv.getElementUtils().getPackageOf(type).getQualifiedName().contentEquals(segmentedName.packageName)) {
-      error(type,
-          "Non conventional package name non supported due to limitation of implementation",
-          segmentedName.packageName);
-    }
     boolean useBuilder = annotation.builder();
 
     GenerateTypes.Builder typeBuilder =
@@ -174,8 +172,8 @@ public class Processor extends AbstractProcessor {
             .isUseBuilder(useBuilder)
             .isGenerateCompact(hasAnnotation(type, GenerateModifiable.class));
 
-    for (Element element : type.getEnclosedElements()) {
-      if (element.getKind() == ElementKind.METHOD && !element.getModifiers().contains(Modifier.STATIC)) {
+    for (Element element : processingEnv.getElementUtils().getAllMembers(type)) {
+      if (isElegibleCandidateMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
       }
     }
@@ -183,6 +181,23 @@ public class Processor extends AbstractProcessor {
     GenerateType generateType = typeBuilder.build();
     generateType.setSegmentedName(segmentedName);
     return generateType;
+  }
+
+  private boolean isElegibleCandidateMethod(Element element) {
+    if (element.getKind() != ElementKind.METHOD) {
+      return false;
+    }
+    if (element.getModifiers().contains(Modifier.STATIC)) {
+      return false;
+    }
+    String definitionType = element.getEnclosingElement().toString();
+    if (definitionType.equals("java.lang.Object")) {
+      return false;
+    }
+    if (definitionType.startsWith("org.immutables.common.collect.OrdinalValue")) {
+      return false;
+    }
+    return true;
   }
 
   private void processGenerationCandidateMethod(
@@ -223,9 +238,9 @@ public class Processor extends AbstractProcessor {
         type.validationMethodName(attributeMethodCandidate.getSimpleName().toString());
       } else {
         error(attributeMethodCandidate,
-            "Method annotated with @"
-                + GenerateCheck.class.getSimpleName()
-                + " must be non-private parameter-less method and have void return type.");
+            "Method '%s' annotated with @%s must be non-private parameter-less method and have void return type.",
+            attributeMethodCandidate.getSimpleName(),
+            GenerateCheck.class.getSimpleName());
       }
     }
 
@@ -252,9 +267,9 @@ public class Processor extends AbstractProcessor {
       if (hasAnnotation(attributeMethodCandidate, GenerateLazy.class)) {
         if (isAbstract(attributeMethodCandidate) || isFinal(attributeMethodCandidate)) {
           error(attributeMethodCandidate,
-              "Methon annotated with @"
-                  + GenerateLazy.class.getSimpleName()
-                  + " must be non abstract and non-final");
+              "Method '%s' annotated with @%s must be non abstract and non-final",
+              attributeMethodCandidate.getSimpleName(),
+              GenerateLazy.class.getSimpleName());
         } else {
           attributeBuilder.isGenerateLazy(true);
         }
