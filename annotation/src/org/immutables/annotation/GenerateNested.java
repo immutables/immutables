@@ -22,7 +22,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * This annotation could be applied to top level class which contains nested abstract value types.
+ * Immutable implementation classes will be generated as classes nested into special "umbrella" top
+ * level class, essentialy named after annotated class with "Immutable" prefix. This could mix with
+ * {@link GenerateImmutable} annotation, so immutable implementation class will contains nested
+ * immutable implementation classes.
+ * <p>
+ * Implementation classes nested under top level class with "Immutable" prefix
+ * <ul>
+ * <li>Have simple names without "Immutable" prefix
+ * <li>Could be star-imported for easy clutter-free usage.
+ * </ul>
+ * <p>
  * 
+ * <pre>
+ * {@literal @}GenerateNested
+ * class GraphPrimitives {
+ *   {@literal @}GenerateImmutable
+ *   interace Vertex {}
+ *   {@literal @}GenerateImmutable
+ *   static class Edge {}
+ * }
+ * ...
+ * import ...ImmutableGraphPrimitives.*;
+ * ...
+ * Edge.builder().build();
+ * Vertex.builder().build();
+ * </pre>
  */
 @Documented
 @Target(ElementType.TYPE)

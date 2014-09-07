@@ -24,7 +24,7 @@ import java.lang.annotation.Target;
 /**
  * Annotate attribute as <em>auxiliary</em> and it will be stored and will be accessible, but will
  * be excluded from generated {@code equals}, {@code hashCode} and {@code toString} methods.
- * All {@link GenerateLazy lazy} attributes are always behave as <em>auxiliary</em>.
+ * {@link GenerateLazy Lazy} attributes are always <em>auxiliary</em>.
  * @see GenerateImmutable
  * @see GenerateDerived
  * @see GenerateDefault
