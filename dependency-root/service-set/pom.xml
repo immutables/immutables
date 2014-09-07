@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables.dependency</groupId>
     <artifactId>dependency-root</artifactId>
-    <version>0.17-SNAPSHOT</version>
+    <version>0.17</version>
   </parent>
 
   <artifactId>service-set</artifactId>
