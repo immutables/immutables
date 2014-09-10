@@ -15,7 +15,6 @@
  */
 package org.immutables.annotation;
 
-import com.google.common.collect.Interners;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -43,14 +42,13 @@ public @interface GenerateImmutable {
   /**
    * If {@code intern=true} then instances will be strong interned on construction.
    * Default is {@literal false}.
-   * @see Interners#newStrongInterner()
+   * @see com.google.common.collect.Interners#newStrongInterner()
    */
   boolean intern() default false;
 
   /**
    * If {@code withers=false} then generation of copying methods starting with
    * "withAttributeName" will be disabled. Default is {@literal true}.
-   * @see Interners#newStrongInterner()
    */
   boolean withers() default true;
 

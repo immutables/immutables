@@ -614,7 +614,7 @@ public int hashCode() {
 
 @Override
 public String toString() {
-  return com.google.common.base.MoreObjects.toStringHelper(this)
+  return com.google.common.base.MoreObjects.toStringHelper("`type.simpleName`")
   [foreach (let v in type.equivalenceAttributes)]
       .add("`v.name`", `v.name`())
   [/foreach]

@@ -15,9 +15,6 @@
  */
 package org.immutables.service;
 
-import org.immutables.service.testscan.SillyTopLevelResource2;
-import org.immutables.common.marshal.JaxrsMessageBodyProvider;
-import org.immutables.service.JaxrsService;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.net.URI;
@@ -25,8 +22,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
+import org.immutables.common.marshal.JaxrsMessageBodyProvider;
 import org.immutables.generate.silly.ImmutableSillySub3;
 import org.immutables.generate.silly.SillyDumb;
+import org.immutables.service.testscan.SillyTopLevelResource2;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
