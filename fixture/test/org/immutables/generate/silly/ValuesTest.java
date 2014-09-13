@@ -38,7 +38,7 @@ public class ValuesTest {
     check(g.getAb()).is(0);
     check(g.getCd()).is("");
     check(g.isEf());
-    
+
     check(ImmutableGetterEncloser.builder().build().getOptional()).isNull();
 
     check(mg.getClass().getMethod("getCd").isAnnotationPresent(POST.class));

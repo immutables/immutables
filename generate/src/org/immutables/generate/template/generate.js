@@ -9,6 +9,10 @@ exports.main = function (type, javaSinkFactory) {
       ? immutableTemplate.generateImmutableNestingType(type)
       : immutableTemplate.generateImmutableSimpleType(type))
   
+  if (type.emptyNesting && type.generateParboiled && type.hasNestedChildren) {
+    filer('Parboiled', type.simpleName)(template('parboiled').generateParboiled(type))  
+  }
+  
   if (type.hasNestedChildren) {
     type.nestedChildren.forEach(generateOtherArtifacts)
   }

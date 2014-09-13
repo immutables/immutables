@@ -42,16 +42,12 @@ import org.immutables.annotation.GenerateMarshaledSubclasses;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GeneratePackedBits;
 import org.immutables.annotation.GenerateRepository;
-import org.immutables.annotation.Values;
 
 /**
  * DISCLAIMER: ALL THIS LOGIC IS A PIECE OF CRAP THAT ACCUMULATED OVER TIME.
  * QUALITY OF RESULTED GENERATED CLASSES ALWAYS WAS HIGHEST PRIORITY
  * BUT MODIFIABILITY SUFFERS, SO NEW VERSION WILL REIMPLEMENT IT FROM SCRATCH.
  */
-@Values.Immutable
-@Attributes.Default
-@Values.Precondition
 public abstract class GenerateAttribute extends TypeIntrospectionBase {
 
   private static final String STRING_CLASS_NAME = String.class.getName();

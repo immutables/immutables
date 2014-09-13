@@ -1,0 +1,43 @@
+
+What should handle
+
+
+
+[template generateCopyMethods TypeOf one, Type2 two, Type3 tree]
+
+[/template]
+
+[for ElementType v in setters if v.isFull, x in v]
+  
+[/for]
+
+
+[let (setters = type.settableAttributes, getters = type.implementedAttributes)]
+  [foreach (let v in setters)]
+  
+  [for ElementType v in setters if v.isFull, x in v]
+    [if for.last or for.first]
+  [/if]
+
+    [if v.collectionType eq 1]
+    
+    [elseif v.optionalType]
+    
+    [/if]
+    
+  [/for]
+    [let x][/let]
+    
+    
+    [if]
+
+/**
+ * Copy current immutable object with elements that replace content of {@link `type.name`#`v.name`()}.
+ * @param [v.name]Elements iterable of [v.name] elements to add
+ * @return modified copy of the {@code this} object
+ */
+public Immutable[type.name] with[v.name.capitalize](Iterable<[v.consumedElementType]> `v.name`Elements) {
+  [v.implementationType] [v.name]ModifiedValue = [support.wrappingImmutableCollection(v, v.name + 'Elements');
+  [generateReturnCopyContextual type, getters, v.name]
+}
+    [elseif (v.optionalType)]

@@ -276,6 +276,22 @@ package `type.packageName`;
   private Builder() {
   }
 
+  @Override
+  public String toString() {
+    return com.google.common.base.MoreObjects.toStringHelper("`type.simpleName`.Builder")
+        .omitNullValues()
+  [foreach (let v in setters)]
+    [if (v.collectionType || v.mapType)]
+        .add("`v.name`", `v.name`Builder.build())
+    [elseif (v.optionalType)]
+        .add("`v.name`", `v.name`.orNull())
+    [else]
+        .add("`v.name`", `v.name`)
+    [/if]
+  [/foreach]
+        .toString();
+  }
+
   /**
    * Adjust builder with values from provided {@link `type.name`} instance.
    * Absent optional values will not be copied (will not override current).

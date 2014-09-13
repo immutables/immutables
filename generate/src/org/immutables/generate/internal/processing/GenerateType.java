@@ -43,6 +43,7 @@ import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateGetters;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.annotation.GenerateParboiled;
 import org.immutables.annotation.GenerateRepository;
 
 /**
@@ -78,6 +79,10 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public String getImmutableReferenceName() {
     return "Immutable" + (isHasNestingParent() ? getName() : getSimpleName());
+  }
+
+  public boolean isGenerateParboiled() {
+    return internalTypeElement().getAnnotation(GenerateParboiled.class) != null;
   }
 
   /**

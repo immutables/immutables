@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>0.18-SNAPSHOT</version>
+    <version>0.19-SNAPSHOT</version>
   </parent>
 
   <name>${project.groupId}.${project.artifactId}</name>
