@@ -1,4 +1,19 @@
-package org.immutables.modeling.templating.parse;
+/*
+    Copyright 2014 Ievgen Lukash
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+package org.immutables.modeling.templating;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -7,6 +22,9 @@ import org.parboiled.Context;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.support.Position;
 
+/**
+ * Parboiled extraction for the sake of AST building.
+ */
 public final class Extractions {
   private Extractions() {}
 
@@ -22,6 +40,11 @@ public final class Extractions {
       public T get(Context<Object> context) {
         return value;
       }
+
+      @Override
+      public String toString() {
+        return Extractions.class.getSimpleName() + ".value(" + value + ")";
+      }
     };
   }
 
@@ -36,7 +59,7 @@ public final class Extractions {
   // unchecked: will always work with any kind of object
   @SuppressWarnings("unchecked")
   public static <T> Extractor<T> popped() {
-    return (Extractor<T>) PopingExtractor.INSTANCE;
+    return (Extractor<T>) PopExtractor.INSTANCE;
   }
 
   public static <F, T> Extractor<T> popped(final Function<F, T> transform) {
@@ -44,6 +67,11 @@ public final class Extractions {
       @Override
       public T get(Context<Object> context) {
         return transform.apply(Extractions.<F>popped().get(context));
+      }
+
+      @Override
+      public String toString() {
+        return Extractions.class.getSimpleName() + ".popped(" + transform + ")";
       }
     };
   }
@@ -54,6 +82,11 @@ public final class Extractions {
     public String get(Context<Object> context) {
       return context.getMatch();
     }
+
+    @Override
+    public String toString() {
+      return Extractions.class.getSimpleName() + ".matched()";
+    }
   }
 
   private enum PositionExtractor implements Extractor<Position> {
@@ -62,9 +95,14 @@ public final class Extractions {
     public Position get(Context<Object> context) {
       return context.getPosition();
     }
+
+    @Override
+    public String toString() {
+      return Extractions.class.getSimpleName() + ".position()";
+    }
   }
 
-  private enum PopingExtractor implements Extractor<Object>, Applicator {
+  private enum PopExtractor implements Extractor<Object>, Applicator {
     INSTANCE;
     @Override
     public Object get(Context<Object> context) {
@@ -76,6 +114,26 @@ public final class Extractions {
       get(context);
       return true;
     }
+
+    @Override
+    public String toString() {
+      return Extractions.class.getSimpleName() + ".popped()";
+    }
+  }
+
+  public static Applicator diagnose() {
+    return new Applicator() {
+      @Override
+      public boolean run(Context<Object> context) {
+        printContext(this, context);
+        return true;
+      }
+
+      @Override
+      public String toString() {
+        return Extractions.class.getSimpleName() + ".diagnose()";
+      }
+    };
   }
 
   public static abstract class Instance<T> extends ExtractorApplicator<T> {
@@ -96,7 +154,6 @@ public final class Extractions {
   }
 
   public static abstract class Construct<T, V> extends ExtractorApplicator<T> {
-
     private final Extractor<? extends V> extractor;
 
     protected Construct(Extractor<? extends V> extractor) {
@@ -112,23 +169,7 @@ public final class Extractions {
     public abstract T get(V value);
   }
 
-  public static Applicator diagnose() {
-    return new Applicator() {
-      @Override
-      public boolean run(Context<Object> context) {
-        printWhere(this, context);
-        return true;
-      }
-
-      @Override
-      public String toString() {
-        return "diagnose()";
-      }
-    };
-  }
-
   public static abstract class Specify<B, V> implements Applicator {
-
     private final Extractor<? extends V> extractor;
 
     protected Specify(Extractor<? extends V> extractor) {
@@ -167,16 +208,12 @@ public final class Extractions {
     public abstract B builder();
   }
 
-  private static void printWhere(Object caller, Context<Object> context) {
+  private static void printContext(Object caller, Context<Object> context) {
     String message = ErrorUtils.printErrorMessage("%s:%s:%s",
         "",
         context.getCurrentIndex(),
-        context.getCurrentIndex() + 2,
+        context.getCurrentIndex() + 1,
         context.getInputBuffer());
-    System.err.println("*** " + caller + message + stack(context));
-  }
-
-  private static String stack(Context<Object> context) {
-    return "\n\t" + Joiner.on("\n\t - ").join(context.getValueStack());
+    System.err.println("*** " + caller + message + "\n\t" + Joiner.on("\n\t - ").join(context.getValueStack()));
   }
 }

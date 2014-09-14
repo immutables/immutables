@@ -1,9 +1,31 @@
-package org.immutables.modeling.templating.parse;
+package org.immutables.modeling.templating;
 
-import org.immutables.modeling.templating.ParboiledTrees.*;
+import org.immutables.modeling.templating.ParboiledTrees.Invoke;
+import org.immutables.modeling.templating.ParboiledTrees.AccessExpression;
+import org.immutables.modeling.templating.ParboiledTrees.AssignGenerator;
+import org.immutables.modeling.templating.ParboiledTrees.Else;
+import org.immutables.modeling.templating.ParboiledTrees.ElseIf;
+import org.immutables.modeling.templating.ParboiledTrees.For;
+import org.immutables.modeling.templating.ParboiledTrees.ForEnd;
+import org.immutables.modeling.templating.ParboiledTrees.Identifier;
+import org.immutables.modeling.templating.ParboiledTrees.If;
+import org.immutables.modeling.templating.ParboiledTrees.IfEnd;
+import org.immutables.modeling.templating.ParboiledTrees.InvokableDeclaration;
+import org.immutables.modeling.templating.ParboiledTrees.InvokeEnd;
+import org.immutables.modeling.templating.ParboiledTrees.InvokeExpression;
+import org.immutables.modeling.templating.ParboiledTrees.IterationGenerator;
+import org.immutables.modeling.templating.ParboiledTrees.Let;
+import org.immutables.modeling.templating.ParboiledTrees.LetEnd;
+import org.immutables.modeling.templating.ParboiledTrees.Newline;
+import org.immutables.modeling.templating.ParboiledTrees.Parameter;
+import org.immutables.modeling.templating.ParboiledTrees.Template;
+import org.immutables.modeling.templating.ParboiledTrees.TextBlock;
+import org.immutables.modeling.templating.ParboiledTrees.TextFragment;
+import org.immutables.modeling.templating.ParboiledTrees.TypeReference;
+import org.immutables.modeling.templating.ParboiledTrees.Unit;
+import org.immutables.modeling.templating.ParboiledTrees.ValueDeclaration;
 import org.parboiled.BaseParser;
 import org.parboiled.Rule;
-import org.parboiled.annotations.BuildParseTree;
 import org.parboiled.annotations.DontLabel;
 import org.parboiled.annotations.ExplicitActionsOnly;
 import org.parboiled.annotations.MemoMismatches;
@@ -11,11 +33,11 @@ import org.parboiled.annotations.SkipNode;
 import org.parboiled.annotations.SuppressNode;
 import org.parboiled.annotations.SuppressSubnodes;
 
-@BuildParseTree
+//@BuildParseTree
 @ExplicitActionsOnly
 public class Parser extends BaseParser<Object> {
 
-  Rule TemplateUnit() {
+  public Rule Unit() {
     return Sequence(Unit.builder(),
         Spacing(),
         OneOrMore(Sequence(
@@ -24,7 +46,6 @@ public class Parser extends BaseParser<Object> {
         EOI, Unit.build());
   }
 
-  @SkipNode
   Rule TopDirective() {
     return FirstOf(
         OpeningDirective(Comment()),
@@ -62,12 +83,10 @@ public class Parser extends BaseParser<Object> {
         TemplateEnd(), Template.build(), Unit.addParts());
   }
 
-  @SkipNode
   Rule TemplateStart() {
     return OpeningDirective(Template());
   }
 
-  @SuppressSubnodes
   Rule TemplateEnd() {
     return ClosingDirective(TEMPLATE);
   }
@@ -93,16 +112,14 @@ public class Parser extends BaseParser<Object> {
   }
 
   Rule InvokeEnd() {
-    return Sequence(InvokeEnd.builder(),
-        AccessExpression(), InvokeEnd.access(),
-        InvokeEnd.build());
+    return Sequence(AccessExpression(), InvokeEnd.of());
   }
 
   Rule InvokeStart() {
-    return Sequence(InvokeStart.builder(),
-        AccessExpression(), InvokeStart.access(), InvokeExpression.builder(),
-        Optional(Expression()),
-        InvokeStart.invoke(), InvokeStart.build());
+    return Sequence(Invoke.builder(),
+        AccessExpression(), Invoke.access(),
+        Optional(Expression(), Invoke.invoke()),
+        Invoke.build());
   }
 
   Rule DirectiveEnd() {
@@ -131,24 +148,25 @@ public class Parser extends BaseParser<Object> {
         DirectiveStart());
   }
 
+  @SkipNode
   Rule OpeningDirective(Rule directive) {
     return Sequence("[", directive, "]");
   }
 
+  @SkipNode
   Rule ClosingDirective(Rule directive) {
     return Sequence("[/", directive, "]");
   }
 
-  @SkipNode
   Rule Parens(Rule expression) {
     return Sequence(Literal("("), expression, Literal(")"));
   }
 
   Rule AccessExpression() {
     return Sequence(AccessExpression.builder(),
-        Identifier(), AccessExpression.addPath(Identifier.of()),
+        Identifier(), AccessExpression.addPath(),
         ZeroOrMore(Sequence(DOT,
-            Identifier(), AccessExpression.addPath(Identifier.of()))),
+            Identifier(), AccessExpression.addPath())),
         AccessExpression.build());
   }
 
@@ -175,7 +193,6 @@ public class Parser extends BaseParser<Object> {
         AssignGenerator.build());
   }
 
-  @SkipNode
   @DontLabel
   Rule DisambiguatedExpression() {
     return FirstOf(
@@ -183,14 +200,12 @@ public class Parser extends BaseParser<Object> {
         AccessExpression());
   }
 
-  @SkipNode
   Rule Expression() {
     return FirstOf(
         Parens(InvokeExpression()),
         InvokeExpression());
   }
 
-  @SkipNode
   Rule InvokeExpression() {
     return Sequence(InvokeExpression.builder(),
         OneOrMore(DisambiguatedExpression(), InvokeExpression.addParams()),
@@ -257,14 +272,12 @@ public class Parser extends BaseParser<Object> {
         InvokableDeclaration.addParameters());
   }
 
-  @SkipNode
   Rule Template() {
     return Sequence(
         TEMPLATE,
         InvokableDeclaration(), Template.declaration());
   }
 
-  @SkipNode
   Rule ParameterDeclarations() {
     return Optional(Sequence(ParameterDeclaration(),
         ZeroOrMore(Sequence(COMMA,
@@ -273,16 +286,12 @@ public class Parser extends BaseParser<Object> {
 
   @SuppressSubnodes
   Rule Name() {
-    return Sequence(
-        Identifier(),
-        Identifier.of());
+    return Identifier();
   }
 
   @SuppressSubnodes
   Rule Type() {
-    return Sequence(
-        TypeReference(),
-        TypeReference.of());
+    return TypeReference();
   }
 
   Rule COMMENT = Literal("--");
@@ -326,14 +335,16 @@ public class Parser extends BaseParser<Object> {
   Rule Identifier() {
     return Sequence(
         TestNot(Keyword()),
-        Sequence(IdentifierStartLetter(), ZeroOrMore(LetterOrDigit())),
+        Sequence(IdentifierStartLetter(), ZeroOrMore(LetterOrDigit()), Identifier.of()),
         Spacing());
   }
 
   @SuppressSubnodes
   @MemoMismatches
   Rule TypeReference() {
-    return Sequence(TestNot(Keyword()), TypeStartLetter(), ZeroOrMore(LetterOrDigit()), Spacing());
+    return Sequence(TestNot(Keyword()),
+        Sequence(TypeStartLetter(), ZeroOrMore(LetterOrDigit()), TypeReference.of()),
+        Spacing());
   }
 
   Rule IdentifierStartLetter() {

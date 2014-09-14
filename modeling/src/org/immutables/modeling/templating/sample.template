@@ -21,7 +21,9 @@ What should handle
 
     [if v.collectionType eq 1]
     
-    [elseif v.optionalType]
+    [else if v.optionalType]
+    
+    [else if v.optionalType]
     
     [/if]
     

@@ -6,7 +6,7 @@
 package `type.packageName`;
 [/if]
 
-import org.immutables.modeling.templating.parse.Extractions; 
+import org.immutables.modeling.templating.Extractions; 
 
 // Generated imports
 
@@ -49,6 +49,11 @@ public static class `type.simpleName` {
   public static Extractions.Extractor<`type.name`> of() {
     return of(Extractions.matched());
   }
+  [else]
+  
+  public static Extractions.Extractor<`type.name`> of() {
+    return of(Extractions.<`c.wrapperType`>popped());
+  }  
   [/if]
   
   public static Extractions.Extractor<`type.name`> of(Extractions.Extractor<`c.wrapperType`> `c.name`) {

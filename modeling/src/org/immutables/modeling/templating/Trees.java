@@ -15,6 +15,7 @@
  */
 package org.immutables.modeling.templating;
 
+import org.immutables.modeling.LiteralEscapers;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.annotation.GenerateConstructorParameter;
@@ -28,6 +29,8 @@ import org.immutables.annotation.GenerateParboiled;
 @GenerateNested
 @GenerateParboiled
 public class Trees {
+
+  public interface SyntheticStatement {}
 
   @GenerateImmutable(builder = false)
   public interface Identifier {
@@ -47,12 +50,12 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface ValueDeclaration extends Named, TypeAscriped {}
+  public interface ValueDeclaration extends Named, Typed {}
 
   @GenerateImmutable
-  public interface Parameter extends Named, TypeAscriped {}
+  public interface Parameter extends Named, Typed {}
 
-  public interface TypeAscriped {
+  public interface Typed {
     Optional<TypeReference> type();
   }
 
@@ -60,9 +63,41 @@ public class Trees {
     Identifier name();
   }
 
-  public interface DirectiveStart extends Directive, TemplatePart {}
+  public interface InvokableStatement {
+    InvokableDeclaration declaration();
+  }
 
-  public interface DirectiveEnd extends Directive, TemplatePart {}
+  @GenerateImmutable
+  public interface Block extends TemplatePart {
+    List<TemplatePart> parts();
+  }
+
+  @GenerateImmutable
+  public interface ConditionalBlock extends Conditional, Block, SyntheticStatement {}
+
+  @GenerateImmutable
+  public interface IfStatement extends SyntheticStatement, TemplatePart {
+    ConditionalBlock then();
+
+    List<ConditionalBlock> otherwiseIf();
+
+    Optional<Block> otherwise();
+  }
+
+  @GenerateImmutable
+  public interface ForStatement extends Block, SyntheticStatement {
+    List<GeneratorDeclaration> declaration();
+  }
+
+  @GenerateImmutable
+  public interface LetStatement extends Block, SyntheticStatement, InvokableStatement {}
+
+  @GenerateImmutable
+  public interface InvokeStatement extends Block, SyntheticStatement, InvokeDeclaration {}
+
+  public interface DirectiveStart extends Directive {}
+
+  public interface DirectiveEnd extends Directive {}
 
   @GenerateImmutable(singleton = true, builder = false)
   public interface LetEnd extends DirectiveEnd {}
@@ -73,56 +108,37 @@ public class Trees {
   @GenerateImmutable(singleton = true, builder = false)
   public interface IfEnd extends DirectiveEnd {}
 
-  @GenerateImmutable
+  @GenerateImmutable(builder = false)
   public interface InvokeEnd extends DirectiveEnd {
+    @GenerateConstructorParameter
     AccessExpression access();
   }
 
-  @GenerateImmutable
-  public interface InvokeStart extends DirectiveStart {
+  public interface InvokeDeclaration {
     AccessExpression access();
 
-    InvokeExpression invoke();
+    Optional<InvokeExpression> invoke();
   }
-
-  public interface Directive {}
 
   @GenerateImmutable
-  public interface Let extends DirectiveStart {
-    InvokableDeclaration declaration();
-  }
+  public interface Invoke extends InvokeDeclaration, DirectiveStart {}
 
-  public interface TopLevel {}
+  public interface Directive extends TemplatePart {}
+
+  @GenerateImmutable
+  public interface Let extends DirectiveStart, InvokableStatement {}
+
+  public interface UnitPart {}
 
   @GenerateImmutable
   public interface Unit {
-    List<TopLevel> parts();
+    List<UnitPart> parts();
   }
 
   public interface TemplatePart {}
 
   @GenerateImmutable
-  public interface Template extends Directive, TopLevel {
-    InvokableDeclaration declaration();
-
-    List<TemplatePart> parts();
-  }
-
-  public interface TextPart {}
-
-  @GenerateImmutable(singleton = true, builder = false)
-  public interface Newline extends TextPart {}
-
-  @GenerateImmutable(builder = false)
-  public interface TextFragment extends TextPart {
-    @GenerateConstructorParameter
-    String value();
-  }
-
-  @GenerateImmutable
-  public interface TextBlock extends TemplatePart {
-    List<TextPart> parts();
-  }
+  public interface Template extends Directive, UnitPart, Block, InvokableStatement {}
 
   public interface Expression {}
 
@@ -143,26 +159,57 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface If extends Condition, DirectiveStart {}
-
-  @GenerateImmutable
-  public interface ElseIf extends Condition, DirectiveStart {}
-
-  public interface Condition {
-    Expression condition();
-  }
-
-  @GenerateImmutable(singleton = true, builder = false)
-  public interface Else extends DirectiveStart {}
-
-  @GenerateImmutable
   public interface AssignGenerator extends GeneratorDeclaration {}
 
   @GenerateImmutable
-  public interface IterationGenerator extends GeneratorDeclaration, Condition {}
+  public interface IterationGenerator extends GeneratorDeclaration, Conditional {}
 
   @GenerateImmutable
   public interface For extends DirectiveStart {
     List<GeneratorDeclaration> declaration();
+  }
+
+  @GenerateImmutable
+  public interface If extends Conditional, DirectiveStart {}
+
+  public interface Otherwise extends DirectiveStart {}
+
+  @GenerateImmutable
+  public interface ElseIf extends Otherwise, Conditional {}
+
+  public interface Conditional {
+    Expression condition();
+  }
+
+  @GenerateImmutable(singleton = true, builder = false)
+  public interface Else extends Otherwise {}
+
+  @GenerateImmutable(singleton = true, builder = false)
+  public interface TemplateEnd extends SyntheticStatement, DirectiveEnd {}
+
+  public interface TextPart {}
+
+  @GenerateImmutable(singleton = true, builder = false)
+  public static abstract class Newline implements TextPart {
+    @Override
+    public String toString() {
+      return LiteralEscapers.toLiteral("\n");
+    }
+  }
+
+  @GenerateImmutable(builder = false)
+  public static abstract class TextFragment implements TextPart {
+    @GenerateConstructorParameter
+    public abstract String value();
+
+    @Override
+    public String toString() {
+      return LiteralEscapers.toLiteral(value());
+    }
+  }
+
+  @GenerateImmutable
+  public interface TextBlock extends TemplatePart {
+    List<TextPart> parts();
   }
 }
