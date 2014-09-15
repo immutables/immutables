@@ -30,8 +30,6 @@ import org.immutables.annotation.GenerateParboiled;
 @GenerateParboiled
 public class Trees {
 
-  public interface SyntheticStatement {}
-
   @GenerateImmutable(builder = false)
   public interface Identifier {
     @GenerateConstructorParameter
@@ -76,7 +74,7 @@ public class Trees {
   public interface ConditionalBlock extends Conditional, Block, SyntheticStatement {}
 
   @GenerateImmutable
-  public interface IfStatement extends SyntheticStatement, TemplatePart {
+  public interface IfStatement extends SyntheticStatement {
     ConditionalBlock then();
 
     List<ConditionalBlock> otherwiseIf();
@@ -136,6 +134,8 @@ public class Trees {
   }
 
   public interface TemplatePart {}
+
+  public interface SyntheticStatement extends TemplatePart {}
 
   @GenerateImmutable
   public interface Template extends Directive, UnitPart, Block, InvokableStatement {}

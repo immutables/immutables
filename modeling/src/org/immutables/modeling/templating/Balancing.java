@@ -1,6 +1,7 @@
 package org.immutables.modeling.templating;
 
 import static org.immutables.modeling.templating.ImmutableTrees.*;
+import org.immutables.modeling.templating.Trees.SyntheticStatement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -107,10 +108,10 @@ public final class Balancing {
     }
 
     public Template balance() {
-      Scope allPassed = passAll(template.parts());
-      if (allPassed != this) {
+      Scope scope = passAll(template.parts());
+      if (scope != this) {
         // TBD
-        throw new MisplacedDirective(this, null);
+        throw new MisplacedDirective(this, TemplateEnd.of());
       }
       return template.withParts(parts);
     }
@@ -155,7 +156,7 @@ public final class Balancing {
       this.sharesEnd = sharesEnd;
     }
 
-    abstract TemplatePart createSynthetic();
+    abstract SyntheticStatement createPart();
 
     @Override
     boolean incorrect(TemplatePart part) {
@@ -170,7 +171,7 @@ public final class Balancing {
     @Override
     final Scope end(DirectiveEnd directiveEnd) {
       if (expectedEnd.equals(directiveEnd)) {
-        Scope scope = parent.pass(createSynthetic());
+        Scope scope = parent.pass(createPart());
         return sharesEnd ? scope.end(directiveEnd) : scope;
       } else if (!requiresEnd) {
         return splat(directiveEnd);
@@ -182,7 +183,7 @@ public final class Balancing {
     private Scope splat(TemplatePart part) {
       List<TemplatePart> parts = this.parts;
       this.parts = Lists.newArrayList();
-      return parent.pass(createSynthetic())
+      return parent.pass(createPart())
           .passAll(parts)
           .pass(part);
     }
@@ -197,7 +198,7 @@ public final class Balancing {
     }
 
     @Override
-    TemplatePart createSynthetic() {
+    ForStatement createPart() {
       return ForStatement.builder()
           .addAllDeclaration(directive.declaration())
           .addAllParts(parts)
@@ -214,7 +215,7 @@ public final class Balancing {
     }
 
     @Override
-    TemplatePart createSynthetic() {
+    LetStatement createPart() {
       return LetStatement.builder()
           .declaration(directive.declaration())
           .addAllParts(parts)
@@ -231,14 +232,13 @@ public final class Balancing {
     }
 
     @Override
-    TemplatePart createSynthetic() {
+    InvokeStatement createPart() {
       return InvokeStatement.builder()
           .access(directive.access())
           .invoke(directive.invoke())
           .addAllParts(parts)
           .build();
     }
-
   }
 
   private static class IfScope extends BlockScope {
@@ -297,7 +297,7 @@ public final class Balancing {
     }
 
     @Override
-    TemplatePart createSynthetic() {
+    IfStatement createPart() {
       flushBlock();
       return builder.build();
     }
