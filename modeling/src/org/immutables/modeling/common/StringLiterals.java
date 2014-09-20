@@ -14,24 +14,23 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.modeling;
+package org.immutables.modeling.common;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.escape.ArrayBasedCharEscaper;
 import com.google.common.escape.Escaper;
-import java.util.Map;
 
 /**
- * The Class StringEscapers.
+ * String literals.
  */
-public final class LiteralEscapers {
-  private LiteralEscapers() {}
+public final class StringLiterals {
+  private StringLiterals() {}
 
-  public static Escaper stringLiteral() {
+  public static Escaper escaper() {
     return ESCAPER;
   }
 
-  private static final Map<Character, String> ESCAPES =
+  private static final Escaper ESCAPER = new ArrayBasedCharEscaper(
       ImmutableMap.<Character, String>builder()
           .put('\b', "\\b")
           .put('\"', "\\\"")
@@ -40,12 +39,8 @@ public final class LiteralEscapers {
           .put('\n', "\\n")
           .put('\r', "\\r")
           .put('\t', "\\t")
-          .build();
+          .build(), ' ',/* 0x20 */'~'/* 0x7E */) {
 
-  private static final char CHAR_MIN = ' '; // 0x20
-  private static final char CHAR_MAX = '~'; // 0x7E
-
-  private static final Escaper ESCAPER = new ArrayBasedCharEscaper(ESCAPES, CHAR_MIN, CHAR_MAX) {
     final char[] hex = "0123456789abcdef".toCharArray();
 
     @Override
@@ -65,7 +60,6 @@ public final class LiteralEscapers {
   };
 
   public static String toLiteral(String string) {
-    return "\"" + stringLiteral().escape(string) + "\"";
+    return "\"" + escaper().escape(string) + "\"";
   }
-
 }

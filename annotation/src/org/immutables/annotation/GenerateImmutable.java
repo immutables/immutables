@@ -33,6 +33,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface GenerateImmutable {
 
+  boolean nonpublic() default false;
+
   /**
    * If {@code singleton=true}, generates internal singleton object constructed without any
    * specified parameters. Default is {@literal false}.

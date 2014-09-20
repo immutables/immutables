@@ -15,7 +15,7 @@
  */
 package org.immutables.modeling.templating;
 
-import org.immutables.modeling.LiteralEscapers;
+import org.immutables.modeling.common.StringLiterals;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.annotation.GenerateConstructorParameter;
@@ -193,7 +193,7 @@ public class Trees {
   public static abstract class Newline implements TextPart {
     @Override
     public String toString() {
-      return LiteralEscapers.toLiteral("\n");
+      return StringLiterals.toLiteral("\n");
     }
   }
 
@@ -204,7 +204,7 @@ public class Trees {
 
     @Override
     public String toString() {
-      return LiteralEscapers.toLiteral(value());
+      return StringLiterals.toLiteral(value());
     }
   }
 

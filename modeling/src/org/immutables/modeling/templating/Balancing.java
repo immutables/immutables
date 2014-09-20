@@ -1,6 +1,7 @@
 package org.immutables.modeling.templating;
 
 import static org.immutables.modeling.templating.ImmutableTrees.*;
+import javax.annotation.Nullable;
 import org.immutables.modeling.templating.Trees.SyntheticStatement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -244,7 +245,9 @@ public final class Balancing {
   private static class IfScope extends BlockScope {
     private final If directive;
     private final IfStatement.Builder builder;
+    @Nullable
     private ElseIf currentElseIf;
+    @Nullable
     private Else currentElse;
 
     public IfScope(Scope parent, If directive) {

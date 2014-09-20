@@ -163,7 +163,8 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public String getAccessPrefix() {
-    return internalTypeElement().getModifiers().contains(Modifier.PUBLIC)
+    return !getGenerataeImmutableProperties().nonpublic()
+        && internalTypeElement().getModifiers().contains(Modifier.PUBLIC)
         ? "public "
         : "";
   }
