@@ -1,7 +1,7 @@
 package org.immutables.modeling.templating;
 
-import org.immutables.modeling.templating.ParboiledTrees.Invoke;
 import org.immutables.modeling.templating.ParboiledTrees.AccessExpression;
+import org.immutables.modeling.templating.ParboiledTrees.ApplyExpression;
 import org.immutables.modeling.templating.ParboiledTrees.AssignGenerator;
 import org.immutables.modeling.templating.ParboiledTrees.Else;
 import org.immutables.modeling.templating.ParboiledTrees.ElseIf;
@@ -11,8 +11,8 @@ import org.immutables.modeling.templating.ParboiledTrees.Identifier;
 import org.immutables.modeling.templating.ParboiledTrees.If;
 import org.immutables.modeling.templating.ParboiledTrees.IfEnd;
 import org.immutables.modeling.templating.ParboiledTrees.InvokableDeclaration;
+import org.immutables.modeling.templating.ParboiledTrees.Invoke;
 import org.immutables.modeling.templating.ParboiledTrees.InvokeEnd;
-import org.immutables.modeling.templating.ParboiledTrees.InvokeExpression;
 import org.immutables.modeling.templating.ParboiledTrees.IterationGenerator;
 import org.immutables.modeling.templating.ParboiledTrees.Let;
 import org.immutables.modeling.templating.ParboiledTrees.LetEnd;
@@ -21,7 +21,8 @@ import org.immutables.modeling.templating.ParboiledTrees.Parameter;
 import org.immutables.modeling.templating.ParboiledTrees.Template;
 import org.immutables.modeling.templating.ParboiledTrees.TextBlock;
 import org.immutables.modeling.templating.ParboiledTrees.TextFragment;
-import org.immutables.modeling.templating.ParboiledTrees.TypeReference;
+import org.immutables.modeling.templating.ParboiledTrees.TypeIdentifier;
+import org.immutables.modeling.templating.ParboiledTrees.TypeOf;
 import org.immutables.modeling.templating.ParboiledTrees.Unit;
 import org.immutables.modeling.templating.ParboiledTrees.ValueDeclaration;
 import org.parboiled.BaseParser;
@@ -33,7 +34,6 @@ import org.parboiled.annotations.SkipNode;
 import org.parboiled.annotations.SuppressNode;
 import org.parboiled.annotations.SuppressSubnodes;
 
-//@BuildParseTree
 @ExplicitActionsOnly
 public class Parser extends BaseParser<Object> {
 
@@ -196,20 +196,20 @@ public class Parser extends BaseParser<Object> {
   @DontLabel
   Rule DisambiguatedExpression() {
     return FirstOf(
-        Parens(InvokeExpression()),
+        Parens(ApplyExpression()),
         AccessExpression());
   }
 
   Rule Expression() {
     return FirstOf(
-        Parens(InvokeExpression()),
-        InvokeExpression());
+        Parens(ApplyExpression()),
+        ApplyExpression());
   }
 
-  Rule InvokeExpression() {
-    return Sequence(InvokeExpression.builder(),
-        OneOrMore(DisambiguatedExpression(), InvokeExpression.addParams()),
-        InvokeExpression.build());
+  Rule ApplyExpression() {
+    return Sequence(ApplyExpression.builder(),
+        OneOrMore(DisambiguatedExpression(), ApplyExpression.addParams()),
+        ApplyExpression.build());
   }
 
   Rule If() {
@@ -291,20 +291,23 @@ public class Parser extends BaseParser<Object> {
 
   @SuppressSubnodes
   Rule Type() {
-    return TypeReference();
+    return Sequence(TypeOf.builder(),
+        TypeIdentifer(), TypeOf.type(),
+        Optional(Ellipsis(), TypeOf.kind(Trees.TypeOf.Kind.ITERABLE)),
+        TypeOf.build());
   }
 
   Rule COMMENT = Literal("--");
   Rule ASSIGN = Literal("=");
   Rule DOT = Literal(".");
   Rule COMMA = Literal(",");
+  Rule ELLIPSIS = Literal("...");
   Rule IN = Literal(KEYWORD_IN);
   Rule FOR = Literal(KEYWORD_FOR);
   Rule LET = Literal(KEYWORD_LET);
   Rule IF = Literal(KEYWORD_IF);
   Rule ELSE = Literal(KEYWORD_ELSE);
   Rule TEMPLATE = Literal(KEYWORD_TEMPLATE);
-//  Rule REQUIRE = Literal("require");
 
 //  private static final String KEYWORD_AS = "as";
   private static final String KEYWORD_IN = "in";
@@ -335,16 +338,21 @@ public class Parser extends BaseParser<Object> {
   Rule Identifier() {
     return Sequence(
         TestNot(Keyword()),
-        Sequence(IdentifierStartLetter(), ZeroOrMore(LetterOrDigit()), Identifier.of()),
+        Sequence(Sequence(IdentifierStartLetter(), ZeroOrMore(LetterOrDigit())), Identifier.of()),
         Spacing());
   }
 
   @SuppressSubnodes
   @MemoMismatches
-  Rule TypeReference() {
+  Rule TypeIdentifer() {
     return Sequence(TestNot(Keyword()),
-        Sequence(TypeStartLetter(), ZeroOrMore(LetterOrDigit()), TypeReference.of()),
+        Sequence(Sequence(TypeStartLetter(), ZeroOrMore(LetterOrDigit())), TypeIdentifier.of()),
         Spacing());
+  }
+
+  @SuppressSubnodes
+  Rule Ellipsis() {
+    return Sequence(ELLIPSIS, Spacing());
   }
 
   Rule IdentifierStartLetter() {
@@ -368,5 +376,4 @@ public class Parser extends BaseParser<Object> {
   Rule Spacing() {
     return ZeroOrMore(AnyOf(" \n\r\f\t"));
   }
-
 }

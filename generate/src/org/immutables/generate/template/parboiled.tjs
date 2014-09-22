@@ -136,7 +136,13 @@ public static class `type.simpleName` {
     };
   }
   [else]
-  
+    [if (a.simpleLiteralType)]
+
+  public static Extractions.Applicator `a.name`(`a.type` value) {
+    return `a.name`(Extractions.<`a.wrapperType`>value(value));
+  }  
+    [/if]
+    
   public static Extractions.Applicator `a.name`() {
     return `a.name`(Extractions.<`a.wrapperType`>popped());
   }  

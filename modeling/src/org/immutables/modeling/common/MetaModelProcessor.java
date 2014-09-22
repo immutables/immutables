@@ -1,4 +1,4 @@
-package org.immutables.modeling;
+package org.immutables.modeling.common;
 
 import com.google.auto.service.AutoService;
 import java.util.Set;
@@ -10,6 +10,7 @@ import javax.lang.model.element.TypeElement;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
+@Deprecated
 public class MetaModelProcessor extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

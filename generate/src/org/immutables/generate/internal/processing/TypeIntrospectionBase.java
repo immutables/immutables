@@ -34,6 +34,16 @@ public abstract class TypeIntrospectionBase {
     }
   }
 
+  public ImmutableList<String> getExtendedClassesNames() {
+    ensureTypeIntrospected();
+    return extendedClassesNames;
+  }
+
+  public ImmutableSet<String> getImplementedInterfacesNames() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames;
+  }
+
   public boolean isComparable() {
     ensureTypeIntrospected();
     return implementedInterfacesNames.contains(Comparable.class.getName());

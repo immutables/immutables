@@ -77,6 +77,16 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
     this.element = element;
   }
 
+  public boolean isStringType() {
+    return internalTypeName().equals(String.class.getName());
+  }
+
+  public boolean isSimpleLiteralType() {
+    return isPrimitive()
+        || isStringType()
+        || isEnumType();
+  }
+
   @Override
   public boolean isComparable() {
     return isNumberType() || super.isComparable();

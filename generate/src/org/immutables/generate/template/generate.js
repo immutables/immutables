@@ -13,6 +13,10 @@ exports.main = function (type, javaSinkFactory) {
     filer('Parboiled', type.simpleName)(template('parboiled').generateParboiled(type))  
   }
   
+  if (type.emptyNesting && type.generateCase && type.hasNestedChildren) {
+    filer(type.simpleName, 'Transformer')(template('transformer').generateTransformer(type))
+  }
+  
   if (type.hasNestedChildren) {
     type.nestedChildren.forEach(generateOtherArtifacts)
   }

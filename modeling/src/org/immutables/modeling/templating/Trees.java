@@ -15,19 +15,22 @@
  */
 package org.immutables.modeling.templating;
 
-import org.immutables.modeling.common.StringLiterals;
+import org.immutables.annotation.GenerateTransformer;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.annotation.GenerateConstructorParameter;
+import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
 import org.immutables.annotation.GenerateParboiled;
+import org.immutables.modeling.common.StringLiterals;
 
 /**
  * Abstract syntax trees.
  */
 @GenerateNested
 @GenerateParboiled
+@GenerateTransformer
 public class Trees {
 
   @GenerateImmutable(builder = false)
@@ -37,9 +40,26 @@ public class Trees {
   }
 
   @GenerateImmutable(builder = false)
-  public interface TypeReference {
+  public interface TypeIdentifier {
     @GenerateConstructorParameter
     String value();
+  }
+
+  public interface BoundType {}
+
+  @GenerateImmutable
+  public static abstract class TypeOf implements BoundType {
+    public abstract TypeIdentifier type();
+
+    @GenerateDefault
+    public Kind kind() {
+      return Kind.SCALAR;
+    }
+
+    public enum Kind {
+      SCALAR,
+      ITERABLE
+    }
   }
 
   @GenerateImmutable
@@ -54,7 +74,7 @@ public class Trees {
   public interface Parameter extends Named, Typed {}
 
   public interface Typed {
-    Optional<TypeReference> type();
+    Optional<BoundType> type();
   }
 
   public interface Named {
@@ -91,7 +111,11 @@ public class Trees {
   public interface LetStatement extends Block, SyntheticStatement, InvokableStatement {}
 
   @GenerateImmutable
-  public interface InvokeStatement extends Block, SyntheticStatement, InvokeDeclaration {}
+  public interface InvokeStatement extends Block, SyntheticStatement {
+    Expression access();
+
+    List<Expression> params();
+  }
 
   public interface DirectiveStart extends Directive {}
 
@@ -115,7 +139,7 @@ public class Trees {
   public interface InvokeDeclaration {
     AccessExpression access();
 
-    Optional<InvokeExpression> invoke();
+    Optional<ApplyExpression> invoke();
   }
 
   @GenerateImmutable
@@ -137,6 +161,8 @@ public class Trees {
 
   public interface SyntheticStatement extends TemplatePart {}
 
+  public interface SyntheticExpression extends Expression {}
+
   @GenerateImmutable
   public interface Template extends Directive, UnitPart, Block, InvokableStatement {}
 
@@ -148,7 +174,7 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface InvokeExpression extends Expression {
+  public interface ApplyExpression extends Expression {
     List<Expression> params();
   }
 
@@ -211,5 +237,14 @@ public class Trees {
   @GenerateImmutable
   public interface TextBlock extends TemplatePart {
     List<TextPart> parts();
+  }
+
+  @GenerateImmutable
+  public interface ResolvedAccess extends SyntheticExpression {
+    Optional<ResolvedAccess> target();
+
+    String attribute();
+
+    BoundType bound();
   }
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.generate.internal.processing;
 
+import org.immutables.annotation.GenerateTransformer;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -83,6 +84,19 @@ public abstract class GenerateType extends TypeIntrospectionBase {
 
   public boolean isGenerateParboiled() {
     return internalTypeElement().getAnnotation(GenerateParboiled.class) != null;
+  }
+
+  public boolean isGenerateCase() {
+    return internalTypeElement().getAnnotation(GenerateTransformer.class) != null;
+  }
+
+  private CaseStructure caseStructure;
+
+  public CaseStructure getCaseStructure() {
+    if (caseStructure == null) {
+      caseStructure = new CaseStructure(this, nestedChildren);
+    }
+    return caseStructure;
   }
 
   /**
@@ -163,8 +177,8 @@ public abstract class GenerateType extends TypeIntrospectionBase {
   }
 
   public String getAccessPrefix() {
-    return !getGenerataeImmutableProperties().nonpublic()
-        && internalTypeElement().getModifiers().contains(Modifier.PUBLIC)
+    // !getGenerataeImmutableProperties().nonpublic() &&
+    return internalTypeElement().getModifiers().contains(Modifier.PUBLIC)
         ? "public "
         : "";
   }

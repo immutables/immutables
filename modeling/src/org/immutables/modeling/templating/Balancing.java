@@ -1,40 +1,50 @@
 package org.immutables.modeling.templating;
 
-import static org.immutables.modeling.templating.ImmutableTrees.*;
-import javax.annotation.Nullable;
-import org.immutables.modeling.templating.Trees.SyntheticStatement;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
+import javax.annotation.Nullable;
+import org.immutables.modeling.templating.ImmutableTrees.Block;
+import org.immutables.modeling.templating.ImmutableTrees.ConditionalBlock;
+import org.immutables.modeling.templating.ImmutableTrees.Else;
+import org.immutables.modeling.templating.ImmutableTrees.ElseIf;
+import org.immutables.modeling.templating.ImmutableTrees.For;
+import org.immutables.modeling.templating.ImmutableTrees.ForEnd;
+import org.immutables.modeling.templating.ImmutableTrees.ForStatement;
+import org.immutables.modeling.templating.ImmutableTrees.If;
+import org.immutables.modeling.templating.ImmutableTrees.IfEnd;
+import org.immutables.modeling.templating.ImmutableTrees.IfStatement;
+import org.immutables.modeling.templating.ImmutableTrees.Invoke;
+import org.immutables.modeling.templating.ImmutableTrees.InvokeEnd;
+import org.immutables.modeling.templating.ImmutableTrees.InvokeStatement;
+import org.immutables.modeling.templating.ImmutableTrees.Let;
+import org.immutables.modeling.templating.ImmutableTrees.LetEnd;
+import org.immutables.modeling.templating.ImmutableTrees.LetStatement;
+import org.immutables.modeling.templating.ImmutableTrees.Template;
+import org.immutables.modeling.templating.ImmutableTrees.TemplateEnd;
+import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.Trees.Directive;
 import org.immutables.modeling.templating.Trees.DirectiveEnd;
 import org.immutables.modeling.templating.Trees.DirectiveStart;
+import org.immutables.modeling.templating.Trees.Expression;
 import org.immutables.modeling.templating.Trees.Otherwise;
+import org.immutables.modeling.templating.Trees.SyntheticStatement;
 import org.immutables.modeling.templating.Trees.TemplatePart;
-import org.immutables.modeling.templating.Trees.UnitPart;
 
 public final class Balancing {
   private Balancing() {}
 
-  public static Unit balance(Unit unit) {
-    return unit.withParts(balance(unit.parts()));
+  public static Function<Unit, Unit> transformer() {
+    return TRANSFORMER;
   }
 
-  private static Iterable<? extends UnitPart> balance(Iterable<UnitPart> parts) {
-    ImmutableList.Builder<UnitPart> builder = ImmutableList.builder();
-    for (Trees.UnitPart part : parts) {
-      builder.add(balance(part));
-    }
-    return builder.build();
-  }
-
-  private static UnitPart balance(UnitPart part) {
-    if (part instanceof Template) {
-      Template template = (Template) part;
+  private static final UnitTransformer TRANSFORMER = new UnitTransformer() {
+    @Override
+    Template transformTemplate(Template template) {
       return new TemplateScope(template).balance();
     }
-    return part;
-  }
+  };
 
   private static abstract class Scope {
     List<TemplatePart> parts = Lists.newArrayList();
@@ -236,7 +246,10 @@ public final class Balancing {
     InvokeStatement createPart() {
       return InvokeStatement.builder()
           .access(directive.access())
-          .invoke(directive.invoke())
+          .addAllParams(
+              directive.invoke().isPresent()
+                  ? directive.invoke().get().params()
+                  : ImmutableList.<Expression>of())
           .addAllParts(parts)
           .build();
     }

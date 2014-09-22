@@ -15,6 +15,11 @@
  */
 package org.immutables.generate.internal.processing;
 
+import javax.lang.model.type.TypeVariable;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.element.Parameterizable;
+import javax.lang.model.util.Types;
+import javax.lang.model.util.Elements;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +60,12 @@ import org.immutables.generate.internal.javascript.RhinoInvoker;
  * QUALITY OF RESULTED GENERATED CLASSES ALWAYS WAS HIGHEST PRIORITY
  * BUT MODIFIABILITY SUFFERS, SO NEW VERSION WILL REIMPLEMENT IT FROM SCRATCH.
  */
+interface A<T extends Object> {}
+
+class B implements A<Integer> {}
+
+class C<N extends Number> implements A<N> {}
+
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class Processor extends AbstractProcessor {
 
@@ -69,6 +80,26 @@ public class Processor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> annotationTypes, RoundEnvironment environment) {
+/*    Elements elements = processingEnv.getElementUtils();
+    Types types = processingEnv.getTypeUtils();
+
+    TypeMirror tA = elements.getTypeElement(A.class.getCanonicalName()).asType();
+    TypeMirror tB = elements.getTypeElement(B.class.getCanonicalName()).asType();
+    TypeMirror tC = elements.getTypeElement(C.class.getCanonicalName()).asType();
+
+    List<? extends TypeMirror> directSupertypes = types.directSupertypes(tC);
+    DeclaredType tCA = (DeclaredType) directSupertypes.get(1);
+
+    throw new RuntimeException("\n\tTypes: " + tB + " and " + tA
+    + "\n\tisSubtype: " + types.isSubtype(tB, tA)
+    + "\n\terasureIsSubtype: "
+    + types.isSubtype(tB, types.erasure(tA))
+    + "; both: "
+    + types.isSubtype(types.erasure(tB), types.erasure(tA))
+    + "\n\ttypeArguments: "
+    // + directSupertypes);
+    + ((TypeVariable) tCA.getTypeArguments().get(0)).getUpperBound());
+*/
     if (!environment.processingOver()) {
       Set<Element> allElemenents = Sets.newLinkedHashSet();
       for (TypeElement annotationType : annotationTypes) {

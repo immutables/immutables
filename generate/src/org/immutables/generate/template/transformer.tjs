@@ -1,0 +1,110 @@
+[template generateTransformer(type)]
+[if (type.packageName)]
+package `type.packageName`;
+[/if]
+
+// Generated imports
+
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"transformer.tjs", "`type.name`"})
+`type.accessPrefix`abstract class `type.simpleName`Transformer<C> {
+  protected `type.simpleName`Transformer() {
+  }
+  [let (cases = type.caseStructure)]
+  [foreach (let t in cases.implementationTypes)]
+  [apply generateImplementationTransformer(cases, t)]
+  [/foreach]
+  [apply generateTrackedUsageTypes(cases)]
+  [/let]
+}
+[/template]
+
+[template generateImplementationTransformer(cases, type)]
+
+[-- TBD add check for wither or builder --]
+[let (t = type.immutableReferenceName)]
+public `t` transform(C context, `t` value) {
+  return value
+  [if (type.useCopyMethods)]
+  [foreach (let a in type.settableAttributes)]
+    [if (cases.isKnownType(a.wrappedElementType))]
+      .with`a.name.toUpperFirst()`(transform`type.simpleName``a.name.toUpperFirst()`(context, value, value.`a.name`()))
+    [/if]
+  [/foreach]
+  [/if]
+  ;
+}
+[if (type.useCopyMethods)]
+  [foreach (let a in type.settableAttributes)]
+    [if (cases.isKnownType(a.wrappedElementType))]
+  [if (a.optionalType)]
+
+protected com.google.common.base.Optional<`a.wrappedElementType`> transform`type.simpleName``a.name.toUpperFirst()`(C context, `t` value, `a.type` optional) {  
+  if (optional.isPresent()) {
+    return com.google.common.base.Optional.of(transform`type.simpleName``a.name.toUpperFirst()`Element(context, value, optional.get()));
+  }
+  return com.google.common.base.Optional.absent();
+}
+  [elseif (a.collectionType)]
+
+protected Iterable<`a.wrappedElementType`> transform`type.simpleName``a.name.toUpperFirst()`(C context, `t` value, `a.type` collection) {  
+  java.util.List<`a.wrappedElementType`> list = com.google.common.collect.Lists.newArrayList();
+  for (`a.wrappedElementType` element : collection) {
+    list.add(transform`type.simpleName``a.name.toUpperFirst()`Element(context, value, element));
+  }
+  return list;
+}
+  [else]
+  
+protected `a.type` transform`type.simpleName``a.name.toUpperFirst()`(C context, `t` value, `a.type` element) {
+  [apply generateSubclassTransform(cases, a, a.type)]
+}
+  [/if]
+    [/if]
+  [/foreach]
+  
+  [foreach (let a in type.settableAttributes)]
+    [if (cases.isKnownType(a.wrappedElementType))]
+  [if (a.optionalType || a.collectionType)]
+protected `a.unwrappedElementType` transform`type.simpleName``a.name.toUpperFirst()`Element(C context, `t` value, `a.unwrappedElementType` element) {
+  [apply generateSubclassTransform(cases, a, a.unwrappedElementType)]
+}
+  [/if]
+    [/if]
+  [/foreach]  
+[/if]
+[/let]
+
+[/template]
+
+# function simplifyName(name) {
+#   let l = name.lastIndexOf('.')
+#   return l < 0 ? name : name.slice(l + 1) 
+# } 
+
+[template generateSubclassTransform(cases, a, t)]
+  [foreach (let subtypeObject in cases.knownSubtypes(t))]
+  [let (subtype = subtypeObject.immutableReferenceName)] 
+  [if (subtype != t)]
+# cases.track(t, subtype)
+if (element instanceof `subtype`) {
+  return transform`simplifyName(t)`(context, (`subtype`) element);
+}
+  [/if]
+  [/let]
+  [/foreach]
+return element;
+[/template]
+
+[template generateTrackedUsageTypes(cases)]
+  [foreach (let e in cases.trackedUsageTypes)]
+protected `e.key` transform`simplifyName(e.key)`(C context, `e.value` value) {
+    [if (cases.knownImplementation(e.key))]
+  return transform(context, value);
+    [else]
+  return value;
+    [/if] 
+}
+  [/foreach]
+[/template]
