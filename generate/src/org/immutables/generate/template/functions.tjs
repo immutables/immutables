@@ -12,8 +12,7 @@ package `type.packageName`;
 @javax.annotation.Generated({"functions.tjs", "`type.name`"})
 @javax.annotation.ParametersAreNonnullByDefault
 `type.accessPrefix`final class `type.simpleName`Functions {
-  private `type.simpleName`Functions() {
-  }
+  private `type.simpleName`Functions() {}
   [apply generateHelpers(type)]
 }
 [/template]

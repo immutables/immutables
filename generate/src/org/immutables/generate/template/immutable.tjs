@@ -11,7 +11,7 @@ package `type.packageName`;
  * {@code `type.defName`} contains immutable implementation classes generated from
  * abstract value classes defined as nested inside {@link `type.name`}.
 [foreach (let v in type.nestedChildren)]
- * @see #`v.defName`
+ * @see `v.immutableReferenceName`
 [/foreach]
  */
 @SuppressWarnings("all")
@@ -655,14 +655,14 @@ this.domain = Domain.get();
   [/if]
 [/template]
 
-[template generateReturnCopyContextualInternal(getters, name)]
-# let parameters = getters.map(function(a) a.name == name ? (a.name + 'ModifiedValue') : ('this.' + a.name))
+[template generateReturnCopyContextualInternal(getters, modifiedAttributeName)]
+# let parameters = getters.map(function(a) a.name == modifiedAttributeName ? ('newValue') : ('this.' + a.name))
 this`[''].concat(parameters).join(',\n' + __.indent)`));
 [/template]
 
-[template generateReturnCopyContextual(type, getters, modifiedValueName)]
+[template generateReturnCopyContextual(type, getters, modifiedAttributeName)]
 return checkPreconditions(new `type.defName`(
-    [apply generateReturnCopyContextualInternal(getters, modifiedValueName)]
+    [apply generateReturnCopyContextualInternal(getters, modifiedAttributeName)]
 [/template]
 
 [template generateCopyMethods(type)]
@@ -676,11 +676,11 @@ return checkPreconditions(new `type.defName`(
  * @param `v.name`Elements iterable of `v.name` elements to add
  * @return modified copy of the {@code this} object
  */
-public `type.defName` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> `v.name`) {
-  if (this.`v.name` == `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementType`> value) {
+  if (this.`v.name` == value) {
     return this;
   }
-  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name)`;
+  `v.implementationType` newValue = `support.wrappingImmutableCollection(v, 'value')`;
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [elseif (v.optionalType)]
@@ -690,8 +690,8 @@ public `type.defName` with`v.name.toUpperFirst()`(Iterable<`v.consumedElementTyp
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public `type.defName` with`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.name`) {
-  `v.implementationType` `v.name`ModifiedValue = Optional.of(`v.name`);
+public `type.defName` with`v.name.toUpperFirst()`(`v.unwrappedElementType` value) {
+  `v.implementationType` newValue = Optional.of(value);
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
 
@@ -701,11 +701,11 @@ public `type.defName` with`v.name.toUpperFirst()`(`v.unwrappedElementType` `v.na
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public `type.defName` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> `v.name`) {
-  if (this.`v.name` == `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType`> optional) {
+  if (this.`v.name` == optional) {
     return this;
   }
-  `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+  `v.implementationType` newValue = com.google.common.base.Preconditions.checkNotNull(optional);
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [elseif (v.mapType)]
@@ -718,11 +718,11 @@ public `type.defName` with`v.name.toUpperFirst()`(Optional<`v.wrappedElementType
  * @param `v.name`Entries to be added to `v.name` map
  * @return modified copy of the {@code this} object
  */
-public `type.defName` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> `v.name`) {
-  if (this.`v.name` == `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends `WV`> map) {
+  if (this.`v.name` == map) {
     return this;
   }
-  `v.implementationType` `v.name`ModifiedValue = `support.wrappingImmutableCollection(v, v.name)`;
+  `v.implementationType` newValue = `support.wrappingImmutableCollection(v, 'map')`;
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }
     [/let]
@@ -738,16 +738,16 @@ public `type.defName` with`v.name.toUpperFirst()`(java.util.Map<`GE`, ? extends 
  * @param `v.name` value for `v.name`, non-null
  * @return modified copy of the {@code this} object
  */
-public `type.defName` with`v.name.toUpperFirst()`(`v.type` `v.name`) {
+public `type.defName` with`v.name.toUpperFirst()`(`v.type` value) {
     [if (!v.floatType)]
-  if (this.`v.name` == `v.name`) {
+  if (this.`v.name` == value) {
     return this;
   }
     [/if]
     [if (v.primitive)]
-  `v.implementationType` `v.name`ModifiedValue = `v.name`;
+  `v.implementationType` newValue = value;
     [else]
-  `v.implementationType` `v.name`ModifiedValue = com.google.common.base.Preconditions.checkNotNull(`v.name`);
+  `v.implementationType` newValue = com.google.common.base.Preconditions.checkNotNull(value);
     [/if]
   [apply generateReturnCopyContextual(type, getters, v.name)]
 }

@@ -14,7 +14,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import javax.lang.model.util.Types;
 
-public class Introspection {
+public abstract class Introspection {
   protected final ProcessingEnvironment environment;
   protected final Elements elements;
   protected final Types types;

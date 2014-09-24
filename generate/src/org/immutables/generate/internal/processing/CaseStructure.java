@@ -1,5 +1,6 @@
 package org.immutables.generate.internal.processing;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -17,6 +18,7 @@ public class CaseStructure {
   private final ListMultimap<String, GenerateType> subtyping;
   private final Map<String, GenerateType> typeMap;
   private final SetMultimap<String, String> occurencesSubtypingMapping = HashMultimap.create();
+  private static final Joiner DOT_JOINER = Joiner.on('.').skipNulls();
 
   public CaseStructure(GenerateType nestingParent, List<GenerateType> nestedChildren) {
     this.nestingParent = nestingParent;
@@ -28,7 +30,11 @@ public class CaseStructure {
   private Map<String, GenerateType> buildTypeMap(List<GenerateType> nestedChildren) {
     Map<String, GenerateType> map = Maps.newHashMap();
     for (GenerateType type : nestedChildren) {
-      map.put(type.internalTypeElement().getQualifiedName().toString(), type);
+      String abstractValueType = type.internalTypeElement().getQualifiedName().toString();
+      String immutableImplementationType = DOT_JOINER.join(type.getPackageName(), type.getImmutableReferenceName());
+
+      map.put(abstractValueType, type);
+      map.put(immutableImplementationType, type);
     }
     return ImmutableMap.copyOf(map);
   }

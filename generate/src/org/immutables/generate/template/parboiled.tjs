@@ -14,8 +14,7 @@ import org.immutables.modeling.templating.Extractions;
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"parboiled.tjs", "`type.name`"})
 `type.accessPrefix`final class Parboiled`type.simpleName` {
-  private Parboiled`type.simpleName`() {
-  }
+  private Parboiled`type.simpleName`() {}
 [foreach (let v in type.nestedChildren)]
   [apply generateParboiledType(v)]
 [/foreach]

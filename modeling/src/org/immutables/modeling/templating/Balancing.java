@@ -1,6 +1,5 @@
 package org.immutables.modeling.templating;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -29,19 +28,18 @@ import org.immutables.modeling.templating.Trees.DirectiveEnd;
 import org.immutables.modeling.templating.Trees.DirectiveStart;
 import org.immutables.modeling.templating.Trees.Expression;
 import org.immutables.modeling.templating.Trees.Otherwise;
-import org.immutables.modeling.templating.Trees.SyntheticStatement;
 import org.immutables.modeling.templating.Trees.TemplatePart;
 
 public final class Balancing {
   private Balancing() {}
 
-  public static Function<Unit, Unit> transformer() {
-    return TRANSFORMER;
+  public static Unit balance(Unit unit) {
+    return TRANSFORMER.transform((Void) null, unit);
   }
 
-  private static final UnitTransformer TRANSFORMER = new UnitTransformer() {
+  private static final TreesTransformer<Void> TRANSFORMER = new TreesTransformer<Void>() {
     @Override
-    Template transformTemplate(Template template) {
+    public Template transform(Void context, Template template) {
       return new TemplateScope(template).balance();
     }
   };
@@ -167,7 +165,7 @@ public final class Balancing {
       this.sharesEnd = sharesEnd;
     }
 
-    abstract SyntheticStatement createPart();
+    abstract TemplatePart createPart();
 
     @Override
     boolean incorrect(TemplatePart part) {

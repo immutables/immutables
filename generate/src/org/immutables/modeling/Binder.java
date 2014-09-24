@@ -1,9 +1,12 @@
 package org.immutables.modeling;
 
-import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import java.util.Map;
 import javax.annotation.Nullable;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.modeling.Accessors.Accessor;
+import org.immutables.modeling.Accessors.BoundAccess;
+import org.immutables.modeling.Accessors.BoundAccessor;
 import org.immutables.modeling.Facets.FacetResolver;
 
 public final class Binder {
@@ -16,33 +19,60 @@ public final class Binder {
     this.facets = facets;
   }
 
-  public Optional<Binding> tryBind(TypeMirror targetType, String attribute) {
+  public BoundAccessor bind(TypeMirror targetType, String attribute)
+      throws UnresolvableAccessorException {
     @Nullable
-    Accessor<?> accessor = accessors.definedBy(targetType).get(attribute);
+    Accessor accessor = accessors.definedBy(targetType).get(attribute);
+
     if (accessor != null) {
-      return Optional.of(new Binding(targetType, accessor, null));
+      return accessor.bind(targetType);
     }
 
     for (TypeMirror facet : facets.resolveFor(targetType)) {
       accessor = accessors.definedBy(facet).get(attribute);
       if (accessor != null) {
-        return Optional.of(new Binding(targetType, accessor, facet));
+        return accessor.bind(facet);
       }
     }
 
-    return Optional.absent();
+    throw new UnresolvableAccessorException(
+        targetType,
+        attribute,
+        collectAlternatives(targetType));
   }
 
-  public static class Binding {
-    public final TypeMirror target;
-    @Nullable
-    public final TypeMirror facet;
-    public final Accessor<?> accessor;
+  public BoundAccess bindLocalOrThis(TypeMirror type, String name, Map<String, TypeMirror> locals) {
+    TypeMirror typeMirror = locals.get(name);
+    if (typeMirror != null) {
+      return accessors.new LocalAccess(name, typeMirror);
+    }
+    return bind(type, name);
+  }
 
-    public Binding(TypeMirror target, Accessor<?> accessor, @Nullable TypeMirror facet) {
-      this.target = target;
-      this.accessor = accessor;
-      this.facet = facet;
+  private ImmutableList<Accessor> collectAlternatives(TypeMirror targetType) {
+    ImmutableList.Builder<Accessor> builder = ImmutableList.builder();
+
+    builder.addAll(accessors.definedBy(targetType).values());
+
+    for (TypeMirror facet : facets.resolveFor(targetType)) {
+      builder.addAll(accessors.definedBy(facet).values());
+    }
+
+    return builder.build();
+  }
+
+  public static class UnresolvableAccessorException extends RuntimeException {
+    public final TypeMirror targetType;
+    public final String attribute;
+    public final ImmutableList<Accessor> alternatives;
+
+    public UnresolvableAccessorException(
+        TypeMirror targetType,
+        String attribute,
+        ImmutableList<Accessor> alternatives) {
+      this.targetType = targetType;
+      this.attribute = attribute;
+      this.alternatives = alternatives;
     }
   }
 }

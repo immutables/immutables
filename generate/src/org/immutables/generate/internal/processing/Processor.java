@@ -15,11 +15,6 @@
  */
 package org.immutables.generate.internal.processing;
 
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.element.Parameterizable;
-import javax.lang.model.util.Types;
-import javax.lang.model.util.Elements;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

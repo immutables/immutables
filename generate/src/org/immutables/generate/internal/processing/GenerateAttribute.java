@@ -607,4 +607,9 @@ public abstract class GenerateAttribute extends TypeIntrospectionBase {
   public boolean isAuxiliary() {
     return element.getAnnotation(GenerateAuxiliary.class) != null;
   }
+
+  public boolean isMarshaledIgnore() {
+    ensureTypeIntrospected();
+    return isMarshaledElement();
+  }
 }

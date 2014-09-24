@@ -55,4 +55,10 @@ public @interface GenerateMarshaled {
    * @return {@code true} if force output of empty value
    */
   boolean forceEmpty() default false;
+
+  /**
+   * Indicates if marshaler should skip this attribute during marshaling.
+   * @return {@code true} if attribute need to be skipped.
+   */
+  boolean ignore() default false;
 }

@@ -21,9 +21,9 @@ package `type.packageName`;
 [/template]
 
 [template generateImplementationTransformer(cases, type)]
-
 [-- TBD add check for wither or builder --]
 [let (t = type.immutableReferenceName)]
+
 public `t` transform(C context, `t` value) {
   return value
   [if (type.useCopyMethods)]
@@ -63,10 +63,10 @@ protected `a.type` transform`type.simpleName``a.name.toUpperFirst()`(C context, 
   [/if]
     [/if]
   [/foreach]
-  
   [foreach (let a in type.settableAttributes)]
     [if (cases.isKnownType(a.wrappedElementType))]
   [if (a.optionalType || a.collectionType)]
+
 protected `a.unwrappedElementType` transform`type.simpleName``a.name.toUpperFirst()`Element(C context, `t` value, `a.unwrappedElementType` element) {
   [apply generateSubclassTransform(cases, a, a.unwrappedElementType)]
 }
@@ -75,7 +75,6 @@ protected `a.unwrappedElementType` transform`type.simpleName``a.name.toUpperFirs
   [/foreach]  
 [/if]
 [/let]
-
 [/template]
 
 # function simplifyName(name) {
@@ -99,12 +98,9 @@ return element;
 
 [template generateTrackedUsageTypes(cases)]
   [foreach (let e in cases.trackedUsageTypes)]
+
 protected `e.key` transform`simplifyName(e.key)`(C context, `e.value` value) {
-    [if (cases.knownImplementation(e.key))]
   return transform(context, value);
-    [else]
-  return value;
-    [/if] 
 }
   [/foreach]
 [/template]

@@ -15,7 +15,6 @@
  */
 package org.immutables.modeling.templating;
 
-import org.immutables.annotation.GenerateTransformer;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.annotation.GenerateConstructorParameter;
@@ -23,6 +22,7 @@ import org.immutables.annotation.GenerateDefault;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
 import org.immutables.annotation.GenerateParboiled;
+import org.immutables.annotation.GenerateTransformer;
 import org.immutables.modeling.common.StringLiterals;
 
 /**
@@ -45,10 +45,10 @@ public class Trees {
     String value();
   }
 
-  public interface BoundType {}
+  public interface TypeReference {}
 
   @GenerateImmutable
-  public static abstract class TypeOf implements BoundType {
+  public static abstract class TypeDeclaration implements TypeReference {
     public abstract TypeIdentifier type();
 
     @GenerateDefault
@@ -68,14 +68,16 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface ValueDeclaration extends Named, Typed {}
+  public interface ValueDeclaration extends Named {
+    Optional<TypeReference> type();
+  }
+
+  public interface Typed {
+    TypeReference type();
+  }
 
   @GenerateImmutable
   public interface Parameter extends Named, Typed {}
-
-  public interface Typed {
-    Optional<BoundType> type();
-  }
 
   public interface Named {
     Identifier name();
@@ -91,10 +93,10 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface ConditionalBlock extends Conditional, Block, SyntheticStatement {}
+  public interface ConditionalBlock extends Conditional, Block, Synthetic {}
 
   @GenerateImmutable
-  public interface IfStatement extends SyntheticStatement {
+  public interface IfStatement extends TemplatePart, Synthetic {
     ConditionalBlock then();
 
     List<ConditionalBlock> otherwiseIf();
@@ -103,15 +105,15 @@ public class Trees {
   }
 
   @GenerateImmutable
-  public interface ForStatement extends Block, SyntheticStatement {
+  public interface ForStatement extends Block, Synthetic {
     List<GeneratorDeclaration> declaration();
   }
 
   @GenerateImmutable
-  public interface LetStatement extends Block, SyntheticStatement, InvokableStatement {}
+  public interface LetStatement extends Block, InvokableStatement, Synthetic {}
 
   @GenerateImmutable
-  public interface InvokeStatement extends Block, SyntheticStatement {
+  public interface InvokeStatement extends Block, Synthetic {
     Expression access();
 
     List<Expression> params();
@@ -159,12 +161,13 @@ public class Trees {
 
   public interface TemplatePart {}
 
-  public interface SyntheticStatement extends TemplatePart {}
-
-  public interface SyntheticExpression extends Expression {}
+  /**
+   * Non parser generated expressions or statements, produced by AST transformations, typing etc.
+   */
+  public interface Synthetic {}
 
   @GenerateImmutable
-  public interface Template extends Directive, UnitPart, Block, InvokableStatement {}
+  public interface Template extends Directive, Block, UnitPart, InvokableStatement {}
 
   public interface Expression {}
 
@@ -211,7 +214,7 @@ public class Trees {
   public interface Else extends Otherwise {}
 
   @GenerateImmutable(singleton = true, builder = false)
-  public interface TemplateEnd extends SyntheticStatement, DirectiveEnd {}
+  public interface TemplateEnd extends DirectiveEnd, Synthetic {}
 
   public interface TextPart {}
 
@@ -237,14 +240,5 @@ public class Trees {
   @GenerateImmutable
   public interface TextBlock extends TemplatePart {
     List<TextPart> parts();
-  }
-
-  @GenerateImmutable
-  public interface ResolvedAccess extends SyntheticExpression {
-    Optional<ResolvedAccess> target();
-
-    String attribute();
-
-    BoundType bound();
   }
 }

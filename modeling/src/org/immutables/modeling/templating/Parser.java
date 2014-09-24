@@ -21,8 +21,8 @@ import org.immutables.modeling.templating.ParboiledTrees.Parameter;
 import org.immutables.modeling.templating.ParboiledTrees.Template;
 import org.immutables.modeling.templating.ParboiledTrees.TextBlock;
 import org.immutables.modeling.templating.ParboiledTrees.TextFragment;
+import org.immutables.modeling.templating.ParboiledTrees.TypeDeclaration;
 import org.immutables.modeling.templating.ParboiledTrees.TypeIdentifier;
-import org.immutables.modeling.templating.ParboiledTrees.TypeOf;
 import org.immutables.modeling.templating.ParboiledTrees.Unit;
 import org.immutables.modeling.templating.ParboiledTrees.ValueDeclaration;
 import org.parboiled.BaseParser;
@@ -30,7 +30,6 @@ import org.parboiled.Rule;
 import org.parboiled.annotations.DontLabel;
 import org.parboiled.annotations.ExplicitActionsOnly;
 import org.parboiled.annotations.MemoMismatches;
-import org.parboiled.annotations.SkipNode;
 import org.parboiled.annotations.SuppressNode;
 import org.parboiled.annotations.SuppressSubnodes;
 
@@ -41,18 +40,13 @@ public class Parser extends BaseParser<Object> {
     return Sequence(Unit.builder(),
         Spacing(),
         OneOrMore(Sequence(
-            TopDirective(),
+            FirstOf(
+                OpeningDirective(Comment()),
+                Sequence(TemplateDirective(), Unit.addParts())),
             Spacing())),
         EOI, Unit.build());
   }
 
-  Rule TopDirective() {
-    return FirstOf(
-        OpeningDirective(Comment()),
-        TemplateDirective());
-  }
-
-  @SuppressNode
   Rule Comment() {
     return Sequence(COMMENT, TextBlock(), Extractions.popped());
   }
@@ -66,21 +60,11 @@ public class Parser extends BaseParser<Object> {
         TextBlock.build());
   }
 
-  @SuppressSubnodes
-  Rule Newline() {
-    return FirstOf("\n", "\n\r");
-  }
-
-  @SuppressSubnodes
-  Rule TextFragment() {
-    return ZeroOrMore(NoneOf("[]\n\r"));
-  }
-
   Rule TemplateDirective() {
     return Sequence(Template.builder(),
         TemplateStart(),
         TemplateBody(),
-        TemplateEnd(), Template.build(), Unit.addParts());
+        TemplateEnd(), Template.build());
   }
 
   Rule TemplateStart() {
@@ -148,12 +132,10 @@ public class Parser extends BaseParser<Object> {
         DirectiveStart());
   }
 
-  @SkipNode
   Rule OpeningDirective(Rule directive) {
     return Sequence("[", directive, "]");
   }
 
-  @SkipNode
   Rule ClosingDirective(Rule directive) {
     return Sequence("[/", directive, "]");
   }
@@ -284,17 +266,15 @@ public class Parser extends BaseParser<Object> {
             ParameterDeclaration()))));
   }
 
-  @SuppressSubnodes
   Rule Name() {
     return Identifier();
   }
 
-  @SuppressSubnodes
   Rule Type() {
-    return Sequence(TypeOf.builder(),
-        TypeIdentifer(), TypeOf.type(),
-        Optional(Ellipsis(), TypeOf.kind(Trees.TypeOf.Kind.ITERABLE)),
-        TypeOf.build());
+    return Sequence(TypeDeclaration.builder(),
+        TypeIdentifer(), TypeDeclaration.type(),
+        Optional(Ellipsis(), TypeDeclaration.kind(Trees.TypeDeclaration.Kind.ITERABLE)),
+        TypeDeclaration.build());
   }
 
   Rule COMMENT = Literal("--");
@@ -351,6 +331,16 @@ public class Parser extends BaseParser<Object> {
   }
 
   @SuppressSubnodes
+  Rule Newline() {
+    return FirstOf("\n", "\n\r");
+  }
+
+  @SuppressSubnodes
+  Rule TextFragment() {
+    return ZeroOrMore(NoneOf("[]\n\r"));
+  }
+
+  @SuppressSubnodes
   Rule Ellipsis() {
     return Sequence(ELLIPSIS, Spacing());
   }
@@ -363,6 +353,7 @@ public class Parser extends BaseParser<Object> {
     return CharRange('A', 'Z');
   }
 
+  @MemoMismatches
   Rule Letter() {
     return FirstOf(CharRange('a', 'z'), CharRange('A', 'Z'), '_', '$');
   }

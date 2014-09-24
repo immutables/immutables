@@ -6,8 +6,11 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
@@ -15,7 +18,7 @@ import javax.lang.model.util.ElementFilter;
 public final class Imports extends Introspection {
   private final TypeMirror importType;
 
-  Imports(ProcessingEnvironment environment) {
+  public Imports(ProcessingEnvironment environment) {
     super(environment);
     this.importType = elements.getTypeElement(Template.Import.class.getCanonicalName()).asType();
   }
@@ -23,6 +26,7 @@ public final class Imports extends Introspection {
   public final ImmutableMap<String, TypeMirror> importsIn(TypeElement type) {
     Map<String, TypeMirror> collected = Maps.newHashMap();
 
+    collectSimpleUsages(type, collected);
     collectBuiltins(collected);
     collectImports(type, collected);
     collectTypedefs(type, collected);
@@ -54,6 +58,32 @@ public final class Imports extends Introspection {
     for (VariableElement field : ElementFilter.fieldsIn(elements.getAllMembers(type))) {
       if (field.getAnnotation(Template.Typedef.class) != null) {
         collected.put(field.getSimpleName().toString(), field.asType());
+      }
+    }
+  }
+
+  private void collectSimpleUsages(TypeElement type, Map<String, TypeMirror> collected) {
+    for (ExecutableElement method : ElementFilter.methodsIn(elements.getAllMembers(type))) {
+      if (shouldConsidedAsTypeUsage(method)) {
+        collectIfSimpleType(method.getReturnType(), collected);
+        for (VariableElement parameter : method.getParameters()) {
+          collectIfSimpleType(parameter.asType(), collected);
+        }
+      }
+    }
+  }
+
+  private boolean shouldConsidedAsTypeUsage(ExecutableElement method) {
+    return method.getTypeParameters().isEmpty()
+        && !method.getModifiers().contains(Modifier.PRIVATE)
+        && !method.getModifiers().contains(Modifier.STATIC);
+  }
+
+  private void collectIfSimpleType(TypeMirror type, Map<String, TypeMirror> collected) {
+    if (type instanceof DeclaredType) {
+      DeclaredType declared = (DeclaredType) type;
+      if (declared.getTypeArguments().isEmpty()) {
+        collected.put(declared.asElement().getSimpleName().toString(), declared);
       }
     }
   }

@@ -19,8 +19,7 @@ package `type.packageName`;
 @javax.annotation.concurrent.NotThreadSafe
 `type.accessPrefix`final class Modifiable`type.simpleName`
     `type.inheritsKeyword` `type.name` {
-  private Modifiable`type.simpleName`() {
-  }
+  private Modifiable`type.simpleName`() {}
 [apply generateModifiable(type)]  
 }
 [/template]
