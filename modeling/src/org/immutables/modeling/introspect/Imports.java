@@ -1,4 +1,4 @@
-package org.immutables.modeling;
+package org.immutables.modeling.introspect;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -14,6 +14,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.modeling.Template;
 
 public final class Imports extends Introspection {
   private final TypeMirror importType;
@@ -28,6 +29,7 @@ public final class Imports extends Introspection {
 
     collectSimpleUsages(type, collected);
     collectBuiltins(collected);
+    collectPackage(type, collected);
     collectImports(type, collected);
     collectTypedefs(type, collected);
 
@@ -54,6 +56,12 @@ public final class Imports extends Introspection {
     collected.put(typeElement.getSimpleName().toString(), typeElement.asType());
   }
 
+  private void collectPackage(TypeElement type, Map<String, TypeMirror> collected) {
+    for (TypeElement samePackageType : ElementFilter.typesIn(elements.getPackageOf(type).getEnclosedElements())) {
+      collectIfSimpleType(samePackageType.asType(), collected);
+    }
+  }
+
   private void collectTypedefs(TypeElement type, Map<String, TypeMirror> collected) {
     for (VariableElement field : ElementFilter.fieldsIn(elements.getAllMembers(type))) {
       if (field.getAnnotation(Template.Typedef.class) != null) {
@@ -64,7 +72,7 @@ public final class Imports extends Introspection {
 
   private void collectSimpleUsages(TypeElement type, Map<String, TypeMirror> collected) {
     for (ExecutableElement method : ElementFilter.methodsIn(elements.getAllMembers(type))) {
-      if (shouldConsidedAsTypeUsage(method)) {
+      if (shouldConsideredAsTypeUsage(method)) {
         collectIfSimpleType(method.getReturnType(), collected);
         for (VariableElement parameter : method.getParameters()) {
           collectIfSimpleType(parameter.asType(), collected);
@@ -73,7 +81,7 @@ public final class Imports extends Introspection {
     }
   }
 
-  private boolean shouldConsidedAsTypeUsage(ExecutableElement method) {
+  private boolean shouldConsideredAsTypeUsage(ExecutableElement method) {
     return method.getTypeParameters().isEmpty()
         && !method.getModifiers().contains(Modifier.PRIVATE)
         && !method.getModifiers().contains(Modifier.STATIC);

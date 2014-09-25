@@ -1,4 +1,4 @@
-package org.immutables.modeling;
+package org.immutables.modeling.introspect;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -68,6 +68,7 @@ public abstract class Introspection {
 
   protected String toName(TypeMirror typeMirror) {
     return ((TypeElement) Preconditions.checkNotNull(
-        types.asElement(typeMirror), "not declared type")).getQualifiedName().toString();
+        types.asElement(typeMirror), "not declared type"))
+        .getQualifiedName().toString();
   }
 }

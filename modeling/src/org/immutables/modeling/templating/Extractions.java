@@ -179,6 +179,7 @@ public final class Extractions {
     @Override
     public final boolean run(Context<Object> context) {
       V value = extractor.get(context);
+      @SuppressWarnings("unchecked")
       B builder = (B) context.getValueStack().peek();
       specify(builder, value);
       return true;
@@ -190,6 +191,7 @@ public final class Extractions {
   public static abstract class Build<B, T> extends ExtractorApplicator<T> {
     @Override
     public final T get(Context<Object> context) {
+      @SuppressWarnings("unchecked")
       B builder = (B) context.getValueStack().pop();
       return build(builder);
     }

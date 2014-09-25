@@ -25,6 +25,7 @@ import org.immutables.modeling.templating.ParboiledTrees.TypeDeclaration;
 import org.immutables.modeling.templating.ParboiledTrees.TypeIdentifier;
 import org.immutables.modeling.templating.ParboiledTrees.Unit;
 import org.immutables.modeling.templating.ParboiledTrees.ValueDeclaration;
+import org.immutables.modeling.templating.ParboiledTrees.Comment;
 import org.parboiled.BaseParser;
 import org.parboiled.Rule;
 import org.parboiled.annotations.DontLabel;
@@ -48,7 +49,7 @@ public class Parser extends BaseParser<Object> {
   }
 
   Rule Comment() {
-    return Sequence(COMMENT, TextBlock(), Extractions.popped());
+    return Sequence(COMMENT, Optional(TextBlock(), Extractions.popped()), Comment.of());
   }
 
   Rule TextBlock() {
@@ -163,7 +164,7 @@ public class Parser extends BaseParser<Object> {
         ValueDeclaration(), IterationGenerator.declaration(),
         IN,
         Expression(), IterationGenerator.from(),
-        Optional(If(), IterationGenerator.condition()),
+        Optional(IF, Expression(), IterationGenerator.condition()),
         IterationGenerator.build());
   }
 

@@ -1,5 +1,6 @@
-package org.immutables.modeling;
+package org.immutables.modeling.introspect;
 
+import org.immutables.modeling.Facet;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;

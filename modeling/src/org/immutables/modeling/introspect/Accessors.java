@@ -1,8 +1,9 @@
-package org.immutables.modeling;
+package org.immutables.modeling.introspect;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
@@ -16,12 +17,17 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.modeling.introspect.Facets.FacetResolver;
 
 public final class Accessors extends Introspection {
+  private static final String OPTIONAL_TYPE_SIMPLE_NAME = "Optional";
 
   public final TypeMirror iterableType;
   public final TypeElement iterableElement;
@@ -35,15 +41,17 @@ public final class Accessors extends Introspection {
   private final LoadingCache<String, ImmutableMap<String, Accessor>> accessorsDefined =
       CacheBuilder.newBuilder()
           .concurrencyLevel(1)
-          .<String, ImmutableMap<String, Accessor>>build(
-              new CacheLoader<String, ImmutableMap<String, Accessor>>() {
-                @Override
-                public ImmutableMap<String, Accessor> load(String key) throws Exception {
-                  return extractFrom(elements.getTypeElement(key));
-                }
-              });
+          .build(new CacheLoader<String, ImmutableMap<String, Accessor>>() {
+            @Override
+            public ImmutableMap<String, Accessor> load(String key) throws Exception {
+              return extractFrom(elements.getTypeElement(key));
+            }
+          });
 
   ImmutableMap<String, Accessor> definedBy(TypeMirror type) {
+    if (!(type instanceof DeclaredType)) {
+      return ImmutableMap.of();
+    }
     return accessorsDefined.getUnchecked(toName(type));
   }
 
@@ -75,7 +83,7 @@ public final class Accessors extends Introspection {
 
   private void collectMethodAccesors(Map<String, Accessor> accesors, List<? extends Element> allMembers) {
     for (ExecutableElement method : ElementFilter.methodsIn(allMembers)) {
-      if (isAccessible(method) || isSimpleAccessor(method)) {
+      if (isAccessible(method) && isSimpleAccessor(method)) {
         Accessor accessor = new Accessor(method);
         accesors.put(accessor.name, accessor);
       }
@@ -90,7 +98,14 @@ public final class Accessors extends Introspection {
   private boolean isSimpleAccessor(ExecutableElement method) {
     return method.getParameters().isEmpty()
         && method.getThrownTypes().isEmpty()
-        && method.getTypeParameters().isEmpty();
+        && method.getTypeParameters().isEmpty()
+        && method.getReturnType().getKind() != TypeKind.VOID;
+  }
+
+  private TypeMirror boxed(TypeMirror type) {
+    return type instanceof PrimitiveType
+        ? types.boxedClass((PrimitiveType) type).asType()
+        : type;
   }
 
   public final class Accessor {
@@ -109,8 +124,12 @@ public final class Accessors extends Introspection {
       if (type instanceof ExecutableType) {
         type = ((ExecutableType) type).getReturnType();
       }
-
       return new BoundAccessor(this, target, type);
+    }
+
+    @Override
+    public String toString() {
+      return element.getEnclosingElement().getSimpleName() + "." + name + "" + (callable ? "()" : "");
     }
   }
 
@@ -120,8 +139,8 @@ public final class Accessors extends Introspection {
     public final TypeMirror containedType;
 
     protected BoundAccess(TypeMirror type) {
-      this.type = type;
-      this.containedType = inferContainedType(type);
+      this.type = boxed(type);
+      this.containedType = boxed(inferContainedType(type));
     }
 
     public boolean isContainer() {
@@ -131,11 +150,24 @@ public final class Accessors extends Introspection {
     @Nullable
     private TypeMirror inferContainedType(TypeMirror type) {
       if (type instanceof DeclaredType) {
-        if (types.isSubtype(types.erasure(type), iterableType)) {
-          return Iterables.getOnlyElement(((DeclaredType) type).getTypeArguments());
+        DeclaredType declaredType = (DeclaredType) type;
+        if (isIterableType(type) || isOptionalType(declaredType)) {
+          return Iterables.getOnlyElement(declaredType.getTypeArguments());
         }
       }
+      if (type instanceof ArrayType) {
+        return ((ArrayType) type).getComponentType();
+      }
       return null;
+    }
+
+    private boolean isIterableType(TypeMirror type) {
+      return types.isSubtype(types.erasure(type), iterableType);
+    }
+
+    private boolean isOptionalType(DeclaredType parametrizedType) {
+      return parametrizedType.asElement().getSimpleName().contentEquals(OPTIONAL_TYPE_SIMPLE_NAME)
+          && parametrizedType.getTypeArguments().size() == 1;
     }
   }
 
@@ -145,6 +177,11 @@ public final class Accessors extends Introspection {
     LocalAccess(String name, TypeMirror type) {
       super(type);
       this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return "" + name + ": " + type;
     }
   }
 
@@ -157,9 +194,87 @@ public final class Accessors extends Introspection {
       this.target = target;
       this.accessor = accessor;
     }
+
+    @Override
+    public String toString() {
+      return accessor + ": " + type;
+    }
   }
 
   public LocalAccess local(String value, TypeMirror requiredVar) {
     return new LocalAccess(value, requiredVar);
+  }
+
+  public Binder binder(FacetResolver facets) {
+    return new Binder(facets);
+  }
+
+  public final class Binder {
+    private final FacetResolver facets;
+
+    Binder(FacetResolver facets) {
+      this.facets = facets;
+    }
+
+    public BoundAccessor bind(TypeMirror targetType, String attribute) {
+      @Nullable
+      Accessor accessor = definedBy(targetType).get(attribute);
+
+      if (accessor != null) {
+        return accessor.bind(targetType);
+      }
+
+      for (TypeMirror facet : facets.resolveFor(targetType)) {
+        accessor = definedBy(facet).get(attribute);
+        if (accessor != null) {
+          return accessor.bind(facet);
+        }
+      }
+
+      throw new UnresolvableAccessorException(
+          targetType,
+          attribute,
+          collectAlternatives(targetType));
+    }
+
+    public BoundAccess bindLocalOrThis(TypeMirror type, String name, Map<String, TypeMirror> locals) {
+      TypeMirror typeMirror = locals.get(name);
+      if (typeMirror != null) {
+        return new LocalAccess(name, typeMirror);
+      }
+      return bind(type, name);
+    }
+
+    private ImmutableList<Accessor> collectAlternatives(TypeMirror targetType) {
+      ImmutableList.Builder<Accessor> builder = ImmutableList.builder();
+
+      builder.addAll(definedBy(targetType).values());
+
+      for (TypeMirror facet : facets.resolveFor(targetType)) {
+        builder.addAll(definedBy(facet).values());
+      }
+
+      return builder.build();
+    }
+  }
+
+  public static class UnresolvableAccessorException extends RuntimeException {
+    public final TypeMirror targetType;
+    public final String attribute;
+    public final ImmutableList<Accessor> alternatives;
+
+    public UnresolvableAccessorException(
+        TypeMirror targetType,
+        String attribute,
+        ImmutableList<Accessor> alternatives) {
+      this.targetType = targetType;
+      this.attribute = attribute;
+      this.alternatives = alternatives;
+    }
+
+    @Override
+    public String getMessage() {
+      return "Unresolvable: " + targetType + "." + attribute + "\n\tAlternatives: " + alternatives;
+    }
   }
 }

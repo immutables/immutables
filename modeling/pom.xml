@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>0.17-SNAPSHOT</version>
+    <version>0.19-SNAPSHOT</version>
   </parent>
 
   <artifactId>modeling</artifactId>
@@ -28,12 +28,12 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>annotation</artifactId>
-      <version>0.19-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>generate-tool</artifactId>
-      <version>0.19-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

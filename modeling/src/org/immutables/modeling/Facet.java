@@ -7,7 +7,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Documented;
 
 /**
- * Type should implement {@code Facet} if it's mixable into
+ * Type should implement {@code Facet} if it's mixable into element of type E
  * @param <E> wrapped element type
  */
 public interface Facet<E> {

@@ -35,6 +35,10 @@ public `t` transform(C context, `t` value) {
   [/if]
   ;
 }
+
+protected `type.name` transformAbstract(C context, `t` value) {
+  return transform(context, value);
+}
 [if (type.useCopyMethods)]
   [foreach (let a in type.settableAttributes)]
     [if (cases.isKnownType(a.wrappedElementType))]
@@ -86,7 +90,8 @@ protected `a.unwrappedElementType` transform`type.simpleName``a.name.toUpperFirs
   [foreach (let subtypeObject in cases.knownSubtypes(t))]
   [let (subtype = subtypeObject.immutableReferenceName)] 
   [if (subtype != t)]
-# cases.track(t, subtype)
+# cases.track(t, subtypeObject)
+  [-- TBD what to do with not covered subtype to abstract value type transformation  --]
 if (element instanceof `subtype`) {
   return transform`simplifyName(t)`(context, (`subtype`) element);
 }
@@ -99,8 +104,8 @@ return element;
 [template generateTrackedUsageTypes(cases)]
   [foreach (let e in cases.trackedUsageTypes)]
 
-protected `e.key` transform`simplifyName(e.key)`(C context, `e.value` value) {
-  return transform(context, value);
+protected `e.key` transform`simplifyName(e.key)`(C context, `e.value.immutableReferenceName` value) {
+  return transformAbstract(context, value);
 }
   [/foreach]
 [/template]

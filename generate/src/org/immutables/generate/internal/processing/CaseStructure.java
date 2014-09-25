@@ -17,7 +17,7 @@ public class CaseStructure {
   private final List<GenerateType> nestedChildren;
   private final ListMultimap<String, GenerateType> subtyping;
   private final Map<String, GenerateType> typeMap;
-  private final SetMultimap<String, String> occurencesSubtypingMapping = HashMultimap.create();
+  private final SetMultimap<String, GenerateType> occurencesSubtypingMapping = HashMultimap.create();
   private static final Joiner DOT_JOINER = Joiner.on('.').skipNulls();
 
   public CaseStructure(GenerateType nestingParent, List<GenerateType> nestedChildren) {
@@ -54,6 +54,10 @@ public class CaseStructure {
     return builder.build();
   }
 
+  public GenerateType getNestingParent() {
+    return nestingParent;
+  }
+
   public List<GenerateType> getImplementationTypes() {
     return nestedChildren;
   }
@@ -70,12 +74,12 @@ public class CaseStructure {
     return typeMap.containsKey(typeName) || subtyping.containsKey(typeName);
   }
 
-  public String track(String usageType, String implementationType) {
-    occurencesSubtypingMapping.put(usageType, implementationType);
+  public String track(String usageType, GenerateType subclassType) {
+    occurencesSubtypingMapping.put(usageType, subclassType);
     return "";
   }
 
-  public Collection<Entry<String, String>> getTrackedUsageTypes() {
+  public Collection<Entry<String, GenerateType>> getTrackedUsageTypes() {
     return occurencesSubtypingMapping.entries();
   }
 }

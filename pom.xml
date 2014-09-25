@@ -30,6 +30,8 @@
     <module>fixture</module>
     <module>generate-tool</module>
     <module>bench</module>
+    <module>modeling</module>
+    <module>modeling-fixture</module>
   </modules>
 
   <organization>
@@ -42,7 +44,7 @@
       <id>elucash</id>
       <name>Ievgen Lukash</name>
       <email>e.lucash@gmail.com</email>
-      <timezone>+2</timezone>
+      <timezone>-8</timezone>
     </developer>
     <developer>
       <id>ivysharev</id>

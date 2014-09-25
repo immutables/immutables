@@ -104,25 +104,38 @@ public final class Balancing {
     }
   }
 
-  private static final class TemplateScope extends Scope {
-    final Template template;
-
-    TemplateScope(Template template) {
-      this.template = template;
+  private static final class UnitScope extends Scope {
+    @Override
+    Scope end(DirectiveEnd directiveEnd) {
+      return this;
     }
 
     @Override
-    Scope end(DirectiveEnd directiveEnd) {
-      throw new MisplacedDirective(this, directiveEnd);
+    boolean incorrect(TemplatePart part) {
+      return part == null;
+    }
+
+    @Override
+    Scope correct(TemplatePart part) {
+      return this;
+    }
+  }
+
+  private static final class TemplateScope extends BlockScope {
+    private final Template template;
+
+    TemplateScope(Template template) {
+      super(new UnitScope(), TemplateEnd.of(), true, false);
+      this.template = template;
     }
 
     public Template balance() {
-      Scope scope = passAll(template.parts());
-      if (scope != this) {
+      Scope scope = passAll(template.parts()).pass(TemplateEnd.of());
+      if (scope != parent) {
         // TBD
         throw new MisplacedDirective(this, TemplateEnd.of());
       }
-      return template.withParts(parts);
+      return createPart();
     }
 
     @Override
@@ -131,10 +144,15 @@ public final class Balancing {
         super.add(part);
       }
     }
+
+    @Override
+    Template createPart() {
+      return template.withParts(parts);
+    }
   }
 
   private static final class MisplacedDirective extends RuntimeException {
-    final Directive directive;
+    private final Directive directive;
     private final Scope scope;
 
     MisplacedDirective(Scope scope, Directive directive) {
@@ -149,9 +167,9 @@ public final class Balancing {
   }
 
   private static abstract class BlockScope extends Scope {
-    final DirectiveEnd expectedEnd;
-    final boolean requiresEnd;
-    final boolean sharesEnd;
+    private final DirectiveEnd expectedEnd;
+    private final boolean requiresEnd;
+    private final boolean sharesEnd;
     final Scope parent;
 
     BlockScope(

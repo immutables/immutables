@@ -1,5 +1,9 @@
 package org.immutables.modeling.templating;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import org.immutables.modeling.templating.ImmutableTrees.ApplyExpression;
+import org.immutables.modeling.templating.Trees.Expression;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import java.util.List;
@@ -10,8 +14,8 @@ import javax.lang.model.type.TypeMirror;
 import org.immutables.annotation.GenerateConstructorParameter;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
-import org.immutables.modeling.Accessors.BoundAccess;
-import org.immutables.modeling.SwissArmyKnife;
+import org.immutables.modeling.introspect.Accessors.BoundAccess;
+import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.ImmutableTrees.AccessExpression;
 import org.immutables.modeling.templating.ImmutableTrees.AssignGenerator;
 import org.immutables.modeling.templating.ImmutableTrees.ForStatement;
@@ -40,32 +44,40 @@ public final class Typing {
     return new Transformer().transform(new Scope(), unit);
   }
 
-  @GenerateImmutable(builder = false)
-  interface ResolvedType extends Trees.TypeReference, Trees.Synthetic {
+  @GenerateImmutable
+  public interface ResolvedType extends Trees.TypeReference, Trees.Synthetic {
     @GenerateConstructorParameter
-    TypeMirror typeMirror();
+    TypeMirror type();
   }
 
   @GenerateImmutable
-  interface ScopeBoundAccess extends Trees.AccessExpression, Trees.Synthetic {
-    List<BoundAccess> accessor();
+  public abstract static class BoundAccessExpression implements Trees.AccessExpression, Trees.Synthetic {
+    public abstract List<BoundAccess> accessor();
+
+    @Override
+    public String toString() {
+      return accessor().toString();
+    }
   }
 
   private class Scope {
     private final Map<String, TypeMirror> locals = Maps.newLinkedHashMap();
 
-    Scope() {}
-
-    Scope(Scope parent) {
-      this.locals.putAll(parent.locals);
-    }
-
-    Scope chain() {
-      return new Scope(this);
+    Scope nest() {
+      Scope nested = new Scope();
+      nested.locals.putAll(locals);
+      return nested;
     }
 
     ImmutableTyping.ResolvedType declare(TypeDeclaration type, Trees.Identifier name) {
+      if (isDeclared(name)) {
+        throw new TypingException(String.format("Redeclaration of local %s", name));
+      }
       return declare(resolve(type), name);
+    }
+
+    private boolean isDeclared(Trees.Identifier name) {
+      return locals.containsKey(name.value());
     }
 
     private ImmutableTyping.ResolvedType declare(TypeMirror type, Trees.Identifier name) {
@@ -76,7 +88,7 @@ public final class Typing {
     private TypeMirror resolve(TypeDeclaration type) {
       TypeMirror resolved = knife.imports.get(type.type().value());
       if (resolved == null) {
-        throw new TypingException(String.format("Could not resolve '%s' simple type", type));
+        throw new TypingException(String.format("Could not resolve %s simple type", type));
       }
       if (type.kind() == Trees.TypeDeclaration.Kind.ITERABLE) {
         resolved = makeIterableTypeOf(resolved);
@@ -88,9 +100,9 @@ public final class Typing {
       return knife.types.getDeclaredType(knife.accessors.iterableElement, resolved);
     }
 
-    ScopeBoundAccess resolveAccess(AccessExpression expression) {
-      ImmutableTyping.ScopeBoundAccess.Builder builder =
-          ImmutableTyping.ScopeBoundAccess.builder()
+    BoundAccessExpression resolveAccess(AccessExpression expression) {
+      ImmutableTyping.BoundAccessExpression.Builder builder =
+          ImmutableTyping.BoundAccessExpression.builder()
               .addAllPath(expression.path());
 
       BoundAccess accessor = null;
@@ -114,8 +126,8 @@ public final class Typing {
         Trees.Expression expression,
         Trees.TypeDeclaration.Kind kind) {
 
-      if (expression instanceof ScopeBoundAccess) {
-        ScopeBoundAccess scopeBoundAccess = (ScopeBoundAccess) expression;
+      if (expression instanceof BoundAccessExpression) {
+        BoundAccessExpression scopeBoundAccess = (BoundAccessExpression) expression;
         BoundAccess lastAccess = Iterables.getLast(scopeBoundAccess.accessor());
 
         if (kind == Trees.TypeDeclaration.Kind.ITERABLE) {
@@ -129,7 +141,6 @@ public final class Typing {
         if (declaration.type().isPresent()) {
           // TBD check type here if it's present
         } else {
-
           TypeMirror resolved = (kind == Trees.TypeDeclaration.Kind.ITERABLE)
               ? lastAccess.containedType
               : lastAccess.type;
@@ -151,51 +162,90 @@ public final class Typing {
   private static final class Transformer extends TreesTransformer<Scope> {
 
     @Override
-    public AssignGenerator transform(Scope context, AssignGenerator value) {
-      AssignGenerator generator = super.transform(context, value);
+    public AssignGenerator transform(Scope scope, AssignGenerator value) {
+      AssignGenerator generator = super.transform(scope, value);
       return generator.withDeclaration(
-          context.inferType(
+          scope.inferType(
               (ImmutableTrees.ValueDeclaration) generator.declaration(),
               generator.from(),
               Trees.TypeDeclaration.Kind.SCALAR));
     }
 
     @Override
-    public IterationGenerator transform(Scope context, IterationGenerator value) {
-      IterationGenerator generator = super.transform(context, value);
+    public IterationGenerator transform(Scope scope, IterationGenerator value) {
+      IterationGenerator generator = super.transform(scope, value);
       return generator.withDeclaration(
-          context.inferType(
+          scope.inferType(
               (ImmutableTrees.ValueDeclaration) generator.declaration(),
               generator.from(),
-              Trees.TypeDeclaration.Kind.ITERABLE));
+              Trees.TypeDeclaration.Kind.ITERABLE))
+          .withCondition(transformIterationGeneratorConditionAfterDeclaration(scope, generator, generator.condition()));
+    }
+
+    private Optional<Expression> transformIterationGeneratorConditionAfterDeclaration(
+        Scope scope,
+        IterationGenerator generator,
+        Optional<Expression> condition) {
+      if (condition.isPresent()) {
+        // Calling actual transformation
+        return Optional.of(super.transformIterationGeneratorConditionElement(scope, generator, condition.get()));
+      }
+      return Optional.absent();
     }
 
     @Override
-    public Parameter transform(Scope context, Parameter parameter) {
+    protected Expression transformIterationGeneratorConditionElement(
+        Scope scope,
+        IterationGenerator value,
+        Expression element) {
+      // We prevent transformation here to manually do it after variable declaration is done
+      return element;
+    }
+
+    @Override
+    public Parameter transform(Scope scope, Parameter parameter) {
       return parameter.withType(
-          context.declare(
+          scope.declare(
               (TypeDeclaration) parameter.type(),
               parameter.name()));
     }
 
     @Override
-    public Template transform(Scope context, Template value) {
-      return super.transform(context.chain(), value);
+    public Template transform(Scope scope, Template template) {
+      return super.transform(scope.nest(), template);
     }
 
     @Override
-    public LetStatement transform(Scope context, LetStatement value) {
-      return super.transform(context.chain(), value);
+    public LetStatement transform(Scope scope, LetStatement value) {
+      return super.transform(scope.nest(), value);
     }
 
     @Override
-    public ForStatement transform(Scope context, ForStatement value) {
-      return super.transform(context.chain(), value);
+    public ForStatement transform(Scope scope, ForStatement value) {
+      return super.transform(scope.nest(), value);
+    }
+
+    /**
+     * Resolve accesors and types on {@link AccessExpression}, turning it into Bou
+     */
+    @Override
+    protected Trees.AccessExpression transformAbstract(Scope scope, AccessExpression value) {
+      return scope.resolveAccess(value);
     }
 
     @Override
-    protected Trees.AccessExpression transformAccessExpression(Scope context, AccessExpression value) {
-      return context.resolveAccess(value);
+    protected Expression transformExpression(Scope scope, ApplyExpression value) {
+      return simplifyExpression(super.transformExpression(scope, value));
+    }
+
+    private Expression simplifyExpression(Expression expression) {
+      if (expression instanceof ApplyExpression) {
+        ImmutableList<Expression> params = ((ApplyExpression) expression).params();
+        if (params.size() == 1) {
+          return params.get(0);
+        }
+      }
+      return expression;
     }
   }
 }

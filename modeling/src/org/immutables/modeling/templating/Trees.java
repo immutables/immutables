@@ -34,15 +34,25 @@ import org.immutables.modeling.common.StringLiterals;
 public class Trees {
 
   @GenerateImmutable(builder = false)
-  public interface Identifier {
+  public static abstract class Identifier {
     @GenerateConstructorParameter
-    String value();
+    public abstract String value();
+
+    @Override
+    public String toString() {
+      return "`" + value() + "`";
+    }
   }
 
   @GenerateImmutable(builder = false)
-  public interface TypeIdentifier {
+  public static abstract class TypeIdentifier {
     @GenerateConstructorParameter
-    String value();
+    public abstract String value();
+
+    @Override
+    public String toString() {
+      return "`" + value() + "`";
+    }
   }
 
   public interface TypeReference {}
@@ -91,6 +101,9 @@ public class Trees {
   public interface Block extends TemplatePart {
     List<TemplatePart> parts();
   }
+
+  @GenerateImmutable(singleton = true, builder = false)
+  public interface Comment extends UnitPart, TemplatePart {}
 
   @GenerateImmutable
   public interface ConditionalBlock extends Conditional, Block, Synthetic {}
@@ -191,7 +204,9 @@ public class Trees {
   public interface AssignGenerator extends GeneratorDeclaration {}
 
   @GenerateImmutable
-  public interface IterationGenerator extends GeneratorDeclaration, Conditional {}
+  public interface IterationGenerator extends GeneratorDeclaration {
+    Optional<Expression> condition();
+  }
 
   @GenerateImmutable
   public interface For extends DirectiveStart {
