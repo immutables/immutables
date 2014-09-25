@@ -27,10 +27,10 @@ import org.immutables.modeling.templating.ImmutableTrees.TypeDeclaration;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
 
 @GenerateNested
-public final class Typing {
+public final class Typer {
   private final SwissArmyKnife knife;
 
-  public Typing(SwissArmyKnife knife) {
+  public Typer(SwissArmyKnife knife) {
     this.knife = knife;
   }
 
@@ -69,7 +69,7 @@ public final class Typing {
       return nested;
     }
 
-    ImmutableTyping.ResolvedType declare(TypeDeclaration type, Trees.Identifier name) {
+    ImmutableTyper.ResolvedType declare(TypeDeclaration type, Trees.Identifier name) {
       if (isDeclared(name)) {
         throw new TypingException(String.format("Redeclaration of local %s", name));
       }
@@ -80,9 +80,9 @@ public final class Typing {
       return locals.containsKey(name.value());
     }
 
-    private ImmutableTyping.ResolvedType declare(TypeMirror type, Trees.Identifier name) {
+    private ImmutableTyper.ResolvedType declare(TypeMirror type, Trees.Identifier name) {
       locals.put(name.value(), type);
-      return ImmutableTyping.ResolvedType.of(type);
+      return ImmutableTyper.ResolvedType.of(type);
     }
 
     private TypeMirror resolve(TypeDeclaration type) {
@@ -101,8 +101,8 @@ public final class Typing {
     }
 
     BoundAccessExpression resolveAccess(AccessExpression expression) {
-      ImmutableTyping.BoundAccessExpression.Builder builder =
-          ImmutableTyping.BoundAccessExpression.builder()
+      ImmutableTyper.BoundAccessExpression.Builder builder =
+          ImmutableTyper.BoundAccessExpression.builder()
               .addAllPath(expression.path());
 
       BoundAccess accessor = null;

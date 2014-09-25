@@ -102,12 +102,6 @@ public final class Accessors extends Introspection {
         && method.getReturnType().getKind() != TypeKind.VOID;
   }
 
-  private TypeMirror boxed(TypeMirror type) {
-    return type instanceof PrimitiveType
-        ? types.boxedClass((PrimitiveType) type).asType()
-        : type;
-  }
-
   public final class Accessor {
     public final Element element;
     public final String name;
@@ -141,6 +135,40 @@ public final class Accessors extends Introspection {
     protected BoundAccess(TypeMirror type) {
       this.type = boxed(type);
       this.containedType = boxed(inferContainedType(type));
+    }
+
+    private TypeMirror boxed(TypeMirror type) {
+      // types.boxedClass fails on some compiler implementations
+      if (type == null || !(type instanceof PrimitiveType)) {
+        return type;
+      }
+      Class<?> boxedClass;
+      switch (type.getKind()) {
+      case BOOLEAN:
+        boxedClass = Boolean.class;
+        break;
+      case SHORT:
+        boxedClass = Short.class;
+        break;
+      case INT:
+        boxedClass = Integer.class;
+        break;
+      case LONG:
+        boxedClass = Long.class;
+        break;
+      case FLOAT:
+        boxedClass = Float.class;
+        break;
+      case DOUBLE:
+        boxedClass = Double.class;
+        break;
+      case CHAR:
+        boxedClass = Character.class;
+        break;
+      default:
+        boxedClass = Void.class;
+      }
+      return elements.getTypeElement(boxedClass.getName()).asType();
     }
 
     public boolean isContainer() {

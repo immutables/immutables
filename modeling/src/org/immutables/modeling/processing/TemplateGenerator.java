@@ -21,7 +21,7 @@ import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.Balancing;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.Parser;
-import org.immutables.modeling.templating.Typing;
+import org.immutables.modeling.templating.Typer;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
@@ -29,7 +29,7 @@ import org.parboiled.support.ParsingResult;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class Processor extends AbstractProcessor {
+public class TemplateGenerator extends AbstractProcessor {
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
     if (!round.processingOver() && !round.errorRaised()) {
@@ -60,7 +60,7 @@ public class Processor extends AbstractProcessor {
         Unit unit = (Unit) Iterables.getOnlyElement(result.valueStack);
 
         Unit balanced = Balancing.balance(unit);
-        Unit resolved = new Typing(knife).resolve(balanced);
+        Unit resolved = new Typer(knife).resolve(balanced);
 
         System.out.println(resolved);
 
