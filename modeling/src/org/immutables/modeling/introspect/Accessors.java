@@ -139,10 +139,10 @@ public final class Accessors extends Introspection {
 
     private TypeMirror boxed(TypeMirror type) {
       // types.boxedClass fails on some compiler implementations
-      if (type == null || !(type instanceof PrimitiveType)) {
+      if (type == null) {
         return type;
       }
-      Class<?> boxedClass;
+      Class<?> boxedClass = null;
       switch (type.getKind()) {
       case BOOLEAN:
         boxedClass = Boolean.class;
@@ -165,10 +165,17 @@ public final class Accessors extends Introspection {
       case CHAR:
         boxedClass = Character.class;
         break;
-      default:
+      case BYTE:
+        boxedClass = Byte.class;
+        break;
+      case VOID:
         boxedClass = Void.class;
+        break;
+      default:
       }
-      return elements.getTypeElement(boxedClass.getName()).asType();
+      return boxedClass == null
+          ? type
+          : elements.getTypeElement(boxedClass.getName()).asType();
     }
 
     public boolean isContainer() {
