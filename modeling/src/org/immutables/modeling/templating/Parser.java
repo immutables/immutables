@@ -3,10 +3,12 @@ package org.immutables.modeling.templating;
 import org.immutables.modeling.templating.ParboiledTrees.AccessExpression;
 import org.immutables.modeling.templating.ParboiledTrees.ApplyExpression;
 import org.immutables.modeling.templating.ParboiledTrees.AssignGenerator;
+import org.immutables.modeling.templating.ParboiledTrees.Comment;
 import org.immutables.modeling.templating.ParboiledTrees.Else;
 import org.immutables.modeling.templating.ParboiledTrees.ElseIf;
 import org.immutables.modeling.templating.ParboiledTrees.For;
 import org.immutables.modeling.templating.ParboiledTrees.ForEnd;
+import org.immutables.modeling.templating.ParboiledTrees.ForIterationAccessExpression;
 import org.immutables.modeling.templating.ParboiledTrees.Identifier;
 import org.immutables.modeling.templating.ParboiledTrees.If;
 import org.immutables.modeling.templating.ParboiledTrees.IfEnd;
@@ -25,7 +27,6 @@ import org.immutables.modeling.templating.ParboiledTrees.TypeDeclaration;
 import org.immutables.modeling.templating.ParboiledTrees.TypeIdentifier;
 import org.immutables.modeling.templating.ParboiledTrees.Unit;
 import org.immutables.modeling.templating.ParboiledTrees.ValueDeclaration;
-import org.immutables.modeling.templating.ParboiledTrees.Comment;
 import org.parboiled.BaseParser;
 import org.parboiled.Rule;
 import org.parboiled.annotations.DontLabel;
@@ -180,7 +181,14 @@ public class Parser extends BaseParser<Object> {
   Rule DisambiguatedExpression() {
     return FirstOf(
         Parens(ApplyExpression()),
+        ForIterationAccessExpression(),
         AccessExpression());
+  }
+
+  Rule ForIterationAccessExpression() {
+    return Sequence(
+        FOR, DOT,
+        AccessExpression(), ForIterationAccessExpression.of());
   }
 
   Rule Expression() {
@@ -214,10 +222,18 @@ public class Parser extends BaseParser<Object> {
   }
 
   Rule For() {
-    return Sequence(
-        FOR, For.builder(),
-        ForDeclaration(),
-        For.build());
+    return FirstOf(
+        Sequence(
+            FOR,
+            DOT,
+            Invoke.builder(),
+            AccessExpression(),
+            ForIterationAccessExpression.of(), Invoke.access(),
+            Invoke.build()),
+        Sequence(
+            FOR, For.builder(),
+            ForDeclaration(),
+            For.build()));
   }
 
   Rule ForDeclaration() {

@@ -1,8 +1,18 @@
 
 [template name String param]
   some text 
-  [for a in param.toCharArray if not a.hashCode, b = param.length]
-  
+  [for a in param.toCharArray if not a.hashCode
+     , b = param.length, c in param.toCharArray]
+    [if not b]
+    [else if param.length]
+      [let cd]
+        WW[cd][b]WW[for.index][c]
+        [if for.first][/if]
+      [/let]
+    [else if param]
+      [param.length]
+    [else]
+    [/if]
   [/for]
   
   [-- param--]
@@ -10,4 +20,8 @@
   [let our Integer s]
     [s.hashCode][param.length]
   [/let]
+[/template]
+
+[template surname]
+  [name toString]
 [/template]

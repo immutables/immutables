@@ -20,10 +20,10 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.modeling.Templates;
 import org.immutables.modeling.introspect.Facets.FacetResolver;
 
 public final class Accessors extends Introspection {
@@ -31,11 +31,15 @@ public final class Accessors extends Introspection {
 
   public final TypeMirror iterableType;
   public final TypeElement iterableElement;
+  public final TypeMirror invokableType;
+  public final TypeMirror iterationType;
 
   Accessors(ProcessingEnvironment environment) {
     super(environment);
     this.iterableElement = elements.getTypeElement(Iterable.class.getName());
     this.iterableType = iterableElement.asType();
+    this.invokableType = elements.getTypeElement(Templates.Invokable.class.getCanonicalName()).asType();
+    this.iterationType = elements.getTypeElement(Templates.Iteration.class.getCanonicalName()).asType();
   }
 
   private final LoadingCache<String, ImmutableMap<String, Accessor>> accessorsDefined =
@@ -131,10 +135,18 @@ public final class Accessors extends Introspection {
     public final TypeMirror type;
     @Nullable
     public final TypeMirror containedType;
+    public final String name;
+    public final boolean invokable;
+    public final boolean callable;
+    public final boolean boxed;
 
-    protected BoundAccess(TypeMirror type) {
+    protected BoundAccess(TypeMirror type, String name, boolean callable) {
+      this.name = name;
+      this.callable = callable;
       this.type = boxed(type);
+      this.boxed = this.type != type;
       this.containedType = boxed(inferContainedType(type));
+      this.invokable = types.isAssignable(type, invokableType);
     }
 
     private TypeMirror boxed(TypeMirror type) {
@@ -207,11 +219,8 @@ public final class Accessors extends Introspection {
   }
 
   public final class LocalAccess extends BoundAccess {
-    public final String name;
-
     LocalAccess(String name, TypeMirror type) {
-      super(type);
-      this.name = name;
+      super(type, name, false);
     }
 
     @Override
@@ -225,7 +234,7 @@ public final class Accessors extends Introspection {
     public final TypeMirror target;
 
     BoundAccessor(Accessor accessor, TypeMirror target, TypeMirror type) {
-      super(type);
+      super(type, accessor.name, accessor.callable);
       this.target = target;
       this.accessor = accessor;
     }

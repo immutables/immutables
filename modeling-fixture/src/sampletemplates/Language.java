@@ -1,7 +1,7 @@
 package sampletemplates;
 
-public class Language {
-  public interface Unary<T> {}
+import org.immutables.modeling.Templates;
 
-  public Unary<Boolean> not;
+public class Language {
+  public Templates.Unary<Object, Boolean> not;
 }

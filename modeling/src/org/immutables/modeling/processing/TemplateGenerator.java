@@ -1,5 +1,9 @@
 package org.immutables.modeling.processing;
 
+import java.io.Writer;
+import org.immutables.modeling.templating.WritingTransformer;
+import com.google.common.base.Joiner;
+import javax.tools.JavaFileObject;
 import org.immutables.modeling.Template;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Throwables;
@@ -21,7 +25,7 @@ import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.Balancing;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.Parser;
-import org.immutables.modeling.templating.Typer;
+import org.immutables.modeling.templating.Resolver;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
@@ -60,7 +64,19 @@ public class TemplateGenerator extends AbstractProcessor {
         Unit unit = (Unit) Iterables.getOnlyElement(result.valueStack);
 
         Unit balanced = Balancing.balance(unit);
-        Unit resolved = new Typer(knife).resolve(balanced);
+        Unit resolved = new Resolver(knife).resolve(balanced);
+
+        String simpleName = "Template_" + templateType.getSimpleName();
+        JavaFileObject templateFile =
+            knife.environment.getFiler().createSourceFile(
+                Joiner.on('.').join(packageElement.getQualifiedName(), simpleName),
+                templateType);
+
+        WritingTransformer writingTransformer = new WritingTransformer(knife, templateType, simpleName);
+
+        try (Writer writer = templateFile.openWriter()) {
+          writer.append(writingTransformer.toCharSequence(resolved));
+        }
 
         System.out.println(resolved);
 

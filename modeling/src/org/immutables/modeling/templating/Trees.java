@@ -73,6 +73,27 @@ public class Trees {
   }
 
   @GenerateImmutable
+  public abstract static class ResolvedType implements Trees.TypeReference, Trees.Synthetic {
+    @GenerateConstructorParameter
+    public abstract Object type();
+
+    @Override
+    public String toString() {
+      return type().toString();
+    }
+  }
+
+  @GenerateImmutable
+  public abstract static class BoundAccessExpression implements Trees.AccessExpression, Trees.Synthetic {
+    public abstract List<Object> accessor();
+
+    @Override
+    public String toString() {
+      return accessor().toString();
+    }
+  }
+
+  @GenerateImmutable
   public interface InvokableDeclaration extends Named {
     List<Parameter> parameters();
   }
@@ -120,6 +141,12 @@ public class Trees {
   @GenerateImmutable
   public interface ForStatement extends Block, Synthetic {
     List<GeneratorDeclaration> declaration();
+  }
+
+  @GenerateImmutable(builder = false)
+  public interface ForIterationAccessExpression extends AccessExpression {
+    @GenerateConstructorParameter
+    AccessExpression access();
   }
 
   @GenerateImmutable

@@ -9,7 +9,8 @@ import javax.lang.model.util.Types;
 import org.immutables.modeling.introspect.Facets.FacetResolver;
 
 /**
- * Temporary "global context" class while interactions and structure is not sorted out well
+ * Temporary "global context" class while interactions and structure is not sorted out well.
+ * While there is no injection
  */
 public class SwissArmyKnife {
 
