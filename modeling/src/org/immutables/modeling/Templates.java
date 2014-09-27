@@ -1,11 +1,8 @@
 package org.immutables.modeling;
 
-import static com.google.common.base.Preconditions.*;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import java.util.List;
 import com.google.common.base.Strings;
 import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.*;
 
 public final class Templates {
   private Templates() {}

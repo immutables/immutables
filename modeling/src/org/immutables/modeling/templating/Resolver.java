@@ -1,8 +1,6 @@
 package org.immutables.modeling.templating;
 
-import static com.google.common.base.Preconditions.*;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -31,8 +29,11 @@ import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.Trees.Expression;
 import org.immutables.modeling.templating.Trees.TemplatePart;
 import org.immutables.modeling.templating.Trees.UnitPart;
+import static com.google.common.base.Preconditions.*;
 
 public final class Resolver {
+  static final String ITERATION_ACCESS_VARIABLE = "for";
+
   private final SwissArmyKnife knife;
 
   public Resolver(SwissArmyKnife knife) {
@@ -166,8 +167,6 @@ public final class Resolver {
       return declaration;
     }
   }
-
-  private static final String ITERATION_ACCESS_VARIABLE = "_iteration";
 
   private static final class ForIterationAccessTransformer extends TreesTransformer<Void> {
     @Override

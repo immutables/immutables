@@ -163,7 +163,7 @@ public final class WritingTransformer extends TreesTransformer<WritingTransforme
         .out("final ")
         .out(Templates.Iteration.class)
         .out(" ")
-        .out(context.accessMapper("_iteration"))
+        .out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE))
         .out(" = new ")
         .out(Templates.Iteration.class)
         .out("();")
@@ -171,8 +171,8 @@ public final class WritingTransformer extends TreesTransformer<WritingTransforme
 
     transformForStatementParts(context, statement, statement.parts());
 
-    context.out(context.accessMapper("_iteration")).out(".index++;").ln();
-    context.out(context.accessMapper("_iteration")).out(".first = false;").ln();
+    context.out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE)).out(".index++;").ln();
+    context.out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE)).out(".first = false;").ln();
     context.outfor();
     context.getAndSetPendingBraces(braces);
     context.outdent().ln()
@@ -424,7 +424,7 @@ public final class WritingTransformer extends TreesTransformer<WritingTransforme
     }
 
     public String accessMapper(String identifer) {
-      if ("_iteration".equals(identifer)) {
+      if (Resolver.ITERATION_ACCESS_VARIABLE.equals(identifer)) {
         return "_it" + forLevels;
       }
       return identifer;
