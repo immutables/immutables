@@ -6,7 +6,6 @@ import java.util.List;
 import javax.lang.model.element.TypeElement;
 import org.immutables.modeling.Intrinsics;
 import org.immutables.modeling.Templates;
-import org.immutables.modeling.common.StringLiterals;
 import org.immutables.modeling.introspect.Accessors.BoundAccess;
 import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.ImmutableTrees.ApplyExpression;
@@ -117,7 +116,7 @@ public final class WritingTransformer extends TreesTransformer<WritingTransforme
         .out(declaration.name().value())
         .out(" = ")
         .out("new ")
-        .out(Templates.Template.class)
+        .out(Templates.Fragment.class)
         .out("(", declaration.parameters().size(), ") ")
         .openBrace()
         .ln()
@@ -190,7 +189,7 @@ public final class WritingTransformer extends TreesTransformer<WritingTransforme
 
     if (!statement.parts().isEmpty()) {
       context.out(", new ")
-          .out(Templates.Template.class)
+          .out(Templates.Fragment.class)
           .out("() ")
           .openBrace()
           .ln()

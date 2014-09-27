@@ -11,7 +11,7 @@ public final class Templates {
 
   public interface Binary<A, B, C> {}
 
-  public interface Applicable<T> {
+  public interface Apply<T> {
     T apply(Object... parameters);
   }
 
@@ -105,10 +105,10 @@ public final class Templates {
     }
   }
 
-  public static abstract class Template implements Invokable {
+  public static abstract class Fragment implements Invokable {
     private final int arity;
 
-    protected Template(int arity) {
+    protected Fragment(int arity) {
       checkArgument(arity > 0);
       this.arity = arity;
     }

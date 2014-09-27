@@ -8,7 +8,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.util.Arrays;
 import org.immutables.modeling.Templates.Binary;
-import org.immutables.modeling.Templates.Applicable;
+import org.immutables.modeling.Templates.Apply;
 import org.immutables.modeling.Templates.Unary;
 
 public final class Intrinsics {
@@ -32,7 +32,7 @@ public final class Intrinsics {
     return null;
   }
 
-  public static <T> T $(Applicable<T> function, Object... parameters) {
+  public static <T> T $(Apply<T> applicable, Object... parameters) {
     return null;
   }
 
@@ -44,7 +44,7 @@ public final class Intrinsics {
     invokation.out($(left, binary, right));
   }
 
-  public static void $(Invokation invokation, Applicable<?> function, Object... parameters) {
+  public static void $(Invokation invokation, Apply<?> function, Object... parameters) {
     invokation.out($(function, parameters));
   }
 
