@@ -15,6 +15,7 @@
  */
 package org.immutables.modeling.templating;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.annotation.GenerateConstructorParameter;
@@ -154,12 +155,18 @@ public class Trees {
 
   @GenerateImmutable
   public interface InvokeStatement extends Block, Synthetic {
+    Optional<TextFragment> whitespace();
+
     Expression access();
 
     List<Expression> params();
   }
 
-  public interface DirectiveStart extends Directive {}
+  public interface DirectiveStart extends Directive {
+    Optional<TextFragment> before();
+
+    Directive withBefore(TextFragment fragment);
+  }
 
   public interface DirectiveEnd extends Directive {}
 
@@ -277,10 +284,29 @@ public class Trees {
     public String toString() {
       return StringLiterals.toLiteral(value());
     }
+
+    public boolean isWhitespace() {
+      return CharMatcher.WHITESPACE.matchesAllOf(value());
+    }
   }
 
   @GenerateImmutable
   public interface TextBlock extends TemplatePart {
     List<TextPart> parts();
   }
+
+  @GenerateImmutable
+  public static abstract class TextLine implements TemplatePart, Synthetic {
+    public abstract TextFragment fragment();
+
+    public boolean isBlank() {
+      return fragment().isWhitespace();
+    }
+
+    @GenerateDefault
+    public boolean newline() {
+      return false;
+    }
+  }
+
 }

@@ -261,6 +261,7 @@ public final class Balancing {
     @Override
     InvokeStatement createPart() {
       return InvokeStatement.builder()
+          .whitespace(directive.before())
           .access(directive.access())
           .addAllParams(
               directive.invoke().isPresent()

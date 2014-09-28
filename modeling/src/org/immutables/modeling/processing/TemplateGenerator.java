@@ -1,7 +1,8 @@
 package org.immutables.modeling.processing;
 
+import org.immutables.modeling.templating.Spacing;
 import java.io.Writer;
-import org.immutables.modeling.templating.WritingTransformer;
+import org.immutables.modeling.templating.TemplateWriter;
 import com.google.common.base.Joiner;
 import javax.tools.JavaFileObject;
 import org.immutables.modeling.Template;
@@ -48,7 +49,9 @@ public class TemplateGenerator extends AbstractProcessor {
         SwissArmyKnife knife = new SwissArmyKnife(processingEnv, templateType);
         PackageElement packageElement = knife.elements.getPackageOf(templateType);
         FileObject templateResource =
-            knife.environment.getFiler().getResource(StandardLocation.SOURCE_PATH, packageElement.getQualifiedName(),
+            knife.environment.getFiler().getResource(
+                StandardLocation.SOURCE_PATH,
+                packageElement.getQualifiedName(),
                 templateType.getSimpleName() + ".template");
 
         String string = templateResource.getCharContent(true).toString();
@@ -63,7 +66,8 @@ public class TemplateGenerator extends AbstractProcessor {
 
         Unit unit = (Unit) Iterables.getOnlyElement(result.valueStack);
 
-        Unit balanced = Balancing.balance(unit);
+        Unit trimmed = Spacing.trim(unit);
+        Unit balanced = Balancing.balance(trimmed);
         Unit resolved = new Resolver(knife).resolve(balanced);
 
         String simpleName = "Template_" + templateType.getSimpleName();
@@ -72,7 +76,7 @@ public class TemplateGenerator extends AbstractProcessor {
                 Joiner.on('.').join(packageElement.getQualifiedName(), simpleName),
                 templateType);
 
-        WritingTransformer writingTransformer = new WritingTransformer(knife, templateType, simpleName);
+        TemplateWriter writingTransformer = new TemplateWriter(knife, templateType, simpleName);
 
         try (Writer writer = templateFile.openWriter()) {
           writer.append(writingTransformer.toCharSequence(resolved));
@@ -82,8 +86,10 @@ public class TemplateGenerator extends AbstractProcessor {
 
         // templatesType
       } catch (Exception ex) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
-            ex.getMessage() + "\n\n" + Throwables.getStackTraceAsString(ex), templateType);
+        processingEnv.getMessager()
+            .printMessage(Diagnostic.Kind.ERROR,
+                ex.getMessage() + "\n\n" + Throwables.getStackTraceAsString(ex),
+                templateType);
       }
     }
   }

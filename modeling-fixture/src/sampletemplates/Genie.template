@@ -7,7 +7,7 @@
     [else if param.length]
       [let cd]
         WW[cd][b]WW[for.index][c]
-        [if for.first][/if]
+        [if for.first][cd][/if]
       [/let]
     [else if param]
       [param.length]
@@ -20,6 +20,10 @@
   [let our Integer s]
     [s.hashCode][param.length]
   [/let]
+  
+    [surname]
+      xx
+    [/surname]
 [/template]
 
 [template surname]

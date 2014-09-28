@@ -1,15 +1,18 @@
 package org.immutables.modeling;
 
-import com.google.common.base.Strings;
 import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.*;
 
 public final class Templates {
   private Templates() {}
 
-  public interface Unary<F, T> {}
+  public interface Unary<F, T> {
+    T apply(F from);
+  }
 
-  public interface Binary<A, B, C> {}
+  public interface Binary<L, R, T> {
+    T apply(L left, R right);
+  }
 
   public interface Apply<T> {
     T apply(Object... parameters);
@@ -29,18 +32,27 @@ public final class Templates {
 
   public final static class Invokation {
     private final Object[] params;
-    private int characterSinceNewline = 0;
-    private final String whitespace;
+    private final String indentation;
     private final Consumer consumer;
+    private String spacing = "";
 
-    Invokation(Consumer consumer, String whitespace, Object... params) {
-      this.consumer = consumer;
-      this.params = params;
-      this.whitespace = whitespace;
+    Invokation(Consumer consumer, String indentation, Object... params) {
+      this.consumer = checkNotNull(consumer);
+      this.params = checkNotNull(params);
+      this.indentation = checkNotNull(indentation);
     }
 
     public Object param(int ordinal) {
       return params[ordinal];
+    }
+
+    public Invokation spacing(String spacing) {
+      this.spacing = checkNotNull(spacing);
+      return this;
+    }
+
+    public String spacing() {
+      return spacing;
     }
 
     public Invokation out(Object content) {
@@ -51,7 +63,6 @@ public final class Templates {
         return this;
       }
       String string = content.toString();
-      characterSinceNewline += string.length();
       consumer.append(string);
       return this;
     }
@@ -64,9 +75,8 @@ public final class Templates {
     }
 
     public Invokation ln() {
-      characterSinceNewline = 0;
-      consumer.append("\n");
-      consumer.append(whitespace);
+      consumer.append('\n');
+      consumer.append(indentation);
       return this;
     }
 
@@ -74,12 +84,12 @@ public final class Templates {
       return this;
     }
 
-    public String whitespace() {
-      return whitespace.concat(Strings.repeat(" ", characterSinceNewline));
-    }
-
     public Consumer consumer() {
       return consumer;
+    }
+
+    public String indentation() {
+      return indentation;
     }
   }
 
@@ -107,10 +117,17 @@ public final class Templates {
 
   public static abstract class Fragment implements Invokable {
     private final int arity;
+    @Nullable
+    private final Invokation capturedInvokation;
 
-    protected Fragment(int arity) {
+    protected Fragment(int arity, @Nullable Invokation capturedInvokation) {
       checkArgument(arity > 0);
       this.arity = arity;
+      this.capturedInvokation = capturedInvokation;
+    }
+
+    protected Fragment(int arity) {
+      this(arity, null);
     }
 
     public abstract void run(Invokation invokation);
@@ -123,10 +140,17 @@ public final class Templates {
     @Nullable
     @Override
     public Invokable invoke(Invokation invokation, Object... params) {
+      String indentation = capturedInvokation != null
+          ? capturedInvokation.indentation()
+          : invokation.indentation().concat(invokation.spacing());
+
+      invokation.spacing("");
+
       run(new Invokation(
           invokation.consumer(),
-          invokation.whitespace(),
+          indentation,
           params));
+
       return null;
     }
   }

@@ -25,27 +25,31 @@ public final class Intrinsics {
   }
 
   public static <F, T> T $(Unary<? super F, T> unary, F value) {
-    return null;
+    return unary.apply(value);
   }
 
-  public static <A, B, C> C $(A left, Binary<? super A, ? super B, C> binary, B right) {
-    return null;
+  public static <L, R, T> T $(L left, Binary<? super L, ? super R, T> binary, R right) {
+    return binary.apply(left, right);
   }
 
-  public static <T> T $(Apply<T> applicable, Object... parameters) {
-    return null;
+  public static <T> T $(Apply<T> apply, Object... parameters) {
+    return apply.apply(parameters);
   }
 
   public static <F> void $(Invokation invokation, Unary<? super F, ?> unary, F value) {
     invokation.out($(unary, value));
   }
 
-  public static <A, B> void $(Invokation invokation, A left, Binary<? super A, ? super B, ?> binary, B right) {
+  public static <A, B> void $(
+      Invokation invokation,
+      A left,
+      Binary<? super A, ? super B, ?> binary,
+      B right) {
     invokation.out($(left, binary, right));
   }
 
-  public static void $(Invokation invokation, Apply<?> function, Object... parameters) {
-    invokation.out($(function, parameters));
+  public static void $(Invokation invokation, Apply<?> apply, Object... parameters) {
+    invokation.out($(apply, parameters));
   }
 
   public static void $(Invokation invokation, Invokable invokable, Object... parameters) {

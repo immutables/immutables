@@ -1,5 +1,6 @@
 package org.immutables.modeling.introspect;
 
+import org.immutables.modeling.Templates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -52,7 +53,10 @@ public final class Imports extends Introspection {
       collected.put(boxedClass.getSimpleName().toString(), boxedClass.asType());
     }
 
-    TypeElement typeElement = elements.getTypeElement(String.class.getName());
+    TypeElement typeElement = elements.getTypeElement(String.class.getCanonicalName());
+    collected.put(typeElement.getSimpleName().toString(), typeElement.asType());
+
+    typeElement = elements.getTypeElement(Templates.Invokable.class.getCanonicalName());
     collected.put(typeElement.getSimpleName().toString(), typeElement.asType());
   }
 

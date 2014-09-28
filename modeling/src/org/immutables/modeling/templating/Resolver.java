@@ -28,7 +28,6 @@ import org.immutables.modeling.templating.ImmutableTrees.TypeDeclaration;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.Trees.Expression;
 import org.immutables.modeling.templating.Trees.TemplatePart;
-import org.immutables.modeling.templating.Trees.UnitPart;
 import static com.google.common.base.Preconditions.*;
 
 public final class Resolver {
@@ -54,7 +53,7 @@ public final class Resolver {
   }
 
   private class Scope {
-    private final Map<String, TypeMirror> locals = Maps.newLinkedHashMap();
+    final Map<String, TypeMirror> locals = Maps.newLinkedHashMap();
 
     Scope nest() {
       Scope nested = new Scope();
@@ -85,16 +84,16 @@ public final class Resolver {
       return declare(knife.accessors.iterationType, name);
     }
 
-    private boolean isDeclared(Trees.Identifier name) {
+    boolean isDeclared(Trees.Identifier name) {
       return locals.containsKey(name.value());
     }
 
-    private ResolvedType declare(TypeMirror type, Trees.Identifier name) {
+    ResolvedType declare(TypeMirror type, Trees.Identifier name) {
       locals.put(name.value(), type);
       return ResolvedType.of(type);
     }
 
-    private TypeMirror resolve(TypeDeclaration type) {
+    TypeMirror resolve(TypeDeclaration type) {
       TypeMirror resolved = knife.imports.get(type.type().value());
       if (resolved == null) {
         throw new TypingException(String.format("Could not resolve %s simple type", type));
@@ -105,7 +104,7 @@ public final class Resolver {
       return resolved;
     }
 
-    private DeclaredType makeIterableTypeOf(TypeMirror resolved) {
+    DeclaredType makeIterableTypeOf(TypeMirror resolved) {
       return knife.types.getDeclaredType(knife.accessors.iterableElement, resolved);
     }
 
@@ -124,10 +123,9 @@ public final class Resolver {
     }
 
     BoundAccess bindAccess(@Nullable BoundAccess previous, String name) {
-      if (previous != null) {
-        return knife.binder.bind(previous.type, name);
-      }
-      return knife.binder.bindLocalOrThis(knife.type.asType(), name, locals);
+      return previous != null
+          ? knife.binder.bind(previous.type, name)
+          : knife.binder.bindLocalOrThis(knife.type.asType(), name, locals);
     }
 
     Trees.ValueDeclaration inferType(
@@ -181,9 +179,11 @@ public final class Resolver {
   private static final class TypingTransformer extends TreesTransformer<Scope> {
 
     @Override
-    protected UnitPart transformUnitPart(Scope scope, Template template) {
-      scope.declareInvokable(template.declaration().name());
-      return super.transformUnitPart(scope, template);
+    public Unit transform(Scope scope, Unit unit) {
+      for (Template template : Iterables.filter(unit.parts(), Template.class)) {
+        scope.declareInvokable(template.declaration().name());
+      }
+      return super.transform(scope, unit);
     }
 
     @Override
@@ -254,7 +254,6 @@ public final class Resolver {
     @Override
     public LetStatement transform(Scope scope, LetStatement statement) {
       scope = scope.nest();
-      scope.declareInvokable(statement.declaration().name());
       return statement
           .withDeclaration(transformLetStatementDeclaration(scope, statement, statement.declaration()))
           .withParts(transformLetStatementParts(scope, statement, statement.parts()));

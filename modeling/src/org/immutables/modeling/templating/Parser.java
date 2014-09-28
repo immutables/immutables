@@ -306,7 +306,6 @@ public class Parser extends BaseParser<Object> {
   Rule ELSE = Literal(KEYWORD_ELSE);
   Rule TEMPLATE = Literal(KEYWORD_TEMPLATE);
 
-//  private static final String KEYWORD_AS = "as";
   private static final String KEYWORD_IN = "in";
   private static final String KEYWORD_FOR = "for";
   private static final String KEYWORD_LET = "let";
