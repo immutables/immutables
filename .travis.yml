@@ -2,7 +2,7 @@ language: java
 install: true
 script: "mvn package"
 before_install: 
-  - sudo pip install codecov
+  - sudo pip install git+git://github.com/codecov/codecov-python.git@master#egg=codecov
 jdk:
   - oraclejdk7
 after_success: codecov
