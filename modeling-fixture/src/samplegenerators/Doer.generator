@@ -1,0 +1,6 @@
+[template main]
+[for e in elements]
+package samplegenerators;
+class [e.getSimpleName]{}
+[/for]
+[/template]

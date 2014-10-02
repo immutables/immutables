@@ -1,6 +1,5 @@
-package org.immutables.modeling.introspect;
+package org.immutables.modeling.processing;
 
-import org.immutables.modeling.Templates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -15,14 +14,15 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import org.immutables.modeling.Template;
+import org.immutables.modeling.Generator;
+import org.immutables.modeling.Templates;
 
 public final class Imports extends Introspection {
   private final TypeMirror importType;
 
   public Imports(ProcessingEnvironment environment) {
     super(environment);
-    this.importType = elements.getTypeElement(Template.Import.class.getCanonicalName()).asType();
+    this.importType = elements.getTypeElement(Generator.Import.class.getCanonicalName()).asType();
   }
 
   public final ImmutableMap<String, TypeMirror> importsIn(TypeElement type) {
@@ -68,7 +68,7 @@ public final class Imports extends Introspection {
 
   private void collectTypedefs(TypeElement type, Map<String, TypeMirror> collected) {
     for (VariableElement field : ElementFilter.fieldsIn(elements.getAllMembers(type))) {
-      if (field.getAnnotation(Template.Typedef.class) != null) {
+      if (field.getAnnotation(Generator.Typedef.class) != null) {
         collected.put(field.getSimpleName().toString(), field.asType());
       }
     }

@@ -1,5 +1,6 @@
 package org.immutables.modeling;
 
+import java.io.PrintStream;
 import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.*;
 
@@ -25,6 +26,12 @@ public final class Templates {
     int arity();
   }
 
+  interface CharConsumer {
+    void append(CharSequence string);
+
+    void append(char c);
+  }
+
   public static class Iteration {
     public int index = 0;
     public boolean first = true;
@@ -33,10 +40,14 @@ public final class Templates {
   public final static class Invokation {
     private final Object[] params;
     private final String indentation;
-    private final Consumer consumer;
+    private final CharConsumer consumer;
     private String spacing = "";
 
-    Invokation(Consumer consumer, String indentation, Object... params) {
+    static Invokation initial() {
+      return new Invokation(new PrintStreamConsumer(System.out), "");
+    }
+
+    Invokation(CharConsumer consumer, String indentation, Object... params) {
       this.consumer = checkNotNull(consumer);
       this.params = checkNotNull(params);
       this.indentation = checkNotNull(indentation);
@@ -56,7 +67,7 @@ public final class Templates {
     }
 
     public Invokation out(Object content) {
-      while (content instanceof Invokable) {
+      if (content instanceof Invokable) {
         content = ((Invokable) content).invoke(this);
       }
       if (content == null) {
@@ -84,7 +95,7 @@ public final class Templates {
       return this;
     }
 
-    public Consumer consumer() {
+    public CharConsumer consumer() {
       return consumer;
     }
 
@@ -93,25 +104,21 @@ public final class Templates {
     }
   }
 
-  interface Consumer {
-    void append(CharSequence string);
+  static class PrintStreamConsumer implements CharConsumer {
+    private final PrintStream stream;
 
-    void append(char c);
-  }
+    private PrintStreamConsumer(PrintStream stream) {
+      this.stream = stream;
+    }
 
-  public static class SysoutConsumer implements Consumer {
     @Override
     public void append(CharSequence string) {
-      System.out.append(string);
+      stream.append(string);
     }
 
     @Override
     public void append(char c) {
-      System.out.print(c);
-    }
-
-    Invokation asInvokation() {
-      return new Invokation(this, "");
+      stream.print(c);
     }
   }
 
@@ -121,7 +128,7 @@ public final class Templates {
     private final Invokation capturedInvokation;
 
     protected Fragment(int arity, @Nullable Invokation capturedInvokation) {
-      checkArgument(arity > 0);
+      assert arity >= 0;
       this.arity = arity;
       this.capturedInvokation = capturedInvokation;
     }
@@ -130,21 +137,19 @@ public final class Templates {
       this(arity, null);
     }
 
-    public abstract void run(Invokation invokation);
-
     @Override
     public int arity() {
       return arity;
     }
+
+    public abstract void run(Invokation invokation);
 
     @Nullable
     @Override
     public Invokable invoke(Invokation invokation, Object... params) {
       String indentation = capturedInvokation != null
           ? capturedInvokation.indentation()
-          : invokation.indentation().concat(invokation.spacing());
-
-      invokation.spacing("");
+          : invokation.indentation().concat(consumedSpacing(invokation));
 
       run(new Invokation(
           invokation.consumer(),
@@ -152,6 +157,17 @@ public final class Templates {
           params));
 
       return null;
+    }
+
+    /**
+     * Read and reset spacing, as it is consumed by current invokation of this fragment.
+     * Compilation/runtime sequence might be revised to get rid of this side effect
+     * @return spacing for this invokation.
+     */
+    private String consumedSpacing(Invokation invokation) {
+      String spacing = invokation.spacing();
+      invokation.spacing("");
+      return spacing;
     }
   }
 }

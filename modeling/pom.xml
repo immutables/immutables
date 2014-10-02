@@ -21,11 +21,6 @@
       <type>pom</type>
     </dependency>
     <dependency>
-      <groupId>org.mozilla</groupId>
-      <artifactId>rhino</artifactId>
-      <version>1.7R4</version>
-    </dependency>
-    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>annotation</artifactId>
       <version>${project.version}</version>
@@ -45,6 +40,19 @@
       <groupId>org.parboiled</groupId>
       <artifactId>parboiled-java</artifactId>
       <version>1.1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jdt.core.compiler</groupId>
+      <artifactId>ecj</artifactId>
+      <version>4.4</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>check</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

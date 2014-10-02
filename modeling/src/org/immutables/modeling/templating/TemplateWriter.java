@@ -1,13 +1,14 @@
 package org.immutables.modeling.templating;
 
+import static org.immutables.modeling.StringLiterals.*;
+import org.immutables.modeling.processing.SwissArmyKnife;
+import org.immutables.modeling.processing.Accessors.BoundAccess;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
 import javax.lang.model.element.TypeElement;
 import org.immutables.modeling.Intrinsics;
 import org.immutables.modeling.Templates;
-import org.immutables.modeling.introspect.Accessors.BoundAccess;
-import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.ImmutableTrees.ApplyExpression;
 import org.immutables.modeling.templating.ImmutableTrees.AssignGenerator;
 import org.immutables.modeling.templating.ImmutableTrees.Block;
@@ -26,7 +27,6 @@ import org.immutables.modeling.templating.ImmutableTrees.TextLine;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
 import org.immutables.modeling.templating.ImmutableTrees.ValueDeclaration;
 import org.immutables.modeling.templating.Trees.Expression;
-import static org.immutables.modeling.common.StringLiterals.*;
 
 /**
  * This part is written with simples possible writer in mind. It was decided not to use dependencies
@@ -79,6 +79,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     String name = template.declaration().name().value();
 
     context.ln()
+        .out("public ")
         .out(Templates.Invokable.class)
         .out(" ")
         .out(name)

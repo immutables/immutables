@@ -1,5 +1,7 @@
 package org.immutables.modeling.templating;
 
+import org.immutables.modeling.processing.SwissArmyKnife;
+import org.immutables.modeling.processing.Accessors.BoundAccess;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -10,8 +12,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.modeling.introspect.Accessors.BoundAccess;
-import org.immutables.modeling.introspect.SwissArmyKnife;
 import org.immutables.modeling.templating.ImmutableTrees.AccessExpression;
 import org.immutables.modeling.templating.ImmutableTrees.ApplyExpression;
 import org.immutables.modeling.templating.ImmutableTrees.AssignGenerator;
@@ -46,7 +46,7 @@ public final class Resolver {
   }
 
   public Unit resolve(Unit unit) {
-    return new TypingTransformer()
+    return new Transformer()
         .transform(new Scope(),
             new ForIterationAccessTransformer()
                 .transform((Void) null, unit));
@@ -176,7 +176,7 @@ public final class Resolver {
     }
   }
 
-  private static final class TypingTransformer extends TreesTransformer<Scope> {
+  private static final class Transformer extends TreesTransformer<Scope> {
 
     @Override
     public Unit transform(Scope scope, Unit unit) {

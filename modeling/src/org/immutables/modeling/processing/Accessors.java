@@ -1,5 +1,11 @@
-package org.immutables.modeling.introspect;
+package org.immutables.modeling.processing;
 
+import javax.lang.model.type.TypeVariable;
+import com.google.common.base.MoreObjects;
+import javax.lang.model.type.WildcardType;
+import org.immutables.modeling.processing.Implicits.ImplicitResolver;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -24,22 +30,23 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.modeling.Templates;
-import org.immutables.modeling.introspect.Facets.FacetResolver;
 
 public final class Accessors extends Introspection {
-  private static final String OPTIONAL_TYPE_SIMPLE_NAME = "Optional";
+  private static final String OPTIONAL_TYPE_SIMPLE_NAME = Optional.class.getSimpleName();
 
-  public final TypeMirror iterableType;
+  public final TypeMirror iterableTypeErasure;
   public final TypeElement iterableElement;
   public final TypeMirror invokableType;
   public final TypeMirror iterationType;
+  public final TypeMirror objectType;
 
   Accessors(ProcessingEnvironment environment) {
     super(environment);
     this.iterableElement = elements.getTypeElement(Iterable.class.getName());
-    this.iterableType = iterableElement.asType();
+    this.iterableTypeErasure = types.erasure(iterableElement.asType());
     this.invokableType = elements.getTypeElement(Templates.Invokable.class.getCanonicalName()).asType();
     this.iterationType = elements.getTypeElement(Templates.Iteration.class.getCanonicalName()).asType();
+    this.objectType = elements.getTypeElement(Object.class.getCanonicalName()).asType();
   }
 
   private final LoadingCache<String, ImmutableMap<String, Accessor>> accessorsDefined =
@@ -64,13 +71,25 @@ public final class Accessors extends Introspection {
       return ImmutableMap.of();
     }
     Map<String, Accessor> accesors = Maps.newHashMap();
-    collectAccesors(type, accesors);
+    collectAccessors(type, accesors);
+
+    Optional<TypeElement> implementationSubclass = getImplementationSubclass(type);
+    if (implementationSubclass.isPresent()) {
+      collectAccessors(implementationSubclass.get(), accesors);
+    }
+
     return ImmutableMap.<String, Accessor>builder()
         .putAll(accesors)
         .build();
   }
 
-  private void collectAccesors(TypeElement type, Map<String, Accessor> accesors) {
+  private Optional<TypeElement> getImplementationSubclass(TypeElement type) {
+    return Optional.fromNullable(
+        elements.getTypeElement(
+            GeneratedTypes.getQualifiedName(elements, type)));
+  }
+
+  private void collectAccessors(TypeElement type, Map<String, Accessor> accesors) {
     List<? extends Element> members = elements.getAllMembers(type);
     collectMethodAccesors(accesors, members);
     collectFieldAccessors(accesors, members);
@@ -199,17 +218,28 @@ public final class Accessors extends Introspection {
       if (type instanceof DeclaredType) {
         DeclaredType declaredType = (DeclaredType) type;
         if (isIterableType(type) || isOptionalType(declaredType)) {
-          return Iterables.getOnlyElement(declaredType.getTypeArguments());
+          return upperBound(Iterables.getOnlyElement(declaredType.getTypeArguments()));
         }
       }
       if (type instanceof ArrayType) {
-        return ((ArrayType) type).getComponentType();
+        return upperBound(((ArrayType) type).getComponentType());
       }
       return null;
     }
 
+    private TypeMirror upperBound(TypeMirror type) {
+      switch (type.getKind()) {
+      case WILDCARD:
+        return MoreObjects.firstNonNull(((WildcardType) type).getExtendsBound(), objectType);
+      case TYPEVAR:
+        return ((TypeVariable) type).getUpperBound();
+      default:
+        return type;
+      }
+    }
+
     private boolean isIterableType(TypeMirror type) {
-      return types.isSubtype(types.erasure(type), iterableType);
+      return types.isSubtype(types.erasure(type), iterableTypeErasure);
     }
 
     private boolean isOptionalType(DeclaredType parametrizedType) {
@@ -249,18 +279,58 @@ public final class Accessors extends Introspection {
     return new LocalAccess(value, requiredVar);
   }
 
-  public Binder binder(FacetResolver facets) {
-    return new Binder(facets);
+  public Binder binder(ImplicitResolver implicits) {
+    return new Binder(implicits);
   }
 
   public final class Binder {
-    private final FacetResolver facets;
+    private final ImplicitResolver implicits;
 
-    Binder(FacetResolver facets) {
-      this.facets = facets;
+    Binder(ImplicitResolver implicits) {
+      this.implicits = implicits;
     }
 
     public BoundAccessor bind(TypeMirror targetType, String attribute) {
+      @Nullable
+      BoundAccessor accessor = resolveAccessorWithBeanAccessor(targetType, attribute);
+
+      if (accessor != null) {
+        return accessor;
+      }
+
+      throw new UnresolvedAccessorException(
+          targetType,
+          attribute,
+          collectAlternatives(targetType));
+    }
+
+    /** @deprecated To be removed after completion of migration of old templates */
+    @Deprecated
+    @Nullable
+    private BoundAccessor resolveAccessorWithBeanAccessor(TypeMirror targetType, String attribute) {
+      @Nullable
+      BoundAccessor accessor = resolveAccessor(targetType, attribute);
+      if (accessor != null) {
+        return accessor;
+      }
+
+      String capitalizedName = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, attribute);
+
+      accessor = resolveAccessor(targetType, "get" + capitalizedName);
+      if (accessor != null) {
+        return accessor;
+      }
+
+      accessor = resolveAccessor(targetType, "is" + capitalizedName);
+      if (accessor != null) {
+        return accessor;
+      }
+
+      return accessor;
+    }
+
+    @Nullable
+    private BoundAccessor resolveAccessor(TypeMirror targetType, String attribute) {
       @Nullable
       Accessor accessor = definedBy(targetType).get(attribute);
 
@@ -268,17 +338,14 @@ public final class Accessors extends Introspection {
         return accessor.bind(targetType);
       }
 
-      for (TypeMirror facet : facets.resolveFor(targetType)) {
+      for (TypeMirror facet : implicits.resolveFor(targetType)) {
         accessor = definedBy(facet).get(attribute);
         if (accessor != null) {
           return accessor.bind(facet);
         }
       }
 
-      throw new UnresolvableAccessorException(
-          targetType,
-          attribute,
-          collectAlternatives(targetType));
+      return null;
     }
 
     public BoundAccess bindLocalOrThis(TypeMirror type, String name, Map<String, TypeMirror> locals) {
@@ -294,7 +361,7 @@ public final class Accessors extends Introspection {
 
       builder.addAll(definedBy(targetType).values());
 
-      for (TypeMirror facet : facets.resolveFor(targetType)) {
+      for (TypeMirror facet : implicits.resolveFor(targetType)) {
         builder.addAll(definedBy(facet).values());
       }
 
@@ -302,12 +369,12 @@ public final class Accessors extends Introspection {
     }
   }
 
-  public static class UnresolvableAccessorException extends RuntimeException {
+  public static class UnresolvedAccessorException extends RuntimeException {
     public final TypeMirror targetType;
     public final String attribute;
     public final ImmutableList<Accessor> alternatives;
 
-    public UnresolvableAccessorException(
+    public UnresolvedAccessorException(
         TypeMirror targetType,
         String attribute,
         ImmutableList<Accessor> alternatives) {

@@ -198,15 +198,21 @@ public class Processor extends AbstractProcessor {
             .isUseBuilder(useBuilder)
             .isGenerateCompact(hasAnnotation(type, GenerateModifiable.class));
 
+    collectGeneratedCandidateMethods(type, typeBuilder);
+
+    GenerateType generateType = typeBuilder.build();
+    generateType.setSegmentedName(segmentedName);
+    return generateType;
+  }
+
+  private void collectGeneratedCandidateMethods(TypeElement type, GenerateTypes.Builder typeBuilder) {
+    // TO BE DONE
+
     for (Element element : processingEnv.getElementUtils().getAllMembers(type)) {
       if (isElegibleCandidateMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
       }
     }
-
-    GenerateType generateType = typeBuilder.build();
-    generateType.setSegmentedName(segmentedName);
-    return generateType;
   }
 
   private boolean isElegibleCandidateMethod(Element element) {

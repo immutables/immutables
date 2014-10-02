@@ -1,4 +1,4 @@
-package org.immutables.modeling.templating.parse;
+package org.immutables.modeling.templating;
 
 import com.google.common.collect.ImmutableList;
 import org.immutables.modeling.templating.Balancing;

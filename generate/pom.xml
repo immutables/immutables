@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,7 +11,7 @@
 
   <artifactId>generate</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Annotation processor code including the model and templates for the code generation</description>  
+  <description>Annotation processor code including the model and templates for the code generation</description>
 
   <dependencies>
     <dependency>
@@ -29,7 +30,13 @@
       <artifactId>annotation</artifactId>
       <version>${project.version}</version>
     </dependency>
-
+    <dependency>
+      <groupId>org.eclipse.jdt.core.compiler</groupId>
+      <artifactId>ecj</artifactId>
+      <version>4.4</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
   </dependencies>
 
 </project>

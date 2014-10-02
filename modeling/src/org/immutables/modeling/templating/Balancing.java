@@ -129,7 +129,7 @@ public final class Balancing {
       this.template = template;
     }
 
-    public Template balance() {
+    Template balance() {
       Scope scope = passAll(template.parts()).pass(TemplateEnd.of());
       if (scope != parent) {
         // TBD
@@ -219,7 +219,7 @@ public final class Balancing {
   private static class ForScope extends BlockScope {
     private final For directive;
 
-    public ForScope(Scope parent, For directive) {
+    ForScope(Scope parent, For directive) {
       super(parent, ForEnd.of(), true, false);
       this.directive = directive;
     }
@@ -236,7 +236,7 @@ public final class Balancing {
   private static class LetScope extends BlockScope {
     private final Let directive;
 
-    public LetScope(Scope parent, Let directive) {
+    LetScope(Scope parent, Let directive) {
       super(parent, LetEnd.of(), true, false);
       this.directive = directive;
     }
@@ -253,7 +253,7 @@ public final class Balancing {
   private static class InvokeScope extends BlockScope {
     private final Invoke directive;
 
-    public InvokeScope(Scope parent, Invoke directive) {
+    InvokeScope(Scope parent, Invoke directive) {
       super(parent, InvokeEnd.of(directive.access()), false, false);
       this.directive = directive;
     }
@@ -280,7 +280,7 @@ public final class Balancing {
     @Nullable
     private Else currentElse;
 
-    public IfScope(Scope parent, If directive) {
+    IfScope(Scope parent, If directive) {
       super(parent, IfEnd.of(), true, false);
       this.directive = directive;
       this.builder = IfStatement.builder();

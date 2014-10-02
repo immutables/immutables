@@ -1,9 +1,9 @@
 package org.immutables.modeling.templating;
 
-import org.immutables.modeling.templating.Trees.DirectiveStart;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.immutables.modeling.templating.ImmutableTrees.Newline;
@@ -12,6 +12,8 @@ import org.immutables.modeling.templating.ImmutableTrees.TextBlock;
 import org.immutables.modeling.templating.ImmutableTrees.TextFragment;
 import org.immutables.modeling.templating.ImmutableTrees.TextLine;
 import org.immutables.modeling.templating.ImmutableTrees.Unit;
+import org.immutables.modeling.templating.Trees.DirectiveStart;
+import org.immutables.modeling.templating.Trees.TemplatePart;
 
 /**
  * Spacing trimming and redistribution should be run before balancing
@@ -31,9 +33,9 @@ public final class Spacing {
         Template value,
         final List<Trees.TemplatePart> parts) {
 
-      final List<Trees.TemplatePart> results = Lists.newArrayList();
+      final ArrayList<Trees.TemplatePart> results = Lists.newArrayList();
 
-      class Collector {
+      class Normalizer {
         @Nullable
         TextFragment fragment;
 
@@ -79,12 +81,12 @@ public final class Spacing {
         }
       }
 
-      new Collector().collect();
+      new Normalizer().collect();
 
       return trimWhitespace(results);
     }
 
-    private Iterable<Trees.TemplatePart> trimWhitespace(final List<Trees.TemplatePart> results) {
+    private Iterable<Trees.TemplatePart> trimWhitespace(final ArrayList<Trees.TemplatePart> results) {
       for (int i = 1; i < results.size() - 1; i++) {
         Trees.TemplatePart prev = results.get(i - 1);
         Trees.TemplatePart current = results.get(i);
@@ -98,8 +100,9 @@ public final class Spacing {
           Trees.Directive directive = (Trees.Directive) current;
           TextLine after = (TextLine) next;
 
-          if (!before.newline()
-              && before.isBlank()
+          if ((before.newline()
+              ? before.fragment().value().isEmpty()
+              : before.isBlank())
               && after.newline()
               && after.isBlank()) {
 
@@ -115,9 +118,21 @@ public final class Spacing {
         }
       }
 
+      clearIfTrailingBlank(results, 0);
+
       return FluentIterable.from(results)
           .filter(Predicates.notNull())
           .toList();
+    }
+
+    private void clearIfTrailingBlank(final ArrayList<Trees.TemplatePart> results, int position) {
+      TemplatePart part = results.get(position);
+      if (part instanceof TextLine) {
+        TextLine line = (TextLine) part;
+        if (line.newline() && line.isBlank()) {
+          results.set(position, null);
+        }
+      }
     }
   };
 }

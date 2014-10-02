@@ -21,11 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * Primitive integer hash set, designed to store good quality hashes (do not use implicit
+ * Primitive integer hash set, designed to store good quality hashes (does not use implicit
  * "smearing"). Set is mutable, not thread safe and support only addition of values, checks for
  * containment, and removals. Equality of set itself is not supported as well.
  * <p>
- * <em>java.util.Set is not implemented by IntHashSet because of many differences and omissions in functionality</em>
+ * {@link java.util.Set} is not implemented by IntHashSet because of many differences and omissions
+ * in functionality, but you can covert to set using {@link #toSet()}
  * <p>
  * <strong>Warning! Zero '0' values not supported, because it is reserved, if zero values are
  * possible, then mask them with some other value</strong>

@@ -1,4 +1,4 @@
-package org.immutables.modeling.introspect;
+package org.immutables.modeling.processing;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;

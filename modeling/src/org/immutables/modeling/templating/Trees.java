@@ -15,6 +15,7 @@
  */
 package org.immutables.modeling.templating;
 
+import org.immutables.modeling.StringLiterals;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
@@ -24,7 +25,6 @@ import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
 import org.immutables.annotation.GenerateParboiled;
 import org.immutables.annotation.GenerateTransformer;
-import org.immutables.modeling.common.StringLiterals;
 
 /**
  * Abstract syntax trees.

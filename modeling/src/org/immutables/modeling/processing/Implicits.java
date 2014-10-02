@@ -1,6 +1,5 @@
-package org.immutables.modeling.introspect;
+package org.immutables.modeling.processing;
 
-import org.immutables.modeling.Facet;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -9,20 +8,21 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
+import org.immutables.modeling.Implicit;
 import static com.google.common.base.Preconditions.*;
 
-public class Facets extends Introspection {
+public class Implicits extends Introspection {
 
-  private final TypeMirror facetTypeErasure;
+  private final TypeMirror implicitTypeErasure;
 
-  Facets(ProcessingEnvironment environment) {
+  Implicits(ProcessingEnvironment environment) {
     super(environment);
-    this.facetTypeErasure = types.erasure(elements.getTypeElement(Facet.class.getName()).asType());
+    this.implicitTypeErasure = types.erasure(elements.getTypeElement(Implicit.class.getName()).asType());
   }
 
-  public FacetResolver resolverFrom(final Iterable<? extends TypeMirror> imports) {
-    return new FacetResolver() {
-      ListMultimap<TypeMirror, TypeMirror> mappings = buildFacetMappingFrom(imports);
+  public ImplicitResolver resolverFrom(final Iterable<? extends TypeMirror> imports) {
+    return new ImplicitResolver() {
+      ListMultimap<TypeMirror, TypeMirror> mappings = buildImplicitMappingFrom(imports);
 
       @Override
       public List<TypeMirror> resolveFor(TypeMirror typeMirror) {
@@ -31,13 +31,13 @@ public class Facets extends Introspection {
     };
   }
 
-  private ImmutableListMultimap<TypeMirror, TypeMirror> buildFacetMappingFrom(Iterable<? extends TypeMirror> imports) {
+  private ImmutableListMultimap<TypeMirror, TypeMirror> buildImplicitMappingFrom(Iterable<? extends TypeMirror> imports) {
     ImmutableListMultimap.Builder<TypeMirror, TypeMirror> builder = ImmutableListMultimap.builder();
 
     for (TypeMirror type : imports) {
-      if (types.isSubtype(checkDeclaredType(type), facetTypeErasure)) {
+      if (types.isSubtype(checkDeclaredType(type), implicitTypeErasure)) {
         for (TypeMirror superType : types.directSupertypes(type)) {
-          if (types.isSubtype(superType, facetTypeErasure)) {
+          if (types.isSubtype(superType, implicitTypeErasure)) {
             TypeMirror targetType = getTargetTypeArgument(superType);
             builder.put(targetType, type);
           }
@@ -56,7 +56,7 @@ public class Facets extends Introspection {
     return typeArgument;
   }
 
-  public interface FacetResolver {
+  public interface ImplicitResolver {
     List<TypeMirror> resolveFor(TypeMirror typeMirror);
   }
 
