@@ -1,12 +1,12 @@
 package org.immutables.modeling;
 
 import com.google.common.base.Joiner;
-import javax.tools.Diagnostic;
 import com.google.common.base.Throwables;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import static com.google.common.base.Preconditions.*;
 
 /**
@@ -17,10 +17,14 @@ public abstract class AbstractGenerator extends AbstractProcessor {
 
   /**
    * Override process method and call {@link #invoke(org.immutables.modeling.Templates.Invokable)}
-   * from inside it passing invokable
-   * fragments from generated template instances.
+   * from inside it passing invokable fragments from generated template instances.
    */
   protected abstract void process();
+
+  protected final void invoke(Templates.Invokable invokable) {
+    checkArgument(invokable.arity() == 0, "Entry template fragment should not have parameters");
+    invokable.invoke(Templates.Invokation.initial());
+  }
 
   @Override
   public final boolean process(Set<? extends TypeElement> annotations, RoundEnvironment round) {
@@ -38,10 +42,4 @@ public abstract class AbstractGenerator extends AbstractProcessor {
     }
     return false;
   }
-
-  protected final void invoke(Templates.Invokable invokable) {
-    checkArgument(invokable.arity() == 0, "Entry template fragment should not have parameters");
-    invokable.invoke(Templates.Invokation.initial());
-  }
-
 }

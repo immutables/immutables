@@ -24,6 +24,7 @@ final class LegacyJavaPostprocessing {
   private static final Pattern PACKAGE_DECLARATION =
       Pattern.compile("package ([a-z0-9_\\.]+)");
 
+  private static final Joiner LINE_JOINER = Joiner.on('\n');
   private static final Splitter LINE_SPLITTER = Splitter.on('\n');
 
   static CharSequence rewrite(CharSequence content) {
@@ -71,7 +72,7 @@ final class LegacyJavaPostprocessing {
       indexOfGenImportsPlaceholder = indexOfPackageLine + 1;
     }
     modifiedLines.addAll(indexOfGenImportsPlaceholder, importStatements);
-    return Joiner.on('\n').join(modifiedLines) + '\n';
+    return LINE_JOINER.join(modifiedLines);
   }
 
   private static String extractPackageName(String l) {

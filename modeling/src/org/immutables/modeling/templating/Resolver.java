@@ -1,5 +1,9 @@
 package org.immutables.modeling.templating;
 
+import org.immutables.modeling.templating.Trees.TypeDeclaration.Kind;
+import com.google.common.base.Preconditions;
+import org.immutables.modeling.templating.Trees.TypeIdentifier;
+import org.immutables.modeling.templating.Trees.TypeReference;
 import org.immutables.modeling.processing.SwissArmyKnife;
 import org.immutables.modeling.processing.Accessors.BoundAccess;
 import com.google.common.base.Optional;
@@ -146,23 +150,40 @@ public final class Resolver {
         }
 
         if (declaration.type().isPresent()) {
-          // TBD check type here if it's present
-        } else {
-          TypeMirror resolved = (kind == Trees.TypeDeclaration.Kind.ITERABLE)
-              ? lastAccess.containedType
-              : lastAccess.type;
+          return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()));
+        }
 
-          return declaration.withType(declare(resolved, declaration.name()));
-        }
-      } else {
-        if (!declaration.type().isPresent()) {
-          throw new TypingException(String.format("Value should be typed '%s'%n\texpression '%s'",
-              declaration.name(),
-              expression));
-        }
+        TypeMirror resolved = (kind == Trees.TypeDeclaration.Kind.ITERABLE)
+            ? lastAccess.containedType
+            : lastAccess.type;
+
+        return declaration.withType(declare(resolved, declaration.name()));
       }
 
-      return declaration;
+      if (declaration.type().isPresent()) {
+        return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()));
+      }
+
+      throw new TypingException(String.format("Value should be typed '%s'%n\texpression '%s'",
+          declaration.name(),
+          expression));
+    }
+
+    private ResolvedType resolveDeclared(TypeReference typeReference, Trees.Identifier name) {
+      // TBD check type here if it's present
+      Preconditions.checkState(typeReference instanceof TypeDeclaration);
+      TypeDeclaration typeDeclaration = (TypeDeclaration) typeReference;
+      TypeIdentifier type = typeDeclaration.type();
+      @Nullable
+      TypeMirror resolved = knife.imports.get(type.value());
+      if (resolved == null) {
+        throw new TypingException(String.format("Could not resolve declared type '%s'",
+            typeDeclaration));
+      }
+      if (typeDeclaration.kind() == Kind.ITERABLE) {
+        resolved = knife.accessors.wrapIterable(resolved);
+      }
+      return declare(resolved, name);
     }
   }
 

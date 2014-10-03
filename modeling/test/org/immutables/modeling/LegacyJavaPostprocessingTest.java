@@ -19,8 +19,7 @@ public class LegacyJavaPostprocessingTest {
         LINES.join("package start;",
             "import java.util.Set;",
             "import java.util.List;",
-            "class My extends Set {}",
-            ""));
+            "class My extends Set {}"));
   }
 
   @Test
@@ -37,8 +36,7 @@ public class LegacyJavaPostprocessingTest {
             "import java.util.List;",
             "import java.util.Set;",
             "",
-            "class My extends Set {}",
-            ""));
+            "class My extends Set {}"));
   }
 
   @Test
@@ -49,8 +47,7 @@ public class LegacyJavaPostprocessingTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
-            "class My extends Throwable {}",
-            ""));
+            "class My extends Throwable {}"));
   }
 
   @Test
@@ -60,8 +57,7 @@ public class LegacyJavaPostprocessingTest {
 
     check(rewrited).hasToString(
         LINES.join("import java.util.Set;",
-            "class My extends Set {}",
-            ""));
+            "class My extends Set {}"));
 
     rewrited = LegacyJavaPostprocessing.rewrite(
         LINES.join(
@@ -71,7 +67,6 @@ public class LegacyJavaPostprocessingTest {
     check(rewrited).hasToString(
         LINES.join("package start;",
             "import java.util.Set;",
-            "class My extends Set {}",
-            ""));
+            "class My extends Set {}"));
   }
 }

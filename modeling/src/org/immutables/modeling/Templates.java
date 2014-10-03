@@ -122,6 +122,29 @@ public final class Templates {
     }
   }
 
+  static class StringBuilderConsumer implements CharConsumer {
+    private final StringBuilder builder = new StringBuilder();
+
+    @Override
+    public void append(CharSequence string) {
+      builder.append(string);
+    }
+
+    @Override
+    public void append(char c) {
+      builder.append(c);
+    }
+
+    @Override
+    public String toString() {
+      return builder.toString();
+    }
+
+    public CharSequence asCharSequence() {
+      return builder;
+    }
+  }
+
   public static abstract class Fragment implements Invokable {
     private final int arity;
     @Nullable
@@ -168,6 +191,22 @@ public final class Templates {
       String spacing = invokation.spacing();
       invokation.spacing("");
       return spacing;
+    }
+
+    private String cachedToString;
+
+    @Override
+    public String toString() {
+      // Ability to pass caputured fragment and evaluate it as a string
+      if (capturedInvokation != null && arity == 0) {
+        if (cachedToString == null) {
+          StringBuilderConsumer consumer = new StringBuilderConsumer();
+          invoke(new Invokation(consumer, capturedInvokation.indentation()));
+          cachedToString = consumer.toString();
+        }
+        return cachedToString;
+      }
+      return super.toString();
     }
   }
 }

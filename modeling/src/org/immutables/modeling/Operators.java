@@ -22,4 +22,10 @@ public class Operators {
           return Objects.equals(left, right);
         }
       };
+
+  private final Output output = new Output();
+
+  public Templates.Invokable java() {
+    return output.java();
+  }
 }

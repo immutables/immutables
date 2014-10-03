@@ -303,6 +303,10 @@ public class Trees {
       return fragment().isWhitespace();
     }
 
+    public boolean isEmpty() {
+      return fragment().value().isEmpty();
+    }
+
     @GenerateDefault
     public boolean newline() {
       return false;

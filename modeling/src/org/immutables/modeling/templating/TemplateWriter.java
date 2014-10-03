@@ -246,7 +246,9 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   @Override
   public AssignGenerator transform(Context context, AssignGenerator generator) {
     transformAssignGeneratorDeclaration(context, generator, generator.declaration());
-    context.out(" = $(");
+    context.out(" = (")
+        .out(requiredResolvedTypeOfDeclaration(generator.declaration()))
+        .out(") $(");
     transformAssignGeneratorFrom(context, generator, generator.from());
     context.out(");").ln();
     return generator;
@@ -273,9 +275,12 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   public ValueDeclaration transform(
       Context context,
       ValueDeclaration value) {
-    ResolvedType resolvedType = (ResolvedType) value.type().get();
-    context.out("final ").out(resolvedType.type()).out(" ").out(value.name().value());
+    context.out("final ").out(requiredResolvedTypeOfDeclaration(value)).out(" ").out(value.name().value());
     return value;
+  }
+
+  private Object requiredResolvedTypeOfDeclaration(Trees.ValueDeclaration value) {
+    return ((ResolvedType) value.type().get()).type();
   }
 
   @Override

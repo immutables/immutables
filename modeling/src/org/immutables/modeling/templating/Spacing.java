@@ -101,7 +101,7 @@ public final class Spacing {
           TextLine after = (TextLine) next;
 
           if ((before.newline()
-              ? before.fragment().value().isEmpty()
+              ? before.isEmpty()
               : before.isBlank())
               && after.newline()
               && after.isBlank()) {

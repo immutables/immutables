@@ -1,6 +1,9 @@
 [template main]
-[for e in elements]
-package samplegenerators;
-class [e.getSimpleName]{}
+[for e in elements, TypeElement t = e, PackageElement p = t.enclosingElement]
+[let x]Es[e.getSimpleName][/let]
+[java p.qualifiedName x]
+package [p.qualifiedName];
+abstract class [x] implements java.lang.Iterable<java.lang.String>{}
+[/java]
 [/for]
 [/template]

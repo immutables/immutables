@@ -49,6 +49,10 @@ public final class Accessors extends Introspection {
     this.objectType = elements.getTypeElement(Object.class.getCanonicalName()).asType();
   }
 
+  public TypeMirror wrapIterable(TypeMirror typeMirror) {
+    return types.getDeclaredType(iterableElement, typeMirror);
+  }
+
   private final LoadingCache<String, ImmutableMap<String, Accessor>> accessorsDefined =
       CacheBuilder.newBuilder()
           .concurrencyLevel(1)
