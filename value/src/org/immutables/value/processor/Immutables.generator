@@ -1,0 +1,89 @@
+[template generate Type type]
+[output.java type.packageName type.defName]
+  [if type.emptyNesting]
+[generateImmutableNestingType type]
+  [else]
+[generateImmutableSimpleType type]
+  [/if]
+[/output.java]
+[/template]
+
+[template generateImmutableNestingType Type type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+/**
+ * {@code [type.defName]} contains immutable implementation classes generated from
+ * abstract value classes defined as nested inside {@link [type.name]}.
+[for v in type.nestedChildren]
+ * @see [v.immutableReferenceName]
+[/for]
+ */
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"immutable.tjs", "[type.name]"})
+[type.accessPrefix]final class [type.defName] {
+  private [type.defName]() {}
+[for v in type.nestedChildren]
+  [generateImmutableType v staticPrefix]
+[/for]
+}
+[/template]
+
+[template generateImmutableSimpleType Type type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+[generateImmutableType type empty]
+[/template]
+
+[template generateImmutableType Type type String staticPrefix]
+
+[for setters = type.settableAttributes]
+/**
+ * Immutable implementation of {@link [type.name]}.
+ * <p>
+ * Use static static factory methods to create instances: {@code of()} or
+ * {@code builder()}.
+ */
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"immutable.tjs", "[type.name]"})
+@javax.annotation.concurrent.Immutable
+[type.accessPrefix][staticPrefix]final class [type.defName]
+    [type.inheritsKeyword] [type.name] {
+
+
+}
+[/for]
+[/template]
+
+[template immutableCollectionFrom Attribute a Invokable expression][output.trim]
+[if a.generateEnumSet]
+  com.google.common.collect.Sets.immutableEnumSet([expression])
+[else if a.generateOrdinalValueSet]
+  org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
+[else if a.collectionType]
+  com.google.common.collect.Immutable[a.rawCollectionType].copyOf([expression])
+[else if a.generateEnumMap]
+  com.google.common.collect.Maps.immutableEnumMap([expression])
+[else if a.mapType]
+  com.google.common.collect.ImmutableMap.copyOf([expression])
+[else]
+  [expression]
+[/if]
+[/output.trim][/template]
+
+[template compareFields Attribute a][output.trim]
+[if a.float]
+  Float.floatToIntBits([a.name]) == Float.floatToIntBits(another.[a.name]) 
+[else if a.double]
+  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits([a.name])    
+[else if a.primitive]
+  [a.name] == another.[a.name]
+[else]
+  [a.name].equals(another.[a.name])
+[/if]
+[/output.trim][/template]

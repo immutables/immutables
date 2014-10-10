@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.immutables</groupId>
+    <artifactId>root</artifactId>
+    <version>0.20-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>value</artifactId>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>Immutable objects processor, new generation</description>
+
+  <dependencies>
+    <!-- Guava is transitive dependency needed to compile generated classes. -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>18.0</version>
+    </dependency>
+    <!-- jsr305 annotations needed to compile generated classes. -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>1.3.9</version>
+    </dependency>
+    <!-- only to compile this annotation processor, do not propagate as transitive -->
+    <dependency>
+      <groupId>com.google.auto.service</groupId>
+      <artifactId>auto-service</artifactId>
+      <version>1.0-rc1</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Generator processor -->
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>generator</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <!-- Test only service -->
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>check</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+</project>

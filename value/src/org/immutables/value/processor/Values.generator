@@ -1,0 +1,5 @@
+[template main]
+  [for type in discoveredTypes]
+    [immutables.generate type]
+  [/for]
+[/template]

@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>root</artifactId>
-    <version>0.19-SNAPSHOT</version>
+    <version>0.20-SNAPSHOT</version>
   </parent>
   
   <artifactId>generate-tool</artifactId>

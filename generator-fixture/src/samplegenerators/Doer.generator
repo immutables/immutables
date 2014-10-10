@@ -1,0 +1,35 @@
+[template main]
+[for e in elements, TypeElement t = e, PackageElement p = t.enclosingElement]
+[let x]Es[e.getSimpleName][/let]
+[output.java p.qualifiedName x]
+package [p.qualifiedName];
+abstract class [x] implements java.lang.Iterable<java.lang.String>{
+  private [x]() {}
+  [members]
+
+  [other]
+  [other]
+[other]
+}
+[/output.java]
+[/for]
+[/template]
+
+[template members]
+// No members
+[/template]
+
+[template unless Object value Invokable body][if not value][body][/if][/template]
+
+[template other]
+  /* no other
+  ['[]']['<>'][not 'x']
+  [for i in range][unless for.first],[/unless]
+    [i]
+  [/for]
+  // heres other
+  [for i in range]
+    xx[i]xx
+  [/for]
+    */
+[/template]

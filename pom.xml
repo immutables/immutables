@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -10,13 +11,12 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>root</artifactId>
-  <version>0.19-SNAPSHOT</version>
+  <version>0.20-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Java toolkit based around usage of immutable objects and fluent interfaces.
-    Includes support for JSON marshaling, MongoDB, JAX-RS and Guice.
+    Java annotation processing toolkit. Focus is on immutability, type safety, fluent interfaces, high-performance.
   </description>
   <url>http://immutables.org</url>
 
@@ -30,8 +30,9 @@
     <module>fixture</module>
     <module>generate-tool</module>
     <module>bench</module>
-    <module>modeling</module>
-    <module>modeling-fixture</module>
+    <module>generator</module>
+    <module>generator-fixture</module>
+    <module>value</module>
   </modules>
 
   <organization>

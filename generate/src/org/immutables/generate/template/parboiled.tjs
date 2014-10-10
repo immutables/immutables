@@ -6,7 +6,7 @@
 package `type.packageName`;
 [/if]
 
-import org.immutables.modeling.templating.Extractions; 
+import org.immutables.generator.processor.Extractions; 
 
 // Generated imports
 
