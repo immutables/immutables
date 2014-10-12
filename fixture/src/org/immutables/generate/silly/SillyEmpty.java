@@ -1,6 +1,6 @@
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable(singleton = true, builder = false, intern = true)
+@Value.Immutable(singleton = true, builder = false, intern = true)
 public abstract class SillyEmpty {}

@@ -1,25 +1,22 @@
 package org.immutables.generate.silly;
 
-import simple.GetterAnnotation;
-import simple.GetterAnnotation.InnerAnnotation;
 import com.google.common.base.Optional;
 import java.lang.annotation.RetentionPolicy;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import org.immutables.annotation.GenerateAuxiliary;
-import org.immutables.annotation.GenerateGetters;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateModifiable;
+import org.immutables.value.Value;
+import simple.GetterAnnotation;
+import simple.GetterAnnotation.InnerAnnotation;
 
-@GenerateImmutable
-@GenerateGetters
-@GenerateModifiable
+@Value.Immutable
+@Value.Getters
+// FIXME @Value.Modifiable
 public interface GetterEncloser {
   Optional<Integer> optional();
 
-  @GenerateImmutable
-  @GenerateGetters
-  @GenerateModifiable
+  @Value.Immutable
+  @Value.Getters
+  // FIXME @Value.Modifiable
   public interface Getters {
     int ab();
 
@@ -34,7 +31,7 @@ public interface GetterEncloser {
         type = Object.class,
         value = { @InnerAnnotation, @InnerAnnotation })
     @Path("/ef")
-    @GenerateAuxiliary
+    @Value.Auxiliary
     boolean ef();
   }
 }

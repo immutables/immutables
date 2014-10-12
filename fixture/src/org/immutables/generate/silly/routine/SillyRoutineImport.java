@@ -16,14 +16,13 @@
 package org.immutables.generate.silly.routine;
 
 import com.google.common.net.HostAndPort;
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable(builder = false)
+@Value.Immutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyRoutineImport {
 
-  @GenerateConstructorParameter
+  @Value.Parameter
   public abstract HostAndPort hostAndPort();
 }

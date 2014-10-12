@@ -3,12 +3,9 @@ package org.immutables.generate.silly.nested;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.marshal.Marshaling;
 import org.immutables.generate.silly.nested.ImmutableGroupedClasses.NestedOne;
 import org.immutables.generate.silly.nested.ImmutableInnerNested.Inner;
 import org.immutables.generate.silly.nested.ImmutableInnerNested.Nested;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -38,13 +35,13 @@ public class NestedValues {
     NonGrouped.Cadabra c = ImmutableCadabra.builder().build();
     check(c).notNull();
   }
-
-  @Ignore
-  @Test
-  public void marshalingOfNested() {
-    Marshaler<GroupedClasses.NestedOne> marshaler =
-        Marshaling.marshalerFor(GroupedClasses.NestedOne.class);
-
-    check(Marshaling.toJson(ImmutableGroupedClasses.NestedOne.builder().build())).is("{}");
-  }
+//
+//  @Ignore
+//  @Test
+//  public void marshalingOfNested() {
+//    Marshaler<GroupedClasses.NestedOne> marshaler =
+//        Marshaling.marshalerFor(GroupedClasses.NestedOne.class);
+//
+//    check(Marshaling.toJson(ImmutableGroupedClasses.NestedOne.builder().build())).is("{}");
+//  }
 }

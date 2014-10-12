@@ -1,20 +1,19 @@
 package org.immutables.generate.silly;
 
 import java.util.concurrent.atomic.AtomicInteger;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateLazy;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public abstract class SillyLazy {
 
   AtomicInteger counter = new AtomicInteger();
 
-  @GenerateLazy
+  @Value.Lazy
   public int val1() {
     return counter.incrementAndGet();
   }
 
-  @GenerateLazy
+  @Value.Lazy
   public int val2() {
     return counter.incrementAndGet();
   }

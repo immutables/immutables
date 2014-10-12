@@ -33,8 +33,6 @@
       <groupId>org.immutables</groupId>
       <artifactId>generator</artifactId>
       <version>${project.version}</version>
-      <optional>true</optional>
-      <scope>provided</scope>
     </dependency>
     <!-- Test only service -->
     <dependency>

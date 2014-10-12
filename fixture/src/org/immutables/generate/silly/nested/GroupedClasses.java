@@ -1,12 +1,11 @@
 package org.immutables.generate.silly.nested;
 
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateNested;
+import org.immutables.value.Value;
 
-@GenerateNested
+@Value.Nested
 @GenerateMarshaler
 class GroupedClasses {
-  @GenerateImmutable
+  @Value.Immutable
   interface NestedOne {}
 }

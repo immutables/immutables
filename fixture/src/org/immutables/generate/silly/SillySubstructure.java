@@ -15,22 +15,21 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateDefault;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateRepository;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
+import org.immutables.annotation.GenerateMarshaled;
+import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.annotation.GenerateRepository;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateMarshaler
 @GenerateRepository
 public abstract class SillySubstructure {
 
-  @GenerateDefault
+  @Value.Default
   @GenerateMarshaled("e1")
   public RetentionPolicy enum1() {
     return RetentionPolicy.SOURCE;

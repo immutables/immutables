@@ -1,13 +1,13 @@
 package org.immutables.generate.silly.nested;
 
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
 public abstract class NonGrouped {
 
-  @GenerateImmutable
+  @Value.Immutable
   abstract static class Abra {}
 
-  @GenerateImmutable
+  @Value.Immutable
   interface Cadabra {
 
   }

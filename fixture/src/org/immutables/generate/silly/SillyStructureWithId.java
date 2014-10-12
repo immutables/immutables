@@ -15,14 +15,14 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateImmutable;
+import com.google.common.base.Optional;
+import java.util.List;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
-import com.google.common.base.Optional;
-import java.util.List;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateRepository
 @GenerateMarshaler
 public abstract class SillyStructureWithId {

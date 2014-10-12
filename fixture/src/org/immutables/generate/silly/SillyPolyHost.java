@@ -16,10 +16,10 @@
 package org.immutables.generate.silly;
 
 import java.util.List;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateMarshaler
 public abstract class SillyPolyHost {
 

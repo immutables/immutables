@@ -1,8 +1,8 @@
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public abstract class SillyExtendedBuilder {
 
   public static class Builder {

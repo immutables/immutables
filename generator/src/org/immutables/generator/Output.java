@@ -1,23 +1,22 @@
 package org.immutables.generator;
 
-import javax.annotation.Nullable;
-import javax.tools.Diagnostic;
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Supplier;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.io.IOException;
-import java.io.Writer;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.FilerException;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
-import static com.google.common.base.Preconditions.*;
+
+import javax.annotation.Nullable;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.FilerException;
+import javax.tools.Diagnostic;
+import java.io.IOException;
+import java.io.Writer;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @GenerateNested
 public final class Output {
@@ -26,8 +25,9 @@ public final class Output {
     @Override
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
+      String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
       StaticEnvironment.processing().getMessager().printMessage(
-          Diagnostic.Kind.ERROR, parameters[0].toString());
+          Diagnostic.Kind.ERROR, message);
       return null;
     }
 
@@ -54,7 +54,7 @@ public final class Output {
     }
   };
 
-  private static Joiner DOT_JOINER = Joiner.on('.');
+  private static Joiner DOT_JOINER = Joiner.on('.').skipNulls();
 
   public final Templates.Invokable java = new Templates.Fragment(3) {
     @Override
@@ -82,7 +82,7 @@ public final class Output {
 
     @Override
     public String toString() {
-      return DOT_JOINER.join(packageName(), simpleName());
+      return DOT_JOINER.join(Strings.emptyToNull(packageName()), simpleName());
     }
   }
 

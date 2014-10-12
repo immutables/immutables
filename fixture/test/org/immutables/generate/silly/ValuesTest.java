@@ -34,15 +34,15 @@ public class ValuesTest {
     check(g.getCd()).is("");
     check(g.isEf());
 
-    ModifiableGetters mg = ModifiableGetters.create().copy(g);
-    check(g.getAb()).is(0);
-    check(g.getCd()).is("");
-    check(g.isEf());
+//    ModifiableGetters mg = ModifiableGetters.create().copy(g);
+//    check(g.getAb()).is(0);
+//    check(g.getCd()).is("");
+//    check(g.isEf());
 
     check(ImmutableGetterEncloser.builder().build().getOptional()).isNull();
 
-    check(mg.getClass().getMethod("getCd").isAnnotationPresent(POST.class));
-    check(mg.getClass().getMethod("isEf").getAnnotation(GetterAnnotation.class).value()).hasSize(2);
+    check(g.getClass().getMethod("getCd").isAnnotationPresent(POST.class));
+    check(g.getClass().getMethod("isEf").getAnnotation(GetterAnnotation.class).value()).hasSize(2);
   }
 
   @Test

@@ -1,5 +1,6 @@
 package org.immutables.generator;
 
+import org.immutables.generate.internal.guava.collect.Iterables;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.primitives.Chars;
@@ -75,8 +76,12 @@ public final class Intrinsics {
     if (value instanceof String) {
       return !((String) value).isEmpty();
     }
+    if (value instanceof Iterable<?>) {
+      return !Iterables.isEmpty((Iterable<?>) value);
+    }
     if (value instanceof Number) {
-      return ((Number) value).intValue() != 0;
+      Number number = (Number) value;
+      return number.intValue() != 0;
     }
     if (value instanceof Optional<?>) {
       return ((Optional<?>) value).isPresent();

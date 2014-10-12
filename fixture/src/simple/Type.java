@@ -1,14 +1,14 @@
 package simple;
 
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public class Type {
-  @GenerateImmutable
+  @Value.Immutable
   interface Nested {
-    @GenerateImmutable
+    @Value.Immutable
     static class Deeper {
-      @GenerateImmutable
+      @Value.Immutable
       interface Deepest {}
     }
   }

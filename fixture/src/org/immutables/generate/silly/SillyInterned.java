@@ -15,14 +15,13 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable(intern = true)
+@Value.Immutable(intern = true)
 public abstract class SillyInterned {
-  @GenerateConstructorParameter(order = 0)
+  @Value.Parameter(order = 0)
   public abstract int arg1();
 
-  @GenerateConstructorParameter(order = 1)
+  @Value.Parameter(order = 1)
   public abstract int arg2();
 }

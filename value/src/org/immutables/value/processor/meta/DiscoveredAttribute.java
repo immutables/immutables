@@ -15,12 +15,12 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.Value;
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.*;
 import com.google.common.primitives.Primitives;
 import org.immutables.annotation.*;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -103,32 +103,26 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   @Override
   protected abstract TypeMirror internalTypeMirror();
 
-  @GenerateDefault
   public boolean isGenerateFunction() {
     return false;
   }
 
-  @GenerateDefault
   public boolean isGenerateLazy() {
     return false;
   }
 
-  @GenerateDefault
   public boolean isGeneratePredicate() {
     return false;
   }
 
-  @GenerateDefault
   public boolean isGenerateDefault() {
     return false;
   }
 
-  @GenerateDefault
   public boolean isGenerateDerived() {
     return false;
   }
 
-  @GenerateDefault
   public boolean isGenerateAbstract() {
     return false;
   }
@@ -436,13 +430,13 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public int getMinValue() {
     return isAligned()
-        ? element.getAnnotation(GeneratePackedBits.class).min()
+        ? element.getAnnotation(Value.PackedBits.class).min()
         : 0;
   }
 
   public int getMaxValue() {
     return isAligned()
-        ? element.getAnnotation(GeneratePackedBits.class).max()
+        ? element.getAnnotation(Value.PackedBits.class).max()
         : 0;
   }
 
@@ -508,7 +502,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public boolean isAligned() {
     String t = internalTypeName();
-    return element.getAnnotation(GeneratePackedBits.class) != null
+    return element.getAnnotation(Value.PackedBits.class) != null
         && isPrimitive()
         && (!double.class.getName().equals(t)
             && !float.class.getName().equals(t)
@@ -520,12 +514,12 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public int getConstructorArgumentOrder() {
-    GenerateConstructorParameter annotation = element.getAnnotation(GenerateConstructorParameter.class);
+    Value.Parameter annotation = element.getAnnotation(Value.Parameter.class);
     return annotation != null ? annotation.order() : -1;
   }
 
   public int getAlignOrder() {
-    GeneratePackedBits annotation = element.getAnnotation(GeneratePackedBits.class);
+    Value.PackedBits annotation = element.getAnnotation(Value.PackedBits.class);
     return annotation != null ? annotation.order() : -1;
   }
 
@@ -603,7 +597,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isAuxiliary() {
-    return element.getAnnotation(GenerateAuxiliary.class) != null;
+    return element.getAnnotation(Value.Auxiliary.class) != null;
   }
 
   public boolean isMarshaledIgnore() {

@@ -15,14 +15,13 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable(builder = false)
+@Value.Immutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyIntWrap {
 
-  @GenerateConstructorParameter
+  @Value.Parameter
   public abstract int value();
 }

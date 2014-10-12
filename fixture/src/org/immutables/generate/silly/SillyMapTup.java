@@ -17,17 +17,16 @@ package org.immutables.generate.silly;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable(builder = false)
+@Value.Immutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyMapTup {
 
-  @GenerateConstructorParameter(order = 0)
+  @Value.Parameter(order = 0)
   public abstract Map<RetentionPolicy, Integer> holder1();
 
-  @GenerateConstructorParameter(order = 1)
+  @Value.Parameter(order = 1)
   public abstract int value();
 }

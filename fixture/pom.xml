@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -16,14 +17,30 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.immutables.dependency</groupId>
+      <artifactId>technology</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
+    </dependency>
+    <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>service</artifactId>
+      <artifactId>value</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>annotation</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>common</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>generate-tool</artifactId>
-      <version>${project.version}</version>
+      <version>0.20-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

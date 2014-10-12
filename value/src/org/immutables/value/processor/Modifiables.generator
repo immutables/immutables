@@ -1,0 +1,31 @@
+[template generate Type type]
+[let modifiableClassName]Modifiable[type.simpleName][/let]
+[output.java type.packageName modifiableClassName]
+[generateModifiable type]
+[/output.java]
+[/template]
+
+[template generateModifiable Type type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+/**
+ * Modifiable implementation of [type.name].
+ * <p>
+ * Use static static factory method {@link Modifiable[type.simpleName]#create()} to create new instances.
+ */
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"Modifiables.generator", "[type.name]"})
+@javax.annotation.concurrent.NotThreadSafe
+[type.accessPrefix]final class Modifiable[type.simpleName]
+    [type.inheritsKeyword] [type.name] {
+  private Modifiable[type.simpleName]() {}
+  [modifiableClassBody type]
+}
+[/template]
+
+[template modifiableClassBody Type type]
+
+[/template]

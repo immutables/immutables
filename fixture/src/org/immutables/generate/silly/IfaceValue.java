@@ -1,16 +1,14 @@
 package org.immutables.generate.silly;
 
 import java.util.List;
-import org.immutables.annotation.GenerateAuxiliary;
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public interface IfaceValue {
 
-  @GenerateConstructorParameter
+  @Value.Parameter
   int getNumber();
 
-  @GenerateAuxiliary
+  @Value.Auxiliary
   List<String> auxiliary();
 }

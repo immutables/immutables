@@ -15,23 +15,22 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaler;
 import com.google.common.base.Optional;
 import java.util.Set;
+import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable(builder = false)
+@Value.Immutable(builder = false)
 @GenerateMarshaler
 public abstract class SillyTuplie {
 
-  @GenerateConstructorParameter(order = 0)
+  @Value.Parameter(order = 0)
   public abstract float float1();
 
-  @GenerateConstructorParameter(order = 1)
+  @Value.Parameter(order = 1)
   public abstract Optional<Byte> opt2();
 
-  @GenerateConstructorParameter(order = 3)
+  @Value.Parameter(order = 3)
   public abstract Set<Boolean> set3();
 
 }

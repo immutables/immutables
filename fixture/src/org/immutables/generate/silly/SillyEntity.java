@@ -22,13 +22,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.immutables.annotation.GenerateDerived;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.annotation.GenerateRepository;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateMarshaler(importRoutines = { SillyEntity.class })
 @GenerateRepository
 public abstract class SillyEntity {
@@ -45,7 +44,7 @@ public abstract class SillyEntity {
   @GenerateMarshaled("i")
   public abstract List<Integer> ints();
 
-  @GenerateDerived
+  @Value.Derived
   public UnsignedInteger der() {
     return UnsignedInteger.valueOf(1);
   }

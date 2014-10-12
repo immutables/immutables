@@ -15,13 +15,12 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.common.collect.OrdinalValue;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public abstract class SillyOrdinal implements OrdinalValue<SillyOrdinal> {
 
-  @GenerateConstructorParameter
+  @Value.Parameter
   public abstract String name();
 }

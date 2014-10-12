@@ -1,9 +1,9 @@
 package org.immutables.generate.silly;
 
 import java.util.Set;
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 public abstract class SillyOrdinalHolder {
   public abstract Set<SillyOrdinal> set();
 }

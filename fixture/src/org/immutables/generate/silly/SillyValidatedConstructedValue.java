@@ -15,20 +15,18 @@
  */
 package org.immutables.generate.silly;
 
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateCheck;
+import org.immutables.value.Value;
 import static com.google.common.base.Preconditions.*;
 
-@GenerateImmutable(builder = false)
+@Value.Immutable(builder = false)
 public abstract class SillyValidatedConstructedValue {
-  @GenerateConstructorParameter(order = 0)
+  @Value.Parameter(order = 0)
   public abstract int value();
 
-  @GenerateConstructorParameter(order = 1)
+  @Value.Parameter(order = 1)
   public abstract boolean negativeOnly();
 
-  @GenerateCheck
+  @Value.Check
   protected void validate() {
     checkState(!negativeOnly() || value() < 0, "if negativeOnly = true, value should be negative");
   }

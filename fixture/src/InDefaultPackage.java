@@ -1,7 +1,7 @@
-import org.immutables.annotation.GenerateImmutable;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 interface InDefaultPackage {
-  @GenerateImmutable
+  @Value.Immutable
   static class ButNested {}
 }

@@ -22,7 +22,7 @@ package [type.packageName];
  */
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"immutable.tjs", "[type.name]"})
+@javax.annotation.Generated({"Immutables.generator", "[type.name]"})
 [type.accessPrefix]final class [type.defName] {
   private [type.defName]() {}
 [for v in type.nestedChildren]

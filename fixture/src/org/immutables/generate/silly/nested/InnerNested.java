@@ -1,17 +1,16 @@
 package org.immutables.generate.silly.nested;
 
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateNested;
+import org.immutables.value.Value;
 
-@GenerateNested
-@GenerateImmutable
+@Value.Nested
+@Value.Immutable
 public interface InnerNested {
-  @GenerateImmutable
+  @Value.Immutable
   @GenerateMarshaler
   abstract static class Inner {}
 
-  @GenerateImmutable
+  @Value.Immutable
   @GenerateMarshaler
   interface Nested {}
 }

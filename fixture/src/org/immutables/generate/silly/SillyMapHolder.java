@@ -18,20 +18,19 @@ package org.immutables.generate.silly;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.Set;
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaled;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateMarshaler(importRoutines = SillyMarshalingRoutines.class)
 abstract class SillyMapHolder {
 
-  @GenerateConstructorParameter(order = 0)
+  @Value.Parameter(order = 0)
   @GenerateMarshaled(forceEmpty = true)
   public abstract Map<SillyValue, Integer> holder1();
 
-  @GenerateConstructorParameter(order = 1)
+  @Value.Parameter(order = 1)
   public abstract Map<Integer, String> holder2();
 
   public abstract Map<String, SillyMapTup> holder3();

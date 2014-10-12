@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.annotation.GenerateRepository;
+import org.immutables.annotation.GenerateMarshaler;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -212,12 +214,12 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateMarshaled() {
-    return false;// (getAnnotationFromThisOrEnclosingElement(GenerateMarshaler.class) != null) ||
-// isGenerateDocument();
+    return (getAnnotationFromThisOrEnclosingElement(GenerateMarshaler.class) != null) ||
+        isGenerateDocument();
   }
 
   public boolean isGenerateDocument() {
-    return false; // internalTypeElement().getAnnotation(GenerateRepository.class) != null;
+    return internalTypeElement().getAnnotation(GenerateRepository.class) != null;
   }
 
   private Boolean hasAbstractBuilder;
@@ -243,11 +245,11 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public String getDocumentName() {
-    /* @Nullable
-     GenerateRepository annotation = internalTypeElement().getAnnotation(GenerateRepository.class);
-     if (annotation != null && !annotation.value().isEmpty()) {
-       return annotation.value();
-     }*/
+    @Nullable
+    GenerateRepository annotation = internalTypeElement().getAnnotation(GenerateRepository.class);
+    if (annotation != null && !annotation.value().isEmpty()) {
+      return annotation.value();
+    }
     return inferDocumentCollectionName(getName());
   }
 
@@ -277,11 +279,11 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   private void collectImportRoutines(Set<String> imports) {
     Element element = internalTypeElement();
     for (;;) {
-      /* imports.addAll(
+      imports.addAll(
           extractClassNamesFromMirrors(GenerateMarshaler.class,
               "importRoutines",
               element.getAnnotationMirrors()));
-      */
+
       Element enclosingElement = element.getEnclosingElement();
       if (enclosingElement == null || element instanceof PackageElement) {
         break;

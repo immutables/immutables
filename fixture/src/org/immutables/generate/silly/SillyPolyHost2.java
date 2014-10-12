@@ -16,11 +16,11 @@
 package org.immutables.generate.silly;
 
 import com.google.common.base.Optional;
-import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateMarshaledSubclasses;
 import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
-@GenerateImmutable
+@Value.Immutable
 @GenerateMarshaler
 public abstract class SillyPolyHost2 {
 

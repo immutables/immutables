@@ -26,10 +26,10 @@
     <module>testing</module>
     <module>annotation</module>
     <module>common</module>
-    <!--module>fixture</module-->
     <module>generator</module>
     <module>generator-fixture</module>
     <module>value</module>
+    <module>fixture</module>
   </modules>
 
   <organization>

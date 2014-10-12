@@ -3,6 +3,8 @@ package org.immutables.generator;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -20,6 +22,33 @@ public class BuiltinOperations {
         public Boolean apply(Object input) {
           return !Intrinsics.$if(input);
         }
+
+        @Override
+        public String toString() {
+          return BuiltinOperations.class.getSimpleName() + ".not";
+        }
+      };
+
+  public final Function<Object, Integer> size =
+      new Function<Object, Integer>() {
+        @Override
+        public Integer apply(Object input) {
+          if (input instanceof Map<?, ?>) {
+            return ((Map<?, ?>) input).size();
+          }
+          if (input instanceof Iterable<?>) {
+            return Iterables.size((Iterable<?>) input);
+          }
+          if (input instanceof CharSequence) {
+            return ((CharSequence) input).length();
+          }
+          return 1;
+        }
+
+        @Override
+        public String toString() {
+          return BuiltinOperations.class.getSimpleName() + ".size";
+        }
       };
 
   public final Templates.Binary<Object, Object, Boolean> eq =
@@ -31,6 +60,11 @@ public class BuiltinOperations {
           }
           return Objects.equals(left, right);
         }
+
+        @Override
+        public String toString() {
+          return BuiltinOperations.class.getSimpleName() + ".eq";
+        }
       };
 
   public final Templates.Binary<Object, Object, Boolean> and =
@@ -39,6 +73,11 @@ public class BuiltinOperations {
         public Boolean apply(Object left, Object right) {
           return Intrinsics.$if(left) && Intrinsics.$if(right);
         }
+
+        @Override
+        public String toString() {
+          return BuiltinOperations.class.getSimpleName() + ".and";
+        }
       };
 
   public final Templates.Binary<Object, Object, Boolean> or =
@@ -46,6 +85,11 @@ public class BuiltinOperations {
         @Override
         public Boolean apply(Object left, Object right) {
           return Intrinsics.$if(left) || Intrinsics.$if(right);
+        }
+
+        @Override
+        public String toString() {
+          return BuiltinOperations.class.getSimpleName() + ".or";
         }
       };
 
@@ -60,6 +104,13 @@ public class BuiltinOperations {
       return StaticEnvironment.processing().getElementUtils().getConstantExpression(input);
     }
 
+    public final Function<Object, String> string = new Function<Object, String>() {
+      @Override
+      public String apply(Object input) {
+        return StringLiterals.toLiteral(String.valueOf(input));
+      }
+    };
+
     public final Function<Number, String> hex = new Function<Number, String>() {
       @Override
       public String apply(Number input) {
@@ -70,6 +121,11 @@ public class BuiltinOperations {
           return "0x" + Integer.toHexString(input.intValue());
         }
         throw new IllegalArgumentException("unsupported non integer or long " + input);
+      }
+
+      @Override
+      public String toString() {
+        return BuiltinOperations.class.getSimpleName() + ".hex";
       }
     };
 
@@ -84,7 +140,17 @@ public class BuiltinOperations {
         }
         throw new IllegalArgumentException("unsupported non integer or long " + input);
       }
+
+      @Override
+      public String toString() {
+        return BuiltinOperations.class.getSimpleName() + ".bin";
+      }
     };
+
+    @Override
+    public String toString() {
+      return BuiltinOperations.class.getSimpleName() + ".literal";
+    }
   }
 
   public final Converter<String, String> toUpper =
@@ -95,4 +161,5 @@ public class BuiltinOperations {
 
   public final Converter<String, String> toConstant =
       CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE);
+
 }

@@ -1,0 +1,3 @@
+[template generate Type type]
+[--output.java type.packageName type.defName]
+[/template]
