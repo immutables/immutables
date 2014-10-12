@@ -15,6 +15,7 @@
  */
 package org.immutables.common.eventually;
 
+import com.google.common.base.Preconditions;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
@@ -85,8 +86,8 @@ import org.immutables.common.concurrent.FluentFutures;
  * functionality should be implemented or overridden.
  * </em>
  * <p>
- * To customize dispatching injector could provided with binding to {@literal @}{@link EventuallyAsync}
- * {@link Executor}
+ * To customize dispatching injector could provided with binding to {@literal @}
+ * {@link EventuallyAsync} {@link Executor}
  * @see EventuallyProvides
  * @param <T> defining class type
  */
@@ -357,10 +358,9 @@ public final class EventualProvidersModule<T> implements Module {
         public ListenableFuture<V> apply(List<Object> input) throws Exception {
           Object result = method.invoke(targetInstance, input.toArray());
           if (result == null) {
-            throw new NullPointerException(
-                String.format("Method @%s %s should not return null",
-                    EventuallyProvides.class.getSimpleName(),
-                    source));
+            Preconditions.checkNotNull(result, "Method @%s %s should not return null",
+                EventuallyProvides.class.getSimpleName(),
+                source);
           }
           if (result instanceof ListenableFuture<?>) {
             return (ListenableFuture<V>) result;

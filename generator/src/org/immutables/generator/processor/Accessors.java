@@ -334,6 +334,11 @@ public final class Accessors extends Introspection {
         return accessor;
       }
 
+      accessor = resolveAccessor(targetType, "$$" + attribute);
+      if (accessor != null) {
+        return accessor;
+      }
+
       return accessor;
     }
 

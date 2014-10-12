@@ -46,7 +46,7 @@ public class Parser extends BaseParser<Object> {
         OneOrMore(Sequence(
             FirstOf(
                 OpeningDirective(Comment()),
-                Sequence(TemplateDirective(), Unit.addParts())),
+                TemplateDirective()), Unit.addParts(),
             Spacing())),
         EOI, Unit.build());
   }

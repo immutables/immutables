@@ -101,16 +101,6 @@ public final class Processor extends AbstractProcessor {
 
     if (result.hasErrors()) {
       String errors = ErrorUtils.printParseErrors(result.parseErrors);
-/*
-      for (ParseError e : result.parseErrors) {
-        errors += "\n" +
-            ErrorUtils.printErrorMessage("%s [%d,%d]",
-                e.getErrorMessage(),
-                e.getStartIndex(),
-                e.getEndIndex(),
-                result.inputBuffer);
-      }
-*/
       throw new Exception(errors);
     }
 

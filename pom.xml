@@ -10,8 +10,8 @@
   </parent>
 
   <groupId>org.immutables</groupId>
-  <artifactId>root</artifactId>
-  <version>0.20-SNAPSHOT</version>
+  <artifactId>immutables</artifactId>
+  <version>0.30-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -21,15 +21,12 @@
   <url>http://immutables.org</url>
 
   <modules>
-    <module>dependency-root</module>
+    <module>dependency/utility</module>
+    <module>dependency/technology</module>
+    <module>testing</module>
     <module>annotation</module>
-    <module>check</module>
     <module>common</module>
-    <module>generate</module>
-    <module>service</module>
-    <module>fixture</module>
-    <module>generate-tool</module>
-    <module>bench</module>
+    <!--module>fixture</module-->
     <module>generator</module>
     <module>generator-fixture</module>
     <module>value</module>

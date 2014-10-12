@@ -1,5 +1,7 @@
 package org.immutables.generator;
 
+import javax.annotation.Nullable;
+import javax.tools.Diagnostic;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
@@ -13,20 +15,42 @@ import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import org.immutables.annotation.GenerateImmutable;
 import org.immutables.annotation.GenerateNested;
-import org.immutables.generator.Templates.CharConsumer;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
+import static com.google.common.base.Preconditions.*;
 
 @GenerateNested
 public final class Output {
 
+  public final Templates.Invokable error = new Templates.Invokable() {
+    @Override
+    @Nullable
+    public Invokable invoke(Invokation invokation, Object... parameters) {
+      StaticEnvironment.processing().getMessager().printMessage(
+          Diagnostic.Kind.ERROR, parameters[0].toString());
+      return null;
+    }
+
+    @Override
+    public int arity() {
+      return 1;
+    }
+  };
+
   public final Templates.Invokable trim = new Templates.Fragment(1) {
     @Override
     public void run(Invokation invokation) {
-      Invokable body = (Invokable) invokation.param(0);
-      CharConsumer consumer = new CharConsumer();
-      body.invoke(new Invokation(consumer));
-      invokation.out(CharMatcher.WHITESPACE.trimFrom(consumer.asCharSequence()));
+      invokation.out(CharMatcher.WHITESPACE.trimFrom(
+          toCharSequence(invokation.param(0).toString())));
+    }
+
+    private CharSequence toCharSequence(Object param) {
+      checkNotNull(param);
+      // Is it worthwhile optimization?
+      if (param instanceof Templates.Fragment) {
+        return ((Templates.Fragment) param).toCharSequence();
+      }
+      return param.toString();
     }
   };
 
@@ -71,14 +95,20 @@ public final class Output {
     }
 
     public void complete() {
-      try {
-        try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
-          writer.append(extractSourceCode());
+      if (!StaticEnvironment.round().errorRaised()) {
+        try {
+          writeFile();
+        } catch (FilerException ex) {
+          throw Throwables.propagate(ex);
+        } catch (IOException ex) {
+          throw Throwables.propagate(ex);
         }
-      } catch (FilerException ex) {
-        throw Throwables.propagate(ex);
-      } catch (IOException ex) {
-        throw Throwables.propagate(ex);
+      }
+    }
+
+    private void writeFile() throws IOException {
+      try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
+        writer.append(extractSourceCode());
       }
     }
 
@@ -116,9 +146,11 @@ public final class Output {
 
     @Override
     public void complete() {
+      if (!StaticEnvironment.round().errorRaised()) {
 //      for (JavaFile file : files.asMap().values()) {
 //        file.complete();
 //      }
+      }
     }
   }
 }

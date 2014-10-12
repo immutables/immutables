@@ -5,8 +5,8 @@
 
   <parent>
     <groupId>org.immutables</groupId>
-    <artifactId>root</artifactId>
-    <version>0.20-SNAPSHOT</version>
+    <artifactId>immutables</artifactId>
+    <version>0.30-SNAPSHOT</version>
   </parent>
 
   <artifactId>generator</artifactId>
@@ -16,19 +16,19 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility-set</artifactId>
+      <artifactId>utility</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>annotation</artifactId>
-      <version>${project.version}</version>
+      <version>0.20-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>generate-tool</artifactId>
-      <version>${project.version}</version>
+      <version>0.20-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -50,14 +50,8 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>check</artifactId>
+      <artifactId>testing</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.truth</groupId>
-      <artifactId>truth</artifactId>
-      <version>0.23</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

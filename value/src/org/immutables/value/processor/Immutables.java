@@ -13,16 +13,11 @@ abstract class Immutables extends AbstractTemplate {
   @Generator.Typedef
   DiscoveredAttribute Attribute;
 
-  final String empty = "";
-  final String staticPrefix = "static ";
-
   abstract Templates.Invokable generate();
-  
-  abstract Templates.Invokable immutableCollectionFrom();
 
   static Immutables create() {
     return new Generator_Immutables();
   }
-  
+
   // abstract indexToBitmask
 }

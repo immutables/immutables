@@ -5,8 +5,8 @@
 
   <parent>
     <groupId>org.immutables</groupId>
-    <artifactId>root</artifactId>
-    <version>0.20-SNAPSHOT</version>
+    <artifactId>immutables</artifactId>
+    <version>0.30-SNAPSHOT</version>
   </parent>
 
   <artifactId>generate</artifactId>

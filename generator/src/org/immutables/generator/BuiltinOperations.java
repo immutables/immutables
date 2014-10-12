@@ -10,6 +10,10 @@ import java.util.Objects;
  * inheritance.
  */
 public class BuiltinOperations {
+
+  public final boolean $$true = true;
+  public final boolean $$false = false;
+
   public final Function<Object, Boolean> not =
       new Function<Object, Boolean>() {
         @Override
@@ -22,7 +26,26 @@ public class BuiltinOperations {
       new Templates.Binary<Object, Object, Boolean>() {
         @Override
         public Boolean apply(Object left, Object right) {
+          if (left instanceof String || right instanceof String) {
+            return String.valueOf(left).equals(String.valueOf(right));
+          }
           return Objects.equals(left, right);
+        }
+      };
+
+  public final Templates.Binary<Object, Object, Boolean> and =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return Intrinsics.$if(left) && Intrinsics.$if(right);
+        }
+      };
+
+  public final Templates.Binary<Object, Object, Boolean> or =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return Intrinsics.$if(left) || Intrinsics.$if(right);
         }
       };
 

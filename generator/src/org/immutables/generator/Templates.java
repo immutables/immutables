@@ -216,6 +216,15 @@ public final class Templates {
 
     private String cachedToString;
 
+    CharSequence toCharSequence() {
+      if (capturedIndentation != null && arity == 0) {
+        CharConsumer consumer = new CharConsumer();
+        invoke(new Invokation(consumer));
+        return consumer.asCharSequence();
+      }
+      return super.toString();
+    }
+
     /**
      * Ability to pass caputured fragment and evaluate it as a string.
      * For non-captured fragments or fragments which expects parameters, plain {@code toString}
@@ -223,15 +232,10 @@ public final class Templates {
      */
     @Override
     public String toString() {
-      if (capturedIndentation != null && arity == 0) {
-        if (cachedToString == null) {
-          CharConsumer consumer = new CharConsumer();
-          invoke(new Invokation(consumer));
-          cachedToString = consumer.toString();
-        }
-        return cachedToString;
+      if (cachedToString == null) {
+        cachedToString = toCharSequence().toString();
       }
-      return super.toString();
+      return cachedToString;
     }
   }
 }

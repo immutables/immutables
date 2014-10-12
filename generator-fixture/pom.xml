@@ -5,8 +5,8 @@
 
   <parent>
     <groupId>org.immutables</groupId>
-    <artifactId>root</artifactId>
-    <version>0.20-SNAPSHOT</version>
+    <artifactId>immutables</artifactId>
+    <version>0.30-SNAPSHOT</version>
   </parent>
 
   <artifactId>generator-fixture</artifactId>
@@ -18,24 +18,13 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>service</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>generate-tool</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>generator</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>check</artifactId>
+      <artifactId>testing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

@@ -1,8 +1,5 @@
 package org.immutables.generator.processor;
 
-import org.immutables.generator.processor.ImmutableTrees.InvokeString;
-import org.immutables.generator.StringLiterals;
-import org.immutables.generator.processor.ImmutableTrees.StringLiteral;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -13,15 +10,18 @@ import org.immutables.generator.processor.ImmutableTrees.ApplyExpression;
 import org.immutables.generator.processor.ImmutableTrees.AssignGenerator;
 import org.immutables.generator.processor.ImmutableTrees.Block;
 import org.immutables.generator.processor.ImmutableTrees.BoundAccessExpression;
+import org.immutables.generator.processor.ImmutableTrees.Comment;
 import org.immutables.generator.processor.ImmutableTrees.ConditionalBlock;
 import org.immutables.generator.processor.ImmutableTrees.ForStatement;
 import org.immutables.generator.processor.ImmutableTrees.Identifier;
 import org.immutables.generator.processor.ImmutableTrees.IfStatement;
 import org.immutables.generator.processor.ImmutableTrees.InvokableDeclaration;
 import org.immutables.generator.processor.ImmutableTrees.InvokeStatement;
+import org.immutables.generator.processor.ImmutableTrees.InvokeString;
 import org.immutables.generator.processor.ImmutableTrees.IterationGenerator;
 import org.immutables.generator.processor.ImmutableTrees.LetStatement;
 import org.immutables.generator.processor.ImmutableTrees.ResolvedType;
+import org.immutables.generator.processor.ImmutableTrees.StringLiteral;
 import org.immutables.generator.processor.ImmutableTrees.Template;
 import org.immutables.generator.processor.ImmutableTrees.TextLine;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
@@ -377,7 +377,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
     context.delimit();
     transformConditionalBlockParts(context, block, block.parts());
-    context.delimit();
   }
 
   @Override
@@ -400,7 +399,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
       context.delimit();
       transform(context, (Block) statement.otherwise().get());
-      context.delimit();
     }
 
     context.outdent()
@@ -408,7 +406,15 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .out("}")
         .ln();
 
+    context.delimit();
+
     return statement;
+  }
+
+  @Override
+  public Comment transform(Context context, Comment value) {
+    context.delimit();
+    return value;
   }
 
   @Override
@@ -421,6 +427,8 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       context.out("final ", typeName, " ", parameter.name().value()).out(" = ");
       if (typeName.equals(String.class.getName())) {
         context.out("__.param(", paramIndex, ").toString();").ln();
+      } else if (typeName.equals(Boolean.class.getName())) {
+        context.out("$if(__.param(", paramIndex, "));").ln();
       } else {
         context.out("(", typeName, ") __.param(", paramIndex, ");").ln();
       }
