@@ -23,12 +23,12 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>annotation</artifactId>
-      <version>0.20-SNAPSHOT</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>generate-tool</artifactId>
-      <version>0.20-SNAPSHOT</version>
+      <artifactId>retrovalue</artifactId>
+      <version>0.29.0-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>

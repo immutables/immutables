@@ -24,7 +24,7 @@ public final class Spacing {
 
   private static final TreesTransformer<Void> TRANSFORMER = new TreesTransformer<Void>() {
     @Override
-    protected Iterable<Trees.TemplatePart> transformTemplateParts(
+    protected Iterable<Trees.TemplatePart> transformTemplateListParts(
         Void context,
         Template value,
         final List<Trees.TemplatePart> parts) {

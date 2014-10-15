@@ -161,7 +161,7 @@ public final class Templates {
       return this;
     }
 
-    public Invokation pos(int line, int column) {
+    public Invokation pos(int pos) {
       return this;
     }
   }

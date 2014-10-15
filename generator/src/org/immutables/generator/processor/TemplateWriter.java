@@ -180,23 +180,23 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .out("final ")
         .out(Templates.Iteration.class)
         .out(" ")
-        .out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE))
+        .out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE))
         .out(" = new ")
         .out(Templates.Iteration.class)
         .out("();")
         .ln();
 
-    transformForStatementDeclaration(context, statement, statement.declaration());
+    transformForStatementListDeclaration(context, statement, statement.declaration());
 
     int braces = context.getAndSetPendingBraces(0);
     context.indent();
 
     context.delimit();
-    transformForStatementParts(context, statement, statement.parts());
+    transformForStatementListParts(context, statement, statement.parts());
     context.delimit();
 
-    context.out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE)).out(".index++;").ln();
-    context.out(context.accessMapper(Resolver.ITERATION_ACCESS_VARIABLE)).out(".first = false;");
+    context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".index++;").ln();
+    context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".first = false;");
 
     context.getAndSetPendingBraces(braces);
     context.outfor().outdent().ln()
@@ -215,7 +215,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   public InvokeStatement transform(final Context context, final InvokeStatement statement) {
     context.out("$(__, ");
     transformInvokeStatementAccess(context, statement, statement.access());
-    transformInvokeStatementParams(context, statement, statement.params());
+    transformInvokeStatementListParams(context, statement, statement.params());
 
     if (!statement.parts().isEmpty()) {
       context.out(", ");
@@ -231,7 +231,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
         @Override
         void body() {
-          transformInvokeStatementParts(context, statement, statement.parts());
+          transformInvokeStatementListParts(context, statement, statement.parts());
         }
       }.generate(context);
     }
@@ -242,13 +242,13 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   }
 
   @Override
-  protected Iterable<Expression> transformInvokeStatementParams(
+  protected Iterable<Expression> transformInvokeStatementListParams(
       Context context,
       InvokeStatement value,
       List<Expression> collection) {
     for (Trees.Expression element : collection) {
       context.out(", ");
-      transformInvokeStatementParamsElement(context, value, element);
+      transformInvokeStatementParams(context, value, element);
     }
     return collection;
   }
@@ -274,7 +274,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
     if (generator.condition().isPresent()) {
       context.out("if ($if(");
-      transformIterationGeneratorCondition(context, generator, generator.condition());
+      transformIterationGeneratorOptionalCondition(context, generator, generator.condition());
       context.out(")) ").openBrace().ln();
     }
 
@@ -309,7 +309,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
   @Override
   public BoundAccessExpression transform(Context context, BoundAccessExpression value) {
-    ImmutableList<Accessors.BoundAccess> accessList = Resolver.asBoundAccess(value.accessor());
+    ImmutableList<Accessors.BoundAccess> accessList = TypeResolver.asBoundAccess(value.accessor());
 
     StringBuilder expressionBuilder = new StringBuilder();
 
@@ -351,7 +351,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   }
 
   @Override
-  protected Iterable<Expression> transformApplyExpressionParams(
+  protected Iterable<Expression> transformApplyExpressionListParams(
       Context context,
       ApplyExpression value,
       List<Expression> collection) {
@@ -361,7 +361,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         context.out(", ");
       }
       first = false;
-      transformApplyExpressionParamsElement(context, value, element);
+      transformApplyExpressionParams(context, value, element);
     }
     return collection;
   }
@@ -376,7 +376,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .ln();
 
     context.delimit();
-    transformConditionalBlockParts(context, block, block.parts());
+    transformConditionalBlockListParts(context, block, block.parts());
   }
 
   @Override
@@ -476,7 +476,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     }
 
     public String accessMapper(String identifer) {
-      if (Resolver.ITERATION_ACCESS_VARIABLE.equals(identifer)) {
+      if (TypeResolver.ITERATION_ACCESS_VARIABLE.equals(identifer)) {
         return "_it" + forLevels;
       }
       return identifer;

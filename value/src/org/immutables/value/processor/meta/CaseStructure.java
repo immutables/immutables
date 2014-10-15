@@ -1,48 +1,39 @@
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.SetMultimap;
-import java.util.Collection;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 public class CaseStructure {
-  private final DiscoveredValue nestingParent;
-  private final List<DiscoveredValue> nestedChildren;
-  private final ListMultimap<String, DiscoveredValue> subtyping;
-  private final Map<String, DiscoveredValue> typeMap;
-  private final SetMultimap<String, DiscoveredValue> occurencesSubtypingMapping = HashMultimap.create();
-  private static final Joiner DOT_JOINER = Joiner.on('.').skipNulls();
+  public final List<DiscoveredValue> implementationTypes;
+  public final ListMultimap<String, DiscoveredValue> subtyping;
+  public final Set<String> implementationTypeNames;
+  public final SetMultimap<String, DiscoveredValue> subtypeUsages = HashMultimap.create();
+  public final SetMultimap<String, DiscoveredValue> abstractUsages = HashMultimap.create();
 
-  public CaseStructure(DiscoveredValue nestingParent, List<DiscoveredValue> nestedChildren) {
-    this.nestingParent = nestingParent;
-    this.nestedChildren = nestedChildren;
-    this.typeMap = buildTypeMap(nestedChildren);
-    this.subtyping = buildSubtyping(nestedChildren);
+  public CaseStructure(DiscoveredValue discoveredValue) {
+    this.implementationTypes = discoveredValue.getNestedChildren();
+    this.implementationTypeNames = buildImplementationType(implementationTypes);
+    this.subtyping = buildSubtyping(implementationTypes);
   }
 
-  private Map<String, DiscoveredValue> buildTypeMap(List<DiscoveredValue> nestedChildren) {
-    Map<String, DiscoveredValue> map = Maps.newHashMap();
-    for (DiscoveredValue type : nestedChildren) {
-      String abstractValueType = type.internalTypeElement().getQualifiedName().toString();
-      String immutableImplementationType = DOT_JOINER.join(type.getPackageName(), type.getImmutableReferenceName());
-
-      map.put(abstractValueType, type);
-      map.put(immutableImplementationType, type);
+  private static Set<String> buildImplementationType(List<DiscoveredValue> implementationTypes) {
+    ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+    for (DiscoveredValue discoveredValue : implementationTypes) {
+      builder.add(discoveredValue.implementationTypeName());
     }
-    return ImmutableMap.copyOf(map);
+    return builder.build();
   }
 
-  private ListMultimap<String, DiscoveredValue> buildSubtyping(List<DiscoveredValue> nestedChildren) {
+  private static ListMultimap<String, DiscoveredValue> buildSubtyping(List<DiscoveredValue> implementationTypes) {
     ImmutableListMultimap.Builder<String, DiscoveredValue> builder = ImmutableListMultimap.builder();
 
-    for (DiscoveredValue type : nestedChildren) {
+    for (DiscoveredValue type : implementationTypes) {
+      builder.put(type.internalTypeElement().getQualifiedName().toString(), type);
+
       for (String className : type.getExtendedClassesNames()) {
         builder.put(className, type);
       }
@@ -54,32 +45,22 @@ public class CaseStructure {
     return builder.build();
   }
 
-  public DiscoveredValue getNestingParent() {
-    return nestingParent;
-  }
+  public final Predicate<String> isImplementationType = new Predicate<String>() {
+    @Override
+    public boolean apply(String input) {
+      return implementationTypeNames.contains(input);
+    }
+  };
 
-  public List<DiscoveredValue> getImplementationTypes() {
-    return nestedChildren;
-  }
-
-  public List<DiscoveredValue> knownSubtypes(String typeName) {
-    return subtyping.get(typeName);
-  }
-
-  public DiscoveredValue knownImplementation(String typeName) {
-    return typeMap.get(typeName);
-  }
-
-  public boolean isKnownType(String typeName) {
-    return typeMap.containsKey(typeName) || subtyping.containsKey(typeName);
-  }
-
-  public String track(String usageType, DiscoveredValue subclassType) {
-    occurencesSubtypingMapping.put(usageType, subclassType);
-    return "";
-  }
-
-  public Collection<Entry<String, DiscoveredValue>> getTrackedUsageTypes() {
-    return occurencesSubtypingMapping.entries();
-  }
+  public final Function<String, List<DiscoveredValue>> knownSubtypes = new Function<String, List<DiscoveredValue>>() {
+    @Override
+    public List<DiscoveredValue> apply(@Nullable String typeName) {
+      List<DiscoveredValue> subtypes = subtyping.get(typeName);
+      subtypeUsages.putAll(typeName, subtypes);
+      for (DiscoveredValue subtype : subtypes) {
+        subtypeUsages.put(subtype.valueTypeName(), subtype);
+      }
+      return subtypes;
+    }
+  };
 }

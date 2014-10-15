@@ -15,6 +15,9 @@
  */
 package org.immutables.generator.processor;
 
+import org.immutables.value.Parboil;
+import com.google.common.collect.Lists;
+import org.immutables.value.Value;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
@@ -29,14 +32,14 @@ import org.immutables.generator.StringLiterals;
 /**
  * Abstract syntax trees.
  */
-@GenerateNested
-@GenerateParboiled
-@GenerateTransformer
+@Value.Nested
+@Value.Transformer
+@Parboil.Ast
 public class Trees {
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public static abstract class Identifier {
-    @GenerateConstructorParameter
+    @Value.Parameter
     public abstract String value();
 
     @Override
@@ -45,9 +48,9 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public static abstract class TypeIdentifier {
-    @GenerateConstructorParameter
+    @Value.Parameter
     public abstract String value();
 
     @Override
@@ -58,11 +61,11 @@ public class Trees {
 
   public interface TypeReference {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public static abstract class TypeDeclaration implements TypeReference {
     public abstract TypeIdentifier type();
 
-    @GenerateDefault
+    @Value.Default
     public Kind kind() {
       return Kind.SCALAR;
     }
@@ -73,9 +76,9 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public abstract static class ResolvedType implements Trees.TypeReference, Trees.Synthetic {
-    @GenerateConstructorParameter
+    @Value.Parameter
     public abstract Object type();
 
     @Override
@@ -84,7 +87,7 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public abstract static class BoundAccessExpression implements Trees.AccessExpression, Trees.Synthetic {
     public abstract List<Object> accessor();
 
@@ -94,12 +97,12 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface InvokableDeclaration extends Named {
     List<Parameter> parameters();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface ValueDeclaration extends Named {
     Optional<TypeReference> type();
   }
@@ -108,7 +111,7 @@ public class Trees {
     TypeReference type();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Parameter extends Named, Typed {}
 
   public interface Named {
@@ -119,18 +122,18 @@ public class Trees {
     InvokableDeclaration declaration();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Block extends TemplatePart {
     List<TemplatePart> parts();
   }
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface Comment extends UnitPart, TemplatePart {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface ConditionalBlock extends Conditional, Block, Synthetic {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface IfStatement extends TemplatePart, Synthetic {
     ConditionalBlock then();
 
@@ -139,21 +142,21 @@ public class Trees {
     Optional<Block> otherwise();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface ForStatement extends Block, Synthetic {
     List<GeneratorDeclaration> declaration();
   }
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public interface ForIterationAccessExpression extends AccessExpression {
-    @GenerateConstructorParameter
+    @Value.Parameter
     AccessExpression access();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface LetStatement extends Block, InvokableStatement, Synthetic {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface InvokeStatement extends Block, Synthetic {
     Expression access();
 
@@ -164,24 +167,24 @@ public class Trees {
 
   public interface DirectiveEnd extends Directive {}
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface LetEnd extends DirectiveEnd {}
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface ForEnd extends DirectiveEnd {}
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface IfEnd extends DirectiveEnd {}
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public interface InvokeEnd extends DirectiveEnd {
-    @GenerateConstructorParameter
+    @Value.Parameter
     AccessExpression access();
   }
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public interface InvokeString extends DirectiveStart {
-    @GenerateConstructorParameter
+    @Value.Parameter
     StringLiteral literal();
   }
 
@@ -191,17 +194,17 @@ public class Trees {
     Optional<ApplyExpression> invoke();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Invoke extends InvokeDeclaration, DirectiveStart {}
 
   public interface Directive extends TemplatePart {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Let extends DirectiveStart, InvokableStatement {}
 
   public interface UnitPart {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Unit {
     List<UnitPart> parts();
   }
@@ -213,17 +216,17 @@ public class Trees {
    */
   public interface Synthetic {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface Template extends Directive, Block, UnitPart, InvokableStatement {}
 
   public interface Expression {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface AccessExpression extends Expression {
     List<Identifier> path();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface ApplyExpression extends Expression {
     List<Expression> params();
   }
@@ -234,42 +237,42 @@ public class Trees {
     Expression from();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface AssignGenerator extends GeneratorDeclaration {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface IterationGenerator extends GeneratorDeclaration {
     Optional<Expression> condition();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface For extends DirectiveStart {
     List<GeneratorDeclaration> declaration();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface If extends Conditional, DirectiveStart {}
 
   public interface Otherwise extends DirectiveStart {}
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface ElseIf extends Otherwise, Conditional {}
 
   public interface Conditional {
     Expression condition();
   }
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface Else extends Otherwise {}
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public interface TemplateEnd extends DirectiveEnd, Synthetic {}
 
   public interface TextPart {}
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public static abstract class StringLiteral implements Expression {
-    @GenerateConstructorParameter
+    @Value.Parameter
     public abstract String value();
 
     @Override
@@ -278,7 +281,7 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable(singleton = true, builder = false)
+  @Value.Immutable(singleton = true, builder = false)
   public static abstract class Newline implements TextPart {
     @Override
     public String toString() {
@@ -286,9 +289,9 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable(builder = false)
+  @Value.Immutable(builder = false)
   public static abstract class TextFragment implements TextPart {
-    @GenerateConstructorParameter
+    @Value.Parameter
     public abstract String value();
 
     @Override
@@ -301,12 +304,12 @@ public class Trees {
     }
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public interface TextBlock extends TemplatePart {
     List<TextPart> parts();
   }
 
-  @GenerateImmutable
+  @Value.Immutable
   public static abstract class TextLine implements TemplatePart, Synthetic {
     public abstract TextFragment fragment();
 
@@ -318,7 +321,7 @@ public class Trees {
       return fragment().value().isEmpty();
     }
 
-    @GenerateDefault
+    @Value.Default
     public boolean newline() {
       return false;
     }

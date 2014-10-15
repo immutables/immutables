@@ -6,7 +6,7 @@ import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.DiscoveredAttribute;
 import org.immutables.value.processor.meta.DiscoveredValue;
 
-abstract class ValueAwareTemplate extends AbstractTemplate {
+abstract class ValuesTemplate extends AbstractTemplate {
   @Generator.Typedef
   DiscoveredValue Type;
   @Generator.Typedef

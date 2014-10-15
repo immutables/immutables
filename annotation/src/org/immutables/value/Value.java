@@ -6,9 +6,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.immutables.annotation.GenerateGetters;
-import org.immutables.annotation.GenerateModifiable;
-import org.immutables.annotation.GeneratePackedBits;
 
 /**
  * This annotation provides namespace for annotations that models generated value objects.
@@ -104,6 +101,15 @@ public @interface Value {
   public @interface Nested {}
 
   /**
+   * Generate transformer for a set of nested classes.
+   */
+  @Documented
+  @Retention(RetentionPolicy.SOURCE)
+  @Target(ElementType.TYPE)
+  @Beta
+  public @interface Transformer {}
+
+  /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
    * attributes and stored in field. Should be applied to non-abstract method - attribute value
    * initializer.
@@ -157,6 +163,7 @@ public @interface Value {
    * attributes should be annotated with {@link Value.Parameter}.
    * </ul>
    */
+  @Documented
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Parameter {
@@ -211,8 +218,8 @@ public @interface Value {
    * by having special integer-encoded data attributes annotated with {@code Value.PackedBits}.
    * <p>
    * <em>Note: unlike {@literal @}{@link Value.Immutable}, this annotation works only for top level classes</em>
-   * @see GeneratePackedBits
-   * @see GenerateGetters
+   * @see PackedBits
+   * @see Getters
    */
   @Documented
   @Target(ElementType.TYPE)
@@ -221,7 +228,7 @@ public @interface Value {
   public @interface Modifiable {}
 
   /**
-   * Use in conjunction with {@link GenerateModifiable}. This annotation, being applied to accessor
+   * Use in conjunction with {@link Modifiable}. This annotation, being applied to accessor
    * methods with return types of {@code boolean}, {@code byte}, {@code short} or {@code int} used
    * to
    * generate value stored as compactly packed bits. Many
@@ -233,7 +240,7 @@ public @interface Value {
    * {@code GeneratePackedBits}) will be unaffected by such packing.
    * <p>
    * You should definitely try and see generated {@code Modifiable*} subclass for the details.
-   * @see GenerateModifiable
+   * @see Modifiable
    */
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)

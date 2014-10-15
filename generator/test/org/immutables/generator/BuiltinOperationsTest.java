@@ -9,7 +9,7 @@ import static org.immutables.check.Checkers.*;
 
 public class BuiltinOperationsTest {
   final TestVerb verify = Truth.assert_();
-  final BuiltinOperations operations = new BuiltinOperations();
+  final Builtins operations = new Builtins();
 
   @Test
   public void not() {

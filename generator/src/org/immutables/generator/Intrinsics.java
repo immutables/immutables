@@ -1,8 +1,10 @@
 package org.immutables.generator;
 
-import org.immutables.generate.internal.guava.collect.Iterables;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Chars;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
@@ -13,6 +15,8 @@ import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
 
 public final class Intrinsics {
+  private static final Joiner PLAIN_JOINER = Joiner.on("");
+
   private Intrinsics() {}
 
   /**
@@ -29,12 +33,20 @@ public final class Intrinsics {
     return unary.apply(value);
   }
 
+  public static <F> Boolean $(Predicate<? super F> predicate, F value) {
+    return predicate.apply(value);
+  }
+
   public static <L, R, T> T $(L left, Binary<? super L, ? super R, T> binary, R right) {
     return binary.apply(left, right);
   }
 
   public static <T> T $(Apply<T> apply, Object... parameters) {
     return apply.apply(parameters);
+  }
+
+  public static CharSequence $(Object... parameters) {
+    return PLAIN_JOINER.join(parameters);
   }
 
   public static <F> void $(Invokation invokation, Function<? super F, ?> unary, F value) {
@@ -80,8 +92,7 @@ public final class Intrinsics {
       return !Iterables.isEmpty((Iterable<?>) value);
     }
     if (value instanceof Number) {
-      Number number = (Number) value;
-      return number.intValue() != 0;
+      return ((Number) value).intValue() != 0;
     }
     if (value instanceof Optional<?>) {
       return ((Optional<?>) value).isPresent();

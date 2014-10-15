@@ -33,12 +33,12 @@ import org.immutables.generator.processor.Trees.TypeIdentifier;
 import org.immutables.generator.processor.Trees.TypeReference;
 import static com.google.common.base.Preconditions.*;
 
-public final class Resolver {
+public final class TypeResolver {
   static final String ITERATION_ACCESS_VARIABLE = "for";
 
   private final SwissArmyKnife knife;
 
-  public Resolver(SwissArmyKnife knife) {
+  public TypeResolver(SwissArmyKnife knife) {
     this.knife = knife;
   }
 
@@ -163,7 +163,7 @@ public final class Resolver {
         return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()));
       }
 
-      throw new TypingException(String.format("Value should be typed '%s'%n\texpression '%s'",
+      throw new TypingException(String.format("Value should be typed %s%n\texpression '%s'",
           declaration.name(),
           expression));
     }
@@ -239,14 +239,14 @@ public final class Resolver {
         Optional<Expression> condition) {
       if (condition.isPresent()) {
         // Calling actual transformation
-        return Optional.of(super.transformIterationGeneratorConditionElement(scope, generator, condition.get()));
+        return Optional.of(super.transformIterationGeneratorCondition(scope, generator, condition.get()));
       }
       return Optional.absent();
     }
 
     /** We prevent transformation here to manually do it after variable declaration is done. */
     @Override
-    protected Expression transformIterationGeneratorConditionElement(
+    protected Expression transformIterationGeneratorCondition(
         Scope scope,
         IterationGenerator value,
         Expression element) {
@@ -267,7 +267,7 @@ public final class Resolver {
       scope = scope.nest();
       return template
           .withDeclaration(transformTemplateDeclaration(scope, template, template.declaration()))
-          .withParts(transformTemplateParts(scope, template, template.parts()));
+          .withParts(transformTemplateListParts(scope, template, template.parts()));
     }
 
     /** Overriden to specify order in which we process declaration first, and then parts. */
@@ -276,7 +276,7 @@ public final class Resolver {
       scope = scope.nest();
       return statement
           .withDeclaration(transformLetStatementDeclaration(scope, statement, statement.declaration()))
-          .withParts(transformLetStatementParts(scope, statement, statement.parts()));
+          .withParts(transformLetStatementListParts(scope, statement, statement.parts()));
     }
 
     /** Overriden to specify order in which we process declaration first, and then parts. */
@@ -285,16 +285,16 @@ public final class Resolver {
       scope = scope.nest();
       scope.declareForIterationAccess(Identifier.of(ITERATION_ACCESS_VARIABLE));
       return statement
-          .withDeclaration(transformForStatementDeclaration(scope, statement, statement.declaration()))
-          .withParts(transformForStatementParts(scope, statement, statement.parts()));
+          .withDeclaration(transformForStatementListDeclaration(scope, statement, statement.declaration()))
+          .withParts(transformForStatementListParts(scope, statement, statement.parts()));
     }
 
     @Override
-    protected Iterable<TemplatePart> transformForStatementParts(
+    protected Iterable<TemplatePart> transformForStatementListParts(
         Scope context,
         ForStatement value,
         List<TemplatePart> collection) {
-      return super.transformForStatementParts(context, value, collection);
+      return super.transformForStatementListParts(context, value, collection);
     }
 
     /**
@@ -302,18 +302,18 @@ public final class Resolver {
      * {@link BoundAccessExpression}
      */
     @Override
-    protected Trees.AccessExpression transformAbstract(Scope scope, AccessExpression value) {
+    protected Trees.AccessExpression transformAccessExpression(Scope scope, AccessExpression value) {
       return scope.resolveAccess(value);
     }
 
     @Override
-    protected Expression transformExpression(Scope scope, ApplyExpression value) {
+    protected Trees.Expression transformExpression(Scope scope, ApplyExpression value) {
       return simplifyExpression(super.transformExpression(scope, value));
     }
 
-    private Expression simplifyExpression(Expression expression) {
+    private Trees.Expression simplifyExpression(Trees.Expression expression) {
       if (expression instanceof ApplyExpression) {
-        ImmutableList<Expression> params = ((ApplyExpression) expression).params();
+        ImmutableList<Trees.Expression> params = ((ApplyExpression) expression).params();
         if (params.size() == 1) {
           return params.get(0);
         }

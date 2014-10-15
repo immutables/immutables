@@ -1,25 +1,57 @@
 package org.immutables.generator;
 
-import com.google.common.base.*;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateNested;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
-
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Objects;
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.io.Writer;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+import org.immutables.value.Value;
+import static com.google.common.base.Preconditions.*;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-@GenerateNested
+@Value.Nested
 public final class Output {
+
+  final static class JavaFileKey {
+    final String packageName;
+    final String simpleName;
+
+    JavaFileKey(String packageName, String simpleName) {
+      this.packageName = checkNotNull(packageName);
+      this.simpleName = checkNotNull(simpleName);
+    }
+
+    @Override
+    public String toString() {
+      return DOT_JOINER.join(Strings.emptyToNull(packageName), simpleName);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(packageName, simpleName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof JavaFileKey) {
+        JavaFileKey other = (JavaFileKey) obj;
+        return this.packageName.equals(other.packageName)
+            || this.simpleName.equals(other.simpleName);
+      }
+      return false;
+    }
+  }
 
   public final Templates.Invokable error = new Templates.Invokable() {
     @Override
@@ -63,28 +95,12 @@ public final class Output {
       String simpleName = invokation.param(1).toString();
       Invokable body = (Invokable) invokation.param(2);
 
-      ImmutableOutput.JavaFileKey key = ImmutableOutput.JavaFileKey.builder()
-          .packageName(packageName)
-          .simpleName(simpleName)
-          .build();
-
+      JavaFileKey key = new JavaFileKey(packageName, simpleName);
       JavaFile javaFile = getFiles().files.getUnchecked(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
     }
   };
-
-  @GenerateImmutable
-  public static abstract class JavaFileKey {
-    public abstract String packageName();
-
-    public abstract String simpleName();
-
-    @Override
-    public String toString() {
-      return DOT_JOINER.join(Strings.emptyToNull(packageName()), simpleName());
-    }
-  }
 
   private static class JavaFile {
     final JavaFileKey key;

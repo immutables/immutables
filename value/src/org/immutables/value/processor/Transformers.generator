@@ -1,3 +1,91 @@
 [template generate Type type]
-[--output.java type.packageName type.defName]
+[if not type.emptyNesting]
+  [output.error]
+  Use @Value.Transformer to annotate umbrella class with @Value.Nested, but not with @Value.Immutable
+  [/output.error]
+[/if]
+[output.java type.packageName (type.simpleName 'Transformer')]
+[generateTransformer type]
+[/output.java]
 [/template]
+
+[template generateTransformer Type transformerType]
+[if transformerType.packageName]
+package [transformerType.packageName];
+[/if]
+
+// Generated imports
+
+@SuppressWarnings("all")
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.Generated({"transformer.tjs", "[transformerType.name]"})
+[transformerType.accessPrefix]abstract class [transformerType.simpleName]Transformer<C> {
+  protected [transformerType.simpleName]Transformer() {
+  }
+  [for cases = transformerType.cases,
+       type in cases.implementationTypes,
+       t = type.implementationTypeName,
+       s = type.simpleName]
+
+  public [t] transform(C context, [t] value) {
+    return value[for a in type.settableAttributes if type.useCopyMethods]
+        .with[toUpper a.name](transform[s][transformAttributeSuffix a](context, value, value.[a.name]()))[/for];
+  }
+  [for a in type.settableAttributes if type.useCopyMethods]
+    [if a.optionalType]
+
+  protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
+    if (optional.isPresent()) {
+      return com.google.common.base.Optional.of(transform[s][toUpper a.name](context, value, optional.get()));
+    }
+    return com.google.common.base.Optional.absent();
+  }
+    [else if a.collectionType]
+
+  protected Iterable<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.type] collection) {
+    java.util.List<[a.wrappedElementType]> list = com.google.common.collect.Lists.newArrayList();
+    for ([a.wrappedElementType] element : collection) {
+      list.add(transform[s][toUpper a.name](context, value, element));
+    }
+    return list;
+  }
+    [/if]
+  [for et = a.unwrappedElementType]
+
+  protected [et] transform[type.simpleName][toUpper a.name](C context, [t] value, [et] element) {
+    [if cases.isImplementationType et]
+    return transform(context, element);
+    [else][for Type subtype in cases.knownSubtypes et, sub = subtype.implementationTypeName]
+    if (element instanceof [sub]) {
+      return transform[simplifyName et](context, ([sub]) element);
+    }
+    [/for]
+    return element;
+    [/if]
+  }
+  [/for]
+  [/for]
+  [/for]
+  [for e in transformerType.cases.subtypeUsages.entries]
+
+  protected [e.key] transform[simplifyName e.key](C context, [e.value.implementationTypeName] value) {
+    [if e.key ne e.value.valueTypeName]
+    return transform[simplifyName e.value.valueTypeName](context, value);
+    [else]
+    return transform(context, value);
+    [/if]
+  }
+  [/for]
+}
+[/template]
+
+[template transformAttributeSuffix Attribute a][output.trim]
+  [if a.optionalType]
+    Optional[toUpper a.name]
+  [else if a.collectionType]
+    [a.rawCollectionType][toUpper a.name]
+  [else]
+    [toUpper a.name]
+  [/if]
+[/output.trim][/template]
+

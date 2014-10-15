@@ -8,7 +8,7 @@ import javax.lang.model.element.TypeElement;
 /**
  * 
  */
-public abstract class AbstractTemplate extends BuiltinOperations {
+public abstract class AbstractTemplate extends Builtins {
 
   protected final ProcessingEnvironment processing() {
     return StaticEnvironment.processing();

@@ -26,6 +26,7 @@
     <module>testing</module>
     <module>annotation</module>
     <module>common</module>
+   <!-- <module>generator/retrovalue</module> --> 
     <module>generator</module>
     <module>generator-fixture</module>
     <module>value</module>

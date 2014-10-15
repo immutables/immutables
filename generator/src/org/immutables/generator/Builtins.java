@@ -1,5 +1,6 @@
 package org.immutables.generator;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Function;
@@ -11,21 +12,21 @@ import java.util.Objects;
  * Experimental built-in operators. Planned to be moved to import/implicit resolution rather that
  * inheritance.
  */
-public class BuiltinOperations {
+public class Builtins {
 
   public final boolean $$true = true;
   public final boolean $$false = false;
 
-  public final Function<Object, Boolean> not =
-      new Function<Object, Boolean>() {
+  public final Predicate<Object> not =
+      new Predicate<Object>() {
         @Override
-        public Boolean apply(Object input) {
+        public boolean apply(Object input) {
           return !Intrinsics.$if(input);
         }
 
         @Override
         public String toString() {
-          return BuiltinOperations.class.getSimpleName() + ".not";
+          return Builtins.class.getSimpleName() + ".not";
         }
       };
 
@@ -47,7 +48,7 @@ public class BuiltinOperations {
 
         @Override
         public String toString() {
-          return BuiltinOperations.class.getSimpleName() + ".size";
+          return Builtins.class.getSimpleName() + ".size";
         }
       };
 
@@ -63,7 +64,20 @@ public class BuiltinOperations {
 
         @Override
         public String toString() {
-          return BuiltinOperations.class.getSimpleName() + ".eq";
+          return Builtins.class.getSimpleName() + ".eq";
+        }
+      };
+
+  public final Templates.Binary<Object, Object, Boolean> ne =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return !eq.apply(left, right);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".ne";
         }
       };
 
@@ -76,7 +90,7 @@ public class BuiltinOperations {
 
         @Override
         public String toString() {
-          return BuiltinOperations.class.getSimpleName() + ".and";
+          return Builtins.class.getSimpleName() + ".and";
         }
       };
 
@@ -89,7 +103,7 @@ public class BuiltinOperations {
 
         @Override
         public String toString() {
-          return BuiltinOperations.class.getSimpleName() + ".or";
+          return Builtins.class.getSimpleName() + ".or";
         }
       };
 
@@ -125,7 +139,7 @@ public class BuiltinOperations {
 
       @Override
       public String toString() {
-        return BuiltinOperations.class.getSimpleName() + ".hex";
+        return Builtins.class.getSimpleName() + ".hex";
       }
     };
 
@@ -143,13 +157,13 @@ public class BuiltinOperations {
 
       @Override
       public String toString() {
-        return BuiltinOperations.class.getSimpleName() + ".bin";
+        return Builtins.class.getSimpleName() + ".bin";
       }
     };
 
     @Override
     public String toString() {
-      return BuiltinOperations.class.getSimpleName() + ".literal";
+      return Builtins.class.getSimpleName() + ".literal";
     }
   }
 
