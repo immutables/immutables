@@ -39,12 +39,6 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>generate-tool</artifactId>
-      <version>0.20-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
