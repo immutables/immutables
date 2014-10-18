@@ -15,10 +15,10 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.mongo.Mongo;
+import org.immutables.json.Json;
 import com.google.common.base.*;
 import com.google.common.collect.*;
-import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateRepository;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 import javax.annotation.Nullable;
@@ -58,9 +58,13 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   public void setEmptyNesting(boolean emptyNesting) {
     this.emptyNesting = emptyNesting;
   }
-  
+
   public String valueTypeName() {
     return internalTypeElement().getQualifiedName().toString();
+  }
+
+  public boolean isAnnotationType() {
+    return internalTypeElement().getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String implementationTypeName() {
@@ -134,7 +138,8 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public boolean isIface() {
-    return internalTypeElement().getKind() == ElementKind.INTERFACE;
+    return internalTypeElement().getKind() == ElementKind.INTERFACE
+        || internalTypeElement().getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String getInheritsKeyword() {
@@ -213,12 +218,12 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateMarshaled() {
-    return (getAnnotationFromThisOrEnclosingElement(GenerateMarshaler.class) != null) ||
-        isGenerateDocument();
+    return (getAnnotationFromThisOrEnclosingElement(Json.Marshaled.class) != null) ||
+        isGenerateRepository();
   }
 
-  public boolean isGenerateDocument() {
-    return internalTypeElement().getAnnotation(GenerateRepository.class) != null;
+  public boolean isGenerateRepository() {
+    return internalTypeElement().getAnnotation(Mongo.Repository.class) != null;
   }
 
   private Boolean hasAbstractBuilder;
@@ -245,7 +250,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   public String getDocumentName() {
     @Nullable
-    GenerateRepository annotation = internalTypeElement().getAnnotation(GenerateRepository.class);
+    Mongo.Repository annotation = internalTypeElement().getAnnotation(Mongo.Repository.class);
     if (annotation != null && !annotation.value().isEmpty()) {
       return annotation.value();
     }
@@ -279,7 +284,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     Element element = internalTypeElement();
     for (;;) {
       imports.addAll(
-          extractClassNamesFromMirrors(GenerateMarshaler.class,
+          extractClassNamesFromMirrors(Json.Marshaled.class,
               "importRoutines",
               element.getAnnotationMirrors()));
 
@@ -417,11 +422,21 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   public List<DiscoveredAttribute> getExcludableAttributes() {
     List<DiscoveredAttribute> excludables = Lists.newArrayList();
     for (DiscoveredAttribute attribute : filteredAttributes()) {
-      if (attribute.isGenerateAbstract() && attribute.isContainerType()) {
+      if (attribute.isGenerateAbstract() && (attribute.isContainerType() && !attribute.isArrayType())) {
         excludables.add(attribute);
       }
     }
     return excludables;
+  }
+
+  public List<DiscoveredAttribute> mandatoryAttributes() {
+    List<DiscoveredAttribute> mandatory = Lists.newArrayList();
+    for (DiscoveredAttribute attribute : getSettableAttributes()) {
+      if (attribute.isMandatory()) {
+        mandatory.add(attribute);
+      }
+    }
+    return mandatory;
   }
 
   public List<DiscoveredAttribute> getLazyAttributes() {

@@ -1,7 +1,5 @@
 package org.immutables.generator.processor;
 
-import org.immutables.generator.processor.ImmutableTrees.Unit;
-import org.immutables.generator.Generator;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -22,6 +20,8 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import org.immutables.generator.Generator;
+import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;

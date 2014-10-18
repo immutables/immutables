@@ -168,7 +168,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       }
     }.generate(context);
 
-    context.out(";");
+    context.out(";").delimit();
 
     return statement;
   }
@@ -200,7 +200,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
     context.getAndSetPendingBraces(braces);
     context.outfor().outdent().ln()
-        .closeBraces().ln();
+        .closeBraces().ln().delimit();
 
     return statement;
   }
@@ -381,7 +381,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
   @Override
   public IfStatement transform(Context context, IfStatement statement) {
-
+    context.delimit();
     writeConditionPart(context, (ConditionalBlock) statement.then());
 
     for (Trees.ConditionalBlock block : statement.otherwiseIf()) {
@@ -395,18 +395,17 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
           .ln()
           .out("} else {")
           .indent()
-          .ln();
+          .ln()
+          .delimit();
 
-      context.delimit();
       transform(context, (Block) statement.otherwise().get());
     }
 
     context.outdent()
         .ln()
         .out("}")
-        .ln();
-
-    context.delimit();
+        .ln()
+        .delimit();
 
     return statement;
   }

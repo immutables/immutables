@@ -48,7 +48,7 @@ public final class Marshaling {
           .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
             @Override
             public Marshaler<Object> load(Class<?> type) throws Exception {
-              return MarshalingSupport.loadMarshalerFor(type);
+              return MarshalingSupport.getMarshalerFor(type);
             }
           });
 

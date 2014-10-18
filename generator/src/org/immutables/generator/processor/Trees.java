@@ -15,19 +15,12 @@
  */
 package org.immutables.generator.processor;
 
-import org.immutables.value.Parboil;
-import com.google.common.collect.Lists;
-import org.immutables.value.Value;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.annotation.GenerateConstructorParameter;
-import org.immutables.annotation.GenerateDefault;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateNested;
-import org.immutables.annotation.GenerateParboiled;
-import org.immutables.annotation.GenerateTransformer;
 import org.immutables.generator.StringLiterals;
+import org.immutables.value.Parboil;
+import org.immutables.value.Value;
 
 /**
  * Abstract syntax trees.

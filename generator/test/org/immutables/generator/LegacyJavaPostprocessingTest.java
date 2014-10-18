@@ -1,9 +1,8 @@
 package org.immutables.generator;
 
-import static org.immutables.check.Checkers.*;
-import org.immutables.generator.LegacyJavaPostprocessing;
 import com.google.common.base.Joiner;
 import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 @SuppressWarnings("deprecation")
 public class LegacyJavaPostprocessingTest {

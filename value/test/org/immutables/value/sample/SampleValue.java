@@ -1,6 +1,5 @@
 package org.immutables.value.sample;
 
-import org.immutables.annotation.GenerateConstructorParameter;
 import java.util.List;
 import org.immutables.value.Value;
 

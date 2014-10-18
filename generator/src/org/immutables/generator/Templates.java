@@ -56,7 +56,8 @@ public final class Templates {
 
     public CharSequence getCurrentIndentation() {
       CharSequence sequence = getCurrentLine();
-      return CharMatcher.WHITESPACE.matchesAllOf(sequence)
+      return sequence.length() > 0 && CharMatcher.WHITESPACE.matchesAllOf(sequence)
+          // ? new StringBuilder(indentation).append(sequence)
           ? sequence
           : indentation;
     }
@@ -217,7 +218,7 @@ public final class Templates {
     private String cachedToString;
 
     CharSequence toCharSequence() {
-      if (capturedIndentation != null && arity == 0) {
+      if (arity == 0) {
         CharConsumer consumer = new CharConsumer();
         invoke(new Invokation(consumer));
         return consumer.asCharSequence();

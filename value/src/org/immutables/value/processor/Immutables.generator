@@ -54,6 +54,9 @@ package [type.packageName];
 @javax.annotation.concurrent.Immutable
 [type.accessPrefix][classModifiers]final class [type.defName]
     [type.inheritsKeyword] [type.name] {
+[if type.annotationType]
+  [defaultAnnotationValues type]
+[/if]
 [if type.useSingleton]
 
   private static final [type.defName] INSTANCE = checkPreconditions(new [type.defName]());
@@ -176,6 +179,7 @@ package [type.packageName];
     return instance;
   }
 [generateImmutable type]
+[generateLazyValues type]
 [if type.useBuilder]
 
   /**
@@ -187,7 +191,6 @@ package [type.packageName];
   }
   [generateBuilder type]
 [/if]
-[generateLazyValues type]
 [if type.hasNestedChildren]
 [for v in type.nestedChildren]
   [generateImmutableType  v 'static ']
@@ -198,40 +201,48 @@ package [type.packageName];
 [/template]
 
 [template generateLazyValues Type type]
-[for l in type.lazyAttributes]
-  [if for.first]
+[for lz = type.lazyAttributes]
+  [if lz][for LongPositions positions = longsFor lz]
+  [for l in positions.longs]
   @javax.annotation.concurrent.GuardedBy("this")
-  private volatile int lazyBitmap;
-  [/if]
+  private volatile long lazyInitBitmap[l.index];
+  [/for]
+  [for l in lz, BitPosition pos = positions l]
+  [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
+  [let bitmapFieldName]lazyInitBitmap[pos.index][/let]
 
-  [let maskConstantName][toConstant l.name]_LAZILY_INITIALIZED_BIT[/let]
-  private static final int [maskConstantName] = 1 << [for.index];
+  private static final long [maskConstantName] = [literal.hex pos.mask];
 
   @javax.annotation.concurrent.GuardedBy("this")
   private [l.type] [l.name];
 
   @Override
   public [l.type] [l.name]() {
-    if ((lazyBitmap & [maskConstantName]) == 0) {
+    if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
-        if ((lazyBitmap & [maskConstantName]) == 0) {
+        if (([bitmapFieldName] & [maskConstantName]) == 0) {
             [if l.primitive]
           this.[l.name] = super.[l.name]();
             [else]
           this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.name]());
             [/if]
-          lazyBitmap |= [maskConstantName];
+          [bitmapFieldName] |= [maskConstantName];
         }
       }
     }
     return [l.name];
   }
+  [/for]
+  [/for][/if]
 [/for]
 [/template]
 
 [template generateBuilder Type type]
+[for setters = type.settableAttributes,
+     getters = type.implementedAttributes,
+     mandatories = type.mandatoryAttributes,
+     LongPositions positions = longsFor mandatories]
 
-[for setters = type.settableAttributes, getters = type.implementedAttributes]
 /**
  * Builds instances of {@link [type.name]}.
  * Builder is not thread safe and generally should not be stored in fields and collections,
@@ -244,9 +255,22 @@ package [type.packageName];
 [else]
 [type.accessPrefix]static final class Builder {
 [/if]
-  private static final String REQUIRED_ATTRIBUTE =
-      "Cannot build [type.name]: required attribute '%s' is not set";
+  private Builder() {
+  }
 
+  [for l in positions.longs]
+  private long initializedBitset[l.index];
+  private static final long INITIALIZED_BITSET_ALL_[l.index] = [literal.hex l.occupation];
+  [/for]
+  [for m in mandatories, BitPosition pos = positions m]
+  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+  [/for]
+
+  [let mandatorySetInBuilder Attribute v]
+  [if v.mandatory][for BitPosition pos = positions v]
+    initializedBitset[pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+  [/for][/if]
+  [/let]
   [for v in setters]
 [if v.collectionType]
   private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
@@ -258,7 +282,6 @@ package [type.packageName];
       com.google.common.collect.ImmutableMap.builder();
 [else if v.primitive]
   private [v.type] [v.name];
-  private boolean [v.name]IsSet;
 [else]
   @javax.annotation.Nullable
   private [v.type] [v.name];
@@ -273,9 +296,6 @@ package [type.packageName];
   }
   [/if]
 
-  private Builder() {
-  }
-
   @Override
   public String toString() {
     return com.google.common.base.MoreObjects.toStringHelper("[type.simpleName].Builder")
@@ -285,6 +305,8 @@ package [type.packageName];
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
         .add("[v.name]", [v.name].orNull())
+    [else if v.arrayType]
+        .add("[v.name]", java.util.Arrays.toString([v.name]))
     [else]
         .add("[v.name]", [v.name])
     [/if]
@@ -395,6 +417,22 @@ package [type.packageName];
   }
 
     [/for]
+  [else if v.arrayType]
+
+  /**
+   * Initializes value for {@link [type.name]#[v.name]()}.
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have {@link [type.name]#[v.name]() default value}.</em>
+  [/if]
+   * @param [v.name] value for [v.name], non-null
+   * @return {@code this} builder for chained invocation
+   */
+  @SafeVarargs
+  public final Builder [v.name]([v.elementType]... [v.name]) {
+    this.[v.name] = [v.name].clone();
+    [mandatorySetInBuilder v]
+    return this;
+  }
   [else]
 
   /**
@@ -408,27 +446,38 @@ package [type.packageName];
   public Builder [v.name]([v.type] [v.name]) {
     [if v.primitive]
     this.[v.name] = [v.name];
-    [v.name]IsSet = true;
     [else]
     this.[v.name] = com.google.common.base.Preconditions.checkNotNull([v.name]);
     [/if]
+    [mandatorySetInBuilder v]
     return this;
   }
   [/if]
   [/for]
+  [if positions.longs]
+
+  private void checkRequiredAttributes() {
+    if ([for l in positions.longs][if not for.first]
+        | [/if]initializedBitset[l.index] != INITIALIZED_BITSET_ALL_[l.index][/for]) {
+      throw new IllegalStateException(
+          com.google.common.base.MoreObjects.toStringHelper("Cannot build [type.name], some of required attributes are not set ")
+              .omitNullValues()
+            [for m in mandatories, BitPosition pos = positions m]
+              .addValue((initializedBitset[pos.index] & INITIALIZED_BIT_[toConstant m.name]) == 0 ? "[m.name]" : null)
+            [/for]
+              .toString());
+    }
+  }
+  [/if]
 
   /**
    * Builds new {@link [type.name]}.
    * @return immutable instance of [type.name]
    */
   public [type.defName] build() {
-  [for v in setters if not v.generateDefault]
-  [if v.primitive]
-    com.google.common.base.Preconditions.checkState([v.name]IsSet, REQUIRED_ATTRIBUTE, "[v.name]");
-  [else if not v.containerType]
-    com.google.common.base.Preconditions.checkState([v.name] != null, REQUIRED_ATTRIBUTE, "[v.name]");
-  [/if]
-  [/for]
+    [if positions.longs]
+    checkRequiredAttributes();
+    [/if]
     return checkPreconditions(new [type.defName](this));
   }
 }
@@ -445,22 +494,25 @@ this.[n] = com.google.common.collect.ImmutableMap.of();
 this.[n] = com.google.common.collect.Immutable[v.rawCollectionType].of();
   [else]
     [output.error]
-      Could not generate constructor. Attribute '[v.name]' does not have default value.
+      Could not generate constructor. Attribute '[v.name]' [v.generateDefault] does not have default value.
     [/output.error]
   [/if]
 [/for]
 [for v in attributes if v.generateDefault or v.generateDerived, n = v.name]
+[if type.annotationType]
+this.[n] = DEFAULT_VALUE_[toConstant v.name];
+[else]
   [if v.primitive]
 this.[n] = super.[n]();
   [else]
 this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
   [/if]
+[/if]
 [/for]
 [/template]
 
 [template generateImmutable Type type]
 [for setters = type.settableAttributes, getters = type.implementedAttributes]
-
 [for v in getters]
   private final [v.implementationType] [v.name];
 [/for]
@@ -512,11 +564,19 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [if v.primitive and v.generateDefault]
     this.[n] = builder.[n]IsSet
         ? builder.[n]
+      [if type.annotationType]
+        : DEFAULT_VALUE_[toConstant v.name];
+      [else]
         : super.[n]();
+      [/if]
 [else if v.generateDefault]
     this.[n] = builder.[n] != null
         ? builder.[n]
-        : super.[n]();
+      [if type.annotationType]
+        : DEFAULT_VALUE_[toConstant v.name];
+      [else]
+        : com.google.common.base.Preconditions.checkNotNull(super.[n]());
+      [/if]
 [else if v.primitive and v.generateDerived]
     this.[n] = super.[n]();
 [else if v.generateDerived]
@@ -544,11 +604,26 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [/template]
 
 [template generateAccessorMethods Type type]
+[if type.annotationType]
+
+/**
+ * {@inheritDoc}
+ * @return reflection class instance {@code [type.name].class}
+ */
+@Override
+public Class<? extends java.lang.annotation.Annotation> annotationType() {
+  return [type.valueTypeName].class;
+}
+[/if]
   [for v in type.implementedAttributes]
 
 @Override
 public [v.implementationType] [v.name]() {
+[if v.arrayType]
+  return [v.name].clone();
+[else]
   return [v.name];
+[/if]
 }
   [/for]
 [generateGetters type]
@@ -562,6 +637,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
+[let equalityType][if type.annotationType][type.valueTypeName][else][type.defName][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if not type.equalToDefined]
 
@@ -571,15 +647,33 @@ public boolean equals(Object another) {
   return this == another;
   [else]
   return this == another
-      || (another instanceof [type.defName] && equalTo(([type.defName]) another));
+      || (another instanceof [equalityType] && equalTo(([equalityType]) another));
   [/if]
 }
 [/if]
 
-private boolean equalTo([type.defName] another) {
-  return true[for v in getters]
-      && [equalsAttribute v][/for];
+private boolean equalTo([equalityType] another) {
+  return [if not getters]true[/if][for v in getters][if not for.first]
+      && [/if][equalsAttribute v type.annotationType][/for];
 }
+[if type.annotationType]
+
+private int computeHashCode() {
+  int h = 0;
+[for v in getters]
+[if v.arrayType]
+  h += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
+[else if not v.primitive]
+  h += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
+[else if v.type eq 'int']
+  h += 127 * "[v.name]".hashCode() ^ [v.name];
+[else]
+  h += 127 * "[v.name]".hashCode() ^ com.google.common.primitives.[toUpper v.type]s.hashCode([v.name]);
+[/if]
+[/for]
+  return h;
+}
+[else]
 
 private int computeHashCode() {
   int h = 31;
@@ -587,7 +681,9 @@ private int computeHashCode() {
   h = h * 17 + "[type.name]".hashCode();
   [else]
 [for v in getters]
-[if not v.primitive]
+[if v.arrayType]
+  h = h * 17 + java.util.Arrays.hashCode([v.name]);
+[else if not v.primitive]
   h = h * 17 + [v.name].hashCode();
 [else if v.type eq 'int']
   h = h * 17 + [v.name];
@@ -598,6 +694,7 @@ private int computeHashCode() {
   [/if]
   return h;
 }
+[/if]
 [if not type.hashCodeDefined]
 
 @Override
@@ -618,9 +715,15 @@ public int hashCode() {
 
 @Override
 public String toString() {
-  return com.google.common.base.MoreObjects.toStringHelper("[type.simpleName]")
+  return com.google.common.base.MoreObjects.toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
   [for v in type.equivalenceAttributes]
-      .add("[v.name]", [v.name]())
+  [if v.optionalType]
+      .add("[v.name]", [v.name].orNull())
+  [else if v.arrayType]
+      .add("[v.name]", java.util.Arrays.toString([v.name]))
+  [else]
+      .add("[v.name]", [v.name])
+  [/if]
   [/for]
       .toString();
 }
@@ -650,13 +753,26 @@ return checkPreconditions(new [type.defName](
 
 [template generateCopyMethods Type type]
   [for v in type.settableAttributes]
-    [if v.collectionType]
+    [if v.arrayType]
+
+/**
+ * Copy current immutable object with elements that replace content of {@link [type.name]#[v.name]()}.
+ * Array is cloned before saved as the attribute value.
+ * @param elements iterable of [v.name] elements to add
+ * @return modified copy of {@code this} object
+ */
+@SafeVarargs
+public final [type.defName] with[toUpper v.name]([v.elementType]... elements) {
+  [v.implementationType] newValue = elements.clone();
+  [generateReturnCopyContextual type v]
+}
+    [else if v.collectionType]
 
 /**
  * Copy current immutable object with elements that replace content of {@link [type.name]#[v.name]()}.
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param elements iterable of [v.name] elements to add
- * @return modified copy of the {@code this} object
+ * @return modified copy of {@code this} object
  */
 public [type.defName] with[toUpper v.name](Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) {
@@ -670,7 +786,7 @@ public [type.defName] with[toUpper v.name](Iterable<[v.consumedElementType]> ele
 /**
  * Copy current immutable object by setting present value for optional {@link [type.name]#[v.name]()}.
  * @param value value for [v.name], non-null
- * @return modified copy of the {@code this} object
+ * @return modified copy of {@code this} object
  */
 public [type.defName] with[toUpper v.name]([v.unwrappedElementType] value) {
   [v.implementationType] newValue = com.google.common.base.Optional.of(value);
@@ -681,7 +797,7 @@ public [type.defName] with[toUpper v.name]([v.unwrappedElementType] value) {
  * Copy current immutable object by setting optional value for {@link [type.name]#[v.name]()}.
  * Shallow reference equality check on optional value is used to prevent copying of the same value by returning {@code this}.
  * @param optional value for [v.name], non-null
- * @return modified copy of the {@code this} object
+ * @return modified copy of {@code this} object
  */
 public [type.defName] with[toUpper v.name](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
@@ -698,7 +814,7 @@ public [type.defName] with[toUpper v.name](com.google.common.base.Optional<[v.wr
  * Nulls are not permitted as keys or values.
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param map to be added to [v.name] map
- * @return modified copy of the {@code this} object
+ * @return modified copy of {@code this} object
  */
 public [type.defName] with[toUpper v.name](java.util.Map<[gE], ? extends [wV]> map) {
   if (this.[v.name] == map) {
@@ -766,6 +882,23 @@ public [v.implementationType] [if v.boolean]is[else]get[/if][toUpper v.name]() {
   [/if]
 [/template]
 
+[template defaultAnnotationValues Type type]
+[for a in type.implementedAttributes if a.generateDefault]
+private static final [a.type] DEFAULT_VALUE_[toConstant a.name];
+[/for]
+
+static {
+  try {
+  [for a in type.implementedAttributes if a.generateDefault]
+    DEFAULT_VALUE_[toConstant a.name] =
+        ([a.type]) [type.valueTypeName].class.getDeclaredMethod("[a.name]").getDefaultValue();
+  [/for]
+  } catch(Exception e) {
+    throw new ExceptionInInitializerError(e);
+  }
+}
+[/template]
+
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
 [if a.generateEnumSet]
   com.google.common.collect.Sets.immutableEnumSet([expression])
@@ -782,14 +915,17 @@ public [v.implementationType] [if v.boolean]is[else]get[/if][toUpper v.name]() {
 [/if]
 [/output.trim][/template]
 
-[template equalsAttribute Attribute a][output.trim]
+[template equalsAttribute Attribute a Boolean useAccessor][output.trim]
+[let suffix][if useAccessor]()[/if][/let]
 [if a.float]
-  Float.floatToIntBits([a.name]) == Float.floatToIntBits(another.[a.name])
+  Float.floatToIntBits([a.name]) == Float.floatToIntBits(another.[a.name][suffix])
 [else if a.double]
-  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits([a.name])    
+  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits(another.[a.name][suffix])
 [else if a.primitive]
-  [a.name] == another.[a.name]
+  [a.name] == another.[a.name][suffix]
+[else if a.arrayType]
+  java.util.Arrays.equals([a.name], another.[a.name][suffix])
 [else]
-  [a.name].equals(another.[a.name])
+  [a.name].equals(another.[a.name][suffix])
 [/if]
 [/output.trim][/template]

@@ -20,13 +20,12 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
+import java.util.ServiceLoader;
 import javax.annotation.Nullable;
-import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.common.marshal.Marshaler;
 
 /**
@@ -134,36 +133,33 @@ public final class MarshalingSupport {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> Marshaler<T> loadMarshalerFor(Class<? extends T> type) {
+  public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {
+    // unchecked: relies on how nice are marshalers contributors
+    @SuppressWarnings("unchecked")
     @Nullable
-    Class<?> marshaledType = extractBaseMarshaledType(type);
-    Preconditions.checkArgument(marshaledType != null,
-        "Type %s must have base type with @GenerateMarshaler annotation", type);
-
-    try {
-      ClassLoader classLoader = marshaledType.getClassLoader();
-      Class<?> companionClass = classLoader.loadClass(marshaledType.getName() + "Marshaler");
-      Method unmarshalMethod = companionClass.getMethod("instance");
-      return (Marshaler<T>) unmarshalMethod.invoke(null);
-    } catch (Exception ex) {
-      throw Throwables.propagate(ex);
-    }
+    Marshaler<T> marshaler = (Marshaler<T>) Registry.marshalers.get(type);
+    Preconditions.checkArgument(marshaler != null,
+        "Cannot find marshaler for type %s. Use @Json.Marshaled annotation to generate associated marshaler", type);
+    return marshaler;
   }
 
   public static boolean hasAssociatedMarshaler(Class<?> type) {
-    return extractBaseMarshaledType(type) != null;
+    return Registry.marshalers.containsKey(type);
   }
 
-  @Nullable
-  private static Class<?> extractBaseMarshaledType(Class<?> type) {
-    if (type.isAnnotationPresent(GenerateMarshaler.class)) {
-      return type;
+  /**
+   * Lazily loaded registry of statically-extended marshalers via {@link MarshalingContributor}.
+   */
+  private static class Registry {
+    static final ImmutableMap<Class<?>, Marshaler<?>> marshalers;
+
+    static {
+      ImmutableMap.Builder<Class<?>, Marshaler<?>> builder = ImmutableMap.builder();
+      for (MarshalingContributor contributor : ServiceLoader.load(MarshalingContributor.class)) {
+        contributor.putMarshalers(builder);
+      }
+      marshalers = builder.build();
     }
-    type = type.getSuperclass();
-    if (type != null && type.isAnnotationPresent(GenerateMarshaler.class)) {
-      return type;
-    }
-    return null;
   }
+
 }

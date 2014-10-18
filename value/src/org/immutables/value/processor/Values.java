@@ -18,6 +18,10 @@ class Values extends AbstractTemplate {
 
   Transformers transformers = new Generator_Transformers();
 
+//  Marshalers marshalers = new Generator_Marshalers();
+//
+//  Repositories repositories = new Generator_Repositories();
+
   private List<DiscoveredValue> type;
 
   public List<DiscoveredValue> types() {

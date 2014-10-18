@@ -55,7 +55,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
           .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
             @Override
             public Marshaler<Object> load(Class<?> type) throws Exception {
-              return MarshalingSupport.loadMarshalerFor(type);
+              return MarshalingSupport.getMarshalerFor(type);
             }
           });
 

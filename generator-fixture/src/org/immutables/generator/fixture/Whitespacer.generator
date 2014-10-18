@@ -1,0 +1,11 @@
+[template entry]
+  [innerIndented2]
+[/template]
+
+[template innerIndented]
+//
+[/template]
+
+[template innerIndented2]
+[innerIndented]
+[/template]

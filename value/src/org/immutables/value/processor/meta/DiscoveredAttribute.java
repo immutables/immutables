@@ -15,19 +15,30 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.Value;
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Primitives;
-import org.immutables.annotation.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import org.immutables.json.Json;
+import org.immutables.mongo.Mongo;
+import org.immutables.value.Value;
 
 /**
  * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
@@ -75,6 +86,10 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
         || isEnumType();
   }
 
+  public boolean isMandatory() {
+    return isGenerateAbstract() && !isContainerType();
+  }
+
   @Override
   public boolean isComparable() {
     return isNumberType() || super.isComparable();
@@ -82,7 +97,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public String getMarshaledName() {
     @Nullable
-    GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
+    Json.Named options = element.getAnnotation(Json.Named.class);
     if (options != null) {
       String name = options.value();
       if (!name.isEmpty()) {
@@ -93,9 +108,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isForceEmpty() {
-    @Nullable
-    GenerateMarshaled options = element.getAnnotation(GenerateMarshaled.class);
-    return options != null ? options.forceEmpty() : false;
+    return element.getAnnotation(Json.ForceEmpty.class) != null;
   }
 
   private List<String> typeParameters = Collections.emptyList();
@@ -168,7 +181,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public List<String> typeParameters() {
     ensureTypeIntrospected();
-    return typeParameters;
+    return arrayComponent != null ? ImmutableList.of(arrayComponent.toString()) : typeParameters;
   }
 
   private Boolean isMapType;
@@ -242,7 +255,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   private String containmentTypeName() {
-    return isContainerType() ? firstTypeParameter() : internalTypeName();
+    return (isArrayType() || isContainerType()) ? firstTypeParameter() : internalTypeName();
   }
 
   public String getRawType() {
@@ -296,7 +309,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public List<String> getExpectedSubclasses() {
     if (expectedSubclasses == null) {
-      if (element.getAnnotation(GenerateMarshaledSubclasses.class) != null) {
+      if (element.getAnnotation(Json.Subclasses.class) != null) {
         expectedSubclasses = listExpectedSubclassesFromElement(element);
       } else {
         ensureTypeIntrospected();
@@ -311,7 +324,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   private static List<String> listExpectedSubclassesFromElement(Element element) {
     return DiscoveredValue.extractedClassNamesFromAnnotationMirrors(
-        GenerateMarshaledSubclasses.class.getName(), "value", element.getAnnotationMirrors());
+        Json.Subclasses.class.getName(), "value", element.getAnnotationMirrors());
   }
 
   private boolean marshaledElement;
@@ -322,6 +335,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private boolean hasEnumFirstTypeParameter;
   private TypeElement containedTypeElement;
   private boolean generateOrdinalValueSet;
+  private TypeMirror arrayComponent;
 
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
@@ -334,23 +348,16 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   public boolean isDocumentElement() {
     ensureTypeIntrospected();
     return containedTypeElement != null
-        && containedTypeElement.getAnnotation(GenerateRepository.class) != null;
+        && containedTypeElement.getAnnotation(Mongo.Repository.class) != null;
   }
 
   public boolean isArrayType() {
-// !!TODO
-    return false;// internalTypeMirror()
+    return internalTypeMirror().getKind() == TypeKind.ARRAY;
   }
 
   @Override
   protected void introspectType() {
     TypeMirror typeMirror = internalTypeMirror();
-
-//!!TODO
-//    if (typeMirror.getKind() == TypeKind.ARRAY) {
-//      ArrayType arrayType = (ArrayType) typeMirror;
-//      arrayType.getComponentType();
-//    }
 
     if (isContainerType()) {
 
@@ -393,7 +400,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
               if (typeSecondArgument instanceof DeclaredType) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
                 @Nullable
-                GenerateMarshaler generateMarshaler = typeElement.getAnnotation(GenerateMarshaler.class);
+                Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
                 marshaledSecondaryElement = generateMarshaler != null;
                 specialMarshaledSecondaryElement =
                     isSpecialMarshaledElement(marshaledSecondaryElement, typeElement.getQualifiedName());
@@ -406,6 +413,9 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
         this.typeParameters = typeParameters;
       }
+    } else if (isArrayType()) {
+      arrayComponent = ((ArrayType) typeMirror).getComponentType();
+      typeMirror = arrayComponent;
     }
 
     if (typeMirror instanceof DeclaredType) {
@@ -414,8 +424,8 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
       this.containedTypeElement = typeElement;
 
       @Nullable
-      GenerateMarshaler generateDocument = typeElement.getAnnotation(GenerateMarshaler.class);
-      marshaledElement = generateDocument != null;
+      Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
+      marshaledElement = generateMarshaler != null;
       specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
     }
 

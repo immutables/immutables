@@ -87,6 +87,11 @@ public final class SourceOrdering {
   private static class EclipseCompilerOrderingProvider
       implements OrderingProvider, Function<Element, Object> {
 
+    // Triggers loading of class that may be absent in classpath
+    static {
+      ElementImpl.class.getCanonicalName();
+    }
+
     @Override
     public Object apply(Element input) {
       return ((ElementImpl) input)._binding;

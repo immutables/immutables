@@ -1,9 +1,9 @@
 package org.immutables.generator;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import java.util.Map;
 import java.util.Objects;

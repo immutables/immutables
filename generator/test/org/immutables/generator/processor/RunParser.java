@@ -1,9 +1,7 @@
 package org.immutables.generator.processor;
 
-import org.immutables.generator.processor.ImmutableTrees.Unit;
-import org.immutables.generator.processor.Balancing;
-import org.immutables.generator.processor.Parser;
 import com.google.common.collect.ImmutableList;
+import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;

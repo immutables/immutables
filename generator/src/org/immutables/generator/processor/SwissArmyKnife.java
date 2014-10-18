@@ -1,12 +1,12 @@
 package org.immutables.generator.processor;
 
-import org.immutables.generator.processor.Implicits.ImplicitResolver;
 import com.google.common.collect.ImmutableMap;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import org.immutables.generator.processor.Implicits.ImplicitResolver;
 
 /**
  * Temporary "global context" class while interactions and structure is not sorted out well.

@@ -1,7 +1,7 @@
 package org.immutables.generator;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.truth.TestVerb;
 import com.google.common.truth.Truth;
 import org.junit.Test;

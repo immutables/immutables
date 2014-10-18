@@ -18,27 +18,22 @@ package org.immutables.value.processor.meta;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Set;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.value.Value;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import org.immutables.value.Value;
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Set;
 
 /**
  * MOST CODE CARRIED FORWARD FROM OLD IMPLEMENTATION. IT NEED HEAVY REFACTORING TO REMOVE LEGACY
- * STUFF AND IMPROVE CORRECTNESS OF DISCOVERIES (GET RID OF SOME HEURISTICS).
+ * STUFF AND IMPROVE CORRECTNESS OF DISCOVERIES (GET RID OF SOME HEURISTICS AND SHORTCUTS).
  */
 public class Discovery {
 
@@ -56,11 +51,14 @@ public class Discovery {
   }
 
   public List<DiscoveredValue> discover() {
-
     Set<Element> allElemenents = Sets.newLinkedHashSet();
     for (TypeElement annotationType : annotations) {
       allElemenents.addAll(round.getElementsAnnotatedWith(annotationType));
     }
+    return checkForANumberOfAttributes(discoverValueTypes(allElemenents));
+  }
+
+  private List<DiscoveredValue> discoverValueTypes(Set<Element> allElemenents) {
     List<DiscoveredValue> generateTypes = Lists.newArrayListWithExpectedSize(allElemenents.size());
 
     for (Element typeElement : allElemenents) {
@@ -73,6 +71,26 @@ public class Discovery {
       }
     }
     return generateTypes;
+  }
+
+  private List<DiscoveredValue> checkForANumberOfAttributes(List<DiscoveredValue> generateTypes) {
+    ImmutableList.Builder<DiscoveredValue> builder = ImmutableList.builder();
+
+    for (DiscoveredValue discoveredValue : generateTypes) {
+      if (!discoveredValue.isEmptyNesting()) {
+        if (discoveredValue.getImplementedAttributes().size() > 124) {
+          processing.getMessager().printMessage(
+              Diagnostic.Kind.ERROR,
+              "Value objects with more than 124 attributes (including inherited) are not supported."
+                  + " Please decompose your object into a smaller ones",
+              discoveredValue.internalTypeElement());
+          continue;
+        }
+      }
+      builder.add(discoveredValue);
+    }
+
+    return builder.build();
   }
 
   private void collectDiscoveredTypeDescriptors(List<DiscoveredValue> generateTypes, TypeElement type) {
@@ -124,6 +142,7 @@ public class Discovery {
   private boolean isDiscoveredType(TypeElement type, Value.Immutable annotation) {
     boolean isStaticOrTopLevel =
         type.getKind() == ElementKind.INTERFACE
+            || type.getKind() == ElementKind.ANNOTATION_TYPE
             || (type.getKind() == ElementKind.CLASS
             && (type.getEnclosingElement().getKind() == ElementKind.PACKAGE || type.getModifiers()
                 .contains(Modifier.STATIC)));
@@ -140,7 +159,7 @@ public class Discovery {
   DiscoveredValue inspectDiscoveredType(TypeElement type, Value.Immutable annotation) {
     if (!isDiscoveredType(type, annotation)) {
       error(type,
-          "Type '%s' annotated with @%s must be non-final class or interface",
+          "Type '%s' annotated with @%s must be non-final class, interface or annotation type",
           type.getSimpleName(),
           Value.Immutable.class.getSimpleName());
     }
@@ -165,7 +184,12 @@ public class Discovery {
   private void collectGeneratedCandidateMethods(TypeElement type, DiscoveredValues.Builder typeBuilder) {
     // TO BE DONE
 
-    for (Element element : processing.getElementUtils().getAllMembers(type)) {
+    List<? extends Element> allMembers =
+        type.getKind() == ElementKind.ANNOTATION_TYPE
+            ? SourceOrdering.getEnclosingElements(type)
+            : processing.getElementUtils().getAllMembers(type);
+
+    for (Element element : allMembers) {
       if (isElegibleCandidateMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
       }
@@ -240,6 +264,9 @@ public class Discovery {
 
       if (isAbstract(attributeMethodCandidate)) {
         attributeBuilder.isGenerateAbstract(true);
+        if (attributeMethodCandidate.getDefaultValue() != null) {
+          attributeBuilder.isGenerateDefault(true);
+        }
       } else if (hasAnnotation(attributeMethodCandidate, Value.Default.class)) {
         attributeBuilder.isGenerateDefault(true);
       } else if (hasAnnotation(attributeMethodCandidate, Value.Derived.class)) {

@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
  * @see Value.Immutable
  * @see Value.Nested
  */
+@Beta
 @Retention(RetentionPolicy.SOURCE)
 public @interface Value {
   /**
@@ -206,9 +207,9 @@ public @interface Value {
   public @interface Getters {}
 
   /**
-   * Generate modifiable implementation of abstract value class.
-   * This annotation could be used only as companion to {@link Value.Immutable} to provide
-   * modifiable variant that is convertible back and forth to immutable form.
+   * Generate modifiable implementation of abstract value class. This annotation could be used only
+   * as companion to {@link Value.Immutable} to provide modifiable variant that is convertible back
+   * and forth to immutable form.
    * <p>
    * Generated class will have name with "Modifiable" prefix. Use {@code create()} factory method to
    * create instances. Generated modifiable class will have setter methods that return {@code this}
@@ -220,31 +221,32 @@ public @interface Value {
    * <em>Note: unlike {@literal @}{@link Value.Immutable}, this annotation works only for top level classes</em>
    * @see PackedBits
    * @see Getters
+   * @deprecated <strong>THIS ANNOTATION CURRENTLY NOT WORKING</strong>
    */
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.CLASS)
-  @Beta
+  @Deprecated
   public @interface Modifiable {}
 
   /**
-   * Use in conjunction with {@link Modifiable}. This annotation, being applied to accessor
-   * methods with return types of {@code boolean}, {@code byte}, {@code short} or {@code int} used
-   * to
-   * generate value stored as compactly packed bits. Many
-   * data-types could be effectively reduced to fixed size enumerations or limited range integer
-   * values, this gives ultimate opportunity for data size minimization while maintaining efficient
-   * access. Internally, generated {@code long} fields are used to store sequences of bits. Any
-   * other
-   * attributes of the {@code Modifiable*} subclass (which are not annotated with
-   * {@code GeneratePackedBits}) will be unaffected by such packing.
+   * Use in conjunction with {@link Modifiable}. This annotation, being applied to accessor methods
+   * with return types of {@code boolean}, {@code byte}, {@code short} or {@code int} used to
+   * generate value stored as compactly packed bits. Many data-types could be effectively reduced to
+   * fixed size enumerations or limited range integer values, this gives ultimate opportunity for
+   * data size minimization while maintaining efficient access. Internally, generated {@code long}
+   * fields are used to store sequences of bits. Any other attributes of the {@code Modifiable*}
+   * subclass (which are not annotated with {@code GeneratePackedBits}) will be unaffected by such
+   * packing.
    * <p>
    * You should definitely try and see generated {@code Modifiable*} subclass for the details.
    * @see Modifiable
+   * @deprecated <strong>THIS ANNOTATION CURRENTLY NOT WORKING</strong>
    */
+  @Beta
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
-  @Beta
+  @Deprecated
   public @interface PackedBits {
     /**
      * Used to specify order of packed fields. It's defaults to zero and allows for

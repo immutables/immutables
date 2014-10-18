@@ -1,0 +1,784 @@
+[template generateRepository type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+// Generated imports
+import [type.packageName].*;
+[apply generateImportRoutines type]
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import org.immutables.common.repository.*;
+import org.immutables.common.concurrent.FluentFuture;
+import org.immutables.common.repository.internal.ConstraintSupport;
+import org.immutables.common.repository.internal.RepositorySupport;
+import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
+import static org.immutables.common.marshal.internal.MarshalingSupport.*;
+
+/**
+ * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
+ * from the MongoDB collection "[type.documentName]".
+ */
+@javax.inject.Singleton
+@SuppressWarnings("all")
+@javax.annotation.Generated({"repository.tjs", "[type.name]"})
+@javax.annotation.ParametersAreNonnullByDefault
+@javax.annotation.concurrent.ThreadSafe
+[type.accessPrefix]final class [type.name]Repository extends Repositories.Repository<[type.name]> {
+  private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
+
+  /**
+   * Constructs {@link [type.name]} repository using {@link RepositorySetup configuration}.
+   * @param configuration the repository configuration
+   */
+  @javax.inject.Inject
+  public [type.name]Repository(RepositorySetup configuration) {
+    super(configuration, DOCUMENT_COLLECTION_NAME, [type.name]Marshaler.instance());
+  }
+  
+  /**
+   * Insert single document into the collection.
+   * @param document [toLower type.name] to insert
+   * @return future of number of inserted documents (1) if WriteConcern allows.
+   */
+  public FluentFuture<Integer> insert([type.name] document) {
+    return super.doInsert(com.google.common.collect.ImmutableList.of(document));
+  }
+
+  /**
+   * Insert documents into the collection.
+   * @param documents documents to insert
+   * @return future of number of inserted documents if WriteConcern allows.
+   */  
+  public FluentFuture<Integer> insert(Iterable<? extends [type.name]> documents) {
+    return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
+  }
+
+  /**
+   * Finds all documents. Use returned {@link Finder} object to complete
+   * {@link Finder#fetchAll() fetch all}, {@link Finder#deleteAll() delete all} or other operation.
+   * @return finder object to complete operation
+   */
+  @javax.annotation.CheckReturnValue
+  public Finder find() {
+    return find(where());
+  }
+  
+ /**
+  * Find document by criteria expressed as JSON string, additional parameters may be supplied to format
+  * string using {@link String#format(String, Object...)}. Use returned {@link Finder} object to complete
+  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+  * @param criteria search criteria
+  * @return finder object to complete operation
+  */
+  @javax.annotation.CheckReturnValue
+  public Finder find(String jsonCriteria, Object... parameters) {
+    return new Finder(this, (ConstraintSupport.ConstraintHost) RepositorySupport.wrapString(jsonCriteria, parameters));
+  }
+[for a = type.idAttribute]
+[-- It will rarely be otherwise --]
+[if a]
+
+  /**
+   * Find document by {@link [type.name]#[a.name]() [a.name]} identity attribute. Use returned {@link Finder} object to complete
+   * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+   * @param [a.name] the exact {@code [a.name]} value
+   * @return finder object to complete operation
+   */
+  @javax.annotation.CheckReturnValue
+  public Finder findBy[toUpper a.name]([a.type] [a.name]) {
+    return find(where().[a.name]([a.name]));
+  }
+  
+  /**
+   * Update or insert document, matched by identifier value of '[a.name]' attribute.
+   * @param document [toLower type.name] to upsert
+   * @return future of number of inserted documents (1) if WriteConcern allows.
+   */
+  public FluentFuture<Integer> upsert([type.name] document) {
+    Criteria byId = where().[a.name](document.[a.name]());
+    return super.doUpsert((ConstraintSupport.ConstraintHost) byId, document);
+  }
+[/if]
+[/for]
+
+  [apply generateFinder type]
+  [apply generateUpdater type]
+  [apply generateModifier type]
+  [apply generateIndexer type]
+  [apply generateCriteriaApi type]
+  [apply generateInternalCriteria type]
+  [apply generateMarshalWrappers type]
+}
+[/template]
+
+[template generateOrderingAndExcludes type, T]
+  [foreach a in type.implementedAttributes]
+
+/**
+ * Order by {@link [type.name]#[a.name]() [a.name]} in the ascending direction.
+ * Specify next attribute to sort will be {@link [type.name]#[a.name]() [a.name]} attribute using ascending order
+ * in the the chain of comparisons performed to sort results.
+ * @return {@code this} [toLower T] for chained invocation
+ */
+public [T] orderBy[toUpper a.name]() {
+  ordering = ordering.equal("[a.marshaledName]", false, 1);
+  return this;
+}
+
+/**
+ * Order by {@link [type.name]#[a.name]() [a.name]} in the descending direction.
+ * Specify next attribute to sort will be {@link [type.name]#[a.name]() [a.name]} attribute using descending order
+ * in the the chain of comparisons performed to sort results.
+ * @return {@code this} [toLower T] for chained invocation
+ */
+public [T] orderBy[toUpper a.name]Desceding() {
+  ordering = ordering.equal("[a.marshaledName]", false, -1);
+  return this;
+}
+  [/for]
+  [foreach a in type.excludableAttributes]
+ 
+/**
+ * Exclude {@link [type.name]#[a.name]() [a.name]} attribute from each document in results.
+ * @return {@code this} [toLower T] for chained invocation
+ */    
+public [T] exclude[toUpper a.name]() {
+  exclusion = exclusion.equal("[a.marshaledName]", false, -1);
+  return this;
+}
+  [/for]
+[/template]
+
+[template generateFinder type]
+
+/**
+ * Find document by {@link [type.name]Repository#where() criteria}. Use returned {@link Finder} object to complete
+ * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
+ * @param criteria search criteria
+ * @return finder object to complete operation
+ */
+@javax.annotation.CheckReturnValue
+public Finder find(Criteria criteria) {
+  return new Finder(this, (ConstraintSupport.ConstraintHost) criteria);
+}
+
+/**
+ * Finder object used to proceed with find operation by using methods
+ * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()} or {@link Finder#deleteFirst()} methods.
+ * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods. 
+ * @see [type.name]Repository#find(Criteria)
+ */
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Finder extends Repositories.Finder<[type.name], Finder> {
+  private Finder([type.name]Repository repository, ConstraintSupport.ConstraintHost criteria) {
+    super(repository);
+    this.criteria = criteria;
+  }
+  [apply generateOrderingAndExcludes type, 'Finder']
+  [apply generateAndModifyFirst type]
+}
+[/template]
+
+[template generateAndModifyFirst type]
+
+/**
+ * Turn find operation into atomic {@link DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean, boolean) findAndModify}
+ * operation. Use family of {@code set*()}, {@code unset*()}, {@code add*()}, {@code remove*()}, {@code put*()} and {@code init*()}
+ * and other attribute specific methods to describe modification. 
+ * @return modifier object to complete {@code findAndModify} operation
+ */
+@javax.annotation.CheckReturnValue 
+public Modifier andModifyFirst() {
+  return new Modifier(repository, criteria, ordering, exclusion);
+}
+[/template]
+
+[template generateIndexer type]
+
+/**
+ * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure index} on collection "[type.documentName]" by one or
+ * more attributes using family of {@code with*()} attribute specific methods.
+ * While indexes usually will be maintained by special administration scripts, for simple cases it is convenient
+ * to ensure index on application startup.
+ * @see Indexer#named(String)
+ * @see Indexer#unique()
+ * @return indexer object to complete with {@link Indexer#ensure()} operation.
+ */
+@javax.annotation.CheckReturnValue 
+public Indexer index() {
+  return new Indexer(this);
+}
+
+/**
+ * Indexer used to create index on the "[type.documentName]" collection if it does not exist by one or more attributes.
+ * @see DBCollection#ensureIndex(DBObject, DBObject)
+ */
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Indexer extends Repositories.Indexer<[type.name], Indexer> {
+  private Indexer([type.name]Repository repository) {
+    super(repository);
+  }
+[foreach a in type.implementedAttributes]
+  
+  /**
+   * Specify next attribute to in index will be {@link [type.name]#[a.name]() [a.name]} in the ascending direction.
+   * @return {@code this} indexer for chained invocation
+   */
+  public Indexer with[toUpper a.name]() {
+    fields = fields.equal("[a.marshaledName]", false, 1);
+    return this;
+  }
+  
+  /**
+   * Specify next attribute to in index will be {@link [type.name]#[a.name]() [a.name]} in the descending direction.
+   * @return {@code this} indexer for chained invocation
+   */
+  public Indexer with[toUpper a.name]Desceding() {
+    fields = fields.equal("[a.marshaledName]", false, -1);
+    return this;
+  }
+[/for]
+}
+[/template]
+
+[template generateUpdater type]
+/**
+ * Update set of "[type.documentName]" documents.
+ * @param criteria search criteria for update
+ * @return updater object to complete update. 
+ */
+@javax.annotation.CheckReturnValue
+public Updater update(Criteria criteria) {
+  return new Updater(this, criteria);
+}
+
+/**
+ * {@link #update(Criteria) Given} the criteria updater describes how to perform
+ * update operation on a set of documents.
+ */
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Updater extends Repositories.Updater<[type.name]> {
+  private Updater([type.name]Repository repository, Criteria criteria) {
+    super(repository);
+    this.criteria = (ConstraintSupport.ConstraintHost) criteria;
+  }
+[apply generateUpdatingMethods type, 'Updater']
+}
+[/template]
+
+[template generateModifier type]
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Modifier extends Repositories.Modifier<[type.name], Modifier> {
+  private Modifier(
+      Repositories.Repository<[type.name]> repository,
+      ConstraintSupport.ConstraintHost criteria,
+      ConstraintSupport.Constraint ordering,
+      ConstraintSupport.Constraint exclusion) {
+    super(repository);
+    this.criteria = criteria;
+    this.ordering = ordering;
+    this.exclusion = exclusion;
+  }
+[apply generateUpdatingMethods type, 'Modifier']
+}
+[/template]
+
+[template generateUpdatingMethods type, T]
+  [foreach a in type.implementedAttributes]
+[for W = a.wrappedElementType, U = a.unwrappedElementType]
+[if a.marshaledName not = '_id']
+  [if a.collectionType]
+
+  /**
+   * Clear [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * <p>
+   * Corresponds to MongoDB {@code [a.forceEmpty?'$set':'$unset']} operator [a.forceEmpty and 'with reset to empty array'  or  '']
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] clear[toUpper a.name]() {
+  [if a.forceEmpty]
+    setFields = setFields.equal("[a.marshaledName]", false, com.google.common.collect.ImmutableList.<Object>of());
+  [else]
+    unsetFields = unsetFields.equal("[a.marshaledName]", false, 1);
+  [/if]
+    return this;
+  }
+  
+  /**
+   * Remove value from [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $pull} operator.
+   * @param value value to remove
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] remove[toUpper a.name]([U] value) {
+    pullFields = pullFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    return this;
+  }
+
+  /**
+   * Add value to [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * <p>
+   * Corresponds to MongoDB {@code [a.setType?'$addToSet':'push']} operator.
+   * @param value value to add
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] add[toUpper a.name]([U] value) {
+  [if a.setType]
+    addToSetFields = addToSetFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+  [else]
+    pushFields = pushFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+  [/if]
+    return this;
+  }
+
+  /**
+   * Add all values to [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * <p>
+   * Corresponds to MongoDB {@code [a.setType?'$addToSet':'push']} operator with {@code $each} modifier.
+   * @param values values to add
+   * @return {@code this} [toLower T] to complete update operation
+   */  
+  public [T] addAll[toUpper a.name](Iterable<[W]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([W] v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    if (wrappedValues.isEmpty()) {
+      return this;
+    }
+    Object v;
+    if (wrappedValues.size() == 1) {
+      v = wrappedValues.get(0);
+    } else {
+      v = RepositorySupport.bsonObjectAttribute("$each", wrappedValues);
+    }
+  [if a.setType]
+    addToSetFields = addToSetFields.equal("[a.marshaledName]", false, v);
+  [else]
+    pushFields = pushFields.equal("[a.marshaledName]", false, v);
+  [/if]
+    return this;
+  }
+    
+[/if]
+[if not a.collectionType]
+  [if a.mapType]
+
+  /**
+   * Clear [toUpper a.name] map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator to reset to empty object
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] clear[toUpper a.name]() {
+    setFields = setFields.equal("[a.marshaledName]", false, RepositorySupport.emptyBsonObject());
+    return this;
+  }
+
+  /**
+   * Put key, value into the map of [toUpper a.name] map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator for nested object
+   * @param key key
+   * @param value value
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] put[toUpper a.name]([U] key, [a.unwrappedSecondaryElementType] value) {
+    setFields = setFields.equal("[a.marshaledName]." + key, false, wrapMarshalable(value));
+    return this;
+  }
+  
+  /**
+   * Remove key, value mapping from [toUpper a.name] map attribute.
+   * <p>
+   * Corresponds to MongoDB {@code $unset} operator for nested object
+   * @param key key
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] remove[toUpper a.name]([U] key) {
+    unsetFields = unsetFields.equal("[a.marshaledName]." + key, false, 1);
+    return this;
+  }
+  [else]
+    [if a.optionalType]
+
+  /**
+   * Clear [toUpper a.name] optional attribute.
+   * <p>
+   * Corresponds to MongoDB {@code [a.forceEmpty?'$set':'$unset']} operator [a.forceEmpty and 'with reset to {@code null}'  or  '']
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] clear[toUpper a.name]() {
+      [if a.forceEmpty]
+    setFields = setFields.equal("[a.marshaledName]", false, null);
+      [else]
+    unsetFields = unsetFields.equal("[a.marshaledName]", false, 1);
+      [/if]
+    return this;
+  }
+    [/if]
+
+  /**
+   * Specify new value for the '[toUpper a.name]' attribute. 
+   * <p>
+   * Corresponds to MongoDB {@code $set} operator.
+   * @param value new value for the [toUpper a.name] attribute
+   * @return {@code this} [toLower T] to complete update operation
+   */     
+  public [T] set[toUpper a.name]([U] value) {
+    setFields = setFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    return this;
+  }
+  
+  /**
+   * Specify initial value for the '[toUpper a.name]' attribute which will be used if document is
+   * to be inserted. If one or more documents are found for an update, this value will not be used.
+   * <p>
+   * Corresponds to MongoDB {@code $setOnInsert} operator.
+   * @param value [toUpper a.name] value for an insert.
+   * @return {@code this} [toLower T] to complete update operation
+   */
+  public [T] init[toUpper a.name]([U] value) {
+    setOnInsertFields = setOnInsertFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    return this;
+  }
+
+    [if a.numberType]
+  /**
+   * Specify increment amount for the '[toUpper a.name]' attribute. If document is to inserted
+   * and no initial value provided, then {@code 0} will be the default value and increment will adjust it. 
+   * <p>
+   * Corresponds to MongoDB {@code $inc} operator.
+   * @param increment an amount to increment [toUpper a.name] attribute (may be negative)
+   * @return {@code this} [toLower T] to complete update operation
+   */    
+  public [T] increment[toUpper a.name]([U] increment) {
+    incrementFields = incrementFields.equal("[a.marshaledName]", false, increment);
+    return this;
+  }        
+      [/if]
+    [/if]
+  [/if]
+[else]
+  [-- _id init don't works in Mongodb stable yet --]
+[/if]
+[/for]
+  [/for]
+[/template]
+
+[template generateInternalCriteria type]
+
+@SuppressWarnings("unchecked")
+private static final class InternalCriteria extends Criteria implements ConstraintSupport.ConstraintHost {
+  final ConstraintSupport.Constraint constraint;
+  
+  InternalCriteria(ConstraintSupport.Constraint constraint) {
+    this.constraint = constraint;
+  }
+  
+  public <V extends ConstraintSupport.ConstraintVisitor<V>> V accept(V visitor) {
+    return constraint.accept(visitor);
+  }
+[foreach a in type.implementedAttributes]
+[for W = a.wrappedElementType, U = a.unwrappedElementType]
+[if a.collectionType]
+
+  @Override
+  public InternalCriteria [a.name]Empty() {
+    return new InternalCriteria(constraint.size("[a.marshaledName]", false, 0));
+  }
+
+  @Override
+  public InternalCriteria [a.name]NonEmpty() {
+    return new InternalCriteria(constraint.size("[a.marshaledName]", true, 0));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]Size(int size) {
+    return new InternalCriteria(constraint.size("[a.marshaledName]", false, size));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]Contains([U] value) {
+    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, wrapMarshalable(value)));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]ContainsAll(Iterable<[W]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([W] v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.nested("[a.marshaledName]", ConstraintSupport.nilConstraint().equal("$all", false, wrappedValues)));
+  }
+  [if W == 'java.lang.String']
+  @Override
+  public InternalCriteria [a.name]AnyStartsWith(String prefix) {
+    return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]AnyMatches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
+  }
+  [/if]
+[/if]
+[if not a.collectionType]
+  [if a.documentElement]
+  [-- @Override]
+  [-- public InternalCriteria [a.name] [U]s.Criteria [a.name]Constraints {]
+  [-- return new InternalCriteria constraint.nested "[a.marshaledName]", ConstraintSupport.ConstraintHost  [a.name]Constraints  ;]
+  [-- }]
+  [/if]
+
+  @Override
+  public InternalCriteria [a.name]([U] value) {
+    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, wrapMarshalable(value)));
+  }
+  [if U not = 'boolean']
+
+  @Override
+  public InternalCriteria [a.name]Not([U] value) {
+    return new InternalCriteria(constraint.equal("[a.marshaledName]", true, wrapMarshalable(value)));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]In(Iterable<[W]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([W] v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.in("[a.marshaledName]", false, wrappedValues));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]In([U] first, [U] second, [U]... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add(wrapMarshalable(first));
+    values.add(wrapMarshalable(second));
+    for ([U] value : rest) {
+      values.add(wrapMarshalable(value));
+    }
+    return new InternalCriteria(constraint.in("[a.marshaledName]", false, values));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]NotIn(Iterable<[W]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([W] v : values) {
+      wrappedValues.add(wrapMarshalable(v));
+    }
+    return new InternalCriteria(constraint.in("[a.marshaledName]", true, wrappedValues));
+  }
+    
+  @Override
+  public InternalCriteria [a.name]NotIn([U] first, [U] second, [U]... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add(wrapMarshalable(first));
+    values.add(wrapMarshalable(second));
+    for ([U] value : rest) {
+      values.add(wrapMarshalable(value));
+    }
+    return new InternalCriteria(constraint.in("[a.marshaledName]", true, values));
+  }
+  [/if]
+[if a.type == 'java.lang.String']
+  
+  @Override
+  public InternalCriteria [a.name]StartsWith(String prefix) {
+    return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]Matches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
+  }
+
+  @Override
+  public InternalCriteria [a.name]NotMatches(java.util.regex.Pattern pattern) {
+    return new InternalCriteria(constraint.match("[a.marshaledName]", true, pattern));
+  }
+[/if]
+[if a.optionalType]
+  
+  @Override
+  public InternalCriteria [a.name]Present() {
+  [if a.forceEmpty or  type.useConstructorOnly]
+    return new InternalCriteria(constraint.equal("[a.marshaledName]", true, null));
+  [else]
+    return new InternalCriteria(constraint.present("[a.marshaledName]", false));
+  [/if]
+  }
+
+  @Override
+  public InternalCriteria [a.name]Absent() {
+  [if a.forceEmpty or  type.useConstructorOnly]
+    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, null));
+  [else]
+    return new InternalCriteria(constraint.present("[a.marshaledName]", true));
+  [/if]
+  }
+[/if]
+[if a.comparable]
+  
+  @Override
+  public InternalCriteria [a.name]GreaterThan([U] lower) {
+    return [a.name]In(com.google.common.collect.Range.greaterThan(lower));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]LessThan([U] upper) {
+    return [a.name]In(com.google.common.collect.Range.lessThan(upper));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]AtMost([U] upperInclusive) {
+    return [a.name]In(com.google.common.collect.Range.atMost(upperInclusive));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]AtLeast([U] lowerInclusive) {
+    return [a.name]In(com.google.common.collect.Range.atLeast(lowerInclusive));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]In(com.google.common.collect.Range<[W]> range) {
+    return new InternalCriteria(constraint.range("[a.marshaledName]", false, wrappedRange[toUpper a.name](range)));
+  }
+  
+  @Override
+  public InternalCriteria [a.name]NotIn(com.google.common.collect.Range<[W]> range) {
+    return new InternalCriteria(constraint.range("[a.marshaledName]", true, wrappedRange[toUpper a.name](range)));
+  }
+  
+  private static com.google.common.collect.Range<Comparable<Object>> wrappedRange[toUpper a.name](com.google.common.collect.Range<[W]> range) {
+    if (range.hasLowerBound() && range.hasUpperBound()) {
+      return com.google.common.collect.Range.range(
+          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
+          range.lowerBoundType(),
+          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
+          range.upperBoundType());
+    } else if (range.hasLowerBound()) {
+      return com.google.common.collect.Range.downTo(
+          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
+          range.lowerBoundType());
+    } else if (range.hasUpperBound()) {
+      return com.google.common.collect.Range.upTo(
+          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
+          range.upperBoundType());
+    }
+    throw new AssertionError();
+  }
+  
+[/if]
+[/if]
+[/for]
+[/for]
+
+  @Override
+  public InternalCriteria or() {
+    return new InternalCriteria(constraint.disjunction());
+  }
+
+  @Override
+  public String toString() {
+    return "[type.name]Repository.where(" + RepositorySupport.stringify(this) + ")";
+  }
+}
+[/template]
+
+[template generateCriteriaApi type]
+private static final Criteria ANY_CRITERIA = new InternalCriteria(ConstraintSupport.nilConstraint());
+
+/**
+ * Specify search criteria.
+ * Returns initial object to create criteria by invoking methods that describe attribute specific constrains.
+ * @return empty immutable criteria
+ */
+public static Criteria where() {
+  return ANY_CRITERIA;
+}
+
+/**
+ * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
+ * Call methods on criteria to add constraint for search query.
+ */
+@javax.annotation.concurrent.Immutable
+public static abstract class Criteria extends Repositories.Criteria {
+  Criteria() {}
+[foreach a in type.implementedAttributes]
+[for W = a.wrappedElementType, U = a.unwrappedElementType]
+
+[if a.collectionType]
+  public abstract Criteria [a.name]Empty();
+  public abstract Criteria [a.name]NonEmpty();
+  public abstract Criteria [a.name]Size(int size);
+  public abstract Criteria [a.name]Contains([U] value);
+  public abstract Criteria [a.name]ContainsAll(Iterable<[W]> values);
+  [if W == 'java.lang.String']
+  public abstract Criteria [a.name]AnyStartsWith(String prefix);
+  public abstract Criteria [a.name]AnyMatches(java.util.regex.Pattern pattern);
+  [/if]
+[else]
+  [if a.documentElement]
+  [-- public abstract Criteria [a.name] [U]s.Criteria [a.name]Constraints ;]
+  [/if]
+  public abstract Criteria [a.name]([U] value);
+  [if U not = 'boolean']
+  public abstract Criteria [a.name]Not([U] value);
+  public abstract Criteria [a.name]In(Iterable<[W]> values);
+  public abstract Criteria [a.name]In([U] first, [U] second, [U]... rest);
+  public abstract Criteria [a.name]NotIn(Iterable<[W]> values);
+  public abstract Criteria [a.name]NotIn([U] first, [U] second, [U]... rest);
+  [/if]
+  [if a.type == 'java.lang.String']
+  public abstract Criteria [a.name]StartsWith(String prefix);
+  public abstract Criteria [a.name]Matches(java.util.regex.Pattern pattern);
+  public abstract Criteria [a.name]NotMatches(java.util.regex.Pattern pattern);
+  [/if]
+  [if a.optionalType]
+  public abstract Criteria [a.name]Present();
+  public abstract Criteria [a.name]Absent();
+  [/if]
+  [if a.comparable]
+  public abstract Criteria [a.name]GreaterThan([U] lower);
+  public abstract Criteria [a.name]LessThan([U] upper);
+  public abstract Criteria [a.name]AtMost([U] upperInclusive);
+  public abstract Criteria [a.name]AtLeast([U] lowerInclusive);
+  public abstract Criteria [a.name]In(com.google.common.collect.Range<[W]> range);
+  public abstract Criteria [a.name]NotIn(com.google.common.collect.Range<[W]> range);
+  [/if]
+[/if]
+[/for]
+[/for]
+  @Override
+  public abstract Criteria or();
+}
+[/template]
+
+[template generateImportRoutines type]
+[for s in type.generateMarshaledImportRoutines]
+import static [s].*;
+[/for]
+[/template]
+
+[template generateMarshalWrappers type]
+private static Object wrapMarshalable(Object value) {
+  return value;
+}
+
+  [for T in type.generateMarshaledTypes]
+private static Object wrapMarshalable(final [T] value) {
+  return new RepositorySupport.MarshalableWrapper(value) {
+    @Override
+    protected void marshalWrapped(com.fasterxml.jackson.core.JsonGenerator generator) throws java.io.IOException {
+      marshal(generator, value);
+    }
+  };
+}
+  [/for]
+
+[/template]

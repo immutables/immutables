@@ -1,0 +1,558 @@
+[template generate Type type]
+[output.java type.packageName (type.simpleName 'Marshaler')]
+[generateMarshaler type]
+[/output.java]
+[output.java type.packageName ('_Marshaling_' type.simpleName)]
+[generateMarshaling type]
+[/output.java]
+[/template]
+
+[template generateMarshaler Type type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+import com.fasterxml.jackson.core.*;
+import javax.annotation.*;
+import java.io.IOException;
+import org.immutables.common.marshal.Marshaler;
+// Generated imports
+
+/**
+ * Marshaler that could marshal and unmarshal instances of {@code [type.name]}.
+ * Uses Jackson JSON processor API.
+ */
+@SuppressWarnings("all")
+@Generated({"marshaler.tjs", "[type.name]"})
+@ParametersAreNonnullByDefault
+[type.accessPrefix]final class [type.simpleName]Marshaler
+    extends Marshaler<[type.name]>
+    implements org.immutables.common.marshal.internal.MarshalingContributor {
+
+  @Override
+  public void putMarshalers(com.google.common.collect.ImmutableMap.Builder<Class<?>, Marshaler<?>> builder) {
+    builder.put([type.valueTypeName].class, INSTANCE).put([type.implementationTypeName].class, INSTANCE);
+  }
+    
+  private static final [type.simpleName]Marshaler INSTANCE = new [type.simpleName]Marshaler();
+  
+  private [type.simpleName]Marshaler() {
+  }
+  
+  /**
+   * Singleton marshaler that is bound to marshal and unmarshal instances of [type.name].
+   * @return marshaler
+   */
+  public static [type.simpleName]Marshaler instance() {
+    return INSTANCE;
+  }
+
+  /**
+   * Unmarshal instance of {@link [type.name]}.
+   * <p>
+   * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
+   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
+   * @param parser jackson JSON parser
+   * @param nullSample always {@code null}, used for static method overload resolution
+   * @param expectedClass will be an {@code [type.name].class}
+   * @return instance of {@link [type.name]}
+   * @throws IOException either IO failure or parsing problem
+   */
+  public static [type.name] unmarshal(
+      @WillNotClose JsonParser parser,
+      @Nullable [type.name] nullSample,
+      Class<?> expectedClass) throws java.io.IOException {
+    return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
+  }
+
+  /**
+   * Marshal instance of {@link [type.name]}.
+   * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
+   * @param generator jackson JSON generator
+   * @param instance instance of {@link [type.name]} to marshal
+   * @throws IOException either IO failure or parsing problem
+   */
+  public static void marshal(
+      @WillNotClose JsonGenerator generator,
+      [type.name] instance) throws IOException {
+    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+  }
+
+  @Override
+  public [type.name] unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
+    return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
+  }
+
+  @Override
+  public void marshalInstance(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
+    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+  }
+
+  @Override
+  public Iterable<[type.name]> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
+    return _Marshaling_[type.simpleName].unmarshalIterableOf[type.simpleName](parser);
+  }
+
+  @Override
+  public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<[type.name]> instance) throws IOException {
+    _Marshaling_[type.simpleName].marshalIterableOf[type.simpleName](generator, instance);
+  }
+
+  @Override
+  public Class<[type.name]> getExpectedType() {
+    return [type.name].class;
+  }
+
+  @Override
+  public String toString() {
+    return "[type.simpleName]Marshaler.instance()";
+  }
+}
+[/template]
+
+[template generateMarshaling Type type]
+[if type.packageName]
+package [type.packageName];
+[/if]
+
+import com.fasterxml.jackson.core.*;
+import javax.annotation.*;
+import java.io.IOException;
+// Generated imports
+[generateImportRoutines type]
+import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
+import static org.immutables.common.marshal.internal.MarshalingSupport.*;
+
+/**
+ * Internal routines for marshaling and unmarshaling instances of [type.name].
+ * Uses Jackson JSON processor API. See {@code [type.simpleName]Marshaler} for the entry point to this API
+ */
+@SuppressWarnings("all")
+@Generated({"marshal.tjs", "[type.name]"})
+@ParametersAreNonnullByDefault
+final class _Marshaling_[type.simpleName] {
+  private _Marshaling_[type.simpleName]() {
+  }
+  [apply generateMarshalingMethods type]
+  [apply generateUnmarshalingMethods type]
+}
+[/template]
+
+[template generateImportRoutines type]
+[for s in type.generateMarshaledImportRoutines]
+import static [s].*;
+[/for]
+[/template]
+
+[template generateMarshalingMethods type]
+
+static void marshalIterableOf[type.simpleName](JsonGenerator generator, Iterable<[type.name]> iterable)
+    throws IOException {
+  generator.writeStartArray();
+  for ([type.name] instance : iterable) {
+    marshal[type.simpleName](generator, instance);
+  }
+  generator.writeEndArray();
+}
+
+static void marshal[type.simpleName](JsonGenerator generator, [type.name] instance)
+    throws IOException {
+[if type.useConstructorOnly]
+  [for ca = type.constructorArguments]
+  [if ca.length == 1]
+  [for a in ca]
+  [apply generateMarshalConstructorValue type, a]
+  [/for]
+  [else]
+  generator.writeStartArray();
+  [for a in ca]
+  [apply generateMarshalConstructorValue type, a]
+  [/for]
+  generator.writeEndArray();
+  [/if]
+  [/for]
+[else]
+  generator.writeStartObject();
+  [for a in type.implementedAttributes]
+  [apply generateMarshalAttributeValue type, a];
+  [/for]
+
+  generator.writeEndObject();
+[/if]
+}
+[/template]
+
+[template generateMarshalConstructorValue type, a]
+  [if a.optionalType]
+[a.type] [a.name]Value = instance.[a.name]();
+if ([a.name]Value.isPresent()) {
+  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
+  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'unwrapped' + a.name + 'Value']
+} else {
+  generator.writeNull();
+}
+  [else if a.mapType]
+[a.type] [a.name]Map = instance.[a.name]();
+generator.writeStartObject();
+for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
+    [-- only use toString with objects and boxed primitives]
+    generator.writeFieldName(marshalKey(e.getKey()));
+  [-- here we assign to a unwrapped variable so overload resolution will precise]
+  [a.unwrappedSecondaryElementType] value = e.getValue();
+  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'value']
+}
+generator.writeEndObject();
+  [else if a.collectionType]
+generator.writeStartArray();
+for ([a.unwrappedElementType] e : instance.[a.name]()) {
+  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'e']
+}
+generator.writeEndArray();
+  [else]
+[apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'instance.' + a.name + ' ']
+  [/if]
+[/template]
+
+[template generateMarshalAttributeValue type, a]
+
+  [if a.optionalType]
+[a.type] [a.name]Value = instance.[a.name]();
+if ([a.name]Value.isPresent()) {
+  generator.writeFieldName("[a.marshaledName]");
+  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
+  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'unwrapped' + a.name + 'Value']
+    [if a.forceEmpty]
+} else {
+  generator.writeNullField("[a.marshaledName]");
+    [/if]
+}
+  [else if a.mapType]
+[a.type] [a.name]Map = instance.[a.name]();
+if (![a.name]Map.isEmpty()) {
+  generator.writeObjectFieldStart("[a.marshaledName]");
+  for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
+    [-- only use toString with objects and boxed primitives]
+    generator.writeFieldName(marshalKey(e.getKey()));
+    [-- here we assign to a unwrapped variable so overload resolution will precisely]
+    [a.unwrappedSecondaryElementType] value = e.getValue();
+    [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'value']
+  }
+  generator.writeEndObject();
+    [if a.forceEmpty]
+} else {
+  generator.writeObjectFieldStart("[a.marshaledName]");
+  generator.writeEndObject();
+    [/if]
+}
+  [else if a.collectionType]
+[a.type] [a.name]Collection = instance.[a.name]();
+if (![a.name]Collection.isEmpty()) {
+  generator.writeArrayFieldStart("[a.marshaledName]");
+  for ([a.unwrappedElementType] e : [a.name]Collection) {
+    [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'e']
+  }
+  generator.writeEndArray();
+    [if a.forceEmpty]
+} else {
+  generator.writeArrayFieldStart("[a.marshaledName]");
+  generator.writeEndArray();
+    [/if]
+}
+  [else]
+generator.writeFieldName("[a.marshaledName]");
+[apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'instance.' + a.name + ' ']
+  [/if]
+[/template]
+
+[template generateUnmarshalingMethods type]
+
+private static void ensure(boolean condition, String attributeName, String attributeType, Object message) {
+  ensureCondition(
+      condition,
+      "[type.name]",
+      attributeName,
+      attributeType,
+      message);
+}
+
+static Iterable<[type.name]> unmarshalIterableOf[type.simpleName](JsonParser parser)
+    throws IOException {
+  java.util.List<[type.name]> result = com.google.common.collect.Lists.newArrayList();
+  JsonToken t = parser.getCurrentToken();
+  if (t == JsonToken.START_OBJECT) {
+    [-- Special case for array encoded as objects {'0':{..}, '1':{..}} faced with BSON]
+    while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
+      ensure(t == JsonToken.FIELD_NAME, "*", "", t);
+      parser.nextToken();
+      result.add(unmarshal[type.simpleName](parser));
+    }
+  } else {
+    ensure(t == JsonToken.START_ARRAY, "*", "List<[type.name]>", t);
+    while ((t = parser.nextToken()) != JsonToken.END_ARRAY) {
+      result.add(unmarshal[type.simpleName](parser));
+    }
+  }
+  return result;
+}
+
+[if type.useConstructorOnly]
+[for ca = type.constructorArguments]
+private static JsonParser nextTokenAdvance(JsonParser parser) throws IOException {
+  parser.nextToken();
+  return parser;
+}
+
+static [type.name] unmarshal[type.simpleName](JsonParser parser)
+    throws IOException {
+[if ca.length == 1]
+  [for a in ca]
+  return Immutable[type.name].of(unmarshalConstructorArgument[toUpper a.name](parser));
+  [/for]
+[else]
+  JsonToken t = parser.getCurrentToken();
+  ensure(t == JsonToken.START_ARRAY, "of [", "", t);
+  [type.name] instance = Immutable[type.name].of(
+  [for a in ca]
+    [nextComma] unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))
+  [/for]
+  );
+  ensure(parser.nextToken() == JsonToken.END_ARRAY, "]", "", parser.getCurrentToken());
+  return instance;
+[/if]
+}
+[for a in ca]
+[apply generateConstructorArgumentUnmarshal type, a]
+[/for]
+[/for]
+[else]    
+
+static [type.name] unmarshal[type.simpleName](JsonParser parser)
+    throws IOException {
+  Immutable[type.name].Builder builder = Immutable[type.name].builder();
+  String attributeName = "";
+  try {
+    JsonToken t = parser.getCurrentToken();
+    ensure(t == JsonToken.START_OBJECT, "new {", "", t);
+    while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
+      ensure(t == JsonToken.FIELD_NAME, "*", "", t);
+      attributeName = parser.getText();
+      unmarshalAttribute(parser, builder, attributeName);
+    }
+  } catch (JsonParseException jsonParse) {
+    ensure(false, attributeName, "?", jsonParse.getMessage());
+  }
+  return builder.build();  
+}
+
+private static void unmarshalAttribute(JsonParser parser, Immutable[type.name].Builder builder, String attributeName)
+    throws IOException {
+  switch(attributeName) {
+  [for s in type.settableAttributes]
+  case "[s.marshaledName]":
+    unmarshalAttribute[toUpper s.name](parser, builder);
+    break;
+  [/for]
+  default:
+    unmarshalUnknownAttribute(parser, attributeName);
+  }
+}
+
+private static void unmarshalUnknownAttribute(JsonParser parser, String attributeName)
+    throws IOException {
+  JsonToken t = parser.nextToken();
+  if (!t.isScalarValue()) {
+    parser.skipChildren();
+  }
+}
+[for s in type.settableAttributes]  
+[apply generateUnmarshalAttribute type, s]
+[/for]
+[/if]
+[/template]
+
+[template generateConstructorArgumentUnmarshal type, a]
+
+private static [a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser parser)
+    throws IOException {
+  [if a.primitive]
+  JsonToken t = parser.getCurrentToken();
+  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+    [if a.type == 'char']
+  return parser.getText().charAt(0);
+    [else]
+  return parser.get[toUpper a.type]Value();  
+    [/if]
+  [else if a.mapType]
+  return unmarshalMap[toUpper a.name](parser);
+  [else]
+  [apply generateConstructorArgumentComplexUnmarshal type, a]
+  [/if]
+}
+  [if a.mapType]
+[apply generateMapUnmarshalMethod type, a]
+  [/if]
+[/template]
+
+[template generateConstructorArgumentComplexUnmarshal type, a]
+JsonToken t = parser.getCurrentToken();
+  [if a.optionalType]
+if (t != JsonToken.VALUE_NULL) {
+    [if a.unwrappedElementPrimitiveType]
+  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  return Optional.<[a.elementType]>of(parser.get[toUpper a.unwrappedElementType]Value());
+    [else]
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  return Optional.of(value);
+    [/if]
+}
+return Optional.absent();
+  [else if a.collectionType]
+java.util.List<[a.elementType]> elements = com.google.common.collect.Lists.newArrayList();  
+[apply generateCollectionUnmarshalCode type, a, 'elements.add']
+return com.google.common.collect.Immutable[a.rawCollectionType].copyOf(elements);
+  [else]
+[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.type, a.rawType]
+return value;
+  [/if]
+[/template]
+
+[template generateUnmarshalAttribute type, a]
+
+private static void unmarshalAttribute[toUpper a.name](JsonParser parser, Immutable[type.name].Builder builder)
+    throws IOException {
+  [if a.primitive]
+  ensure(parser.nextToken().isScalarValue(), "[a.name]", "[a.type]", parser.getCurrentToken());
+    [if a.type == 'char']
+  builder.[a.name](parser.getText().charAt(0));
+    [else]
+  builder.[a.name](parser.get[toUpper a.type]Value());  
+    [/if]
+  [else if a.mapType]
+  parser.nextToken();
+  builder.putAll[toUpper a.name](unmarshalMap[toUpper a.name](parser));
+  [else]
+  [apply generateComplexTypeUnmarshalAttribute type, a]
+  [/if]
+}
+[if a.mapType]
+[apply generateMapUnmarshalMethod type, a]
+[/if]
+[/template]
+
+[template generateMapUnmarshalMethod type, a]
+
+private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
+    throws IOException {
+  JsonToken t = parser.getCurrentToken();
+  if (t == JsonToken.VALUE_NULL) {
+    return ImmutableMap.of();
+  }
+  ensure(t == JsonToken.START_OBJECT, "[a.name]", "[a.type]", t);
+  com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
+
+  while((t = parser.nextToken()) != JsonToken.END_OBJECT) {
+    ensure(t == JsonToken.FIELD_NAME, "[a.name][*]", "[a.type]", t);
+[if a.unwrappedElementPrimitiveType]
+  [if a.unwrappedElementType == 'char']
+    String rawKey = parser.getText();
+    if (rawKey.length() != 1) {
+      ensure(false, "[a.name][" + rawKey + "]", "[a.type][char]", rawKey);
+    }
+    char key = rawKey.charAt(0);
+  [else]
+    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](parser.getText());
+  [/if]
+[else if a.wrappedElementType == 'java.lang.String']
+    [a.wrappedElementType] key = parser.getText();
+[else]
+    [a.wrappedElementType] key = unmarshal(parser, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
+[/if]
+    t = parser.nextToken();
+[if a.unwrappedSecondaryElementPrimitiveType]
+    ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+    [a.unwrappedSecondaryElementType] value = parser.get[toUpper a.unwrappedSecondaryElementType]Value();
+[else if a.wrappedSecondaryElementType == 'java.lang.String']
+    String value = parser.getText();
+[else]
+    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedSecondaryElementType, a.unwrapperOrRawSecondaryElementType]
+[/if]
+    builder.put(key, value);
+  }
+    
+  return builder.build();
+}
+[/template]
+
+[template generateCollectionUnmarshalCode type, a, collectorExpression]
+  [if a.unwrappedElementPrimitiveType]
+if (t == JsonToken.START_ARRAY) {
+  while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
+    ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+    [collectorExpression](parser.get[toUpper a.unwrappedElementType]Value());
+  }
+} else if (t != JsonToken.VALUE_NULL) {
+  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  [collectorExpression](parser.get[toUpper a.unwrappedElementType]Value());
+}
+  [else]
+if (t == JsonToken.START_ARRAY) {
+  while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
+    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+    [collectorExpression](value);
+  }
+} else if (t != JsonToken.VALUE_NULL) {
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  [collectorExpression](value);
+}
+  [/if]
+[/template]
+
+[template generateComplexTypeUnmarshalAttribute type, a]
+JsonToken t = parser.nextToken();
+  [if a.optionalType]
+if (t != JsonToken.VALUE_NULL) {
+    [if a.unwrappedElementPrimitiveType]
+  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  builder.[a.name](parser.get[toUpper a.unwrappedElementType]Value());
+    [else]
+  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  builder.[a.name](value);
+    [/if]
+}
+  [else if a.mapType]
+  [else if a.collectionType]
+[toUpper apply generateCollectionUnmarshalCode type, a, 'builder.add' + a.name]
+  [else]
+[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.type, a.rawType]
+builder.[a.name](value);
+  [/if]
+[/template]
+
+[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, attribute, genericType, rawType]
+[genericType] value =
+[for cx = attribute.expectedSubclasses]
+  [if cx.length not = 0]
+    ([genericType]) unmarshalWithOneOfMarshalers(parser, "[type.name]", "[attribute.name]", "[genericType]"
+    [for c in cx]
+        , [c]Marshaler.instance()
+    [/for]
+        );
+  [else]
+    unmarshal(parser, ([genericType]) null, [rawType].class);
+  [/if]
+[/for]
+[/template]
+
+[template generatePossiblyPolymorphicTypeMarshalAttributeValue type, attribute, variableName]
+[for cx = attribute.expectedSubclasses]
+  [if cx.length not = 0 and  not attribute.primitive]
+marshalWithOneOfMarshalers(generator, [variableName]
+    [for c in cx]
+    , [c]Marshaler.instance()
+    [/for]
+    );
+  [else]
+marshal(generator, [variableName]);
+  [/if]
+[/for]
+[/template]
