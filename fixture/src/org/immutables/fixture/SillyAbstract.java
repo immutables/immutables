@@ -15,9 +15,9 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.annotation.GenerateMarshaledSubclasses;
+import org.immutables.json.Json;
 
-@GenerateMarshaledSubclasses({
+@Json.Subclasses({
     SillySub1.class,
     SillySub2.class
 })

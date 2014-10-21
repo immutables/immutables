@@ -18,16 +18,16 @@ package org.immutables.fixture;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.Set;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler(importRoutines = SillyMarshalingRoutines.class)
-abstract class SillyMapHolder {
+@Json.Marshaled
+@Json.Import(SillyMarshalingRoutines.class)
+public abstract class SillyMapHolder {
 
   @Value.Parameter(order = 0)
-  @GenerateMarshaled(forceEmpty = true)
+  @Json.ForceEmpty
   public abstract Map<SillyValue, Integer> holder1();
 
   @Value.Parameter(order = 1)

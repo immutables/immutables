@@ -15,10 +15,11 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.base.Throwables;
-import org.immutables.fixture.SillyEmpty;
-import org.immutables.fixture.SillyLazy;
-import org.immutables.fixture.SillyMapHolder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import java.util.Arrays;
+import java.util.List;
+import java.util.List;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
@@ -37,11 +38,6 @@ public class ValuesTest {
     check(g.getAb()).is(0);
     check(g.getCd()).is("");
     check(g.isEf());
-
-//    ModifiableGetters mg = ModifiableGetters.create().copy(g);
-//    check(g.getAb()).is(0);
-//    check(g.getCd()).is("");
-//    check(g.isEf());
 
     check(ImmutableGetterEncloser.builder().build().getOptional()).isNull();
 
@@ -121,8 +117,8 @@ public class ValuesTest {
   public void packagePrivateClassGeneration() {
     check(Modifier.isPublic(SillyEmpty.class.getModifiers()));
     check(Modifier.isPublic(ImmutableSillyEmpty.class.getModifiers()));
-    check(!Modifier.isPublic(SillyMapHolder.class.getModifiers()));
-    check(!Modifier.isPublic(ImmutableSillyMapHolder.class.getModifiers()));
+    check(!Modifier.isPublic(SillyExtendedBuilder.class.getModifiers()));
+    check(!Modifier.isPublic(ImmutableSillyExtendedBuilder.class.getModifiers()));
   }
 
   @Test
@@ -197,6 +193,39 @@ public class ValuesTest {
         .value(10)
         .negativeOnly(true)
         .build();
+  }
+
+  @Test
+  public void copyConstructor() {
+    ByBuilder wasCopiedByBuilder =
+        ImmutableSampleCopyOfTypes.ByBuilder.copyOf(new SampleCopyOfTypes.ByBuilder() {
+          @Override
+          public int value() {
+            return 2;
+          }
+        });
+    check(wasCopiedByBuilder.value()).is(2);
+
+    ByConstructorAndWithers wasCopiedByConstructorAndWithers =
+        ImmutableSampleCopyOfTypes.ByConstructorAndWithers.copyOf(new SampleCopyOfTypes.ByConstructorAndWithers() {
+          @Override
+          public int value() {
+            return 1;
+          }
+
+          @Override
+          public List<String> additional() {
+            return Arrays.asList("3");
+          }
+        });
+
+    check(wasCopiedByConstructorAndWithers.value()).is(1);
+    check(wasCopiedByConstructorAndWithers.additional()).isOf("3");
+
+    SampleCopyOfTypes.ByConstructorAndWithers value2 = ImmutableSampleCopyOfTypes.ByConstructorAndWithers.of(2);
+
+    check(ImmutableSampleCopyOfTypes.ByConstructorAndWithers.copyOf(value2))
+        .same(ImmutableSampleCopyOfTypes.ByConstructorAndWithers.copyOf(value2));
   }
 
   @Test

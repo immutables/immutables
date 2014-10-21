@@ -1,7 +1,6 @@
 package org.immutables.generator;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -13,10 +12,9 @@ import org.immutables.generator.Templates.Apply;
 import org.immutables.generator.Templates.Binary;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
+import org.immutables.generator.Templates.Product;
 
 public final class Intrinsics {
-  private static final Joiner PLAIN_JOINER = Joiner.on("");
-
   private Intrinsics() {}
 
   /**
@@ -45,8 +43,8 @@ public final class Intrinsics {
     return apply.apply(parameters);
   }
 
-  public static CharSequence $(Object... parameters) {
-    return PLAIN_JOINER.join(parameters);
+  public static Product $(Object... parameters) {
+    return new Product(parameters);
   }
 
   public static <F> void $(Invokation invokation, Function<? super F, ?> unary, F value) {
@@ -97,7 +95,7 @@ public final class Intrinsics {
     if (value instanceof Optional<?>) {
       return ((Optional<?>) value).isPresent();
     }
-    return false;
+    return true;
   }
 
   public static <T> Iterable<T> $in(Iterable<T> iterable) {

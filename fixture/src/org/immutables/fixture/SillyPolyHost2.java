@@ -16,21 +16,20 @@
 package org.immutables.fixture;
 
 import com.google.common.base.Optional;
-import org.immutables.annotation.GenerateMarshaledSubclasses;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillyPolyHost2 {
 
-  @GenerateMarshaledSubclasses({
+  @Json.Subclasses({
       SillySub2.class,
       SillySub3.class
   })
   public abstract SillyAbstract s();
 
-  @GenerateMarshaledSubclasses({
+  @Json.Subclasses({
       SillySub2.class,
       SillySub3.class
   })

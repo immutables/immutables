@@ -15,36 +15,35 @@
  */
 package org.immutables.fixture;
 
+import org.immutables.mongo.Mongo;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateRepository;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateRepository
-@GenerateMarshaler
-public abstract class SillyStructureWithId {
+@Mongo.Repository
+@Json.Marshaled
+public interface SillyStructureWithId {
 
-  @GenerateMarshaled("_id")
-  public abstract String id();
+  @Json.Named("_id")
+  String id();
 
-  public abstract String attr1();
+  String attr1();
 
-  public abstract boolean flag2();
+  boolean flag2();
 
-  public abstract Optional<Integer> opt3();
+  Optional<Integer> opt3();
 
-  public abstract long very4();
+  long very4();
 
-  public abstract double wet5();
+  double wet5();
 
-  public abstract List<SillySubstructure> subs6();
+  List<SillySubstructure> subs6();
 
-  public abstract SillySubstructure nest7();
+  SillySubstructure nest7();
 
-  public abstract Optional<SillyTuplie> tup3();
+  Optional<SillyTuplie> tup3();
 
-  public abstract int int9();
+  int int9();
 }

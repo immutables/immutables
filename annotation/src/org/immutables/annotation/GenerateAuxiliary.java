@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
  * @see GenerateDefault
  */
 @Documented
+@Deprecated
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface GenerateAuxiliary {}

@@ -17,8 +17,4 @@ package org.immutables.fixture;
 
 enum SillyValue {
   ONE, TWO;
-  @Override
-  public String toString() {
-    return name().toLowerCase();
-  }
 }

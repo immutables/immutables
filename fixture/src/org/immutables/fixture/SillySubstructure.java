@@ -15,22 +15,21 @@
  */
 package org.immutables.fixture;
 
+import org.immutables.mongo.Mongo;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateRepository;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
-@GenerateRepository
+@Json.Marshaled
+@Mongo.Repository
 public abstract class SillySubstructure {
 
   @Value.Default
-  @GenerateMarshaled("e1")
+  @Json.Named("e1")
   public RetentionPolicy enum1() {
     return RetentionPolicy.SOURCE;
   }

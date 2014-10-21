@@ -31,6 +31,7 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
+@Deprecated
 public @interface GenerateImmutable {
 
   boolean nonpublic() default false;

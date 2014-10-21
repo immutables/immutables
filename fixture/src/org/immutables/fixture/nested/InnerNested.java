@@ -1,16 +1,16 @@
 package org.immutables.fixture.nested;
 
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Nested
 @Value.Immutable
 public interface InnerNested {
   @Value.Immutable
-  @GenerateMarshaler
+  @Json.Marshaled
   abstract static class Inner {}
 
   @Value.Immutable
-  @GenerateMarshaler
+  @Json.Marshaled
   interface Nested {}
 }

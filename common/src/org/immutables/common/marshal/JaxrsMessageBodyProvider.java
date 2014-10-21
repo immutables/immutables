@@ -35,14 +35,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
+import org.immutables.json.Json;
+import org.immutables.value.Value;
 
 /**
  * JSON marshaling JAX-RS provider for immutable classes with generated marshaler.
- * @see GenerateImmutable
- * @see GenerateMarshaler
+ * @see Value.Immutable
+ * @see Json.Marshaled
  */
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)

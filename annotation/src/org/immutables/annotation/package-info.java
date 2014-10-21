@@ -18,4 +18,5 @@
  * See documentation on <a href="http://immutables.org">immutables.org</a>
  */
 @javax.annotation.ParametersAreNonnullByDefault
+@Deprecated
 package org.immutables.annotation;

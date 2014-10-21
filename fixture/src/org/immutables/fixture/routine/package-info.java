@@ -14,6 +14,6 @@
    limitations under the License.
  */
 @javax.annotation.ParametersAreNonnullByDefault
-@org.immutables.annotation.GenerateMarshaler(importRoutines = SillyMarshalingRoutines2.class)
+@org.immutables.json.Json.Import(SillyMarshalingRoutines2.class)
 package org.immutables.fixture.routine;
 

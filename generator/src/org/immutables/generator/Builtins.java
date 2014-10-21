@@ -30,6 +30,19 @@ public class Builtins {
         }
       };
 
+  public final Predicate<Object> singular =
+      new Predicate<Object>() {
+        @Override
+        public boolean apply(Object input) {
+          return size.apply(input) == 1;
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".singular";
+        }
+      };
+
   public final Function<Object, Integer> size =
       new Function<Object, Integer>() {
         @Override

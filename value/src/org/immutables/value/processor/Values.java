@@ -12,15 +12,13 @@ class Values extends AbstractTemplate {
 
   Immutables immutables = new Generator_Immutables();
 
-  Modifiables modifiables = new Generator_Modifiables();
-
   Parboileds parboileds = new Generator_Parboileds();
 
   Transformers transformers = new Generator_Transformers();
 
-//  Marshalers marshalers = new Generator_Marshalers();
-//
-//  Repositories repositories = new Generator_Repositories();
+  Marshalers marshalers = new Generator_Marshalers();
+
+  Repositories repositories = new Generator_Repositories();
 
   private List<DiscoveredValue> type;
 

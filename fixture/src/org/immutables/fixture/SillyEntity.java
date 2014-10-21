@@ -22,26 +22,25 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
-import org.immutables.annotation.GenerateRepository;
+import org.immutables.json.Json;
+import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler(importRoutines = { SillyEntity.class })
-@GenerateRepository
+@Json.Import({ SillyEntity.class })
+@Mongo.Repository
 public abstract class SillyEntity {
 
-  @GenerateMarshaled("_id")
+  @Json.Named("_id")
   public abstract int id();
 
-  @GenerateMarshaled("v")
+  @Json.Named("v")
   public abstract String val();
 
-  @GenerateMarshaled("p")
+  @Json.Named("p")
   public abstract Map<String, Integer> payload();
 
-  @GenerateMarshaled("i")
+  @Json.Named("i")
   public abstract List<Integer> ints();
 
   @Value.Derived

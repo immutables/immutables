@@ -15,6 +15,8 @@
  */
 package org.immutables.common.marshal;
 
+import org.immutables.value.Value;
+import org.immutables.json.Json;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -24,13 +26,11 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.io.StringWriter;
-import org.immutables.annotation.GenerateImmutable;
-import org.immutables.annotation.GenerateMarshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
  * Contains convenient methods for marshaling and unmarshaling documents annotated with
- * {@link GenerateMarshaler} to and from standard textual JSON.
+ * {@link Json.Marshaled} to and from standard textual JSON.
  * <p>
  * You can avoid using this class in favor of using Marshalers directly due to the fact of using
  * static marshaler cache with weak class keys. Nevertheless, this class provides easy-to-use static
@@ -88,7 +88,7 @@ public final class Marshaling {
 
   /**
    * Loads and caches marshaler for the specified expected type.
-   * Expected type should be either abstract value class annotated with {@link GenerateImmutable},
+   * Expected type should be either abstract value class annotated with {@link Value.Immutable},
    * or actual generated immutable subclass.
    * @param <T> expected type
    * @param expectedType expected type to marshal

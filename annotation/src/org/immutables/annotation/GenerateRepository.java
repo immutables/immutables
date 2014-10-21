@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 @Beta
+@Deprecated
 public @interface GenerateRepository {
   /**
    * Specify document collection name. If not specified, then collection name will be given

@@ -45,7 +45,6 @@ import org.immutables.value.Value;
  */
 public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
-  private static final String STRING_CLASS_NAME = String.class.getName();
   private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
@@ -78,6 +77,10 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public boolean isStringType() {
     return internalTypeName().equals(String.class.getName());
+  }
+
+  public boolean charType() {
+    return internalTypeName().equals(char.class.getName());
   }
 
   public boolean isSimpleLiteralType() {
@@ -270,7 +273,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public String getConsumedElementType() {
     return (isUnwrappedElementPrimitiveType()
-        || STRING_CLASS_NAME.equals(containmentTypeName())
+        || String.class.getName().equals(containmentTypeName())
         || hasEnumFirstTypeParameter)
         ? getWrappedElementType()
         : "? extends " + getWrappedElementType();
@@ -324,7 +327,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   private static List<String> listExpectedSubclassesFromElement(Element element) {
     return DiscoveredValue.extractedClassNamesFromAnnotationMirrors(
-        Json.Subclasses.class.getName(), "value", element.getAnnotationMirrors());
+        Json.Subclasses.class.getCanonicalName(), "value", element.getAnnotationMirrors());
   }
 
   private boolean marshaledElement;
@@ -433,7 +436,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   static boolean isRegularMashalableType(String name) {
-    return STRING_CLASS_NAME.equals(name)
+    return String.class.getName().equals(name)
         || PRIMITIVE_TYPES.containsKey(name)
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
   }

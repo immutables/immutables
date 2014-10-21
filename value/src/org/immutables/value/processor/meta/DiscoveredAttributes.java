@@ -26,7 +26,7 @@ import javax.lang.model.type.TypeMirror;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
+ * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
  */
 final class DiscoveredAttributes {
   private DiscoveredAttributes() {}

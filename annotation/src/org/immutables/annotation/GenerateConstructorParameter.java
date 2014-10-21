@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
+@Deprecated
 public @interface GenerateConstructorParameter {
   /**
    * Used to specify order of constructor argument. It's defaults to zero and allows for

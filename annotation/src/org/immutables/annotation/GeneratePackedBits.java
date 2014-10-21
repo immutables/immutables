@@ -37,6 +37,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 @Beta
+@Deprecated
 public @interface GeneratePackedBits {
   /**
    * Used to specify order of packed fields. It's defaults to zero and allows for

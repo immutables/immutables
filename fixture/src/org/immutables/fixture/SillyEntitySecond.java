@@ -1,15 +1,15 @@
 package org.immutables.fixture;
 
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateRepository;
+import org.immutables.mongo.Mongo;
 import org.immutables.common.repository.Id;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateRepository("ent2")
+@Mongo.Repository("ent2")
 public abstract class SillyEntitySecond {
 
-  @GenerateMarshaled("_id")
+  @Json.Named("_id")
   @Value.Default
   public Id id() {
     return Id.generate();

@@ -1,12 +1,12 @@
 package org.immutables.fixture.nested;
 
 import com.google.common.base.Optional;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Nested
 @Value.Transformer
-@GenerateMarshaler
+@Json.Marshaled
 class GroupedClasses {
   interface Other {}
 

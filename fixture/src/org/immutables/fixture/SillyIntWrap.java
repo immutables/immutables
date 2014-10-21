@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillyIntWrap {
 
   @Value.Parameter

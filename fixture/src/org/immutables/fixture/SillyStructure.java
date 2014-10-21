@@ -17,11 +17,11 @@ package org.immutables.fixture;
 
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillyStructure {
 
   public abstract String attr1();

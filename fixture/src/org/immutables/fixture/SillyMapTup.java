@@ -17,11 +17,11 @@ package org.immutables.fixture;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillyMapTup {
 
   @Value.Parameter(order = 0)

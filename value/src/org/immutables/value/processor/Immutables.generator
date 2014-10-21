@@ -57,18 +57,6 @@ package [type.packageName];
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
-[if type.useSingleton]
-
-  private static final [type.defName] INSTANCE = checkPreconditions(new [type.defName]());
-
-  /**
-   * Returns default immutable singleton value of [type.defName]
-   * @return immutable instance of [type.name]
-   */
-  public static [type.defName] of() {
-    return INSTANCE;
-  }
-[/if]
 [if type.useInterned or type.generateOrdinalValue]
 
   private static class InternProxy {
@@ -178,6 +166,19 @@ package [type.packageName];
 [/if]
     return instance;
   }
+[if type.useSingleton]
+
+  private static final [type.defName] INSTANCE = checkPreconditions(new [type.defName]());
+
+  /**
+   * Returns default immutable singleton value of [type.defName]
+   * @return immutable instance of [type.name]
+   */
+  public static [type.defName] of() {
+    return INSTANCE;
+  }
+[/if]
+  [generateCopyOf type]
 [generateImmutable type]
 [generateLazyValues type]
 [if type.useBuilder]
@@ -198,6 +199,47 @@ package [type.packageName];
 [/if]
 }
 [/for]
+[/template]
+
+[template generateCopyOf Type type]
+[if type.useBuilder or type.useConstructor]
+
+/**
+ * Creates immutable copy of [type.name]. Uses accessors to get values to initialize new immutable instance.
+ * If instance is already immutable, it returns it unchanged.
+ */
+public static [type.defName] copyOf([type.name] instance) {
+  if (instance instanceof [type.defName]) {
+    return ([type.defName]) instance;
+  }
+[if type.useBuilder]
+  com.google.common.base.Preconditions.checkNotNull(instance);
+  return builder()
+  [for v in type.settableAttributes]
+    [if v.collectionType]
+      .addAll[toUpper v.name](instance.[v.name]())
+    [else if v.mapType]
+      .putAll[toUpper v.name](instance.[v.name]())
+    [else]
+      .[v.name](instance.[v.name]())
+    [/if]
+  [/for]
+      .build();
+[else]
+  return of([for v in type.constructorArguments][if not for.first], [/if]instance.[v.name]()[/for])[if type.useCopyMethods][for
+          o in type.constructorOmited if o.generateDefault or o.generateAbstract]
+      .with[toUpper o.name](instance.[o.name]())[/for][/if];
+[/if]
+}
+
+/**
+ * @deprecated Already an immutable object, no need to create immutable copy
+ */
+@Deprecated
+public static [type.defName] copyOf([type.defName] instance) {
+  return com.google.common.base.Preconditions.checkNotNull(instance);
+}
+[/if]
 [/template]
 
 [template generateLazyValues Type type]
@@ -312,32 +354,6 @@ package [type.packageName];
     [/if]
   [/for]
         .toString();
-  }
-
-  /**
-   * Adjust builder with values from provided {@link [type.name]} instance.
-   * Absent optional values will not be copied (will not override current).
-   * Collection elements will be added, not replaced.
-   * @param fromInstance instance to copy values from
-   * @return {@code this} builder for chained invocation
-   */
-  public Builder copy([type.name] fromInstance) {
-    com.google.common.base.Preconditions.checkNotNull(fromInstance);
-  [for v in setters]
-    [if v.collectionType]
-    addAll[toUpper v.name](fromInstance.[v.name]());
-    [else if v.optionalType]
-    [v.type] optional[toUpper v.name] = fromInstance.[v.name]();
-    if (optional[toUpper v.name].isPresent()) {
-      [v.name] = optional[toUpper v.name];
-    }
-    [else if v.mapType]
-    putAll[toUpper v.name](fromInstance.[v.name]());
-    [else]
-    [v.name](fromInstance.[v.name]());
-    [/if]
-  [/for]
-    return this;
   }
   [for v in setters]
   [if v.collectionType]

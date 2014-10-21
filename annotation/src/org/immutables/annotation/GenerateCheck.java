@@ -28,6 +28,7 @@ import java.lang.annotation.Target;
  * which also should not throw a checked exceptions.
  */
 @Documented
+@Deprecated
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
 public @interface GenerateCheck {}

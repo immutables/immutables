@@ -15,12 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.mongo.Mongo;
-import org.immutables.json.Json;
 import com.google.common.base.*;
 import com.google.common.collect.*;
+import org.immutables.json.Json;
+import org.immutables.mongo.Mongo;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
@@ -61,6 +62,10 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   public String valueTypeName() {
     return internalTypeElement().getQualifiedName().toString();
+  }
+
+  public boolean isTopLevel() {
+    return segmentedName.enclosingClassName.isEmpty();
   }
 
   public boolean isAnnotationType() {
@@ -265,7 +270,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   private Set<String> importedMarshalledRoutines;
 
-  public Set<String> getGenerateMarshaledImportRoutines() throws Exception {
+  public Set<String> getGenerateMarshaledImportRoutines() {
     if (importedMarshalledRoutines == null) {
       Set<String> imports = Sets.newLinkedHashSet();
 
@@ -284,8 +289,8 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     Element element = internalTypeElement();
     for (;;) {
       imports.addAll(
-          extractClassNamesFromMirrors(Json.Marshaled.class,
-              "importRoutines",
+          extractClassNamesFromMirrors(Json.Import.class,
+              "value",
               element.getAnnotationMirrors()));
 
       Element enclosingElement = element.getEnclosingElement();
@@ -308,7 +313,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   private Set<String> generateMarshaledTypes;
 
-  public Set<String> getGenerateMarshaledTypes() throws Exception {
+  public Set<String> getGenerateMarshaledTypes() {
     if (generateMarshaledTypes == null) {
       Set<String> marshaledTypes = Sets.newLinkedHashSet();
       for (DiscoveredAttribute a : filteredAttributes()) {
@@ -323,7 +328,8 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
       Class<?> annotationType,
       String annotationValueName,
       List<? extends AnnotationMirror> annotationMirrors) {
-    return extractedClassNamesFromAnnotationMirrors(annotationType.getName(),
+    return extractedClassNamesFromAnnotationMirrors(
+        annotationType.getCanonicalName(),
         annotationValueName,
         annotationMirrors);
   }

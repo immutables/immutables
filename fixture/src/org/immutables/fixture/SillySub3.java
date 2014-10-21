@@ -16,11 +16,11 @@
 package org.immutables.fixture;
 
 import java.util.List;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillySub3 extends SillyAbstract {
   public abstract List<Double> b();
 }

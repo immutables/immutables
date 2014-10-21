@@ -6,8 +6,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.immutables.annotation.GenerateMarshaledSubclasses;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.value.Value;
 
 @Beta
 @Retention(RetentionPolicy.SOURCE)
@@ -15,7 +14,7 @@ public @interface Json {
 
   /**
    * Instructs generator to generate marshaler.
-   * When applied to abstract {@link org.immutables.value.Value.Immutable immutable} it will
+   * When applied to abstract {@link Value.Immutable immutable} it will
    * generate corresponding
    * marshaler class in the same package. It will have name of abstract immutable class with
    * 'Marshaler' suffix.
@@ -54,10 +53,8 @@ public @interface Json {
 
     /**
      * Specifies expected subclasses of an abstract type that is matched during parsing by
-     * occurrence of unique settable attributes ({@link org.immutables.value.Value.Derived derived}
-     * does not count, also
-     * be careful with non-mandatory ({@link org.immutables.value.Value.Default default}
-     * attributes).
+     * occurrence of unique settable attributes ({@link Value.Derived derived} does not count, also
+     * be careful with non-mandatory ({@link Value.Default default} attributes).
      * If all attributes of subclasses are the same, then it will result in error due to undecidable
      * situation.
      * @return subclasses of an abstract type that annotated with {@link Marshaled}
@@ -74,8 +71,6 @@ public @interface Json {
    * &#064;Json.Named(&quot;_id&quot;)
    * public abstract String id();
    * </pre>
-   * @see GenerateMarshaler
-   * @see GenerateMarshaledSubclasses
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)

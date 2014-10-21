@@ -30,6 +30,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target({ ElementType.METHOD, ElementType.TYPE })
+@Deprecated
 public @interface GenerateMarshaledSubclasses {
 
   /**

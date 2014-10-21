@@ -37,6 +37,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.METHOD)
+@Deprecated
 public @interface GenerateMarshaled {
   /**
    * Specify attribute's custom name in JSON/BSON representation.

@@ -34,4 +34,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
 @Beta
+@Deprecated
 public @interface GeneratePredicate {}

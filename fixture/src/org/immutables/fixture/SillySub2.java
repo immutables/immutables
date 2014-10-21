@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillySub2 extends SillyAbstract {
   public abstract String b();
 }

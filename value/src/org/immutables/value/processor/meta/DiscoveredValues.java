@@ -26,7 +26,7 @@ import javax.lang.model.element.TypeElement;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
+ * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
  */
 final class DiscoveredValues {
   private DiscoveredValues() {}

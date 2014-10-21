@@ -133,18 +133,18 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 final class _Marshaling_[type.simpleName] {
   private _Marshaling_[type.simpleName]() {
   }
-  [apply generateMarshalingMethods type]
-  [apply generateUnmarshalingMethods type]
+  [generateMarshalingMethods type]
+  [generateUnmarshalingMethods type]
 }
 [/template]
 
-[template generateImportRoutines type]
-[for s in type.generateMarshaledImportRoutines]
+[template generateImportRoutines Type type]
+[for s in type.getGenerateMarshaledImportRoutines]
 import static [s].*;
 [/for]
 [/template]
 
-[template generateMarshalingMethods type]
+[template generateMarshalingMethods Type type]
 
 static void marshalIterableOf[type.simpleName](JsonGenerator generator, Iterable<[type.name]> iterable)
     throws IOException {
@@ -159,14 +159,14 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
     throws IOException {
 [if type.useConstructorOnly]
   [for ca = type.constructorArguments]
-  [if ca.length == 1]
+  [if singular ca]
   [for a in ca]
-  [apply generateMarshalConstructorValue type, a]
+  [generateMarshalConstructorValue type a]
   [/for]
   [else]
   generator.writeStartArray();
   [for a in ca]
-  [apply generateMarshalConstructorValue type, a]
+  [generateMarshalConstructorValue type a]
   [/for]
   generator.writeEndArray();
   [/if]
@@ -174,7 +174,7 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
 [else]
   generator.writeStartObject();
   [for a in type.implementedAttributes]
-  [apply generateMarshalAttributeValue type, a];
+  [generateMarshalAttributeValue type a];
   [/for]
 
   generator.writeEndObject();
@@ -182,12 +182,12 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
 }
 [/template]
 
-[template generateMarshalConstructorValue type, a]
+[template generateMarshalConstructorValue Type type Attribute a]
   [if a.optionalType]
 [a.type] [a.name]Value = instance.[a.name]();
 if ([a.name]Value.isPresent()) {
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'unwrapped' + a.name + 'Value']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
 } else {
   generator.writeNull();
 }
@@ -199,28 +199,28 @@ for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]>
     generator.writeFieldName(marshalKey(e.getKey()));
   [-- here we assign to a unwrapped variable so overload resolution will precise]
   [a.unwrappedSecondaryElementType] value = e.getValue();
-  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'value']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
 }
 generator.writeEndObject();
   [else if a.collectionType]
 generator.writeStartArray();
 for ([a.unwrappedElementType] e : instance.[a.name]()) {
-  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'e']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
 }
 generator.writeEndArray();
   [else]
-[apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'instance.' + a.name + ' ']
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()')]
   [/if]
 [/template]
 
-[template generateMarshalAttributeValue type, a]
+[template generateMarshalAttributeValue Type type Attribute a]
 
   [if a.optionalType]
 [a.type] [a.name]Value = instance.[a.name]();
 if ([a.name]Value.isPresent()) {
   generator.writeFieldName("[a.marshaledName]");
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'unwrapped' + a.name + 'Value']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
     [if a.forceEmpty]
 } else {
   generator.writeNullField("[a.marshaledName]");
@@ -235,7 +235,7 @@ if (![a.name]Map.isEmpty()) {
     generator.writeFieldName(marshalKey(e.getKey()));
     [-- here we assign to a unwrapped variable so overload resolution will precisely]
     [a.unwrappedSecondaryElementType] value = e.getValue();
-    [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'value']
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
   }
   generator.writeEndObject();
     [if a.forceEmpty]
@@ -249,7 +249,7 @@ if (![a.name]Map.isEmpty()) {
 if (![a.name]Collection.isEmpty()) {
   generator.writeArrayFieldStart("[a.marshaledName]");
   for ([a.unwrappedElementType] e : [a.name]Collection) {
-    [apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'e']
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
   }
   generator.writeEndArray();
     [if a.forceEmpty]
@@ -260,11 +260,11 @@ if (![a.name]Collection.isEmpty()) {
 }
   [else]
 generator.writeFieldName("[a.marshaledName]");
-[apply generatePossiblyPolymorphicTypeMarshalAttributeValue type, a, 'instance.' + a.name + ' ']
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()')]
   [/if]
 [/template]
 
-[template generateUnmarshalingMethods type]
+[template generateUnmarshalingMethods Type type]
 
 private static void ensure(boolean condition, String attributeName, String attributeType, Object message) {
   ensureCondition(
@@ -304,24 +304,21 @@ private static JsonParser nextTokenAdvance(JsonParser parser) throws IOException
 
 static [type.name] unmarshal[type.simpleName](JsonParser parser)
     throws IOException {
-[if ca.length == 1]
+[if singular ca]
   [for a in ca]
   return Immutable[type.name].of(unmarshalConstructorArgument[toUpper a.name](parser));
   [/for]
 [else]
   JsonToken t = parser.getCurrentToken();
-  ensure(t == JsonToken.START_ARRAY, "of [", "", t);
-  [type.name] instance = Immutable[type.name].of(
-  [for a in ca]
-    [nextComma] unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))
-  [/for]
-  );
-  ensure(parser.nextToken() == JsonToken.END_ARRAY, "]", "", parser.getCurrentToken());
+  ensure(t == JsonToken.START_ARRAY, "of ['[']", "", t);
+  [type.name] instance = Immutable[type.name].of([for a in ca][if not for.first],[/if]
+    unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))[/for]);
+  ensure(parser.nextToken() == JsonToken.END_ARRAY, "[']']", "", parser.getCurrentToken());
   return instance;
 [/if]
 }
 [for a in ca]
-[apply generateConstructorArgumentUnmarshal type, a]
+[generateConstructorArgumentUnmarshal type a]
 [/for]
 [/for]
 [else]    
@@ -365,19 +362,19 @@ private static void unmarshalUnknownAttribute(JsonParser parser, String attribut
   }
 }
 [for s in type.settableAttributes]  
-[apply generateUnmarshalAttribute type, s]
+[generateUnmarshalAttribute type s]
 [/for]
 [/if]
 [/template]
 
-[template generateConstructorArgumentUnmarshal type, a]
+[template generateConstructorArgumentUnmarshal Type type Attribute a]
 
 private static [a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser parser)
     throws IOException {
   [if a.primitive]
   JsonToken t = parser.getCurrentToken();
   ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
-    [if a.type == 'char']
+    [if a.charType]
   return parser.getText().charAt(0);
     [else]
   return parser.get[toUpper a.type]Value();  
@@ -385,15 +382,15 @@ private static [a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser 
   [else if a.mapType]
   return unmarshalMap[toUpper a.name](parser);
   [else]
-  [apply generateConstructorArgumentComplexUnmarshal type, a]
+  [generateConstructorArgumentComplexUnmarshal type a]
   [/if]
 }
   [if a.mapType]
-[apply generateMapUnmarshalMethod type, a]
+[generateMapUnmarshalMethod type a]
   [/if]
 [/template]
 
-[template generateConstructorArgumentComplexUnmarshal type, a]
+[template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
 JsonToken t = parser.getCurrentToken();
   [if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
@@ -401,28 +398,28 @@ if (t != JsonToken.VALUE_NULL) {
   ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
   return Optional.<[a.elementType]>of(parser.get[toUpper a.unwrappedElementType]Value());
     [else]
-  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
   return Optional.of(value);
     [/if]
 }
 return Optional.absent();
   [else if a.collectionType]
 java.util.List<[a.elementType]> elements = com.google.common.collect.Lists.newArrayList();  
-[apply generateCollectionUnmarshalCode type, a, 'elements.add']
+[generateCollectionUnmarshalCode type a 'elements.add']
 return com.google.common.collect.Immutable[a.rawCollectionType].copyOf(elements);
   [else]
-[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.type, a.rawType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
 return value;
   [/if]
 [/template]
 
-[template generateUnmarshalAttribute type, a]
+[template generateUnmarshalAttribute Type type Attribute a]
 
 private static void unmarshalAttribute[toUpper a.name](JsonParser parser, Immutable[type.name].Builder builder)
     throws IOException {
   [if a.primitive]
   ensure(parser.nextToken().isScalarValue(), "[a.name]", "[a.type]", parser.getCurrentToken());
-    [if a.type == 'char']
+    [if a.charType]
   builder.[a.name](parser.getText().charAt(0));
     [else]
   builder.[a.name](parser.get[toUpper a.type]Value());  
@@ -431,15 +428,15 @@ private static void unmarshalAttribute[toUpper a.name](JsonParser parser, Immuta
   parser.nextToken();
   builder.putAll[toUpper a.name](unmarshalMap[toUpper a.name](parser));
   [else]
-  [apply generateComplexTypeUnmarshalAttribute type, a]
+  [generateComplexTypeUnmarshalAttribute type a]
   [/if]
 }
 [if a.mapType]
-[apply generateMapUnmarshalMethod type, a]
+[generateMapUnmarshalMethod type a]
 [/if]
 [/template]
 
-[template generateMapUnmarshalMethod type, a]
+[template generateMapUnmarshalMethod Type type Attribute a]
 
 private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
     throws IOException {
@@ -451,18 +448,18 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
   com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
 
   while((t = parser.nextToken()) != JsonToken.END_OBJECT) {
-    ensure(t == JsonToken.FIELD_NAME, "[a.name][*]", "[a.type]", t);
+    ensure(t == JsonToken.FIELD_NAME, "[a.name]['[*]']", "[a.type]", t);
 [if a.unwrappedElementPrimitiveType]
-  [if a.unwrappedElementType == 'char']
+  [if a.unwrappedElementType eq 'char']
     String rawKey = parser.getText();
     if (rawKey.length() != 1) {
-      ensure(false, "[a.name][" + rawKey + "]", "[a.type][char]", rawKey);
+      ensure(false, "[a.name]['[']" + rawKey + "[']']", "[a.type]['[char]']", rawKey);
     }
     char key = rawKey.charAt(0);
   [else]
     [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](parser.getText());
   [/if]
-[else if a.wrappedElementType == 'java.lang.String']
+[else if a.wrappedElementType eq 'java.lang.String']
     [a.wrappedElementType] key = parser.getText();
 [else]
     [a.wrappedElementType] key = unmarshal(parser, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
@@ -471,10 +468,10 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
 [if a.unwrappedSecondaryElementPrimitiveType]
     ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
     [a.unwrappedSecondaryElementType] value = parser.get[toUpper a.unwrappedSecondaryElementType]Value();
-[else if a.wrappedSecondaryElementType == 'java.lang.String']
+[else if a.wrappedSecondaryElementType eq 'java.lang.String']
     String value = parser.getText();
 [else]
-    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedSecondaryElementType, a.unwrapperOrRawSecondaryElementType]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType]
 [/if]
     builder.put(key, value);
   }
@@ -483,7 +480,7 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
 }
 [/template]
 
-[template generateCollectionUnmarshalCode type, a, collectorExpression]
+[template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression]
   [if a.unwrappedElementPrimitiveType]
 if (t == JsonToken.START_ARRAY) {
   while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
@@ -497,17 +494,17 @@ if (t == JsonToken.START_ARRAY) {
   [else]
 if (t == JsonToken.START_ARRAY) {
   while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
-    [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
     [collectorExpression](value);
   }
 } else if (t != JsonToken.VALUE_NULL) {
-  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
   [collectorExpression](value);
 }
   [/if]
 [/template]
 
-[template generateComplexTypeUnmarshalAttribute type, a]
+[template generateComplexTypeUnmarshalAttribute Type type Attribute a]
 JsonToken t = parser.nextToken();
   [if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
@@ -515,42 +512,36 @@ if (t != JsonToken.VALUE_NULL) {
   ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
   builder.[a.name](parser.get[toUpper a.unwrappedElementType]Value());
     [else]
-  [apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.wrappedElementType, a.unwrapperOrRawElementType]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
   builder.[a.name](value);
     [/if]
 }
   [else if a.mapType]
   [else if a.collectionType]
-[toUpper apply generateCollectionUnmarshalCode type, a, 'builder.add' + a.name]
+[generateCollectionUnmarshalCode type a ('builder.add' (toUpper a.name))]
   [else]
-[apply generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, a, a.type, a.rawType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
 builder.[a.name](value);
   [/if]
 [/template]
 
-[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue type, attribute, genericType, rawType]
+[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue Type type Attribute attribute String genericType String rawType]
 [genericType] value =
 [for cx = attribute.expectedSubclasses]
-  [if cx.length not = 0]
-    ([genericType]) unmarshalWithOneOfMarshalers(parser, "[type.name]", "[attribute.name]", "[genericType]"
-    [for c in cx]
-        , [c]Marshaler.instance()
-    [/for]
-        );
+  [if cx]
+    ([genericType]) unmarshalWithOneOfMarshalers(parser, "[type.name]", "[attribute.name]", "[genericType]"[for c in cx],
+        [c]Marshaler.instance()[/for]);
   [else]
     unmarshal(parser, ([genericType]) null, [rawType].class);
   [/if]
 [/for]
 [/template]
 
-[template generatePossiblyPolymorphicTypeMarshalAttributeValue type, attribute, variableName]
+[template generatePossiblyPolymorphicTypeMarshalAttributeValue Type type Attribute attribute String variableName]
 [for cx = attribute.expectedSubclasses]
-  [if cx.length not = 0 and  not attribute.primitive]
-marshalWithOneOfMarshalers(generator, [variableName]
-    [for c in cx]
-    , [c]Marshaler.instance()
-    [/for]
-    );
+  [if cx and (not attribute.primitive)]
+marshalWithOneOfMarshalers(generator, [variableName][for c in cx],
+    [c]Marshaler.instance()[/for]);
   [else]
 marshal(generator, [variableName]);
   [/if]

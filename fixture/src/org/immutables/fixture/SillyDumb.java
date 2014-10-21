@@ -17,23 +17,24 @@ package org.immutables.fixture;
 
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.annotation.GenerateMarshaled;
-import org.immutables.annotation.GenerateMarshaler;
+import org.immutables.json.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@GenerateMarshaler
+@Json.Marshaled
 public abstract class SillyDumb {
 
-  @GenerateMarshaled(value = "a", forceEmpty = true)
+  @Json.Named("a")
+  @Json.ForceEmpty
   public abstract Optional<Integer> a1();
 
-  @GenerateMarshaled(value = "b", forceEmpty = true)
+  @Json.Named("b")
+  @Json.ForceEmpty
   public abstract List<String> b2();
 
-  @GenerateMarshaled(value = "c", forceEmpty = false)
+  @Json.Named("c")
   public abstract Optional<Integer> c3();
 
-  @GenerateMarshaled(value = "d", forceEmpty = false)
+  @Json.Named("d")
   public abstract List<String> d4();
 }

@@ -1,8 +1,13 @@
 package org.immutables.generator;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+
 import javax.annotation.Nullable;
-import static com.google.common.base.Preconditions.*;
+import java.util.Arrays;
+import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Templates {
   private Templates() {}
@@ -55,14 +60,13 @@ public final class Templates {
     }
 
     public CharSequence getCurrentIndentation() {
-      CharSequence sequence = getCurrentLine();
+      CharSequence sequence = currentLine();
       return sequence.length() > 0 && CharMatcher.WHITESPACE.matchesAllOf(sequence)
-          // ? new StringBuilder(indentation).append(sequence)
           ? sequence
           : indentation;
     }
 
-    private CharSequence getCurrentLine() {
+    private CharSequence currentLine() {
       // Optimize subsequence if necessary
       return builder.subSequence(lineStartIndex, builder.length());
     }
@@ -90,7 +94,7 @@ public final class Templates {
     }
 
     private boolean wasBlankLine() {
-      return CharMatcher.WHITESPACE.matchesAllOf(getCurrentLine());
+      return CharMatcher.WHITESPACE.matchesAllOf(currentLine());
     }
 
     @Override
@@ -164,6 +168,26 @@ public final class Templates {
 
     public Invokation pos(int pos) {
       return this;
+    }
+  }
+
+  static final class Product implements Iterable<Object> {
+    private static final Joiner PLAIN_JOINER = Joiner.on("");
+
+    private final Object[] elements;
+
+    Product(Object[] elements) {
+      this.elements = elements;
+    }
+
+    @Override
+    public String toString() {
+      return PLAIN_JOINER.join(elements);
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+      return Arrays.asList(elements).iterator();
     }
   }
 

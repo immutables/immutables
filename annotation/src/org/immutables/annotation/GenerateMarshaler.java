@@ -32,6 +32,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.PACKAGE })
+@Deprecated
 public @interface GenerateMarshaler {
   /**
    * Specify classes whose members will be imported with a static star-import (
