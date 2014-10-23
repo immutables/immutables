@@ -23,7 +23,7 @@
 [/template]
 
 [template generateMarshalingContributor Type... types]
-[for ByPackage byPackage in byPackage types, pkg = byPackage.key, ts = byPackage.value]
+[for ByPackage byPack in byPackage types, pkg = byPack.key, ts = byPack.value]
 [let contributorTypeName]_MarshalingContributor_[roundCode][/let]
 [output.java pkg contributorTypeName]
 [if pkg]
