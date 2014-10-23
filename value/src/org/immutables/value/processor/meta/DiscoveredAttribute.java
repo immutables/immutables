@@ -17,17 +17,12 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.google.common.primitives.Primitives;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.immutables.json.Json;
+import org.immutables.mongo.Mongo;
+import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -36,9 +31,7 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.json.Json;
-import org.immutables.mongo.Mongo;
-import org.immutables.value.Value;
+import java.util.*;
 
 /**
  * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
@@ -157,6 +150,10 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
 
   public List<String> getAnnotations() {
     return AnnotationPrinting.getAnnotationLines(element);
+  }
+
+  public boolean isJsonIgnore() {
+    return element.getAnnotation(Json.Ignore.class) != null;
   }
 
   private String implementationType;
@@ -304,7 +301,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public String getElementType() {
-    return firstTypeParameter();
+    return containmentTypeName();
   }
 
   @Nullable
@@ -501,6 +498,10 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
     return double.class.getName().equals(t);
   }
 
+  public boolean isNonRawElemementType() {
+    return getElementType().indexOf('<') > 0;
+  }
+
   public boolean isContainerType() {
     return isCollectionType()
         || isOptionalType()
@@ -558,6 +559,10 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   public boolean isMarshaledSecondaryElement() {
     ensureTypeIntrospected();
     return marshaledSecondaryElement;
+  }
+
+  public boolean isPrimitiveElement() {
+    return PRIMITIVE_TYPES.containsKey(getUnwrappedElementType());
   }
 
   private boolean isSpecialMarshaledElement(boolean isMarshaled, Object qualifiedName) {

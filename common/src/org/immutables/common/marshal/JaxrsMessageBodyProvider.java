@@ -18,9 +18,6 @@ package org.immutables.common.marshal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,13 +33,11 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import org.immutables.common.marshal.internal.MarshalingSupport;
-import org.immutables.json.Json;
-import org.immutables.value.Value;
 
 /**
  * JSON marshaling JAX-RS provider for immutable classes with generated marshaler.
- * @see Value.Immutable
- * @see Json.Marshaled
+ * @see org.immutables.value.Value.Immutable
+ * @see org.immutables.json.Json.Marshaled
  */
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
@@ -50,19 +45,9 @@ import org.immutables.value.Value;
 public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
   private final JsonFactory jsonFactory = new JsonFactory();
 
-  private final LoadingCache<Class<?>, Marshaler<Object>> marshalerCache =
-      CacheBuilder.newBuilder()
-          .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
-            @Override
-            public Marshaler<Object> load(Class<?> type) throws Exception {
-              return MarshalingSupport.getMarshalerFor(type);
-            }
-          });
-
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     if (MarshalingSupport.hasAssociatedMarshaler(type)) {
-      marshalerCache.refresh(type);
       return true;
     }
     return false;
@@ -79,7 +64,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
 
     try (JsonParser parser = jsonFactory.createParser(entityStream)) {
       parser.nextToken();
-      return marshalerCache.getUnchecked(type).unmarshalInstance(parser);
+      return MarshalingSupport.getMarshalerFor(type).unmarshalInstance(parser);
     } catch (Exception ex) {
       throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
     }
@@ -88,7 +73,6 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
   @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
     if (MarshalingSupport.hasAssociatedMarshaler(type)) {
-      marshalerCache.refresh(type);
       return true;
     }
     return false;
@@ -110,7 +94,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       OutputStream entityStream) throws IOException, WebApplicationException {
 
     try (JsonGenerator generator = jsonFactory.createGenerator(entityStream)) {
-      marshalerCache.getUnchecked(actualType).marshalInstance(generator, o);
+      MarshalingSupport.getMarshalerFor(actualType).marshalInstance(generator, o);
     }
   }
 }

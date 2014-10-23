@@ -21,39 +21,21 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.collect.ImmutableList;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.StringWriter;
 import org.immutables.common.marshal.Marshaler;
-import org.immutables.fixture.ImmutableSillyDumb;
-import org.immutables.fixture.ImmutableSillySub1;
-import org.immutables.fixture.ImmutableSillySub2;
-import org.immutables.fixture.ImmutableSillySub3;
-import org.immutables.fixture.SillyDumb;
-import org.immutables.fixture.SillyDumbMarshaler;
-import org.immutables.fixture.SillyIntWrap;
-import org.immutables.fixture.SillyIntWrapMarshaler;
-import org.immutables.fixture.SillyMapHolder;
-import org.immutables.fixture.SillyMapHolderMarshaler;
-import org.immutables.fixture.SillyMapTup;
-import org.immutables.fixture.SillyMapTupMarshaler;
-import org.immutables.fixture.SillyPolyHost;
-import org.immutables.fixture.SillyPolyHost2;
-import org.immutables.fixture.SillyPolyHost2Marshaler;
-import org.immutables.fixture.SillyPolyHostMarshaler;
-import org.immutables.fixture.SillyStructure;
-import org.immutables.fixture.SillyStructureMarshaler;
-import org.immutables.fixture.SillySubstructure;
-import org.immutables.fixture.SillySubstructureMarshaler;
-import org.immutables.fixture.SillyTuplie;
-import org.immutables.fixture.SillyTuplieMarshaler;
+import org.immutables.common.marshal.Marshaling;
+import org.immutables.fixture.*;
 import org.immutables.fixture.routine.SillyRoutineImport;
 import org.immutables.fixture.routine.SillyRoutineImportMarshaler;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.StringWriter;
+
+import static org.immutables.check.Checkers.check;
 
 @SuppressWarnings("resource")
-public class MarshallingGenerationTest {
+public class MarshallingTest {
 
   JsonFactory jsonFactory = new JsonFactory()
       .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
@@ -65,6 +47,22 @@ public class MarshallingGenerationTest {
       .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
   BsonFactory bsonFactory = new BsonFactory();
+
+  @Test
+  public void discoveredMarhaler() {
+    SillySubstructure substructure =
+        Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
+
+    check(substructure).not().isNull();
+  }
+
+  @Test
+  public void jsonIgnore() {
+    ImmutableJsonIgnore minimal = ImmutableJsonIgnore.of(1);
+    ImmutableJsonIgnore expanded = minimal.withValues(1, 2);
+    check(minimal).not().is(expanded);
+    check(Marshaling.fromJson(Marshaling.toJson(expanded), JsonIgnore.class)).is(minimal);
+  }
 
   @Test
   public void marshalingIterableMethods() throws IOException {

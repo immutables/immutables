@@ -56,6 +56,11 @@
       <version>2.4.0</version>
     </dependency>
     <dependency>
+      <groupId>org.jdbi</groupId>
+      <artifactId>jdbi</artifactId>
+      <version>2.55</version>
+    </dependency>
+    <dependency>
       <groupId>org.sonatype.sisu</groupId>
       <artifactId>sisu-guice</artifactId>
       <version>3.2.2</version>

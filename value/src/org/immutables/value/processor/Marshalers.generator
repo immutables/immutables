@@ -1,10 +1,54 @@
-[template generate Type type]
+[template generate Type... types]
+[for type in types if type.generateMarshaled]
+[checkAttributes type]
 [output.java type.packageName (type.simpleName 'Marshaler')]
 [generateMarshaler type]
 [/output.java]
 [output.java type.packageName ('_Marshaling_' type.simpleName)]
 [generateMarshaling type]
 [/output.java]
+[/for]
+[for Type... ts = onlyMarshaled types]
+[generateMarshalingContributor ts]
+[/for]
+[/template]
+
+[template checkAttributes Type type]
+[for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
+[-- mandatory constructor arguments are not checked, should they? --]
+[output.error]
+  @Json.Ignore could not be used on mandatory attribute '[type.name].[a.name]'
+[/output.error]
+[/for]
+[/template]
+
+[template generateMarshalingContributor Type... types]
+[for ByPackage byPackage in byPackage types, pkg = byPackage.key, ts = byPackage.value]
+[let contributorTypeName]_MarshalingContributor_[roundCode][/let]
+[output.java pkg contributorTypeName]
+[if pkg]
+package [pkg];
+[/if]
+/**
+ * @deprecated Internal marshaling registry, do not use directly
+ */
+@Deprecated
+public final class [contributorTypeName]
+    implements org.immutables.common.marshal.internal.MarshalingContributor {
+  @Override
+  public void putMarshalers(com.google.common.collect.ImmutableMap.Builder<Class<?>, org.immutables.common.marshal.Marshaler<?>> builder) {
+    [for type in ts]
+    [let marshalerInstance][type.packageName][if type.packageName].[/if][type.simpleName]Marshaler.instance()[/let]
+    builder.put([type.valueTypeName].class, [marshalerInstance]);
+    builder.put([type.implementationTypeName].class, [marshalerInstance]);
+    [/for]
+  }
+}
+[/output.java]
+[output.service 'org.immutables.common.marshal.internal.MarshalingContributor']
+[if pkg][pkg].[/if][contributorTypeName]
+[/output.service]
+[/for]
 [/template]
 
 [template generateMarshaler Type type]
@@ -26,14 +70,8 @@ import org.immutables.common.marshal.Marshaler;
 @Generated({"marshaler.tjs", "[type.name]"})
 @ParametersAreNonnullByDefault
 [type.accessPrefix]final class [type.simpleName]Marshaler
-    extends Marshaler<[type.name]>
-    implements org.immutables.common.marshal.internal.MarshalingContributor {
+    extends Marshaler<[type.name]> {
 
-  @Override
-  public void putMarshalers(com.google.common.collect.ImmutableMap.Builder<Class<?>, Marshaler<?>> builder) {
-    builder.put([type.valueTypeName].class, INSTANCE).put([type.implementationTypeName].class, INSTANCE);
-  }
-    
   private static final [type.simpleName]Marshaler INSTANCE = new [type.simpleName]Marshaler();
   
   private [type.simpleName]Marshaler() {
@@ -173,7 +211,7 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
   [/for]
 [else]
   generator.writeStartObject();
-  [for a in type.implementedAttributes]
+  [for a in type.marshaledAttributes]
   [generateMarshalAttributeValue type a];
   [/for]
 
@@ -344,7 +382,7 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
 private static void unmarshalAttribute(JsonParser parser, Immutable[type.name].Builder builder, String attributeName)
     throws IOException {
   switch(attributeName) {
-  [for s in type.settableAttributes]
+  [for s in type.unmarshaledAttributes]
   case "[s.marshaledName]":
     unmarshalAttribute[toUpper s.name](parser, builder);
     break;
@@ -361,7 +399,7 @@ private static void unmarshalUnknownAttribute(JsonParser parser, String attribut
     parser.skipChildren();
   }
 }
-[for s in type.settableAttributes]  
+[for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]
 [/if]

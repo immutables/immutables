@@ -27,6 +27,7 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor6;
 import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -468,14 +469,33 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return FluentIterable.from(attributes());
   }
 
-  @SuppressWarnings("unchecked")
+  public List<DiscoveredAttribute> getMarshaledAttributes() {
+    ImmutableList.Builder<DiscoveredAttribute> builder = ImmutableList.builder();
+    for (DiscoveredAttribute attribute : getImplementedAttributes()) {
+      if (!attribute.isJsonIgnore()) {
+        builder.add(attribute);
+      }
+    }
+    return builder.build();
+  }
+
+  public List<DiscoveredAttribute> getUnmarshaledAttributes() {
+    ImmutableList.Builder<DiscoveredAttribute> builder = ImmutableList.builder();
+    for (DiscoveredAttribute attribute : getSettableAttributes()) {
+      if (!attribute.isJsonIgnore()) {
+        builder.add(attribute);
+      }
+    }
+    return builder.build();
+  }
+
   public List<DiscoveredAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
       implementedAttributes = filteredAttributes()
-          .filter(Predicates.or(
+          .filter(Predicates.or(Arrays.asList(
               DiscoveredAttributes.isGenerateAbstract(),
               DiscoveredAttributes.isGenerateDefault(),
-              DiscoveredAttributes.isGenerateDerived()))
+              DiscoveredAttributes.isGenerateDerived())))
           .toList();
     }
     return implementedAttributes;

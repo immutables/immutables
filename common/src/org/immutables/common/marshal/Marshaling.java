@@ -15,42 +15,25 @@
  */
 package org.immutables.common.marshal;
 
-import org.immutables.value.Value;
-import org.immutables.json.Json;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Throwables;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import java.io.IOException;
 import java.io.StringWriter;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
  * Contains convenient methods for marshaling and unmarshaling documents annotated with
- * {@link Json.Marshaled} to and from standard textual JSON.
+ * {@link org.immutables.json.Json.Marshaled} to and from standard textual JSON.
  * <p>
- * You can avoid using this class in favor of using Marshalers directly due to the fact of using
- * static marshaler cache with weak class keys. Nevertheless, this class provides easy-to-use static
- * methods for simplest use cases.
+ * You can avoid using this class in favor of using Marshalers directly. But It's not always
+ * possible if dynamic lookup is needed.
  */
-@SuppressWarnings("unchecked")
 public final class Marshaling {
   private Marshaling() {}
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory();
-
-  private static final LoadingCache<Class<?>, Marshaler<Object>> MARSHALER_CACHE =
-      CacheBuilder.newBuilder()
-          .weakKeys()
-          .build(new CacheLoader<Class<?>, Marshaler<Object>>() {
-            @Override
-            public Marshaler<Object> load(Class<?> type) throws Exception {
-              return MarshalingSupport.getMarshalerFor(type);
-            }
-          });
 
   /**
    * Marshal object to JSON. Output JSON string is pretty-printed.
@@ -88,13 +71,14 @@ public final class Marshaling {
 
   /**
    * Loads and caches marshaler for the specified expected type.
-   * Expected type should be either abstract value class annotated with {@link Value.Immutable},
+   * Expected type should be either abstract value class annotated with
+   * {@link org.immutables.value.Value.Immutable},
    * or actual generated immutable subclass.
    * @param <T> expected type
    * @param expectedType expected type to marshal
    * @return marshaler
    */
   public static <T> Marshaler<T> marshalerFor(Class<? extends T> expectedType) {
-    return (Marshaler<T>) MARSHALER_CACHE.getUnchecked(expectedType);
+    return MarshalingSupport.getMarshalerFor(expectedType);
   }
 }

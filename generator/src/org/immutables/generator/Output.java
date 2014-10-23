@@ -1,58 +1,35 @@
 package org.immutables.generator;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Objects;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Sets;
+import com.google.common.io.CharSink;
+import com.google.common.io.CharSource;
+import com.google.common.io.CharStreams;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.tools.Diagnostic;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
-import org.immutables.value.Value;
-import static com.google.common.base.Preconditions.*;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Value.Nested
 public final class Output {
-
-  final static class JavaFileKey {
-    final String packageName;
-    final String simpleName;
-
-    JavaFileKey(String packageName, String simpleName) {
-      this.packageName = checkNotNull(packageName);
-      this.simpleName = checkNotNull(simpleName);
-    }
-
-    @Override
-    public String toString() {
-      return DOT_JOINER.join(Strings.emptyToNull(packageName), simpleName);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(packageName, simpleName);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (obj instanceof JavaFileKey) {
-        JavaFileKey other = (JavaFileKey) obj;
-        return this.packageName.equals(other.packageName)
-            || this.simpleName.equals(other.simpleName);
-      }
-      return false;
-    }
-  }
-
   public final Templates.Invokable error = new Templates.Invokable() {
     @Override
     @Nullable
@@ -86,8 +63,6 @@ public final class Output {
     }
   };
 
-  private static Joiner DOT_JOINER = Joiner.on('.').skipNulls();
-
   public final Templates.Invokable java = new Templates.Fragment(3) {
     @Override
     public void run(Invokation invokation) {
@@ -95,22 +70,70 @@ public final class Output {
       String simpleName = invokation.param(1).toString();
       Invokable body = (Invokable) invokation.param(2);
 
-      JavaFileKey key = new JavaFileKey(packageName, simpleName);
-      JavaFile javaFile = getFiles().files.getUnchecked(key);
+      ResourceKey key = new ResourceKey(packageName, simpleName);
+      SourceFile javaFile = getFiles().sourceFiles.getUnchecked(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
     }
   };
 
-  private static class JavaFile {
-    final JavaFileKey key;
+  public final Templates.Invokable service = new Templates.Fragment(3) {
+    private static final String META_INF_SERVICES = "META-INF/services/";
+
+    @Override
+    public void run(Invokation invokation) {
+      String interfaceName = invokation.param(0).toString();
+      Invokable body = (Invokable) invokation.param(1);
+
+      ResourceKey key = new ResourceKey("", META_INF_SERVICES + interfaceName);
+      AppendResourceFile servicesFile = getFiles().appendResourceFiles.getUnchecked(key);
+      body.invoke(new Invokation(servicesFile.consumer));
+    }
+  };
+
+  private final static class ResourceKey {
+    private static Joiner PACKAGE_RESOURCE_JOINER = Joiner.on('.').skipNulls();
+
+    final String packageName;
+    final String relativeName;
+
+    ResourceKey(String packageName, String simpleName) {
+      this.packageName = checkNotNull(packageName);
+      this.relativeName = checkNotNull(simpleName);
+    }
+
+    @Override
+    public String toString() {
+      return PACKAGE_RESOURCE_JOINER.join(Strings.emptyToNull(packageName), relativeName);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(packageName, relativeName);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof ResourceKey) {
+        ResourceKey other = (ResourceKey) obj;
+        return this.packageName.equals(other.packageName)
+            || this.relativeName.equals(other.relativeName);
+      }
+      return false;
+    }
+  }
+
+  private static class AppendResourceFile {
+    private static final Pattern COMMENT_LINE = Pattern.compile("^\\#.*");
+
+    final ResourceKey key;
     final Templates.CharConsumer consumer = new Templates.CharConsumer();
 
-    public JavaFile(JavaFileKey key) {
+    AppendResourceFile(ResourceKey key) {
       this.key = key;
     }
 
-    public void complete() {
+    void complete() {
       if (!StaticEnvironment.round().errorRaised()) {
         try {
           writeFile();
@@ -123,9 +146,80 @@ public final class Output {
     }
 
     private void writeFile() throws IOException {
-      try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
-        writer.append(extractSourceCode());
+      LinkedHashSet<String> services = Sets.newLinkedHashSet();
+      try {
+        FileObject existing = getFiler().getResource(StandardLocation.CLASS_PATH, key.packageName, key.relativeName);
+        FluentIterable.from(CharStreams.readLines(existing.openReader(true)))
+            .filter(Predicates.not(Predicates.contains(COMMENT_LINE)))
+            .copyInto(services);
+      } catch (Exception ex) {
+        // unable to read existing file
       }
+
+      FluentIterable.from(Splitter.on("\n").split(consumer.asCharSequence()))
+          .copyInto(services);
+
+      new CharSink() {
+        @Override
+        public Writer openStream() throws IOException {
+          return getFiler()
+              .createResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName)
+              .openWriter();
+        }
+      }.writeLines(services, "\n");
+    }
+  }
+
+  private static class SourceFile {
+    final ResourceKey key;
+    final Templates.CharConsumer consumer = new Templates.CharConsumer();
+
+    SourceFile(ResourceKey key) {
+      this.key = key;
+    }
+
+    void complete() {
+      if (!StaticEnvironment.round().errorRaised()) {
+        try {
+          writeFile();
+        } catch (IOException ex) {
+          throw Throwables.propagate(ex);
+        }
+      }
+    }
+
+    private void writeFile() throws IOException {
+      CharSequence sourceCode = extractSourceCode();
+
+      try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
+        writer.append(sourceCode);
+      } catch (IOException ex) {
+        if (!identicalFileIsAlreadyGenerated(sourceCode)) {
+          throw ex;
+        }
+      }
+    }
+
+    private boolean identicalFileIsAlreadyGenerated(CharSequence sourceCode) {
+      try {
+        String existingContent = new CharSource() {
+          @Override
+          public Reader openStream() throws IOException {
+            return getFiler()
+                .getResource(StandardLocation.SOURCE_OUTPUT, key.packageName, key.relativeName)
+                .openReader(true);
+          }
+        }.read();
+
+        if (existingContent.contentEquals(sourceCode)) {
+          // We are ok, for some reason the same file is already generated,
+          // happens in Eclipse for example.
+          return true;
+        }
+      } catch (Exception ignoredAttemptToGetExistingFile) {
+        // we have some other problem, not an existing file
+      }
+      return false;
     }
 
     @SuppressWarnings("deprecation")
@@ -151,21 +245,30 @@ public final class Output {
   }
 
   private static class Files implements StaticEnvironment.Completable {
-    final LoadingCache<JavaFileKey, JavaFile> files = CacheBuilder.newBuilder()
+    final LoadingCache<ResourceKey, SourceFile> sourceFiles = CacheBuilder.newBuilder()
         .concurrencyLevel(1)
-        .build(new CacheLoader<JavaFileKey, JavaFile>() {
+        .build(new CacheLoader<ResourceKey, SourceFile>() {
           @Override
-          public JavaFile load(JavaFileKey key) throws Exception {
-            return new JavaFile(key);
+          public SourceFile load(ResourceKey key) throws Exception {
+            return new SourceFile(key);
+          }
+        });
+
+    final LoadingCache<ResourceKey, AppendResourceFile> appendResourceFiles = CacheBuilder.newBuilder()
+        .concurrencyLevel(1)
+        .build(new CacheLoader<ResourceKey, AppendResourceFile>() {
+          @Override
+          public AppendResourceFile load(ResourceKey key) throws Exception {
+            return new AppendResourceFile(key);
           }
         });
 
     @Override
     public void complete() {
       if (!StaticEnvironment.round().errorRaised()) {
-//      for (JavaFile file : files.asMap().values()) {
-//        file.complete();
-//      }
+        for (AppendResourceFile file : appendResourceFiles.asMap().values()) {
+          file.complete();
+        }
       }
     }
   }
