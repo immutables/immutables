@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.31-SNAPSHOT</version>
   </parent>
 
   <artifactId>generator</artifactId>
@@ -19,27 +19,6 @@
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>annotation</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>retrovalue</artifactId>
-      <version>0.29.0-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auto.service</groupId>
-      <artifactId>auto-service</artifactId>
-      <version>1.0-rc1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.parboiled</groupId>
-      <artifactId>parboiled-java</artifactId>
-      <version>1.1.6</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jdt.core.compiler</groupId>

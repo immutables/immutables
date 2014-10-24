@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>immutables</artifactId>
+    <groupId>org.immutables</groupId>
+    <version>0.31-SNAPSHOT</version>
+  </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>org.immutables</groupId>
-    <artifactId>immutables</artifactId>
-    <version>0.30-SNAPSHOT</version>
-  </parent>
+  <name>${project.groupId}.${project.artifactId}</name>
+  <description>
+    Annotations to generate immutable and other support classes. This artifact declares required dependencies for the
+    generated classes to be compiled.
+  </description>
 
   <artifactId>value</artifactId>
-  <name>${project.groupId}.${project.artifactId}</name>
-  <description>Immutable objects processor, new generation</description>
 
   <dependencies>
     <dependency>
@@ -19,32 +23,6 @@
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>annotation</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!-- only to compile this annotation processor, do not propagate as transitive -->
-    <dependency>
-      <groupId>com.google.auto.service</groupId>
-      <artifactId>auto-service</artifactId>
-      <version>1.0-rc1</version>
-      <optional>true</optional>
-      <scope>provided</scope>
-    </dependency>
-    <!-- Generator processor -->
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>generator</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <!-- Test only service -->
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>testing</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 

@@ -137,7 +137,7 @@ public final class Repositories {
         }
       }).lazyTransform(GetN.FUNCTION);
     }
-    
+
     protected final FluentFuture<Optional<T>> doModify(
         final ConstraintSupport.ConstraintHost criteria,
         final ConstraintSupport.Constraint ordering,

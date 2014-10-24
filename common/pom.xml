@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>0.30-SNAPSHOT</version>
+    <version>0.31-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -24,12 +24,6 @@
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>annotation</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
