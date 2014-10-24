@@ -25,7 +25,6 @@ import simple.GetterAnnotation.InnerAnnotation;
 
 @Value.Immutable
 @Value.Getters
-// FIXME @Value.Modifiable
 public interface GetterEncloser {
   Optional<Integer> optional();
 

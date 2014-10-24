@@ -15,15 +15,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility</artifactId>
-      <version>0.31-SNAPSHOT</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables.dependency</groupId>
+      <artifactId>utility</artifactId>
+      <version>${project.version}</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
@@ -47,7 +47,7 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
-      <version>0.31-SNAPSHOT</version>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
