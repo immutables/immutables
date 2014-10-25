@@ -76,8 +76,8 @@ public @interface Generator {
 
   /**
    * Applies to the annotation processor extending {@link AbstractGenerator} to supply annotation
-   * names that processor will handle. Could be used instead of or in addition to
-   * {@link SupportedAnnotationTypes}.
+   * names that processor will handle. Could be used instead of {@link SupportedAnnotationTypes},
+   * which is also supported.
    */
   @Target({ ElementType.TYPE, ElementType.PACKAGE })
   @Retention(RetentionPolicy.RUNTIME)

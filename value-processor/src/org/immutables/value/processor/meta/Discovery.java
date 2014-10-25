@@ -15,21 +15,28 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.util.Elements;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.value.Value;
-import javax.annotation.Nullable;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.value.Value;
 
 /**
  * MOST CODE CARRIED FORWARD FROM OLD IMPLEMENTATION. IT NEED HEAVY REFACTORING TO REMOVE LEGACY
@@ -172,7 +179,7 @@ public class Discovery {
         DiscoveredValues.builder()
             .internalTypeElement(type)
             .isUseBuilder(useBuilder)
-            .isGenerateCompact(hasAnnotation(type, Value.Modifiable.class));
+            .isGenerateCompact(false);
 
     collectGeneratedCandidateMethods(type, typeBuilder);
 
@@ -182,18 +189,18 @@ public class Discovery {
   }
 
   private void collectGeneratedCandidateMethods(TypeElement type, DiscoveredValues.Builder typeBuilder) {
-    // TO BE DONE
-
-    List<? extends Element> allMembers =
-        type.getKind() == ElementKind.ANNOTATION_TYPE
-            ? SourceOrdering.getEnclosingElements(type)
-            : processing.getElementUtils().getAllMembers(type);
-
-    for (Element element : allMembers) {
+    for (Element element : getAccessorsInSourceOrder(type)) {
       if (isElegibleCandidateMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
       }
     }
+  }
+
+  private List<? extends Element> getAccessorsInSourceOrder(TypeElement type) {
+    return type.getKind() == ElementKind.ANNOTATION_TYPE
+        ? SourceOrdering.getEnclosedElements(type)
+        : SourceOrderExtractor.getOrderedAccessors(
+            processing.getElementUtils(), type);
   }
 
   private boolean isElegibleCandidateMethod(Element element) {

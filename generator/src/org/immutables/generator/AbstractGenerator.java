@@ -47,16 +47,16 @@ public abstract class AbstractGenerator extends AbstractProcessor {
 
   @Override
   public final Set<String> getSupportedAnnotationTypes() {
-    Set<String> annotationNames = Sets.newHashSet();
     @Nullable
     SupportedAnnotations annotations = getClass().getAnnotation(Generator.SupportedAnnotations.class);
     if (annotations != null) {
+      Set<String> annotationNames = Sets.newHashSet();
       for (Class<?> c : annotations.value()) {
         annotationNames.add(c.getCanonicalName());
       }
+      return ImmutableSet.copyOf(annotationNames);
     }
-    annotationNames.addAll(super.getSupportedAnnotationTypes());
-    return ImmutableSet.copyOf(annotationNames);
+    return super.getSupportedAnnotationTypes();
   }
 
   @Override

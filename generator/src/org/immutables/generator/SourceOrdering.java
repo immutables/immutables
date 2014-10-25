@@ -62,7 +62,7 @@ public final class SourceOrdering {
 
   // it's safe to cast immutable list of <? extends Element> to a list of <Element>
   @SuppressWarnings("unchecked")
-  public static ImmutableList<Element> getEnclosingElements(Element element) {
+  public static ImmutableList<Element> getEnclosedElements(Element element) {
     return (ImmutableList<Element>) enclosedBy(element).immutableSortedCopy(element.getEnclosedElements());
   }
 

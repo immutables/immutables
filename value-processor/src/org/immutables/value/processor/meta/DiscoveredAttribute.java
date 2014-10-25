@@ -17,11 +17,17 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.primitives.Primitives;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Value;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
@@ -30,7 +36,9 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Value;
 
 /**
  * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
@@ -437,18 +445,6 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
   }
 
-  public int getMinValue() {
-    return isAligned()
-        ? element.getAnnotation(Value.PackedBits.class).min()
-        : 0;
-  }
-
-  public int getMaxValue() {
-    return isAligned()
-        ? element.getAnnotation(Value.PackedBits.class).max()
-        : 0;
-  }
-
   public String getRawCollectionType() {
     return isListType() ? List.class.getSimpleName()
         : isSetType() ? Set.class.getSimpleName() : "";
@@ -513,26 +509,12 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
         : internalTypeName();
   }
 
-  public boolean isAligned() {
-    String t = internalTypeName();
-    return element.getAnnotation(Value.PackedBits.class) != null
-        && isPrimitive()
-        && (!double.class.getName().equals(t)
-            && !float.class.getName().equals(t)
-            && !long.class.getName().equals(t));
-  }
-
   public boolean isPrimitive() {
     return PRIMITIVE_TYPES.containsKey(internalTypeName());
   }
 
   public int getConstructorArgumentOrder() {
     Value.Parameter annotation = element.getAnnotation(Value.Parameter.class);
-    return annotation != null ? annotation.order() : -1;
-  }
-
-  public int getAlignOrder() {
-    Value.PackedBits annotation = element.getAnnotation(Value.PackedBits.class);
     return annotation != null ? annotation.order() : -1;
   }
 

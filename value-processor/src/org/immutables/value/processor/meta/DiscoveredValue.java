@@ -15,21 +15,37 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.*;
-import com.google.common.collect.*;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Parboil;
-import org.immutables.value.Value;
-import javax.annotation.Nullable;
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor6;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor6;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Parboil;
+import org.immutables.value.Value;
 
 /**
  * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
@@ -393,12 +409,6 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
         .toList();
   }
 
-  public List<DiscoveredAttribute> getAlignedAttributes() {
-    return filteredAttributes()
-        .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToAlignOrder.FUNCTION))
-        .toSortedList(Ordering.natural().onResultOf(ToAlignOrder.FUNCTION));
-  }
-
   private enum NonAuxiliary implements Predicate<DiscoveredAttribute> {
     PREDICATE;
     @Override
@@ -413,15 +423,6 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     @Override
     public Integer apply(DiscoveredAttribute input) {
       return input.getConstructorArgumentOrder();
-    }
-  }
-
-  private enum ToAlignOrder implements Function<DiscoveredAttribute, Integer> {
-    FUNCTION;
-
-    @Override
-    public Integer apply(DiscoveredAttribute input) {
-      return input.getAlignOrder();
     }
   }
 

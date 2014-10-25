@@ -58,6 +58,18 @@ public class ValuesTest {
   }
 
   @Test
+  public void sourceOrdering() {
+    SourceOrderingEntity v = ImmutableSourceOrderingEntity.builder()
+        .a(1)
+        .b(2)
+        .y(3)
+        .z(4)
+        .build();
+
+    check(v).hasToString("SourceOrderingEntity{z=4, y=3, b=2, a=1}");
+  }
+
+  @Test
   public void requiredAttributesSetChecked() {
     try {
       ImmutableIfaceValue.builder().build();
