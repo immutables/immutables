@@ -212,7 +212,7 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
 [else]
   generator.writeStartObject();
   [for a in type.marshaledAttributes]
-  [generateMarshalAttributeValue type a];
+  [generateMarshalAttributeValue type a]
   [/for]
 
   generator.writeEndObject();

@@ -22,11 +22,13 @@ import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.immutables.common.marshal.Marshaler;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
-import javax.annotation.Nullable;
-import org.immutables.common.marshal.Marshaler;
 
 /**
  * The marshaling support.
@@ -131,6 +133,38 @@ public final class MarshalingSupport {
 
       throw exception;
     }
+  }
+
+  public static <T> TokenBuffer toTokenBuffer(Marshaler<T> marshaler, T instance) throws IOException {
+    TokenBuffer buffer = new TokenBuffer(null, false);
+    marshaler.marshalInstance(buffer, instance);
+    return buffer;
+  }
+
+  /**
+   * Used to call from generated code as a workaround for
+   * <a href="https://github.com/FasterXML/jackson-databind/issues/592">
+   * https://github.com/FasterXML/jackson-databind/issues/592</a>
+   * @param <T> the type of expected unmarshaled type.
+   * @param marshaler the marshaler
+   * @param buffers token buffers per each attribute
+   * @return unmarshaled instance
+   * @throws IOException If json processing error occured.
+   */
+  @SuppressWarnings("resource")
+  public static <T> T fromTokenBuffers(
+      Marshaler<T> marshaler,
+      Map<String, TokenBuffer> buffers) throws IOException {
+    TokenBuffer buffer = new TokenBuffer(null, false);
+    buffer.writeStartObject();
+    for (Map.Entry<String, TokenBuffer> entry : buffers.entrySet()) {
+      buffer.writeFieldName(entry.getKey());
+      entry.getValue().serialize(buffer);
+    }
+    buffer.writeEndObject();
+    JsonParser parser = buffer.asParser();
+    parser.nextToken();
+    return marshaler.unmarshalInstance(parser);
   }
 
   public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {
