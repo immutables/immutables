@@ -36,8 +36,8 @@ public @interface Json {
    * each generated marshaler in a package.
    */
   @Documented
-  @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.TYPE, ElementType.PACKAGE })
+  @Retention(RetentionPolicy.SOURCE)
+  @Target({ ElementType.TYPE })
   public @interface Marshaled {}
 
   /**
@@ -46,6 +46,8 @@ public @interface Json {
    * In order to share imported routines among classes in a package, you can place this
    * annotation on a enclosing package (using package-info.java).
    */
+  @Retention(RetentionPolicy.SOURCE)
+  @Target({ ElementType.TYPE, ElementType.PACKAGE })
   public @interface Import {
     /**
      * Classes to static-import routines from.

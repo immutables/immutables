@@ -644,7 +644,24 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [/if]
   [generateAccessorMethods type]
   [generateObjectUtilityMethods type]
+  [generateJacksonMapped type]
 [/for]
+[/template]
+
+[template generateJacksonMapped Type type]
+[if type.generateJacksonMapped and type.useBuilder]
+[let marshalerInstance][type.simpleName]Marshaler.instance()[/let]
+
+@com.fasterxml.jackson.annotation.JsonValue
+public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws java.io.IOException {
+  return org.immutables.common.marshal.internal.MarshalingSupport.toTokenBuffer([marshalerInstance], this);
+}
+
+@com.fasterxml.jackson.annotation.JsonCreator
+public static [type.defName] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
+  return copyOf(org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffers([marshalerInstance], buffers));
+}
+[/if]
 [/template]
 
 [template generateAccessorMethods Type type]
