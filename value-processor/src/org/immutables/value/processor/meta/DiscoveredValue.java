@@ -54,7 +54,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateJacksonMapped() {
-    return isGenerateMarshaled() && internalTypeElement().getAnnotation(Jackson.Mapped.class) != null;
+    return internalTypeElement().getAnnotation(Jackson.Mapped.class) != null;
   }
 
   public void setEmptyNesting(boolean emptyNesting) {

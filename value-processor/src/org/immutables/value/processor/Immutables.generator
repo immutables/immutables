@@ -649,7 +649,13 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [/template]
 
 [template generateJacksonMapped Type type]
-[if type.generateJacksonMapped and type.useBuilder]
+[if type.generateJacksonMapped]
+[if not type.useBuilder]
+  [output.error]Cannot use @Jackson.Mapped without builder enabled[/output.error]
+[/if]
+[if not type.generateMarshaled]
+  [output.error]Cannot use @Jackson.Mapped without @Json.Marshaled annotation[/output.error]
+[/if]
 [let marshalerInstance][type.simpleName]Marshaler.instance()[/let]
 
 @com.fasterxml.jackson.annotation.JsonValue

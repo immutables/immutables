@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.immutables.common.marshal.Marshaler;
-
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
@@ -31,7 +30,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 /**
- * The marshaling support.
+ * Marshaling support used by other utilities as well as by generated code.
  */
 public final class MarshalingSupport {
   private MarshalingSupport() {}
@@ -135,6 +134,14 @@ public final class MarshalingSupport {
     }
   }
 
+  /**
+   * Used from generated code to write content to token buffer.
+   * @param <T> the type of expected unmarshaled type.
+   * @param marshaler the marshaler
+   * @param instance the instance
+   * @return the token buffer
+   * @throws IOException If JSON processing error occured.
+   */
   public static <T> TokenBuffer toTokenBuffer(Marshaler<T> marshaler, T instance) throws IOException {
     TokenBuffer buffer = new TokenBuffer(null, false);
     marshaler.marshalInstance(buffer, instance);
@@ -149,7 +156,7 @@ public final class MarshalingSupport {
    * @param marshaler the marshaler
    * @param buffers token buffers per each attribute
    * @return unmarshaled instance
-   * @throws IOException If json processing error occured.
+   * @throws IOException If JSON processing error occured.
    */
   @SuppressWarnings("resource")
   public static <T> T fromTokenBuffers(
