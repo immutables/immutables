@@ -10,7 +10,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -70,9 +70,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/immutables/org.immutables.git</connection>
-    <developerConnection>scm:git:https://github.com/immutables/org.immutables.git</developerConnection>
-    <url>https://github.com/immutables/org.immutables.git</url>
+    <connection>scm:git:https://github.com/immutables/immutables.git</connection>
+    <developerConnection>scm:git:https://github.com/immutables/immutables.git</developerConnection>
+    <url>https://github.com/immutables/immutables.git</url>
   </scm>
 
   <properties>

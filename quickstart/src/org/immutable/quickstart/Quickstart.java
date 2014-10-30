@@ -16,4 +16,5 @@
 package org.immutable.quickstart;
 
 /** */
-class Quickstart {}
+@Deprecated
+public class Quickstart {}

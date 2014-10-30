@@ -90,6 +90,27 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     return unit;
   }
 
+//  /** Overriden to specify order in which we process declaration first, and then parts. */
+//  @Override
+//  public Template transform(Context scope, Template template) {
+//
+//  }
+//
+//  /** Overriden to specify order in which we process declaration first, and then parts. */
+//  @Override
+//  public LetStatement transform(Context scope, LetStatement statement) {
+//    return statement
+//        .withDeclaration(transformLetStatementDeclaration(scope, statement, statement.declaration()))
+//        .withParts(transformLetStatementListParts(scope, statement, statement.parts()));
+//  }
+//
+//  /** Overriden to specify order in which we process declaration first, and then parts. */
+//  @Override
+//  public ForStatement transform(Context scope, ForStatement statement) {
+//    return statement
+//        .withDeclaration(transformForStatementListDeclaration(scope, statement, statement.declaration()))
+//        .withParts(transformForStatementListParts(scope, statement, statement.parts()));
+//  }
   @Override
   public Template transform(final Context context, final Template template) {
     String name = template.declaration().name().value();
@@ -113,7 +134,8 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
       @Override
       void body() {
-        TemplateWriter.super.transform(context, template);
+        transformTemplateDeclaration(context, template, template.declaration());
+        transformTemplateListParts(context, template, template.parts());
       }
     }.generate(context);
 
@@ -179,7 +201,8 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
             .out(" = this;")
             .ln();
 
-        TemplateWriter.super.transform(context, statement);
+        transformLetStatementDeclaration(context, statement, statement.declaration());
+        transformLetStatementListParts(context, statement, statement.parts());
       }
     }.generate(context);
 

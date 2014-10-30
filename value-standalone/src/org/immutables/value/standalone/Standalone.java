@@ -15,4 +15,6 @@
  */
 package org.immutables.value.standalone;
 
-class Standalone {}
+/** */
+@Deprecated
+public class Standalone {}
