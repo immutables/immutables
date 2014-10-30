@@ -16,24 +16,60 @@
 package org.immutables.common.marshal.internal;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.immutables.common.marshal.Marshaler;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import javax.annotation.Nullable;
+import org.immutables.common.marshal.Marshaler;
 
 /**
  * Marshaling support used by other utilities as well as by generated code.
  */
 public final class MarshalingSupport {
   private MarshalingSupport() {}
+
+  public static void ensureStarted(JsonParser parser) throws IOException {
+    JsonToken t = parser.getCurrentToken();
+    if (t == null) {
+      parser.nextToken();
+    }
+  }
+
+  public static IOException diagnose(JsonParser parser, String attribute, Object builder, Exception exception)
+      throws IOException {
+    String text = parser.getText();
+    JsonLocation location = parser.getTokenLocation();
+    String message = "";
+    if (exception instanceof JsonProcessingException) {
+      JsonProcessingException processingException = (JsonProcessingException) exception;
+      location = processingException.getLocation();
+      message += processingException.getOriginalMessage();
+    } else {
+      message += exception.getMessage();
+    }
+    message += "\n  after '" + text + "'";
+    if (!attribute.isEmpty()) {
+      message += "\n  field \"" + attribute + "\"";
+    }
+    message += "\n  with " + builder;
+    message += "\n  at " + location;
+
+    UnmarshalingProblemException problem = new UnmarshalingProblemException(message);
+    problem.setStackTrace(exception.getStackTrace());
+    if (exception.getCause() != null) {
+      problem.initCause(exception);
+    }
+    throw problem;
+  }
 
   public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) {
     if (expected != actual) {
@@ -60,6 +96,17 @@ public final class MarshalingSupport {
     }
   }
 
+  private static class UnmarshalingProblemException extends RuntimeException {
+    UnmarshalingProblemException(String message) {
+      super(message);
+    }
+
+    @Override
+    public String toString() {
+      return "problem during unmarshaling: " + getMessage();
+    }
+  }
+
   private static class UnmarshalMismatchException extends RuntimeException {
     private final String hostType;
     private final String attributeName;
@@ -75,6 +122,11 @@ public final class MarshalingSupport {
     @Override
     public String getMessage() {
       return String.format("[%s.%s : %s] %s", hostType, attributeName, attributeType, super.getMessage());
+    }
+
+    @Override
+    public String toString() {
+      return "problem during unmarshaling: " + getMessage();
     }
   }
 
@@ -202,5 +254,4 @@ public final class MarshalingSupport {
       marshalers = builder.build();
     }
   }
-
 }

@@ -32,6 +32,7 @@ package [pkg];
 /**
  * @deprecated Internal marshaling registry, do not use directly
  */
+@javax.annotation.Generated({"Marshalers.generator", "[pkg]"})
 @Deprecated
 public final class [contributorTypeName]
     implements org.immutables.common.marshal.internal.MarshalingContributor {
@@ -67,7 +68,7 @@ import org.immutables.common.marshal.Marshaler;
  * Uses Jackson JSON processor API.
  */
 @SuppressWarnings("all")
-@Generated({"marshaler.tjs", "[type.name]"})
+@Generated({"Marshalers.generator", "[type.name]"})
 @ParametersAreNonnullByDefault
 [type.accessPrefix]final class [type.simpleName]Marshaler
     extends Marshaler<[type.name]> {
@@ -118,6 +119,7 @@ import org.immutables.common.marshal.Marshaler;
 
   @Override
   public [type.name] unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
+    org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
     return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
   }
 
@@ -128,6 +130,7 @@ import org.immutables.common.marshal.Marshaler;
 
   @Override
   public Iterable<[type.name]> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
+    org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
     return _Marshaling_[type.simpleName].unmarshalIterableOf[type.simpleName](parser);
   }
 
@@ -166,7 +169,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
  * Uses Jackson JSON processor API. See {@code [type.simpleName]Marshaler} for the entry point to this API
  */
 @SuppressWarnings("all")
-@Generated({"marshal.tjs", "[type.name]"})
+@Generated({"Marshalers.generator", "[type.name]"})
 @ParametersAreNonnullByDefault
 final class _Marshaling_[type.simpleName] {
   private _Marshaling_[type.simpleName]() {
@@ -367,16 +370,17 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
   String attributeName = "";
   try {
     JsonToken t = parser.getCurrentToken();
-    ensure(t == JsonToken.START_OBJECT, "new {", "", t);
+    ensure(t == JsonToken.START_OBJECT, "{", "", t);
     while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
       ensure(t == JsonToken.FIELD_NAME, "*", "", t);
       attributeName = parser.getText();
       unmarshalAttribute(parser, builder, attributeName);
     }
-  } catch (JsonParseException jsonParse) {
-    ensure(false, attributeName, "?", jsonParse.getMessage());
+    attributeName = "";
+    return builder.build();
+  } catch (Exception exception) {
+    throw diagnose(parser, attributeName, builder, exception);
   }
-  return builder.build();  
 }
 
 private static void unmarshalAttribute(JsonParser parser, Immutable[type.name].Builder builder, String attributeName)

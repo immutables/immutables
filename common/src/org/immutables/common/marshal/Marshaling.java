@@ -25,7 +25,7 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
  * Contains convenient methods for marshaling and unmarshaling documents annotated with
- * {@link org.immutables.json.Json.Marshaled} to and from standard textual JSON.
+ * {@link org.immutables.value.Json.Marshaled} to and from standard textual JSON.
  * <p>
  * You can avoid using this class in favor of using Marshalers directly. But It's not always
  * possible if dynamic lookup is needed.
@@ -62,7 +62,6 @@ public final class Marshaling {
   public static <T> T fromJson(String json, Class<? extends T> expectedType) {
     Marshaler<T> marshaler = marshalerFor(expectedType);
     try (JsonParser parser = JSON_FACTORY.createParser(json)) {
-      parser.nextToken();
       return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
       throw Throwables.propagate(ex);

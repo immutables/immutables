@@ -74,7 +74,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .ln().ln();
 
     context
-        .out("@", SuppressWarnings.class, "(", toLiteral("unused"), ")")
+        .out("@", SuppressWarnings.class, "({", toLiteral("all"), ", ", toLiteral("unchecked"), "})")
         .ln()
         .out("public class ", simpleName, " extends ", sourceElement.getQualifiedName())
         .out(" {")
@@ -443,6 +443,8 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         context.out("__.param(", paramIndex, ").toString();").ln();
       } else if (typeName.equals(Boolean.class.getName())) {
         context.out("$if(__.param(", paramIndex, "));").ln();
+      } else if (typeName.equals(Object.class.getName())) {
+        context.out("__.param(", paramIndex, ");").ln();
       } else {
         context.out("(", typeName, ") __.param(", paramIndex, ");").ln();
       }

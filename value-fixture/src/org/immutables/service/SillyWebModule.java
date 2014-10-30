@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2013-2014 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,20 +13,16 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jackson;
+package org.immutables.service;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.List;
-import org.immutables.value.Jackson;
-import org.immutables.value.Json;
-import org.immutables.value.Value;
+import com.google.inject.AbstractModule;
+import org.immutables.fixture.ImmutableSillySub1;
+import org.immutables.fixture.SillyAbstract;
 
-@Value.Immutable
-@Json.Marshaled
-@Jackson.Mapped
-@JsonDeserialize(as = ImmutableSampleJacksonMapped.class)
-public interface SampleJacksonMapped {
-  String a();
-
-  List<Integer> b();
+public class SillyWebModule extends AbstractModule {
+  @Override
+  protected void configure() {
+    bind(SillyAbstract.class).toInstance(ImmutableSillySub1.builder().a(1).build());
+    bind(SillyTopLevelResource.class);
+  }
 }

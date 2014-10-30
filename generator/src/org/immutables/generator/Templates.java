@@ -17,11 +17,14 @@ package org.immutables.generator;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.*;
 
+/**
+ * Basis for the functionality of generated templates
+ */
 public final class Templates {
   private Templates() {}
 
@@ -157,7 +160,7 @@ public final class Templates {
       return this;
     }
 
-    public Invokation out(Object content) {
+    public Invokation out(@Nullable Object content) {
       if (content instanceof Invokable) {
         content = ((Invokable) content).invoke(this);
       }
@@ -179,11 +182,20 @@ public final class Templates {
       return this;
     }
 
+    /**
+     * Specifies last processed position in template source file
+     * @param pos the position in template source file
+     * @return this invokation object for chained call
+     */
     public Invokation pos(int pos) {
-      return this;
+      throw new UnsupportedOperationException();
     }
   }
 
+  /**
+   * Tuple-like combining of a values (product), could be iterated or converted to string by
+   * concatenation of string forms (no separator).
+   */
   static final class Product implements Iterable<Object> {
     private static final Joiner PLAIN_JOINER = Joiner.on("");
 

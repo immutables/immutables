@@ -15,8 +15,8 @@
  */
 package samplegenerators;
 
-import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
+import org.immutables.generator.AbstractTemplate;
 
-//@Generator.Template
+@Generator.Template
 public class Genie extends AbstractTemplate {}

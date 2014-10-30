@@ -9,11 +9,9 @@
         WW[cd][b]WW[for.index][c]
         [if for.first][cd][/if]
       [/let]
-    [else]  
-      
     [else if param]
       [param.length]
-    
+    [else]
     [/if]
   [/for]
   

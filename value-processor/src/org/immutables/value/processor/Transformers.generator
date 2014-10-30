@@ -18,7 +18,7 @@ package [transformerType.packageName];
 
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"transformer.tjs", "[transformerType.name]"})
+@javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
 [transformerType.accessPrefix]abstract class [transformerType.simpleName]Transformer<C> {
   protected [transformerType.simpleName]Transformer() {
   }

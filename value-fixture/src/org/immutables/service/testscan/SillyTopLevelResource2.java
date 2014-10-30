@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2013-2014 Immutables.org authors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,24 +13,25 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture;
+package org.immutables.service.testscan;
 
-import org.immutables.value.Value;
+import com.google.inject.Injector;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 
-import java.util.List;
+/**
+ * This resource is being picked by classpath scanning and instantiated/injected via HK2.
+ * However, actual {@link Injector} dependecy comes from HK2-Guice bridge.
+ */
+@Path("/res2")
+public class SillyTopLevelResource2 {
 
-@Value.Nested
-public class SampleCopyOfTypes {
-  @Value.Immutable(builder = false)
-  public interface ByConstructorAndWithers {
-    @Value.Parameter
-    int value();
+  @Inject
+  Injector injectedByGuiceFromHk2Bridge;
 
-    List<String> additional();
-  }
-
-  @Value.Immutable
-  public interface ByBuilder {
-    int value();
+  @GET
+  public String get() {
+    return injectedByGuiceFromHk2Bridge + "";
   }
 }

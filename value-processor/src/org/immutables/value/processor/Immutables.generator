@@ -48,9 +48,9 @@ package [type.packageName];
  * Use static factory methods to create instances: {@code of()} or
  * {@code builder()}.
  */
-@SuppressWarnings("all")
+@SuppressWarnings({"all", "unchecked"})
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"immutable.tjs", "[type.name]"})
+@javax.annotation.Generated({"Immutables.generator", "[type.name]"})
 @javax.annotation.concurrent.Immutable
 [type.accessPrefix][classModifiers]final class [type.defName]
     [type.inheritsKeyword] [type.name] {
@@ -309,7 +309,7 @@ public static [type.defName] copyOf([type.defName] instance) {
   private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
 
   private boolean [p.name]IsSet() {
-    return (NONDEFAULT_BIT_[toConstant p.name] & nondefaultBitset[pos.index]) != 0;
+    return (nondefaultBitset[pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
   [let nondefaultSetInBuilder Attribute v]
@@ -323,6 +323,10 @@ public static [type.defName] copyOf([type.defName] instance) {
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+
+  private boolean [m.name]IsSet() {
+    return (initializedBitset[pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
+  }
   [/for]
   [let mandatorySetInBuilder Attribute v]
   [if v.mandatory][for BitPosition pos = positions v]
@@ -365,6 +369,8 @@ public static [type.defName] copyOf([type.defName] instance) {
         .add("[v.name]", [v.name].orNull())
     [else if v.arrayType]
         .add("[v.name]", java.util.Arrays.toString([v.name]))
+    [else if v.primitive]
+        .add("[v.name]", [v.name]IsSet() ? [v.name] : null)
     [else]
         .add("[v.name]", [v.name])
     [/if]
@@ -506,8 +512,8 @@ public static [type.defName] copyOf([type.defName] instance) {
       throw new IllegalStateException(
           com.google.common.base.MoreObjects.toStringHelper("Cannot build [type.name], some of required attributes are not set ")
               .omitNullValues()
-            [for m in mandatories, BitPosition pos = positions m]
-              .addValue((initializedBitset[pos.index] & INITIALIZED_BIT_[toConstant m.name]) == 0 ? "[m.name]" : null)
+            [for m in mandatories]
+              .addValue(![m.name]IsSet() ? "[m.name]" : null)
             [/for]
               .toString());
     }

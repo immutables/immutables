@@ -37,7 +37,7 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 /**
  * JSON marshaling JAX-RS provider for immutable classes with generated marshaler.
  * @see org.immutables.value.Value.Immutable
- * @see org.immutables.json.Json.Marshaled
+ * @see org.immutables.value.Json.Marshaled
  */
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
@@ -47,10 +47,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
 
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-    if (MarshalingSupport.hasAssociatedMarshaler(type)) {
-      return true;
-    }
-    return false;
+    return MarshalingSupport.hasAssociatedMarshaler(type);
   }
 
   @Override
@@ -60,10 +57,8 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       Annotation[] annotations,
       MediaType mediaType,
       MultivaluedMap<String, String> httpHeaders,
-      InputStream entityStream) throws IOException, WebApplicationException {
-
+      InputStream entityStream) throws IOException {
     try (JsonParser parser = jsonFactory.createParser(entityStream)) {
-      parser.nextToken();
       return MarshalingSupport.getMarshalerFor(type).unmarshalInstance(parser);
     } catch (Exception ex) {
       throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
@@ -72,10 +67,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
 
   @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-    if (MarshalingSupport.hasAssociatedMarshaler(type)) {
-      return true;
-    }
-    return false;
+    return MarshalingSupport.hasAssociatedMarshaler(type);
   }
 
   @Override
@@ -91,8 +83,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       Annotation[] annotations,
       MediaType mediaType,
       MultivaluedMap<String, Object> httpHeaders,
-      OutputStream entityStream) throws IOException, WebApplicationException {
-
+      OutputStream entityStream) throws IOException {
     try (JsonGenerator generator = jsonFactory.createGenerator(entityStream)) {
       MarshalingSupport.getMarshalerFor(actualType).marshalInstance(generator, o);
     }

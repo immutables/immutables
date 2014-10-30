@@ -159,7 +159,7 @@ public final class Output {
     private void writeFile() throws IOException {
       LinkedHashSet<String> services = Sets.newLinkedHashSet();
       try {
-        FileObject existing = getFiler().getResource(StandardLocation.CLASS_PATH, key.packageName, key.relativeName);
+        FileObject existing = getFiler().getResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
         FluentIterable.from(CharStreams.readLines(existing.openReader(true)))
             .filter(Predicates.not(Predicates.contains(COMMENT_LINE)))
             .copyInto(services);

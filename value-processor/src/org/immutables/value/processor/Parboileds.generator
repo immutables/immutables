@@ -19,7 +19,7 @@ import org.immutables.generator.processor.Extractions;
 
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"parboiled.tjs", "[type.name]"})
+@javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
 [type.accessPrefix]final class Parboiled[type.simpleName] {
   private Parboiled[type.simpleName]() {}
 [for v in type.nestedChildren]
@@ -30,7 +30,7 @@ import org.immutables.generator.processor.Extractions;
 
 [template generateParboiledType Type type]
 
-@javax.annotation.Generated({"parboiled.tjs", "[type.name]"})
+@javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
 public static class [type.simpleName] {
   private [type.simpleName]() {}
 [if type.useSingleton]

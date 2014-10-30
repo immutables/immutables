@@ -13,20 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jackson;
+package org.immutables.fixture.jdbi;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.util.List;
-import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Value;
+import com.google.common.base.Optional;
 
-@Value.Immutable
 @Json.Marshaled
-@Jackson.Mapped
-@JsonDeserialize(as = ImmutableSampleJacksonMapped.class)
-public interface SampleJacksonMapped {
-  String a();
+@Value.Immutable
+public interface Record {
+  @Value.Parameter
+  int id();
 
-  List<Integer> b();
+  @Json.ForceEmpty
+  Optional<String> name();
 }

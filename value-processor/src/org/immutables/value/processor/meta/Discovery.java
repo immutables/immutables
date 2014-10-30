@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.util.Elements;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -43,7 +42,6 @@ import org.immutables.value.Value;
  * STUFF AND IMPROVE CORRECTNESS OF DISCOVERIES (GET RID OF SOME HEURISTICS AND SHORTCUTS).
  */
 public class Discovery {
-
   private final Set<TypeElement> annotations;
   private final RoundEnvironment round;
   private final ProcessingEnvironment processing;
@@ -199,8 +197,7 @@ public class Discovery {
   private List<? extends Element> getAccessorsInSourceOrder(TypeElement type) {
     return type.getKind() == ElementKind.ANNOTATION_TYPE
         ? SourceOrdering.getEnclosedElements(type)
-        : SourceOrderExtractor.getOrderedAccessors(
-            processing.getElementUtils(), type);
+        : SourceOrdering.getAllAccessors(processing.getElementUtils(), type);
   }
 
   private boolean isElegibleCandidateMethod(Element element) {
@@ -327,9 +324,6 @@ public class Discovery {
     return hasAnnotation(attributeMethodCandidate, Value.Default.class)
         || hasAnnotation(attributeMethodCandidate, Value.Derived.class)
         || hasAnnotation(attributeMethodCandidate, Value.Lazy.class);
-/*!!
-    || hasAnnotation(attributeMethodCandidate, Value.Predicate.class)
-        || hasAnnotation(attributeMethodCandidate, GenerateFunction.class);*/
   }
 
   private static boolean hasAnnotation(Element element, Class<? extends Annotation> annotationType) {
