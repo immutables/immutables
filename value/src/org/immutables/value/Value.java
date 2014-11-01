@@ -37,13 +37,19 @@ public @interface Value {
    * <em>Be warned that such immutable object may contain attributes that are not recursively immutable, thus
    * not every object will be completely immutable. While this may be useful for some workarounds,
    * one should generally avoid creating immutable object with attribute values that could be mutated</em>
+   * <p>
+   * Generated accessor methods have annotation copied from original accessor method. However
+   * {@code org.immutables.*} and {@code java.lang.*} are not copied.
    */
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Immutable {
 
-    /** Experimental to generate non-public immutable subclass out of public abstract value type. */
+    /**
+     * Generate non-public (i.e. package private) immutable subclass out of public
+     * abstract value type.
+     */
     @Beta
     boolean nonpublic() default false;
 
@@ -212,7 +218,7 @@ public @interface Value {
    * It needed sometimes for interoperability.
    * Methods with 'get' (or 'is') prefixes and attribute name joined in camel-case.
    * <p>
-   * Generated methods have annotation copied from original accessor method. However
+   * Generated accessor methods have annotation copied from original accessor method. However
    * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
    * work with immutable types as they can with beans, using getters and annotations on them.
    */

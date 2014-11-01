@@ -15,11 +15,12 @@
  */
 package org.immutables.value;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
 import com.google.common.annotations.Beta;
+
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Annotations to integrate with jackson JSON processor.
@@ -49,8 +50,8 @@ public @interface Jackson {
    * 
    * Annotated abstract value type requires to be annotated with {@link Value.Immutable} and
    * {@link Json.Marshaled} in order for the Jackson delegating methods to be generated. When
-   * marshaling is delegated to Json marshalers from <em>Immutables</em> toolkit, any nested
-   * marshaling and unmarshaling is done according to rules of {@link Json} annotations, including
+   * marshaling is delegated to JSON marshalers from <em>Immutables</em> toolkit, any nested
+   * marshaling and unmarshaling is done according to rules of {@link Json Json.*} annotations, including
    * any custom marshaling routines, so Jackson's mappings and customizations will not work for
    * during marshaling nested attributes of the immutable object.
    * <p>

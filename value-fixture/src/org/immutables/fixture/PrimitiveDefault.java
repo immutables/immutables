@@ -17,7 +17,7 @@ package org.immutables.fixture;
 
 import org.immutables.value.Value;
 
-@Value.Immutable
+@Value.Immutable(nonpublic = true)
 public abstract class PrimitiveDefault {
   @Value.Default
   public boolean def() {

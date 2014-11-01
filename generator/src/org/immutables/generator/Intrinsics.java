@@ -32,6 +32,11 @@ import org.immutables.generator.Templates.Product;
 public final class Intrinsics {
   private Intrinsics() {}
 
+  @SuppressWarnings("unchecked")
+  public static <T> T $cast(Object object) {
+    return (T) object;
+  }
+
   /**
    * Effect of using this method is boxing in calling code.
    * @param value value

@@ -38,8 +38,7 @@ public final class MarshalingSupport {
   private MarshalingSupport() {}
 
   public static void ensureStarted(JsonParser parser) throws IOException {
-    JsonToken t = parser.getCurrentToken();
-    if (t == null) {
+    if (!parser.hasCurrentToken()) {
       parser.nextToken();
     }
   }
@@ -71,7 +70,7 @@ public final class MarshalingSupport {
     throw problem;
   }
 
-  public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) {
+  public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) throws IOException {
     if (expected != actual) {
       throw new UnmarshalMismatchException(marshaledType.getName(), "~", "", actual);
     }
@@ -84,19 +83,20 @@ public final class MarshalingSupport {
    * @param attributeName the attribute name
    * @param attributeType the attribute type
    * @param message the message
+   * @throws IOException io exception
    */
   public static void ensureCondition(
       boolean condition,
       String hostType,
       String attributeName,
       String attributeType,
-      Object message) {
+      Object message) throws IOException {
     if (!condition) {
       throw new UnmarshalMismatchException(hostType, attributeName, attributeType, message);
     }
   }
 
-  private static class UnmarshalingProblemException extends RuntimeException {
+  private static class UnmarshalingProblemException extends IOException {
     UnmarshalingProblemException(String message) {
       super(message);
     }
@@ -107,10 +107,10 @@ public final class MarshalingSupport {
     }
   }
 
-  private static class UnmarshalMismatchException extends RuntimeException {
-    private final String hostType;
-    private final String attributeName;
-    private final String attributeType;
+  private static class UnmarshalMismatchException extends IOException {
+    final String hostType;
+    final String attributeName;
+    final String attributeType;
 
     UnmarshalMismatchException(String hostType, String attributeName, String attributeType, Object message) {
       super(String.valueOf(message));
@@ -164,13 +164,13 @@ public final class MarshalingSupport {
       buffer.copyCurrentStructure(parser);
 
       @Nullable
-      List<RuntimeException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
+      List<Exception> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
 
       for (Marshaler<?> marshaler : marshalers) {
         try (JsonParser bufferParser = buffer.asParser()) {
           bufferParser.nextToken();
           return marshaler.unmarshalInstance(bufferParser);
-        } catch (RuntimeException ex) {
+        } catch (RuntimeException | IOException ex) {
           exceptions.add(ex);
         }
       }
@@ -178,7 +178,7 @@ public final class MarshalingSupport {
       UnmarshalMismatchException exception =
           new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
 
-      for (RuntimeException ex : exceptions) {
+      for (Exception ex : exceptions) {
         exception.addSuppressed(ex);
       }
 

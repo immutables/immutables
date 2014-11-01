@@ -127,13 +127,13 @@ public class MarshallingTest {
     check(list.get(0).o()).isOf(ImmutableSillySub2.builder().b("b").build());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IOException.class)
   public void marshalingPolymorphicTypesFailedOnUnexpectedValues() throws IOException {
     Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
     fromJsonIterable("[{s:{b:['a']}}}]", m);
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test(expected = IOException.class)
   public void marshalingPolymorphicTypesFailedOnMismatchedAttributes() throws IOException {
     Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
     fromJsonIterable("[{s:{c:1}}]", m);

@@ -62,7 +62,6 @@ public @interface Json {
    * @see #value()
    * @see Named
    */
-  @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target({ ElementType.METHOD, ElementType.TYPE })
   public @interface Subclasses {

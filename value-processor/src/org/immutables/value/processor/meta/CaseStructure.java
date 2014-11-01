@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class CaseStructure {
   public final List<DiscoveredValue> implementationTypes;
-  public final ListMultimap<String, DiscoveredValue> subtyping;
+  public final SetMultimap<String, DiscoveredValue> subtyping;
   public final Set<String> implementationTypeNames;
   public final SetMultimap<String, DiscoveredValue> subtypeUsages = HashMultimap.create();
   public final SetMultimap<String, DiscoveredValue> abstractUsages = HashMultimap.create();
@@ -43,8 +43,8 @@ public class CaseStructure {
     return builder.build();
   }
 
-  private static ListMultimap<String, DiscoveredValue> buildSubtyping(List<DiscoveredValue> implementationTypes) {
-    ImmutableListMultimap.Builder<String, DiscoveredValue> builder = ImmutableListMultimap.builder();
+  private static SetMultimap<String, DiscoveredValue> buildSubtyping(List<DiscoveredValue> implementationTypes) {
+    ImmutableSetMultimap.Builder<String, DiscoveredValue> builder = ImmutableSetMultimap.builder();
 
     for (DiscoveredValue type : implementationTypes) {
       builder.put(type.internalTypeElement().getQualifiedName().toString(), type);
@@ -67,15 +67,16 @@ public class CaseStructure {
     }
   };
 
-  public final Function<String, List<DiscoveredValue>> knownSubtypes = new Function<String, List<DiscoveredValue>>() {
-    @Override
-    public List<DiscoveredValue> apply(@Nullable String typeName) {
-      List<DiscoveredValue> subtypes = subtyping.get(typeName);
-      subtypeUsages.putAll(typeName, subtypes);
-      for (DiscoveredValue subtype : subtypes) {
-        subtypeUsages.put(subtype.valueTypeName(), subtype);
-      }
-      return subtypes;
-    }
-  };
+  public final Function<String, Iterable<DiscoveredValue>> knownSubtypes =
+      new Function<String, Iterable<DiscoveredValue>>() {
+        @Override
+        public Iterable<DiscoveredValue> apply(@Nullable String typeName) {
+          Set<DiscoveredValue> subtypes = subtyping.get(typeName);
+          subtypeUsages.putAll(typeName, subtypes);
+          for (DiscoveredValue subtype : subtypes) {
+            subtypeUsages.put(subtype.valueTypeName(), subtype);
+          }
+          return subtypes;
+        }
+      };
 }

@@ -100,7 +100,7 @@ import org.immutables.common.marshal.Marshaler;
   public static [type.name] unmarshal(
       @WillNotClose JsonParser parser,
       @Nullable [type.name] nullSample,
-      Class<?> expectedClass) throws java.io.IOException {
+      Class<?> expectedClass) throws IOException {
     return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
   }
 
@@ -307,7 +307,8 @@ generator.writeFieldName("[a.marshaledName]");
 
 [template generateUnmarshalingMethods Type type]
 
-private static void ensure(boolean condition, String attributeName, String attributeType, Object message) {
+private static void ensure(boolean condition, String attributeName, String attributeType, Object message)
+    throws IOException {
   ensureCondition(
       condition,
       "[type.name]",

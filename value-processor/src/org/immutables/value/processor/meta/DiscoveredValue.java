@@ -15,18 +15,38 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.*;
-import com.google.common.collect.*;
-import org.immutables.value.*;
-import javax.annotation.Nullable;
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor6;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Strings;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor6;
+import org.immutables.value.Jackson;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Parboil;
+import org.immutables.value.Value;
 
 /**
  * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
@@ -104,9 +124,9 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
-   * and long parameters).
+   * and long parameters and reserved slots for technical parameters).
    */
-  private static final int SOME_RANDOM_LIMIT = 100;
+  private static final int SOME_RANDOM_LIMIT = 120;
 
   private DiscoveredValue nestingParent;
 
@@ -181,10 +201,14 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public String getAccessPrefix() {
-    // !getGenerataeImmutableProperties().nonpublic() &&
-    return internalTypeElement().getModifiers().contains(Modifier.PUBLIC)
-        ? "public "
-        : "";
+    Value.Immutable immutable = getGenerateImmutableProperties();
+    if (immutable != null && immutable.nonpublic()) {
+      return "";
+    }
+    if (internalTypeElement().getModifiers().contains(Modifier.PUBLIC)) {
+      return "public ";
+    }
+    return "";
   }
 
   public boolean isGenerateOrdinalValue() {
@@ -197,7 +221,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   private Value.Immutable immutableProperties;
 
-  private Value.Immutable getGenerataeImmutableProperties() {
+  private Value.Immutable getGenerateImmutableProperties() {
     if (immutableProperties == null) {
       immutableProperties = internalTypeElement().getAnnotation(Value.Immutable.class);
     }
@@ -205,22 +229,22 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   public boolean isUseCopyMethods() {
-    return getGenerataeImmutableProperties().withers()
+    return getGenerateImmutableProperties().withers()
         && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < SOME_RANDOM_LIMIT;
   }
 
   public boolean isUseSingleton() {
-    return getGenerataeImmutableProperties().singleton();
+    return getGenerateImmutableProperties().singleton();
   }
 
   public boolean isUseInterned() {
-    return getGenerataeImmutableProperties().intern();
+    return getGenerateImmutableProperties().intern();
   }
 
   public boolean isUsePrehashed() {
     return isUseInterned()
         || isGenerateOrdinalValue()
-        || getGenerataeImmutableProperties().prehash();
+        || getGenerateImmutableProperties().prehash();
   }
 
   public boolean isGenerateMarshaled() {

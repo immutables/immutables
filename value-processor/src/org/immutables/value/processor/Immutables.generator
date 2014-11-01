@@ -48,7 +48,7 @@ package [type.packageName];
  * Use static factory methods to create instances: {@code of()} or
  * {@code builder()}.
  */
-@SuppressWarnings({"all", "unchecked"})
+@SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Immutables.generator", "[type.name]"})
 @javax.annotation.concurrent.Immutable
@@ -107,6 +107,7 @@ package [type.packageName];
     protected [type.name] extractValue(InternProxy proxy, int ordinal) {
       return new [type.defName](proxy.instance, ordinal);
     }
+
     @Override
     public String toString() {
       if (this == INSTANCE) {
@@ -689,7 +690,9 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 }
 [/if]
   [for v in type.implementedAttributes]
-
+[for line in v.annotations]
+[line]
+[/for]
 @Override
 public [v.implementationType] [v.name]() {
 [if v.arrayType]
@@ -975,11 +978,16 @@ static {
   try {
   [for a in type.implementedAttributes if a.generateDefault]
     DEFAULT_VALUE_[toConstant a.name] =
-        ([a.type]) [type.valueTypeName].class.getDeclaredMethod("[a.name]").getDefaultValue();
+        cast([type.valueTypeName].class.getDeclaredMethod("[a.name]").getDefaultValue());
   [/for]
   } catch(Exception e) {
     throw new ExceptionInInitializerError(e);
   }
+}
+
+@SuppressWarnings("unchecked")
+private static <T> T cast(Object object) {
+  return (T) object;
 }
 [/template]
 

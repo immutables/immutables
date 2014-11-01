@@ -15,14 +15,12 @@
  */
 package org.immutables.common.jdbi;
 
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.annotations.Beta;
-import org.skife.jdbi.v2.exceptions.ResultSetException;
 import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
-import java.math.BigDecimal;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.util.TokenBuffer;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -33,6 +31,7 @@ import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 import org.skife.jdbi.v2.ResultSetMapperFactory;
 import org.skife.jdbi.v2.StatementContext;
+import org.skife.jdbi.v2.exceptions.ResultSetException;
 import org.skife.jdbi.v2.tweak.ResultSetMapper;
 
 @Beta
