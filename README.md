@@ -11,12 +11,13 @@ Changelog
 + Improper unchecked suppressions in generated files [#36](https://github.com/immutables/immutables/issues/36)
 + fixed/refined underwriting of methods: hashCode, equals, toString [#37](https://github.com/immutables/immutables/issues/37)
 + Fixed duplication of instanceof checks in Transfromers
-+ Completed implementation of nonpublic=true (package private) immutable classes
++ Fixed implementation of nonpublic=true (package private) immutable classes
+#### Changes
 + Internal: using released 1.0 ‘value-standalone’ for self-compiling, rather than 'retrovalue' system/jar
 + Internal: made marshaling binding problems IOException instead of runtime
 
 ### 1.0
-Initial release with all of what was developed, including reengineering of template engine, project/module restructuring and annotation API changes
+Release with all of what was developed, including reengineering of template engine, project/module restructuring and annotation API changes
 Migration guide
 
 #### Changes
