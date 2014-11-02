@@ -226,4 +226,77 @@ public @interface Value {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Getters {}
+
+  /**
+   * Naming convention could be used to customize naming convention of the generated immutable
+   * implementations and companion classes.
+   */
+  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface NamingStyle {
+    String[] get() default {};
+
+    /**
+     * Builder initialization method. i.e. "setter" in builder.
+     * Placeholder.
+     * @return naming template
+     */
+    String init() default "";
+
+    /**
+     * Modifiable object "setter" method.
+     * @return naming template
+     */
+    String set() default "set*";
+
+    /**
+     * Modify-by-copying "wither" method.
+     * @return naming template
+     */
+    String with() default "with*";
+
+    String hasSet() default "hasSet*";
+
+    String unset() default "unset*";
+
+    String add() default "add*";
+
+    String addAll() default "addAll*";
+
+    /**
+     * Copy constructor method name.
+     * @return naming template
+     */
+    String copyOf() default "copyOf";
+
+    /**
+     * Constructor method name.
+     * @return naming template
+     */
+    String of() default "of";
+
+    String create() default "create";
+
+    String build() default "build";
+
+    String builder() default "builder";
+
+    String toImmutable() default "toImmutable*";
+
+    String builderType() default "Builder";
+
+    String immutableType() default "Immutable*";
+
+    String modifiableType() default "Modifiable*";
+  }
+
+  /**
+   * Annotations that applies Java Bean-style naming convention to the generated immutable.
+   * It works by being annotated with {@litera @}{@link NamingStyle} annotation which
+   * specifies.
+   */
+  @NamingStyle(get = {"is", "get"}, init = "set")
+  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface BeanStyle {}
 }
