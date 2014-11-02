@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.util.ElementFilter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -42,6 +43,11 @@ import org.immutables.value.Value;
  * STUFF AND IMPROVE CORRECTNESS OF DISCOVERIES (GET RID OF SOME HEURISTICS AND SHORTCUTS).
  */
 public class Discovery {
+  private static final String ORDINAL_VALUE_TYPE = "org.immutables.common.collect.OrdinalValue";
+  private static final String EQUALS_METHOD = "equals";
+  private static final String TO_STRING_METHOD = "toString";
+  private static final String HASH_CODE_METHOD = "hashCode";
+
   private final Set<TypeElement> annotations;
   private final RoundEnvironment round;
   private final ProcessingEnvironment processing;
@@ -188,8 +194,18 @@ public class Discovery {
 
   private void collectGeneratedCandidateMethods(TypeElement type, DiscoveredValues.Builder typeBuilder) {
     for (Element element : getAccessorsInSourceOrder(type)) {
-      if (isElegibleCandidateMethod(element)) {
+      if (isElegibleAccessorMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
+      }
+    }
+    // This is to restore previous behavior.
+    // Now we pass only explicitly defined equals, hashCode, toString
+    for (ExecutableElement element : ElementFilter.methodsIn(type.getEnclosedElements())) {
+      switch (element.getSimpleName().toString()) {
+      case EQUALS_METHOD: //$FALL-THROUGH$
+      case HASH_CODE_METHOD: //$FALL-THROUGH$
+      case TO_STRING_METHOD: //$FALL-THROUGH$
+        processGenerationCandidateMethod(typeBuilder, element);
       }
     }
   }
@@ -200,18 +216,23 @@ public class Discovery {
         : SourceOrdering.getAllAccessors(processing.getElementUtils(), type);
   }
 
-  private boolean isElegibleCandidateMethod(Element element) {
+  private boolean isElegibleAccessorMethod(Element element) {
     if (element.getKind() != ElementKind.METHOD) {
       return false;
     }
     if (element.getModifiers().contains(Modifier.STATIC)) {
       return false;
     }
-    String definitionType = element.getEnclosingElement().toString();
-    if (definitionType.equals("java.lang.Object")) {
+    switch (element.getSimpleName().toString()) {
+    case HASH_CODE_METHOD: //$FALL-THROUGH$
+    case TO_STRING_METHOD:
       return false;
     }
-    if (definitionType.startsWith("org.immutables.common.collect.OrdinalValue")) {
+    String definitionType = element.getEnclosingElement().toString();
+    if (definitionType.equals(Object.class.getName())) {
+      return false;
+    }
+    if (definitionType.startsWith(ORDINAL_VALUE_TYPE)) {
       return false;
     }
     return true;
@@ -223,7 +244,7 @@ public class Discovery {
 
     Name name = attributeMethodCandidate.getSimpleName();
     List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
-    if (name.contentEquals("equals")
+    if (name.contentEquals(EQUALS_METHOD)
         && parameters.size() == 1
         && parameters.get(0).asType().toString().equals(Object.class.getName())
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
@@ -231,13 +252,15 @@ public class Discovery {
       return;
     }
 
-    if (name.contentEquals("hashCode") && parameters.isEmpty()
+    if (name.contentEquals(HASH_CODE_METHOD)
+        && parameters.isEmpty()
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
       type.isHashCodeDefined(true);
       return;
     }
 
-    if (name.contentEquals("toString") && parameters.isEmpty()
+    if (name.contentEquals(TO_STRING_METHOD)
+        && parameters.isEmpty()
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
       type.isToStringDefined(true);
       return;

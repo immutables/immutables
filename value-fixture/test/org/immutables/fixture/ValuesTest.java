@@ -253,6 +253,28 @@ public class ValuesTest {
   }
 
   @Test
+  public void underwriteHashcodeToStringEquals() {
+    ImmutableUnderwrite v =
+        ImmutableUnderwrite.builder()
+            .value(1)
+            .build();
+    check(v.hashCode()).is(2);
+    check(v).hasToString("U");
+    check(v.equals("U"));
+  }
+
+  @Test
+  public void noUnderwriteInheritedHashcodeToStringEquals() {
+    ImmutableNoUnderwrite v =
+        ImmutableNoUnderwrite.builder()
+            .value(1)
+            .build();
+    check(v.hashCode()).not(2);
+    check(v.toString()).not("U");
+    check(!v.equals("U"));
+  }
+
+  @Test
   public void canBuildCorrectInvariants() {
 
     ImmutableSillyValidatedBuiltValue.builder()
