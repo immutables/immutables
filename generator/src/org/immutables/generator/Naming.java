@@ -15,16 +15,16 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.CharMatcher;
 import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
 import java.util.List;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * Converter-like function to apply or extract naming
+ * Converter-like function to apply or extract naming, derived from input.
  */
 public abstract class Naming implements Function<String, String> {
   private Naming() {}
@@ -68,6 +68,14 @@ public abstract class Naming implements Function<String, String> {
         : new PrefixSuffixNaming(parts.get(0), parts.get(1));
   }
 
+  public static Naming[] fromAll(String... templates) {
+    Naming[] namings = new Naming[templates.length];
+    for (int i = 0; i < templates.length; i++) {
+      namings[i] = from(templates[i]);
+    }
+    return namings;
+  }
+
   /**
    * Verbatim naming convention do not use any supplied input name as base.
    * Consider example factory method "from", it used as {@link VerbatimNaming},
@@ -99,10 +107,12 @@ public abstract class Naming implements Function<String, String> {
   private static class PrefixSuffixNaming extends Naming {
     final String prefix;
     final String suffix;
+    final int lengthsOfPrefixAndSuffix;
 
     PrefixSuffixNaming(String prefix, String suffix) {
       this.prefix = prefix;
       this.suffix = suffix;
+      this.lengthsOfPrefixAndSuffix = suffix.length() + prefix.length();
     }
 
     @Override
@@ -116,7 +126,11 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String detect(String identifier) {
-      if (identifier.length() <= suffix.length() + prefix.length()) {
+      if (lengthsOfPrefixAndSuffix == 0) {
+        return identifier;
+      }
+
+      if (identifier.length() <= lengthsOfPrefixAndSuffix) {
         return NOT_DETECTED;
       }
 
