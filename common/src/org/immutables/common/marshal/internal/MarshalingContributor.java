@@ -15,10 +15,10 @@
  */
 package org.immutables.common.marshal.internal;
 
+import java.util.Map;
 import org.immutables.common.marshal.Marshaler;
-import com.google.common.collect.ImmutableMap;
 
 public interface MarshalingContributor {
 
-  void putMarshalers(ImmutableMap.Builder<Class<?>, Marshaler<?>> builder);
+  void putMarshalers(Map<Class<?>, Marshaler<?>> marshalers);
 }

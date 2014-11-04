@@ -294,9 +294,10 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   @Override
   public AssignGenerator transform(Context context, AssignGenerator generator) {
     transformAssignGeneratorDeclaration(context, generator, generator.declaration());
-    context.out(" = (")
-        .out(requiredResolvedTypeOfDeclaration(generator.declaration()))
-        .out(") $(");
+//    context.out(" = (")
+//        .out(requiredResolvedTypeOfDeclaration(generator.declaration()))
+//        .out(") $(");
+    context.out(" = $cast(");
     transformAssignGeneratorFrom(context, generator, generator.from());
     context.out(");").ln();
     return generator;

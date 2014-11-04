@@ -153,7 +153,7 @@ package [type.packageName];
 [/for]
    * @return immutable [type.name] instance
    */
-  public static [type.defName] of([for v in type.constructorArguments][if not for.first], [/if][v.type] [v.name][/for]) {
+  public static [type.defName] of([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
     return checkPreconditions(new [type.defName]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
   }
 [/if]
@@ -300,8 +300,7 @@ public static [type.defName] copyOf([type.defName] instance) {
 [else]
 [type.accessPrefix]static final class Builder {
 [/if]
-  private Builder() {
-  }
+  private Builder() {}
 
   [for l in defpos.longs]
   private long nondefaultBitset[l.index];
@@ -346,8 +345,7 @@ public static [type.defName] copyOf([type.defName] instance) {
 [else if v.primitive]
   private [v.type] [v.name];
 [else]
-  @javax.annotation.Nullable
-  private [v.type] [v.name];
+  private @javax.annotation.Nullable [v.type] [v.name];
 [/if]
   [/for]
   [if type.generateOrdinalValue]
@@ -490,11 +488,11 @@ public static [type.defName] copyOf([type.defName] instance) {
   [if v.generateDefault]
    * <p><em>If not set, this attribute will have {@link [type.name]#[v.name]() default value}.</em>
   [/if]
-   * @param [v.name] value for [v.name], non-null
+   * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.name]([v.type] [v.name]) {
-    [if v.primitive]
+  public final Builder [v.name]([v.atNullability][v.type] [v.name]) {
+    [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
     this.[v.name] = com.google.common.base.Preconditions.checkNotNull([v.name]);
@@ -543,6 +541,8 @@ this.[n] = com.google.common.base.Optional.absent();
 this.[n] = com.google.common.collect.ImmutableMap.of();
   [else if v.collectionType]
 this.[n] = com.google.common.collect.Immutable[v.rawCollectionType].of();
+  [else if v.nullable]
+this.[n] = null;
   [else]
     [output.error]
       Could not generate constructor. Attribute '[v.name]' [v.generateDefault] does not have default value.
@@ -553,7 +553,7 @@ this.[n] = com.google.common.collect.Immutable[v.rawCollectionType].of();
 [if type.annotationType]
 this.[n] = DEFAULT_VALUE_[toConstant v.name];
 [else]
-  [if v.primitive]
+  [if v.primitive or v.nullable]
 this.[n] = super.[n]();
   [else]
 this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
@@ -565,7 +565,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [template generateImmutable Type type]
 [for setters = type.settableAttributes, getters = type.implementedAttributes]
 [for v in getters]
-  private final [v.implementationType] [v.name];
+  private final [v.atNullability][v.implementationType] [v.name];
 [/for]
 [if type.usePrehashed]
   private final int hashCode;
@@ -584,11 +584,11 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [if type.useConstructor]
 
   private [type.defName]([for v in type.constructorArguments][if not for.first],[/if]
-      [v.type] [v.name][/for]) {
+      [v.atNullability][v.type] [v.name][/for]) {
 [for v in type.constructorArguments, n = v.name]
   [if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionCopyOf v n];
-  [else if v.primitive]
+  [else if v.primitive or v.nullable]
     this.[n] = [n];
   [else]
     this.[n] = com.google.common.base.Preconditions.checkNotNull([n]);
@@ -612,7 +612,8 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [/for]
 [-- Generate default values comes after required values]
 [for v in getters, n = v.name]
-[if v.primitive and v.generateDefault]
+[if v.generateDefault]
+  [if v.primitive]
     this.[n] = builder.[n]IsSet()
         ? builder.[n]
       [if type.annotationType]
@@ -620,18 +621,23 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
       [else]
         : super.[n]();
       [/if]
-[else if v.generateDefault]
+  [else]
     this.[n] = builder.[n] != null
         ? builder.[n]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
+      [else if v.nullable]
+        : super.[n]();
       [else]
         : com.google.common.base.Preconditions.checkNotNull(super.[n]());
       [/if]
-[else if v.primitive and v.generateDerived]
-    this.[n] = super.[n]();
+  [/if]
 [else if v.generateDerived]
+  [if v.primitive or v.nullable]
+    this.[n] = super.[n]();
+  [else]
     this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
+  [/if]
 [/if]
 [/for]
     [generateAfterConstruction type true]
@@ -640,7 +646,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
 [if type.useCopyMethods]
 
   private [type.defName](
-      [type.defName] copiedInstance[for v in getters],
+      [type.defName] original[for v in getters],
       [v.implementationType] [v.name][/for]) {
   [for v in getters]
     this.[v.name] = [v.name];
@@ -713,7 +719,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalityType][if type.annotationType][type.valueTypeName][else][type.defName][/if][/let]
+[let equalToType][if type.annotationType][type.valueTypeName][else][type.defName][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if not type.equalToDefined]
 
@@ -723,12 +729,12 @@ public boolean equals(Object another) {
   return this == another;
   [else]
   return this == another
-      || (another instanceof [equalityType] && equalTo(([equalityType]) another));
+      || (another instanceof [equalToType] && equalTo(([equalToType]) another));
   [/if]
 }
 [/if]
 
-private boolean equalTo([equalityType] another) {
+private boolean equalTo([equalToType] another) {
   return [if not getters]true[/if][for v in getters][if not for.first]
       && [/if][equalsAttribute v type.annotationType][/for];
 }
@@ -757,7 +763,9 @@ private int computeHashCode() {
   h = h * 17 + "[type.name]".hashCode();
   [else]
 [for v in getters]
-[if v.arrayType]
+[if v.nullable]
+  h = h * 17 + java.util.Objects.hashCode([v.name]);
+[else if v.arrayType]
   h = h * 17 + java.util.Arrays.hashCode([v.name]);
 [else if not v.primitive]
   h = h * 17 + [v.name].hashCode();
@@ -792,6 +800,7 @@ public int hashCode() {
 @Override
 public String toString() {
   return com.google.common.base.MoreObjects.toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
+      .omitNullValues()
   [for v in type.equivalenceAttributes]
   [if v.optionalType]
       .add("[v.name]", [v.name].orNull())
@@ -920,17 +929,17 @@ public final [type.defName] with[toUpper v.name](java.util.Map<[gE], ? extends [
  [else if not v.primitive]
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
- * @param value value for [v.name], non-null
+ * @param value value for [v.name][if not v.nullable], non-null[/if]
  * @return modified copy of the {@code this} object
  */
-public final [type.defName] with[toUpper v.name]([v.type] value) {
+public final [type.defName] with[toUpper v.name]([v.atNullability][v.type] value) {
     [if not v.floatType]
   if (this.[v.name] == value) {
     return this;
   }
     [/if]
-    [if v.primitive]
-  [v.implementationType] newValue = value;
+    [if v.nullable or v.primitive]
+  [v.atNullability][v.implementationType] newValue = value;
     [else]
   [v.implementationType] newValue = com.google.common.base.Preconditions.checkNotNull(value);
     [/if]
@@ -1017,6 +1026,8 @@ private static <T> T cast(Object object) {
   [a.name] == another.[a.name][suffix]
 [else if a.arrayType]
   java.util.Arrays.equals([a.name], another.[a.name][suffix])
+[else if a.nullable]
+  java.util.Objects.equals([a.name], another.[a.name][suffix])
 [else]
   [a.name].equals(another.[a.name][suffix])
 [/if]

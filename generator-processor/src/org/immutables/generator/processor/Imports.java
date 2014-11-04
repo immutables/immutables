@@ -53,19 +53,11 @@ public final class Imports extends Introspection {
   }
 
   private void collectBuiltins(Map<String, TypeMirror> collected) {
-    TypeKind[] primitiveKinds = {
-        TypeKind.BOOLEAN,
-        TypeKind.BYTE,
-        TypeKind.CHAR,
-        TypeKind.DOUBLE,
-        TypeKind.FLOAT,
-        TypeKind.INT,
-        TypeKind.LONG,
-        TypeKind.SHORT };
-
-    for (TypeKind kind : primitiveKinds) {
-      TypeElement boxedClass = types.boxedClass(types.getPrimitiveType(kind));
-      collected.put(boxedClass.getSimpleName().toString(), boxedClass.asType());
+    for (TypeKind kind : TypeKind.values()) {
+      if (kind.isPrimitive()) {
+        TypeElement boxedClass = types.boxedClass(types.getPrimitiveType(kind));
+        collected.put(boxedClass.getSimpleName().toString(), boxedClass.asType());
+      }
     }
 
     TypeElement typeElement = elements.getTypeElement(String.class.getCanonicalName());

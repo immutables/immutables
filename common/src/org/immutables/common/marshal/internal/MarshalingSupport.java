@@ -15,6 +15,7 @@
  */
 package org.immutables.common.marshal.internal;
 
+import com.google.common.collect.Maps;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
@@ -247,11 +248,11 @@ public final class MarshalingSupport {
     static final ImmutableMap<Class<?>, Marshaler<?>> marshalers;
 
     static {
-      ImmutableMap.Builder<Class<?>, Marshaler<?>> builder = ImmutableMap.builder();
+      Map<Class<?>, Marshaler<?>> map = Maps.newHashMapWithExpectedSize(1 << 6);
       for (MarshalingContributor contributor : ServiceLoader.load(MarshalingContributor.class)) {
-        contributor.putMarshalers(builder);
+        contributor.putMarshalers(map);
       }
-      marshalers = builder.build();
+      marshalers = ImmutableMap.copyOf(map);
     }
   }
 }

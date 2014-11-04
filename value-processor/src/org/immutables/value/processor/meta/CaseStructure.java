@@ -23,30 +23,30 @@ import java.util.List;
 import java.util.Set;
 
 public class CaseStructure {
-  public final List<DiscoveredValue> implementationTypes;
-  public final SetMultimap<String, DiscoveredValue> subtyping;
+  public final List<ValueType> implementationTypes;
+  public final SetMultimap<String, ValueType> subtyping;
   public final Set<String> implementationTypeNames;
-  public final SetMultimap<String, DiscoveredValue> subtypeUsages = HashMultimap.create();
-  public final SetMultimap<String, DiscoveredValue> abstractUsages = HashMultimap.create();
+  public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
+  public final SetMultimap<String, ValueType> abstractUsages = HashMultimap.create();
 
-  public CaseStructure(DiscoveredValue discoveredValue) {
+  public CaseStructure(ValueType discoveredValue) {
     this.implementationTypes = discoveredValue.getNestedChildren();
     this.implementationTypeNames = buildImplementationType(implementationTypes);
     this.subtyping = buildSubtyping(implementationTypes);
   }
 
-  private static Set<String> buildImplementationType(List<DiscoveredValue> implementationTypes) {
+  private static Set<String> buildImplementationType(List<ValueType> implementationTypes) {
     ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-    for (DiscoveredValue discoveredValue : implementationTypes) {
+    for (ValueType discoveredValue : implementationTypes) {
       builder.add(discoveredValue.implementationTypeName());
     }
     return builder.build();
   }
 
-  private static SetMultimap<String, DiscoveredValue> buildSubtyping(List<DiscoveredValue> implementationTypes) {
-    ImmutableSetMultimap.Builder<String, DiscoveredValue> builder = ImmutableSetMultimap.builder();
+  private static SetMultimap<String, ValueType> buildSubtyping(List<ValueType> implementationTypes) {
+    ImmutableSetMultimap.Builder<String, ValueType> builder = ImmutableSetMultimap.builder();
 
-    for (DiscoveredValue type : implementationTypes) {
+    for (ValueType type : implementationTypes) {
       builder.put(type.internalTypeElement().getQualifiedName().toString(), type);
 
       for (String className : type.getExtendedClassesNames()) {
@@ -67,13 +67,13 @@ public class CaseStructure {
     }
   };
 
-  public final Function<String, Iterable<DiscoveredValue>> knownSubtypes =
-      new Function<String, Iterable<DiscoveredValue>>() {
+  public final Function<String, Iterable<ValueType>> knownSubtypes =
+      new Function<String, Iterable<ValueType>>() {
         @Override
-        public Iterable<DiscoveredValue> apply(@Nullable String typeName) {
-          Set<DiscoveredValue> subtypes = subtyping.get(typeName);
+        public Iterable<ValueType> apply(@Nullable String typeName) {
+          Set<ValueType> subtypes = subtyping.get(typeName);
           subtypeUsages.putAll(typeName, subtypes);
-          for (DiscoveredValue subtype : subtypes) {
+          for (ValueType subtype : subtypes) {
             subtypeUsages.put(subtype.valueTypeName(), subtype);
           }
           return subtypes;

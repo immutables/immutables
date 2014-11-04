@@ -99,6 +99,18 @@ public class ValuesTest {
   }
 
   @Test
+  public void nullable() {
+    ImmutableHasNullable hasNullable = ImmutableHasNullable.builder().build();
+    check(hasNullable.def()).isNull();
+    check(hasNullable.der()).isNull();
+    check(hasNullable.in()).isNull();
+    check(ImmutableHasNullable.of(null)).is(hasNullable);
+    check(ImmutableHasNullable.of()).is(hasNullable);
+    check(ImmutableHasNullable.of().hashCode()).is(hasNullable.hashCode());
+    check(hasNullable).hasToString("HasNullable{}");
+  }
+
+  @Test
   public void withMethods() {
     ImmutableSillyValidatedBuiltValue value = ImmutableSillyValidatedBuiltValue.builder()
         .value(-10)

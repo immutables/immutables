@@ -17,18 +17,13 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 import com.google.common.primitives.Primitives;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Value;
 import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -36,15 +31,17 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Value;
+import java.util.*;
 
 /**
- * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
+ * It's pointless to refactor this mess until
+ * 1) Some sort of type calculus toolkit used/created
+ * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
+public abstract class ValueAttribute extends TypeIntrospectionBase {
 
+  private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
+  private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
   private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
@@ -72,7 +69,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isBoolean() {
-    return internalTypeName().equals(boolean.class.getName());
+    return internalTypeMirror().getKind() == TypeKind.BOOLEAN;
   }
 
   public boolean isStringType() {
@@ -80,7 +77,11 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean charType() {
-    return internalTypeName().equals(char.class.getName());
+    return internalTypeMirror().getKind() == TypeKind.CHAR;
+  }
+
+  public String atNullability() {
+    return isNullable() ? NULLABLE_PREFIX : "";
   }
 
   public boolean isSimpleLiteralType() {
@@ -90,7 +91,12 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isMandatory() {
-    return isGenerateAbstract() && !isContainerType();
+    return isGenerateAbstract() && !isContainerType() && !isNullable();
+  }
+
+  public boolean isNullable() {
+    ensureAnnotationsIntrospected();
+    return nullable;
   }
 
   @Override
@@ -194,6 +200,9 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private Boolean isMapType;
 
   public boolean isMapType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
     if (isMapType == null) {
       isMapType = internalTypeName().startsWith(Map.class.getName());
     }
@@ -203,6 +212,9 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private Boolean isListType;
 
   public boolean isListType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
     if (isListType == null) {
       isListType = internalTypeName().startsWith(List.class.getName());
     }
@@ -212,6 +224,9 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private Boolean isSetType;
 
   public boolean isSetType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
     if (isSetType == null) {
       isSetType = internalTypeName().startsWith(Set.class.getName());
     }
@@ -221,6 +236,9 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private Boolean isOptionalType;
 
   public boolean isOptionalType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
     if (isOptionalType == null) {
       isOptionalType = internalTypeName().startsWith(googleCommonHiddenFromShadePlugin("base.Optional"));
     }
@@ -330,7 +348,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   private static List<String> listExpectedSubclassesFromElement(Element element) {
-    return DiscoveredValue.extractedClassNamesFromAnnotationMirrors(
+    return ValueType.extractedClassNamesFromAnnotationMirrors(
         Json.Subclasses.class.getCanonicalName(), "value", element.getAnnotationMirrors());
   }
 
@@ -343,6 +361,8 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   private TypeElement containedTypeElement;
   private boolean generateOrdinalValueSet;
   private TypeMirror arrayComponent;
+  private boolean regularAttribute;
+  private boolean nullable;
 
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
@@ -359,7 +379,8 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isArrayType() {
-    return internalTypeMirror().getKind() == TypeKind.ARRAY;
+    return !isRegularAttribute()
+        && internalTypeMirror().getKind() == TypeKind.ARRAY;
   }
 
   @Override
@@ -439,7 +460,27 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
     super.introspectType();
   }
 
-  static boolean isRegularMashalableType(String name) {
+  private boolean annotationsIntrospected;
+
+  private void ensureAnnotationsIntrospected() {
+    if (!annotationsIntrospected) {
+      for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+        if (annotation.getAnnotationType().asElement().getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+          if (!isPrimitive()) {
+            nullable = true;
+            regularAttribute = true;
+          }
+        }
+      }
+    }
+    annotationsIntrospected = true;
+  }
+
+  private boolean isRegularAttribute() {
+    return regularAttribute;
+  }
+
+  static boolean isRegularMarshalableType(String name) {
     return String.class.getName().equals(name)
         || PRIMITIVE_TYPES.containsKey(name)
         || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
@@ -471,26 +512,22 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isNumberType() {
-    String t = internalTypeName();
-    return isPrimitive()
-        && !char.class.getName().equals(t)
-        && !boolean.class.getName().equals(t);
+    TypeKind kind = internalTypeMirror().getKind();
+    return kind.isPrimitive()
+        && kind != TypeKind.CHAR
+        && kind != TypeKind.BOOLEAN;
   }
 
   public boolean isFloatType() {
-    String t = internalTypeName();
-    return float.class.getName().equals(t)
-        || double.class.getName().equals(t);
+    return isFloat() || isDouble();
   }
 
   public boolean isFloat() {
-    String t = internalTypeName();
-    return float.class.getName().equals(t);
+    return internalTypeMirror().getKind() == TypeKind.FLOAT;
   }
 
   public boolean isDouble() {
-    String t = internalTypeName();
-    return double.class.getName().equals(t);
+    return internalTypeMirror().getKind() == TypeKind.DOUBLE;
   }
 
   public boolean isNonRawElemementType() {
@@ -510,7 +547,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isPrimitive() {
-    return PRIMITIVE_TYPES.containsKey(internalTypeName());
+    return internalTypeMirror().getKind().isPrimitive();
   }
 
   public int getConstructorArgumentOrder() {
@@ -550,7 +587,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
     if (isMarshaled) {
       return true;
     }
-    return !isRegularMashalableType(qualifiedName.toString());
+    return !isRegularMarshalableType(qualifiedName.toString());
   }
 
   private static String marshalerNameFor(String typeName) {
@@ -590,7 +627,7 @@ public abstract class DiscoveredAttribute extends TypeIntrospectionBase {
   }
 
   static void addIfSpecialMarshalable(Collection<String> marshaledTypes, String typeName) {
-    if (!isRegularMashalableType(typeName)) {
+    if (!isRegularMarshalableType(typeName)) {
       marshaledTypes.add(typeName);
     }
   }

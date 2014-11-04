@@ -26,24 +26,25 @@ import javax.lang.model.type.TypeMirror;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
+ * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.You can witness old (early 2012) generation style,
+ * now maintained manually, and should be removed/collapsed.
  */
-final class DiscoveredAttributes {
-  private DiscoveredAttributes() {}
+final class ValueAttributes {
+  private ValueAttributes() {}
 
   /**
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isGenerateFunction.
    * @return predicate on DiscoveredAttribute evaluates to 'isGenerateFunction' attribute
    */
-  public static Predicate<DiscoveredAttribute> isGenerateFunction() {
+  public static Predicate<ValueAttribute> isGenerateFunction() {
     return IsGenerateFunctionPredicate.INSTANCE;
   }
 
   private enum IsGenerateFunctionPredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isGenerateFunction();
     }
 
@@ -57,15 +58,15 @@ final class DiscoveredAttributes {
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isGeneratePredicate.
    * @return predicate on DiscoveredAttribute evaluates to 'isGeneratePredicate' attribute
    */
-  public static Predicate<DiscoveredAttribute> isGeneratePredicate() {
+  public static Predicate<ValueAttribute> isGeneratePredicate() {
     return IsGeneratePredicatePredicate.INSTANCE;
   }
 
   private enum IsGeneratePredicatePredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isGeneratePredicate();
     }
 
@@ -79,15 +80,15 @@ final class DiscoveredAttributes {
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isGenerateDefault.
    * @return predicate on DiscoveredAttribute evaluates to 'isGenerateDefault' attribute
    */
-  public static Predicate<DiscoveredAttribute> isGenerateDefault() {
+  public static Predicate<ValueAttribute> isGenerateDefault() {
     return IsGenerateDefaultPredicate.INSTANCE;
   }
 
   private enum IsGenerateDefaultPredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isGenerateDefault();
     }
 
@@ -101,15 +102,15 @@ final class DiscoveredAttributes {
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isGenerateDerived.
    * @return predicate on DiscoveredAttribute evaluates to 'isGenerateDerived' attribute
    */
-  public static Predicate<DiscoveredAttribute> isGenerateDerived() {
+  public static Predicate<ValueAttribute> isGenerateDerived() {
     return IsGenerateDerivedPredicate.INSTANCE;
   }
 
   private enum IsGenerateDerivedPredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isGenerateDerived();
     }
 
@@ -123,15 +124,15 @@ final class DiscoveredAttributes {
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isGenerateAbstract.
    * @return predicate on DiscoveredAttribute evaluates to 'isGenerateAbstract' attribute
    */
-  public static Predicate<DiscoveredAttribute> isGenerateAbstract() {
+  public static Predicate<ValueAttribute> isGenerateAbstract() {
     return IsGenerateAbstractPredicate.INSTANCE;
   }
 
   private enum IsGenerateAbstractPredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isGenerateAbstract();
     }
 
@@ -145,15 +146,15 @@ final class DiscoveredAttributes {
    * Predicate on instance of DiscoveredAttribute that evaluates attribute isPrimitive.
    * @return predicate on DiscoveredAttribute evaluates to 'isPrimitive' attribute
    */
-  public static Predicate<DiscoveredAttribute> isPrimitive() {
+  public static Predicate<ValueAttribute> isPrimitive() {
     return IsPrimitivePredicate.INSTANCE;
   }
 
   private enum IsPrimitivePredicate
-      implements Predicate<DiscoveredAttribute> {
+      implements Predicate<ValueAttribute> {
     INSTANCE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return input.isPrimitive();
     }
 
@@ -164,8 +165,8 @@ final class DiscoveredAttributes {
   }
 
   @Immutable
-  private static final class ImmutableDiscoveredAttribute
-      extends DiscoveredAttribute {
+  private static final class ValueAttributeSubtype
+      extends ValueAttribute {
     private final TypeMirror internalTypeMirror;
     private final boolean isGenerateFunction;
     private final boolean isGeneratePredicate;
@@ -176,7 +177,7 @@ final class DiscoveredAttributes {
     private final String internalName;
     private final String internalTypeName;
 
-    ImmutableDiscoveredAttribute(Builder builder) {
+    ValueAttributeSubtype(Builder builder) {
       this.internalTypeMirror = checkNotNull(builder.internalTypeMirror);
       this.internalName = checkNotNull(builder.internalName);
       this.internalTypeName = checkNotNull(builder.internalTypeName);
@@ -248,10 +249,10 @@ final class DiscoveredAttributes {
     @Override
     public boolean equals(Object another) {
       return this == another
-          || (another instanceof ImmutableDiscoveredAttribute && equalTo((ImmutableDiscoveredAttribute) another));
+          || (another instanceof ValueAttributeSubtype && equalTo((ValueAttributeSubtype) another));
     }
 
-    private boolean equalTo(ImmutableDiscoveredAttribute another) {
+    private boolean equalTo(ValueAttributeSubtype another) {
       return true
           && internalTypeMirror.equals(another.internalTypeMirror)
           && isGenerateFunction == another.isGenerateFunction
@@ -279,7 +280,7 @@ final class DiscoveredAttributes {
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper("DiscoveredAttribute")
+      return MoreObjects.toStringHelper("ValueAttribute")
           .add("internalTypeMirror", internalTypeMirror)
           .add("isGenerateFunction", isGenerateFunction)
           .add("isGeneratePredicate", isGeneratePredicate)
@@ -293,7 +294,7 @@ final class DiscoveredAttributes {
   }
 
   /**
-   * Creates builder for {@link DiscoveredAttribute}.
+   * Creates builder for {@link ValueAttribute}.
    * @return new DiscoveredAttribute builder
    */
   public static Builder builder() {
@@ -301,7 +302,7 @@ final class DiscoveredAttributes {
   }
 
   /**
-   * Builds instances of {@link DiscoveredAttribute}.
+   * Builds instances of {@link ValueAttribute}.
    * Builder is not thread safe and generally should not be stored in fields and collections,
    * but used immediately to create instances.
    */
@@ -334,11 +335,11 @@ final class DiscoveredAttributes {
     private Builder() {}
 
     /**
-     * Fill builder with values from provided {@link DiscoveredAttribute} instance.
+     * Fill builder with values from provided {@link ValueAttribute} instance.
      * @param fromInstance instance to copy values from
      * @return {@code this} builder
      */
-    public Builder copy(DiscoveredAttribute fromInstance) {
+    public Builder copy(ValueAttribute fromInstance) {
       checkNotNull(fromInstance);
       internalTypeMirror(fromInstance.internalTypeMirror());
       isGenerateFunction(fromInstance.isGenerateFunction());
@@ -353,7 +354,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#internalTypeMirror()}.
+     * Initializes value for {@link ValueAttribute#internalTypeMirror()}.
      * @param internalTypeMirror
      *          value for internalTypeMirror, not {@code null}
      * @return {@code this} builder
@@ -364,7 +365,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#isGenerateFunction()}.
+     * Initializes value for {@link ValueAttribute#isGenerateFunction()}.
      * @param isGenerateFunction
      *          value for isGenerateFunction, not {@code null}
      * @return {@code this} builder
@@ -376,7 +377,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#isGeneratePredicate()}.
+     * Initializes value for {@link ValueAttribute#isGeneratePredicate()}.
      * @param isGeneratePredicate
      *          value for isGeneratePredicate, not {@code null}
      * @return {@code this} builder
@@ -388,7 +389,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#isGenerateDefault()}.
+     * Initializes value for {@link ValueAttribute#isGenerateDefault()}.
      * @param isGenerateDefault
      *          value for isGenerateDefault, not {@code null}
      * @return {@code this} builder
@@ -400,7 +401,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#isGenerateDerived()}.
+     * Initializes value for {@link ValueAttribute#isGenerateDerived()}.
      * @param isGenerateDerived
      *          value for isGenerateDerived, not {@code null}
      * @return {@code this} builder
@@ -418,7 +419,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#isGenerateAbstract()}.
+     * Initializes value for {@link ValueAttribute#isGenerateAbstract()}.
      * @param isGenerateAbstract
      *          value for isGenerateAbstract, not {@code null}
      * @return {@code this} builder
@@ -430,7 +431,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#internalName()}.
+     * Initializes value for {@link ValueAttribute#internalName()}.
      * @param internalName
      *          value for internalName, not {@code null}
      * @return {@code this} builder
@@ -441,7 +442,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Initializes value for {@link DiscoveredAttribute#internalTypeName()}.
+     * Initializes value for {@link ValueAttribute#internalTypeName()}.
      * @param internalTypeName
      *          value for internalTypeName, not {@code null}
      * @return {@code this} builder
@@ -452,7 +453,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Adds element to {@link DiscoveredAttribute#typeParameters() list}.
+     * Adds element to {@link ValueAttribute#typeParameters() list}.
      * @param typeParametersElement single typeParameters element
      * @return {@code this} builder
      */
@@ -462,7 +463,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Adds elements to {@link DiscoveredAttribute#typeParameters() list}.
+     * Adds elements to {@link ValueAttribute#typeParameters() list}.
      * @param typeParametersElements
      *          rest typeParameters elements
      * @return {@code this} builder
@@ -475,7 +476,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Adds elements to {@link DiscoveredAttribute#typeParameters()} list}.
+     * Adds elements to {@link ValueAttribute#typeParameters()} list}.
      * @param typeParametersElements
      *          iterable typeParameters elements
      * @return {@code this} builder
@@ -487,7 +488,7 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Clears elements for {@link DiscoveredAttribute#typeParameters()} list.
+     * Clears elements for {@link ValueAttribute#typeParameters()} list.
      * @return {@code this} builder
      */
     public Builder clearTypeParameters() {
@@ -496,14 +497,14 @@ final class DiscoveredAttributes {
     }
 
     /**
-     * Builds new {@link DiscoveredAttribute}.
+     * Builds new {@link ValueAttribute}.
      * @return immutable instance of DiscoveredAttribute
      */
-    public DiscoveredAttribute build() {
+    public ValueAttribute build() {
       checkState(internalTypeMirror != null, REQUIRED_ATTRIBUTE, "internalTypeMirror");
       checkState(internalName != null, REQUIRED_ATTRIBUTE, "internalName");
       checkState(internalTypeName != null, REQUIRED_ATTRIBUTE, "internalTypeName");
-      return new ImmutableDiscoveredAttribute(this);
+      return new ValueAttributeSubtype(this);
     }
   }
 }

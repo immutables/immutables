@@ -28,7 +28,5 @@ class GroupedClasses {
   @Value.Immutable
   interface NestedOne extends Other {
     Optional<Other> other();
-
-    int attribute();
   }
 }

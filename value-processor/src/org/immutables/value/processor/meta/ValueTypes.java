@@ -26,23 +26,24 @@ import javax.lang.model.element.TypeElement;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING.
+ * VERY OLD FAILED ATTEMPT OF SELF BOOTSTRAPPING. You can witness old (early 2012) generation style,
+ * now maintained manually, and should be removed/collapsed.
  */
-final class DiscoveredValues {
-  private DiscoveredValues() {}
+final class ValueTypes {
+  private ValueTypes() {}
 
   @Immutable
-  private static final class DiscoveredValueSubclass
-      extends DiscoveredValue {
+  private static final class ValueTypeSubtype
+      extends ValueType {
     private final TypeElement internalTypeElement;
-    private final List<DiscoveredAttribute> attributes;
+    private final List<ValueAttribute> attributes;
     private final boolean isUseBuilder;
     private final boolean isGenerateCompact;
     private final boolean isHashCodeDefined;
     private final boolean isEqualToDefined;
     private final boolean isToStringDefined;
 
-    DiscoveredValueSubclass(Builder builder) {
+    ValueTypeSubtype(Builder builder) {
       this.internalTypeElement = checkNotNull(builder.internalTypeElement);
       this.attributes = builder.attributesBuilder.build();
       this.isUseBuilder = builder.isUseBuilderIsSet
@@ -68,7 +69,7 @@ final class DiscoveredValues {
     }
 
     @Override
-    public List<DiscoveredAttribute> attributes() {
+    public List<ValueAttribute> attributes() {
       return attributes;
     }
 
@@ -100,10 +101,10 @@ final class DiscoveredValues {
     @Override
     public boolean equals(Object another) {
       return this == another
-          || (another instanceof DiscoveredValueSubclass && equalTo((DiscoveredValueSubclass) another));
+          || (another instanceof ValueTypeSubtype && equalTo((ValueTypeSubtype) another));
     }
 
-    private boolean equalTo(DiscoveredValueSubclass another) {
+    private boolean equalTo(ValueTypeSubtype another) {
       return true
           && internalTypeElement.equals(another.internalTypeElement)
           && attributes.equals(another.attributes)
@@ -129,7 +130,7 @@ final class DiscoveredValues {
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper("DiscoveredType")
+      return MoreObjects.toStringHelper("ValueType")
           .add("internalTypeElement", internalTypeElement)
           .add("attributes", attributes)
           .add("isUseBuilder", isUseBuilder)
@@ -142,7 +143,7 @@ final class DiscoveredValues {
   }
 
   /**
-   * Creates builder for {@link DiscoveredValue}.
+   * Creates builder for {@link ValueType}.
    * @return new DiscoveredType builder
    */
   public static Builder builder() {
@@ -150,7 +151,7 @@ final class DiscoveredValues {
   }
 
   /**
-   * Builds instances of {@link DiscoveredValue}.
+   * Builds instances of {@link ValueType}.
    * Builder is not thread safe and generally should not be stored in fields and collections,
    * but used immediately to create instances.
    */
@@ -163,7 +164,7 @@ final class DiscoveredValues {
     private String validationMethodName;
     @Nullable
     private TypeElement internalTypeElement;
-    private ImmutableList.Builder<DiscoveredAttribute> attributesBuilder =
+    private ImmutableList.Builder<ValueAttribute> attributesBuilder =
         ImmutableList.builder();
     private boolean isUseBuilder;
     private boolean isUseBuilderIsSet;
@@ -179,11 +180,11 @@ final class DiscoveredValues {
     private Builder() {}
 
     /**
-     * Fill builder with values from provided {@link DiscoveredValue} instance.
+     * Fill builder with values from provided {@link ValueType} instance.
      * @param fromInstance instance to copy values from
      * @return {@code this} builder
      */
-    public Builder copy(DiscoveredValue fromInstance) {
+    public Builder copy(ValueType fromInstance) {
       checkNotNull(fromInstance);
       internalTypeElement(fromInstance.internalTypeElement());
       addAttributes(fromInstance.attributes());
@@ -201,7 +202,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#internalTypeElement()}.
+     * Initializes value for {@link ValueType#internalTypeElement()}.
      * @param internalTypeElement
      *          value for internalTypeElement, not {@code null}
      * @return {@code this} builder
@@ -212,42 +213,42 @@ final class DiscoveredValues {
     }
 
     /**
-     * Adds element to {@link DiscoveredValue#attributes() list}.
+     * Adds element to {@link ValueType#attributes() list}.
      * @param attributesElement single attributes element
      * @return {@code this} builder
      */
-    public Builder addAttributes(DiscoveredAttribute attributesElement) {
+    public Builder addAttributes(ValueAttribute attributesElement) {
       attributesBuilder.add(attributesElement);
       return this;
     }
 
     /**
-     * Adds elements to {@link DiscoveredValue#attributes() list}.
+     * Adds elements to {@link ValueType#attributes() list}.
      * @param attributesElements
      *          rest attributes elements
      * @return {@code this} builder
      */
-    public Builder addAttributes(DiscoveredAttribute... attributesElements) {
-      for (DiscoveredAttribute it : attributesElements) {
+    public Builder addAttributes(ValueAttribute... attributesElements) {
+      for (ValueAttribute it : attributesElements) {
         attributesBuilder.add(it);
       }
       return this;
     }
 
     /**
-     * Adds elements to {@link DiscoveredValue#attributes()} list}.
+     * Adds elements to {@link ValueType#attributes()} list}.
      * @param attributesElements
      *          iterable attributes elements
      * @return {@code this} builder
      */
     public Builder addAttributes(
-        Iterable<? extends DiscoveredAttribute> attributesElements) {
+        Iterable<? extends ValueAttribute> attributesElements) {
       attributesBuilder.addAll(attributesElements);
       return this;
     }
 
     /**
-     * Clears elements for {@link DiscoveredValue#attributes()} list.
+     * Clears elements for {@link ValueType#attributes()} list.
      * @return {@code this} builder
      */
     public Builder clearAttributes() {
@@ -256,7 +257,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#isUseBuilder()}.
+     * Initializes value for {@link ValueType#isUseBuilder()}.
      * @param isUseBuilder
      *          value for isUseBuilder, not {@code null}
      * @return {@code this} builder
@@ -268,7 +269,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#isGenerateModifiable()}.
+     * Initializes value for {@link ValueType#isGenerateModifiable()}.
      * @param isGenerateCompact
      *          value for isGenerateCompact, not {@code null}
      * @return {@code this} builder
@@ -280,7 +281,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#isHashCodeDefined()}.
+     * Initializes value for {@link ValueType#isHashCodeDefined()}.
      * @param isHashCodeDefined
      *          value for isHashCodeDefined, not {@code null}
      * @return {@code this} builder
@@ -292,7 +293,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#isEqualToDefined()}.
+     * Initializes value for {@link ValueType#isEqualToDefined()}.
      * @param isEqualToDefined
      *          value for isEqualToDefined, not {@code null}
      * @return {@code this} builder
@@ -304,7 +305,7 @@ final class DiscoveredValues {
     }
 
     /**
-     * Initializes value for {@link DiscoveredValue#isToStringDefined()}.
+     * Initializes value for {@link ValueType#isToStringDefined()}.
      * @param isToStringDefined
      *          value for isToStringDefined, not {@code null}
      * @return {@code this} builder
@@ -316,12 +317,12 @@ final class DiscoveredValues {
     }
 
     /**
-     * Builds new {@link DiscoveredValue}.
+     * Builds new {@link ValueType}.
      * @return immutable instance of DiscoveredType
      */
-    public DiscoveredValue build() {
+    public ValueType build() {
       checkState(internalTypeElement != null, REQUIRED_ATTRIBUTE, "internalTypeElement");
-      DiscoveredValueSubclass type = new DiscoveredValueSubclass(this);
+      ValueTypeSubtype type = new ValueTypeSubtype(this);
       type.setValidationMethodName(validationMethodName);
       return type;
     }

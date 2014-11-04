@@ -32,7 +32,15 @@ package [transformerType.packageName];
         .with[toUpper a.name](transform[s][transformAttributeSuffix a](context, value, value.[a.name]()))[/for];
   }
   [for a in type.settableAttributes if type.useCopyMethods]
-    [if a.optionalType]
+    [if a.nullable]
+
+  protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
+    if (nullable != null) {
+      return transform[s][toUpper a.name](context, value, nullable);
+    }
+    return null;
+  }
+    [else if a.optionalType]
 
   protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
     if (optional.isPresent()) {
@@ -80,7 +88,9 @@ package [transformerType.packageName];
 [/template]
 
 [template transformAttributeSuffix Attribute a][output.trim]
-  [if a.optionalType]
+  [if a.nullable]
+    Nullable[toUpper a.name]
+  [else if a.optionalType]
     Optional[toUpper a.name]
   [else if a.collectionType]
     [a.rawCollectionType][toUpper a.name]

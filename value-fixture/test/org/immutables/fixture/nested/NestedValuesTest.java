@@ -15,17 +15,19 @@
  */
 package org.immutables.fixture.nested;
 
-import org.immutables.fixture.nested.ImmutableGroupedClasses.NestedOne;
-import org.immutables.fixture.nested.ImmutableInnerNested.Inner;
-import org.immutables.fixture.nested.ImmutableInnerNested.Nested;
-import org.immutables.fixture.nested.NonGrouped;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.base.CharMatcher;
+import org.immutables.common.marshal.Marshaling;
+import org.immutables.fixture.nested.ImmutableGroupedClasses.NestedOne;
+import org.immutables.fixture.nested.ImmutableInnerNested.Inner;
+import org.immutables.fixture.nested.ImmutableInnerNested.Nested;
+import org.immutables.value.Json.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
-public class NestedValues {
+public class NestedValuesTest {
 
   final JsonFactory jsonFactory = new JsonFactory()
       .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
@@ -51,13 +53,12 @@ public class NestedValues {
     NonGrouped.Cadabra c = ImmutableCadabra.builder().build();
     check(c).notNull();
   }
-//
-//  @Ignore
-//  @Test
-//  public void marshalingOfNested() {
-//    Marshaler<GroupedClasses.NestedOne> marshaler =
-//        Marshaling.marshalerFor(GroupedClasses.NestedOne.class);
-//
-//    check(Marshaling.toJson(ImmutableGroupedClasses.NestedOne.builder().build())).is("{}");
-//  }
+
+  @Ignore
+  @Test
+  public void marshalingOfNested() {
+    check(CharMatcher.WHITESPACE.removeFrom(
+        Marshaling.toJson(
+            ImmutableGroupedClasses.NestedOne.builder().build()))).is("{}");
+  }
 }

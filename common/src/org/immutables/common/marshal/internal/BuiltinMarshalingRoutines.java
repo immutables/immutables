@@ -36,17 +36,140 @@ public final class BuiltinMarshalingRoutines {
    * Fallback overload method that throws exception.
    * @param <T> the generic type
    * @param parser the parser
-   * @param enumNull the enum null
+   * @param objectNull the null refence
    * @param expectedClass the expected class
    * @return the T instance
    * @throws IOException Signals that an I/O exception has occurred.
    */
   public static <T> T unmarshal(
       JsonParser parser,
-      @Nullable Object enumNull,
+      @Nullable Object objectNull,
       Class<?> expectedClass) throws IOException {
     // TODO NEED TO RETHINK
     throw new AssertionError("No marshaller can handle " + expectedClass);
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param intNull the int null
+   * @param expectedClass the expected class
+   * @return the integer
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Integer unmarshal(
+      JsonParser parser,
+      @Nullable Integer intNull,
+      Class<Integer> expectedClass) throws IOException {
+    return parser.getIntValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param longNull the long null
+   * @param expectedClass the expected class
+   * @return the long
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Long unmarshal(
+      JsonParser parser,
+      @Nullable Long longNull,
+      Class<Long> expectedClass) throws IOException {
+    return parser.getLongValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param floatNull the float null
+   * @param expectedClass the expected class
+   * @return the float
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Float unmarshal(
+      JsonParser parser,
+      @Nullable Float floatNull,
+      Class<Float> expectedClass) throws IOException {
+    return parser.getFloatValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param doubleNull the double null
+   * @param expectedClass the expected class
+   * @return the double
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Double unmarshal(
+      JsonParser parser,
+      @Nullable Double doubleNull,
+      Class<Double> expectedClass) throws IOException {
+    return parser.getDoubleValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param charactedNull the characted null
+   * @param expectedClass the expected class
+   * @return the character
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Character unmarshal(
+      JsonParser parser,
+      @Nullable Character charactedNull,
+      Class<Character> expectedClass) throws IOException {
+    if (parser.getTextLength() != 1) {
+      throw new IOException("Wrong Character value: " + parser.getText());
+    }
+    return parser.getTextCharacters()[parser.getTextOffset()];
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param booleanNull the boolean null
+   * @param expectedClass the expected class
+   * @return the boolean
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Boolean unmarshal(
+      JsonParser parser,
+      @Nullable Boolean booleanNull,
+      Class<Boolean> expectedClass) throws IOException {
+    return parser.getBooleanValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param booleanNull the boolean null
+   * @param expectedClass the expected class
+   * @return the byte
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Byte unmarshal(
+      JsonParser parser,
+      @Nullable Byte booleanNull,
+      Class<Byte> expectedClass) throws IOException {
+    return parser.getByteValue();
+  }
+
+  /**
+   * Unmarshal.
+   * @param parser the parser
+   * @param shortNull the short null
+   * @param expectedClass the expected class
+   * @return the short
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public static Short unmarshal(
+      JsonParser parser,
+      @Nullable Short shortNull,
+      Class<Byte> expectedClass) throws IOException {
+    return parser.getShortValue();
   }
 
   /**

@@ -41,7 +41,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor6;
+import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
@@ -49,9 +49,11 @@ import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 
 /**
- * NEED TO BE HEAVILY REFACTORED AFTER TEMPLATE MIGRATIONS (FACETS?)
+ * It's pointless to refactor this mess until
+ * 1) Some sort of type calculus toolkit used/created
+ * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public abstract class DiscoveredValue extends TypeIntrospectionBase {
+public abstract class ValueType extends TypeIntrospectionBase {
 
   private SegmentedName segmentedName;
 
@@ -126,24 +128,24 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
    * and long parameters and reserved slots for technical parameters).
    */
-  private static final int SOME_RANDOM_LIMIT = 120;
+  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
 
-  private DiscoveredValue nestingParent;
+  private ValueType nestingParent;
 
-  public void setNestingParent(DiscoveredValue nestingParent) {
+  public void setNestingParent(ValueType nestingParent) {
     this.nestingParent = nestingParent;
   }
 
-  private List<DiscoveredValue> nestedChildren;
+  private List<ValueType> nestedChildren;
 
-  public void setNestedChildren(List<DiscoveredValue> nestedChildren) {
+  public void setNestedChildren(List<ValueType> nestedChildren) {
     this.nestedChildren = nestedChildren;
-    for (DiscoveredValue child : nestedChildren) {
+    for (ValueType child : nestedChildren) {
       child.setNestingParent(this);
     }
   }
 
-  public List<DiscoveredValue> getNestedChildren() {
+  public List<ValueType> getNestedChildren() {
     return nestedChildren;
   }
 
@@ -230,7 +232,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   public boolean isUseCopyMethods() {
     return getGenerateImmutableProperties().withers()
-        && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < SOME_RANDOM_LIMIT;
+        && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < USEFUL_PARAMETER_COUNT_LIMIT;
   }
 
   public boolean isUseSingleton() {
@@ -299,7 +301,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     if (importedMarshalledRoutines == null) {
       Set<String> imports = Sets.newLinkedHashSet();
 
-      for (DiscoveredAttribute a : filteredAttributes()) {
+      for (ValueAttribute a : filteredAttributes()) {
         imports.addAll(a.getMarshaledImportRoutines());
       }
 
@@ -327,8 +329,8 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   }
 
   @Nullable
-  public DiscoveredAttribute getIdAttribute() {
-    for (DiscoveredAttribute attribute : getImplementedAttributes()) {
+  public ValueAttribute getIdAttribute() {
+    for (ValueAttribute attribute : getImplementedAttributes()) {
       if (attribute.getMarshaledName().equals("_id")) {
         return attribute;
       }
@@ -341,7 +343,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
   public Set<String> getGenerateMarshaledTypes() {
     if (generateMarshaledTypes == null) {
       Set<String> marshaledTypes = Sets.newLinkedHashSet();
-      for (DiscoveredAttribute a : filteredAttributes()) {
+      for (ValueAttribute a : filteredAttributes()) {
         marshaledTypes.addAll(a.getSpecialMarshaledTypes());
       }
       generateMarshaledTypes = marshaledTypes;
@@ -370,7 +372,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
         for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : annotationMirror.getElementValues()
             .entrySet()) {
           if (e.getKey().getSimpleName().contentEquals(annotationValueName)) {
-            e.getValue().accept(new SimpleAnnotationValueVisitor6<Void, Void>() {
+            e.getValue().accept(new SimpleAnnotationValueVisitor7<Void, Void>() {
               @Override
               public Void visitArray(List<? extends AnnotationValue> vals, Void p) {
                 for (AnnotationValue annotationValue : vals) {
@@ -393,11 +395,11 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return ImmutableList.copyOf(collectClassNames);
   }
 
-  public List<DiscoveredAttribute> getSettableAttributes() {
+  public List<ValueAttribute> getSettableAttributes() {
     return filteredAttributes()
         .filter(Predicates.or(
-            DiscoveredAttributes.isGenerateAbstract(),
-            DiscoveredAttributes.isGenerateDefault()))
+            ValueAttributes.isGenerateAbstract(),
+            ValueAttributes.isGenerateDefault()))
         .toList();
   }
 
@@ -406,38 +408,38 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
         || (!isUseBuilder() && !isUseSingleton() && getImplementedAttributes().isEmpty());
   }
 
-  public List<DiscoveredAttribute> getConstructorArguments() {
+  public List<ValueAttribute> getConstructorArguments() {
     return filteredAttributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
         .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
   }
 
-  public List<DiscoveredAttribute> getConstructorOmited() {
+  public List<ValueAttribute> getConstructorOmited() {
     return filteredAttributes()
         .filter(Predicates.compose(Predicates.equalTo(-1), ToConstructorArgumentOrder.FUNCTION))
         .toList();
   }
 
-  private enum NonAuxiliary implements Predicate<DiscoveredAttribute> {
+  private enum NonAuxiliary implements Predicate<ValueAttribute> {
     PREDICATE;
     @Override
-    public boolean apply(DiscoveredAttribute input) {
+    public boolean apply(ValueAttribute input) {
       return !input.isAuxiliary();
     }
   }
 
-  private enum ToConstructorArgumentOrder implements Function<DiscoveredAttribute, Integer> {
+  private enum ToConstructorArgumentOrder implements Function<ValueAttribute, Integer> {
     FUNCTION;
 
     @Override
-    public Integer apply(DiscoveredAttribute input) {
+    public Integer apply(ValueAttribute input) {
       return input.getConstructorArgumentOrder();
     }
   }
 
-  public List<DiscoveredAttribute> getExcludableAttributes() {
-    List<DiscoveredAttribute> excludables = Lists.newArrayList();
-    for (DiscoveredAttribute attribute : filteredAttributes()) {
+  public List<ValueAttribute> getExcludableAttributes() {
+    List<ValueAttribute> excludables = Lists.newArrayList();
+    for (ValueAttribute attribute : filteredAttributes()) {
       if (attribute.isGenerateAbstract() && (attribute.isContainerType() && !attribute.isArrayType())) {
         excludables.add(attribute);
       }
@@ -445,9 +447,9 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return excludables;
   }
 
-  public List<DiscoveredAttribute> mandatoryAttributes() {
-    List<DiscoveredAttribute> mandatory = Lists.newArrayList();
-    for (DiscoveredAttribute attribute : getSettableAttributes()) {
+  public List<ValueAttribute> mandatoryAttributes() {
+    List<ValueAttribute> mandatory = Lists.newArrayList();
+    for (ValueAttribute attribute : getSettableAttributes()) {
       if (attribute.isMandatory()) {
         mandatory.add(attribute);
       }
@@ -455,9 +457,9 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return mandatory;
   }
 
-  public List<DiscoveredAttribute> getLazyAttributes() {
-    List<DiscoveredAttribute> lazyAttributes = Lists.newArrayList();
-    for (DiscoveredAttribute attribute : filteredAttributes()) {
+  public List<ValueAttribute> getLazyAttributes() {
+    List<ValueAttribute> lazyAttributes = Lists.newArrayList();
+    for (ValueAttribute attribute : filteredAttributes()) {
       if (attribute.isGenerateLazy()) {
         lazyAttributes.add(attribute);
       }
@@ -465,22 +467,22 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return lazyAttributes;
   }
 
-  public List<DiscoveredAttribute> getAllAccessibleAttributes() {
-    return ImmutableList.<DiscoveredAttribute>builder()
+  public List<ValueAttribute> getAllAccessibleAttributes() {
+    return ImmutableList.<ValueAttribute>builder()
         .addAll(getImplementedAttributes())
         .addAll(getLazyAttributes())
         .build();
   }
 
-  private List<DiscoveredAttribute> implementedAttributes;
+  private List<ValueAttribute> implementedAttributes;
 
-  private FluentIterable<DiscoveredAttribute> filteredAttributes() {
+  private FluentIterable<ValueAttribute> filteredAttributes() {
     return FluentIterable.from(attributes());
   }
 
-  public List<DiscoveredAttribute> getMarshaledAttributes() {
-    ImmutableList.Builder<DiscoveredAttribute> builder = ImmutableList.builder();
-    for (DiscoveredAttribute attribute : getImplementedAttributes()) {
+  public List<ValueAttribute> getMarshaledAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getImplementedAttributes()) {
       if (!attribute.isJsonIgnore()) {
         builder.add(attribute);
       }
@@ -488,9 +490,9 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return builder.build();
   }
 
-  public List<DiscoveredAttribute> getUnmarshaledAttributes() {
-    ImmutableList.Builder<DiscoveredAttribute> builder = ImmutableList.builder();
-    for (DiscoveredAttribute attribute : getSettableAttributes()) {
+  public List<ValueAttribute> getUnmarshaledAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getSettableAttributes()) {
       if (!attribute.isJsonIgnore()) {
         builder.add(attribute);
       }
@@ -498,9 +500,9 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return builder.build();
   }
 
-  public List<DiscoveredAttribute> getPrimitiveDefaultAttributes() {
-    ImmutableList.Builder<DiscoveredAttribute> builder = ImmutableList.builder();
-    for (DiscoveredAttribute attribute : getSettableAttributes()) {
+  public List<ValueAttribute> getPrimitiveDefaultAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getSettableAttributes()) {
       if (attribute.isPrimitive() && attribute.isGenerateDefault()) {
         builder.add(attribute);
       }
@@ -508,29 +510,29 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
     return builder.build();
   }
 
-  public List<DiscoveredAttribute> getImplementedAttributes() {
+  public List<ValueAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
       implementedAttributes = filteredAttributes()
           .filter(Predicates.or(Arrays.asList(
-              DiscoveredAttributes.isGenerateAbstract(),
-              DiscoveredAttributes.isGenerateDefault(),
-              DiscoveredAttributes.isGenerateDerived())))
+              ValueAttributes.isGenerateAbstract(),
+              ValueAttributes.isGenerateDefault(),
+              ValueAttributes.isGenerateDerived())))
           .toList();
     }
     return implementedAttributes;
   }
 
-  public List<DiscoveredAttribute> getEquivalenceAttributes() {
+  public List<ValueAttribute> getEquivalenceAttributes() {
     return FluentIterable.from(getImplementedAttributes())
         .filter(NonAuxiliary.PREDICATE)
         .toList();
   }
 
-  public List<DiscoveredAttribute> getHelperAttributes() {
+  public List<ValueAttribute> getHelperAttributes() {
     return filteredAttributes()
         .filter(Predicates.or(
-            DiscoveredAttributes.isGenerateFunction(),
-            DiscoveredAttributes.isGeneratePredicate()))
+            ValueAttributes.isGenerateFunction(),
+            ValueAttributes.isGeneratePredicate()))
         .toList();
   }
 
@@ -545,7 +547,7 @@ public abstract class DiscoveredValue extends TypeIntrospectionBase {
 
   public abstract TypeElement internalTypeElement();
 
-  public abstract List<DiscoveredAttribute> attributes();
+  public abstract List<ValueAttribute> attributes();
 
   public boolean isGenerateModifiable() {
     return true;

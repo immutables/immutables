@@ -61,7 +61,7 @@ public class Discovery {
     this.annotations = annotations;
   }
 
-  public List<DiscoveredValue> discover() {
+  public List<ValueType> discover() {
     Set<Element> allElemenents = Sets.newLinkedHashSet();
     for (TypeElement annotationType : annotations) {
       allElemenents.addAll(round.getElementsAnnotatedWith(annotationType));
@@ -69,8 +69,8 @@ public class Discovery {
     return checkForANumberOfAttributes(discoverValueTypes(allElemenents));
   }
 
-  private List<DiscoveredValue> discoverValueTypes(Set<Element> allElemenents) {
-    List<DiscoveredValue> generateTypes = Lists.newArrayListWithExpectedSize(allElemenents.size());
+  private List<ValueType> discoverValueTypes(Set<Element> allElemenents) {
+    List<ValueType> generateTypes = Lists.newArrayListWithExpectedSize(allElemenents.size());
 
     for (Element typeElement : allElemenents) {
       if (typeElement instanceof TypeElement) {
@@ -84,10 +84,10 @@ public class Discovery {
     return generateTypes;
   }
 
-  private List<DiscoveredValue> checkForANumberOfAttributes(List<DiscoveredValue> generateTypes) {
-    ImmutableList.Builder<DiscoveredValue> builder = ImmutableList.builder();
+  private List<ValueType> checkForANumberOfAttributes(List<ValueType> generateTypes) {
+    ImmutableList.Builder<ValueType> builder = ImmutableList.builder();
 
-    for (DiscoveredValue discoveredValue : generateTypes) {
+    for (ValueType discoveredValue : generateTypes) {
       if (!discoveredValue.isEmptyNesting()) {
         if (discoveredValue.getImplementedAttributes().size() > 124) {
           processing.getMessager().printMessage(
@@ -104,11 +104,11 @@ public class Discovery {
     return builder.build();
   }
 
-  private void collectDiscoveredTypeDescriptors(List<DiscoveredValue> generateTypes, TypeElement type) {
+  private void collectDiscoveredTypeDescriptors(List<ValueType> generateTypes, TypeElement type) {
     Value.Immutable genImmutable = type.getAnnotation(Value.Immutable.class);
     Value.Nested genNested = type.getAnnotation(Value.Nested.class);
     if (genImmutable != null) {
-      DiscoveredValue generateType = inspectDiscoveredType(type, genImmutable);
+      ValueType generateType = inspectDiscoveredType(type, genImmutable);
 
       if (genNested != null) {
         generateType.setNestedChildren(extractNestedChildren(type));
@@ -116,9 +116,9 @@ public class Discovery {
 
       generateTypes.add(generateType);
     } else if (genNested != null) {
-      List<DiscoveredValue> nestedChildren = extractNestedChildren(type);
+      List<ValueType> nestedChildren = extractNestedChildren(type);
       if (!nestedChildren.isEmpty()) {
-        DiscoveredValue emptyNestingType = DiscoveredValues.builder()
+        ValueType emptyNestingType = ValueTypes.builder()
             .internalTypeElement(type)
             .isUseBuilder(false)
             .isGenerateCompact(false)
@@ -133,8 +133,8 @@ public class Discovery {
     }
   }
 
-  private List<DiscoveredValue> extractNestedChildren(TypeElement parent) {
-    ImmutableList.Builder<DiscoveredValue> children = ImmutableList.builder();
+  private List<ValueType> extractNestedChildren(TypeElement parent) {
+    ImmutableList.Builder<ValueType> children = ImmutableList.builder();
     for (Element element : parent.getEnclosedElements()) {
       switch (element.getKind()) {
       case INTERFACE:
@@ -167,7 +167,7 @@ public class Discovery {
     return !type.getModifiers().contains(Modifier.FINAL);
   }
 
-  DiscoveredValue inspectDiscoveredType(TypeElement type, Value.Immutable annotation) {
+  ValueType inspectDiscoveredType(TypeElement type, Value.Immutable annotation) {
     if (!isDiscoveredType(type, annotation)) {
       error(type,
           "Type '%s' annotated with @%s must be non-final class, interface or annotation type",
@@ -179,20 +179,20 @@ public class Discovery {
 
     boolean useBuilder = annotation.builder();
 
-    DiscoveredValues.Builder typeBuilder =
-        DiscoveredValues.builder()
+    ValueTypes.Builder typeBuilder =
+        ValueTypes.builder()
             .internalTypeElement(type)
             .isUseBuilder(useBuilder)
             .isGenerateCompact(false);
 
     collectGeneratedCandidateMethods(type, typeBuilder);
 
-    DiscoveredValue generateType = typeBuilder.build();
+    ValueType generateType = typeBuilder.build();
     generateType.setSegmentedName(segmentedName);
     return generateType;
   }
 
-  private void collectGeneratedCandidateMethods(TypeElement type, DiscoveredValues.Builder typeBuilder) {
+  private void collectGeneratedCandidateMethods(TypeElement type, ValueTypes.Builder typeBuilder) {
     for (Element element : getAccessorsInSourceOrder(type)) {
       if (isElegibleAccessorMethod(element)) {
         processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
@@ -239,7 +239,7 @@ public class Discovery {
   }
 
   private void processGenerationCandidateMethod(
-      DiscoveredValues.Builder type,
+      ValueTypes.Builder type,
       ExecutableElement attributeMethodCandidate) {
 
     Name name = attributeMethodCandidate.getSimpleName();
@@ -287,7 +287,7 @@ public class Discovery {
     if (isDiscoveredAttribute(attributeMethodCandidate)) {
       TypeMirror returnType = attributeMethodCandidate.getReturnType();
 
-      DiscoveredAttributes.Builder attributeBuilder = DiscoveredAttributes.builder();
+      ValueAttributes.Builder attributeBuilder = ValueAttributes.builder();
 
       if (isAbstract(attributeMethodCandidate)) {
         attributeBuilder.isGenerateAbstract(true);
@@ -322,7 +322,7 @@ public class Discovery {
       attributeBuilder.internalTypeName(returnType.toString());
       attributeBuilder.internalTypeMirror(returnType);
 
-      DiscoveredAttribute generateAttribute = attributeBuilder.build();
+      ValueAttribute generateAttribute = attributeBuilder.build();
       generateAttribute.setAttributeElement(attributeMethodCandidate);
 
       type.addAttributes(generateAttribute);

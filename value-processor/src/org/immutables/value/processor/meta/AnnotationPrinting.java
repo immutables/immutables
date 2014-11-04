@@ -37,7 +37,7 @@ final class AnnotationPrinting {
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       String string = annotation.toString();
-      if (string.startsWith("@org.immutables") || string.startsWith("@java.lang.Override")) {
+      if (string.startsWith("@org.immutables") || string.startsWith("@" + Override.class.getName())) {
         continue;
       }
       PrintVisitor printer = new PrintVisitor();

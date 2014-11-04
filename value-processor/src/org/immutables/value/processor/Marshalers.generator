@@ -37,11 +37,11 @@ package [pkg];
 public final class [contributorTypeName]
     implements org.immutables.common.marshal.internal.MarshalingContributor {
   @Override
-  public void putMarshalers(com.google.common.collect.ImmutableMap.Builder<Class<?>, org.immutables.common.marshal.Marshaler<?>> builder) {
+  public void putMarshalers(java.util.Map<Class<?>, org.immutables.common.marshal.Marshaler<?>> marshalers) {
     [for type in ts]
     [let marshalerInstance][type.packageName][if type.packageName].[/if][type.simpleName]Marshaler.instance()[/let]
-    builder.put([type.valueTypeName].class, [marshalerInstance]);
-    builder.put([type.implementationTypeName].class, [marshalerInstance]);
+    marshalers.put([type.valueTypeName].class, [marshalerInstance]);
+    marshalers.put([type.implementationTypeName].class, [marshalerInstance]);
     [/for]
   }
 }
@@ -224,7 +224,14 @@ static void marshal[type.simpleName](JsonGenerator generator, [type.name] instan
 [/template]
 
 [template generateMarshalConstructorValue Type type Attribute a]
-  [if a.optionalType]
+  [if a.nullable]
+[a.atNullability][a.type] [a.name]Value = instance.[a.name]();
+if ([a.name]Value != null) {
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+} else {
+  generator.writeNull();
+}
+  [else if a.optionalType]
 [a.type] [a.name]Value = instance.[a.name]();
 if ([a.name]Value.isPresent()) {
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
@@ -255,8 +262,17 @@ generator.writeEndArray();
 [/template]
 
 [template generateMarshalAttributeValue Type type Attribute a]
-
-  [if a.optionalType]
+  [if a.nullable]
+[a.atNullability][a.type] [a.name]Value = instance.[a.name]();
+if ([a.name]Value != null) {
+  generator.writeFieldName("[a.marshaledName]");
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+    [if a.forceEmpty]
+} else {
+  generator.writeNullField("[a.marshaledName]");
+    [/if]
+}
+  [else if a.optionalType]
 [a.type] [a.name]Value = instance.[a.name]();
 if ([a.name]Value.isPresent()) {
   generator.writeFieldName("[a.marshaledName]");
@@ -412,7 +428,7 @@ private static void unmarshalUnknownAttribute(JsonParser parser, String attribut
 
 [template generateConstructorArgumentUnmarshal Type type Attribute a]
 
-private static [a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser parser)
+private static [a.atNullability][a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser parser)
     throws IOException {
   [if a.primitive]
   JsonToken t = parser.getCurrentToken();
@@ -435,7 +451,13 @@ private static [a.type] unmarshalConstructorArgument[toUpper a.name](JsonParser 
 
 [template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
 JsonToken t = parser.getCurrentToken();
-  [if a.optionalType]
+  [if a.nullable]
+if (t != JsonToken.VALUE_NULL) {
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+  return value;
+}
+return null;
+  [else if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
     [if a.unwrappedElementPrimitiveType]
   ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
@@ -549,7 +571,12 @@ if (t == JsonToken.START_ARRAY) {
 
 [template generateComplexTypeUnmarshalAttribute Type type Attribute a]
 JsonToken t = parser.nextToken();
-  [if a.optionalType]
+  [if a.nullable]
+if (t != JsonToken.VALUE_NULL) {
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+  builder.[a.name](value);
+}
+  [else if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
     [if a.unwrappedElementPrimitiveType]
   ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);

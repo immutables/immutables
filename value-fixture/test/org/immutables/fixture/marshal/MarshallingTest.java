@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.marshal;
 
+import com.google.common.base.CharMatcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -52,6 +53,15 @@ public class MarshallingTest {
         Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
 
     check(substructure).not().isNull();
+  }
+
+  @Test
+  public void nullableMarshaling() {
+    check(CharMatcher.WHITESPACE.removeFrom(Marshaling.toJson(ImmutableHasNullable.of())))
+        .is("{\"in\":null}");
+    check(Marshaling.fromJson("{}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of());
+    check(Marshaling.fromJson("{\"in\":1}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of(1));
+    check(Marshaling.fromJson("{\"def\":\"1\"}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of().withDef("1"));
   }
 
   @Test

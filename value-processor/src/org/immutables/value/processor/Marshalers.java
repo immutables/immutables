@@ -19,7 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimaps;
 import org.immutables.generator.Generator;
-import org.immutables.value.processor.meta.DiscoveredValue;
+import org.immutables.value.processor.meta.ValueType;
 import java.util.Collection;
 import java.util.Map;
 
@@ -30,12 +30,12 @@ abstract class Marshalers extends ValuesTemplate {
     return System.identityHashCode(round());
   }
 
-  final Function<Iterable<DiscoveredValue>, Iterable<DiscoveredValue>> onlyMarshaled =
-      new Function<Iterable<DiscoveredValue>, Iterable<DiscoveredValue>>() {
+  final Function<Iterable<ValueType>, Iterable<ValueType>> onlyMarshaled =
+      new Function<Iterable<ValueType>, Iterable<ValueType>>() {
         @Override
-        public Iterable<DiscoveredValue> apply(Iterable<DiscoveredValue> input) {
-          ImmutableList.Builder<DiscoveredValue> builder = ImmutableList.builder();
-          for (DiscoveredValue value : input) {
+        public Iterable<ValueType> apply(Iterable<ValueType> input) {
+          ImmutableList.Builder<ValueType> builder = ImmutableList.builder();
+          for (ValueType value : input) {
             if (value.isGenerateMarshaled()) {
               builder.add(value);
             }
@@ -47,14 +47,14 @@ abstract class Marshalers extends ValuesTemplate {
   final ByPackageGrouper byPackage = new ByPackageGrouper();
 
   class ByPackageGrouper
-      implements Function<Iterable<DiscoveredValue>, Iterable<Map.Entry<String, Collection<DiscoveredValue>>>> {
+      implements Function<Iterable<ValueType>, Iterable<Map.Entry<String, Collection<ValueType>>>> {
 
     @Override
-    public Iterable<Map.Entry<String, Collection<DiscoveredValue>>> apply(
-        Iterable<DiscoveredValue> discoveredValue) {
-      return Multimaps.index(discoveredValue, new Function<DiscoveredValue, String>() {
+    public Iterable<Map.Entry<String, Collection<ValueType>>> apply(
+        Iterable<ValueType> discoveredValue) {
+      return Multimaps.index(discoveredValue, new Function<ValueType, String>() {
         @Override
-        public String apply(DiscoveredValue input) {
+        public String apply(ValueType input) {
           return input.getPackageName();
         }
       }).asMap().entrySet();
@@ -62,5 +62,5 @@ abstract class Marshalers extends ValuesTemplate {
   }
 
   @Generator.Typedef
-  Map.Entry<String, Collection<DiscoveredValue>> ByPackage;
+  Map.Entry<String, Collection<ValueType>> ByPackage;
 }
