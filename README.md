@@ -12,6 +12,7 @@ Changelog
 + fixed/refined underwriting of methods: hashCode, equals, toString [#37](https://github.com/immutables/immutables/issues/37)
 + Fixed duplication of instanceof checks in Transfromers
 + Fixed implementation of nonpublic=true (package private) immutable classes
+
 #### Changes
 + Internal: using released 1.0 ‘value-standalone’ for self-compiling, rather than 'retrovalue' system/jar
 + Internal: made marshaling binding problems IOException instead of runtime
