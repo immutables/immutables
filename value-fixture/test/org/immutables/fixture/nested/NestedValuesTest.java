@@ -23,7 +23,6 @@ import org.immutables.common.marshal.Marshaling;
 import org.immutables.fixture.nested.ImmutableGroupedClasses.NestedOne;
 import org.immutables.fixture.nested.ImmutableInnerNested.Inner;
 import org.immutables.fixture.nested.ImmutableInnerNested.Nested;
-import org.immutables.value.Json.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -54,7 +53,6 @@ public class NestedValuesTest {
     check(c).notNull();
   }
 
-  @Ignore
   @Test
   public void marshalingOfNested() {
     check(CharMatcher.WHITESPACE.removeFrom(
