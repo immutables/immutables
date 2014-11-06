@@ -50,7 +50,7 @@ class Values extends AbstractTemplate {
     if (linearizedTypes == null) {
       ImmutableList.Builder<ValueType> builder = ImmutableList.builder();
       for (ValueType type : types()) {
-        if (!type.isEmptyNesting()) {
+        if (!type.emptyNesting) {
           builder.add(type);
         }
         if (type.isHasNestedChildren()) {

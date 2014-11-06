@@ -33,7 +33,9 @@ public abstract class Naming implements Function<String, String> {
   private static final String NAME_PLACEHOLDER = "*";
   private static final Splitter TEMPLATE_SPLITTER = Splitter.on(NAME_PLACEHOLDER);
   private static final CharMatcher TEMPLATE_CHAR_MATCHER =
-      CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is('*')).precomputed();
+      CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0))).precomputed();
+
+  private static final Naming IDENTITY_NAMING = new PrefixSuffixNaming("", "");
 
   /**
    * Applies naming to input identifier, converting it to desired naming.
@@ -51,20 +53,29 @@ public abstract class Naming implements Function<String, String> {
   public abstract String detect(String identifier);
 
   /**
+   * Naming the repeats the input name
+   * @return identity naming
+   */
+  public static Naming identity() {
+    return IDENTITY_NAMING;
+  }
+
+  /**
    * @param template template string
    * @return naming that could be applied or detected following template
    */
   public static Naming from(String template) {
-    if (template.isEmpty()) {
-      template = "*";
+    if (template.isEmpty() || template.equals(NAME_PLACEHOLDER)) {
+      return IDENTITY_NAMING;
     }
     List<String> parts = TEMPLATE_SPLITTER.splitToList(template);
     checkArgument(parts.size() <= 2 && TEMPLATE_CHAR_MATCHER.matchesAllOf(template),
-        "Wrong naming template: %s. Shoud be {prefix?}*{suffix?} where prefix and suffix optional identifier parts",
+        "Wrong naming template: %s.\n"
+            + "Shoud be {prefix?}*{suffix?} where prefix and suffix are optional identifier parts",
         template);
 
     return parts.size() == 1
-        ? new VerbatimNaming(template)
+        ? new ConstantNaming(template)
         : new PrefixSuffixNaming(parts.get(0), parts.get(1));
   }
 
@@ -78,13 +89,13 @@ public abstract class Naming implements Function<String, String> {
 
   /**
    * Verbatim naming convention do not use any supplied input name as base.
-   * Consider example factory method "from", it used as {@link VerbatimNaming},
+   * Consider example factory method "from", it used as {@link ConstantNaming},
    * contrary to the factory method "newMyType" uses "MyType" as and input applying "new" prefix.
    */
-  private static class VerbatimNaming extends Naming {
+  private static class ConstantNaming extends Naming {
     final String name;
 
-    VerbatimNaming(String name) {
+    ConstantNaming(String name) {
       this.name = name;
     }
 
@@ -151,7 +162,10 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String toString() {
-      return Naming.class.getSimpleName() + ".from(" + prefix + "*" + suffix + ")";
+      return Naming.class.getSimpleName()
+          + (lengthsOfPrefixAndSuffix != 0
+              ? ".from(" + prefix + NAME_PLACEHOLDER + suffix + ")"
+              : ".identity()");
     }
   }
 }

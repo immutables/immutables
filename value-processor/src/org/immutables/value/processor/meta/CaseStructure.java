@@ -17,10 +17,13 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
-import javax.annotation.Nullable;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.SetMultimap;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 public class CaseStructure {
   public final List<ValueType> implementationTypes;
@@ -47,7 +50,7 @@ public class CaseStructure {
     ImmutableSetMultimap.Builder<String, ValueType> builder = ImmutableSetMultimap.builder();
 
     for (ValueType type : implementationTypes) {
-      builder.put(type.internalTypeElement().getQualifiedName().toString(), type);
+      builder.put(type.element.getQualifiedName().toString(), type);
 
       for (String className : type.getExtendedClassesNames()) {
         builder.put(className, type);

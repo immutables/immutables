@@ -15,8 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.StringLiterals;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,35 +25,40 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import org.immutables.generator.StringLiterals;
 
 /**
  * The gymnastics that exists only to workaround annotation processors that do not fully print
  * annotation values (like Eclipse compiler)
  */
 final class AnnotationPrinting {
-  static List<String> getAnnotationLines(ExecutableElement element) {
-    ImmutableList.Builder<String> annotationLines = ImmutableList.builder();
+  private static final String PREFIX_JAVA_LANG = "@java.lang.";
+  private static final String PREFIX_ORG_IMMUTABLES = "@org.immutables.";
+
+  static CharSequence toCharSequence(AnnotationValue value) {
+    PrintVisitor printer = new PrintVisitor();
+    printer.visitValue(value);
+    return printer.builder;
+  }
+
+  static List<CharSequence> getAnnotationLines(ExecutableElement element) {
+    List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       String string = annotation.toString();
-      if (string.startsWith("@org.immutables") || string.startsWith("@" + Override.class.getName())) {
+      if (string.startsWith(PREFIX_ORG_IMMUTABLES) || string.startsWith(PREFIX_JAVA_LANG)) {
         continue;
       }
       PrintVisitor printer = new PrintVisitor();
       printer.visitAnnotation(annotation, null);
-      annotationLines.add(printer.toString());
+      lines.add(printer.builder);
     }
 
-    return annotationLines.build();
+    return lines;
   }
 
   private static final class PrintVisitor extends SimpleAnnotationValueVisitor7<Void, Void> {
-    private final StringBuilder builder = new StringBuilder();
-
-    @Override
-    public String toString() {
-      return builder.toString();
-    }
+    final StringBuilder builder = new StringBuilder();
 
     void visitValue(AnnotationValue value) {
       value.accept(this, null);
@@ -74,7 +78,7 @@ final class AnnotationPrinting {
 
     @Override
     public Void visitType(TypeMirror t, Void p) {
-      builder.append(t.toString()).append(".class");
+      builder.append(t).append(".class");
       return null;
     }
 

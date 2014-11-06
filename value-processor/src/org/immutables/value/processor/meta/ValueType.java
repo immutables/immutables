@@ -47,44 +47,45 @@ import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
 
 /**
  * It's pointless to refactor this mess until
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public abstract class ValueType extends TypeIntrospectionBase {
+public class ValueType extends TypeIntrospectionBase {
+  /**
+   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
+   * and long parameters and reserved slots for technical parameters).
+   */
+  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
 
-  private SegmentedName segmentedName;
+  public TypeElement element;
+  public List<ValueAttribute> attributes = Lists.newArrayList();
+  public boolean isHashCodeDefined;
+  public boolean isEqualToDefined;
+  public boolean isToStringDefined;
+  public boolean emptyNesting;
 
-  public SegmentedName getSegmentedName() {
-    return segmentedName;
+  public boolean isUseBuilder() {
+    return getGenerateImmutableProperties().builder();
   }
 
-  public void setSegmentedName(SegmentedName segmentedName) {
-    this.segmentedName = segmentedName;
-  }
+  public TypeNames namings;
+
+  public SegmentedName segmentedName;
 
   public String getSimpleName() {
     return segmentedName.simpleName;
   }
 
-  private boolean emptyNesting;
-
-  public boolean isEmptyNesting() {
-    return emptyNesting;
-  }
-
   public boolean isGenerateJacksonMapped() {
-    return internalTypeElement().getAnnotation(Jackson.Mapped.class) != null;
-  }
-
-  public void setEmptyNesting(boolean emptyNesting) {
-    this.emptyNesting = emptyNesting;
+    return element.getAnnotation(Jackson.Mapped.class) != null;
   }
 
   public String valueTypeName() {
-    return internalTypeElement().getQualifiedName().toString();
+    return element.getQualifiedName().toString();
   }
 
   public boolean isTopLevel() {
@@ -92,7 +93,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isAnnotationType() {
-    return internalTypeElement().getKind() == ElementKind.ANNOTATION_TYPE;
+    return element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String implementationTypeName() {
@@ -108,11 +109,11 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateParboiled() {
-    return isEmptyNesting() && internalTypeElement().getAnnotation(Parboil.Ast.class) != null;
+    return emptyNesting && element.getAnnotation(Parboil.Ast.class) != null;
   }
 
   public boolean isGenerateTransformer() {
-    return isEmptyNesting() && internalTypeElement().getAnnotation(Value.Transformer.class) != null;
+    return emptyNesting && element.getAnnotation(Value.Transformer.class) != null;
   }
 
   private CaseStructure caseStructure;
@@ -123,12 +124,6 @@ public abstract class ValueType extends TypeIntrospectionBase {
     }
     return caseStructure;
   }
-
-  /**
-   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
-   * and long parameters and reserved slots for technical parameters).
-   */
-  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
 
   private ValueType nestingParent;
 
@@ -158,16 +153,11 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private String validationMethodName;
-
-  @Nullable
-  public String getValidationMethodName() {
-    return validationMethodName;
-  }
+  public String validationMethodName;
 
   public boolean isIface() {
-    return internalTypeElement().getKind() == ElementKind.INTERFACE
-        || internalTypeElement().getKind() == ElementKind.ANNOTATION_TYPE;
+    return element.getKind() == ElementKind.INTERFACE
+        || element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String getInheritsKeyword() {
@@ -175,19 +165,15 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public <T extends Annotation> T getAnnotationFromThisOrEnclosingElement(Class<T> annotationType) {
-    T annotation = internalTypeElement().getAnnotation(annotationType);
+    T annotation = element.getAnnotation(annotationType);
     if (annotation == null && nestingParent != null) {
-      annotation = nestingParent.internalTypeElement().getAnnotation(annotationType);
+      annotation = nestingParent.element.getAnnotation(annotationType);
     }
     return annotation;
   }
 
   public boolean isGenerateGetters() {
-    return internalTypeElement().getAnnotation(Value.Getters.class) != null;
-  }
-
-  public void setValidationMethodName(@Nullable String validationMethodName) {
-    this.validationMethodName = validationMethodName;
+    return element.getAnnotation(Value.Getters.class) != null;
   }
 
   public String getPackageName() {
@@ -207,7 +193,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
     if (immutable != null && immutable.nonpublic()) {
       return "";
     }
-    if (internalTypeElement().getModifiers().contains(Modifier.PUBLIC)) {
+    if (element.getModifiers().contains(Modifier.PUBLIC)) {
       return "public ";
     }
     return "";
@@ -225,7 +211,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   private Value.Immutable getGenerateImmutableProperties() {
     if (immutableProperties == null) {
-      immutableProperties = internalTypeElement().getAnnotation(Value.Immutable.class);
+      immutableProperties = element.getAnnotation(Value.Immutable.class);
     }
     return immutableProperties;
   }
@@ -236,7 +222,8 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseSingleton() {
-    return getGenerateImmutableProperties().singleton();
+    return getGenerateImmutableProperties().singleton()
+        || getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseInterned() {
@@ -255,7 +242,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateRepository() {
-    return internalTypeElement().getAnnotation(Mongo.Repository.class) != null;
+    return element.getAnnotation(Mongo.Repository.class) != null;
   }
 
   private Boolean hasAbstractBuilder;
@@ -263,7 +250,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
   public boolean isHasAbstractBuilder() {
     if (hasAbstractBuilder == null) {
       boolean abstractBuilderDeclared = false;
-      List<? extends Element> enclosedElements = internalTypeElement().getEnclosedElements();
+      List<? extends Element> enclosedElements = element.getEnclosedElements();
       for (Element element : enclosedElements) {
         if (element.getKind() == ElementKind.CLASS) {
           if (element.getSimpleName().contentEquals("Builder")) {
@@ -282,7 +269,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   public String getDocumentName() {
     @Nullable
-    Mongo.Repository annotation = internalTypeElement().getAnnotation(Mongo.Repository.class);
+    Mongo.Repository annotation = element.getAnnotation(Mongo.Repository.class);
     if (annotation != null && !annotation.value().isEmpty()) {
       return annotation.value();
     }
@@ -301,7 +288,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
     if (importedMarshalledRoutines == null) {
       Set<String> imports = Sets.newLinkedHashSet();
 
-      for (ValueAttribute a : filteredAttributes()) {
+      for (ValueAttribute a : attributes()) {
         imports.addAll(a.getMarshaledImportRoutines());
       }
 
@@ -313,7 +300,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   private void collectImportRoutines(Set<String> imports) {
-    Element element = internalTypeElement();
+    Element element = this.element;
     for (;;) {
       imports.addAll(
           extractClassNamesFromMirrors(Json.Import.class,
@@ -343,7 +330,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
   public Set<String> getGenerateMarshaledTypes() {
     if (generateMarshaledTypes == null) {
       Set<String> marshaledTypes = Sets.newLinkedHashSet();
-      for (ValueAttribute a : filteredAttributes()) {
+      for (ValueAttribute a : attributes()) {
         marshaledTypes.addAll(a.getSpecialMarshaledTypes());
       }
       generateMarshaledTypes = marshaledTypes;
@@ -396,10 +383,10 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getSettableAttributes() {
-    return filteredAttributes()
+    return attributes()
         .filter(Predicates.or(
-            ValueAttributes.isGenerateAbstract(),
-            ValueAttributes.isGenerateDefault()))
+            ValueAttributeFunctions.isGenerateAbstract(),
+            ValueAttributeFunctions.isGenerateDefault()))
         .toList();
   }
 
@@ -409,13 +396,13 @@ public abstract class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getConstructorArguments() {
-    return filteredAttributes()
+    return attributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
         .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
   }
 
   public List<ValueAttribute> getConstructorOmited() {
-    return filteredAttributes()
+    return attributes()
         .filter(Predicates.compose(Predicates.equalTo(-1), ToConstructorArgumentOrder.FUNCTION))
         .toList();
   }
@@ -439,7 +426,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   public List<ValueAttribute> getExcludableAttributes() {
     List<ValueAttribute> excludables = Lists.newArrayList();
-    for (ValueAttribute attribute : filteredAttributes()) {
+    for (ValueAttribute attribute : attributes()) {
       if (attribute.isGenerateAbstract() && (attribute.isContainerType() && !attribute.isArrayType())) {
         excludables.add(attribute);
       }
@@ -459,7 +446,7 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   public List<ValueAttribute> getLazyAttributes() {
     List<ValueAttribute> lazyAttributes = Lists.newArrayList();
-    for (ValueAttribute attribute : filteredAttributes()) {
+    for (ValueAttribute attribute : attributes()) {
       if (attribute.isGenerateLazy()) {
         lazyAttributes.add(attribute);
       }
@@ -476,8 +463,8 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   private List<ValueAttribute> implementedAttributes;
 
-  private FluentIterable<ValueAttribute> filteredAttributes() {
-    return FluentIterable.from(attributes());
+  private FluentIterable<ValueAttribute> attributes() {
+    return FluentIterable.from(attributes);
   }
 
   public List<ValueAttribute> getMarshaledAttributes() {
@@ -512,11 +499,11 @@ public abstract class ValueType extends TypeIntrospectionBase {
 
   public List<ValueAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
-      implementedAttributes = filteredAttributes()
+      implementedAttributes = attributes()
           .filter(Predicates.or(Arrays.asList(
-              ValueAttributes.isGenerateAbstract(),
-              ValueAttributes.isGenerateDefault(),
-              ValueAttributes.isGenerateDerived())))
+              ValueAttributeFunctions.isGenerateAbstract(),
+              ValueAttributeFunctions.isGenerateDefault(),
+              ValueAttributeFunctions.isGenerateDerived())))
           .toList();
     }
     return implementedAttributes;
@@ -528,44 +515,12 @@ public abstract class ValueType extends TypeIntrospectionBase {
         .toList();
   }
 
-  public List<ValueAttribute> getHelperAttributes() {
-    return filteredAttributes()
-        .filter(Predicates.or(
-            ValueAttributes.isGenerateFunction(),
-            ValueAttributes.isGeneratePredicate()))
-        .toList();
-  }
-
   public boolean hasSingleParameterConstructor() {
     return isUseConstructor() && getConstructorArguments().size() == 1;
   }
 
   @Override
   protected TypeMirror internalTypeMirror() {
-    return internalTypeElement().asType();
-  }
-
-  public abstract TypeElement internalTypeElement();
-
-  public abstract List<ValueAttribute> attributes();
-
-  public boolean isGenerateModifiable() {
-    return true;
-  }
-
-  public boolean isHashCodeDefined() {
-    return false;
-  }
-
-  public boolean isEqualToDefined() {
-    return false;
-  }
-
-  public boolean isToStringDefined() {
-    return false;
-  }
-
-  public boolean isUseBuilder() {
-    return true;
+    return element.asType();
   }
 }

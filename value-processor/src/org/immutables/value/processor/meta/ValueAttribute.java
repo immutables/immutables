@@ -16,14 +16,16 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Functions;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.*;
-import com.google.common.primitives.Primitives;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Value;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -31,49 +33,45 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.*;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.NamingStyles.UsingName.AttributeNames;
 
 /**
  * It's pointless to refactor this mess until
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public abstract class ValueAttribute extends TypeIntrospectionBase {
-
+public class ValueAttribute extends TypeIntrospectionBase {
   private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
-  private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES;
 
-  static {
-    ImmutableMap.Builder<String, Class<?>> builder = ImmutableMap.builder();
-    for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
-      builder.put(primitive.getName(), primitive);
-    }
-    PRIMITIVE_TYPES = builder.build();
+  public AttributeNames names;
+
+  public String name() {
+    return names.raw;
   }
 
-  private static final ImmutableBiMap<String, String> BOXED_TO_PRIMITIVE_TYPES;
-  private ExecutableElement element;
+  public boolean isGenerateFunction;
+  public boolean isGeneratePredicate;
+  public boolean isGenerateDefault;
+  public boolean isGenerateDerived;
+  public boolean isGenerateAbstract;
+  public boolean isGenerateLazy;
+  public ImmutableList<String> typeParameters;
 
-  static {
-    ImmutableBiMap.Builder<String, String> builder = ImmutableBiMap.builder();
-    for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
-      builder.put(Primitives.wrap(primitive).getName(), primitive.getName());
-    }
-    BOXED_TO_PRIMITIVE_TYPES = builder.build();
-  }
-
-  public void setAttributeElement(ExecutableElement element) {
-    this.element = element;
-  }
+  TypeMirror returnType;
+  ExecutableElement element;
+  String returnTypeName;
 
   public boolean isBoolean() {
     return internalTypeMirror().getKind() == TypeKind.BOOLEAN;
   }
 
   public boolean isStringType() {
-    return internalTypeName().equals(String.class.getName());
+    return returnTypeName.equals(String.class.getName());
   }
 
   public boolean charType() {
@@ -113,55 +111,49 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
         return name;
       }
     }
-    return internalName();
+    return names.raw;
   }
 
   public boolean isForceEmpty() {
     return element.getAnnotation(Json.ForceEmpty.class) != null;
   }
 
-  private List<String> typeParameters = Collections.emptyList();
+  @Nullable
+  public CharSequence getAnnotationDefaultValue() {
+    @Nullable
+    AnnotationValue defaultValue = element.getDefaultValue();
+    if (defaultValue != null) {
+      return AnnotationPrinting.toCharSequence(defaultValue);
+    }
+    return null;
+  }
 
   @Override
-  protected abstract TypeMirror internalTypeMirror();
-
-  public boolean isGenerateFunction() {
-    return false;
+  protected TypeMirror internalTypeMirror() {
+    return returnType;
   }
 
   public boolean isGenerateLazy() {
-    return false;
-  }
-
-  public boolean isGeneratePredicate() {
-    return false;
+    return isGenerateLazy;
   }
 
   public boolean isGenerateDefault() {
-    return false;
+    return isGenerateDefault;
   }
 
   public boolean isGenerateDerived() {
-    return false;
+    return isGenerateDerived;
   }
 
   public boolean isGenerateAbstract() {
-    return false;
-  }
-
-  protected abstract String internalTypeName();
-
-  protected abstract String internalName();
-
-  public String getName() {
-    return internalName();
+    return isGenerateAbstract;
   }
 
   public String getType() {
-    return internalTypeName();
+    return returnTypeName;
   }
 
-  public List<String> getAnnotations() {
+  public List<CharSequence> getAnnotations() {
     return AnnotationPrinting.getAnnotationLines(element);
   }
 
@@ -204,7 +196,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isMapType == null) {
-      isMapType = internalTypeName().startsWith(Map.class.getName());
+      isMapType = returnTypeName.startsWith(Map.class.getName());
     }
     return isMapType;
   }
@@ -216,7 +208,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isListType == null) {
-      isListType = internalTypeName().startsWith(List.class.getName());
+      isListType = returnTypeName.startsWith(List.class.getName());
     }
     return isListType;
   }
@@ -228,7 +220,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSetType == null) {
-      isSetType = internalTypeName().startsWith(Set.class.getName());
+      isSetType = returnTypeName.startsWith(Set.class.getName());
     }
     return isSetType;
   }
@@ -240,7 +232,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isOptionalType == null) {
-      isOptionalType = internalTypeName().startsWith(googleCommonHiddenFromShadePlugin("base.Optional"));
+      isOptionalType = returnTypeName.startsWith(googleCommonHiddenFromShadePlugin("base.Optional"));
     }
     return isOptionalType;
   }
@@ -271,16 +263,8 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
     return wrapType(containmentTypeName());
   }
 
-  private String wrapType(String typeName) {
-    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.inverse().get(typeName), typeName);
-  }
-
-  private String unwrapType(String typeName) {
-    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.get(typeName), typeName);
-  }
-
   private String containmentTypeName() {
-    return (isArrayType() || isContainerType()) ? firstTypeParameter() : internalTypeName();
+    return (isArrayType() || isContainerType()) ? firstTypeParameter() : returnTypeName;
   }
 
   public String getRawType() {
@@ -310,11 +294,11 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isUnwrappedElementPrimitiveType() {
-    return PRIMITIVE_TYPES.containsKey(getUnwrappedElementType());
+    return isPrimitiveType(getUnwrappedElementType());
   }
 
   public boolean isUnwrappedSecondaryElementPrimitiveType() {
-    return PRIMITIVE_TYPES.containsKey(getUnwrappedSecondaryElementType());
+    return isPrimitiveType(getUnwrappedSecondaryElementType());
   }
 
   public String firstTypeParameter() {
@@ -439,7 +423,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
           typeParameters.addAll(Lists.transform(typeArguments, Functions.toStringFunction()));
         }
 
-        this.typeParameters = typeParameters;
+        this.typeParameters = ImmutableList.copyOf(typeParameters);
       }
     } else if (isArrayType()) {
       arrayComponent = ((ArrayType) typeMirror).getComponentType();
@@ -482,8 +466,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
 
   static boolean isRegularMarshalableType(String name) {
     return String.class.getName().equals(name)
-        || PRIMITIVE_TYPES.containsKey(name)
-        || BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
+        || isPrimitiveOrWrapped(name);
   }
 
   public String getRawCollectionType() {
@@ -542,8 +525,8 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
 
   public String getWrapperType() {
     return isPrimitive()
-        ? Primitives.wrap(PRIMITIVE_TYPES.get(internalTypeName())).getName()
-        : internalTypeName();
+        ? wrapType(returnTypeName)
+        : returnTypeName;
   }
 
   public boolean isPrimitive() {
@@ -569,7 +552,6 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
     if (isPrimitive()) {
       return false;
     }
-
     ensureTypeIntrospected();
     return marshaledElement;
   }
@@ -580,7 +562,7 @@ public abstract class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isPrimitiveElement() {
-    return PRIMITIVE_TYPES.containsKey(getUnwrappedElementType());
+    return isPrimitiveType(getUnwrappedElementType());
   }
 
   private boolean isSpecialMarshaledElement(boolean isMarshaled, Object qualifiedName) {

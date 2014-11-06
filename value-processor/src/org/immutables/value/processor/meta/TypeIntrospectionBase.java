@@ -16,14 +16,17 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Primitives;
 import java.util.List;
 import java.util.Set;
 import javax.lang.model.element.TypeElement;
@@ -35,6 +38,33 @@ public abstract class TypeIntrospectionBase {
 
   protected static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
   protected static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.common.collect.OrdinalValue";
+
+  protected static final ImmutableBiMap<String, String> BOXED_TO_PRIMITIVE_TYPES;
+
+  static {
+    ImmutableBiMap.Builder<String, String> builder = ImmutableBiMap.builder();
+    for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
+      builder.put(Primitives.wrap(primitive).getName(), primitive.getName());
+    }
+    BOXED_TO_PRIMITIVE_TYPES = builder.build();
+  }
+
+  protected static boolean isPrimitiveType(String typeName) {
+    return BOXED_TO_PRIMITIVE_TYPES.containsValue(typeName);
+  }
+
+  protected static boolean isPrimitiveOrWrapped(String name) {
+    return BOXED_TO_PRIMITIVE_TYPES.containsKey(name)
+        || BOXED_TO_PRIMITIVE_TYPES.containsValue(name);
+  }
+
+  protected static String wrapType(String typeName) {
+    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.inverse().get(typeName), typeName);
+  }
+
+  protected static String unwrapType(String typeName) {
+    return MoreObjects.firstNonNull(BOXED_TO_PRIMITIVE_TYPES.get(typeName), typeName);
+  }
 
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;

@@ -218,18 +218,18 @@ public static [type.defName] copyOf([type.name] instance) {
   return builder()
   [for v in type.settableAttributes]
     [if v.collectionType]
-      .addAll[toUpper v.name](instance.[v.name]())
+      .[v.names.addAll](instance.[v.names.get]())
     [else if v.mapType]
-      .putAll[toUpper v.name](instance.[v.name]())
+      .[v.names.putAll](instance.[v.names.get]())
     [else]
-      .[v.name](instance.[v.name]())
+      .[v.names.init](instance.[v.names.get]())
     [/if]
   [/for]
       .build();
 [else]
-  return of([for v in type.constructorArguments][if not for.first], [/if]instance.[v.name]()[/for])[if type.useCopyMethods][for
+  return of([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
           o in type.constructorOmited if o.generateDefault or o.generateAbstract]
-      .with[toUpper o.name](instance.[o.name]())[/for][/if];
+      .[o.names.with](instance.[o.names.get]())[/for][/if];
 [/if]
 }
 
@@ -260,14 +260,14 @@ public static [type.defName] copyOf([type.defName] instance) {
   private [l.type] [l.name];
 
   @Override
-  public [l.type] [l.name]() {
+  public [l.type] [l.names.get]() {
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {
             [if l.primitive]
-          this.[l.name] = super.[l.name]();
+          this.[l.name] = super.[l.names.get]();
             [else]
-          this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.name]());
+          this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -290,8 +290,10 @@ public static [type.defName] copyOf([type.defName] instance) {
 
 /**
  * Builds instances of {@link [type.name]}.
- * Builder is not thread safe and generally should not be stored in fields and collections,
- * but used immediately to create instances.
+ * Initialized attributes and then invoke {@link #build()} method to create
+ * immutable instance.
+ * <p><em>Builder is not thread safe and generally should not be stored in field or collection,
+ * but used immediately to create instances.</em>
  */
 @javax.annotation.concurrent.NotThreadSafe
 [if type.hasAbstractBuilder]
@@ -380,44 +382,44 @@ public static [type.defName] copyOf([type.defName] instance) {
   [if v.collectionType]
 
   /**
-   * Adds one element to {@link [type.name]#[v.name]()} [toLower v.rawCollectionType].
-   * @param element single [v.name] element
+   * Adds one element to {@link [type.name]#[v.names.get]()} [toLower v.rawCollectionType].
+   * @param element [v.name] element
    * @return {@code this} builder for chained invocation
    */
-  public final Builder add[toUpper v.name]([v.unwrappedElementType] element) {
+  public final Builder [v.names.add]([v.unwrappedElementType] element) {
     [v.name]Builder.add(element);
     return this;
   }
 
   /**
-   * Adds elements to {@link [type.name]#[v.name]()} [toLower v.rawCollectionType].
+   * Adds elements to {@link [type.name]#[v.names.get]()} [toLower v.rawCollectionType].
    * @param elements array of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final Builder add[toUpper v.name]([v.unwrappedElementType]... elements) {
+  public final Builder [v.names.add]([v.unwrappedElementType]... elements) {
     [v.name]Builder.addAll([immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf]);
     return this;
   }
 
   /**
-   * Adds elements to {@link [type.name]#[v.name]()} [toLower v.rawCollectionType].
+   * Adds elements to {@link [type.name]#[v.names.get]()} [toLower v.rawCollectionType].
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
-  public final Builder addAll[toUpper v.name](Iterable<[v.consumedElementType]> elements) {
+  public final Builder [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [v.name]Builder.addAll(elements);
     return this;
   }
   [else if v.optionalType]
 
   /**
-   * Initializes present value for optional {@link [type.name]#[v.name]()}.
+   * Initializes present value for optional {@link [type.name]#[v.names.get]()}.
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.name]([v.unwrappedElementType] [v.name]) {
-    this.[v.name](com.google.common.base.Optional.of([v.name]));
+  public final Builder [v.names.init]([v.unwrappedElementType] [v.name]) {
+    this.[v.name] = com.google.common.base.Optional.of([v.name]);
     return this;
   }
 
@@ -426,7 +428,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.name](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
+  public final Builder [v.names.init](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
     this.[v.name] = com.google.common.base.Preconditions.checkNotNull([v.name]);
     return this;
   }
@@ -434,33 +436,33 @@ public static [type.defName] copyOf([type.defName] instance) {
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
   /**
-   * Put one entry to {@link [type.name]#[v.name]()} map.
+   * Put one entry to {@link [type.name]#[v.names.get]()} map.
    * @param key the key in [v.name] map
    * @param value the associated value in [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final Builder put[toUpper v.name]([uK] key, [uV] value) {
+  public final Builder [v.names.put]([uK] key, [uV] value) {
     [v.name]Builder.put(key, value);
     return this;
   }
 
   /**
-   * Put one entry to {@link [type.name]#[v.name]()} map. Nulls are not permitted
+   * Put one entry to {@link [type.name]#[v.names.get]()} map. Nulls are not permitted
    * @param entry the key and value entry
    * @return {@code this} builder for chained invocation
    */
-  public final Builder put[toUpper v.name](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+  public final Builder [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [v.name]Builder.put(entry);
     return this;
   }
 
   /**
-   * Put all mappings from specified map as entries to {@link [type.name]#[v.name]()} map. Nulls are not permitted
-   * @param [v.name]Entries to be added to [v.name] map
+   * Put all mappings from specified map as entries to {@link [type.name]#[v.names.get]()} map. Nulls are not permitted
+   * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final Builder putAll[toUpper v.name](java.util.Map<[gE], ? extends [wV]> [v.name]Entries) {
-    [v.name]Builder.putAll([v.name]Entries);
+  public final Builder [v.names.putAll](java.util.Map<[gE], ? extends [wV]> entries) {
+    [v.name]Builder.putAll(entries);
     return this;
   }
 
@@ -468,30 +470,30 @@ public static [type.defName] copyOf([type.defName] instance) {
   [else if v.arrayType]
 
   /**
-   * Initializes value for {@link [type.name]#[v.name]()}.
+   * Initializes value for {@link [type.name]#[v.names.get]()}.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have {@link [type.name]#[v.name]() default value}.</em>
+   * <p><em>If not set, this attribute will have default value as defined by {@link [type.name]#[v.names.get]()}.</em>
   [/if]
-   * @param [v.name] value for [v.name], non-null
+   * @param elements elements for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final Builder [v.name]([v.elementType]... [v.name]) {
-    this.[v.name] = [v.name].clone();
+  public final Builder [v.names.init]([v.elementType]... elements) {
+    this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
     return this;
   }
   [else]
 
   /**
-   * Initializes value for {@link [type.name]#[v.name]()}.
+   * Initializes value for {@link [type.name]#[v.names.get]()}.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have {@link [type.name]#[v.name]() default value}.</em>
+   * <p><em>If not set, this attribute will have {@link [type.name]#[v.names.get]() default value}.</em>
   [/if]
    * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.name]([v.atNullability][v.type] [v.name]) {
+  public final Builder [v.names.init]([v.atNullability][v.type] [v.name]) {
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
@@ -554,9 +556,9 @@ this.[n] = null;
 this.[n] = DEFAULT_VALUE_[toConstant v.name];
 [else]
   [if v.primitive or v.nullable]
-this.[n] = super.[n]();
+this.[n] = super.[v.names.get]();
   [else]
-this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
+this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -619,7 +621,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else]
-        : super.[n]();
+        : super.[v.names.get]();
       [/if]
   [else]
     this.[n] = builder.[n] != null
@@ -627,16 +629,16 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else if v.nullable]
-        : super.[n]();
+        : super.[v.names.get]();
       [else]
-        : com.google.common.base.Preconditions.checkNotNull(super.[n]());
+        : com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
       [/if]
   [/if]
 [else if v.generateDerived]
   [if v.primitive or v.nullable]
-    this.[n] = super.[n]();
+    this.[n] = super.[v.names.get]();
   [else]
-    this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[n]());
+    this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -700,7 +702,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [line]
 [/for]
 @Override
-public [v.implementationType] [v.name]() {
+public [v.implementationType] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]
@@ -841,36 +843,36 @@ return checkPreconditions(new [type.defName](
     [if v.arrayType]
 
 /**
- * Copy current immutable object with elements that replace content of {@link [type.name]#[v.name]()}.
+ * Copy current immutable object with elements that replace content of {@link [type.name]#[v.names.get]()}.
  * Array is cloned before saved as the attribute value.
- * @param elements iterable of [v.name] elements to set
+ * @param elements elements for [v.name], not null
  * @return modified copy of {@code this} object
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
-public final [type.defName] with[toUpper v.name]([v.elementType]... elements) {
+public final [type.defName] [v.names.with]([v.elementType]... elements) {
   [v.implementationType] newValue = elements.clone();
   [generateReturnCopyContextual type v]
 }
     [else if v.collectionType]
 
 /**
- * Copy current immutable object with elements that replace content of {@link [type.name]#[v.name]()}.
+ * Copy current immutable object with elements that replace content of {@link [type.name]#[v.names.get]()}.
  * @param elements elements to set
  * @return modified copy of {@code this} object
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
-public final [type.defName] with[toUpper v.name]([v.unwrappedElementType]... elements) {
+public final [type.defName] [v.names.with]([v.unwrappedElementType]... elements) {
   [v.implementationType] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
   [generateReturnCopyContextual type v]
 }
 
 /**
- * Copy current immutable object with elements that replace content of {@link [type.name]#[v.name]()}.
+ * Copy current immutable object with elements that replace content of {@link [type.name]#[v.names.get]()}.
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param elements iterable of [v.name] elements to set
  * @return modified copy of {@code this} object
  */
-public final [type.defName] with[toUpper v.name](Iterable<[v.consumedElementType]> elements) {
+public final [type.defName] [v.names.with](Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) {
     return this;
   }
@@ -880,22 +882,22 @@ public final [type.defName] with[toUpper v.name](Iterable<[v.consumedElementType
     [else if v.optionalType]
 
 /**
- * Copy current immutable object by setting present value for optional {@link [type.name]#[v.name]()}.
+ * Copy current immutable object by setting present value for optional {@link [type.name]#[v.names.get]()}.
  * @param value value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.defName] with[toUpper v.name]([v.unwrappedElementType] value) {
+public final [type.defName] [v.names.with]([v.unwrappedElementType] value) {
   [v.implementationType] newValue = com.google.common.base.Optional.of(value);
   [generateReturnCopyContextual type v]
 }
 
 /**
- * Copy current immutable object by setting optional value for {@link [type.name]#[v.name]()}.
+ * Copy current immutable object by setting optional value for {@link [type.name]#[v.names.get]()}.
  * Shallow reference equality check on optional value is used to prevent copying of the same value by returning {@code this}.
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.defName] with[toUpper v.name](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
+public final [type.defName] [v.names.with](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
     return this;
   }
@@ -906,33 +908,33 @@ public final [type.defName] with[toUpper v.name](com.google.common.base.Optional
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
 /**
- * Copy current immutable object by replacing {@link [type.name]#[v.name]()} map with specified map.
+ * Copy current immutable object by replacing {@link [type.name]#[v.names.get]()} map with specified map.
  * Nulls are not permitted as keys or values.
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
- * @param map to be added to [v.name] map
+ * @param entries to be added to [v.name] map
  * @return modified copy of {@code this} object
  */
-public final [type.defName] with[toUpper v.name](java.util.Map<[gE], ? extends [wV]> map) {
-  if (this.[v.name] == map) {
+public final [type.defName] [v.names.with](java.util.Map<[gE], ? extends [wV]> entries) {
+  if (this.[v.name] == entries) {
     return this;
   }
-  [v.implementationType] newValue = [immutableCollectionCopyOf v 'map'];
+  [v.implementationType] newValue = [immutableCollectionCopyOf v 'entries'];
   [generateReturnCopyContextual type v]
 }
     [/for]
     [else]
 
 /**
- * Copy current immutable object by setting value for {@link [type.name]#[v.name]()}.
+ * Copy current immutable object by setting value for {@link [type.name]#[v.names.get]()}.
  [if v.primitive and (not v.floatType)]
  * Value equality check is used to prevent copying of the same value by returning {@code this}.
  [else if not v.primitive]
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
- * @param value value for [v.name][if not v.nullable], non-null[/if]
+ * @param value new value for [v.name][if not v.nullable], non-null[/if]
  * @return modified copy of the {@code this} object
  */
-public final [type.defName] with[toUpper v.name]([v.atNullability][v.type] value) {
+public final [type.defName] [v.names.with]([v.atNullability][v.type] value) {
     [if not v.floatType]
   if (this.[v.name] == value) {
     return this;
@@ -954,7 +956,7 @@ public final [type.defName] with[toUpper v.name]([v.atNullability][v.type] value
     [for v in type.allAccessibleAttributes]
 
 /**
- * Gets the value of {@link [type.name]#[v.name]()} attribute.
+ * Gets the value of {@link [type.name]#[v.names.get]()} attribute.
 [if v.optionalType]
  * @return value of [v.name] if present, {@code null} if absent
 [else]
@@ -1017,24 +1019,24 @@ private static <T> T cast(Object object) {
 [/output.trim][/template]
 
 [template equalsAttribute Attribute a Boolean useAccessor][output.trim]
-[let suffix][if useAccessor]()[/if][/let]
+[let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
 [if a.float]
-  Float.floatToIntBits([a.name]) == Float.floatToIntBits(another.[a.name][suffix])
+  Float.floatToIntBits([a.name]) == Float.floatToIntBits([getOther])
 [else if a.double]
-  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits(another.[a.name][suffix])
+  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits([getOther])
 [else if a.primitive]
-  [a.name] == another.[a.name][suffix]
+  [a.name] == [getOther]
 [else if a.arrayType]
-  java.util.Arrays.equals([a.name], another.[a.name][suffix])
+  java.util.Arrays.equals([a.name], [getOther])
 [else if a.nullable]
-  java.util.Objects.equals([a.name], another.[a.name][suffix])
+  java.util.Objects.equals([a.name], [getOther])
 [else]
-  [a.name].equals(another.[a.name][suffix])
+  [a.name].equals([getOther])
 [/if]
 [/output.trim][/template]
 
 [template arrayAsList Attribute a String expression][output.trim]
-[if a.isPrimitiveElement]
+[if a.unwrappedElementPrimitiveType]
   com.google.common.primitives.[toUpper a.unwrappedElementType]s.asList([expression])
 [else]
   java.util.Arrays.asList([expression])

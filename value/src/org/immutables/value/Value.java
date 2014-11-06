@@ -85,6 +85,9 @@ public @interface Value {
      * {@literal true}.
      */
     boolean builder() default true;
+
+    @Deprecated
+    boolean equalToAbstract() default false;
   }
 
   /**
@@ -98,7 +101,7 @@ public @interface Value {
    * Implementation classes nested under top level class with "Immutable" prefix
    * <ul>
    * <li>Have simple names without "Immutable" prefix
-   * <li>Could be star-imported for easy clutter-free usage.
+   * <li>Could even be star-imported for easy clutter-free usage.
    * </ul>
    * <p>
    * 
@@ -121,6 +124,17 @@ public @interface Value {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Nested {}
+
+  /**
+   * Includes specified abstract value types into processing.
+   * This is usually used to generate immutable implementation of classes in different
+   * packages
+   */
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Include {
+    Class<?>[] value();
+  }
 
   /**
    * Generate transformer for a set of nested classes.
@@ -196,7 +210,8 @@ public @interface Value {
      * <em>This attribute was introduced as JDT annotation processor internally tracks alphabetical order
      * of members (non-standard as of Java 6), this differs from Javac, which uses order of declaration appearance
      * in a source file. Thus, in order to support portable constructor argument definitions,
-     * developer should supply argument order explicitly.</em>
+     * developer should supply argument order explicitly. As of version 1.0, we implemented workaround for
+     * the Eclipse compiler, but it's still might be needed if you wish to reorder arguments</em>
      * @return order
      */
     int order() default 0;
@@ -228,17 +243,20 @@ public @interface Value {
   public @interface Getters {}
 
   /**
-   * Naming convention could be used to customize naming convention of the generated immutable
+   * Naming style could be used to customize naming convention of the generated immutable
    * implementations and companion classes.
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.SOURCE)
+  @Retention(RetentionPolicy.RUNTIME)
   public @interface NamingStyle {
+    /**
+     * Patterns to recognize accessors.
+     * @return naming template
+     */
     String[] get() default {};
 
     /**
      * Builder initialization method. i.e. "setter" in builder.
-     * Placeholder.
      * @return naming template
      */
     String init() default "";
@@ -259,9 +277,31 @@ public @interface Value {
 
     String unset() default "unset*";
 
+    String clear() default "clear*";
+
+    /**
+     * Add value to collection attribute from iterable
+     * @return naming template
+     */
     String add() default "add*";
 
+    /**
+     * Add all values to collection attribute from iterable
+     * @return naming template
+     */
     String addAll() default "addAll*";
+
+    /**
+     * Puts entry to a map attribute
+     * @return naming template
+     */
+    String put() default "put*";
+
+    /**
+     * Puts all entries to a map attribute
+     * @return naming template
+     */
+    String putAll() default "putAll*";
 
     /**
      * Copy constructor method name.
@@ -277,25 +317,56 @@ public @interface Value {
 
     String create() default "create";
 
-    String build() default "build";
-
     String builder() default "builder";
 
+    String build() default "build";
+
+    /**
+     * Method to convert to instanse of companion type to "canonical" immutable instance.
+     * @return naming template
+     */
     String toImmutable() default "toImmutable*";
 
-    String builderType() default "Builder";
+    /**
+     * Nested Builder class name.
+     * @return naming template
+     */
+    String typeBuilder() default "Builder";
 
-    String immutableType() default "Immutable*";
+    /**
+     * Modifiable type name template.
+     * @return naming template
+     */
+    String typeImmutable() default "Immutable*";
 
-    String modifiableType() default "Modifiable*";
+    /**
+     * Umbrella nesting class name generated using {@link Nested}.
+     * @return naming template
+     */
+    String typeImmutableNesting() default "Immutable*";
+
+    /**
+     * Immutable class name when generated under umbrella class using {@link Nested} annotation.
+     * @see #typeImmutable()
+     * @see #typeImmutableNesting()
+     * @return naming template
+     */
+    String typeImmutableNested() default "*";
+
+    /**
+     * Modifiable companion class name template
+     * @return naming template
+     */
+    String typeModifiable() default "Modifiable*";
   }
 
   /**
-   * Annotations that applies Java Bean-style naming convention to the generated immutable.
+   * Annotations that applies Java Bean-style naming convention to the generated immutable and
+   * builder (and other derived classes).
    * It works by being annotated with {@litera @}{@link NamingStyle} annotation which
    * specifies.
    */
-  @NamingStyle(get = {"is", "get"}, init = "set")
+  @NamingStyle(get = {"is*", "get*"}, init = "set*")
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
   public @interface BeanStyle {}

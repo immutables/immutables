@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.util.ElementFilter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -34,6 +33,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
@@ -84,21 +84,21 @@ public class Discovery {
     return generateTypes;
   }
 
-  private List<ValueType> checkForANumberOfAttributes(List<ValueType> generateTypes) {
+  private List<ValueType> checkForANumberOfAttributes(List<ValueType> valueTypes) {
     ImmutableList.Builder<ValueType> builder = ImmutableList.builder();
 
-    for (ValueType discoveredValue : generateTypes) {
-      if (!discoveredValue.isEmptyNesting()) {
-        if (discoveredValue.getImplementedAttributes().size() > 124) {
+    for (ValueType valueType : valueTypes) {
+      if (!valueType.emptyNesting) {
+        if (valueType.getImplementedAttributes().size() > 124) {
           processing.getMessager().printMessage(
               Diagnostic.Kind.ERROR,
               "Value objects with more than 124 attributes (including inherited) are not supported."
                   + " Please decompose your object into a smaller ones",
-              discoveredValue.internalTypeElement());
+              valueType.element);
           continue;
         }
       }
-      builder.add(discoveredValue);
+      builder.add(valueType);
     }
 
     return builder.build();
@@ -108,7 +108,7 @@ public class Discovery {
     Value.Immutable genImmutable = type.getAnnotation(Value.Immutable.class);
     Value.Nested genNested = type.getAnnotation(Value.Nested.class);
     if (genImmutable != null) {
-      ValueType generateType = inspectDiscoveredType(type, genImmutable);
+      ValueType generateType = inspectValueType(type, genImmutable);
 
       if (genNested != null) {
         generateType.setNestedChildren(extractNestedChildren(type));
@@ -118,14 +118,10 @@ public class Discovery {
     } else if (genNested != null) {
       List<ValueType> nestedChildren = extractNestedChildren(type);
       if (!nestedChildren.isEmpty()) {
-        ValueType emptyNestingType = ValueTypes.builder()
-            .internalTypeElement(type)
-            .isUseBuilder(false)
-            .isGenerateCompact(false)
-            .build();
-
-        emptyNestingType.setEmptyNesting(true);
-        emptyNestingType.setSegmentedName(SegmentedName.from(type.getQualifiedName()));
+        ValueType emptyNestingType = new ValueType();
+        emptyNestingType.element = type;
+        emptyNestingType.emptyNesting = true;
+        emptyNestingType.segmentedName = SegmentedName.from(type.getQualifiedName());
         emptyNestingType.setNestedChildren(nestedChildren);
 
         generateTypes.add(emptyNestingType);
@@ -141,7 +137,7 @@ public class Discovery {
       case CLASS:
         Value.Immutable annotation = element.getAnnotation(Value.Immutable.class);
         if (annotation != null) {
-          children.add(inspectDiscoveredType((TypeElement) element, annotation));
+          children.add(inspectValueType((TypeElement) element, annotation));
         }
         break;
       default:
@@ -150,7 +146,7 @@ public class Discovery {
     return children.build();
   }
 
-  private boolean isDiscoveredType(TypeElement type, Value.Immutable annotation) {
+  private boolean isValueType(TypeElement type, Value.Immutable annotation) {
     boolean isStaticOrTopLevel =
         type.getKind() == ElementKind.INTERFACE
             || type.getKind() == ElementKind.ANNOTATION_TYPE
@@ -167,8 +163,8 @@ public class Discovery {
     return !type.getModifiers().contains(Modifier.FINAL);
   }
 
-  ValueType inspectDiscoveredType(TypeElement type, Value.Immutable annotation) {
-    if (!isDiscoveredType(type, annotation)) {
+  ValueType inspectValueType(TypeElement type, Value.Immutable annotation) {
+    if (!isValueType(type, annotation)) {
       error(type,
           "Type '%s' annotated with @%s must be non-final class, interface or annotation type",
           type.getSimpleName(),
@@ -177,25 +173,19 @@ public class Discovery {
 
     SegmentedName segmentedName = SegmentedName.from(processing, type);
 
-    boolean useBuilder = annotation.builder();
+    ValueType valueType = new ValueType();
+    valueType.element = type;
 
-    ValueTypes.Builder typeBuilder =
-        ValueTypes.builder()
-            .internalTypeElement(type)
-            .isUseBuilder(useBuilder)
-            .isGenerateCompact(false);
+    collectGeneratedCandidateMethods(type, valueType);
 
-    collectGeneratedCandidateMethods(type, typeBuilder);
-
-    ValueType generateType = typeBuilder.build();
-    generateType.setSegmentedName(segmentedName);
-    return generateType;
+    valueType.segmentedName = segmentedName;
+    return valueType;
   }
 
-  private void collectGeneratedCandidateMethods(TypeElement type, ValueTypes.Builder typeBuilder) {
+  private void collectGeneratedCandidateMethods(TypeElement type, ValueType valueType) {
     for (Element element : getAccessorsInSourceOrder(type)) {
       if (isElegibleAccessorMethod(element)) {
-        processGenerationCandidateMethod(typeBuilder, (ExecutableElement) element);
+        processGenerationCandidateMethod(valueType, (ExecutableElement) element);
       }
     }
     // This is to restore previous behavior.
@@ -205,7 +195,7 @@ public class Discovery {
       case EQUALS_METHOD: //$FALL-THROUGH$
       case HASH_CODE_METHOD: //$FALL-THROUGH$
       case TO_STRING_METHOD: //$FALL-THROUGH$
-        processGenerationCandidateMethod(typeBuilder, element);
+        processGenerationCandidateMethod(valueType, element);
       }
     }
   }
@@ -239,8 +229,10 @@ public class Discovery {
   }
 
   private void processGenerationCandidateMethod(
-      ValueTypes.Builder type,
+      ValueType type,
       ExecutableElement attributeMethodCandidate) {
+
+    NamingStyles namingStyle = NamingStyles.using(NamingStyles.defaultStyle());
 
     Name name = attributeMethodCandidate.getSimpleName();
     List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
@@ -248,21 +240,21 @@ public class Discovery {
         && parameters.size() == 1
         && parameters.get(0).asType().toString().equals(Object.class.getName())
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isEqualToDefined(true);
+      type.isEqualToDefined = true;
       return;
     }
 
     if (name.contentEquals(HASH_CODE_METHOD)
         && parameters.isEmpty()
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isHashCodeDefined(true);
+      type.isHashCodeDefined = true;
       return;
     }
 
     if (name.contentEquals(TO_STRING_METHOD)
         && parameters.isEmpty()
         && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isToStringDefined(true);
+      type.isToStringDefined = true;
       return;
     }
 
@@ -275,7 +267,7 @@ public class Discovery {
           && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
           && !attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
           && !attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
-        type.validationMethodName(attributeMethodCandidate.getSimpleName().toString());
+        type.validationMethodName = attributeMethodCandidate.getSimpleName().toString();
       } else {
         error(attributeMethodCandidate,
             "Method '%s' annotated with @%s must be non-private parameter-less method and have void return type.",
@@ -287,17 +279,17 @@ public class Discovery {
     if (isDiscoveredAttribute(attributeMethodCandidate)) {
       TypeMirror returnType = attributeMethodCandidate.getReturnType();
 
-      ValueAttributes.Builder attributeBuilder = ValueAttributes.builder();
+      ValueAttribute attribute = new ValueAttribute();
 
       if (isAbstract(attributeMethodCandidate)) {
-        attributeBuilder.isGenerateAbstract(true);
+        attribute.isGenerateAbstract = true;
         if (attributeMethodCandidate.getDefaultValue() != null) {
-          attributeBuilder.isGenerateDefault(true);
+          attribute.isGenerateDefault = true;
         }
       } else if (hasAnnotation(attributeMethodCandidate, Value.Default.class)) {
-        attributeBuilder.isGenerateDefault(true);
+        attribute.isGenerateDefault = true;
       } else if (hasAnnotation(attributeMethodCandidate, Value.Derived.class)) {
-        attributeBuilder.isGenerateDerived(true);
+        attribute.isGenerateDerived = true;
       }
 /*!!
       if (hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
@@ -314,18 +306,16 @@ public class Discovery {
               attributeMethodCandidate.getSimpleName(),
               Value.Lazy.class.getSimpleName());
         } else {
-          attributeBuilder.isGenerateLazy(true);
+          attribute.isGenerateLazy = true;
         }
       }
 
-      attributeBuilder.internalName(name.toString());
-      attributeBuilder.internalTypeName(returnType.toString());
-      attributeBuilder.internalTypeMirror(returnType);
+      attribute.returnTypeName = returnType.toString();
+      attribute.returnType = returnType;
+      attribute.names = namingStyle.forAccessor(name.toString());
+      attribute.element = attributeMethodCandidate;
 
-      ValueAttribute generateAttribute = attributeBuilder.build();
-      generateAttribute.setAttributeElement(attributeMethodCandidate);
-
-      type.addAttributes(generateAttribute);
+      type.attributes.add(attribute);
     }
   }
 
