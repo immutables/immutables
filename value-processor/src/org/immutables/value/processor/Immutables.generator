@@ -766,7 +766,7 @@ private int computeHashCode() {
   [else]
 [for v in getters]
 [if v.nullable]
-  h = h * 17 + java.util.Objects.hashCode([v.name]);
+  h = h * 17 + com.google.common.base.Objects.hashCode([v.name]);
 [else if v.arrayType]
   h = h * 17 + java.util.Arrays.hashCode([v.name]);
 [else if not v.primitive]
@@ -1029,7 +1029,7 @@ private static <T> T cast(Object object) {
 [else if a.arrayType]
   java.util.Arrays.equals([a.name], [getOther])
 [else if a.nullable]
-  java.util.Objects.equals([a.name], [getOther])
+  com.google.common.base.Objects.equal([a.name], [getOther])
 [else]
   [a.name].equals([getOther])
 [/if]
