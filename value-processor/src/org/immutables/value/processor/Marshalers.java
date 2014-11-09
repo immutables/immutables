@@ -26,6 +26,9 @@ import java.util.Map;
 @Generator.Template
 abstract class Marshalers extends ValuesTemplate {
 
+  @Generator.Typedef
+  Map.Entry<String, Collection<ValueType>> ByPackage;
+
   int roundCode() {
     return System.identityHashCode(round());
   }
@@ -60,7 +63,4 @@ abstract class Marshalers extends ValuesTemplate {
       }).asMap().entrySet();
     }
   }
-
-  @Generator.Typedef
-  Map.Entry<String, Collection<ValueType>> ByPackage;
 }

@@ -1,9 +1,10 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Maps;
-import java.util.Map;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value.NamingStyle;
+
+import java.util.Map;
 
 @NamingStyle
 public final class NamingStyles {
@@ -95,6 +96,8 @@ public final class NamingStyles {
     public class TypeNames {
       public final String raw = name;
       public final String typeImmutable = scheme.typeImmutable.apply(raw);
+      public final String typeImmutableNesting = scheme.typeImmutable.apply(raw);
+      public final String typeImmutableNested = scheme.typeImmutable.apply(raw);
       public final String of = scheme.of.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
 
@@ -105,11 +108,6 @@ public final class NamingStyles {
       public final String typeModifiable = scheme.typeModifiable.apply(raw);
       public final String create = scheme.create.apply(raw);
       public final String toImmutable = scheme.toImmutable.apply(raw);
-
-      @Override
-      public String toString() {
-        return raw;
-      }
     }
 
     public class AttributeNames {
@@ -126,11 +124,6 @@ public final class NamingStyles {
 //    public final String hasSet = scheme.hasSet.apply(raw);
 //    public final String unset = scheme.unset.apply(raw);
 //    Naming clear = Naming.from(style.clear());
-
-      @Override
-      public String toString() {
-        return raw;
-      }
     }
   }
 }

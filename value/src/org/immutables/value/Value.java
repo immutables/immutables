@@ -85,9 +85,6 @@ public @interface Value {
      * {@literal true}.
      */
     boolean builder() default true;
-
-    @Deprecated
-    boolean equalToAbstract() default false;
   }
 
   /**
@@ -128,7 +125,7 @@ public @interface Value {
   /**
    * Includes specified abstract value types into processing.
    * This is usually used to generate immutable implementation of classes in different
-   * packages
+   * packages.
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE})
   @Retention(RetentionPolicy.SOURCE)
