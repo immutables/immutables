@@ -63,17 +63,15 @@ public final class TimeMeasure implements Comparable<TimeMeasure> {
   }
 
   private static TimeUnit unitFromString(String unitString) {
-    switch (unitString) {
-    case "":
-    case "ms":
+    if ("".equals(unitString) || "ms".equals(unitString)) {
       return TimeUnit.MILLISECONDS;
-    case "s":
+    } else if ("s".equals(unitString)) {
       return TimeUnit.SECONDS;
-    case "m":
+    } else if ("m".equals(unitString)) {
       return TimeUnit.MINUTES;
-    case "h":
+    } else if ("h".equals(unitString)) {
       return TimeUnit.HOURS;
-    case "d":
+    } else if ("d".equals(unitString)) {
       return TimeUnit.DAYS;
     }
     throw new IllegalArgumentException();

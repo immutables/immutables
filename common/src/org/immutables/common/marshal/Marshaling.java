@@ -19,8 +19,11 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Throwables;
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.io.StringWriter;
+
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -43,9 +46,17 @@ public final class Marshaling {
   public static String toJson(Object object) {
     Marshaler<Object> marshaler = marshalerFor(object.getClass());
     StringWriter writer = new StringWriter();
-    try (JsonGenerator generator = JSON_FACTORY.createGenerator(writer)) {
-      generator.useDefaultPrettyPrinter();
-      marshaler.marshalInstance(generator, object);
+    try {
+      Closer closer = Closer.create();
+      try {
+        JsonGenerator generator = closer.register(JSON_FACTORY.createGenerator(writer));
+        generator.useDefaultPrettyPrinter();
+        marshaler.marshalInstance(generator, object);
+      } catch (Throwable t) {
+        throw closer.rethrow(t);
+      } finally {
+        closer.close();
+      }
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
@@ -61,8 +72,16 @@ public final class Marshaling {
    */
   public static <T> T fromJson(String json, Class<? extends T> expectedType) {
     Marshaler<T> marshaler = marshalerFor(expectedType);
-    try (JsonParser parser = JSON_FACTORY.createParser(json)) {
-      return marshaler.unmarshalInstance(parser);
+    try {
+      Closer closer = Closer.create();
+      try {
+        JsonParser parser = closer.register(JSON_FACTORY.createParser(json));
+        return marshaler.unmarshalInstance(parser);
+      } catch (Throwable t) {
+        throw closer.rethrow(t);
+      } finally {
+        closer.close();
+      }
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }

@@ -18,11 +18,14 @@ package org.immutables.common.marshal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
@@ -32,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
+
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -58,8 +62,16 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       MediaType mediaType,
       MultivaluedMap<String, String> httpHeaders,
       InputStream entityStream) throws IOException {
-    try (JsonParser parser = jsonFactory.createParser(entityStream)) {
-      return MarshalingSupport.getMarshalerFor(type).unmarshalInstance(parser);
+    try {
+      Closer closer = Closer.create();
+      try {
+        JsonParser parser = closer.register(jsonFactory.createParser(entityStream));
+        return MarshalingSupport.getMarshalerFor(type).unmarshalInstance(parser);
+      } catch (Throwable t) {
+        throw closer.rethrow(t, Exception.class);
+      } finally {
+        closer.close();
+      }
     } catch (Exception ex) {
       throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
     }
@@ -84,8 +96,14 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       MediaType mediaType,
       MultivaluedMap<String, Object> httpHeaders,
       OutputStream entityStream) throws IOException {
-    try (JsonGenerator generator = jsonFactory.createGenerator(entityStream)) {
+    Closer closer = Closer.create();
+    try {
+      JsonGenerator generator = closer.register(jsonFactory.createGenerator(entityStream));
       MarshalingSupport.getMarshalerFor(actualType).marshalInstance(generator, o);
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
+    } finally {
+      closer.close();
     }
   }
 }

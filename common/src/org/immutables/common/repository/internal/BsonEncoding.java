@@ -34,22 +34,25 @@ import com.mongodb.DBEncoder;
 import com.mongodb.DBObject;
 import com.mongodb.DefaultDBEncoder;
 import com.mongodb.LazyDBCallback;
+
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.Nullable;
+
 import org.bson.BSONCallback;
 import org.bson.BSONObject;
 import org.bson.BasicBSONDecoder;
@@ -169,11 +172,11 @@ public final class BsonEncoding {
   }
 
   public static <T> DBObject wrapUpdateObject(T instance, Marshaler<T> marshaler) {
-    return new UpdateObject<>(instance, marshaler);
+    return new UpdateObject<T>(instance, marshaler);
   }
 
   public static <T> List<DBObject> wrapInsertObjectList(ImmutableList<T> list, Marshaler<T> marshaler) {
-    return new InsertObjectList<>(list, marshaler);
+    return new InsertObjectList<T>(list, marshaler);
   }
 
   interface WritableObjectPosition {
@@ -411,7 +414,7 @@ public final class BsonEncoding {
 
     @Override
     public Iterator<DBObject> iterator() {
-      return Collections.emptyIterator();
+      return ImmutableSet.<DBObject>of().iterator();
     }
 
     @Override
@@ -482,7 +485,7 @@ public final class BsonEncoding {
   }
 
   public static <T> DBDecoderFactory newResultDecoderFor(Marshaler<T> marshaler, int expectedSize) {
-    return new ResultDecoder<>(marshaler, expectedSize);
+    return new ResultDecoder<T>(marshaler, expectedSize);
   }
 
   /**
