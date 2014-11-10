@@ -15,7 +15,16 @@
  */
 package org.immutables.common.marshal.internal;
 
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+
+import javax.annotation.Nullable;
+
+import org.immutables.common.marshal.Marshaler;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
@@ -25,18 +34,24 @@ import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import javax.annotation.Nullable;
-import org.immutables.common.marshal.Marshaler;
+import com.google.common.collect.Maps;
+import com.google.common.io.Closer;
 
 /**
  * Marshaling support used by other utilities as well as by generated code.
  */
 public final class MarshalingSupport {
   private MarshalingSupport() {}
+  
+  private static final Method addSuppressed = getAddSuppressed();
+
+  private static Method getAddSuppressed() {
+    try {
+      return Throwable.class.getMethod("addSuppressed", Throwable.class);
+    } catch (Throwable e) {
+      return null;
+    }
+  }
 
   public static void ensureStarted(JsonParser parser) throws IOException {
     if (!parser.hasCurrentToken()) {
@@ -161,17 +176,27 @@ public final class MarshalingSupport {
       String attributeType,
       Marshaler<?>... marshalers) throws IOException {
 
-    try (TokenBuffer buffer = new TokenBuffer(parser)) {
+    Closer bufferCloser = Closer.create();
+    try {
+      TokenBuffer buffer = bufferCloser.register(new TokenBuffer(parser));
       buffer.copyCurrentStructure(parser);
 
       @Nullable
       List<Exception> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
 
       for (Marshaler<?> marshaler : marshalers) {
-        try (JsonParser bufferParser = buffer.asParser()) {
-          bufferParser.nextToken();
-          return marshaler.unmarshalInstance(bufferParser);
-        } catch (RuntimeException | IOException ex) {
+        try {
+          Closer parserCloser = Closer.create();
+          try {
+            JsonParser bufferParser = parserCloser.register(buffer.asParser());
+            bufferParser.nextToken();
+            return marshaler.unmarshalInstance(bufferParser);
+          } catch (Throwable t) {
+            throw parserCloser.rethrow(t);
+          } finally {
+            parserCloser.close();
+          }
+        } catch (Exception ex) {
           exceptions.add(ex);
         }
       }
@@ -180,10 +205,17 @@ public final class MarshalingSupport {
           new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
 
       for (Exception ex : exceptions) {
-        exception.addSuppressed(ex);
+        if (addSuppressed != null) {
+          try {
+            addSuppressed.invoke(exception, ex);
+          } catch (Throwable e) {
+          }
+        }
       }
 
       throw exception;
+    } finally {
+      bufferCloser.close();
     }
   }
 

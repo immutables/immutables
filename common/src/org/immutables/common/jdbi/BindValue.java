@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
+
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
@@ -29,6 +31,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 import org.skife.jdbi.v2.SQLStatement;
@@ -62,18 +65,26 @@ public @interface BindValue {
               "Bound value should have marshaler generated using @Json.Marshaled annotation");
 
           String prefix = prefix(bind);
-          try (TokenBuffer buffer = new TokenBuffer(CODEC, false)) {
-            Marshaler<Object> marshaler = MarshalingSupport.getMarshalerFor(argumentType);
-            marshaler.marshalInstance(buffer, arg);
-            Map<String, Object> map = buffer.asParser().readValueAs(MAP_OF_OBJECTS);
-            for (Entry<String, Object> entry : map.entrySet()) {
-              Object value = entry.getValue();
-              String name = prefix + entry.getKey();
-              if (value == null) {
-                q.bind(name, (Object) null);
-              } else {
-                q.dynamicBind(value.getClass(), name, value);
+          try {
+            Closer closer = Closer.create();
+            try {
+              TokenBuffer buffer = closer.register(new TokenBuffer(CODEC, false));
+              Marshaler<Object> marshaler = MarshalingSupport.getMarshalerFor(argumentType);
+              marshaler.marshalInstance(buffer, arg);
+              Map<String, Object> map = buffer.asParser().readValueAs(MAP_OF_OBJECTS);
+              for (Entry<String, Object> entry : map.entrySet()) {
+                Object value = entry.getValue();
+                String name = prefix + entry.getKey();
+                if (value == null) {
+                  q.bind(name, (Object) null);
+                } else {
+                  q.dynamicBind(value.getClass(), name, value);
+                }
               }
+            } catch (Throwable t) {
+              throw closer.rethrow(t);
+            } finally {
+              closer.close();
             }
           } catch (IOException exception) {
             throw new UnableToCreateStatementException(

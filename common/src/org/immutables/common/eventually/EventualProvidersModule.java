@@ -47,14 +47,17 @@ import com.google.inject.internal.util.StackTraceElements;
 import com.google.inject.spi.Dependency;
 import com.google.inject.spi.Message;
 import com.google.inject.spi.ProviderWithDependencies;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+
 import org.immutables.common.concurrent.FluentFutures;
 
 /**
@@ -115,7 +118,7 @@ public final class EventualProvidersModule<T> implements Module {
   }
 
   public static <T> EventualProvidersModule<T> from(Class<T> asyncProviderClass) {
-    return new EventualProvidersModule<>(asyncProviderClass);
+    return new EventualProvidersModule<T>(asyncProviderClass);
   }
 
   @Override
@@ -186,7 +189,7 @@ public final class EventualProvidersModule<T> implements Module {
     Key<ListenableFuture<?>> bindingKey = futureKey(method.getReturnType(), bindingAnnotation);
     boolean exposedBinding = method.isAnnotationPresent(Exposed.class);
 
-    return new EventualProvider<>(
+    return new EventualProvider<Object>(
         method,
         exposedBinding,
         dependencies,

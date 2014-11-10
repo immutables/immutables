@@ -402,15 +402,13 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
 
 private static void unmarshalAttribute(JsonParser parser, [type.immutableReferenceName].Builder builder, String attributeName)
     throws IOException {
-  switch(attributeName) {
   [for s in type.unmarshaledAttributes]
-  case "[s.marshaledName]":
+  if ("[s.marshaledName]".equals(attributeName)) {
     unmarshalAttribute[toUpper s.name](parser, builder);
-    break;
-  [/for]
-  default:
-    unmarshalUnknownAttribute(parser, attributeName);
+    return;
   }
+  [/for]
+  unmarshalUnknownAttribute(parser, attributeName);
 }
 
 private static void unmarshalUnknownAttribute(JsonParser parser, String attributeName)

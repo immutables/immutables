@@ -183,7 +183,7 @@ public final class RepositorySupport {
     @Override
     public ConstraintBuilder disjunction() {
       if (disjunction == null) {
-        disjunction = new ArrayList<>(4);
+        disjunction = new ArrayList<BasicDBObject>(4);
         disjunction.add(constraints);
       }
       constraints = new BasicDBObject();

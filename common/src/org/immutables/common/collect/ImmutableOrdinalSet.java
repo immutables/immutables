@@ -42,7 +42,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
   ImmutableOrdinalSet() {}
 
-  private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet<>();
+  private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet();
 
   /**
    * Returns singleton empty immutable ordinal set
@@ -69,12 +69,12 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       E first, E... rest) {
     OrdinalDomain<E> domain = first.domain();
     if (rest.length == 0) {
-      return new SingletonImmutableOrdinalSet<>(first);
+      return new SingletonImmutableOrdinalSet<E>(first);
     }
     OrdinalValue<?>[] array = new OrdinalValue<?>[1 + rest.length];
     array[0] = first;
     System.arraycopy(rest, 0, array, 1, rest.length);
-    return new RegularImmutableOrdinalSet<>(domain, array);
+    return new RegularImmutableOrdinalSet<E>(domain, array);
   }
 
   /**
@@ -96,9 +96,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       return of();
     case 1:
       // Safe unchecked as element is known to be of type E
-      return new SingletonImmutableOrdinalSet<>((E) array[0]);
+      return new SingletonImmutableOrdinalSet<E>((E) array[0]);
     default:
-      return new RegularImmutableOrdinalSet<>(((E) array[0]).domain(), array);
+      return new RegularImmutableOrdinalSet<E>(((E) array[0]).domain(), array);
     }
   }
 
@@ -442,7 +442,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * @return builder
    */
   public static <E extends OrdinalValue<E>> Builder<E> builder() {
-    return new Builder<>();
+    return new Builder<E>();
   }
 
   /**

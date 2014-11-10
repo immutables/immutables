@@ -87,12 +87,12 @@ public final class FluentFutures {
       if (this.executor == executor) {
         return this;
       }
-      return new WrapingFluentFuture<>(delegate(), executor);
+      return new WrapingFluentFuture<V>(delegate(), executor);
     }
 
     @Override
     public <T> FluentFuture<T> lazyTransform(Function<? super V, ? extends T> function) {
-      return new LazyTransformedFluentFuture<>(this, function, executor);
+      return new LazyTransformedFluentFuture<T, V>(this, function, executor);
     }
   }
 
@@ -145,6 +145,6 @@ public final class FluentFutures {
     if (future instanceof FluentFuture<?>) {
       return (FluentFuture<V>) future;
     }
-    return new WrapingFluentFuture<>(future, MoreExecutors.directExecutor());
+    return new WrapingFluentFuture<V>(future, MoreExecutors.directExecutor());
   }
 }

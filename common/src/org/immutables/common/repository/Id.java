@@ -15,9 +15,11 @@
  */
 package org.immutables.common.repository;
 
-import java.util.Objects;
 import javax.annotation.concurrent.Immutable;
+
 import org.bson.types.ObjectId;
+
+import com.google.common.base.Objects;
 
 /**
  * Represents ObjectId type from MongoDB. Usually when modelling documents there's no
@@ -96,7 +98,7 @@ public final class Id {
 
   @Override
   public int hashCode() {
-    return Objects.hash(time, machine, inc);
+    return Objects.hashCode(time, machine, inc);
   }
 
   @Override

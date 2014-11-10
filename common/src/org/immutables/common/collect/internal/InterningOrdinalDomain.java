@@ -30,7 +30,7 @@ import org.immutables.common.collect.OrdinalValue;
 @Beta
 public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> extends OrdinalDomain<E> {
 
-  private final List<E> values = new CopyOnWriteArrayList<>();
+  private final List<E> values = new CopyOnWriteArrayList<E>();
 
   private final LoadingCache<S, E> cache =
       CacheBuilder.newBuilder()
