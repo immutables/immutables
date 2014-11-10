@@ -15,14 +15,17 @@
  */
 package org.immutables.fixture.nested;
 
+import org.immutables.value.Json;
 import org.immutables.value.Value;
 
 public abstract class NonGrouped {
 
   @Value.Immutable
+  @Json.Marshaled
   abstract static class Abra {}
 
   @Value.Immutable
+  @Json.Marshaled
   interface Cadabra {
 
   }
