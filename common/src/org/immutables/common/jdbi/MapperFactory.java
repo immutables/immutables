@@ -72,7 +72,7 @@ public final class MapperFactory implements ResultSetMapperFactory {
       ResultSetMetaData metaData = result.getMetaData();
       for (int j = 0; j < metaData.getColumnCount(); j++) {
         int i = j + 1;
-        String name = toLowerCamel(metaData.getColumnName(i));
+        String name = toLowerCamel(metaData.getColumnLabel(i));
         switch (metaData.getColumnType(i)) {
         case Types.VARCHAR://$FALL-THROUGH$
         case Types.LONGVARCHAR://$FALL-THROUGH$
