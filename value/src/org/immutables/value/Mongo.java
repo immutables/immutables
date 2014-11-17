@@ -49,4 +49,20 @@ public @interface Mongo {
      */
     String value() default "";
   }
+
+  /**
+   * Marks attribute as MongoDB {@code _id} attribute.
+   * Alias for {@literal @}{@code Json.Named("_id")}.
+   * @see Json.Named
+   */
+  @Documented
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Id {
+    /**
+     * Specify document collection name. If not specified, then collection name will be given
+     * automatically by document class name, i.e. {@code "myDocument"} for {@code MyDocument} class.
+     */
+    String value() default "";
+  }
 }

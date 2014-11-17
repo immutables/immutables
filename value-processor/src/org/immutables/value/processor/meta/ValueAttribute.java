@@ -47,6 +47,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
+  private static final String ID_ATTRIBUTE_NAME = "_id";
 
   public AttributeNames names;
 
@@ -102,15 +103,31 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return isNumberType() || super.isComparable();
   }
 
+  @Nullable
+  private String marshaledName;
+
   public String getMarshaledName() {
+    if (marshaledName == null) {
+      marshaledName = inferMarshaledName();
+    }
+    return marshaledName;
+  }
+
+  private String inferMarshaledName() {
     @Nullable
-    Json.Named options = element.getAnnotation(Json.Named.class);
-    if (options != null) {
-      String name = options.value();
+    Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
+    if (namedAnnotaion != null) {
+      String name = namedAnnotaion.value();
       if (!name.isEmpty()) {
         return name;
       }
     }
+    @Nullable
+    Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
+    if (idAnnotation != null) {
+      return ID_ATTRIBUTE_NAME;
+    }
+
     return names.raw;
   }
 
@@ -621,5 +638,9 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public boolean isMarshaledIgnore() {
     ensureTypeIntrospected();
     return isMarshaledElement();
+  }
+
+  boolean isIdAttribute() {
+    return getMarshaledName().equals(ID_ATTRIBUTE_NAME);
   }
 }

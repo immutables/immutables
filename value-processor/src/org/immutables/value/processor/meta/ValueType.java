@@ -318,7 +318,7 @@ public class ValueType extends TypeIntrospectionBase {
   @Nullable
   public ValueAttribute getIdAttribute() {
     for (ValueAttribute attribute : getImplementedAttributes()) {
-      if (attribute.getMarshaledName().equals("_id")) {
+      if (attribute.isIdAttribute()) {
         return attribute;
       }
     }
