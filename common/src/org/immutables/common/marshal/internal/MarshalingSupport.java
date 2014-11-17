@@ -15,20 +15,8 @@
  */
 package org.immutables.common.marshal.internal;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-
-import javax.annotation.Nullable;
-
-import org.immutables.common.marshal.Marshaler;
-
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
@@ -36,15 +24,24 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closer;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import javax.annotation.Nullable;
+import org.immutables.common.marshal.Marshaler;
 
 /**
  * Marshaling support used by other utilities as well as by generated code.
  */
 public final class MarshalingSupport {
   private MarshalingSupport() {}
-  
+
+  @Nullable
   private static final Method addSuppressed = getAddSuppressed();
 
+  @Nullable
   private static Method getAddSuppressed() {
     try {
       return Throwable.class.getMethod("addSuppressed", Throwable.class);
@@ -59,8 +56,39 @@ public final class MarshalingSupport {
     }
   }
 
+  /**
+   * Diagnosed.
+   * @param exception the exception
+   * @param parser the JSON parser
+   * @param contextType the context type
+   * @return the IO exception
+   * @throws IOException Signals that an I/O or unmarshaling problem
+   */
+  public static IOException diagnosed(Exception exception, JsonParser parser, Class<?> contextType)
+      throws IOException {
+    // TODO need to implement
+    throw new IOException(exception);
+  }
+
+  /**
+   * Diagnosed.
+   * @param exception the exception
+   * @param generator the JSON generator
+   * @param contextType the context type
+   * @return the IO exception
+   * @throws IOException Signals that an I/O or marshaling problem
+   */
+  public static IOException diagnosed(Exception exception, JsonGenerator generator, Class<?> contextType)
+      throws IOException {
+    // TODO need to implement
+    throw new IOException(exception);
+  }
+
+/*
+  @Deprecated
   public static IOException diagnose(JsonParser parser, String attribute, Object builder, Exception exception)
       throws IOException {
+
     String text = parser.getText();
     JsonLocation location = parser.getTokenLocation();
     String message = "";
@@ -78,14 +106,16 @@ public final class MarshalingSupport {
     message += "\n  with " + builder;
     message += "\n  at " + location;
 
-    UnmarshalingProblemException problem = new UnmarshalingProblemException(message);
-    problem.setStackTrace(exception.getStackTrace());
-    if (exception.getCause() != null) {
-      problem.initCause(exception);
-    }
-    throw problem;
-  }
+    // UnmarshalingProblemException problem = new UnmarshalingProblemException(message);
+    // problem.setStackTrace(exception.getStackTrace());
+    // if (exception.getCause() != null) {
+    // problem.initCause(exception);
+    // }
 
+    // throw problem;
+    throw new IOException(exception);
+  }
+*/
   public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) throws IOException {
     if (expected != actual) {
       throw new UnmarshalMismatchException(marshaledType.getName(), "~", "", actual);
@@ -112,17 +142,6 @@ public final class MarshalingSupport {
     }
   }
 
-  private static class UnmarshalingProblemException extends IOException {
-    UnmarshalingProblemException(String message) {
-      super(message);
-    }
-
-    @Override
-    public String toString() {
-      return "problem during unmarshaling: " + getMessage();
-    }
-  }
-
   private static class UnmarshalMismatchException extends IOException {
     final String hostType;
     final String attributeName;
@@ -146,12 +165,11 @@ public final class MarshalingSupport {
     }
   }
 
-  @SafeVarargs
   @SuppressWarnings("unchecked")
   public static <T> void marshalWithOneOfMarshalers(
       JsonGenerator generator,
       T instance,
-      Marshaler<? extends T>... marshalers) throws IOException {
+      Marshaler<?>... marshalers) throws IOException {
     for (Marshaler<?> marshaler : marshalers) {
       if (marshaler.getExpectedType().isInstance(instance)) {
         ((Marshaler<Object>) marshaler).marshalInstance(generator, instance);
@@ -176,47 +194,40 @@ public final class MarshalingSupport {
       String attributeType,
       Marshaler<?>... marshalers) throws IOException {
 
-    Closer bufferCloser = Closer.create();
-    try {
-      TokenBuffer buffer = bufferCloser.register(new TokenBuffer(parser));
-      buffer.copyCurrentStructure(parser);
+    List<IOException> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
 
-      @Nullable
-      List<Exception> exceptions = Lists.newArrayListWithCapacity(marshalers.length);
+    TokenBuffer buffer = new TokenBuffer(parser);
+    buffer.copyCurrentStructure(parser);
 
-      for (Marshaler<?> marshaler : marshalers) {
+    for (Marshaler<?> marshaler : marshalers) {
+      try {
+        Closer parserCloser = Closer.create();
         try {
-          Closer parserCloser = Closer.create();
-          try {
-            JsonParser bufferParser = parserCloser.register(buffer.asParser());
-            bufferParser.nextToken();
-            return marshaler.unmarshalInstance(bufferParser);
-          } catch (Throwable t) {
-            throw parserCloser.rethrow(t);
-          } finally {
-            parserCloser.close();
-          }
-        } catch (Exception ex) {
-          exceptions.add(ex);
+          JsonParser bufferParser = parserCloser.register(buffer.asParser());
+          return marshaler.unmarshalInstance(bufferParser);
+        } catch (Throwable t) {
+          throw parserCloser.rethrow(t);
+        } finally {
+          parserCloser.close();
         }
+      } catch (IOException ex) {
+        exceptions.add(ex);
       }
-
-      UnmarshalMismatchException exception =
-          new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
-
-      for (Exception ex : exceptions) {
-        if (addSuppressed != null) {
-          try {
-            addSuppressed.invoke(exception, ex);
-          } catch (Throwable e) {
-          }
-        }
-      }
-
-      throw exception;
-    } finally {
-      bufferCloser.close();
     }
+
+    UnmarshalMismatchException exception =
+        new UnmarshalMismatchException(hostType, attributeName, attributeType, "Cannot unambigously parse");
+
+    for (Exception ex : exceptions) {
+      if (addSuppressed != null) {
+        try {
+          addSuppressed.invoke(exception, ex);
+        } catch (Throwable e) {
+        }
+      }
+    }
+
+    throw exception;
   }
 
   /**

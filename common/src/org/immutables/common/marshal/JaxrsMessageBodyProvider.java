@@ -15,17 +15,19 @@
  */
 package org.immutables.common.marshal;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Throwables;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.StreamingOutput;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.io.Closer;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
@@ -35,7 +37,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
-
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -54,6 +55,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
     return MarshalingSupport.hasAssociatedMarshaler(type);
   }
 
+  @SuppressWarnings("resource")
   @Override
   public Object readFrom(
       Class<Object> type,
@@ -68,12 +70,24 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
         JsonParser parser = closer.register(jsonFactory.createParser(entityStream));
         return MarshalingSupport.getMarshalerFor(type).unmarshalInstance(parser);
       } catch (Throwable t) {
-        throw closer.rethrow(t, Exception.class);
+        throw closer.rethrow(t);
       } finally {
         closer.close();
       }
-    } catch (Exception ex) {
-      throw new WebApplicationException(ex, Response.Status.BAD_REQUEST);
+    } catch (final JsonProcessingException ex) {
+      throw new WebApplicationException(ex,
+          Response.status(Response.Status.BAD_REQUEST)
+              .type(MediaType.APPLICATION_JSON_TYPE)
+              .entity(new StreamingOutput() {
+                @Override
+                public void write(OutputStream output) throws IOException, WebApplicationException {
+                  JsonGenerator generator = jsonFactory.createGenerator(output);
+                  generator.writeStartObject();
+                  generator.writeFieldName("error");
+                  generator.writeString(ex.toString());
+                  generator.writeEndObject();
+                }
+              }).build());
     }
   }
 

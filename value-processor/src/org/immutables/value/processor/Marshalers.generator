@@ -87,6 +87,41 @@ import org.immutables.common.marshal.Marshaler;
   }
 
   /**
+   * Marshal instance of {@link [type.name]}.
+   * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
+   * @param generator jackson JSON generator
+   * @param instance instance of {@link [type.name]} to marshal
+   * @throws IOException either IO failure or parsing problem
+   */
+  public static void marshal(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
+    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+  }
+
+  /**
+   * Marshal instance of {@link [type.name]}.
+   * @param generator jackson JSON generator
+   * @param instance instance of {@link [type.name]} to marshal
+   * @throws IOException either IO failure or parsing problem
+   */
+  @Override
+  public void marshalInstance(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
+    try {
+      _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+    } catch (Exception ex) {
+      throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, generator, getExpectedType());
+    }
+  }
+
+  @Override
+  public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<[type.name]> instance) throws IOException {
+    try {
+      _Marshaling_[type.simpleName].marshalIterableOf[type.simpleName](generator, instance);
+    } catch (Exception ex) {
+      throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, generator, getExpectedType());
+    }
+  }
+
+  /**
    * Unmarshal instance of {@link [type.name]}.
    * <p>
    * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
@@ -105,40 +140,39 @@ import org.immutables.common.marshal.Marshaler;
   }
 
   /**
-   * Marshal instance of {@link [type.name]}.
-   * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
-   * @param generator jackson JSON generator
-   * @param instance instance of {@link [type.name]} to marshal
+   * Unmarshal instance of {@link [type.name]}.
+   * <p>
+   * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
+   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
+   * @param parser jackson JSON parser
+   * @return instance of {@link [type.name]}
    * @throws IOException either IO failure or parsing problem
    */
-  public static void marshal(
-      @WillNotClose JsonGenerator generator,
-      [type.name] instance) throws IOException {
-    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
-  }
-
   @Override
   public [type.name] unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
     org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
-    return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
-  }
-
-  @Override
-  public void marshalInstance(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
-    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+    try {
+      return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
+    } catch (Exception ex) {
+      throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, parser, getExpectedType());
+    }
   }
 
   @Override
   public Iterable<[type.name]> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
     org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
-    return _Marshaling_[type.simpleName].unmarshalIterableOf[type.simpleName](parser);
+    try {
+      return _Marshaling_[type.simpleName].unmarshalIterableOf[type.simpleName](parser);
+    } catch (Exception ex) {
+      throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, parser, getExpectedType());
+    }
   }
 
-  @Override
-  public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<[type.name]> instance) throws IOException {
-    _Marshaling_[type.simpleName].marshalIterableOf[type.simpleName](generator, instance);
-  }
-
+  /**
+   * Expected type to be marshaled and unmarshaled by this marshaler.
+   * Actual marshaled classes might be subtypes of [type.name] type.
+   * @return [type.name] class
+   */
   @Override
   public Class<[type.name]> getExpectedType() {
     return [type.name].class;
@@ -368,7 +402,7 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
   [/for]
 [else]
   JsonToken t = parser.getCurrentToken();
-  ensure(t == JsonToken.START_ARRAY, "of ['[']", "", t);
+  ensure(t == JsonToken.START_ARRAY, "['[']", "", t);
   [type.name] instance = Immutable[type.name].of([for a in ca][if not for.first],[/if]
     unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))[/for]);
   ensure(parser.nextToken() == JsonToken.END_ARRAY, "[']']", "", parser.getCurrentToken());
@@ -385,19 +419,14 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
     throws IOException {
   [type.immutableReferenceName].Builder builder = [type.immutableReferenceName].builder();
   String attributeName = "";
-  try {
-    JsonToken t = parser.getCurrentToken();
-    ensure(t == JsonToken.START_OBJECT, "{", "", t);
-    while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
-      ensure(t == JsonToken.FIELD_NAME, "*", "", t);
-      attributeName = parser.getText();
-      unmarshalAttribute(parser, builder, attributeName);
-    }
-    attributeName = "";
-    return builder.build();
-  } catch (Exception exception) {
-    throw diagnose(parser, attributeName, builder, exception);
+  JsonToken t = parser.getCurrentToken();
+  ensure(t == JsonToken.START_OBJECT, "{", "", t);
+  while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
+    ensure(t == JsonToken.FIELD_NAME, "*", "", t);
+    attributeName = parser.getText();
+    unmarshalAttribute(parser, builder, attributeName);
   }
+  return builder.build();
 }
 
 private static void unmarshalAttribute(JsonParser parser, [type.immutableReferenceName].Builder builder, String attributeName)

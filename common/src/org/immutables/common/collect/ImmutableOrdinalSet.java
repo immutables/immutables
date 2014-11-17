@@ -64,7 +64,7 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * @param rest the rest of elements
    * @return empty set
    */
-  @SafeVarargs
+  // @SafeVarargs
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of(
       E first, E... rest) {
     OrdinalDomain<E> domain = first.domain();

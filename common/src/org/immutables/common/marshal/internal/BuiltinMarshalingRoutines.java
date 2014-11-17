@@ -46,7 +46,7 @@ public final class BuiltinMarshalingRoutines {
       @Nullable Object objectNull,
       Class<?> expectedClass) throws IOException {
     // TODO NEED TO RETHINK
-    throw new AssertionError("No marshaller can handle " + expectedClass);
+    throw new AssertionError("No marshaler can handle " + expectedClass);
   }
 
   /**
