@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Throwables;
-import com.google.common.io.Closer;
 import java.io.IOException;
 import java.io.StringWriter;
 import org.immutables.common.marshal.internal.MarshalingSupport;
@@ -41,25 +40,19 @@ public final class Marshaling {
    * @param object the object
    * @return JSON string
    */
+  // safe to not care of in-memory resource closing, which will be handled by GC
   @SuppressWarnings("resource")
   public static String toJson(Object object) {
     Marshaler<Object> marshaler = marshalerFor(object.getClass());
-    StringWriter writer = new StringWriter();
     try {
-      Closer closer = Closer.create();
-      try {
-        JsonGenerator generator = closer.register(JSON_FACTORY.createGenerator(writer));
-        generator.useDefaultPrettyPrinter();
-        marshaler.marshalInstance(generator, object);
-      } catch (Throwable t) {
-        throw closer.rethrow(t);
-      } finally {
-        closer.close();
-      }
+      StringWriter writer = new StringWriter();
+      JsonGenerator generator = JSON_FACTORY.createGenerator(writer);
+      generator.useDefaultPrettyPrinter();
+      marshaler.marshalInstance(generator, object);
+      return writer.toString();
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
-    return writer.toString();
   }
 
   /**
@@ -69,19 +62,13 @@ public final class Marshaling {
    * @param expectedType the expected type class
    * @return the unmarshaled instance
    */
+  // safe to not care of in-memory resource closing, which will be handled by GC
   @SuppressWarnings("resource")
   public static <T> T fromJson(String json, Class<? extends T> expectedType) {
     Marshaler<T> marshaler = marshalerFor(expectedType);
     try {
-      Closer closer = Closer.create();
-      try {
-        JsonParser parser = closer.register(JSON_FACTORY.createParser(json));
-        return marshaler.unmarshalInstance(parser);
-      } catch (Throwable t) {
-        throw closer.rethrow(t);
-      } finally {
-        closer.close();
-      }
+      JsonParser parser = JSON_FACTORY.createParser(json);
+      return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
     }
