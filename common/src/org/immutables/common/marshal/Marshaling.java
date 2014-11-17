@@ -49,6 +49,7 @@ public final class Marshaling {
       JsonGenerator generator = JSON_FACTORY.createGenerator(writer);
       generator.useDefaultPrettyPrinter();
       marshaler.marshalInstance(generator, object);
+      generator.close();
       return writer.toString();
     } catch (IOException ex) {
       throw Throwables.propagate(ex);
