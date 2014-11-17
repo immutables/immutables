@@ -67,6 +67,7 @@ package [type.packageName];
     }
 
     public boolean equals(@javax.annotation.Nullable Object another) {
+      assert another instanceof InternProxy;
       return instance.equalTo(((InternProxy) another).instance);
     }
 
