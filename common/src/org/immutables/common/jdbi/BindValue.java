@@ -15,7 +15,6 @@
  */
 package org.immutables.common.jdbi;
 
-import com.google.common.collect.ObjectArrays;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

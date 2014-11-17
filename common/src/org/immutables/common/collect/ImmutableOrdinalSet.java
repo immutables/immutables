@@ -42,7 +42,11 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
 
   ImmutableOrdinalSet() {}
 
-  private static final ImmutableOrdinalSet<? extends OrdinalValue<?>> EMPTY_SET = new EmptyImmutableOrdinalSet();
+  private static final ImmutableOrdinalSet<?> EMPTY_SET = newEmptySet();
+
+  private static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> newEmptySet() {
+    return new EmptyImmutableOrdinalSet<E>();
+  }
 
   /**
    * Returns singleton empty immutable ordinal set

@@ -15,13 +15,10 @@
  */
 package org.immutables.common.marshal;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.base.Throwables;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.StreamingOutput;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.Closer;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +31,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
@@ -112,6 +110,7 @@ public class JaxrsMessageBodyProvider implements MessageBodyReader<Object>, Mess
       OutputStream entityStream) throws IOException {
     Closer closer = Closer.create();
     try {
+      @SuppressWarnings("resource")
       JsonGenerator generator = closer.register(jsonFactory.createGenerator(entityStream));
       MarshalingSupport.getMarshalerFor(actualType).marshalInstance(generator, o);
     } catch (Throwable t) {

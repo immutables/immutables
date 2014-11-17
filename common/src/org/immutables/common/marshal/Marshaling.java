@@ -20,10 +20,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
-
 import java.io.IOException;
 import java.io.StringWriter;
-
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -43,6 +41,7 @@ public final class Marshaling {
    * @param object the object
    * @return JSON string
    */
+  @SuppressWarnings("resource")
   public static String toJson(Object object) {
     Marshaler<Object> marshaler = marshalerFor(object.getClass());
     StringWriter writer = new StringWriter();
@@ -70,6 +69,7 @@ public final class Marshaling {
    * @param expectedType the expected type class
    * @return the unmarshaled instance
    */
+  @SuppressWarnings("resource")
   public static <T> T fromJson(String json, Class<? extends T> expectedType) {
     Marshaler<T> marshaler = marshalerFor(expectedType);
     try {
@@ -86,7 +86,7 @@ public final class Marshaling {
       throw Throwables.propagate(ex);
     }
   }
-  
+
   /**
    * Loads and caches marshaler for the specified expected type.
    * Expected type should be either abstract value class annotated with

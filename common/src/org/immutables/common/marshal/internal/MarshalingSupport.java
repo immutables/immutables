@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -187,6 +186,8 @@ public final class MarshalingSupport {
    * @return the object
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  // safe resource, no need to handle buffer nor parser at this level
+  @SuppressWarnings("resource")
   public static Object unmarshalWithOneOfMarshalers(
       JsonParser parser,
       String hostType,
@@ -201,15 +202,8 @@ public final class MarshalingSupport {
 
     for (Marshaler<?> marshaler : marshalers) {
       try {
-        Closer parserCloser = Closer.create();
-        try {
-          JsonParser bufferParser = parserCloser.register(buffer.asParser());
-          return marshaler.unmarshalInstance(bufferParser);
-        } catch (Throwable t) {
-          throw parserCloser.rethrow(t);
-        } finally {
-          parserCloser.close();
-        }
+        JsonParser bufferParser = buffer.asParser();
+        return marshaler.unmarshalInstance(bufferParser);
       } catch (IOException ex) {
         exceptions.add(ex);
       }
