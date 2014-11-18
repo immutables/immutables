@@ -398,12 +398,12 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
     throws IOException {
 [if singular ca]
   [for a in ca]
-  return Immutable[type.name].of(unmarshalConstructorArgument[toUpper a.name](parser));
+  return [type.immutableReferenceName].of(unmarshalConstructorArgument[toUpper a.name](parser));
   [/for]
 [else]
   JsonToken t = parser.getCurrentToken();
   ensure(t == JsonToken.START_ARRAY, "['[']", "", t);
-  [type.name] instance = Immutable[type.name].of([for a in ca][if not for.first],[/if]
+  [type.name] instance = [type.immutableReferenceName].of([for a in ca][if not for.first],[/if]
     unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))[/for]);
   ensure(parser.nextToken() == JsonToken.END_ARRAY, "[']']", "", parser.getCurrentToken());
   return instance;

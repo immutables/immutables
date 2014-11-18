@@ -29,4 +29,11 @@ public abstract class NonGrouped {
   interface Cadabra {
 
   }
+
+  @Value.Immutable(builder = false)
+  @Json.Marshaled
+  abstract static class Dabra {
+    @Value.Parameter
+    abstract int dabra();
+  }
 }
