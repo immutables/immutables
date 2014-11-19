@@ -297,6 +297,7 @@ public static [type.defName] copyOf([type.defName] instance) {
  * but used immediately to create instances.</em>
  */
 @javax.annotation.concurrent.NotThreadSafe
+@SuppressWarnings("initialization.fields.uninitialized") // for checker framework
 [if type.hasAbstractBuilder]
 [type.accessPrefix]static final class Builder
     extends [type.name].Builder {
@@ -348,6 +349,7 @@ public static [type.defName] copyOf([type.defName] instance) {
 [else if v.primitive]
   private [v.type] [v.name];
 [else]
+  @SuppressWarnings("type.invalid") // for checker framework
   private @javax.annotation.Nullable [v.type] [v.name];
 [/if]
   [/for]
@@ -361,6 +363,7 @@ public static [type.defName] copyOf([type.defName] instance) {
   [/if]
 
   @Override
+  @SuppressWarnings("type.invalid") // for checker framework
   public String toString() {
     return com.google.common.base.MoreObjects.toStringHelper("[type.simpleName].Builder")
         .omitNullValues()
@@ -603,6 +606,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/if]
 [if type.useBuilder]
 
+  @SuppressWarnings({"assignment.type.incompatible","method.invocation.invalid","type.invalid","conditional.type.incompatible"}) // for checker framework
   private [type.defName](Builder builder) {
 [for v in getters if not v.generateDerived, n = v.name]
   [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
@@ -648,6 +652,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/if]
 [if type.useCopyMethods]
 
+  @SuppressWarnings("method.invocation.invalid") // for checker framework
   private [type.defName](
       [type.defName] original[for v in getters],
       [v.atNullability][v.implementationType] [v.name][/for]) {
@@ -801,6 +806,7 @@ public int hashCode() {
 [if not type.toStringDefined]
 
 @Override
+@SuppressWarnings("type.invalid") // for checker framework
 public String toString() {
   return com.google.common.base.MoreObjects.toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
       .omitNullValues()
