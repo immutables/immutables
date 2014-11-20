@@ -508,16 +508,19 @@ public static [type.defName] copyOf([type.defName] instance) {
   [/for]
   [if positions.longs]
 
+  private String formatRequiredAttributesMessage() {
+    return com.google.common.base.MoreObjects.toStringHelper("Cannot build [type.name], some of required attributes are not set ")
+        .omitNullValues()
+      [for m in mandatories]
+        .addValue(![m.name]IsSet() ? "[m.name]" : null)
+      [/for]
+        .toString()
+  }
+
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
         | [/if]initializedBitset[l.index] != INITIALIZED_BITSET_ALL_[l.index][/for]) {
-      throw new IllegalStateException(
-          com.google.common.base.MoreObjects.toStringHelper("Cannot build [type.name], some of required attributes are not set ")
-              .omitNullValues()
-            [for m in mandatories]
-              .addValue(![m.name]IsSet() ? "[m.name]" : null)
-            [/for]
-              .toString());
+      throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }
   [/if]
