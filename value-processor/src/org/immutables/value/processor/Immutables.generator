@@ -514,7 +514,7 @@ public static [type.defName] copyOf([type.defName] instance) {
       [for m in mandatories]
         .addValue(![m.name]IsSet() ? "[m.name]" : null)
       [/for]
-        .toString()
+        .toString();
   }
 
   private void checkRequiredAttributes() {
