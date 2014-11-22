@@ -58,11 +58,5 @@ public @interface Mongo {
   @Documented
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Id {
-    /**
-     * Specify document collection name. If not specified, then collection name will be given
-     * automatically by document class name, i.e. {@code "myDocument"} for {@code MyDocument} class.
-     */
-    String value() default "";
-  }
+  public @interface Id {}
 }
