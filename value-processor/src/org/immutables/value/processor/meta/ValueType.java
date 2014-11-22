@@ -55,6 +55,9 @@ import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public class ValueType extends TypeIntrospectionBase {
+
+  public String typeMoreObjects = "MoreObjects";
+
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
    * and long parameters and reserved slots for technical parameters).

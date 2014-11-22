@@ -18,25 +18,20 @@ package org.immutables.value.processor.meta;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.lang.annotation.Annotation;
-import java.util.List;
-import java.util.Set;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.value.Value;
+import java.lang.annotation.Annotation;
+import java.util.List;
+import java.util.Set;
 
 /**
  * MOST CODE CARRIED FORWARD FROM OLD IMPLEMENTATION. IT NEED HEAVY REFACTORING TO REMOVE LEGACY
@@ -51,6 +46,7 @@ public class Discovery {
   private final Set<TypeElement> annotations;
   private final RoundEnvironment round;
   private final ProcessingEnvironment processing;
+  private final String typeMoreObjects;
 
   public Discovery(
       ProcessingEnvironment processing,
@@ -59,6 +55,15 @@ public class Discovery {
     this.processing = processing;
     this.round = round;
     this.annotations = annotations;
+    this.typeMoreObjects = inferTypeMoreObjects();
+  }
+
+  private String inferTypeMoreObjects() {
+    @Nullable
+    TypeElement typeElement =
+        this.processing.getElementUtils().getTypeElement(UnshadeGuava.typeString("base.MoreObjects"));
+
+    return typeElement != null ? "MoreObjects" : "Objects";
   }
 
   public List<ValueType> discover() {
@@ -119,6 +124,7 @@ public class Discovery {
       List<ValueType> nestedChildren = extractNestedChildren(type);
       if (!nestedChildren.isEmpty()) {
         ValueType emptyNestingType = new ValueType();
+        emptyNestingType.typeMoreObjects = typeMoreObjects;
         emptyNestingType.element = type;
         emptyNestingType.emptyNesting = true;
         emptyNestingType.segmentedName = SegmentedName.from(type.getQualifiedName());
@@ -174,6 +180,7 @@ public class Discovery {
     SegmentedName segmentedName = SegmentedName.from(processing, type);
 
     ValueType valueType = new ValueType();
+    valueType.typeMoreObjects = typeMoreObjects;
     valueType.element = type;
 
     collectGeneratedCandidateMethods(type, valueType);
