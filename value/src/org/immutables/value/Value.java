@@ -16,11 +16,17 @@
 package org.immutables.value;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 /**
  * This annotation provides namespace for annotations that models generated value objects.
@@ -28,7 +34,7 @@ import java.lang.annotation.Target;
  * @see Value.Immutable
  * @see Value.Nested
  */
-@Beta
+// @Target({}) // may cause problems with auto completion
 @Retention(RetentionPolicy.SOURCE)
 public @interface Value {
   /**
@@ -136,11 +142,20 @@ public @interface Value {
   /**
    * Generate transformer for a set of nested classes.
    */
+  @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.TYPE)
-  @Beta
   public @interface Transformer {}
+
+  /**
+   * Generate visitor for a set of nested classes.
+   */
+  @Beta
+  @Documented
+  @Retention(RetentionPolicy.SOURCE)
+  @Target(ElementType.TYPE)
+  public @interface Visitor {}
 
   /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
@@ -234,15 +249,57 @@ public @interface Value {
    * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
    * work with immutable types as they can with beans, using getters and annotations on them.
    */
+  @Beta
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Getters {}
 
   /**
+   * Use one of the nested annotations on the {@link SortedSet}, {@link NavigableSet} or
+   * {@link SortedMap}, {@link NavigableMap} attribute to enjoy special support for building
+   * immutable collection implementation. Non-annotated special collection will be
+   * generated/implemented as
+   * "nothing-special" attributes.
+   */
+  @Beta
+  @Target({})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Order {
+
+    /**
+     * Specified natural ordering for the implemented. It an error to annotate
+     * sorted collection of elements which are not implementing {@link Comparable}.
+     * @see ImmutableSortedSet#naturalOrder()
+     * @see ImmutableSortedMap#naturalOrder()
+     * @see Reverse
+     */
+    @Beta
+    @Documented
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Natural {}
+
+    /**
+     * Specified reversed natural ordering for the implemented {@link SortedSet},
+     * {@link NavigableSet} or {@link SortedMap}, {@link NavigableMap}. It an error to annotate
+     * sorted collection of elements which are not implementing {@link Comparable}.
+     * @see ImmutableSortedSet#reverseOrder()
+     * @see ImmutableSortedMap#reverseOrder()
+     * @see Natural
+     */
+    @Beta
+    @Documented
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Reverse {}
+  }
+
+  /**
    * Naming style could be used to customize naming convention of the generated immutable
    * implementations and companion classes.
    */
+  @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   public @interface NamingStyle {
@@ -331,6 +388,12 @@ public @interface Value {
     String typeBuilder() default "Builder";
 
     /**
+     * Naming templates to detect base/raw type name from provided abstract value type name.
+     * @return naming templates
+     */
+    String[] typeAbstract() default {};
+
+    /**
      * Modifiable type name template.
      * @return naming template
      */
@@ -358,11 +421,12 @@ public @interface Value {
   }
 
   /**
-   * Annotations that applies Java Bean-style naming convention to the generated immutable and
-   * builder (and other derived classes).
+   * Annotations that applies speculative Java Bean-style naming convention to the generated
+   * immutable and builder (and other derived classes).
    * It works by being annotated with {@litera @}{@link NamingStyle} annotation which
    * specifies.
    */
+  @Beta
   @NamingStyle(get = {"is*", "get*"}, init = "set*")
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
