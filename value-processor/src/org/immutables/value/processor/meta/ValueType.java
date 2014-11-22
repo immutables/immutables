@@ -56,7 +56,7 @@ import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
  */
 public class ValueType extends TypeIntrospectionBase {
 
-  public String typeMoreObjects = "MoreObjects";
+  public String typeMoreObjects;
 
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double

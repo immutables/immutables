@@ -114,7 +114,7 @@ package [type.packageName];
       if (this == INSTANCE) {
         return "[type.defName].Domain.get()";
       }
-      return com.google.common.base.[type.typeMoreObjects].toStringHelper("[type.defName].Domain")
+      return [type.typeMoreObjects].toStringHelper("[type.defName].Domain")
         .add("length", length())
         .toString();
     }
@@ -362,7 +362,7 @@ public static [type.defName] copyOf([type.defName] instance) {
 
   @Override
   public String toString() {
-    return com.google.common.base.[type.typeMoreObjects].toStringHelper("[type.simpleName].Builder")
+    return [type.typeMoreObjects].toStringHelper("[type.simpleName].Builder")
         .omitNullValues()
   [for v in setters]
     [if v.collectionType or v.mapType]
@@ -509,7 +509,7 @@ public static [type.defName] copyOf([type.defName] instance) {
   [if positions.longs]
 
   private String formatRequiredAttributesMessage() {
-    return com.google.common.base.[type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
+    return [type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
         .omitNullValues()
       [for m in mandatories]
         .addValue(![m.name]IsSet() ? "[m.name]" : null)
@@ -805,7 +805,7 @@ public int hashCode() {
 
 @Override
 public String toString() {
-  return com.google.common.base.[type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
+  return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
       .omitNullValues()
   [for v in type.equivalenceAttributes]
   [if v.optionalType]

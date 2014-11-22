@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
-
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -59,11 +58,13 @@ public class Discovery {
   }
 
   private String inferTypeMoreObjects() {
+    String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
+    String typeObjects = UnshadeGuava.typeString("base.Objects");
     @Nullable
     TypeElement typeElement =
-        this.processing.getElementUtils().getTypeElement(UnshadeGuava.typeString("base.MoreObjects"));
+        this.processing.getElementUtils().getTypeElement(typeMoreObjects);
 
-    return typeElement != null ? "MoreObjects" : "Objects";
+    return typeElement != null ? typeMoreObjects : typeObjects;
   }
 
   public List<ValueType> discover() {
