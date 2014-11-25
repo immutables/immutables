@@ -20,16 +20,17 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 public abstract class SillyLazy {
-
-  AtomicInteger counter = new AtomicInteger();
+  
+  @Value.Parameter
+  public abstract AtomicInteger counter();
 
   @Value.Lazy
   public int val1() {
-    return counter.incrementAndGet();
+    return counter().incrementAndGet();
   }
 
   @Value.Lazy
   public int val2() {
-    return counter.incrementAndGet();
+    return counter().incrementAndGet();
   }
 }

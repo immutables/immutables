@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
@@ -138,15 +139,15 @@ public class ValuesTest {
 
   @Test
   public void lazyValue() {
-    SillyLazy v = ImmutableSillyLazy.builder().build();
+    SillyLazy v = ImmutableSillyLazy.of(new AtomicInteger());
 
-    check(v.counter.get()).is(0);
+    check(v.counter().get()).is(0);
     check(v.val1()).is(1);
-    check(v.counter.get()).is(1);
+    check(v.counter().get()).is(1);
 
     check(v.val2()).is(2);
     check(v.val1()).is(1);
-    check(v.counter.get()).is(2);
+    check(v.counter().get()).is(2);
   }
 
   @Test

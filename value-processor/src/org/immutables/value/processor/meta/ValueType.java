@@ -405,7 +405,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getConstructorOmited() {
-    return attributes()
+    return FluentIterable.from(getImplementedAttributes())
         .filter(Predicates.compose(Predicates.equalTo(-1), ToConstructorArgumentOrder.FUNCTION))
         .toList();
   }
