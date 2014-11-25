@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+@Beta
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 public @interface Parboil {
@@ -31,7 +32,6 @@ public @interface Parboil {
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ ElementType.TYPE })
-  @Beta
+  @Target({ElementType.TYPE})
   public @interface Ast {}
 }

@@ -75,8 +75,17 @@ public @interface Value {
     /**
      * If {@code withers=false} then generation of copying methods starting with
      * "withAttributeName" will be disabled. Default is {@literal true}.
+     * @deprecated use {@link #copy()} attribute
      */
+    @Deprecated
     boolean withers() default true;
+
+    /**
+     * If {@code copy=false} then generation of copying methods will be disabled.
+     * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
+     * Default is {@literal true}, generate copy methods.
+     */
+    boolean copy() default true;
 
     /**
      * If {@code prehash=true} then {@code hashCode} will be precomputed during construction.
@@ -297,7 +306,8 @@ public @interface Value {
 
   /**
    * Naming style could be used to customize naming convention of the generated immutable
-   * implementations and companion classes.
+   * implementations and companion classes. It could be placed on a class or package directly or
+   * serve as meta annotation.
    */
   @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
@@ -316,21 +326,29 @@ public @interface Value {
     String init() default "";
 
     /**
-     * Modifiable object "setter" method.
-     * @return naming template
-     */
-    String set() default "set*";
-
-    /**
      * Modify-by-copying "wither" method.
      * @return naming template
      */
     String with() default "with*";
 
-    String hasSet() default "hasSet*";
+    /**
+     * Modifiable object "setter" method. Used for mutable implementations.
+     * @return naming template
+     */
+    String set() default "set*";
 
+    /**
+     * Unset attribute method. Used for mutable implementations.
+     * @return naming template
+     */
     String unset() default "unset*";
 
+//  String hasSet() default "hasSet*";
+
+    /**
+     * Clear collection (or other container). Used for mutable implementations.
+     * @return naming template
+     */
     String clear() default "clear*";
 
     /**
@@ -369,10 +387,28 @@ public @interface Value {
      */
     String of() default "of";
 
+    /**
+     * Singleton accessor method name
+     * @return naming template
+     */
+    String instance() default "of";
+
+    /**
+     * Modifiable object constructor.
+     * @return naming template
+     */
     String create() default "create";
 
+    /**
+     * Builder creator method.
+     * @return naming template
+     */
     String builder() default "builder";
 
+    /**
+     * Instance creation method on builder.
+     * @return naming template
+     */
     String build() default "build";
 
     /**
@@ -382,7 +418,7 @@ public @interface Value {
     String toImmutable() default "toImmutable*";
 
     /**
-     * Nested Builder class name.
+     * Builder class name.
      * @return naming template
      */
     String typeBuilder() default "Builder";
@@ -418,17 +454,32 @@ public @interface Value {
      * @return naming template
      */
     String typeModifiable() default "Modifiable*";
+
+    /**
+     * Modifiable companion class name template
+     * @return naming template
+     */
+    String typeTransformer() default "*Transformer";
+
+    /**
+     * Modifiable companion class name template
+     * @return naming template
+     */
+    String typeVisitor() default "*Visitor";
   }
 
   /**
-   * Annotations that applies speculative Java Bean-style naming convention to the generated
-   * immutable and builder (and other derived classes).
-   * It works by being annotated with {@litera @}{@link NamingStyle} annotation which
-   * specifies.
+   * Annotations that applies speculative Java Bean-style accessor naming convention
+   * to the generate immutable and other derived classes.
+   * It works by being annotated with {@litera @}{@link NamingStyle} annotation which specifies
+   * customized naming templates. This annotation could be placed on a class, surrounding
+   * {@link Nested} class or even a package (declared in {@code package-info.java}). This
+   * annotation more of example of how to define your own styles as meta-annotation rather than a
+   * useful annotation.
    */
   @Beta
-  @NamingStyle(get = {"is*", "get*"}, init = "set*")
+  @NamingStyle(get = {"is*", "get*"})
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface BeanStyle {}
+  public @interface BeanAccessors {}
 }
