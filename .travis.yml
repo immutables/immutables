@@ -1,5 +1,10 @@
 language: java
 install: true
-script: "mvn package"
+script: if [[ "$TRAVIS_REPO_SLUG" == "immutables/immutables" && "$TRAVIS_BRANCH" == "master" ]]; then mvn deploy -DdeployAtEnd=true --settings settings.xml; else mvn package; fi
 jdk:
   - oraclejdk7
+env:
+  global:
+    - SONATYPE_USERNAME=<username>
+    # SONATYPE_PASSWORD, only used for mvn deploy from immutables/immutables master branch
+    - secure: "<encrypted password>"
