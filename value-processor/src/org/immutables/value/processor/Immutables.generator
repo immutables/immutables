@@ -20,7 +20,7 @@ package [type.packageName];
  * @see [v.immutableReferenceName]
 [/for]
  */
-@SuppressWarnings({"all", "nullness"})
+@SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Immutables.generator", "[type.name]"})
 [type.accessPrefix]final class [type.defName] {
@@ -48,7 +48,7 @@ package [type.packageName];
  * Use static factory methods to create instances: {@code of()} or
  * {@code builder()}.
  */
-@SuppressWarnings({"all", "nullness"})
+@SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Immutables.generator", "[type.name]"})
 @javax.annotation.concurrent.Immutable
