@@ -27,8 +27,7 @@ import java.lang.annotation.Target;
 public @interface Mongo {
   /**
    * Abstract immutable classes annotated with this annotation will have repository generated to
-   * store
-   * and retrieve documents from MongoDB collection named by class name or explicitly named as
+   * store and retrieve documents from MongoDB collection named by class name or explicitly named as
    * specified by {@link #value()}.
    * <p>
    * {@link Repository} requires marshaler for the annotated class, so one will be generated

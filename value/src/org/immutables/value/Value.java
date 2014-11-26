@@ -343,7 +343,8 @@ public @interface Value {
      */
     String unset() default "unset*";
 
-//  String hasSet() default "hasSet*";
+    @Deprecated
+    String hasSet() default "hasSet*";
 
     /**
      * Clear collection (or other container). Used for mutable implementations.
