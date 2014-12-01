@@ -19,32 +19,24 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
+import com.google.common.collect.*;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 
+import javax.annotation.Nullable;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Utility that abstracts away hacks to retreive elements in source order. Currently, Javac returns
+ * Utility that abstracts away hacks to retrieve elements in source order. Currently, Javac returns
  * elements in proper source order, but EJC returns elements in alphabetical order.
  * <ul>
  * <li><a href="https://bugs.eclipse.org/bugs/show_bug.cgi?id=300408">Bug 300408 -
@@ -152,14 +144,12 @@ public final class SourceOrdering {
   /**
    * While we have {@link SourceOrdering}, there's still a problem: We have inheritance hierarchy
    * and
-   * we want to have all defined or iherited accessors returned as members of target type, like
+   * we want to have all defined or inherited accessors returned as members of target type, like
    * {@link Elements#getAllMembers(TypeElement)}, but we need to have them properly and stably
    * sorted.
-   * This implementation doen't try to correctly resolve order for accessors inherited from
-   * different
-   * supertypes(interfaces), just something that stable and reasonable wrt source ordering without
-   * handling complex cases. There could be more straightforward ways to do this, if you found, let
-   * me know.
+   * This implementation doesn't try to correctly resolve order for accessors inherited from
+   * different supertypes(interfaces), just something that stable and reasonable wrt source ordering
+   * without handling complex cases.
    * @param elements the elements utility
    * @param type the type to traverse
    * @return all accessors in source order
@@ -168,16 +158,17 @@ public final class SourceOrdering {
       final Elements elements, final TypeElement type) {
 
     class CollectedOrdering
-        extends Ordering<Element>
-        implements Function<Element, String> {
+        extends Ordering<Element> {
 
       class Intratype {
         Ordering<String> ordering;
         int rank;
       }
 
-      Map<String, Intratype> accessorOrderings = Maps.newLinkedHashMap();
-      List<TypeElement> linearizedTypes = Lists.newArrayList();
+      final Map<String, Intratype> accessorOrderings = Maps.newLinkedHashMap();
+      final List<TypeElement> linearizedTypes = Lists.newArrayList();
+      final Predicate<String> accessorNotYetInOrderings =
+          Predicates.not(Predicates.in(accessorOrderings.keySet()));
 
       CollectedOrdering() {
         traverse(type);
@@ -201,6 +192,7 @@ public final class SourceOrdering {
         }
       }
 
+      @Nullable
       TypeElement asTypeElement(TypeMirror type) {
         if (type instanceof DeclaredType) {
           return (TypeElement) ((DeclaredType) type).asElement();
@@ -209,35 +201,28 @@ public final class SourceOrdering {
       }
 
       void collectEnclosing(TypeElement type) {
-        Intratype intratype = new Intratype();
-        intratype.rank = linearizedTypes.size();
-        intratype.ordering = Ordering.explicit(
+        List<String> accessors =
             FluentIterable.from(SourceOrdering.getEnclosedElements(type))
                 .filter(IsAccessor.PREDICATE)
-                .transform(this)
-                .toList());
+                .transform(ToSimpleName.FUNCTION)
+                .filter(accessorNotYetInOrderings)
+                .toList();
 
-        for (Element accessor : Iterables.filter(
-            type.getEnclosedElements(),
-            IsAccessor.PREDICATE)) {
-          String key = apply(accessor);
-          if (!accessorOrderings.containsKey(key)) {
-            accessorOrderings.put(key, intratype);
-          }
+        Intratype intratype = new Intratype();
+        intratype.rank = linearizedTypes.size();
+        intratype.ordering = Ordering.explicit(accessors);
+
+        for (String name : accessors) {
+          accessorOrderings.put(name, intratype);
         }
 
         linearizedTypes.add(type);
       }
 
       @Override
-      public String apply(Element input) {
-        return input.getSimpleName().toString();
-      }
-
-      @Override
       public int compare(Element left, Element right) {
-        String leftKey = apply(left);
-        String rightKey = apply(right);
+        String leftKey = ToSimpleName.FUNCTION.apply(left);
+        String rightKey = ToSimpleName.FUNCTION.apply(right);
         Intratype leftIntratype = accessorOrderings.get(leftKey);
         Intratype rightIntratype = accessorOrderings.get(rightKey);
         return leftIntratype == rightIntratype
@@ -250,6 +235,14 @@ public final class SourceOrdering {
         .append(elements.getAllMembers(type))
         .filter(IsAccessor.PREDICATE)
         .toSortedList(new CollectedOrdering());
+  }
+
+  private enum ToSimpleName implements Function<Element, String> {
+    FUNCTION;
+    @Override
+    public String apply(Element input) {
+      return input.getSimpleName().toString();
+    }
   }
 
   private enum IsAccessor implements Predicate<Element> {
