@@ -265,7 +265,7 @@ public static [type.defName] copyOf([type.defName] instance) {
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {
-            [if l.primitive]
+            [if l.primitive or l.nullable]
           this.[l.name] = super.[l.names.get]();
             [else]
           this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.names.get]());
