@@ -971,8 +971,7 @@ public final [type.defName] [v.names.with]([v.atNullability][v.type] value) {
 [line]
   [/for]
   [if v.optionalType]
-@javax.annotation.Nullable
-public [v.wrappedElementType] get[toUpper v.name]() {
+public @javax.annotation.Nullable [v.wrappedElementType] get[toUpper v.name]() {
   return [v.name]().orNull();
 }
   [else]
