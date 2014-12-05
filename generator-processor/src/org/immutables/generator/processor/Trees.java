@@ -15,10 +15,10 @@
  */
 package org.immutables.generator.processor;
 
+import org.immutables.generator.StringLiterals;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.generator.StringLiterals;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 

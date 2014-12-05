@@ -47,7 +47,7 @@ import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
-import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -58,12 +58,6 @@ public class ValueType extends TypeIntrospectionBase {
 
   public String typeMoreObjects;
 
-  /**
-   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
-   * and long parameters and reserved slots for technical parameters).
-   */
-  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
-
   public TypeElement element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
   public boolean isHashCodeDefined;
@@ -72,7 +66,7 @@ public class ValueType extends TypeIntrospectionBase {
   public boolean emptyNesting;
 
   public boolean isUseBuilder() {
-    return getGenerateImmutableProperties().builder();
+    return immutableFeatures.builder();
   }
 
   public TypeNames namings;
@@ -192,7 +186,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public String getAccessPrefix() {
-    Value.Immutable immutable = getGenerateImmutableProperties();
+    Value.Immutable immutable = immutableFeatures;
     if (immutable != null && immutable.nonpublic()) {
       return "";
     }
@@ -210,33 +204,24 @@ public class ValueType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
-  private Value.Immutable immutableProperties;
-
-  private Value.Immutable getGenerateImmutableProperties() {
-    if (immutableProperties == null) {
-      immutableProperties = element.getAnnotation(Value.Immutable.class);
-    }
-    return immutableProperties;
-  }
+  public Value.Immutable immutableFeatures;
 
   public boolean isUseCopyMethods() {
-    return getGenerateImmutableProperties().withers()
-        && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < USEFUL_PARAMETER_COUNT_LIMIT;
+    return immutableFeatures.copy();
   }
 
   public boolean isUseSingleton() {
-    return getGenerateImmutableProperties().singleton()
-        || getImplementedAttributes().isEmpty();
+    return immutableFeatures.singleton() || getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseInterned() {
-    return getGenerateImmutableProperties().intern();
+    return immutableFeatures.intern();
   }
 
   public boolean isUsePrehashed() {
     return isUseInterned()
         || isGenerateOrdinalValue()
-        || getGenerateImmutableProperties().prehash();
+        || immutableFeatures.prehash();
   }
 
   public boolean isGenerateMarshaled() {

@@ -15,10 +15,10 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.SourceOrdering;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -240,7 +240,7 @@ public class Discovery {
       ValueType type,
       ExecutableElement attributeMethodCandidate) {
 
-    NamingStyles namingStyle = NamingStyles.using(NamingStyles.defaultStyle());
+    Styles namingStyle = Styles.using(Styles.defaultStyle());
 
     Name name = attributeMethodCandidate.getSimpleName();
     List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
@@ -299,8 +299,7 @@ public class Discovery {
       } else if (hasAnnotation(attributeMethodCandidate, Value.Derived.class)) {
         attribute.isGenerateDerived = true;
       }
-/*!!
-      if (hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
+/*!!  if (hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
           && returnType.getKind() == TypeKind.BOOLEAN) {
         attributeBuilder.isGeneratePredicate(true);
       } else if (hasAnnotation(attributeMethodCandidate, GenerateFunction.class)) {

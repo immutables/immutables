@@ -15,17 +15,17 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.Value.Immutable;
 import com.google.auto.service.AutoService;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
-
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@Generator.SupportedAnnotations({Value.Immutable.class, Value.Nested.class, Value.Include.class})
+@Generator.SupportedAnnotations({Value.Immutable.class, Value.Nested.class, Immutable.Include.class})
 public final class Processor extends AbstractGenerator {
   @Override
   protected void process() {

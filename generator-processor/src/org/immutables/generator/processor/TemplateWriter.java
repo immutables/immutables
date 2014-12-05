@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import static org.immutables.generator.StringLiterals.*;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -42,7 +43,6 @@ import org.immutables.generator.processor.ImmutableTrees.TextLine;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.immutables.generator.processor.ImmutableTrees.ValueDeclaration;
 import org.immutables.generator.processor.Trees.Expression;
-import static org.immutables.generator.StringLiterals.*;
 
 /**
  * This part is written with simples possible writer in mind. It was decided not to use dependencies
@@ -90,27 +90,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     return unit;
   }
 
-//  /** Overriden to specify order in which we process declaration first, and then parts. */
-//  @Override
-//  public Template transform(Context scope, Template template) {
-//
-//  }
-//
-//  /** Overriden to specify order in which we process declaration first, and then parts. */
-//  @Override
-//  public LetStatement transform(Context scope, LetStatement statement) {
-//    return statement
-//        .withDeclaration(transformLetStatementDeclaration(scope, statement, statement.declaration()))
-//        .withParts(transformLetStatementListParts(scope, statement, statement.parts()));
-//  }
-//
-//  /** Overriden to specify order in which we process declaration first, and then parts. */
-//  @Override
-//  public ForStatement transform(Context scope, ForStatement statement) {
-//    return statement
-//        .withDeclaration(transformForStatementListDeclaration(scope, statement, statement.declaration()))
-//        .withParts(transformForStatementListParts(scope, statement, statement.parts()));
-//  }
   @Override
   public Template transform(final Context context, final Template template) {
     String name = template.declaration().name().value();

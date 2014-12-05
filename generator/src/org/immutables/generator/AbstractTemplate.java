@@ -21,7 +21,8 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 
 /**
- * 
+ * Abstract template to be (optionally) extended by classes which are annotated
+ * by {@literal @}{@link Generator.Template}
  */
 public abstract class AbstractTemplate extends Builtins {
 

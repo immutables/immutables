@@ -26,6 +26,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 
+@Deprecated
 final class SegmentedName {
   private static final Joiner JOINER = Joiner.on('.').skipNulls();
 
