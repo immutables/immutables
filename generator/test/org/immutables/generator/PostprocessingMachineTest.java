@@ -6,13 +6,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
-public class FiniteStatePostprocessingMachineTest {
+public class PostprocessingMachineTest {
   private static final Joiner LINES = Joiner.on('\n');
 
   @Test
   @Ignore
   public void imports() {
-    CharSequence rewrited = FiniteStatePostprocessingMachine.rewrite(
+    CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
             "import java.util.List;",
             "class My extends java.util.Set {}"));
@@ -27,7 +27,7 @@ public class FiniteStatePostprocessingMachineTest {
   @Test
   @Ignore
   public void generatedImportsPlaceholder() {
-    CharSequence rewrited = FiniteStatePostprocessingMachine.rewrite(
+    CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
             "import java.util.List;",
             "// Generated imports",
@@ -45,7 +45,7 @@ public class FiniteStatePostprocessingMachineTest {
   @Test
   @Ignore
   public void javaLangImports() {
-    CharSequence rewrited = FiniteStatePostprocessingMachine.rewrite(
+    CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
             "class My extends java.lang.Throwable {}"));
 
@@ -57,14 +57,14 @@ public class FiniteStatePostprocessingMachineTest {
   @Test
   @Ignore
   public void importsNoPlaceholders() {
-    CharSequence rewrited = FiniteStatePostprocessingMachine.rewrite(
+    CharSequence rewrited = PostprocessingMachine.rewrite(
         "class My extends java.util.Set {}");
 
     check(rewrited).hasToString(
         LINES.join("import java.util.Set;",
             "class My extends Set {}"));
 
-    rewrited = FiniteStatePostprocessingMachine.rewrite(
+    rewrited = PostprocessingMachine.rewrite(
         LINES.join(
             "package start;",
             "class My extends java.util.Set {}"));
