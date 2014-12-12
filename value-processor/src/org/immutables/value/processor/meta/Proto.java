@@ -17,7 +17,7 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Verify;
+import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,6 +29,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -53,9 +54,10 @@ public final class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public Value.Style style() {
-      return element().getAnnotation(Value.Style.class);
+    @Deprecated
+    // TBD Make nullable. Annotation processing bug
+    public Optional<Style> style() {
+      return Optional.fromNullable(element().getAnnotation(Value.Style.class));
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
@@ -95,12 +97,14 @@ public final class Proto {
 
       ImmutableSet<String> typeNames = FluentIterable.from(typeMirrors)
           .filter(DeclaredType.class)
-          .transform(DeclatedTypeToName.FUNCTION)
+          .transform(DeclatedTypeToElement.FUNCTION)
+          .filter(IsPublic.PREDICATE)
+          .transform(ElementToName.FUNCTION)
           .toSet();
 
       if (typeNames.size() != typeMirrors.size()) {
         report().forAnnotation(Value.Immutable.Include.class)
-            .warning("Some types were ignored, non-supported for inclusion");
+            .warning("Some types were ignored, non-supported for inclusion: duplicates, non reference types, non-public");
       }
 
       ImmutableList.Builder<TypeElement> builder = ImmutableList.builder();
@@ -112,8 +116,7 @@ public final class Proto {
 
     @Value.Lazy
     public boolean useImmutableDefaults() {
-      @Nullable
-      AnnotationMirror annotation =
+      @Nullable AnnotationMirror annotation =
           AnnotationMirrors.findAnnotation(
               element().getAnnotationMirrors(),
               Value.Immutable.class);
@@ -160,36 +163,36 @@ public final class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public Value.Immutable features() {
-      return element().getAnnotation(Value.Immutable.class);
+    @Deprecated
+    // TBD Make Nullable (annotation processor bug)
+    public Optional<Value.Immutable> features() {
+      return Optional.fromNullable(element().getAnnotation(Value.Immutable.class));
     }
 
     public boolean isImmutable() {
-      return features() != null;
+      return features().isPresent();
     }
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public Value.Style style() {
-      @Nullable
+    @Deprecated
+    // TBD Make Nullable (annotation processor bug)
+    public Optional<Value.Style> style() {
       Value.Style style = element().getAnnotation(Value.Style.class);
 
       if (style != null) {
-        return style;
+        return Optional.of(style);
       }
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
         MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
-        @Nullable
-        Value.Style metaStyle = metaAnnotated.style();
+        @Nullable Value.Style metaStyle = metaAnnotated.style().orNull();
         if (metaStyle != null) {
-          return metaStyle;
+          return Optional.of(metaStyle);
         }
       }
 
-      return null;
+      return Optional.absent();
     }
 
     /**
@@ -280,27 +283,6 @@ public final class Proto {
   }
 
   /**
-   * This product class used as a handle to provide layout of generated top level and nested
-   * classes. While limited and underdeveloped as abstraction. It allows to pass the code generation
-   * layout and easily detect collision / name-clashed.
-   */
-  @Value.Immutable
-  public static abstract class TargetClass {
-    public abstract String packageOf();
-
-    public abstract String topLevel();
-
-    public abstract Optional<String> nested();
-
-    /**
-     * Works as a handle for the attached originating model.
-     * @return value type model (legacy)
-     */
-    @Value.Auxiliary
-    public abstract ValueType type();
-  }
-
-  /**
    * Prototypical model for generated derived classes. {@code Protoclass} could be used to projects
    * different kind of derived classes,
    */
@@ -336,6 +318,24 @@ public final class Proto {
     public abstract Kind kind();
 
     /**
+     * Ad-hoc holder for the current round's {@link ValueTypeComposer}.
+     * @return composer
+     */
+    public abstract ValueTypeComposer composer();
+
+    @Value.Derived
+    public TypeVisibility visibility() {
+      return TypeVisibility.of(sourceElement());
+    }
+
+    public TypeVisibility declaringVisibility() {
+      if (declaringType().isPresent()) {
+        return TypeVisibility.of(declaringType().get().element());
+      }
+      return TypeVisibility.PUBLIC;
+    }
+
+    /**
      * Element used mostly for error reporting,
      * real model provided by {@link #sourceElement()}.
      */
@@ -348,10 +348,10 @@ public final class Proto {
       return packageOf().element();
     }
 
-    @Value.Derived
+    @Value.Lazy
     public Immutable features() {
       if (declaringType().isPresent() && !declaringType().get().useImmutableDefaults()) {
-        return declaringType().get().features();
+        return declaringType().get().features().orNull();
       }
       return styles().defaults();
     }
@@ -359,31 +359,40 @@ public final class Proto {
     @Value.Lazy
     public Styles styles() {
       if (declaringType().isPresent()) {
-        @Nullable
-        Style style = declaringType().get().style();
-        if (style != null) {
-          return Styles.using(style);
-        }
-        if (kind().isNested()) {
-          Verify.verify(declaringType().get().enclosingOf().isPresent());
-          @Nullable
-          Style enclosingStyle = declaringType().get().enclosingOf().get().style();
+        Optional<DeclaringType> enclosing = enclosingOf();
+        if (enclosing.isPresent()) {
+          @Nullable Style enclosingStyle = enclosing.get().style().orNull();
           if (enclosingStyle != null) {
             return Styles.using(enclosingStyle);
           }
+        } else {
+          @Nullable Style style = declaringType().get().style().orNull();
+          if (style != null) {
+            return Styles.using(style);
+          }
         }
       }
-      @Nullable
-      Style packageStyle = packageOf().style();
+      @Nullable Style packageStyle = packageOf().style().orNull();
       if (packageStyle != null) {
         return Styles.using(packageStyle);
       }
       return Styles.using(Styles.defaultStyle());
     }
 
+    @Value.Derived
+    public Optional<DeclaringType> enclosingOf() {
+      if (declaringType().isPresent() && kind().isNested()) {
+        if (kind().isIncluded()) {
+          return declaringType();
+        }
+        return declaringType().get().enclosingOf();
+      }
+      return Optional.absent();
+    }
+
     @Value.Lazy
     public ValueType type() {
-      return ImmutableMoreDiscovery.of(this).createType();
+      return composer().compose(this);
     }
 
     public enum Kind {
@@ -395,7 +404,7 @@ public final class Proto {
       DEFINED_ENCLOSING_TYPE,
       DEFINED_NESTED_TYPE;
 
-      boolean isNested() {
+      public boolean isNested() {
         switch (this) {
         case INCLUDED_IN_TYPE:
         case DEFINED_NESTED_TYPE:
@@ -405,7 +414,7 @@ public final class Proto {
         }
       }
 
-      boolean isIncluded() {
+      public boolean isIncluded() {
         switch (this) {
         case INCLUDED_IN_PACKAGE:
         case INCLUDED_IN_TYPE:
@@ -416,7 +425,7 @@ public final class Proto {
         }
       }
 
-      boolean isEnclosing() {
+      public boolean isEnclosing() {
         switch (this) {
         case DEFINED_AND_ENCLOSING_TYPE:
         case DEFINED_ENCLOSING_TYPE:
@@ -426,17 +435,33 @@ public final class Proto {
         }
       }
 
-      boolean isValue() {
+      public boolean isValue() {
         return this != DEFINED_ENCLOSING_TYPE;
       }
     }
   }
 
-  private enum DeclatedTypeToName implements Function<DeclaredType, String> {
+  private enum ElementToName implements Function<TypeElement, String> {
     FUNCTION;
     @Override
-    public String apply(DeclaredType input) {
-      return ((TypeElement) input.asElement()).getQualifiedName().toString();
+    public String apply(TypeElement input) {
+      return input.getQualifiedName().toString();
+    }
+  }
+
+  private enum DeclatedTypeToElement implements Function<DeclaredType, TypeElement> {
+    FUNCTION;
+    @Override
+    public TypeElement apply(DeclaredType input) {
+      return (TypeElement) input.asElement();
+    }
+  }
+
+  private enum IsPublic implements Predicate<Element> {
+    PREDICATE;
+    @Override
+    public boolean apply(Element input) {
+      return input.getModifiers().contains(Modifier.PUBLIC);
     }
   }
 }

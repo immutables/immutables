@@ -39,6 +39,8 @@ import java.util.SortedSet;
 public @interface Value {
   /**
    * Instruct processor to generate immutable implementation of abstract value type.
+   * Classes, Interface and Annotation types are supported including top level and non-private
+   * static inner declaration.
    * <p>
    * <em>Be warned that such immutable object may contain attributes that are not recursively immutable, thus
    * not every object will be completely immutable. While this may be useful for some workarounds,
@@ -86,6 +88,8 @@ public @interface Value {
      * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
      * Default is {@literal true}, generate copy methods.
      */
+    // TBD change to default false
+    @Deprecated
     boolean copy() default true;
 
     /**
@@ -139,6 +143,7 @@ public @interface Value {
      * Includes specified abstract value types into generation of processing.
      * This is usually used to generate immutable implementation of classes from different
      * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
+     * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
      */
     @Beta
     @Target({ElementType.TYPE, ElementType.PACKAGE})
@@ -344,6 +349,15 @@ public @interface Value {
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation.
+   * <p>
+   * <em>
+   * Be careful to not use keywords or inapropriate characters as identifiers or identifier parts.
+   * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
+   * <p>
+   * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
+   * as {@literal @}{@link Value.Nested}. So define styles on the eclosing class.
+   * In this way there will be no issues with the naming and structural conventions
+   * mismatch on enclosing and nested types.</em>
    */
   @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})

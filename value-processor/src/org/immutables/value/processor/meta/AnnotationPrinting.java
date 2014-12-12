@@ -15,11 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.AnnotationMirrors;
 import com.google.common.collect.Lists;
 import java.util.List;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Element;
+import org.immutables.generator.AnnotationMirrors;
 
 /**
  * The gymnastics that exists only to workaround annotation processors that do not fully print
@@ -31,7 +31,7 @@ final class AnnotationPrinting {
   private static final String PREFIX_JAVA_LANG = "@java.lang.";
   private static final String PREFIX_ORG_IMMUTABLES = "@org.immutables.";
 
-  static List<CharSequence> getAnnotationLines(ExecutableElement element) {
+  static List<CharSequence> getAnnotationLines(Element element) {
     List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {

@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -40,6 +41,18 @@ public abstract class AbstractGenerator extends AbstractProcessor {
    */
   protected abstract void process();
 
+  protected final ProcessingEnvironment processing() {
+    return StaticEnvironment.processing();
+  }
+
+  protected final RoundEnvironment round() {
+    return StaticEnvironment.round();
+  }
+
+  protected final Set<TypeElement> annotations() {
+    return StaticEnvironment.annotations();
+  }
+
   protected final void invoke(Templates.Invokable invokable) {
     checkArgument(invokable.arity() == 0, "Entry template fragment should not have parameters");
     invokable.invoke(Templates.Invokation.initial());
@@ -47,8 +60,7 @@ public abstract class AbstractGenerator extends AbstractProcessor {
 
   @Override
   public final Set<String> getSupportedAnnotationTypes() {
-    @Nullable
-    SupportedAnnotations annotations = getClass().getAnnotation(Generator.SupportedAnnotations.class);
+    @Nullable SupportedAnnotations annotations = getClass().getAnnotation(Generator.SupportedAnnotations.class);
     if (annotations != null) {
       Set<String> annotationNames = Sets.newHashSet();
       for (Class<?> c : annotations.value()) {

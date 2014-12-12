@@ -15,21 +15,26 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.Proto.Protoclass;
+import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Multimap;
+import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Proto.Protoclass.Kind;
 
 @Value.Immutable
-@Value.Nested
 public abstract class Round {
   public abstract ProcessingEnvironment processing();
 
@@ -37,98 +42,153 @@ public abstract class Round {
 
   public abstract Set<TypeElement> annotations();
 
-  @Value.Lazy
-  public ImmutableList<Protoclass> allProtoclasses() {
-    ProtoclassCollecter collecter = new ProtoclassCollecter();
-    for (TypeElement annotation : annotations()) {
-      for (final Element element : round().getElementsAnnotatedWith(annotation)) {
-        collecter.collect(element);
-      }
-    }
-    return collecter.builder.build();
+  @Value.Derived
+  ValueTypeComposer composer() {
+    return new ValueTypeComposer(processing());
   }
 
-  private class ProtoclassCollecter {
-    final ImmutableList.Builder<Protoclass> builder = ImmutableList.builder();
+  public Multimap<DeclaringPackage, ValueType> collectValues() {
+    final ImmutableMultimap.Builder<DeclaringPackage, ValueType> builder =
+        ImmutableMultimap.builder();
 
-    void collect(Element element) {
-      switch (element.getKind()) {
-      case ANNOTATION_TYPE:
-      case INTERFACE:
-      case CLASS:
-        collectIncludedAndDefinedBy((TypeElement) element);
-        break;
-      case PACKAGE:
-        collectIncludedBy((PackageElement) element);
-        break;
-      default:
-        Reporter.from(processing()).warning("Some unsuitable annotation will be skipped for annotation processing");
+    class ValueCombiner {
+      final ImmutableList<Protoclass> protoclasses = collectProtoclasses();
+      final Map<DeclaringType, ValueType> enclosingTypes = Maps.newHashMap();
+
+      void combine() {
+        collectEnclosing();
+        attachNested();
       }
-    }
 
-    void collectIncludedBy(PackageElement element) {
-      final DeclaringPackage declaringPackage = ImmutableProto.DeclaringPackage.builder()
-          .processing(processing())
-          .element(element)
-          .build();
+      void collectEnclosing() {
+        for (Protoclass protoclass : protoclasses) {
+          if (protoclass.kind().isEnclosing()) {
+            ValueType type = protoclass.type();
+            enclosingTypes.put(protoclass.declaringType().get(), type);
+          }
+        }
+      }
 
-      if (declaringPackage.hasInclude()) {
-        for (TypeElement sourceElement : declaringPackage.includedTypes()) {
-          builder.add(ImmutableProto.Protoclass.builder()
-              .processing(processing())
-              .packageOf(declaringPackage)
-              .sourceElement(sourceElement)
-              .kind(Kind.INCLUDED_IN_PACKAGE)
-              .build());
+      void attachNested() {
+        for (Protoclass protoclass : protoclasses) {
+          if (protoclass.kind().isNested()) {
+            @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
+            if (enclosing != null) {
+              enclosing.addNested(protoclass.type());
+            }
+          }
+          builder.put(protoclass.packageOf(), protoclass.type());
         }
       }
     }
 
-    void collectIncludedAndDefinedBy(TypeElement element) {
-      DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
-          .processing(processing())
-          .element(element)
-          .build();
+    new ValueCombiner().combine();
 
-      if (declaringType.hasInclude()) {
-        Kind kind = declaringType.isEnclosing()
-            ? Kind.INCLUDED_IN_TYPE
-            : Kind.INCLUDED_ON_TYPE;
+    return builder.build();
+  }
 
-        for (TypeElement sourceElement : declaringType.includedTypes()) {
+  public ImmutableList<Protoclass> collectProtoclasses() {
+    class ProtoclassCollecter {
+      final ImmutableList.Builder<Protoclass> builder = ImmutableList.builder();
+
+      void collect(Element element) {
+        switch (element.getKind()) {
+        case ANNOTATION_TYPE:
+        case INTERFACE:
+        case CLASS:
+          collectIncludedAndDefinedBy((TypeElement) element);
+          break;
+        case PACKAGE:
+          collectIncludedBy((PackageElement) element);
+          break;
+        default:
+          Reporter.from(processing()).warning("Some unsuitable annotation will be skipped for annotation processing");
+        }
+      }
+
+      void collectIncludedBy(PackageElement element) {
+        final DeclaringPackage declaringPackage = ImmutableProto.DeclaringPackage.builder()
+            .processing(processing())
+            .element(element)
+            .build();
+
+        if (declaringPackage.hasInclude()) {
+          for (TypeElement sourceElement : declaringPackage.includedTypes()) {
+            builder.add(ImmutableProto.Protoclass.builder()
+                .processing(processing())
+                .composer(composer())
+                .packageOf(declaringPackage)
+                .sourceElement(sourceElement)
+                .kind(Kind.INCLUDED_IN_PACKAGE)
+                .build());
+          }
+        }
+      }
+
+      void collectIncludedAndDefinedBy(TypeElement element) {
+        DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
+            .processing(processing())
+            .element(element)
+            .build();
+
+        if (declaringType.hasInclude()) {
+          Kind kind = declaringType.isEnclosing()
+              ? Kind.INCLUDED_IN_TYPE
+              : Kind.INCLUDED_ON_TYPE;
+
+          for (TypeElement sourceElement : declaringType.includedTypes()) {
+            builder.add(ImmutableProto.Protoclass.builder()
+                .processing(processing())
+                .composer(composer())
+                .packageOf(declaringType.packageOf())
+                .sourceElement(sourceElement)
+                .declaringType(declaringType)
+                .kind(kind)
+                .build());
+          }
+        }
+
+        if (declaringType.isImmutable() || declaringType.isEnclosing()) {
+          Kind kind = kindOfDefinedBy(declaringType);
+
           builder.add(ImmutableProto.Protoclass.builder()
               .processing(processing())
+              .composer(composer())
               .packageOf(declaringType.packageOf())
-              .sourceElement(sourceElement)
+              .sourceElement(element)
               .declaringType(declaringType)
               .kind(kind)
               .build());
         }
       }
 
-      if (declaringType.isImmutable() || declaringType.isEnclosing()) {
-        builder.add(ImmutableProto.Protoclass.builder()
-            .processing(processing())
-            .packageOf(declaringType.packageOf())
-            .sourceElement(element)
-            .declaringType(declaringType)
-            .kind(kindOfDefinedBy(declaringType))
-            .build());
+      private Kind kindOfDefinedBy(DeclaringType declaringType) {
+        if (declaringType.isImmutable()) {
+          if (declaringType.isEnclosing()) {
+            return Kind.DEFINED_AND_ENCLOSING_TYPE;
+          } else if (declaringType.enclosingOf().isPresent()) {
+            return Kind.DEFINED_NESTED_TYPE;
+          } else {
+            return Kind.DEFINED_TYPE;
+          }
+        }
+        assert declaringType.isEnclosing();
+        return Kind.DEFINED_ENCLOSING_TYPE;
       }
     }
 
-    private Kind kindOfDefinedBy(DeclaringType declaringType) {
-      if (declaringType.isImmutable()) {
-        if (declaringType.isEnclosing()) {
-          return Kind.DEFINED_AND_ENCLOSING_TYPE;
-        } else if (declaringType.enclosingOf().isPresent()) {
-          return Kind.DEFINED_NESTED_TYPE;
-        } else {
-          return Kind.DEFINED_TYPE;
-        }
-      }
-      assert declaringType.isEnclosing();
-      return Kind.DEFINED_ENCLOSING_TYPE;
+    ProtoclassCollecter collecter = new ProtoclassCollecter();
+    for (final Element element : allAnnotatedElements()) {
+      collecter.collect(element);
     }
+    return collecter.builder.build();
+  }
+
+  private Set<Element> allAnnotatedElements() {
+    Set<Element> elements = Sets.newHashSetWithExpectedSize(100);
+    for (TypeElement annotation : annotations()) {
+      elements.addAll(round().getElementsAnnotatedWith(annotation));
+    }
+    return elements;
   }
 }

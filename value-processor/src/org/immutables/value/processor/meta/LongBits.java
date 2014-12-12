@@ -27,6 +27,9 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 import static com.google.common.base.Preconditions.*;
 
+/**
+ * Structure to calculate bit packing
+ */
 public final class LongBits implements Function<Iterable<? extends Object>, LongBits.LongPositions> {
   private static final int BITS_IN_LONG = Longs.BYTES * Byte.SIZE;
 
@@ -41,16 +44,16 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
 
   public static final class LongPositions implements Function<Object, BitPosition> {
     private final IdentityHashMap<Object, BitPosition> positions = Maps.newIdentityHashMap();
-    private final ImmutableList<Object> attributes;
+    private final ImmutableList<Object> elements;
     private final ImmutableMap<Integer, LongSet> longPositions;
 
-    LongPositions(Iterable<? extends Object> attributesIterable, final int bitPerLong) {
-      this.attributes = ImmutableList.copyOf(attributesIterable);
+    LongPositions(Iterable<? extends Object> elements, final int bitPerLong) {
+      this.elements = ImmutableList.copyOf(elements);
       checkArgument(bitPerLong <= BITS_IN_LONG, bitPerLong);
 
-      for (int i = 0; i < attributes.size(); i++) {
+      for (int i = 0; i < this.elements.size(); i++) {
         positions.put(
-            attributes.get(i),
+            this.elements.get(i),
             new BitPosition(
                 i / bitPerLong,
                 i % bitPerLong));

@@ -17,7 +17,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
-import org.immutables.value.internal.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class AttributesCollector {
@@ -36,14 +36,16 @@ final class AttributesCollector {
   private final ValueType type;
   private final ProcessingEnvironment processing;
   private final List<ValueAttribute> attributes = Lists.newArrayList();
+  private final Styles styles;
 
-  AttributesCollector(Protoclass protoclass) {
+  AttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
-    this.type = protoclass.type();
+    this.styles = protoclass.styles();
+    this.type = type;
   }
 
-  void collectAndRevalidate() {
+  void collect() {
     collectGeneratedCandidateMethods(type.element);
 
     if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
@@ -68,7 +70,6 @@ final class AttributesCollector {
         processGenerationCandidateMethod((ExecutableElement) element);
       }
     }
-    // This is to restore previous behavior.
     // Now we pass only explicitly defined equals, hashCode, toString
     for (ExecutableElement element : ElementFilter.methodsIn(type.getEnclosedElements())) {
       switch (element.getSimpleName().toString()) {
@@ -112,9 +113,6 @@ final class AttributesCollector {
   }
 
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate) {
-
-    Styles namingStyle = Styles.using(Styles.defaultStyle());
-
     Name name = attributeMethodCandidate.getSimpleName();
     List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
     if (name.contentEquals(EQUALS_METHOD)
@@ -139,8 +137,7 @@ final class AttributesCollector {
       return;
     }
 
-    @Nullable
-    Value.Check validateAnnotation = attributeMethodCandidate.getAnnotation(Value.Check.class);
+    @Nullable Value.Check validateAnnotation = attributeMethodCandidate.getAnnotation(Value.Check.class);
     if (validateAnnotation != null) {
       if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
           && attributeMethodCandidate.getParameters().isEmpty()
@@ -192,7 +189,7 @@ final class AttributesCollector {
 
       attribute.returnTypeName = returnType.toString();
       attribute.returnType = returnType;
-      attribute.names = namingStyle.forAccessor(name.toString());
+      attribute.names = styles.forAccessor(name.toString());
       attribute.element = attributeMethodCandidate;
       attributes.add(attribute);
     }

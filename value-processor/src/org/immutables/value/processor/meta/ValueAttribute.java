@@ -64,7 +64,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public ImmutableList<String> typeParameters;
 
   TypeMirror returnType;
-  ExecutableElement element;
+  Element element;
   String returnTypeName;
 
   public boolean isBoolean() {
@@ -114,16 +114,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private String inferMarshaledName() {
-    @Nullable
-    Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
+    @Nullable Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
     if (namedAnnotaion != null) {
       String name = namedAnnotaion.value();
       if (!name.isEmpty()) {
         return name;
       }
     }
-    @Nullable
-    Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
+    @Nullable Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
     if (idAnnotation != null) {
       return ID_ATTRIBUTE_NAME;
     }
@@ -135,12 +133,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return element.getAnnotation(Json.ForceEmpty.class) != null;
   }
 
+  @Deprecated
   @Nullable
   public CharSequence getAnnotationDefaultValue() {
-    @Nullable
-    AnnotationValue defaultValue = element.getDefaultValue();
-    if (defaultValue != null) {
-      return AnnotationMirrors.toCharSequence(defaultValue);
+    // Currently it is not used?
+    if (element instanceof ExecutableElement) {
+      @Nullable AnnotationValue defaultValue = ((ExecutableElement) element).getDefaultValue();
+      if (defaultValue != null) {
+        return AnnotationMirrors.toCharSequence(defaultValue);
+      }
     }
     return null;
   }
@@ -424,8 +425,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
               if (typeSecondArgument instanceof DeclaredType) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
-                @Nullable
-                Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
+                @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
                 marshaledSecondaryElement = generateMarshaler != null;
                 specialMarshaledSecondaryElement =
                     isSpecialMarshaledElement(marshaledSecondaryElement, typeElement.getQualifiedName());
@@ -448,8 +448,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
       this.containedTypeElement = typeElement;
 
-      @Nullable
-      Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
+      @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
       marshaledElement = generateMarshaler != null;
       specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
     }

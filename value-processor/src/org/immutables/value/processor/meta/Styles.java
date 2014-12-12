@@ -1,9 +1,10 @@
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.Value.Immutable;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import org.immutables.generator.Naming;
+import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
 
 public final class Styles {
@@ -52,7 +53,7 @@ public final class Styles {
     return forAccessorWithRaw(name, "");
   }
 
-  private class Scheme {
+  class Scheme {
     Naming[] typeAbstract = Naming.fromAll(style.typeAbstract());
     Naming typeImmutable = Naming.from(style.typeImmutable());
     Naming typeImmutableNested = Naming.from(style.typeImmutableNested());
@@ -112,32 +113,42 @@ public final class Styles {
       if (!forcedRaw.isEmpty()) {
         return forcedRaw;
       }
+      return detectRawFromAbstract(name);
+    }
+
+    /** Forced raw will not work if using this method */
+    String detectRawFromAbstract(String abstractName) {
       for (Naming naming : scheme.typeAbstract) {
-        String raw = naming.detect(name);
+        String raw = naming.detect(abstractName);
         if (!raw.isEmpty()) {
-          return raw;
+          // TBD is there a way to raise abstraction
+          return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, raw);
         }
       }
-      return name;
+      return abstractName;
     }
 
     public class TypeNames {
+      public final Scheme namings = scheme;
       public final String raw = detectRawFromAbstract();
       public final String typeAbstract = name;
       public final String typeImmutable = scheme.typeImmutable.apply(raw);
-      public final String typeImmutableNesting = scheme.typeImmutableEnclosing.apply(raw);
+      public final String typeImmutableEnclosing = scheme.typeImmutableEnclosing.apply(raw);
       public final String typeImmutableNested = scheme.typeImmutableNested.apply(raw);
-      public final String of = scheme.of.apply(raw);
+//      public final String of = scheme.of.apply(raw);
+//      public final String instance = scheme.instance.apply(raw);
+//      public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
-      public final String instance = scheme.instance.apply(raw);
-
-      public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String builder = scheme.builder.apply(raw);
       public final String build = scheme.build.apply(raw);
 
       public final String typeModifiable = scheme.typeModifiable.apply(raw);
       public final String create = scheme.create.apply(raw);
       public final String toImmutable = scheme.toImmutable.apply(raw);
+
+      String rawFromAbstract(String abstractName) {
+        return detectRawFromAbstract(abstractName);
+      }
     }
 
     public class AttributeNames {

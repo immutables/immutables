@@ -15,12 +15,14 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
+import org.immutables.value.processor.meta.LongBits;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.LongBits;
 
 abstract class ValuesTemplate extends AbstractTemplate {
   @Generator.Typedef
@@ -34,7 +36,18 @@ abstract class ValuesTemplate extends AbstractTemplate {
   @Generator.Typedef
   LongBits.BitPosition BitPosition;
 
+  public abstract Templates.Invokable generate();
+
   public final LongBits longsFor = new LongBits();
 
-  public abstract Templates.Invokable generate();
+  private Multimap<DeclaringPackage, ValueType> values;
+
+  ValuesTemplate usingValues(Multimap<DeclaringPackage, ValueType> values) {
+    this.values = values;
+    return this;
+  }
+
+  public Multimap<DeclaringPackage, ValueType> values() {
+    return values;
+  }
 }

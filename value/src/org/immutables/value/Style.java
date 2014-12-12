@@ -6,7 +6,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({})
+//@Target({})
 public @interface Style {
 
   /**
@@ -23,5 +23,4 @@ public @interface Style {
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
   public @interface BeanAccessors {}
-
 }

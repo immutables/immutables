@@ -32,8 +32,8 @@ public class CaseStructure {
   public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
   public final SetMultimap<String, ValueType> abstractUsages = HashMultimap.create();
 
-  public CaseStructure(ValueType discoveredValue) {
-    this.implementationTypes = discoveredValue.getNestedChildren();
+  CaseStructure(ValueType discoveredValue) {
+    this.implementationTypes = discoveredValue.nested;
     this.implementationTypeNames = buildImplementationType(implementationTypes);
     this.subtyping = buildSubtyping(implementationTypes);
   }

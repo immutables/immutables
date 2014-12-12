@@ -1,68 +1,87 @@
-[template generate Type type]
-[output.java type.packageName type.defName]
-  [if type.emptyNesting]
-[generateImmutableNestingType type]
-  [else]
-[generateImmutableSimpleType type]
-  [/if]
+[template generate]
+  [for type in values.values]
+    [if type.constitution.hasTopLevelImmutable]
+[-- Top level immutable type --]
+[output.java type.package type.typeImmutable.simple]
+[generateImmutable type true]
 [/output.java]
+    [/if]
+    [if type.constitution.hasTopLevelBuilder]
+[-- Top level builder --]
+[output.java type.package type.typeBuilder.simple]
+[generateBuilder type true]
+[/output.java]
+    [/if]
+    [if type.constitution.hasEnclosingNonvalue]
+[-- Enclosing non-value type --]
+[output.java type.package type.typeEnclosing.simple]
+[generateEnclosing type]
+[/output.java]
+    [/if]
+  [/for]
 [/template]
 
-[template generateImmutableNestingType Type type]
-[if type.packageName]
-package [type.packageName];
-[/if]
-
-/**
- * {@code [type.defName]} contains immutable implementation classes generated from
- * abstract value types defined as nested inside {@link [type.name]}.
-[for v in type.nestedChildren]
- * @see [v.immutableReferenceName]
-[/for]
- */
+[template annotationsWhenTopLevel Type type Boolean is]
+[if is]
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Immutables.generator", "[type.name]"})
-[type.accessPrefix]final class [type.defName] {
-  private [type.defName]() {}
-[for v in type.nestedChildren]
-  [generateImmutableType v 'static ']
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
+[/if]
+[/template]
+
+[template packageWhenTopLevel Type type Boolean is]
+[if is and type.package]
+package [type.package];
+[/if]
+[/template]
+
+[template generateEnclosing Type type]
+[packageWhenTopLevel type true]
+
+/**
+ * {@code [type.typeEnclosing.simple]} contains immutable implementation classes generated from
+ * abstract value types defined as nested inside {@link [type.typeAbstract.relative]}.
+[for v in type.nested]
+ * @see [v.typeImmutable.relative]
+[/for]
+ */
+[annotationsWhenTopLevel type true]
+[type.typeEnclosing.access]final class [type.typeEnclosing.simple] {
+  private [type.typeEnclosing.simple]() {}
+[for v in type.nested]
+  [generateImmutable v false]
+
+  [if v.constitution.isOutsideBuilder]
+  [generateBuilder v false]
+  [/if]
+
 [/for]
 }
 [/template]
 
-[template generateImmutableSimpleType Type type]
-[if type.packageName]
-package [type.packageName];
-[/if]
-
-[generateImmutableType type '']
-[/template]
-
-[template generateImmutableType Type type String classModifiers]
+[template generateImmutable Type type Boolean topLevel]
+[packageWhenTopLevel type topLevel]
 
 [for setters = type.settableAttributes]
 /**
- * Immutable implementation of {@link [type.name]}.
+ * Immutable implementation of {@link [type.typeAbstract.relative]}.
  * <p>
- * Use static factory methods to create instances: {@code of()} or
- * {@code builder()}.
+ * Use static factory methods to create instances: {@code [type.factoryOf]()} or
+ * {@code [type.names.builder]()}.
  */
-@SuppressWarnings("all")
-@javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Immutables.generator", "[type.name]"})
+[annotationsWhenTopLevel type topLevel]
 @javax.annotation.concurrent.Immutable
-[type.accessPrefix][classModifiers]final class [type.defName]
-    [type.inheritsKeyword] [type.name] {
+[type.typeImmutable.access][if not topLevel]static [/if]final class [type.typeImmutable.simple]
+    [type.inheritsKeyword] [type.typeAbstract] {
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
 [if type.useInterned or type.generateOrdinalValue]
 
   private static class InternProxy {
-    final [type.defName] instance;
+    final [type.typeImmutable.simple] instance;
 
-    InternProxy([type.defName] instance) {
+    InternProxy([type.typeImmutable.simple] instance) {
       this.instance = instance;
     }
 
@@ -82,7 +101,7 @@ package [type.packageName];
    * Copy constructor used for interning of objects implementing
    * {@link org.immutables.common.collect.OrdinalValue}
    */
-  private [type.defName]([type.defName] instance, int ordinal) {
+  private [type.typeImmutable.simple]([type.typeImmutable.simple] instance, int ordinal) {
   [for v in type.implementedAttributes]
     this.[v.name] = instance.[v.name];
   [/for]
@@ -94,27 +113,27 @@ package [type.packageName];
   }
 
   /**
-   * Instances of {@code [type.defName]} will be interned and registered with the domain.
+   * Instances of {@code [type.typeAbstract.simple]} will be interned and registered with the domain.
    */
   public static final class Domain
-      extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, [type.name]> {
+      extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
 
     private static final Domain INSTANCE = new Domain();
 
-    /** Construct ordinal domain of [type.name] values. */
+    /** Construct ordinal domain of [type.typeAbstract.simple] values. */
     public Domain() {
     }
 
     protected [type.name] extractValue(InternProxy proxy, int ordinal) {
-      return new [type.defName](proxy.instance, ordinal);
+      return new [type.typeImmutable.simple](proxy.instance, ordinal);
     }
 
     @Override
     public String toString() {
       if (this == INSTANCE) {
-        return "[type.defName].Domain.get()";
+        return "[type.typeImmutable.simple].Domain.get()";
       }
-      return [type.typeMoreObjects].toStringHelper("[type.defName].Domain")
+      return [type.typeMoreObjects].toStringHelper("[type.typeImmutable.simple].Domain")
         .add("length", length())
         .toString();
     }
@@ -130,36 +149,36 @@ package [type.packageName];
   }
 
   @Override
-  public org.immutables.common.collect.OrdinalDomain<[type.name]> domain() {
+  public org.immutables.common.collect.OrdinalDomain<[type.typeAbstract.relative]> domain() {
     return domain;
   }
 
-  private static [type.defName] intern([type.defName] instance) {
-    return ([type.defName]) instance.domain.internOrdinal(new InternProxy(instance));
+  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
+    return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
   }
 [else if type.useInterned]
 
   private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
 
-  private static [type.defName] intern([type.defName] instance) {
+  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
     return INTERNER.intern(new InternProxy(instance)).instance;
   }
 [/if]
 [if type.useConstructor]
 
   /**
-   * Constructs new immutable instance of [type.name].
+   * Constructs new immutable instance of [type.typeAbstract.simple].
 [for v in type.constructorArguments]
    * @param [v.name] value for {@code [v.name]}
 [/for]
-   * @return immutable [type.name] instance
+   * @return immutable [type.typeAbstract.simple] instance
    */
-  public static [type.defName] of([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
-    return checkPreconditions(new [type.defName]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
+  public static [type.typeImmutable.simple] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+    return checkPreconditions(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
   }
 [/if]
 
-  private static [type.defName] checkPreconditions([type.defName] instance) {
+  private static [type.typeImmutable.simple] checkPreconditions([type.typeImmutable.simple] instance) {
 [if type.validationMethodName]
     instance.[type.validationMethodName]();
 [/if]
@@ -170,53 +189,51 @@ package [type.packageName];
   }
 [if type.useSingleton]
 
-  private static final [type.defName] INSTANCE = checkPreconditions(new [type.defName]());
+  private static final [type.typeImmutable.simple] INSTANCE = checkPreconditions(new [type.typeImmutable.simple]());
 
   /**
-   * Returns default immutable singleton value of [type.defName]
+   * Returns default immutable singleton value of [type.typeAbstract.simple]
    * @return immutable instance of [type.name]
    */
-  public static [type.defName] of() {
+  public static [type.typeValue.relative] [type.factoryInstance]() {
     return INSTANCE;
   }
 [/if]
-  [generateCopyOf type]
-[generateImmutable type]
+  [generateImmutableCopyOf type]
+[generateImmutableMembers type]
 [generateLazyValues type]
-[if type.useBuilder]
+[if type.useBuilder and (not type.constitution.isOutsideBuilder)]
 
   /**
-   * Creates builder for {@link [type.name]}.
-   * @return new [type.name] builder
+   * Creates builder for {@link [type.typeValue]}.
+   * @return new [type.typeValue.simple] builder
    */
-  public static Builder builder() {
-    return new Builder();
+  public static [type.typeBuilder.relative] [type.names.builder]() {
+    return new [type.typeBuilder.relative]();
   }
-  [generateBuilder type]
+  [generateBuilder type false]
 [/if]
-[if type.hasNestedChildren]
-[for v in type.nestedChildren]
-  [generateImmutableType  v 'static ']
+[for v in type.nested]
+  [generateImmutable v false]
 [/for]
-[/if]
 }
 [/for]
 [/template]
 
-[template generateCopyOf Type type]
-[if type.useBuilder or type.useConstructor]
+[template generateImmutableCopyOf Type type]
+[if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
 /**
- * Creates immutable copy of [type.name]. Uses accessors to get values to initialize new immutable instance.
+ * Creates immutable copy of [type.typeAbstract.simple]. Uses accessors to get values to initialize new immutable instance.
  * If instance is already immutable, it returns it unchanged.
  */
-public static [type.defName] copyOf([type.name] instance) {
-  if (instance instanceof [type.defName]) {
-    return ([type.defName]) instance;
+public static [type.typeValue.relative] [type.names.copyOf]([type.typeAbstract] instance) {
+  if (instance instanceof [type.typeImmutable.relative]) {
+    return ([type.typeImmutable.simple]) instance;
   }
 [if type.useBuilder]
   com.google.common.base.Preconditions.checkNotNull(instance);
-  return builder()
+  return [type.names.builder]()
   [for v in type.settableAttributes]
     [if v.collectionType]
       .[v.names.addAll](instance.[v.names.get]())
@@ -226,9 +243,9 @@ public static [type.defName] copyOf([type.name] instance) {
       .[v.names.init](instance.[v.names.get]())
     [/if]
   [/for]
-      .build();
+      .[type.names.build]();
 [else]
-  return of([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
+  return [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
           o in type.constructorOmited if o.generateDefault or o.generateAbstract]
       .[o.names.with](instance.[o.names.get]())[/for][/if];
 [/if]
@@ -238,7 +255,7 @@ public static [type.defName] copyOf([type.name] instance) {
  * @deprecated Already an immutable object, no need to create immutable copy
  */
 @Deprecated
-public static [type.defName] copyOf([type.defName] instance) {
+public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutable.simple] instance) {
   return com.google.common.base.Preconditions.checkNotNull(instance);
 }
 [/if]
@@ -281,29 +298,32 @@ public static [type.defName] copyOf([type.defName] instance) {
 [/for]
 [/template]
 
-[template generateBuilder Type type]
+[template generateBuilder Type type Boolean topLevel]
+[packageWhenTopLevel type topLevel]
+
 [for setters = type.settableAttributes,
      getters = type.implementedAttributes,
      mandatories = type.mandatoryAttributes,
      LongPositions positions = longsFor mandatories,
      primdefs = type.primitiveDefaultAttributes,
      LongPositions defpos = longsFor primdefs]
-
 /**
- * Builds instances of {@link [type.name]}.
- * Initialized attributes and then invoke {@link #build()} method to create
+ * Builds instances of {@link [type.typeValue]}.
+ * Initialized attributes and then invoke {@link #[type.names.build]()} method to create
  * immutable instance.
- * <p><em>Builder is not thread safe and generally should not be stored in field or collection,
+ * <p><em>[type.typeBuilder.simple] is not thread safe and generally should not be stored in field or collection,
  * but used immediately to create instances.</em>
  */
+[annotationsWhenTopLevel type topLevel]
 @javax.annotation.concurrent.NotThreadSafe
-[if type.hasAbstractBuilder]
-[type.accessPrefix]static final class Builder
-    extends [type.name].Builder {
-[else]
-[type.accessPrefix]static final class Builder {
+[type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
+    extends [type.typeAbstract].Builder {[else] {[/if]
+[if not type.constitution.isOutsideBuilder]
+  private [type.typeBuilder.simple]() {}
 [/if]
-  private Builder() {}
+[if type.constitution.hasImmutableInBuilder]
+  [generateImmutable type false]
+[/if]
 
   [for l in defpos.longs]
   private long nondefaultBitset[l.index];
@@ -354,7 +374,7 @@ public static [type.defName] copyOf([type.defName] instance) {
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
 
-  public Builder domain(Domain domain) {
+  public [type.typeBuilder.simple] domain(Domain domain) {
     this.domain = com.google.common.base.Preconditions.checkNotNull(domain);
     return this;
   }
@@ -362,7 +382,7 @@ public static [type.defName] copyOf([type.defName] instance) {
 
   @Override
   public String toString() {
-    return [type.typeMoreObjects].toStringHelper("[type.simpleName].Builder")
+    return [type.typeMoreObjects].toStringHelper("[type.typeBuilder.relative]")
         .omitNullValues()
   [for v in setters]
     [if v.collectionType or v.mapType]
@@ -387,7 +407,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param element [v.name] element
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.add]([v.unwrappedElementType] element) {
+  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType] element) {
     [v.name]Builder.add(element);
     return this;
   }
@@ -398,7 +418,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final Builder [v.names.add]([v.unwrappedElementType]... elements) {
+  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
     [v.name]Builder.addAll([immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf]);
     return this;
   }
@@ -408,7 +428,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  public final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [v.name]Builder.addAll(elements);
     return this;
   }
@@ -419,7 +439,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.init]([v.unwrappedElementType] [v.name]) {
+  public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
     this.[v.name] = com.google.common.base.Optional.of([v.name]);
     return this;
   }
@@ -429,7 +449,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.init](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
+  public final [type.typeBuilder.simple] [v.names.init](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
     this.[v.name] = com.google.common.base.Preconditions.checkNotNull([v.name]);
     return this;
   }
@@ -442,7 +462,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param value the associated value in [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.put]([uK] key, [uV] value) {
+  public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV] value) {
     [v.name]Builder.put(key, value);
     return this;
   }
@@ -452,7 +472,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param entry the key and value entry
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+  public final [type.typeBuilder.simple] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [v.name]Builder.put(entry);
     return this;
   }
@@ -462,7 +482,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.putAll](java.util.Map<[gE], ? extends [wV]> entries) {
+  public final [type.typeBuilder.simple] [v.names.putAll](java.util.Map<[gE], ? extends [wV]> entries) {
     [v.name]Builder.putAll(entries);
     return this;
   }
@@ -479,7 +499,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final Builder [v.names.init]([v.elementType]... elements) {
+  public final [type.typeBuilder.simple] [v.names.init]([v.elementType]... elements) {
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
     return this;
@@ -494,7 +514,7 @@ public static [type.defName] copyOf([type.defName] instance) {
    * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
    * @return {@code this} builder for chained invocation
    */
-  public final Builder [v.names.init]([v.atNullability][v.type] [v.name]) {
+  public final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
@@ -529,11 +549,11 @@ public static [type.defName] copyOf([type.defName] instance) {
    * Builds new {@link [type.name]}.
    * @return immutable instance of [type.name]
    */
-  public [type.defName] build() {
+  public [type.typeValue] [type.names.build]() {
     [if positions.longs]
     checkRequiredAttributes();
     [/if]
-    return checkPreconditions(new [type.defName](this));
+    return [type.typeImmutable.relative].checkPreconditions(new [type.typeImmutable.relative](this));
   }
 }
 [/for]
@@ -568,7 +588,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/for]
 [/template]
 
-[template generateImmutable Type type]
+[template generateImmutableMembers Type type]
 [for setters = type.settableAttributes, getters = type.implementedAttributes]
 [for v in getters]
   private final [v.atNullability][v.implementationType] [v.name];
@@ -582,14 +602,14 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/if]
 [if type.useSingleton]
 
-  private [type.defName]() {
+  private [type.typeImmutable.simple]() {
     [generateConstructorDefaultAttributes type type.implementedAttributes]
     [generateAfterConstruction type false]
   }
 [/if]
 [if type.useConstructor]
 
-  private [type.defName]([for v in type.constructorArguments][if not for.first],[/if]
+  private [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][v.type] [v.name][/for]) {
 [for v in type.constructorArguments, n = v.name]
   [if v.collectionType or v.mapType]
@@ -606,7 +626,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/if]
 [if type.useBuilder]
 
-  private [type.defName](Builder builder) {
+  private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
   [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
     this.[n] = [immutableCollectionCopyOf v]builder.[n]Builder.build()[/immutableCollectionCopyOf];
@@ -651,8 +671,8 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [/if]
 [if type.useCopyMethods]
 
-  private [type.defName](
-      [type.defName] original[for v in getters],
+  private [type.typeImmutable.simple](
+      [type.typeImmutable.simple] original[for v in getters],
       [v.atNullability][v.implementationType] [v.name][/for]) {
   [for v in getters]
     this.[v.name] = [v.name];
@@ -675,7 +695,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [if not type.generateMarshaled]
   [output.error]Cannot use @Jackson.Mapped without @Json.Marshaled annotation[/output.error]
 [/if]
-[let marshalerInstance][type.simpleName]Marshaler.instance()[/let]
+[let marshalerInstance][type.typeValue.simple]Marshaler.instance()[/let]
 
 @com.fasterxml.jackson.annotation.JsonValue
 public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws java.io.IOException {
@@ -683,7 +703,7 @@ public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws ja
 }
 
 @com.fasterxml.jackson.annotation.JsonCreator
-public static [type.defName] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
+public static [type.typeImmutable.simple] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
   return copyOf(org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffers([marshalerInstance], buffers));
 }
 [/if]
@@ -725,7 +745,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalToType][if type.annotationType][type.valueTypeName][else][type.defName][/if][/let]
+[let equalToType][if type.annotationType][type.valueTypeName][else][type.typeImmutable.simple][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if not type.equalToDefined]
 
@@ -805,7 +825,7 @@ public int hashCode() {
 
 @Override
 public String toString() {
-  return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.simpleName]")
+  return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.typeAbstract.simple]")
       .omitNullValues()
   [for v in type.equivalenceAttributes]
   [if v.optionalType]
@@ -837,7 +857,7 @@ this.domain = Domain.get();
 [/template]
 
 [template generateReturnCopyContextual Type type Attribute modified]
-return checkPreconditions(new [type.defName](
+return checkPreconditions(new [type.typeImmutable.simple](
     this[for a in type.implementedAttributes],
     [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for]));
 [/template]
@@ -853,7 +873,7 @@ return checkPreconditions(new [type.defName](
  * @return modified copy of {@code this} object
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
-public final [type.defName] [v.names.with]([v.elementType]... elements) {
+public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... elements) {
   [v.implementationType] newValue = elements.clone();
   [generateReturnCopyContextual type v]
 }
@@ -865,7 +885,7 @@ public final [type.defName] [v.names.with]([v.elementType]... elements) {
  * @return modified copy of {@code this} object
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
-public final [type.defName] [v.names.with]([v.unwrappedElementType]... elements) {
+public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]... elements) {
   [v.implementationType] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
   [generateReturnCopyContextual type v]
 }
@@ -876,7 +896,7 @@ public final [type.defName] [v.names.with]([v.unwrappedElementType]... elements)
  * @param elements iterable of [v.name] elements to set
  * @return modified copy of {@code this} object
  */
-public final [type.defName] [v.names.with](Iterable<[v.consumedElementType]> elements) {
+public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) {
     return this;
   }
@@ -890,7 +910,7 @@ public final [type.defName] [v.names.with](Iterable<[v.consumedElementType]> ele
  * @param value value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.defName] [v.names.with]([v.unwrappedElementType] value) {
+public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
   [v.implementationType] newValue = com.google.common.base.Optional.of(value);
   [generateReturnCopyContextual type v]
 }
@@ -901,7 +921,7 @@ public final [type.defName] [v.names.with]([v.unwrappedElementType] value) {
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.defName] [v.names.with](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
+public final [type.typeImmutable.simple] [v.names.with](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
     return this;
   }
@@ -918,7 +938,7 @@ public final [type.defName] [v.names.with](com.google.common.base.Optional<[v.wr
  * @param entries to be added to [v.name] map
  * @return modified copy of {@code this} object
  */
-public final [type.defName] [v.names.with](java.util.Map<[gE], ? extends [wV]> entries) {
+public final [type.typeImmutable.simple] [v.names.with](java.util.Map<[gE], ? extends [wV]> entries) {
   if (this.[v.name] == entries) {
     return this;
   }
@@ -938,7 +958,7 @@ public final [type.defName] [v.names.with](java.util.Map<[gE], ? extends [wV]> e
  * @param value new value for [v.name][if not v.nullable], non-null[/if]
  * @return modified copy of the {@code this} object
  */
-public final [type.defName] [v.names.with]([v.atNullability][v.type] value) {
+public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
     [if not v.floatType]
   if (this.[v.name] == value) {
     return this;
