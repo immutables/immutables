@@ -88,4 +88,11 @@ public class NamingTest {
     check(Naming.from("Create").requireNonConstant(Preference.SUFFIX).apply("x")).is("xCreate");
     check(Naming.from("new*").requireNonConstant(Preference.SUFFIX).apply("x")).is("newX");
   }
+
+  @Test
+  public void usageCorrection() {
+    String apply = Naming.from("of").requireNonConstant(Preference.SUFFIX).apply("Hen");
+    check(Naming.Usage.LOWERIZED.apply(apply)).is("henOf");
+    check(Naming.from("check*out").apply("it")).is("checkItOut");
+  }
 }

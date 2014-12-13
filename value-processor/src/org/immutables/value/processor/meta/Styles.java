@@ -135,8 +135,8 @@ public final class Styles {
       public final String typeImmutable = scheme.typeImmutable.apply(raw);
       public final String typeImmutableEnclosing = scheme.typeImmutableEnclosing.apply(raw);
       public final String typeImmutableNested = scheme.typeImmutableNested.apply(raw);
-//      public final String of = scheme.of.apply(raw);
-//      public final String instance = scheme.instance.apply(raw);
+      public final String of = scheme.of.apply(raw);
+      public final String instance = scheme.instance.apply(raw);
 //      public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
       public final String builder = scheme.builder.apply(raw);

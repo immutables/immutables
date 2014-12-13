@@ -451,7 +451,9 @@ public @interface Value {
     String create() default "create";
 
     /**
-     * Builder creator method.
+     * Builder creator method. This naming allow special keyword "new" value.
+     * This will customize builder to be created using parameterless constructor rather than
+     * factory methods.
      * @return naming template
      */
     String builder() default "builder";

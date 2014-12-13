@@ -80,6 +80,24 @@ public abstract class Naming implements Function<String, String> {
     PREFIX, SUFFIX
   }
 
+  public enum Usage {
+    INDIFFERENT,
+    CAPITALIZED,
+    // funny name
+    LOWERIZED;
+    public String apply(String input) {
+      if (!input.isEmpty()) {
+        if (this == CAPITALIZED && !Ascii.isUpperCase(input.charAt(0))) {
+          return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, input);
+        }
+        if (this == LOWERIZED && !Ascii.isLowerCase(input.charAt(0))) {
+          return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, input);
+        }
+      }
+      return input;
+    }
+  }
+
   /**
    * Naming the repeats the input name
    * @return identity naming
@@ -205,11 +223,11 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String apply(String input) {
-      CaseFormat resultFormat = prefix.isEmpty()
-          ? CaseFormat.LOWER_CAMEL
-          : CaseFormat.UPPER_CAMEL;
+      Usage resultFormat = prefix.isEmpty()
+          ? Usage.INDIFFERENT
+          : Usage.CAPITALIZED;
 
-      return prefix + CaseFormat.LOWER_CAMEL.to(resultFormat, input) + suffix;
+      return prefix + resultFormat.apply(input) + Usage.CAPITALIZED.apply(suffix);
     }
 
     @Override

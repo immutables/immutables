@@ -50,11 +50,10 @@ package [type.package];
   private [type.typeEnclosing.simple]() {}
 [for v in type.nested]
   [generateImmutable v false]
-
   [if v.constitution.isOutsideBuilder]
   [generateBuilder v false]
   [/if]
-
+  [forwardingEnclosingFactoryMethods v]
 [/for]
 }
 [/template]
@@ -66,7 +65,7 @@ package [type.package];
 /**
  * Immutable implementation of {@link [type.typeAbstract.relative]}.
  * <p>
- * Use static factory methods to create instances: {@code [type.factoryOf]()} or
+ * Use static factory methods to create instances: {@code [type.names.of]()} or
  * {@code [type.names.builder]()}.
  */
 [annotationsWhenTopLevel type topLevel]
@@ -121,8 +120,7 @@ package [type.package];
     private static final Domain INSTANCE = new Domain();
 
     /** Construct ordinal domain of [type.typeAbstract.simple] values. */
-    public Domain() {
-    }
+    public Domain() {}
 
     protected [type.name] extractValue(InternProxy proxy, int ordinal) {
       return new [type.typeImmutable.simple](proxy.instance, ordinal);
@@ -173,7 +171,7 @@ package [type.package];
 [/for]
    * @return immutable [type.typeAbstract.simple] instance
    */
-  public static [type.typeImmutable.simple] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
     return checkPreconditions(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
   }
 [/if]
@@ -195,14 +193,13 @@ package [type.package];
    * Returns default immutable singleton value of [type.typeAbstract.simple]
    * @return immutable instance of [type.name]
    */
-  public static [type.typeValue.relative] [type.factoryInstance]() {
+  public static [type.typeValue.relative] [type.names.instance]() {
     return INSTANCE;
   }
 [/if]
   [generateImmutableCopyOf type]
-[generateImmutableMembers type]
-[generateLazyValues type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
+  [if type.names.builder ne 'new']
 
   /**
    * Creates builder for {@link [type.typeValue]}.
@@ -211,8 +208,12 @@ package [type.package];
   public static [type.typeBuilder.relative] [type.names.builder]() {
     return new [type.typeBuilder.relative]();
   }
+  [/if]
   [generateBuilder type false]
 [/if]
+[generateImmutableMembers type]
+[generateLazyValues type]
+
 [for v in type.nested]
   [generateImmutable v false]
 [/for]
@@ -245,7 +246,7 @@ public static [type.typeValue.relative] [type.names.copyOf]([type.typeAbstract] 
   [/for]
       .[type.names.build]();
 [else]
-  return [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
+  return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
           o in type.constructorOmited if o.generateDefault or o.generateAbstract]
       .[o.names.with](instance.[o.names.get]())[/for][/if];
 [/if]
@@ -300,7 +301,6 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
 
 [template generateBuilder Type type Boolean topLevel]
 [packageWhenTopLevel type topLevel]
-
 [for setters = type.settableAttributes,
      getters = type.implementedAttributes,
      mandatories = type.mandatoryAttributes,
@@ -318,13 +318,22 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
 @javax.annotation.concurrent.NotThreadSafe
 [type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
     extends [type.typeAbstract].Builder {[else] {[/if]
-[if not type.constitution.isOutsideBuilder]
+[if type.names.builder ne 'new']
   private [type.typeBuilder.simple]() {}
+  [if type.constitution.isOutsideBuilder]
+
+  /**
+   * Creates builder for {@link [type.typeValue]}.
+   * @return new [type.typeValue.simple] builder
+   */
+  public static [type.typeBuilder.simple] [type.names.builder]() {
+    return new [type.typeBuilder.simple]();
+  }
+  [/if]
 [/if]
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
 [/if]
-
   [for l in defpos.longs]
   private long nondefaultBitset[l.index];
   [/for]
@@ -553,7 +562,8 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
     [if positions.longs]
     checkRequiredAttributes();
     [/if]
-    return [type.typeImmutable.relative].checkPreconditions(new [type.typeImmutable.relative](this));
+    return [type.typeImmutable.relative].checkPreconditions(
+        new [type.typeImmutable.relative](this));
   }
 }
 [/for]
@@ -1023,6 +1033,34 @@ static {
 private static <T> T cast(Object object) {
   return (T) object;
 }
+[/template]
+
+[template forwardingEnclosingFactoryMethods Type type]
+  [if type.constitution.isImplementationHidden]
+    [if type.useSingleton]
+
+/**
+ * Returns default immutable singleton value of [type.typeAbstract.simple]
+ * @return immutable instance of [type.name]
+ */
+public static [type.typeValue.relative] [type.factoryInstance]() {
+  return [type.typeImmutable.relative].[type.names.instance]();
+}
+    [/if]
+    [if type.useConstructor]
+
+/**
+ * Constructs new immutable instance of [type.typeAbstract.simple].
+[for v in type.constructorArguments]
+ * @param [v.name] value for {@code [v.name]}
+[/for]
+ * @return immutable [type.typeAbstract.simple] instance
+ */
+public static [type.typeValue.relative] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
+}
+    [/if]
+  [/if]
 [/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]

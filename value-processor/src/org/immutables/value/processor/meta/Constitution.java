@@ -1,5 +1,6 @@
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.Naming.Usage;
 import java.util.Collections;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -178,7 +179,7 @@ public abstract class Constitution {
     if (isImplementationHidden()) {
       builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
     }
-    return builderNaming.apply(allNames().raw);
+    return Naming.Usage.CAPITALIZED.apply(builderNaming.apply(allNames().raw));
   }
 
   @Value.Lazy
@@ -187,16 +188,16 @@ public abstract class Constitution {
     if (isImplementationHidden()) {
       ofNaming = ofNaming.requireNonConstant(Preference.PREFIX);
     }
-    return ofNaming.apply(allNames().raw);
+    return Naming.Usage.LOWERIZED.apply(ofNaming.apply(allNames().raw));
   }
 
   @Value.Lazy
   public String factoryInstance() {
-    Naming instanceNaming = allNames().namings.of;
+    Naming instanceNaming = allNames().namings.instance;
     if (isImplementationHidden()) {
-      instanceNaming = instanceNaming.requireNonConstant(Preference.SUFFIX);
+      instanceNaming = instanceNaming.requireNonConstant(Preference.PREFIX);
     }
-    return instanceNaming.apply(allNames().raw);
+    return Naming.Usage.LOWERIZED.apply(instanceNaming.apply(allNames().raw));
   }
 
   @Value.Lazy
