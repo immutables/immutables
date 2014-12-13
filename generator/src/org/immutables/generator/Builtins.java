@@ -24,8 +24,9 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Experimental built-in operators. Planned to be moved to import/implicit resolution rather that
- * inheritance.
+ * Built-in operations, functions and accessors.
+ * Planned to be moved to import/implicit resolution
+ * rather that inheritance.
  */
 public class Builtins {
 

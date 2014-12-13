@@ -13,14 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.sample;
+package org.immutables.fixture;
 
-import java.util.List;
 import org.immutables.value.Value;
 
-@Value.Immutable
-public interface SampleValue {
-  int a();
+@Value.Nested
+public class SampleNesting {
+  @Value.Immutable
+  interface A {}
 
-  List<Integer> c();
+  @Value.Immutable
+  public static class B {}
 }

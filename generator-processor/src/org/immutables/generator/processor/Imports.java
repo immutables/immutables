@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import org.immutables.generator.AnnotationMirrors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -125,7 +126,8 @@ public final class Imports extends Introspection {
   }
 
   private ImmutableList<TypeMirror> extractDeclaredImports(Element element) {
-    return extractTypesFromAnnotations(
+    return AnnotationMirrors.getTypesFromMirrors(
+        types,
         importType,
         "value",
         element.getAnnotationMirrors());

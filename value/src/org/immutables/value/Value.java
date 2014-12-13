@@ -39,6 +39,8 @@ import java.util.SortedSet;
 public @interface Value {
   /**
    * Instruct processor to generate immutable implementation of abstract value type.
+   * Classes, Interface and Annotation types are supported including top level and non-private
+   * static inner declaration.
    * <p>
    * <em>Be warned that such immutable object may contain attributes that are not recursively immutable, thus
    * not every object will be completely immutable. While this may be useful for some workarounds,
@@ -57,6 +59,7 @@ public @interface Value {
      * abstract value type.
      */
     @Beta
+    @Deprecated
     boolean nonpublic() default false;
 
     /**
@@ -85,6 +88,8 @@ public @interface Value {
      * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
      * Default is {@literal true}, generate copy methods.
      */
+    // TBD change to default false
+    @Deprecated
     boolean copy() default true;
 
     /**
@@ -100,6 +105,52 @@ public @interface Value {
      * {@literal true}.
      */
     boolean builder() default true;
+
+    /**
+     * Specify the mode in which accibility visibility is derived from abstract value type.
+     * @return implementation visibility
+     */
+    @Beta
+    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
+
+    /**
+     * If implementation visibility is more restrictive than visibility of abstract value type, then
+     * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
+     * constructon methods. Builder visibility will follow.
+     */
+    @Beta
+    public enum ImplementationVisibility {
+      /**
+       * 
+       */
+      PUBLIC,
+      /**
+       * Visibility is the same
+       */
+      SAME,
+      /**
+       * 
+       */
+      PACKAGE,
+      /**
+       * Allowed only when builder is enabled or nested inside enclosing type.
+       * Builder visibility will follow the umbrella class visibility.
+       */
+      PRIVATE
+    }
+
+    /**
+     * Includes specified abstract value types into generation of processing.
+     * This is usually used to generate immutable implementation of classes from different
+     * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
+     * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
+     */
+    @Beta
+    @Target({ElementType.TYPE, ElementType.PACKAGE})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface Include {
+      Class<?>[] value();
+    }
   }
 
   /**
@@ -136,17 +187,6 @@ public @interface Value {
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Nested {}
-
-  /**
-   * Includes specified abstract value types into processing.
-   * This is usually used to generate immutable implementation of classes in different
-   * packages.
-   */
-  @Target({ElementType.TYPE, ElementType.PACKAGE})
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Include {
-    Class<?>[] value();
-  }
 
   /**
    * Generate transformer for a set of nested classes.
@@ -277,7 +317,8 @@ public @interface Value {
   public @interface Order {
 
     /**
-     * Specified natural ordering for the implemented. It an error to annotate
+     * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
+     * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
      * sorted collection of elements which are not implementing {@link Comparable}.
      * @see ImmutableSortedSet#naturalOrder()
      * @see ImmutableSortedMap#naturalOrder()
@@ -305,14 +346,23 @@ public @interface Value {
   }
 
   /**
-   * Naming style could be used to customize naming convention of the generated immutable
-   * implementations and companion classes. It could be placed on a class or package directly or
-   * serve as meta annotation.
+   * Naming and structural style could be used to customize convention of the generated
+   * immutable implementations and companion classes. It could be placed on a class or package
+   * directly or serve as meta annotation.
+   * <p>
+   * <em>
+   * Be careful to not use keywords or inapropriate characters as identifiers or identifier parts.
+   * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
+   * <p>
+   * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
+   * as {@literal @}{@link Value.Nested}. So define styles on the eclosing class.
+   * In this way there will be no issues with the naming and structural conventions
+   * mismatch on enclosing and nested types.</em>
    */
   @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)
-  public @interface NamingStyle {
+  public @interface Style {
     /**
      * Patterns to recognize accessors.
      * @return naming template
@@ -326,7 +376,7 @@ public @interface Value {
     String init() default "";
 
     /**
-     * Modify-by-copying "wither" method.
+     * Modify-by-copy "with" method.
      * @return naming template
      */
     String with() default "with*";
@@ -395,13 +445,15 @@ public @interface Value {
     String instance() default "of";
 
     /**
-     * Modifiable object constructor.
+     * Factory method for mutable implementation
      * @return naming template
      */
     String create() default "create";
 
     /**
-     * Builder creator method.
+     * Builder creator method. This naming allow special keyword "new" value.
+     * This will customize builder to be created using parameterless constructor rather than
+     * factory methods.
      * @return naming template
      */
     String builder() default "builder";
@@ -440,12 +492,12 @@ public @interface Value {
      * Umbrella nesting class name generated using {@link Nested}.
      * @return naming template
      */
-    String typeImmutableNesting() default "Immutable*";
+    String typeImmutableEnclosing() default "Immutable*";
 
     /**
      * Immutable class name when generated under umbrella class using {@link Nested} annotation.
      * @see #typeImmutable()
-     * @see #typeImmutableNesting()
+     * @see #typeImmutableEnclosing()
      * @return naming template
      */
     String typeImmutableNested() default "*";
@@ -467,20 +519,14 @@ public @interface Value {
      * @return naming template
      */
     String typeVisitor() default "*Visitor";
-  }
 
-  /**
-   * Annotations that applies speculative Java Bean-style accessor naming convention
-   * to the generate immutable and other derived classes.
-   * It works by being annotated with {@litera @}{@link NamingStyle} annotation which specifies
-   * customized naming templates. This annotation could be placed on a class, surrounding
-   * {@link Nested} class or even a package (declared in {@code package-info.java}). This
-   * annotation more of example of how to define your own styles as meta-annotation rather than a
-   * useful annotation.
-   */
-  @Beta
-  @NamingStyle(get = {"is*", "get*"})
-  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface BeanAccessors {}
+    /**
+     * Specify default options for the generated immutable objects.
+     * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,
+     * then this default will not be taken into account, objects will be generated using attributes
+     * from inline annotation.
+     * @return default configuration
+     */
+    Immutable defaults() default @Immutable;
+  }
 }

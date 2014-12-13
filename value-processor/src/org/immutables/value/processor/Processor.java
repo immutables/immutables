@@ -15,20 +15,37 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import org.immutables.value.processor.meta.Round;
+import org.immutables.value.processor.meta.ImmutableRound;
+import com.google.common.collect.Multimap;
+import org.immutables.value.processor.meta.ValueType;
+import org.immutables.value.Value.Immutable;
 import com.google.auto.service.AutoService;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
-
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@Generator.SupportedAnnotations({Value.Immutable.class, Value.Nested.class, Value.Include.class})
+@Generator.SupportedAnnotations({Value.Immutable.class, Value.Nested.class, Immutable.Include.class})
 public final class Processor extends AbstractGenerator {
   @Override
   protected void process() {
-    invoke(new Generator_Values().main());
+    Round round = ImmutableRound.builder()
+        .addAllAnnotations(annotations())
+        .processing(processing())
+        .round(round())
+        .build();
+
+    Multimap<DeclaringPackage, ValueType> values = round.collectValues();
+
+    invoke(new Generator_Immutables().usingValues(values).generate());
+//    invoke(new Generator_Marshalers().usingValues(values).generate());
+//    invoke(new Generator_Parboileds().usingValues(values).generate());
+//    invoke(new Generator_Transformers().usingValues(values).generate());
+//    invoke(new Generator_Repositories().usingValues(values).generate());
   }
 }

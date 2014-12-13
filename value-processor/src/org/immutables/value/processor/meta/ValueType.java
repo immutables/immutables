@@ -15,11 +15,10 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -28,6 +27,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -37,7 +37,6 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -47,7 +46,8 @@ import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
-import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.Constitution.NameForms;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 
 /**
  * It's pointless to refactor this mess until
@@ -56,31 +56,67 @@ import org.immutables.value.processor.meta.NamingStyles.UsingName.TypeNames;
  */
 public class ValueType extends TypeIntrospectionBase {
 
-  public String typeMoreObjects;
+  private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
 
-  /**
-   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
-   * and long parameters and reserved slots for technical parameters).
-   */
-  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
+  public String typeMoreObjects;
 
   public TypeElement element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
   public boolean isHashCodeDefined;
   public boolean isEqualToDefined;
   public boolean isToStringDefined;
-  public boolean emptyNesting;
+  public Constitution constitution;
 
-  public boolean isUseBuilder() {
-    return getGenerateImmutableProperties().builder();
+  public TypeNames names() {
+    return constitution.allNames();
   }
 
-  public TypeNames namings;
+  public String factoryOf() {
+    return constitution.factoryOf();
+  }
 
-  public SegmentedName segmentedName;
+  public String factoryInstance() {
+    return constitution.factoryInstance();
+  }
+
+  public Protoclass.Kind kind() {
+    return constitution.protoclass().kind();
+  }
+
+  public NameForms typeBuilder() {
+    return constitution.typeBuilder();
+  }
+
+  public NameForms typeAbstract() {
+    return constitution.typeAbstract();
+  }
+
+  public NameForms typeValue() {
+    return constitution.typeValue();
+  }
+
+  public NameForms typeImmutable() {
+    return constitution.typeImmutable();
+  }
+
+  public NameForms typeEnclosing() {
+    return constitution.typeEnclosing();
+  }
+
+  public boolean isUseBuilder() {
+    return immutableFeatures.builder();
+  }
+
+  public String nameConstructorOf() {
+    return constitution.factoryOf();
+  }
+
+  public boolean isImplementationHidden() {
+    return constitution.isImplementationHidden();
+  }
 
   public String getSimpleName() {
-    return segmentedName.simpleName;
+    throw new UnsupportedOperationException("ValueType.getSimpleName");
   }
 
   public boolean isGenerateJacksonMapped() {
@@ -92,7 +128,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isTopLevel() {
-    return segmentedName.enclosingClassName.isEmpty();
+    return !kind().isNested();
   }
 
   public boolean isAnnotationType() {
@@ -100,23 +136,25 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public String implementationTypeName() {
-    return Joiner.on('.')
+    throw new UnsupportedOperationException("ValueType.implementationTypeName");
+/*    return Joiner.on('.')
         .skipNulls()
         .join(
             Strings.emptyToNull(getPackageName()),
-            getImmutableReferenceName());
+            getImmutableReferenceName());*/
   }
 
   public String getImmutableReferenceName() {
-    return "Immutable" + (isHasNestingParent() ? getName() : getSimpleName());
+    throw new UnsupportedOperationException("ValueType.getImmutableReferenceName");
+/* return "Immutable" + (isHasNestingParent() ? getName() : getSimpleName()); */
   }
 
   public boolean isGenerateParboiled() {
-    return emptyNesting && element.getAnnotation(Parboil.Ast.class) != null;
+    return !kind().isValue() && element.getAnnotation(Parboil.Ast.class) != null;
   }
 
   public boolean isGenerateTransformer() {
-    return emptyNesting && element.getAnnotation(Value.Transformer.class) != null;
+    return !kind().isValue() && element.getAnnotation(Value.Transformer.class) != null;
   }
 
   private CaseStructure caseStructure;
@@ -128,31 +166,17 @@ public class ValueType extends TypeIntrospectionBase {
     return caseStructure;
   }
 
-  private ValueType nestingParent;
+  public List<ValueType> nested = Collections.emptyList();
 
-  public void setNestingParent(ValueType nestingParent) {
-    this.nestingParent = nestingParent;
-  }
+  @Nullable
+  private ValueType enclosingValue;
 
-  private List<ValueType> nestedChildren;
-
-  public void setNestedChildren(List<ValueType> nestedChildren) {
-    this.nestedChildren = nestedChildren;
-    for (ValueType child : nestedChildren) {
-      child.setNestingParent(this);
+  public void addNested(ValueType nested) {
+    if (this.nested.isEmpty()) {
+      this.nested = Lists.newArrayList();
     }
-  }
-
-  public List<ValueType> getNestedChildren() {
-    return nestedChildren;
-  }
-
-  public boolean isHasNestingParent() {
-    return nestingParent != null;
-  }
-
-  public boolean isHasNestedChildren() {
-    return nestedChildren != null;
+    this.nested.add(nested);
+    nested.enclosingValue = this;
   }
 
   @Nullable
@@ -169,8 +193,8 @@ public class ValueType extends TypeIntrospectionBase {
 
   public <T extends Annotation> T getAnnotationFromThisOrEnclosingElement(Class<T> annotationType) {
     T annotation = element.getAnnotation(annotationType);
-    if (annotation == null && nestingParent != null) {
-      annotation = nestingParent.element.getAnnotation(annotationType);
+    if (annotation == null && enclosingValue != null) {
+      annotation = enclosingValue.element.getAnnotation(annotationType);
     }
     return annotation;
   }
@@ -179,20 +203,27 @@ public class ValueType extends TypeIntrospectionBase {
     return element.getAnnotation(Value.Getters.class) != null;
   }
 
-  public String getPackageName() {
-    return segmentedName.packageName;
+  public String $$package() {
+    return constitution.protoclass().packageOf().name();
   }
 
-  public String getName() {
-    return segmentedName.referenceClassName;
+  public String getPackageName() {
+    throw new UnsupportedOperationException("ValueType.getPackageName");
+  }
+
+  public String name() {
+    return constitution.typeValue().relative();
   }
 
   public String getDefName() {
-    return isHasNestingParent() ? segmentedName.simpleName : ("Immutable" + segmentedName.simpleName);
+    throw new UnsupportedOperationException("ValueType.getDefName");
+    /* return isHasNestingParent() ? segmentedName.simpleName : ("Immutable" +
+    segmentedName.simpleName); */
   }
 
   public String getAccessPrefix() {
-    Value.Immutable immutable = getGenerateImmutableProperties();
+    throw new UnsupportedOperationException("ValueType.getAccessPrefix");
+/*    Value.Immutable immutable = immutableFeatures;
     if (immutable != null && immutable.nonpublic()) {
       return "";
     }
@@ -200,6 +231,7 @@ public class ValueType extends TypeIntrospectionBase {
       return "public ";
     }
     return "";
+  */
   }
 
   public boolean isGenerateOrdinalValue() {
@@ -210,33 +242,28 @@ public class ValueType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
-  private Value.Immutable immutableProperties;
-
-  private Value.Immutable getGenerateImmutableProperties() {
-    if (immutableProperties == null) {
-      immutableProperties = element.getAnnotation(Value.Immutable.class);
-    }
-    return immutableProperties;
-  }
+  public Value.Immutable immutableFeatures;
 
   public boolean isUseCopyMethods() {
-    return getGenerateImmutableProperties().withers()
-        && getImplementedAttributes().size() > 0 && getImplementedAttributes().size() < USEFUL_PARAMETER_COUNT_LIMIT;
+    return immutableFeatures.copy();
+  }
+
+  public boolean isUseCopyConstructor() {
+    return immutableFeatures.copy() && (isUseConstructor() || isUseBuilder());
   }
 
   public boolean isUseSingleton() {
-    return getGenerateImmutableProperties().singleton()
-        || getImplementedAttributes().isEmpty();
+    return immutableFeatures.singleton() || getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseInterned() {
-    return getGenerateImmutableProperties().intern();
+    return immutableFeatures.intern();
   }
 
   public boolean isUsePrehashed() {
     return isUseInterned()
         || isGenerateOrdinalValue()
-        || getGenerateImmutableProperties().prehash();
+        || immutableFeatures.prehash();
   }
 
   public boolean isGenerateMarshaled() {
@@ -253,10 +280,9 @@ public class ValueType extends TypeIntrospectionBase {
   public boolean isHasAbstractBuilder() {
     if (hasAbstractBuilder == null) {
       boolean abstractBuilderDeclared = false;
-      List<? extends Element> enclosedElements = element.getEnclosedElements();
-      for (Element element : enclosedElements) {
-        if (element.getKind() == ElementKind.CLASS) {
-          if (element.getSimpleName().contentEquals("Builder")) {
+      for (Element t : element.getEnclosedElements()) {
+        if (t.getKind() == ElementKind.CLASS) {
+          if (t.getSimpleName().contentEquals(SUPER_BUILDER_TYPE_NAME)) {
             // We do not handle here if builder class is abstract static and not private
             // It's all to discretion compilation checking
             abstractBuilderDeclared = true;
@@ -271,12 +297,11 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public String getDocumentName() {
-    @Nullable
-    Mongo.Repository annotation = element.getAnnotation(Mongo.Repository.class);
+    @Nullable Mongo.Repository annotation = element.getAnnotation(Mongo.Repository.class);
     if (annotation != null && !annotation.value().isEmpty()) {
       return annotation.value();
     }
-    return inferDocumentCollectionName(getName());
+    return inferDocumentCollectionName(constitution.typeValue().simple());
   }
 
   private String inferDocumentCollectionName(String name) {

@@ -1,55 +1,66 @@
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
-import org.immutables.generator.Naming;
-import org.immutables.value.Value.NamingStyle;
-
 import java.util.Map;
+import org.immutables.generator.Naming;
+import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Style;
 
-@NamingStyle
-public final class NamingStyles {
+public final class Styles {
   // Let it be static non-thread-safe cache, it's ok for now
-  private static final Map<NamingStyle, NamingStyles> cache = Maps.newHashMap();
+  private static final Map<Style, Styles> cache = Maps.newHashMap();
 
+  @Style
   private static class DefaultStyle {
-    static NamingStyle style = NamingStyles.class.getAnnotation(NamingStyle.class);
+    static Style style = DefaultStyle.class.getAnnotation(Style.class);
   }
 
-  public static NamingStyle defaultStyle() {
+  public static Style defaultStyle() {
     return DefaultStyle.style;
   }
 
-  public static NamingStyles using(NamingStyle style) {
-    NamingStyles namings = cache.get(style);
+  public static Styles using(Style style) {
+    Styles namings = cache.get(style);
     if (namings == null) {
-      namings = new NamingStyles(style);
+      namings = new Styles(style);
       cache.put(style, namings);
     }
     return namings;
   }
 
-  public final NamingStyle style;
-  final Scheme scheme;
+  private final Style style;
+  private final Scheme scheme;
 
-  private NamingStyles(NamingStyle style) {
+  private Styles(Style style) {
     this.style = style;
     this.scheme = new Scheme();
   }
 
+  public Immutable defaults() {
+    return style.defaults();
+  }
+
   public UsingName.TypeNames forType(String name) {
-    return new UsingName(name, scheme).new TypeNames();
+    return new UsingName(name, scheme, "").new TypeNames();
+  }
+
+  public UsingName.AttributeNames forAccessorWithRaw(String name, String raw) {
+    return new UsingName(name, scheme, raw).new AttributeNames();
   }
 
   public UsingName.AttributeNames forAccessor(String name) {
-    return new UsingName(name, scheme).new AttributeNames();
+    return forAccessorWithRaw(name, "");
   }
 
-  private class Scheme {
+  class Scheme {
+    Naming[] typeAbstract = Naming.fromAll(style.typeAbstract());
     Naming typeImmutable = Naming.from(style.typeImmutable());
     Naming typeImmutableNested = Naming.from(style.typeImmutableNested());
-    Naming typeImmutableNesting = Naming.from(style.typeImmutableNesting());
+    Naming typeImmutableEnclosing = Naming.from(style.typeImmutableEnclosing());
     Naming of = Naming.from(style.of());
     Naming copyOf = Naming.from(style.copyOf());
+    Naming instance = Naming.from(style.instance());
 
     Naming typeBuilder = Naming.from(style.typeBuilder());
     Naming builder = Naming.from(style.builder());
@@ -64,7 +75,7 @@ public final class NamingStyles {
     Naming with = Naming.from(style.with());
 
     Naming set = Naming.from(style.set());
-    Naming hasSet = Naming.from(style.hasSet());
+//    Naming hasSet = Naming.from(style.hasSet());
     Naming unset = Naming.from(style.unset());
     Naming clear = Naming.from(style.clear());
 
@@ -77,13 +88,18 @@ public final class NamingStyles {
   public static class UsingName {
     private final String name;
     private final Scheme scheme;
+    private final String forcedRaw;
 
-    UsingName(String name, Scheme scheme) {
+    private UsingName(String name, Scheme scheme, String forcedRaw) {
       this.name = name;
       this.scheme = scheme;
+      this.forcedRaw = forcedRaw;
     }
 
-    String detectRawFromGet() {
+    private String detectRawFromGet() {
+      if (!forcedRaw.isEmpty()) {
+        return forcedRaw;
+      }
       for (Naming naming : scheme.get) {
         String raw = naming.detect(name);
         if (!raw.isEmpty()) {
@@ -93,21 +109,46 @@ public final class NamingStyles {
       return name;
     }
 
-    public class TypeNames {
-      public final String raw = name;
-      public final String typeImmutable = scheme.typeImmutable.apply(raw);
-      public final String typeImmutableNesting = scheme.typeImmutable.apply(raw);
-      public final String typeImmutableNested = scheme.typeImmutable.apply(raw);
-      public final String of = scheme.of.apply(raw);
-      public final String copyOf = scheme.copyOf.apply(raw);
+    private String detectRawFromAbstract() {
+      if (!forcedRaw.isEmpty()) {
+        return forcedRaw;
+      }
+      return detectRawFromAbstract(name);
+    }
 
-      public final String typeBuilder = scheme.typeBuilder.apply(raw);
+    /** Forced raw will not work if using this method */
+    String detectRawFromAbstract(String abstractName) {
+      for (Naming naming : scheme.typeAbstract) {
+        String raw = naming.detect(abstractName);
+        if (!raw.isEmpty()) {
+          // TBD is there a way to raise abstraction
+          return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, raw);
+        }
+      }
+      return abstractName;
+    }
+
+    public class TypeNames {
+      public final Scheme namings = scheme;
+      public final String raw = detectRawFromAbstract();
+      public final String typeAbstract = name;
+      public final String typeImmutable = scheme.typeImmutable.apply(raw);
+      public final String typeImmutableEnclosing = scheme.typeImmutableEnclosing.apply(raw);
+      public final String typeImmutableNested = scheme.typeImmutableNested.apply(raw);
+      public final String of = scheme.of.apply(raw);
+      public final String instance = scheme.instance.apply(raw);
+//      public final String typeBuilder = scheme.typeBuilder.apply(raw);
+      public final String copyOf = scheme.copyOf.apply(raw);
       public final String builder = scheme.builder.apply(raw);
       public final String build = scheme.build.apply(raw);
 
       public final String typeModifiable = scheme.typeModifiable.apply(raw);
       public final String create = scheme.create.apply(raw);
       public final String toImmutable = scheme.toImmutable.apply(raw);
+
+      String rawFromAbstract(String abstractName) {
+        return detectRawFromAbstract(abstractName);
+      }
     }
 
     public class AttributeNames {
@@ -120,10 +161,10 @@ public final class NamingStyles {
       public final String put = scheme.put.apply(raw);
       public final String putAll = scheme.putAll.apply(raw);
 
-//    public final String set = scheme.set.apply(raw);
-//    public final String hasSet = scheme.hasSet.apply(raw);
-//    public final String unset = scheme.unset.apply(raw);
-//    Naming clear = Naming.from(style.clear());
+      public final String set = scheme.set.apply(raw);
+//      public final String hasSet = scheme.hasSet.apply(raw);
+      public final String unset = scheme.unset.apply(raw);
+      public final String clear = scheme.clear.apply(raw);
     }
   }
 }

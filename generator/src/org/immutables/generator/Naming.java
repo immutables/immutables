@@ -19,6 +19,7 @@ import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import java.util.List;
 import static com.google.common.base.Preconditions.*;
@@ -35,8 +36,6 @@ public abstract class Naming implements Function<String, String> {
   private static final CharMatcher TEMPLATE_CHAR_MATCHER =
       CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0))).precomputed();
 
-  private static final Naming IDENTITY_NAMING = new PrefixSuffixNaming("", "");
-
   /**
    * Applies naming to input identifier, converting it to desired naming.
    * @param input the input identifier
@@ -51,6 +50,53 @@ public abstract class Naming implements Function<String, String> {
    * @return empty string if nothing detected
    */
   public abstract String detect(String identifier);
+
+  /**
+   * Checks if it's identity naming.
+   * @see #identity()
+   * @return true, if is identity naming
+   */
+  public abstract boolean isIdentity();
+
+  /**
+   * Checks if is constant naming.
+   * Verbatim naming convention do not use any supplied input name as base.
+   * Consider example factory method "from" constant naming,
+   * contrary to the factory method "newMyType" uses "MyType" as and input applying "new" prefix.
+   * @return true, if is constant
+   */
+  public abstract boolean isConstant();
+
+  /**
+   * Returns non-contant naming which is this. Sometimes context require naming should be
+   * non-contant, otherwise names will clash in shared identifier scope. If this naming is constant,
+   * then it is turned into corresponding prefix naming.
+   * @param preference preference for prefix or suffix naming
+   * @return non-constant naming template or {@code this} if already non-constant
+   */
+  public abstract Naming requireNonConstant(Preference preference);
+
+  public enum Preference {
+    PREFIX, SUFFIX
+  }
+
+  public enum Usage {
+    INDIFFERENT,
+    CAPITALIZED,
+    // funny name
+    LOWERIZED;
+    public String apply(String input) {
+      if (!input.isEmpty()) {
+        if (this == CAPITALIZED && !Ascii.isUpperCase(input.charAt(0))) {
+          return CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, input);
+        }
+        if (this == LOWERIZED && !Ascii.isLowerCase(input.charAt(0))) {
+          return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, input);
+        }
+      }
+      return input;
+    }
+  }
 
   /**
    * Naming the repeats the input name
@@ -87,11 +133,38 @@ public abstract class Naming implements Function<String, String> {
     return namings;
   }
 
-  /**
-   * Verbatim naming convention do not use any supplied input name as base.
-   * Consider example factory method "from", it used as {@link ConstantNaming},
-   * contrary to the factory method "newMyType" uses "MyType" as and input applying "new" prefix.
-   */
+  private static final Naming IDENTITY_NAMING = new Naming() {
+    @Override
+    public String apply(String input) {
+      return input;
+    }
+
+    @Override
+    public String detect(String identifier) {
+      return identifier;
+    }
+
+    @Override
+    public boolean isIdentity() {
+      return true;
+    }
+
+    @Override
+    public boolean isConstant() {
+      return false;
+    }
+
+    @Override
+    public Naming requireNonConstant(Preference preference) {
+      return this;
+    }
+
+    @Override
+    public String toString() {
+      return Naming.class.getSimpleName() + ".identity()";
+    }
+  };
+
   private static class ConstantNaming extends Naming {
     final String name;
 
@@ -110,6 +183,27 @@ public abstract class Naming implements Function<String, String> {
     }
 
     @Override
+    public boolean isIdentity() {
+      return false;
+    }
+
+    @Override
+    public boolean isConstant() {
+      return true;
+    }
+
+    @Override
+    public Naming requireNonConstant(Preference preference) {
+      switch (preference) {
+      case SUFFIX:
+        return new PrefixSuffixNaming("", name);
+      case PREFIX:
+      default:
+        return new PrefixSuffixNaming(name, "");
+      }
+    }
+
+    @Override
     public String toString() {
       return Naming.class.getSimpleName() + ".from(" + name + ")";
     }
@@ -124,23 +218,20 @@ public abstract class Naming implements Function<String, String> {
       this.prefix = prefix;
       this.suffix = suffix;
       this.lengthsOfPrefixAndSuffix = suffix.length() + prefix.length();
+      Preconditions.checkArgument(lengthsOfPrefixAndSuffix > 0);
     }
 
     @Override
     public String apply(String input) {
-      CaseFormat resultFormat = prefix.isEmpty()
-          ? CaseFormat.LOWER_CAMEL
-          : CaseFormat.UPPER_CAMEL;
+      Usage resultFormat = prefix.isEmpty()
+          ? Usage.INDIFFERENT
+          : Usage.CAPITALIZED;
 
-      return prefix + CaseFormat.LOWER_CAMEL.to(resultFormat, input) + suffix;
+      return prefix + resultFormat.apply(input) + Usage.CAPITALIZED.apply(suffix);
     }
 
     @Override
     public String detect(String identifier) {
-      if (lengthsOfPrefixAndSuffix == 0) {
-        return identifier;
-      }
-
       if (identifier.length() <= lengthsOfPrefixAndSuffix) {
         return NOT_DETECTED;
       }
@@ -161,11 +252,23 @@ public abstract class Naming implements Function<String, String> {
     }
 
     @Override
+    public boolean isIdentity() {
+      return false;
+    }
+
+    @Override
+    public boolean isConstant() {
+      return false;
+    }
+
+    @Override
+    public Naming requireNonConstant(Preference preference) {
+      return this;
+    }
+
+    @Override
     public String toString() {
-      return Naming.class.getSimpleName()
-          + (lengthsOfPrefixAndSuffix != 0
-              ? ".from(" + prefix + NAME_PLACEHOLDER + suffix + ")"
-              : ".identity()");
+      return Naming.class.getSimpleName() + ".from(" + prefix + NAME_PLACEHOLDER + suffix + ")";
     }
   }
 }

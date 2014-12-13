@@ -33,8 +33,7 @@ public final class Spacing {
   private Spacing() {}
 
   public static Unit normalize(Unit unit) {
-    unit = TRANSFORMER.transform((Void) null, unit);
-    return unit;
+    return TRANSFORMER.transform((Void) null, unit);
   }
 
   private static final TreesTransformer<Void> TRANSFORMER = new TreesTransformer<Void>() {

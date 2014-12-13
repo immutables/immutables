@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.AnnotationMirrors;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -36,7 +37,7 @@ import javax.lang.model.type.TypeMirror;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
-import org.immutables.value.processor.meta.NamingStyles.UsingName.AttributeNames;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -46,7 +47,6 @@ import org.immutables.value.processor.meta.NamingStyles.UsingName.AttributeNames
 public class ValueAttribute extends TypeIntrospectionBase {
   private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
-  private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
   public AttributeNames names;
@@ -64,7 +64,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public ImmutableList<String> typeParameters;
 
   TypeMirror returnType;
-  ExecutableElement element;
+  Element element;
   String returnTypeName;
 
   public boolean isBoolean() {
@@ -114,16 +114,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private String inferMarshaledName() {
-    @Nullable
-    Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
+    @Nullable Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
     if (namedAnnotaion != null) {
       String name = namedAnnotaion.value();
       if (!name.isEmpty()) {
         return name;
       }
     }
-    @Nullable
-    Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
+    @Nullable Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
     if (idAnnotation != null) {
       return ID_ATTRIBUTE_NAME;
     }
@@ -135,12 +133,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return element.getAnnotation(Json.ForceEmpty.class) != null;
   }
 
+  @Deprecated
   @Nullable
   public CharSequence getAnnotationDefaultValue() {
-    @Nullable
-    AnnotationValue defaultValue = element.getDefaultValue();
-    if (defaultValue != null) {
-      return AnnotationPrinting.toCharSequence(defaultValue);
+    // Currently it is not used?
+    if (element instanceof ExecutableElement) {
+      @Nullable AnnotationValue defaultValue = ((ExecutableElement) element).getDefaultValue();
+      if (defaultValue != null) {
+        return AnnotationMirrors.toCharSequence(defaultValue);
+      }
     }
     return null;
   }
@@ -185,15 +186,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
       String type = getType();
       if (isMapType()) {
         implementationType = type.replace(Map.class.getName(),
-            googleCommonHiddenFromShadePlugin("collect.ImmutableMap"));
+            UnshadeGuava.typeString("collect.ImmutableMap"));
       } else if (isListType()) {
         implementationType = type.replace(List.class.getName(),
-            googleCommonHiddenFromShadePlugin("collect.ImmutableList"));
+            UnshadeGuava.typeString("collect.ImmutableList"));
       } else if (isSetType()) {
         implementationType = type.replace(Set.class.getName(),
             isGenerateOrdinalValueSet()
                 ? "org.immutables.common.collect.".concat("ImmutableOrdinalSet")
-                : googleCommonHiddenFromShadePlugin("collect.ImmutableSet"));
+                : UnshadeGuava.typeString("collect.ImmutableSet"));
       } else {
         implementationType = type;
       }
@@ -249,13 +250,9 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isOptionalType == null) {
-      isOptionalType = returnTypeName.startsWith(googleCommonHiddenFromShadePlugin("base.Optional"));
+      isOptionalType = returnTypeName.startsWith(UnshadeGuava.typeString("base.Optional"));
     }
     return isOptionalType;
-  }
-
-  private String googleCommonHiddenFromShadePlugin(Object string) {
-    return GOOGLE_COMMON_PREFIX + string;
   }
 
   public boolean isCollectionType() {
@@ -428,8 +425,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
               if (typeSecondArgument instanceof DeclaredType) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
-                @Nullable
-                Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
+                @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
                 marshaledSecondaryElement = generateMarshaler != null;
                 specialMarshaledSecondaryElement =
                     isSpecialMarshaledElement(marshaledSecondaryElement, typeElement.getQualifiedName());
@@ -452,8 +448,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
       this.containedTypeElement = typeElement;
 
-      @Nullable
-      Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
+      @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
       marshaledElement = generateMarshaler != null;
       specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
     }

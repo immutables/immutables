@@ -23,7 +23,7 @@ import org.immutables.value.processor.meta.ValueType;
 import java.util.Collection;
 import java.util.Map;
 
-@Generator.Template
+//@Generator.Template
 abstract class Marshalers extends ValuesTemplate {
 
   @Generator.Typedef

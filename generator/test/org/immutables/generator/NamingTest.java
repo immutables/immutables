@@ -1,5 +1,6 @@
 package org.immutables.generator;
 
+import org.immutables.generator.Naming.Preference;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -77,5 +78,21 @@ public class NamingTest {
     check(star.apply("x")).is("x");
     check(star.detect("x")).is("x");
     check(star.detect("__")).is("__");
+    check(star).same(Naming.identity());
+  }
+
+  @Test
+  public void requireNonConstant() {
+    check(Naming.identity().requireNonConstant(Preference.PREFIX)).same(Naming.identity());
+    check(Naming.from("Create").requireNonConstant(Preference.PREFIX).apply("x")).is("CreateX");
+    check(Naming.from("Create").requireNonConstant(Preference.SUFFIX).apply("x")).is("xCreate");
+    check(Naming.from("new*").requireNonConstant(Preference.SUFFIX).apply("x")).is("newX");
+  }
+
+  @Test
+  public void usageCorrection() {
+    String apply = Naming.from("of").requireNonConstant(Preference.SUFFIX).apply("Hen");
+    check(Naming.Usage.LOWERIZED.apply(apply)).is("henOf");
+    check(Naming.from("check*out").apply("it")).is("checkItOut");
   }
 }
