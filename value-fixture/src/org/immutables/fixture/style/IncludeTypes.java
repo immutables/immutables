@@ -1,27 +1,45 @@
 package org.immutables.fixture.style;
 
-import org.immutables.fixture.style.ImmutableIncludeNestedTypes.Retention;
-import org.immutables.fixture.style.ImmutableIncludeNestedTypes.Target;
+import java.io.Serializable;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
-import java.io.Serializable;
 import org.immutables.value.Value;
 
+/**
+ * Feature combination
+ * <ul>
+ * <li>Included on types and packages
+ * <li>Included as nested types
+ * <li>Package style application
+ * </ul>
+ */
 @Value.Immutable.Include({Serializable.class})
 @Value.Immutable
 public class IncludeTypes {
 
   void use() {
+    // this immutable type
     ImmutableIncludeTypes.of();
+    // included on this type
     ImmutableSerializable.of();
-    Retention retention = ImmutableIncludeNestedTypes.Retention.builder()
-        .value(RetentionPolicy.CLASS)
-        .build();
-    Target target = ImmutableIncludeNestedTypes.Target.builder()
-        .value(ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE)
-        .build();
+    // included on package
+    ImmutableTicker.builder().read(1).build();
 
-    retention.withValue(RetentionPolicy.RUNTIME);
-    target.withValue(ElementType.CONSTRUCTOR, ElementType.LOCAL_VARIABLE);
+    // included in IncludeNestedTypes
+    ImmutableIncludeNestedTypes.Retention retention =
+        ImmutableIncludeNestedTypes.Retention.builder()
+            .value(RetentionPolicy.CLASS)
+            .build();
+
+    // included in IncludeNestedTypes
+    ImmutableIncludeNestedTypes.Target target =
+        ImmutableIncludeNestedTypes.Target.builder()
+            .value(ElementType.CONSTRUCTOR, ElementType.ANNOTATION_TYPE)
+            .build();
+
+    // package applied style "copyWith*" test
+    // see PackageStyle
+    retention.copyWithValue(RetentionPolicy.RUNTIME);
+    target.copyWithValue(ElementType.CONSTRUCTOR, ElementType.LOCAL_VARIABLE);
   }
 }

@@ -15,7 +15,7 @@ import org.immutables.value.Value;
 public class HiddenImplementation {
 
   void use() {
-    HiddenImplementation instance = new HiddenImplementationBuilder().build();
+    HiddenImplementation instance = HiddenImplementationBuilder.builder().build();
     instance.toString();
   }
 }
