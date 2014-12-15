@@ -71,7 +71,7 @@ package [type.package];
 [annotationsWhenTopLevel type topLevel]
 @javax.annotation.concurrent.Immutable
 [type.typeImmutable.access][if not topLevel]static [/if]final class [type.typeImmutable.simple]
-    [type.inheritsKeyword] [type.typeAbstract] {
+    [type.inheritsKeyword] `[type.typeAbstract] {
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
@@ -228,7 +228,7 @@ package [type.package];
  * Creates immutable copy of [type.typeAbstract.simple]. Uses accessors to get values to initialize new immutable instance.
  * If instance is already immutable, it returns it unchanged.
  */
-public static [type.typeValue.relative] [type.names.copyOf]([type.typeAbstract] instance) {
+public static [type.typeValue.relative] [type.names.copyOf](`[type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
@@ -360,6 +360,7 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
     return (initializedBitset[pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
   }
   [/for]
+  [-- Being called from builder initializer methods --]
   [let mandatorySetInBuilder Attribute v]
   [if v.mandatory][for BitPosition pos = positions v]
     initializedBitset[pos.index] |= INITIALIZED_BIT_[toConstant v.name];
@@ -713,8 +714,8 @@ public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws ja
 }
 
 @com.fasterxml.jackson.annotation.JsonCreator
-public static [type.typeImmutable.simple] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
-  return copyOf(org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffers([marshalerInstance], buffers));
+public static [type.typeValue.relative] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
+  return [type.names.copyOf](org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffers([marshalerInstance], buffers));
 }
 [/if]
 [/template]
@@ -1057,7 +1058,7 @@ public static [type.typeValue.relative] [type.factoryInstance]() {
  * @return immutable [type.typeAbstract.simple] instance
  */
 public static [type.typeValue.relative] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
-  return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
+  return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]
   [/if]

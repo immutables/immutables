@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -33,20 +34,22 @@ import javax.annotation.Nullable;
  */
 @Deprecated
 final class LegacyJavaPostprocessing {
+  private static final char DONT_IMPORT_ESCAPE = '`';
+
   private static final Pattern FULLY_QUALIFIED_PATTERN =
       Pattern.compile("(\\W)(([a-z0-9_]+\\.)+)([A-Z][A-Za-z0-9_]*)");
 
   private static final Pattern PACKAGE_DECLARATION =
       Pattern.compile("package ([a-z0-9_\\.]+)");
 
+  private static final CharMatcher DONT_IMPORT_MATCHER = CharMatcher.is(DONT_IMPORT_ESCAPE);
   private static final Joiner LINE_JOINER = Joiner.on('\n');
   private static final Splitter LINE_SPLITTER = Splitter.on('\n');
 
   static CharSequence rewrite(CharSequence content) {
     List<String> modifiedLines = Lists.newArrayList();
     Set<String> importStatements = Sets.newTreeSet();
-    @Nullable
-    String packageName = null;
+    @Nullable String packageName = null;
     int indexOfGenImportsPlaceholder = -1;
     int indexOfPackageLine = -1;
     for (String l : LINE_SPLITTER.split(content)) {
@@ -67,6 +70,10 @@ final class LegacyJavaPostprocessing {
           indexOfGenImportsPlaceholder = modifiedLines.size();
         }
         modifiedLines.add(l);
+        continue;
+      }
+      if (DONT_IMPORT_MATCHER.matchesAnyOf(l)) {
+        modifiedLines.add(DONT_IMPORT_MATCHER.removeFrom(l));
         continue;
       }
       Matcher matcher = FULLY_QUALIFIED_PATTERN.matcher(l);

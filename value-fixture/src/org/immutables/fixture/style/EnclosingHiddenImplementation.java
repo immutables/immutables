@@ -30,7 +30,7 @@ public abstract class EnclosingHiddenImplementation {
   @Value.Immutable
   public static abstract class NonexposedImplementation {
     @Value.Parameter
-    public abstract int cons();
+    public abstract Optional<Integer> cons();
   }
 
   @Value.Immutable(builder = false, visibility = ImplementationVisibility.SAME)
@@ -46,7 +46,7 @@ public abstract class EnclosingHiddenImplementation {
     EnclosingFactory.singletonInstanceHiddenImplementation();
     EnclosingFactory.singletonInstanceNonexposedImplementation();
     // Strictly follows naming template
-    EnclosingFactory.newNonexposedImplementation(11);
+    EnclosingFactory.newNonexposedImplementation(Optional.of(11));
     // Implementation is visible
     EnclosingFactory.VisibleImplementation.newVisibleImplementation(Optional.<Integer>absent());
   }
