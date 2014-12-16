@@ -284,9 +284,9 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {
             [if l.primitive or l.nullable]
-          this.[l.name] = super.[l.names.get]();
+          this.[l.name] = [invokeSuper type].[l.names.get]();
             [else]
-          this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.names.get]());
+          this.[l.name] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -570,6 +570,8 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
 [/for]
 [/template]
 
+[template invokeSuper Type type][if type.iface][type.typeAbstract.relative].[/if]super[/template]
+
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
   [if v.optionalType]
@@ -591,9 +593,9 @@ this.[n] = null;
 this.[n] = DEFAULT_VALUE_[toConstant v.name];
 [else]
   [if v.primitive or v.nullable]
-this.[n] = super.[v.names.get]();
+this.[n] = [invokeSuper type].[v.names.get]();
   [else]
-this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -656,7 +658,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else]
-        : super.[v.names.get]();
+        : [invokeSuper type].[v.names.get]();
       [/if]
   [else]
     this.[n] = builder.[n] != null
@@ -664,16 +666,16 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else if v.nullable]
-        : super.[v.names.get]();
+        : [invokeSuper type].[v.names.get]();
       [else]
-        : com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+        : com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
       [/if]
   [/if]
 [else if v.generateDerived]
   [if v.primitive or v.nullable]
-    this.[n] = super.[v.names.get]();
+    this.[n] = [invokeSuper type].[v.names.get]();
   [else]
-    this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+    this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
   [/if]
 [/if]
 [/for]
