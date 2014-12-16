@@ -1,22 +1,24 @@
-[template generate Type type]
-[if type.isTopLevel]
-[output.java type.packageName (type.simpleName 'Repository')]
+[template generate]
+  [for type in values.values if type.generateRepository]
+    [if type.kind.isValue]
+[output.java type.package (type.typeAbstract.simple 'Repository')]
 [generateRepository type]
 [/output.java]
-[else]
+    [else]
 [output.error]
-  Use @Mongo.Repository to annotate top level @Value.Immutable abtract value types
+Use @Mongo.Repository to annotate @Value.Immutable abstract value types
 [/output.error]
-[/if]
+    [/if]
+  [/for]
 [/template]
 
 [template generateRepository Type type]
-[if type.packageName]
-package [type.packageName];
+[if type.package]
+package [type.package];
 [/if]
 
 // Generated imports
-import [type.packageName].*;
+import [type.package].*;
 [generateImportRoutines type]
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -28,7 +30,7 @@ import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
- * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
+ * {@code [type.typeAbstract.simple]Repository} provides type safe access for storing and retrieving documents
  * from the MongoDB collection "[type.documentName]".
  */
 @javax.inject.Singleton
@@ -36,7 +38,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 @javax.annotation.Generated({"Repositories.generator", "[type.name]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-[type.accessPrefix]final class [type.name]Repository extends Repositories.Repository<[type.name]> {
+[type.typeAbstract.access]final class [type.typeAbstract.simple]Repository extends Repositories.Repository<[type.name]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
   /**
@@ -44,8 +46,8 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
    * @param configuration the repository configuration
    */
   @javax.inject.Inject
-  public [type.name]Repository(RepositorySetup configuration) {
-    super(configuration, DOCUMENT_COLLECTION_NAME, [type.name]Marshaler.instance());
+  public [type.typeAbstract.simple]Repository(RepositorySetup configuration) {
+    super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeAbstract.simple]Marshaler.instance());
   }
   
   /**
@@ -92,7 +94,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 [if a]
 
   /**
-   * Find document by {@link [type.name]#[a.name]() [a.name]} identity attribute. Use returned {@link Finder} object to complete
+   * Find document by {@link [type.name]#[a.names.get]() [a.name]} identity attribute. Use returned {@link Finder} object to complete
    * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
    * @param [a.name] the exact {@code [a.name]} value
    * @return finder object to complete operation
@@ -128,8 +130,8 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
   [for a in type.implementedAttributes]
 
 /**
- * Order by {@link [type.name]#[a.name]() [a.name]} in the ascending direction.
- * Specify next attribute to sort will be {@link [type.name]#[a.name]() [a.name]} attribute using ascending order
+ * Order by {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
+ * Specify next attribute to sort will be {@link [type.name]#[a.names.get]() [a.name]} attribute using ascending order
  * in the the chain of comparisons performed to sort results.
  * @return {@code this} [toLower tT] for chained invocation
  */
@@ -139,8 +141,8 @@ public [tT] orderBy[toUpper a.name]() {
 }
 
 /**
- * Order by {@link [type.name]#[a.name]() [a.name]} in the descending direction.
- * Specify next attribute to sort will be {@link [type.name]#[a.name]() [a.name]} attribute using descending order
+ * Order by {@link [type.name]#[a.names.get]() [a.name]} in the descending direction.
+ * Specify next attribute to sort will be {@link [type.name]#[a.names.get]() [a.name]} attribute using descending order
  * in the the chain of comparisons performed to sort results.
  * @return {@code this} [toLower tT] for chained invocation
  */
@@ -152,7 +154,7 @@ public [tT] orderBy[toUpper a.name]Desceding() {
   [for a in type.excludableAttributes]
  
 /**
- * Exclude {@link [type.name]#[a.name]() [a.name]} attribute from each document in results.
+ * Exclude {@link [type.name]#[a.names.get]() [a.name]} attribute from each document in results.
  * @return {@code this} [toLower tT] for chained invocation
  */    
 public [tT] exclude[toUpper a.name]() {
@@ -165,7 +167,7 @@ public [tT] exclude[toUpper a.name]() {
 [template generateFinder Type type]
 
 /**
- * Find document by {@link [type.name]Repository#where() criteria}. Use returned {@link Finder} object to complete
+ * Find document by {@link [type.typeAbstract.simple]Repository#where() criteria}. Use returned {@link Finder} object to complete
  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
  * @param criteria search criteria
  * @return finder object to complete operation
@@ -178,12 +180,12 @@ public Finder find(Criteria criteria) {
 /**
  * Finder object used to proceed with find operation by using methods
  * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()} or {@link Finder#deleteFirst()} methods.
- * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods. 
- * @see [type.name]Repository#find(Criteria)
+ * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods.
+ * @see [type.typeAbstract.simple]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Finder extends Repositories.Finder<[type.name], Finder> {
-  private Finder([type.name]Repository repository, ConstraintSupport.ConstraintHost criteria) {
+  private Finder([type.typeAbstract.simple]Repository repository, ConstraintSupport.ConstraintHost criteria) {
     super(repository);
     this.criteria = criteria;
   }
@@ -197,10 +199,10 @@ public static final class Finder extends Repositories.Finder<[type.name], Finder
 /**
  * Turn find operation into atomic {@link DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean, boolean) findAndModify}
  * operation. Use family of {@code set*()}, {@code unset*()}, {@code add*()}, {@code remove*()}, {@code put*()} and {@code init*()}
- * and other attribute specific methods to describe modification. 
+ * and other attribute specific methods to describe modification.
  * @return modifier object to complete {@code findAndModify} operation
  */
-@javax.annotation.CheckReturnValue 
+@javax.annotation.CheckReturnValue
 public Modifier andModifyFirst() {
   return new Modifier(repository, criteria, ordering, exclusion);
 }
@@ -217,7 +219,7 @@ public Modifier andModifyFirst() {
  * @see Indexer#unique()
  * @return indexer object to complete with {@link Indexer#ensure()} operation.
  */
-@javax.annotation.CheckReturnValue 
+@javax.annotation.CheckReturnValue
 public Indexer index() {
   return new Indexer(this);
 }
@@ -228,22 +230,22 @@ public Indexer index() {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Indexer extends Repositories.Indexer<[type.name], Indexer> {
-  private Indexer([type.name]Repository repository) {
+  private Indexer([type.typeAbstract.simple]Repository repository) {
     super(repository);
   }
 [for a in type.implementedAttributes]
-  
+
   /**
-   * Specify next attribute to in index will be {@link [type.name]#[a.name]() [a.name]} in the ascending direction.
+   * Specify next attribute to in index will be {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
    * @return {@code this} indexer for chained invocation
    */
   public Indexer with[toUpper a.name]() {
     fields = fields.equal("[a.marshaledName]", false, 1);
     return this;
   }
-  
+
   /**
-   * Specify next attribute to in index will be {@link [type.name]#[a.name]() [a.name]} in the descending direction.
+   * Specify next attribute to in index will be {@link [type.name]#[a.names.get]() [a.name]} in the descending direction.
    * @return {@code this} indexer for chained invocation
    */
   public Indexer with[toUpper a.name]Desceding() {
@@ -258,7 +260,7 @@ public static final class Indexer extends Repositories.Indexer<[type.name], Inde
 /**
  * Update set of "[type.documentName]" documents.
  * @param criteria search criteria for update
- * @return updater object to complete update. 
+ * @return updater object to complete update.
  */
 @javax.annotation.CheckReturnValue
 public Updater update(Criteria criteria) {
@@ -271,7 +273,7 @@ public Updater update(Criteria criteria) {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Updater extends Repositories.Updater<[type.name]> {
-  private Updater([type.name]Repository repository, Criteria criteria) {
+  private Updater([type.typeAbstract.simple]Repository repository, Criteria criteria) {
     super(repository);
     this.criteria = (ConstraintSupport.ConstraintHost) criteria;
   }
@@ -305,7 +307,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   [if a.collectionType]
 
   /**
-   * Clear [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * Clear {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
 [if a.forceEmpty]
    * Corresponds to MongoDB {@code $set} operator resetting to empty array
@@ -322,9 +324,9 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   [/if]
     return this;
   }
-  
+
   /**
-   * Remove value from [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * Remove value from {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
    * Corresponds to MongoDB {@code $pull} operator.
    * @param value value to remove
@@ -336,7 +338,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   }
 
   /**
-   * Add value to [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * Add value to {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
   [if a.setType]
    * Corresponds to MongoDB {@code $addToSet} operator.
@@ -356,7 +358,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   }
 
   /**
-   * Add all values to [toUpper a.name] [toLower a.rawCollectionType] attribute.
+   * Add all values to {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
   [if a.setType]
    * Corresponds to MongoDB {@code $addToSet} operator with {@code $each} modifier.
@@ -365,7 +367,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   [/if]
    * @param values values to add
    * @return {@code this} [toLower tT] to complete update operation
-   */  
+   */
   public [tT] addAll[toUpper a.name](Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
     for ([wW] v : values) {
@@ -385,13 +387,13 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   [/if]
     return this;
   }
-    
+
 [/if]
 [if not a.collectionType]
   [if a.mapType]
 
   /**
-   * Clear [toUpper a.name] map attribute.
+   * Clear {@code [a.name]} map attribute.
    * <p>
    * Corresponds to MongoDB {@code $set} operator to reset to empty object
    * @return {@code this} [toLower tT] to complete update operation
@@ -402,7 +404,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   }
 
   /**
-   * Put key, value into the map of [toUpper a.name] map attribute.
+   * Put key, value into the map of {@code [a.name]} map attribute.
    * <p>
    * Corresponds to MongoDB {@code $set} operator for nested object
    * @param key key
@@ -413,9 +415,9 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
     setFields = setFields.equal("[a.marshaledName]." + key, false, wrapMarshalable(value));
     return this;
   }
-  
+
   /**
-   * Remove key, value mapping from [toUpper a.name] map attribute.
+   * Remove key, value mapping from {@code [a.name]} map attribute.
    * <p>
    * Corresponds to MongoDB {@code $unset} operator for nested object
    * @param key key
@@ -429,7 +431,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
     [if a.optionalType]
 
   /**
-   * Clear [toUpper a.name] optional attribute.
+   * Clear {@code [a.name]} optional attribute.
    * <p>
 [if a.forceEmpty]
    * Corresponds to MongoDB {@code $set} operator resetting to {@code null}
@@ -449,23 +451,23 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
     [/if]
 
   /**
-   * Specify new value for the '[toUpper a.name]' attribute. 
+   * Specify new value for the {@code [a.name]} attribute.
    * <p>
    * Corresponds to MongoDB {@code $set} operator.
-   * @param value new value for the [toUpper a.name] attribute
+   * @param value new value for the {@code [a.name]} attribute
    * @return {@code this} [toLower tT] to complete update operation
-   */     
+   */
   public [tT] set[toUpper a.name]([uU] value) {
     setFields = setFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
     return this;
   }
-  
+
   /**
-   * Specify initial value for the '[toUpper a.name]' attribute which will be used if document is
+   * Specify initial value for the {@code [a.name]} attribute which will be used if document is
    * to be inserted. If one or more documents are found for an update, this value will not be used.
    * <p>
    * Corresponds to MongoDB {@code $setOnInsert} operator.
-   * @param value [toUpper a.name] value for an insert.
+   * @param value {@code [a.name]} value for an insert.
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] init[toUpper a.name]([uU] value) {
@@ -475,17 +477,17 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
 
     [if a.numberType]
   /**
-   * Specify increment amount for the '[toUpper a.name]' attribute. If document is to inserted
-   * and no initial value provided, then {@code 0} will be the default value and increment will adjust it. 
+   * Specify increment amount for the {@code [a.name]} attribute. If document is to inserted
+   * and no initial value provided, then {@code 0} will be the default value and increment will adjust it.
    * <p>
    * Corresponds to MongoDB {@code $inc} operator.
-   * @param increment an amount to increment [toUpper a.name] attribute (may be negative)
+   * @param increment an amount to increment {@code [a.name]} attribute (may be negative)
    * @return {@code this} [toLower tT] to complete update operation
-   */    
+   */
   public [tT] increment[toUpper a.name]([uU] increment) {
     incrementFields = incrementFields.equal("[a.marshaledName]", false, increment);
     return this;
-  }        
+  }
       [/if]
     [/if]
   [/if]
@@ -500,11 +502,11 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
 @SuppressWarnings("unchecked")
 private static final class InternalCriteria extends Criteria implements ConstraintSupport.ConstraintHost {
   final ConstraintSupport.Constraint constraint;
-  
+
   InternalCriteria(ConstraintSupport.Constraint constraint) {
     this.constraint = constraint;
   }
-  
+
   public <V extends ConstraintSupport.ConstraintVisitor<V>> V accept(V visitor) {
     return constraint.accept(visitor);
   }
@@ -522,17 +524,17 @@ private static final class InternalCriteria extends Criteria implements Constrai
   public InternalCriteria [a.name]NonEmpty() {
     return new InternalCriteria(constraint.size("[a.marshaledName]", true, 0));
   }
-  
+
   @Override
   public InternalCriteria [a.name]Size(int size) {
     return new InternalCriteria(constraint.size("[a.marshaledName]", false, size));
   }
-  
+
   @Override
   public InternalCriteria [a.name]Contains([uU] value) {
     return new InternalCriteria(constraint.equal("[a.marshaledName]", false, wrapMarshalable(value)));
   }
-  
+
   @Override
   public InternalCriteria [a.name]ContainsAll(Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
@@ -546,7 +548,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
   public InternalCriteria [a.name]AnyStartsWith(String prefix) {
     return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
   }
-  
+
   @Override
   public InternalCriteria [a.name]AnyMatches(java.util.regex.Pattern pattern) {
     return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
@@ -568,7 +570,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
   public InternalCriteria [a.name]Not([uU] value) {
     return new InternalCriteria(constraint.equal("[a.marshaledName]", true, wrapMarshalable(value)));
   }
-  
+
   @Override
   public InternalCriteria [a.name]In(Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
@@ -577,7 +579,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
     }
     return new InternalCriteria(constraint.in("[a.marshaledName]", false, wrappedValues));
   }
-  
+
   @Override
   public InternalCriteria [a.name]In([uU] first, [uU] second, [uU]... rest) {
     java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
@@ -588,7 +590,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
     }
     return new InternalCriteria(constraint.in("[a.marshaledName]", false, values));
   }
-  
+
   @Override
   public InternalCriteria [a.name]NotIn(Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
@@ -597,7 +599,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
     }
     return new InternalCriteria(constraint.in("[a.marshaledName]", true, wrappedValues));
   }
-    
+
   @Override
   public InternalCriteria [a.name]NotIn([uU] first, [uU] second, [uU]... rest) {
     java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
@@ -610,12 +612,12 @@ private static final class InternalCriteria extends Criteria implements Constrai
   }
   [/if]
 [if a.stringType]
-  
+
   @Override
   public InternalCriteria [a.name]StartsWith(String prefix) {
     return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
   }
-  
+
   @Override
   public InternalCriteria [a.name]Matches(java.util.regex.Pattern pattern) {
     return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
@@ -627,7 +629,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
   }
 [/if]
 [if a.optionalType]
-  
+
   @Override
   public InternalCriteria [a.name]Present() {
   [if a.forceEmpty or type.useConstructorOnly]
@@ -647,37 +649,37 @@ private static final class InternalCriteria extends Criteria implements Constrai
   }
 [/if]
 [if a.comparable]
-  
+
   @Override
   public InternalCriteria [a.name]GreaterThan([uU] lower) {
     return [a.name]In(com.google.common.collect.Range.greaterThan(lower));
   }
-  
+
   @Override
   public InternalCriteria [a.name]LessThan([uU] upper) {
     return [a.name]In(com.google.common.collect.Range.lessThan(upper));
   }
-  
+
   @Override
   public InternalCriteria [a.name]AtMost([uU] upperInclusive) {
     return [a.name]In(com.google.common.collect.Range.atMost(upperInclusive));
   }
-  
+
   @Override
   public InternalCriteria [a.name]AtLeast([uU] lowerInclusive) {
     return [a.name]In(com.google.common.collect.Range.atLeast(lowerInclusive));
   }
-  
+
   @Override
   public InternalCriteria [a.name]In(com.google.common.collect.Range<[wW]> range) {
     return new InternalCriteria(constraint.range("[a.marshaledName]", false, wrappedRange[toUpper a.name](range)));
   }
-  
+
   @Override
   public InternalCriteria [a.name]NotIn(com.google.common.collect.Range<[wW]> range) {
     return new InternalCriteria(constraint.range("[a.marshaledName]", true, wrappedRange[toUpper a.name](range)));
   }
-  
+
   private static com.google.common.collect.Range<Comparable<Object>> wrappedRange[toUpper a.name](com.google.common.collect.Range<[wW]> range) {
     if (range.hasLowerBound() && range.hasUpperBound()) {
       return com.google.common.collect.Range.range(
@@ -696,7 +698,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
     }
     throw new AssertionError();
   }
-  
+
 [/if]
 [/if]
 [/for]
@@ -708,7 +710,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
 
   @Override
   public String toString() {
-    return "[type.name]Repository.where(" + RepositorySupport.stringify(this) + ")";
+    return "[type.typeAbstract.simple]Repository.where(" + RepositorySupport.stringify(this) + ")";
   }
 }
 [/template]
@@ -726,7 +728,7 @@ public static Criteria where() {
 }
 
 /**
- * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
+ * {@code [type.typeAbstract.simple]Repository.Criteria} is a [type.name] document search query.
  * Call methods on criteria to add constraint for search query.
  */
 @javax.annotation.concurrent.Immutable

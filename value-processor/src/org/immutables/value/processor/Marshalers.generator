@@ -1,60 +1,69 @@
-[template generate Type... types]
-[for type in types if type.generateMarshaled]
-[checkAttributes type]
-[output.java type.packageName (type.simpleName 'Marshaler')]
+[template generate]
+  [for type in values.values if type.generateMarshaled and type.kind.isValue]
+    [checkAttributes type]
+
+[output.java type.package (type.typeAbstract.simple 'Marshaler')]
 [generateMarshaler type]
 [/output.java]
-[output.java type.packageName ('_Marshaling_' type.simpleName)]
+
+[output.java type.package ('_Marshaling_' type.typeAbstract.simple)]
 [generateMarshaling type]
 [/output.java]
+
+  [/for]
+  [for e in values.asMap.entrySet]
+    [generateMarshalingContributor e.key e.value]
+  [/for]
+[/template]
+
+[template generateMarshalingContributor Package pack Type... types]
+  [-- hack to generate contributor only if at least one marshaler exist --]
+  [for t in types if t.kind.isValue and t.generateMarshaled][if for.first]
+
+[let typeContributor]_MarshalingContributor_[toSafeIdentifier types.hashCode][/let]
+[output.java pack.name typeContributor]
+[if pack.name]
+package [pack.name];
+[/if]
+/**
+ * @deprecated Internal marshaling registry, do not use directly
+ */
+@javax.annotation.Generated({"Marshalers.generator", "[pack.name]"})
+@Deprecated
+public final class [typeContributor]
+    implements org.immutables.common.marshal.internal.MarshalingContributor {
+  @Override
+  public void putMarshalers(java.util.Map<Class<?>, org.immutables.common.marshal.Marshaler<?>> marshalers) {
+[for type in types if type.kind.isValue and type.generateMarshaled]
+  [let marshalerInstance][if pack.name][pack.name].[/if][type.typeAbstract.simple]Marshaler.instance()[/let]
+  [if not type.kind.isIncluded][-- Is it ambiguous or dangerous to add included abstract classes? --]
+    marshalers.put([type.typeAbstract].class, [marshalerInstance]);
+  [/if]
+  [if not type.constitution.implementationHidden]
+    marshalers.put([type.typeImmutable.relative].class, [marshalerInstance]);
+  [/if]
 [/for]
-[for Type... ts = onlyMarshaled types]
-[generateMarshalingContributor ts]
-[/for]
+  }
+}
+[/output.java]
+[output.service 'org.immutables.common.marshal.internal.MarshalingContributor']
+[if pack.name][pack.name].[/if][typeContributor]
+[/output.service]
+  [/if][/for]
 [/template]
 
 [template checkAttributes Type type]
 [for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
 [-- mandatory constructor arguments are not checked, should they? --]
 [output.error]
-  @Json.Ignore could not be used on mandatory attribute '[type.name].[a.name]'
+  @Json.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
 [/output.error]
 [/for]
 [/template]
 
-[template generateMarshalingContributor Type... types]
-[for ByPackage byPack in byPackage types, pkg = byPack.key, ts = byPack.value]
-[let contributorTypeName]_MarshalingContributor_[roundCode][/let]
-[output.java pkg contributorTypeName]
-[if pkg]
-package [pkg];
-[/if]
-/**
- * @deprecated Internal marshaling registry, do not use directly
- */
-@javax.annotation.Generated({"Marshalers.generator", "[pkg]"})
-@Deprecated
-public final class [contributorTypeName]
-    implements org.immutables.common.marshal.internal.MarshalingContributor {
-  @Override
-  public void putMarshalers(java.util.Map<Class<?>, org.immutables.common.marshal.Marshaler<?>> marshalers) {
-    [for type in ts]
-    [let marshalerInstance][type.packageName][if type.packageName].[/if][type.simpleName]Marshaler.instance()[/let]
-    marshalers.put([type.valueTypeName].class, [marshalerInstance]);
-    marshalers.put([type.implementationTypeName].class, [marshalerInstance]);
-    [/for]
-  }
-}
-[/output.java]
-[output.service 'org.immutables.common.marshal.internal.MarshalingContributor']
-[if pkg][pkg].[/if][contributorTypeName]
-[/output.service]
-[/for]
-[/template]
-
 [template generateMarshaler Type type]
-[if type.packageName]
-package [type.packageName];
+[if type.package]
+package [type.package];
 [/if]
 
 import com.fasterxml.jackson.core.*;
@@ -64,105 +73,104 @@ import org.immutables.common.marshal.Marshaler;
 // Generated imports
 
 /**
- * Marshaler that could marshal and unmarshal instances of {@code [type.name]}.
+ * Marshaler that could marshal and unmarshal instances of {@code [type.typeAbstract.relative]}.
  * Uses Jackson JSON processor API.
  */
 @SuppressWarnings("all")
-@Generated({"Marshalers.generator", "[type.name]"})
+@Generated({"Marshalers.generator", "[type.typeAbstract.relative]"})
 @ParametersAreNonnullByDefault
-[type.accessPrefix]final class [type.simpleName]Marshaler
-    extends Marshaler<[type.name]> {
+[type.typeAbstract.access]final class [type.typeAbstract.simple]Marshaler
+    extends Marshaler<[type.typeAbstract.relative]> {
 
-  private static final [type.simpleName]Marshaler INSTANCE = new [type.simpleName]Marshaler();
+  private static final [type.typeAbstract.simple]Marshaler INSTANCE = new [type.typeAbstract.simple]Marshaler();
   
-  private [type.simpleName]Marshaler() {
-  }
+  private [type.typeAbstract.simple]Marshaler() {}
   
   /**
-   * Singleton marshaler that is bound to marshal and unmarshal instances of [type.name].
+   * Singleton marshaler that is bound to marshal and unmarshal instances of [type.typeAbstract.relative].
    * @return marshaler
    */
-  public static [type.simpleName]Marshaler instance() {
+  public static [type.typeAbstract.simple]Marshaler instance() {
     return INSTANCE;
   }
 
   /**
-   * Marshal instance of {@link [type.name]}.
+   * Marshal instance of {@link [type.typeAbstract.relative]}.
    * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
    * @param generator jackson JSON generator
-   * @param instance instance of {@link [type.name]} to marshal
+   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
    * @throws IOException either IO failure or parsing problem
    */
-  public static void marshal(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
-    _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+  public static void marshal(@WillNotClose JsonGenerator generator, [type.typeAbstract.relative] instance) throws IOException {
+    _Marshaling_[type.typeAbstract.simple].marshal[type.typeAbstract.simple](generator, instance);
   }
 
   /**
-   * Marshal instance of {@link [type.name]}.
+   * Marshal instance of {@link [type.typeAbstract.relative]}.
    * @param generator jackson JSON generator
-   * @param instance instance of {@link [type.name]} to marshal
+   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
    * @throws IOException either IO failure or parsing problem
    */
   @Override
-  public void marshalInstance(@WillNotClose JsonGenerator generator, [type.name] instance) throws IOException {
+  public void marshalInstance(@WillNotClose JsonGenerator generator, [type.typeAbstract.relative] instance) throws IOException {
     try {
-      _Marshaling_[type.simpleName].marshal[type.simpleName](generator, instance);
+      _Marshaling_[type.typeAbstract.simple].marshal[type.typeAbstract.simple](generator, instance);
     } catch (Exception ex) {
       throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, generator, getExpectedType());
     }
   }
 
   @Override
-  public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<[type.name]> instance) throws IOException {
+  public void marshalIterable(@WillNotClose JsonGenerator generator, Iterable<[type.typeAbstract.relative]> instance) throws IOException {
     try {
-      _Marshaling_[type.simpleName].marshalIterableOf[type.simpleName](generator, instance);
+      _Marshaling_[type.typeAbstract.simple].marshalIterableOf[type.typeAbstract.simple](generator, instance);
     } catch (Exception ex) {
       throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, generator, getExpectedType());
     }
   }
 
   /**
-   * Unmarshal instance of {@link [type.name]}.
+   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
    * <p>
    * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
    * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
    * @param parser jackson JSON parser
    * @param nullSample always {@code null}, used for static method overload resolution
-   * @param expectedClass will be an {@code [type.name].class}
-   * @return instance of {@link [type.name]}
+   * @param expectedClass will be an {@code [type.typeAbstract.relative].class}
+   * @return instance of {@link [type.typeAbstract.relative]}
    * @throws IOException either IO failure or parsing problem
    */
-  public static [type.name] unmarshal(
+  public static [type.typeAbstract.relative] unmarshal(
       @WillNotClose JsonParser parser,
-      @Nullable [type.name] nullSample,
+      @Nullable [type.typeAbstract.relative] nullSample,
       Class<?> expectedClass) throws IOException {
-    return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
+    return _Marshaling_[type.typeAbstract.simple].unmarshal[type.typeAbstract.simple](parser);
   }
 
   /**
-   * Unmarshal instance of {@link [type.name]}.
+   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
    * <p>
    * {@link JsonParser}'s current token should be {@link JsonToken#START_OBJECT}
    * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
    * @param parser jackson JSON parser
-   * @return instance of {@link [type.name]}
+   * @return instance of {@link [type.typeAbstract.relative]}
    * @throws IOException either IO failure or parsing problem
    */
   @Override
-  public [type.name] unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
+  public [type.typeAbstract.relative] unmarshalInstance(@WillNotClose JsonParser parser) throws IOException {
     org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
     try {
-      return _Marshaling_[type.simpleName].unmarshal[type.simpleName](parser);
+      return _Marshaling_[type.typeAbstract.simple].unmarshal[type.typeAbstract.simple](parser);
     } catch (Exception ex) {
       throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, parser, getExpectedType());
     }
   }
 
   @Override
-  public Iterable<[type.name]> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
+  public Iterable<[type.typeAbstract.relative]> unmarshalIterable(@WillNotClose JsonParser parser) throws IOException {
     org.immutables.common.marshal.internal.MarshalingSupport.ensureStarted(parser);
     try {
-      return _Marshaling_[type.simpleName].unmarshalIterableOf[type.simpleName](parser);
+      return _Marshaling_[type.typeAbstract.simple].unmarshalIterableOf[type.typeAbstract.simple](parser);
     } catch (Exception ex) {
       throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, parser, getExpectedType());
     }
@@ -170,24 +178,24 @@ import org.immutables.common.marshal.Marshaler;
 
   /**
    * Expected type to be marshaled and unmarshaled by this marshaler.
-   * Actual marshaled classes might be subtypes of [type.name] type.
-   * @return [type.name] class
+   * Actual marshaled classes might be subtypes of [type.typeAbstract.relative] type.
+   * @return [type.typeAbstract.relative] class
    */
   @Override
-  public Class<[type.name]> getExpectedType() {
-    return [type.name].class;
+  public Class<[type.typeAbstract.relative]> getExpectedType() {
+    return [type.typeAbstract.relative].class;
   }
 
   @Override
   public String toString() {
-    return "[type.simpleName]Marshaler.instance()";
+    return "[type.typeAbstract.simple]Marshaler.instance()";
   }
 }
 [/template]
 
 [template generateMarshaling Type type]
-[if type.packageName]
-package [type.packageName];
+[if type.package]
+package [type.package];
 [/if]
 
 import com.fasterxml.jackson.core.*;
@@ -199,14 +207,14 @@ import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
- * Internal routines for marshaling and unmarshaling instances of [type.name].
- * Uses Jackson JSON processor API. See {@code [type.simpleName]Marshaler} for the entry point to this API
+ * Internal routines for marshaling and unmarshaling instances of [type.typeAbstract.relative].
+ * Uses Jackson JSON processor API. See {@code [type.typeAbstract.simple]Marshaler} for the entry point to this API
  */
 @SuppressWarnings("all")
-@Generated({"Marshalers.generator", "[type.name]"})
+@Generated({"Marshalers.generator", "[type.typeAbstract.relative]"})
 @ParametersAreNonnullByDefault
-final class _Marshaling_[type.simpleName] {
-  private _Marshaling_[type.simpleName]() {
+final class _Marshaling_[type.typeAbstract.simple] {
+  private _Marshaling_[type.typeAbstract.simple]() {
   }
   [generateMarshalingMethods type]
   [generateUnmarshalingMethods type]
@@ -221,16 +229,16 @@ import static [s].*;
 
 [template generateMarshalingMethods Type type]
 
-static void marshalIterableOf[type.simpleName](JsonGenerator generator, Iterable<[type.name]> iterable)
+static void marshalIterableOf[type.typeAbstract.simple](JsonGenerator generator, Iterable<[type.typeAbstract.relative]> iterable)
     throws IOException {
   generator.writeStartArray();
-  for ([type.name] instance : iterable) {
-    marshal[type.simpleName](generator, instance);
+  for ([type.typeAbstract.relative] instance : iterable) {
+    marshal[type.typeAbstract.simple](generator, instance);
   }
   generator.writeEndArray();
 }
 
-static void marshal[type.simpleName](JsonGenerator generator, [type.name] instance)
+static void marshal[type.typeAbstract.simple](JsonGenerator generator, [type.typeAbstract.relative] instance)
     throws IOException {
 [if type.useConstructorOnly]
   [for ca = type.constructorArguments]
@@ -361,27 +369,27 @@ private static void ensure(boolean condition, String attributeName, String attri
     throws IOException {
   ensureCondition(
       condition,
-      "[type.name]",
+      "[type.typeAbstract.relative]",
       attributeName,
       attributeType,
       message);
 }
 
-static Iterable<[type.name]> unmarshalIterableOf[type.simpleName](JsonParser parser)
+static Iterable<[type.typeAbstract.relative]> unmarshalIterableOf[type.typeAbstract.simple](JsonParser parser)
     throws IOException {
-  java.util.List<[type.name]> result = com.google.common.collect.Lists.newArrayList();
+  java.util.List<[type.typeAbstract.relative]> result = com.google.common.collect.Lists.newArrayList();
   JsonToken t = parser.getCurrentToken();
   if (t == JsonToken.START_OBJECT) {
     [-- Special case for array encoded as objects {'0':{..}, '1':{..}} faced with BSON]
     while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
       ensure(t == JsonToken.FIELD_NAME, "*", "", t);
       parser.nextToken();
-      result.add(unmarshal[type.simpleName](parser));
+      result.add(unmarshal[type.typeAbstract.simple](parser));
     }
   } else {
-    ensure(t == JsonToken.START_ARRAY, "*", "List<[type.name]>", t);
+    ensure(t == JsonToken.START_ARRAY, "*", "List<[type.typeAbstract.relative]>", t);
     while ((t = parser.nextToken()) != JsonToken.END_ARRAY) {
-      result.add(unmarshal[type.simpleName](parser));
+      result.add(unmarshal[type.typeAbstract.simple](parser));
     }
   }
   return result;
@@ -394,16 +402,16 @@ private static JsonParser nextTokenAdvance(JsonParser parser) throws IOException
   return parser;
 }
 
-static [type.name] unmarshal[type.simpleName](JsonParser parser)
+static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonParser parser)
     throws IOException {
 [if singular ca]
   [for a in ca]
-  return [type.immutableReferenceName].of(unmarshalConstructorArgument[toUpper a.name](parser));
+  return [type.factoryOf.relative](unmarshalConstructorArgument[toUpper a.name](parser));
   [/for]
 [else]
   JsonToken t = parser.getCurrentToken();
   ensure(t == JsonToken.START_ARRAY, "['[']", "", t);
-  [type.name] instance = [type.immutableReferenceName].of([for a in ca][if not for.first],[/if]
+  [type.typeAbstract.relative] instance = [type.factoryOf.relative]([for a in ca][if not for.first],[/if]
     unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))[/for]);
   ensure(parser.nextToken() == JsonToken.END_ARRAY, "[']']", "", parser.getCurrentToken());
   return instance;
@@ -415,9 +423,9 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
 [/for]
 [else]    
 
-static [type.name] unmarshal[type.simpleName](JsonParser parser)
+static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonParser parser)
     throws IOException {
-  [type.immutableReferenceName].Builder builder = [type.immutableReferenceName].builder();
+  [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
   String attributeName = "";
   JsonToken t = parser.getCurrentToken();
   ensure(t == JsonToken.START_OBJECT, "{", "", t);
@@ -426,10 +434,10 @@ static [type.name] unmarshal[type.simpleName](JsonParser parser)
     attributeName = parser.getText();
     unmarshalAttribute(parser, builder, attributeName);
   }
-  return builder.build();
+  return builder.[type.names.build]();
 }
 
-private static void unmarshalAttribute(JsonParser parser, [type.immutableReferenceName].Builder builder, String attributeName)
+private static void unmarshalAttribute(JsonParser parser, [type.typeBuilder.relative] builder, String attributeName)
     throws IOException {
   [for s in type.unmarshaledAttributes]
   if ("[s.marshaledName]".equals(attributeName)) {
@@ -507,7 +515,7 @@ return value;
 
 [template generateUnmarshalAttribute Type type Attribute a]
 
-private static void unmarshalAttribute[toUpper a.name](JsonParser parser, [type.immutableReferenceName].Builder builder)
+private static void unmarshalAttribute[toUpper a.name](JsonParser parser, [type.typeBuilder.relative] builder)
     throws IOException {
   [if a.primitive]
   ensure(parser.nextToken().isScalarValue(), "[a.name]", "[a.type]", parser.getCurrentToken());
@@ -626,7 +634,7 @@ builder.[a.names.init](value);
 [genericType] value =
 [for cx = attribute.expectedSubclasses]
   [if cx]
-    ([genericType]) unmarshalWithOneOfMarshalers(parser, "[type.name]", "[attribute.name]", "[genericType]"[for c in cx],
+    ([genericType]) unmarshalWithOneOfMarshalers(parser, "[type.typeAbstract.relative]", "[attribute.name]", "[genericType]"[for c in cx],
         [c]Marshaler.instance()[/for]);
   [else]
     unmarshal(parser, ([genericType]) null, [rawType].class);

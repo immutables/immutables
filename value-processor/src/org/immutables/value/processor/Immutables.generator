@@ -706,7 +706,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [if not type.generateMarshaled]
   [output.error]Cannot use @Jackson.Mapped without @Json.Marshaled annotation[/output.error]
 [/if]
-[let marshalerInstance][type.typeValue.simple]Marshaler.instance()[/let]
+[let marshalerInstance][type.typeAbstract.simple]Marshaler.instance()[/let]
 
 @com.fasterxml.jackson.annotation.JsonValue
 public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws java.io.IOException {
@@ -725,11 +725,11 @@ public static [type.typeValue.relative] fromTokenBuffer(java.util.Map<String, co
 
 /**
  * {@inheritDoc}
- * @return reflection class instance {@code [type.name].class}
+ * @return reflection class instance {@code [type.typeAbstract].class}
  */
 @Override
 public Class<? extends java.lang.annotation.Annotation> annotationType() {
-  return [type.valueTypeName].class;
+  return [type.typeAbstract].class;
 }
 [/if]
   [for v in type.implementedAttributes]
@@ -1044,7 +1044,7 @@ private static <T> T cast(Object object) {
  * Returns default immutable singleton value of [type.typeAbstract.simple]
  * @return immutable instance of [type.name]
  */
-public static [type.typeValue.relative] [type.factoryInstance]() {
+public static [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
 }
     [/if]
@@ -1057,7 +1057,7 @@ public static [type.typeValue.relative] [type.factoryInstance]() {
 [/for]
  * @return immutable [type.typeAbstract.simple] instance
  */
-public static [type.typeValue.relative] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]

@@ -15,18 +15,18 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.Round;
-import org.immutables.value.processor.meta.ImmutableRound;
-import com.google.common.collect.Multimap;
-import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.Value.Immutable;
 import com.google.auto.service.AutoService;
+import com.google.common.collect.Multimap;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
+import org.immutables.value.Value.Immutable;
+import org.immutables.value.processor.meta.ImmutableRound;
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import org.immutables.value.processor.meta.Round;
+import org.immutables.value.processor.meta.ValueType;
 
 @AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
@@ -43,9 +43,9 @@ public final class Processor extends AbstractGenerator {
     Multimap<DeclaringPackage, ValueType> values = round.collectValues();
 
     invoke(new Generator_Immutables().usingValues(values).generate());
-//    invoke(new Generator_Marshalers().usingValues(values).generate());
+    invoke(new Generator_Marshalers().usingValues(values).generate());
+    invoke(new Generator_Repositories().usingValues(values).generate());
 //    invoke(new Generator_Parboileds().usingValues(values).generate());
 //    invoke(new Generator_Transformers().usingValues(values).generate());
-//    invoke(new Generator_Repositories().usingValues(values).generate());
   }
 }

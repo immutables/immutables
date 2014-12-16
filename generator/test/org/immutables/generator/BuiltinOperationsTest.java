@@ -65,4 +65,13 @@ public class BuiltinOperationsTest {
     check(operations.size.apply(ImmutableMap.of())).is(0);
     check(operations.size.apply(ImmutableMap.of(1, 1))).is(1);
   }
+
+  @Test
+  public void toSafeIdentifier() {
+    check(operations.toSafeIdentifier.apply("&&&")).is("___");
+    check(operations.toSafeIdentifier.apply("a_B1")).is("a_B1");
+    check(operations.toSafeIdentifier.apply("")).is("_");
+    check(operations.toSafeIdentifier.apply("-11")).is("_11");
+    check(operations.toSafeIdentifier.apply("987")).is("_987");
+  }
 }

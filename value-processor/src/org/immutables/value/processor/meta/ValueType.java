@@ -15,7 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import com.google.common.base.Optional;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -48,6 +49,7 @@ import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -71,12 +73,20 @@ public class ValueType extends TypeIntrospectionBase {
     return constitution.allNames();
   }
 
-  public String factoryOf() {
+  public NameForms factoryOf() {
     return constitution.factoryOf();
   }
 
-  public String factoryInstance() {
+  public NameForms factoryCopyOf() {
+    return constitution.factoryCopyOf();
+  }
+
+  public NameForms factoryInstance() {
     return constitution.factoryInstance();
+  }
+
+  public NameForms factoryBuilder() {
+    return constitution.factoryBuilder();
   }
 
   public Protoclass.Kind kind() {
@@ -107,16 +117,8 @@ public class ValueType extends TypeIntrospectionBase {
     return immutableFeatures.builder();
   }
 
-  public String nameConstructorOf() {
-    return constitution.factoryOf();
-  }
-
   public boolean isImplementationHidden() {
     return constitution.isImplementationHidden();
-  }
-
-  public String getSimpleName() {
-    throw new UnsupportedOperationException("ValueType.getSimpleName");
   }
 
   public boolean isGenerateJacksonMapped() {
@@ -133,20 +135,6 @@ public class ValueType extends TypeIntrospectionBase {
 
   public boolean isAnnotationType() {
     return element.getKind() == ElementKind.ANNOTATION_TYPE;
-  }
-
-  public String implementationTypeName() {
-    throw new UnsupportedOperationException("ValueType.implementationTypeName");
-/*    return Joiner.on('.')
-        .skipNulls()
-        .join(
-            Strings.emptyToNull(getPackageName()),
-            getImmutableReferenceName());*/
-  }
-
-  public String getImmutableReferenceName() {
-    throw new UnsupportedOperationException("ValueType.getImmutableReferenceName");
-/* return "Immutable" + (isHasNestingParent() ? getName() : getSimpleName()); */
   }
 
   public boolean isGenerateParboiled() {
@@ -191,12 +179,20 @@ public class ValueType extends TypeIntrospectionBase {
     return isIface() ? "implements" : "extends";
   }
 
-  public <T extends Annotation> T getAnnotationFromThisOrEnclosingElement(Class<T> annotationType) {
-    T annotation = element.getAnnotation(annotationType);
-    if (annotation == null && enclosingValue != null) {
-      annotation = enclosingValue.element.getAnnotation(annotationType);
+  public <T extends Annotation> boolean hasAnnotation(Class<T> annotationType) {
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    if (declaringType.isPresent()) {
+      if (declaringType.get().hasAnnotation(annotationType)) {
+        return true;
+      }
     }
-    return annotation;
+    Optional<DeclaringType> enclosingOf = constitution.protoclass().enclosingOf();
+    if (enclosingOf.isPresent()) {
+      if (enclosingOf.get().hasAnnotation(annotationType)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean isGenerateGetters() {
@@ -207,31 +203,8 @@ public class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().packageOf().name();
   }
 
-  public String getPackageName() {
-    throw new UnsupportedOperationException("ValueType.getPackageName");
-  }
-
   public String name() {
-    return constitution.typeValue().relative();
-  }
-
-  public String getDefName() {
-    throw new UnsupportedOperationException("ValueType.getDefName");
-    /* return isHasNestingParent() ? segmentedName.simpleName : ("Immutable" +
-    segmentedName.simpleName); */
-  }
-
-  public String getAccessPrefix() {
-    throw new UnsupportedOperationException("ValueType.getAccessPrefix");
-/*    Value.Immutable immutable = immutableFeatures;
-    if (immutable != null && immutable.nonpublic()) {
-      return "";
-    }
-    if (element.getModifiers().contains(Modifier.PUBLIC)) {
-      return "public ";
-    }
-    return "";
-  */
+    return constitution.typeAbstract().relative();
   }
 
   public boolean isGenerateOrdinalValue() {
@@ -244,8 +217,9 @@ public class ValueType extends TypeIntrospectionBase {
 
   public Value.Immutable immutableFeatures;
 
+  @SuppressWarnings("deprecation")
   public boolean isUseCopyMethods() {
-    return immutableFeatures.copy();
+    return immutableFeatures.copy() && immutableFeatures.withers();
   }
 
   public boolean isUseCopyConstructor() {
@@ -266,9 +240,13 @@ public class ValueType extends TypeIntrospectionBase {
         || immutableFeatures.prehash();
   }
 
+  private Boolean generateMarshaled;
+
   public boolean isGenerateMarshaled() {
-    return (getAnnotationFromThisOrEnclosingElement(Json.Marshaled.class) != null) ||
-        isGenerateRepository();
+    if (generateMarshaled == null) {
+      generateMarshaled = hasAnnotation(Json.Marshaled.class) || isGenerateRepository();
+    }
+    return generateMarshaled;
   }
 
   public boolean isGenerateRepository() {
@@ -550,5 +528,16 @@ public class ValueType extends TypeIntrospectionBase {
   @Override
   protected TypeMirror internalTypeMirror() {
     return element.asType();
+  }
+
+  /**
+   * Used for type content snapshoting
+   */
+  @Override
+  public int hashCode() {
+    return constitution.protoclass()
+        .sourceElement()
+        .getQualifiedName()
+        .hashCode();
   }
 }

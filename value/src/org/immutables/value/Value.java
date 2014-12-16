@@ -78,7 +78,7 @@ public @interface Value {
     /**
      * If {@code withers=false} then generation of copying methods starting with
      * "withAttributeName" will be disabled. Default is {@literal true}.
-     * @deprecated use {@link #copy()} attribute
+     * @deprecated use {@link #copy()} attribute, will be deleted in next major release
      */
     @Deprecated
     boolean withers() default true;
@@ -88,8 +88,6 @@ public @interface Value {
      * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
      * Default is {@literal true}, generate copy methods.
      */
-    // TBD change to default false
-    @Deprecated
     boolean copy() default true;
 
     /**
@@ -382,27 +380,6 @@ public @interface Value {
     String with() default "with*";
 
     /**
-     * Modifiable object "setter" method. Used for mutable implementations.
-     * @return naming template
-     */
-    String set() default "set*";
-
-    /**
-     * Unset attribute method. Used for mutable implementations.
-     * @return naming template
-     */
-    String unset() default "unset*";
-
-    @Deprecated
-    String hasSet() default "hasSet*";
-
-    /**
-     * Clear collection (or other container). Used for mutable implementations.
-     * @return naming template
-     */
-    String clear() default "clear*";
-
-    /**
      * Add value to collection attribute from iterable
      * @return naming template
      */
@@ -445,12 +422,6 @@ public @interface Value {
     String instance() default "of";
 
     /**
-     * Factory method for mutable implementation
-     * @return naming template
-     */
-    String create() default "create";
-
-    /**
      * Builder creator method. This naming allow special keyword "new" value.
      * This will customize builder to be created using parameterless constructor rather than
      * factory methods.
@@ -463,12 +434,6 @@ public @interface Value {
      * @return naming template
      */
     String build() default "build";
-
-    /**
-     * Method to convert to instanse of companion type to "canonical" immutable instance.
-     * @return naming template
-     */
-    String toImmutable() default "toImmutable*";
 
     /**
      * Builder class name.
@@ -503,24 +468,6 @@ public @interface Value {
     String typeImmutableNested() default "*";
 
     /**
-     * Modifiable companion class name template
-     * @return naming template
-     */
-    String typeModifiable() default "Modifiable*";
-
-    /**
-     * Modifiable companion class name template
-     * @return naming template
-     */
-    String typeTransformer() default "*Transformer";
-
-    /**
-     * Modifiable companion class name template
-     * @return naming template
-     */
-    String typeVisitor() default "*Visitor";
-
-    /**
      * Specify default options for the generated immutable objects.
      * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,
      * then this default will not be taken into account, objects will be generated using attributes
@@ -529,4 +476,55 @@ public @interface Value {
      */
     Immutable defaults() default @Immutable;
   }
+
+  // / Future styles
+  /*
+   * Modifiable companion class name template
+   * @return naming template
+   */
+//  String typeModifiable() default "Modifiable*";
+
+  /*
+   * Modifiable companion class name template
+   * @return naming template
+   */
+//  String typeTransformer() default "*Transformer";
+
+  /*
+   * Modifiable companion class name template
+   * @return naming template
+   */
+//  String typeVisitor() default "*Visitor";
+
+//  String hasSet() default "hasSet*";
+
+  /*
+   * Modifiable object "setter" method. Used for mutable implementations.
+   * @return naming template
+   */
+//  String set() default "set*";
+
+  /*
+   * Unset attribute method. Used for mutable implementations.
+   * @return naming template
+   */
+//  String unset() default "unset*";
+
+  /*
+   * Clear collection (or other container). Used for mutable implementations.
+   * @return naming template
+   */
+//  String clear() default "clear*";
+
+  /*
+   * Factory method for mutable implementation
+   * @return naming template
+   */
+//  String create() default "create";
+  /*
+   * Method to convert to instanse of companion type to "canonical" immutable instance.
+   * @return naming template
+   */
+//  String toImmutable() default "toImmutable*";
+
 }

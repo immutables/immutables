@@ -1,17 +1,19 @@
-[template generate Type type]
-[if not type.emptyNesting]
-  [output.error]
-  Use @Value.Transformer to annotate umbrella class with @Value.Nested, but not with @Value.Immutable
-  [/output.error]
-[/if]
-[output.java type.packageName (type.simpleName 'Transformer')]
+[template generate]
+  [for type in values.values if type.generateTransformer]
+    [if not type.kind.isEnclosing]
+[output.error]
+Use @Value.Transformer to annotate umbrella class with @Value.Nested, but not with @Value.Immutable
+[/output.error]
+    [else]
+[output.java type.package (type.typeAbstract.simple 'Transformer')]
 [generateTransformer type]
 [/output.java]
+    [/if]
 [/template]
 
 [template generateTransformer Type transformerType]
-[if transformerType.packageName]
-package [transformerType.packageName];
+[if transformerType.package]
+package [transformerType.package];
 [/if]
 
 // Generated imports
@@ -19,8 +21,8 @@ package [transformerType.packageName];
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.accessPrefix]abstract class [transformerType.simpleName]Transformer<C> {
-  protected [transformerType.simpleName]Transformer() {
+[transformerType.typeAbstract.access]abstract class [transformerType.typeAbstract.simple]Transformer<C> {
+  protected [transformerType.typeAbstract.simple]Transformer() {
   }
   [for cases = transformerType.cases,
        type in cases.implementationTypes,
@@ -29,7 +31,7 @@ package [transformerType.packageName];
 
   public [t] transform(C context, [t] value) {
     return value[for a in type.settableAttributes if type.useCopyMethods]
-        .with[toUpper a.name](transform[s][transformAttributeSuffix a](context, value, value.[a.name]()))[/for];
+        .[a.names.with](transform[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
   }
   [for a in type.settableAttributes if type.useCopyMethods]
     [if a.nullable]
@@ -77,7 +79,7 @@ package [transformerType.packageName];
   [for e in transformerType.cases.subtypeUsages.entries]
 
   protected [e.key] transform[simplifyName e.key](C context, [e.value.implementationTypeName] value) {
-    [if e.key ne e.value.valueTypeName]
+    [if e.key ne e.value.typeImmutable.toString]
     return transform[simplifyName e.value.valueTypeName](context, value);
     [else]
     return transform(context, value);

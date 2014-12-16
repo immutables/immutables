@@ -66,18 +66,18 @@ public final class Styles {
     Naming builder = Naming.from(style.builder());
     Naming build = Naming.from(style.build());
 
-    Naming typeModifiable = Naming.from(style.typeModifiable());
-    Naming create = Naming.from(style.create());
-    Naming toImmutable = Naming.from(style.toImmutable());
+//    Naming typeModifiable = Naming.from(style.typeModifiable());
+//    Naming create = Naming.from(style.create());
+//    Naming toImmutable = Naming.from(style.toImmutable());
 
     Naming[] get = Naming.fromAll(style.get());
     Naming init = Naming.from(style.init());
     Naming with = Naming.from(style.with());
 
-    Naming set = Naming.from(style.set());
+//    Naming set = Naming.from(style.set());
 //    Naming hasSet = Naming.from(style.hasSet());
-    Naming unset = Naming.from(style.unset());
-    Naming clear = Naming.from(style.clear());
+//    Naming unset = Naming.from(style.unset());
+//    Naming clear = Naming.from(style.clear());
 
     Naming add = Naming.from(style.add());
     Naming addAll = Naming.from(style.addAll());
@@ -142,9 +142,9 @@ public final class Styles {
       public final String builder = scheme.builder.apply(raw);
       public final String build = scheme.build.apply(raw);
 
-      public final String typeModifiable = scheme.typeModifiable.apply(raw);
-      public final String create = scheme.create.apply(raw);
-      public final String toImmutable = scheme.toImmutable.apply(raw);
+//      public final String typeModifiable = scheme.typeModifiable.apply(raw);
+//      public final String create = scheme.create.apply(raw);
+//      public final String toImmutable = scheme.toImmutable.apply(raw);
 
       String rawFromAbstract(String abstractName) {
         return detectRawFromAbstract(abstractName);
@@ -161,10 +161,10 @@ public final class Styles {
       public final String put = scheme.put.apply(raw);
       public final String putAll = scheme.putAll.apply(raw);
 
-      public final String set = scheme.set.apply(raw);
+//      public final String set = scheme.set.apply(raw);
 //      public final String hasSet = scheme.hasSet.apply(raw);
-      public final String unset = scheme.unset.apply(raw);
-      public final String clear = scheme.clear.apply(raw);
+//      public final String unset = scheme.unset.apply(raw);
+//      public final String clear = scheme.clear.apply(raw);
     }
   }
 }

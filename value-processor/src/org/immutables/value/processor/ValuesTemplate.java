@@ -27,6 +27,7 @@ import org.immutables.value.processor.meta.ValueType;
 abstract class ValuesTemplate extends AbstractTemplate {
   @Generator.Typedef
   ValueType Type;
+
   @Generator.Typedef
   ValueAttribute Attribute;
 
@@ -35,6 +36,9 @@ abstract class ValuesTemplate extends AbstractTemplate {
 
   @Generator.Typedef
   LongBits.BitPosition BitPosition;
+
+  @Generator.Typedef
+  DeclaringPackage Package;
 
   public abstract Templates.Invokable generate();
 
