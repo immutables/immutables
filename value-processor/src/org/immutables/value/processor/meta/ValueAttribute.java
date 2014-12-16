@@ -175,7 +175,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       } else if (isListType()) {
         implementationType = type.replace(List.class.getName(),
             UnshadeGuava.typeString("collect.ImmutableList"));
-      } else if (isSortedSetType()) {
+      } else if (isGenerateSortedSet()) {
         implementationType = type.replace(List.class.getName(),
             UnshadeGuava.typeString("collect.ImmutableSortedSet"));
       } else if (isSetType()) {
@@ -223,6 +223,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private Boolean isSetType;
   @Nullable
   private Boolean isSortedSetType;
+  @Nullable
+  private Boolean shouldGenerateSortedSet;
   private OrderKind orderKind = OrderKind.NONE;
 
   private enum OrderKind {
@@ -252,9 +254,19 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedSetType == null) {
-      boolean isEligibleSetType = returnTypeName.startsWith(Set.class.getName())
+      isSortedSetType = returnTypeName.startsWith(Set.class.getName())
           || returnTypeName.startsWith(SortedSet.class.getName())
           || returnTypeName.startsWith(NavigableSet.class.getName());
+    }
+    return isSortedSetType;
+  }
+
+  public boolean isGenerateSortedSet() {
+    if (isRegularAttribute()) {
+      return false;
+    }
+    if (shouldGenerateSortedSet == null) {
+      boolean isEligibleSetType = isSortedSetType();
 
       @Nullable Value.Order.Natural naturalOrderAnnotation = element.getAnnotation(Value.Order.Natural.class);
       @Nullable Value.Order.Reverse reverseOrderAnnotation = element.getAnnotation(Value.Order.Reverse.class);
@@ -269,7 +281,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
           } else {
             reporter.withElement(element)
                 .forAnnotation(Value.Order.Natural.class)
-                .error("@Value.Order.Natural should used with a set of Comparable elements");
+                .error("@Value.Order.Natural should used on a set of Comparable elements");
           }
         } else {
           reporter.withElement(element)
@@ -291,9 +303,9 @@ public class ValueAttribute extends TypeIntrospectionBase {
               .error("@Value.Order.Reverse should specify order for Set, SortedSet or NavigableSet attribute");
         }
       }
-      isSortedSetType = isEligibleSetType && orderKind != OrderKind.NONE;
+      shouldGenerateSortedSet = isEligibleSetType && orderKind != OrderKind.NONE;
     }
-    return isSortedSetType;
+    return shouldGenerateSortedSet;
   }
 
   private Boolean isOptionalType;
@@ -520,8 +532,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public String getRawCollectionType() {
     return isListType() ? List.class.getSimpleName()
-        : isSortedSetType() ? SortedSet.class.getSimpleName()
-            : isSetType() ? Set.class.getSimpleName() : "";
+        : isSetType() ? Set.class.getSimpleName()
+            : isSortedSetType() ? SortedSet.class.getSimpleName() : "";
   }
 
   public String getSecondaryElementType() {

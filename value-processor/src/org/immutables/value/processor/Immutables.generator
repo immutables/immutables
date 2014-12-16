@@ -367,7 +367,7 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
   [/for][/if]
   [/let]
   [for v in setters]
-[if v.sortedSetType]
+[if v.generateSortedSet]
   private com.google.common.collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
 [else if v.collectionType]
@@ -1068,12 +1068,12 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
-[if a.sortedSetType]
+[if a.generateSortedSet]
   com.google.common.collect.ImmutableSortedSet.copyOf(
     [if a.hasNaturalOrder]
       com.google.common.collect.Ordering.<[a.elementType]>natural(),
     [else]
-      com.google.common.collect.Ordering.<[a.elementType]>reverse(),
+      com.google.common.collect.Ordering.<[a.elementType]>natural().reverse(),
     [/if]
       [expression])
 [else if a.generateEnumSet]
