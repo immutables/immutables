@@ -15,9 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Optional;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
@@ -48,6 +47,7 @@ import org.immutables.value.Mongo;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Constitution.NameForms;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
@@ -59,7 +59,6 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 public class ValueType extends TypeIntrospectionBase {
 
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
-
   public String typeMoreObjects;
 
   public TypeElement element;
@@ -433,7 +432,7 @@ public class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getExcludableAttributes() {
     List<ValueAttribute> excludables = Lists.newArrayList();
     for (ValueAttribute attribute : attributes()) {
-      if (attribute.isGenerateAbstract() && (attribute.isContainerType() && !attribute.isArrayType())) {
+      if (attribute.isGenerateAbstract && (attribute.isContainerType() && !attribute.isArrayType())) {
         excludables.add(attribute);
       }
     }
@@ -453,7 +452,7 @@ public class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getLazyAttributes() {
     List<ValueAttribute> lazyAttributes = Lists.newArrayList();
     for (ValueAttribute attribute : attributes()) {
-      if (attribute.isGenerateLazy()) {
+      if (attribute.isGenerateLazy) {
         lazyAttributes.add(attribute);
       }
     }
@@ -496,7 +495,7 @@ public class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getPrimitiveDefaultAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isPrimitive() && attribute.isGenerateDefault()) {
+      if (attribute.isPrimitive() && attribute.isGenerateDefault) {
         builder.add(attribute);
       }
     }

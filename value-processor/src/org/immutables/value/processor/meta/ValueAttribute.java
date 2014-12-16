@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.AnnotationMirrors;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -23,7 +22,9 @@ import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
 import java.util.Set;
+import java.util.SortedSet;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -34,6 +35,7 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
@@ -62,6 +64,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
   public ImmutableList<String> typeParameters;
+  public Reporter reporter;
 
   TypeMirror returnType;
   Element element;
@@ -90,11 +93,10 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isMandatory() {
-    return isGenerateAbstract() && !isContainerType() && !isNullable();
+    return isGenerateAbstract && !isContainerType() && !isNullable();
   }
 
   public boolean isNullable() {
-    ensureAnnotationsIntrospected();
     return nullable;
   }
 
@@ -125,7 +127,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
     if (idAnnotation != null) {
       return ID_ATTRIBUTE_NAME;
     }
-
     return names.raw;
   }
 
@@ -151,22 +152,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return returnType;
   }
 
-  public boolean isGenerateLazy() {
-    return isGenerateLazy;
-  }
-
-  public boolean isGenerateDefault() {
-    return isGenerateDefault;
-  }
-
-  public boolean isGenerateDerived() {
-    return isGenerateDerived;
-  }
-
-  public boolean isGenerateAbstract() {
-    return isGenerateAbstract;
-  }
-
   public String getType() {
     return returnTypeName;
   }
@@ -190,6 +175,9 @@ public class ValueAttribute extends TypeIntrospectionBase {
       } else if (isListType()) {
         implementationType = type.replace(List.class.getName(),
             UnshadeGuava.typeString("collect.ImmutableList"));
+      } else if (isSortedSetType()) {
+        implementationType = type.replace(List.class.getName(),
+            UnshadeGuava.typeString("collect.ImmutableSortedSet"));
       } else if (isSetType()) {
         implementationType = type.replace(Set.class.getName(),
             isGenerateOrdinalValueSet()
@@ -231,7 +219,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return isListType;
   }
 
+  @Nullable
   private Boolean isSetType;
+  @Nullable
+  private Boolean isSortedSetType;
+  private OrderKind orderKind = OrderKind.NONE;
+
+  private enum OrderKind {
+    NONE, NATURAL, REVERSE
+  }
 
   public boolean isSetType() {
     if (isRegularAttribute()) {
@@ -241,6 +237,63 @@ public class ValueAttribute extends TypeIntrospectionBase {
       isSetType = returnTypeName.startsWith(Set.class.getName());
     }
     return isSetType;
+  }
+
+  public boolean hasNaturalOrder() {
+    return isSortedSetType() && orderKind == OrderKind.NATURAL;
+  }
+
+  public boolean hasReverseOrder() {
+    return isSortedSetType() && orderKind == OrderKind.REVERSE;
+  }
+
+  public boolean isSortedSetType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
+    if (isSortedSetType == null) {
+      boolean isEligibleSetType = returnTypeName.startsWith(Set.class.getName())
+          || returnTypeName.startsWith(SortedSet.class.getName())
+          || returnTypeName.startsWith(NavigableSet.class.getName());
+
+      @Nullable Value.Order.Natural naturalOrderAnnotation = element.getAnnotation(Value.Order.Natural.class);
+      @Nullable Value.Order.Reverse reverseOrderAnnotation = element.getAnnotation(Value.Order.Reverse.class);
+
+      if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
+        reporter.withElement(element)
+            .error("@Value.Order.Natural and @Value.Order.Reverse annotations could not be used on the same attribute");
+      } else if (naturalOrderAnnotation != null) {
+        if (isEligibleSetType) {
+          if (isComparable()) {
+            orderKind = OrderKind.NATURAL;
+          } else {
+            reporter.withElement(element)
+                .forAnnotation(Value.Order.Natural.class)
+                .error("@Value.Order.Natural should used with a set of Comparable elements");
+          }
+        } else {
+          reporter.withElement(element)
+              .forAnnotation(Value.Order.Natural.class)
+              .error("@Value.Order.Natural should specify order for Set, SortedSet or NavigableSet attribute");
+        }
+      } else if (reverseOrderAnnotation != null) {
+        if (isEligibleSetType) {
+          if (isComparable()) {
+            orderKind = OrderKind.REVERSE;
+          } else {
+            reporter.withElement(element)
+                .forAnnotation(Value.Order.Reverse.class)
+                .error("@Value.Order.Reverse should used with a set of Comparable elements");
+          }
+        } else {
+          reporter.withElement(element)
+              .forAnnotation(Value.Order.Reverse.class)
+              .error("@Value.Order.Reverse should specify order for Set, SortedSet or NavigableSet attribute");
+        }
+      }
+      isSortedSetType = isEligibleSetType && orderKind != OrderKind.NONE;
+    }
+    return isSortedSetType;
   }
 
   private Boolean isOptionalType;
@@ -256,7 +309,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isCollectionType() {
-    return isSetType() || isListType();
+    return isSortedSetType() || isSetType() || isListType();
   }
 
   public boolean isGenerateEnumSet() {
@@ -453,23 +506,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
     }
 
-    super.introspectType();
-  }
-
-  private boolean annotationsIntrospected;
-
-  private void ensureAnnotationsIntrospected() {
-    if (!annotationsIntrospected) {
-      for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
-        if (annotation.getAnnotationType().asElement().getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
-          if (!isPrimitive()) {
-            nullable = true;
-            regularAttribute = true;
-          }
-        }
-      }
-    }
-    annotationsIntrospected = true;
+    intospectTypeMirror(typeMirror);
   }
 
   private boolean isRegularAttribute() {
@@ -483,7 +520,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public String getRawCollectionType() {
     return isListType() ? List.class.getSimpleName()
-        : isSetType() ? Set.class.getSimpleName() : "";
+        : isSortedSetType() ? SortedSet.class.getSimpleName()
+            : isSetType() ? Set.class.getSimpleName() : "";
   }
 
   public String getSecondaryElementType() {
@@ -637,5 +675,32 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   boolean isIdAttribute() {
     return getMarshaledName().equals(ID_ATTRIBUTE_NAME);
+  }
+
+  /** Validates things that were not validated otherwise */
+  void initAndValidate() {
+    for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+      if (annotation.getAnnotationType().asElement().getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+        if (isPrimitive()) {
+          reporter.withElement(element)
+              .annotationNamed(NULLABLE_SIMPLE_NAME)
+              .error("@Nullable could not be used with primitive type attibutes");
+        } else {
+          nullable = true;
+          if (isCollectionType()) {
+            regularAttribute = true;
+          }
+        }
+      }
+    }
+
+    if (isGenerateDefault && isContainerType() && !isArrayType()) {
+      // ad-hoc. stick it here, but should work
+      regularAttribute = true;
+
+      reporter.withElement(element)
+          .forAnnotation(Value.Default.class)
+          .warning("@Value.Default on a container attribute make it lose it's special treatment");
+    }
   }
 }

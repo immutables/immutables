@@ -36,12 +36,12 @@ final class ValueAttributeFunctions {
     INSTANCE;
     @Override
     public boolean apply(ValueAttribute input) {
-      return input.isGenerateDefault();
+      return input.isGenerateDefault;
     }
 
     @Override
     public String toString() {
-      return "DiscoveredAttributes.isGenerateDefault()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isGenerateDefault()";
     }
   }
 
@@ -58,12 +58,12 @@ final class ValueAttributeFunctions {
     INSTANCE;
     @Override
     public boolean apply(ValueAttribute input) {
-      return input.isGenerateDerived();
+      return input.isGenerateDerived;
     }
 
     @Override
     public String toString() {
-      return "DiscoveredAttributes.isGenerateDerived()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isGenerateDerived()";
     }
   }
 
@@ -80,12 +80,12 @@ final class ValueAttributeFunctions {
     INSTANCE;
     @Override
     public boolean apply(ValueAttribute input) {
-      return input.isGenerateAbstract();
+      return input.isGenerateAbstract;
     }
 
     @Override
     public String toString() {
-      return "DiscoveredAttributes.isGenerateAbstract()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isGenerateAbstract()";
     }
   }
 
@@ -107,7 +107,7 @@ final class ValueAttributeFunctions {
 
     @Override
     public String toString() {
-      return "DiscoveredAttributes.isPrimitive()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isPrimitive()";
     }
   }
 }

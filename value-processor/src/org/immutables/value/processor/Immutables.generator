@@ -367,7 +367,10 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
   [/for][/if]
   [/let]
   [for v in setters]
-[if v.collectionType]
+[if v.sortedSetType]
+  private com.google.common.collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
+      com.google.common.collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+[else if v.collectionType]
   private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.Immutable[v.rawCollectionType].builder();
 [else if v.optionalType]
@@ -569,8 +572,6 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
 }
 [/for]
 [/template]
-
-[template invokeSuper Type type][if type.iface][type.typeAbstract.relative].[/if]super[/template]
 
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
@@ -1067,7 +1068,15 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
-[if a.generateEnumSet]
+[if a.sortedSetType]
+  com.google.common.collect.ImmutableSortedSet.copyOf(
+    [if a.hasNaturalOrder]
+      com.google.common.collect.Ordering.<[a.elementType]>natural(),
+    [else]
+      com.google.common.collect.Ordering.<[a.elementType]>reverse(),
+    [/if]
+      [expression])
+[else if a.generateEnumSet]
   com.google.common.collect.Sets.immutableEnumSet([expression])
 [else if a.generateOrdinalValueSet]
   org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
@@ -1106,3 +1115,5 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   java.util.Arrays.asList([expression])
 [/if]
 [/output.trim][/template]
+
+[template invokeSuper Type type][if type.iface][type.typeAbstract.relative].[/if]super[/template]

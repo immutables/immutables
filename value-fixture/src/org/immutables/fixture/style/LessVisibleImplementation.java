@@ -1,8 +1,8 @@
 package org.immutables.fixture.style;
 
 import org.immutables.fixture.style.ImmutableLessVisibleImplementation.LessVisibleImplementationBuilder;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Immutable.ImplementationVisibility;
 
 /**
  * Feature combination

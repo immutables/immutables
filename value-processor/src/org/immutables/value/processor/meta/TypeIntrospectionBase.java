@@ -115,10 +115,12 @@ public abstract class TypeIntrospectionBase {
   }
 
   protected void introspectType() {
+    intospectTypeMirror(internalTypeMirror());
+  }
+
+  protected void intospectTypeMirror(TypeMirror typeMirror) {
     List<TypeMirror> extendedClasses = Lists.newArrayList();
     Set<TypeMirror> implementedInterfaces = Sets.newLinkedHashSet();
-
-    TypeMirror typeMirror = internalTypeMirror();
 
     if (typeMirror.getKind() == TypeKind.DECLARED) {
       collectHierarchyMirrors(typeMirror, extendedClasses, implementedInterfaces);
