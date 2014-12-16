@@ -1,11 +1,9 @@
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.Naming.Usage;
-import java.util.Collections;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -95,13 +93,20 @@ public abstract class Constitution {
     Element e = collectClassSegments(classSegments);
     verify(e instanceof PackageElement);
 
-    String relative = JOINER.join(classSegments);
     String packageOf = ((PackageElement) e).getQualifiedName().toString();
+    String relative = JOINER.join(classSegments);
+    boolean relativeAlreadyQualified = false;
+
+    if (!protoclass().packageOf().name().equals(packageOf)) {
+      relative = JOINER.join(packageOf, relative);
+      relativeAlreadyQualified = true;
+    }
 
     return ImmutableConstitution.NameForms.builder()
         .simple(allNames().typeAbstract)
         .relative(relative)
         .packageOf(packageOf)
+        .relativeAlreadyQualified(relativeAlreadyQualified)
         .visibility(protoclass().visibility())
         .build();
   }
@@ -133,20 +138,15 @@ public abstract class Constitution {
   public NameForms typeImmutable() {
     boolean nested = protoclass().kind().isNested();
     boolean inside = hasImmutableInBuilder();
-    boolean hidden = isImplementationHidden();
 
     String simple = allNames().typeImmutable;
 
-    String transferredApplyType = NameForms.NOT_TRANSFERRED;
     String relative;
 
     if (nested) {
       String enclosingSimpleName = typeImmutableEnclosingSimpleName();
       simple = allNames().typeImmutableNested;
       relative = inPackage(enclosingSimpleName, simple);
-      if (hidden) {
-        transferredApplyType = inPackage(enclosingSimpleName);
-      }
     } else if (inside) {
       relative = inPackage(typeBuilderSimpleName(), simple);
     } else {
@@ -156,7 +156,6 @@ public abstract class Constitution {
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
         .relative(relative)
-        .transferredApply(transferredApplyType)
         .packageOf(protoclass().packageOf().name())
         .visibility(implementationVisibility())
         .build();
@@ -183,21 +182,41 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
-  public String factoryOf() {
-    Naming ofNaming = allNames().namings.of;
-    if (isImplementationHidden()) {
-      ofNaming = ofNaming.requireNonConstant(Preference.PREFIX);
-    }
-    return Naming.Usage.LOWERIZED.apply(ofNaming.apply(allNames().raw));
+  public NameForms factoryBuilder() {
+    NameForms nameForms = isImplementationHidden()
+        ? typeBuilder()
+        : typeImmutable();
+
+    return nameForms.applied(allNames().builder);
   }
 
   @Value.Lazy
-  public String factoryInstance() {
-    Naming instanceNaming = allNames().namings.instance;
+  public NameForms factoryOf() {
+    return applyFactoryNaming(allNames().namings.of);
+  }
+
+  @Value.Lazy
+  public NameForms factoryInstance() {
+    return applyFactoryNaming(allNames().namings.instance);
+  }
+
+  @Value.Lazy
+  public NameForms factoryCopyOf() {
+    return applyFactoryNaming(allNames().namings.copyOf);
+  }
+
+  private NameForms applyFactoryNaming(Naming naming) {
     if (isImplementationHidden()) {
-      instanceNaming = instanceNaming.requireNonConstant(Preference.PREFIX);
+      naming = naming.requireNonConstant(Preference.PREFIX);
     }
-    return Naming.Usage.LOWERIZED.apply(instanceNaming.apply(allNames().raw));
+
+    NameForms nameForms = isImplementationHidden() && protoclass().kind().isNested()
+        ? typeEnclosing()
+        : typeImmutable();
+
+    String applyName = Naming.Usage.LOWERIZED.apply(naming.apply(allNames().raw));
+
+    return nameForms.applied(applyName);
   }
 
   @Value.Lazy
@@ -239,9 +258,7 @@ public abstract class Constitution {
   }
 
   @Value.Immutable
-  public static abstract class NameForms implements Function<String, String> {
-    static final String NOT_TRANSFERRED = "";
-
+  public static abstract class NameForms {
     public abstract String simple();
 
     public abstract String relative();
@@ -251,8 +268,8 @@ public abstract class Constitution {
     public abstract TypeVisibility visibility();
 
     @Value.Default
-    public String transferredApply() {
-      return NOT_TRANSFERRED;
+    public boolean relativeAlreadyQualified() {
+      return false;
     }
 
     /**
@@ -270,28 +287,34 @@ public abstract class Constitution {
       }
     }
 
+    public NameForms applied(String input) {
+      return ImmutableConstitution.NameForms.builder()
+          .packageOf(packageOf())
+          .simple(applyTo(simple(), input, false))
+          .relative(applyTo(relative(), input, true))
+          .visibility(TypeVisibility.PUBLIC)
+          .build();
+    }
+
+    private String applyTo(String targetType, String input, boolean relative) {
+      return NEW_KEYWORD.equals(input)
+          ? (NEW_KEYWORD + ' ' + targetType)
+          : (relative ? targetType + '.' + input : input);
+    }
+
     /**
      * Fully qualified type name
      */
     @Override
     public String toString() {
+      if (relativeAlreadyQualified()) {
+        return relative();
+      }
       return qualifyWithPackage(relative());
     }
 
     private String qualifyWithPackage(String reference) {
       return JOINER.join(Strings.emptyToNull(packageOf()), reference);
-    }
-
-    @Override
-    public String apply(String input) {
-      String targetType = qualifyWithPackage(
-          !transferredApply().isEmpty()
-              ? transferredApply()
-              : relative());
-
-      return NEW_KEYWORD.equals(input)
-          ? (NEW_KEYWORD + ' ' + targetType)
-          : (targetType + '.' + input);
     }
   }
 }

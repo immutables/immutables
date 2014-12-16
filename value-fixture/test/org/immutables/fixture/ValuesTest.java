@@ -15,13 +15,13 @@
  */
 package org.immutables.fixture;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.POST;
 import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
@@ -48,6 +48,17 @@ public class ValuesTest {
   @Test
   public void ifaceValue() {
     check(ImmutableIfaceValue.builder().getNumber(1).build()).is(ImmutableIfaceValue.of(1));
+  }
+
+  @Test
+  public void ordering() {
+    OrderAttributeValue value = ImmutableOrderAttributeValue.builder()
+        .addNatural(3, 2, 4, 1)
+        .addReverse("a", "z", "b", "y")
+        .build();
+
+    check(value.natural()).isOf(1, 2, 3, 4);
+    check(value.reverse()).isOf("z", "y", "b", "a");
   }
 
   @Test

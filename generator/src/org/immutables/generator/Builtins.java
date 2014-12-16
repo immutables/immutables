@@ -16,6 +16,7 @@
 package org.immutables.generator;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Converter;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -205,4 +206,32 @@ public class Builtins {
   public final Converter<String, String> toConstant =
       CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE);
 
+  // Does it belongs here?
+  public final Function<Object, String> toSafeIdentifier = new Function<Object, String>() {
+    private final CharMatcher digits = CharMatcher.inRange('0', '9');
+    private final CharMatcher nonIdentifierChars =
+        CharMatcher.is('_')
+            .or(digits)
+            .or(CharMatcher.inRange('a', 'z'))
+            .or(CharMatcher.inRange('A', 'Z'))
+            .negate();
+
+    @Override
+    public String apply(Object input) {
+      String inputString = String.valueOf(input);
+      if (inputString.isEmpty()) {
+        return "_";
+      }
+      String safeString = nonIdentifierChars.replaceFrom(inputString, '_');
+      if (digits.matches(safeString.charAt(0))) {
+        return "_" + safeString;
+      }
+      return safeString;
+    }
+
+    @Override
+    public String toString() {
+      return Builtins.class.getSimpleName() + ".toSafeIdentifier";
+    }
+  };
 }

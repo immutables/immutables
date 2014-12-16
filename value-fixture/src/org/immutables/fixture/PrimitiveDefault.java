@@ -15,9 +15,10 @@
  */
 package org.immutables.fixture;
 
+import org.immutables.value.Value.Immutable.ImplementationVisibility;
 import org.immutables.value.Value;
 
-@Value.Immutable(nonpublic = true)
+@Value.Immutable(visibility = ImplementationVisibility.PACKAGE)
 public abstract class PrimitiveDefault {
   @Value.Default
   public boolean def() {

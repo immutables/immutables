@@ -284,9 +284,9 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {
             [if l.primitive or l.nullable]
-          this.[l.name] = super.[l.names.get]();
+          this.[l.name] = [invokeSuper type].[l.names.get]();
             [else]
-          this.[l.name] = com.google.common.base.Preconditions.checkNotNull(super.[l.names.get]());
+          this.[l.name] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -367,7 +367,10 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
   [/for][/if]
   [/let]
   [for v in setters]
-[if v.collectionType]
+[if v.generateSortedSet]
+  private com.google.common.collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
+      com.google.common.collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+[else if v.collectionType]
   private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.Immutable[v.rawCollectionType].builder();
 [else if v.optionalType]
@@ -591,9 +594,9 @@ this.[n] = null;
 this.[n] = DEFAULT_VALUE_[toConstant v.name];
 [else]
   [if v.primitive or v.nullable]
-this.[n] = super.[v.names.get]();
+this.[n] = [invokeSuper type].[v.names.get]();
   [else]
-this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -656,7 +659,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else]
-        : super.[v.names.get]();
+        : [invokeSuper type].[v.names.get]();
       [/if]
   [else]
     this.[n] = builder.[n] != null
@@ -664,16 +667,16 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];
       [else if v.nullable]
-        : super.[v.names.get]();
+        : [invokeSuper type].[v.names.get]();
       [else]
-        : com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+        : com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
       [/if]
   [/if]
 [else if v.generateDerived]
   [if v.primitive or v.nullable]
-    this.[n] = super.[v.names.get]();
+    this.[n] = [invokeSuper type].[v.names.get]();
   [else]
-    this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]());
+    this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper type].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -706,7 +709,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull(super.[v.names.get]
 [if not type.generateMarshaled]
   [output.error]Cannot use @Jackson.Mapped without @Json.Marshaled annotation[/output.error]
 [/if]
-[let marshalerInstance][type.typeValue.simple]Marshaler.instance()[/let]
+[let marshalerInstance][type.typeAbstract.simple]Marshaler.instance()[/let]
 
 @com.fasterxml.jackson.annotation.JsonValue
 public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws java.io.IOException {
@@ -725,11 +728,11 @@ public static [type.typeValue.relative] fromTokenBuffer(java.util.Map<String, co
 
 /**
  * {@inheritDoc}
- * @return reflection class instance {@code [type.name].class}
+ * @return reflection class instance {@code [type.typeAbstract].class}
  */
 @Override
 public Class<? extends java.lang.annotation.Annotation> annotationType() {
-  return [type.valueTypeName].class;
+  return [type.typeAbstract].class;
 }
 [/if]
   [for v in type.implementedAttributes]
@@ -1044,7 +1047,7 @@ private static <T> T cast(Object object) {
  * Returns default immutable singleton value of [type.typeAbstract.simple]
  * @return immutable instance of [type.name]
  */
-public static [type.typeValue.relative] [type.factoryInstance]() {
+public static [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
 }
     [/if]
@@ -1057,7 +1060,7 @@ public static [type.typeValue.relative] [type.factoryInstance]() {
 [/for]
  * @return immutable [type.typeAbstract.simple] instance
  */
-public static [type.typeValue.relative] [type.factoryOf]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]
@@ -1065,7 +1068,15 @@ public static [type.typeValue.relative] [type.factoryOf]([for v in type.construc
 [/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
-[if a.generateEnumSet]
+[if a.generateSortedSet]
+  com.google.common.collect.ImmutableSortedSet.copyOf(
+    [if a.hasNaturalOrder]
+      com.google.common.collect.Ordering.<[a.elementType]>natural(),
+    [else]
+      com.google.common.collect.Ordering.<[a.elementType]>natural().reverse(),
+    [/if]
+      [expression])
+[else if a.generateEnumSet]
   com.google.common.collect.Sets.immutableEnumSet([expression])
 [else if a.generateOrdinalValueSet]
   org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
@@ -1104,3 +1115,5 @@ public static [type.typeValue.relative] [type.factoryOf]([for v in type.construc
   java.util.Arrays.asList([expression])
 [/if]
 [/output.trim][/template]
+
+[template invokeSuper Type type][if type.iface][type.typeAbstract.relative].[/if]super[/template]

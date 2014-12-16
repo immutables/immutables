@@ -37,12 +37,14 @@ final class AttributesCollector {
   private final ProcessingEnvironment processing;
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
+  private final Reporter reporter;
 
   AttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
     this.styles = protoclass.styles();
     this.type = type;
+    this.reporter = protoclass.report();
   }
 
   void collect() {
@@ -59,6 +61,10 @@ final class AttributesCollector {
               + " Please decompose '%s' class into a smaller ones",
           USEFUL_PARAMETER_COUNT_LIMIT,
           protoclass.sourceElement().getQualifiedName());
+    }
+
+    for (ValueAttribute attribute : attributes) {
+      attribute.initAndValidate();
     }
 
     type.attributes.addAll(attributes);
@@ -187,6 +193,7 @@ final class AttributesCollector {
         }
       }
 
+      attribute.reporter = reporter;
       attribute.returnTypeName = returnType.toString();
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());
