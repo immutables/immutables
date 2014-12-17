@@ -57,6 +57,8 @@ public @interface Value {
     /**
      * Generate non-public (i.e. package private) immutable subclass out of public
      * abstract value type.
+     * @deprecated have no effect, please use {@link #visibility()} instead, will be removed in next
+     *             major release
      */
     @Beta
     @Deprecated
@@ -78,7 +80,7 @@ public @interface Value {
     /**
      * If {@code withers=false} then generation of copying methods starting with
      * "withAttributeName" will be disabled. Default is {@literal true}.
-     * @deprecated use {@link #copy()} attribute, will be deleted in next major release
+     * @deprecated use {@link #copy()} attribute instead, will be removed in next major release
      */
     @Deprecated
     boolean withers() default true;
@@ -106,6 +108,8 @@ public @interface Value {
 
     /**
      * Specify the mode in which accibility visibility is derived from abstract value type.
+     * It is a good idea to not specify such attributea inline with immutable values, but rather
+     * create style annotation (@see Style).
      * @return implementation visibility
      */
     @Beta
@@ -187,7 +191,9 @@ public @interface Value {
   public @interface Nested {}
 
   /**
-   * Generate transformer for a set of nested classes.
+   * Generate transformer for a set of nested classes. Should only be used on {@link Nested}
+   * umbrella classes. Then generated *Transformer class used to exploit and refine transformation
+   * of immutable graph.
    */
   @Beta
   @Documented
@@ -195,14 +201,15 @@ public @interface Value {
   @Target(ElementType.TYPE)
   public @interface Transformer {}
 
-  /**
+  /*
    * Generate visitor for a set of nested classes.
-   */
+   
   @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.TYPE)
   public @interface Visitor {}
+  */
 
   /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
@@ -295,8 +302,10 @@ public @interface Value {
    * Generated accessor methods have annotation copied from original accessor method. However
    * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
    * work with immutable types as they can with beans, using getters and annotations on them.
+   * @deprecated consider using styles, such as {@link Style#} May be undeprecated if it will be
+   *             usefull.
    */
-  @Beta
+  @Deprecated
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
@@ -305,9 +314,8 @@ public @interface Value {
   /**
    * Use one of the nested annotations on the {@link SortedSet}, {@link NavigableSet} or
    * {@link SortedMap}, {@link NavigableMap} attribute to enjoy special support for building
-   * immutable collection implementation. Non-annotated special collection will be
-   * generated/implemented as
-   * "nothing-special" attributes.
+   * immutable sorted set or map implementation. Non-annotated special collection will be
+   * generated/implemented as "nothing-special" attributes.
    */
   @Beta
   @Target({})

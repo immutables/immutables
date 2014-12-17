@@ -21,10 +21,10 @@ import org.immutables.value.Value;
 
 @Value.Nested
 @Value.Transformer
-@Json.Marshaled
 class GroupedClasses {
   interface Other {}
 
+  @Json.Marshaled
   @Value.Immutable
   interface NestedOne extends Other {
     Optional<Other> other();

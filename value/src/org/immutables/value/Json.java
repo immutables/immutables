@@ -22,6 +22,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Json marshaling annotations used to generate and customize marshalers.
+ */
 @Beta
 @Retention(RetentionPolicy.SOURCE)
 public @interface Json {
@@ -32,12 +35,10 @@ public @interface Json {
    * generate corresponding
    * marshaler class in the same package. It will have name of abstract immutable class with
    * 'Marshaler' suffix.
-   * When applied to a package, it is used to specify imports of marshaling routines for
-   * each generated marshaler in a package.
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ ElementType.TYPE })
+  @Target({ElementType.TYPE})
   public @interface Marshaled {}
 
   /**
@@ -47,7 +48,7 @@ public @interface Json {
    * annotation on a enclosing package (using package-info.java).
    */
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ ElementType.TYPE, ElementType.PACKAGE })
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
   public @interface Import {
     /**
      * Classes to static-import routines from.
@@ -63,7 +64,7 @@ public @interface Json {
    * @see Named
    */
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ ElementType.METHOD, ElementType.TYPE })
+  @Target({ElementType.METHOD, ElementType.TYPE})
   public @interface Subclasses {
 
     /**

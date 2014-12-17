@@ -1,17 +1,20 @@
-[template generate Type type]
-[if not type.emptyNesting]
-[output.error]
-  Use @Value.Parboil to annotate umbrella class with @Value.Nested, but not with @Value.Immutable
-[/output.error]
-[/if]
-[output.java type.packageName ('Parboiled' type.simpleName)]
+[template generate]
+  [for type in values.values if type.generateParboiled]
+    [if type.kind.isEnclosing and (not type.kind.isValue)]
+[output.java type.package (type.typeAbstract.simple 'Parboiled')]
 [generateParboiled type]
 [/output.java]
+    [else]
+[output.error]
+Use @Parboil.Ast to annotate umbrella class with @Value.Nested, but not @Value.Immutable
+[/output.error]
+    [/if]
+  [/for]
 [/template]
 
 [template generateParboiled Type type]
-[if type.packageName]
-package [type.packageName];
+[if type.package]
+package [type.package];
 [/if]
 
 import org.immutables.generator.processor.Extractions;
@@ -20,9 +23,9 @@ import org.immutables.generator.processor.Extractions;
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
-[type.accessPrefix]final class Parboiled[type.simpleName] {
-  private Parboiled[type.simpleName]() {}
-[for v in type.nestedChildren]
+[type.typeAbstract.access]final class Parboiled[type.typeAbstract.simple] {
+  private Parboiled[type.typeAbstract.simple]() {}
+[for v in type.nested]
   [generateParboiledType v]
 [/for]
 }
@@ -31,19 +34,19 @@ import org.immutables.generator.processor.Extractions;
 [template generateParboiledType Type type]
 
 @javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
-public static class [type.simpleName] {
-  private [type.simpleName]() {}
+public static class [type.typeAbstract.simple] {
+  private [type.typeAbstract.simple]() {}
 [if type.useSingleton]
 
   public static Extractions.Extractor<[type.name]> of() {
     return new Extractions.Instance<[type.name]>() {
       @Override
       public [type.name] get() {
-        return [type.immutableReferenceName].of();
+        return [type.factoryInstance]();
       }
       @Override
       public String toString() {
-        return "[type.simpleName].of()";
+        return "[type.typeAbstract.simple].of()";
       }
     };
   }
@@ -66,11 +69,11 @@ public static class [type.simpleName] {
     return new Extractions.Construct<[type.name], [c.wrapperType]>([c.name]) {
       @Override
       public [type.name] get([c.wrapperType] value) {
-        return [type.immutableReferenceName].of(value);
+        return [type.factoryOf](value);
       }
       @Override
       public String toString() {
-        return "[type.simpleName].of()";
+        return "[type.typeAbstract.simple].of()";
       }
     };
   }
@@ -79,27 +82,27 @@ public static class [type.simpleName] {
 [if type.useBuilder]
 
   public static Extractions.Applicator builder() {
-    return new Extractions.Builder<[type.immutableReferenceName].Builder>() {
+    return new Extractions.Builder<[type.typeBuilder]>() {
       @Override
-      public [type.immutableReferenceName].Builder builder() {
-        return [type.immutableReferenceName].builder();
+      public [type.typeBuilder].Builder builder() {
+        return [type.factoryBuilder]();
       }
       @Override
       public String toString() {
-        return "[type.simpleName].builder()";
+        return "[type.typeAbstract.simple].builder()";
       }
     };
   }
 
-  public static Extractions.Extractor<[type.name]> build() {
-    return new Extractions.Build<[type.immutableReferenceName].Builder, [type.name]>() {
+  public static Extractions.Extractor<[type.typeAbstract]> build() {
+    return new Extractions.Build<[type.typeBuilder], [type.name]>() {
       @Override
-      public [type.name] build([type.immutableReferenceName].Builder builder) {
-        return builder.build();
+      public [type.name] build([type.typeBuilder] builder) {
+        return builder.[type.names.build]();
       }
       @Override
       public String toString() {
-        return "[type.simpleName].build()";
+        return "[type.typeAbstract.simple].build()";
       }
     };
   }
@@ -111,14 +114,14 @@ public static class [type.simpleName] {
   }
 
   public static Extractions.Applicator add[toUpper a.name](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]Element) {
-    return new Extractions.Specify<[type.immutableReferenceName].Builder, [a.wrappedElementType]>([a.name]Element) {
+    return new Extractions.Specify<[type.typeBuilder], [a.wrappedElementType]>([a.name]Element) {
       @Override
-      public void specify([type.immutableReferenceName].Builder builder, [a.wrappedElementType] value) {
-        builder.add[toUpper a.name](value);
+      public void specify([type.typeBuilder] builder, [a.wrappedElementType] value) {
+        builder.[a.names.add](value);
       }
       @Override
       public String toString() {
-        return "[type.simpleName].add[toUpper a.name]()";
+        return "[type.typeAbstract.simple].add[toUpper a.name]()";
       }
     };
   }
@@ -130,14 +133,14 @@ public static class [type.simpleName] {
   }
 
   public static Extractions.Applicator [a.name](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]) {
-    return new Extractions.Specify<[type.immutableReferenceName].Builder, [a.wrappedElementType]>([a.name]) {
+    return new Extractions.Specify<[type.typeBuilder], [a.wrappedElementType]>([a.name]) {
       @Override
-      public void specify([type.immutableReferenceName].Builder builder, [a.wrappedElementType] value) {
-        builder.[a.name](value);
+      public void specify([type.typeBuilder] builder, [a.wrappedElementType] value) {
+        builder.[a.names.init](value);
       }
       @Override
       public String toString() {
-        return "[type.simpleName].[a.name]()";
+        return "[type.typeAbstract.simple].[a.name]()";
       }
     };
   }
@@ -154,14 +157,14 @@ public static class [type.simpleName] {
   }
 
   public static Extractions.Applicator [a.name](Extractions.Extractor<[a.wrapperType]> [a.name]) {
-    return new Extractions.Specify<[type.immutableReferenceName].Builder, [a.wrapperType]>([a.name]) {
+    return new Extractions.Specify<[type.typeBuilder], [a.wrapperType]>([a.name]) {
       @Override
-      public void specify([type.immutableReferenceName].Builder builder, [a.wrapperType] value) {
-        builder.[a.name](value);
+      public void specify([type.typeBuilder] builder, [a.wrapperType] value) {
+        builder.[a.names.init](value);
       }
       @Override
       public String toString() {
-        return "[type.simpleName].[a.name]()";
+        return "[type.typeAbstract.simple].[a.name]()";
       }
     };
   }

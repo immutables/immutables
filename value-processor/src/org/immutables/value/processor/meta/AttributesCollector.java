@@ -194,6 +194,7 @@ final class AttributesCollector {
       }
 
       attribute.reporter = reporter;
+      attribute.processing = processing;
       attribute.returnTypeName = returnType.toString();
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());

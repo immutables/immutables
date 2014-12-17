@@ -1,14 +1,15 @@
 [template generate]
   [for type in values.values if type.generateTransformer]
-    [if not type.kind.isEnclosing]
-[output.error]
-Use @Value.Transformer to annotate umbrella class with @Value.Nested, but not with @Value.Immutable
-[/output.error]
-    [else]
+    [if type.kind.isEnclosing and (not type.kind.isValue)]
 [output.java type.package (type.typeAbstract.simple 'Transformer')]
 [generateTransformer type]
 [/output.java]
+    [else]
+[output.error]
+Use @Value.Transformer to annotate umbrella class with @Value.Nested, but with @Value.Immutable
+[/output.error]
     [/if]
+  [/for]
 [/template]
 
 [template generateTransformer Type transformerType]
@@ -16,18 +17,16 @@ Use @Value.Transformer to annotate umbrella class with @Value.Nested, but not wi
 package [transformerType.package];
 [/if]
 
-// Generated imports
-
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
 [transformerType.typeAbstract.access]abstract class [transformerType.typeAbstract.simple]Transformer<C> {
-  protected [transformerType.typeAbstract.simple]Transformer() {
-  }
+  protected [transformerType.typeAbstract.simple]Transformer() {}
+
   [for cases = transformerType.cases,
        type in cases.implementationTypes,
-       t = type.implementationTypeName,
-       s = type.simpleName]
+       t = type.typeImmutable.toString,
+       s = type.typeAbstract.simple]
 
   public [t] transform(C context, [t] value) {
     return value[for a in type.settableAttributes if type.useCopyMethods]
@@ -62,10 +61,10 @@ package [transformerType.package];
     [/if]
   [for et = a.unwrappedElementType]
 
-  protected [et] transform[type.simpleName][toUpper a.name](C context, [t] value, [et] element) {
+  protected [et] transform[type.typeAbstract.simple][toUpper a.name](C context, [t] value, [et] element) {
     [if cases.isImplementationType et]
     return transform(context, element);
-    [else][for Type subtype in cases.knownSubtypes et, sub = subtype.implementationTypeName]
+    [else][for Type subtype in cases.knownSubtypes et, sub = subtype.typeImmutable.toString]
     if (element instanceof [sub]) {
       return transform[simplifyName et](context, ([sub]) element);
     }
@@ -78,9 +77,9 @@ package [transformerType.package];
   [/for]
   [for e in transformerType.cases.subtypeUsages.entries]
 
-  protected [e.key] transform[simplifyName e.key](C context, [e.value.implementationTypeName] value) {
+  protected [e.key] transform[simplifyName e.key](C context, [e.value.typeImmutable.toString] value) {
     [if e.key ne e.value.typeImmutable.toString]
-    return transform[simplifyName e.value.valueTypeName](context, value);
+    return transform[simplifyName e.value.typeAbstract.simple](context, value);
     [else]
     return transform(context, value);
     [/if]
