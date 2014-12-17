@@ -25,7 +25,6 @@ import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
@@ -198,7 +197,9 @@ public class ValueType extends TypeIntrospectionBase {
 
   @SuppressWarnings("deprecation")
   public boolean isUseCopyMethods() {
-    return immutableFeatures.copy() && immutableFeatures.withers();
+    return immutableFeatures.copy()
+        && immutableFeatures.withers()
+        && !constitution.implementationVisibility().isPrivate();
   }
 
   public boolean isUseCopyConstructor() {

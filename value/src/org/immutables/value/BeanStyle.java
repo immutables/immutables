@@ -1,13 +1,17 @@
 package org.immutables.value;
 
+import org.immutables.value.Value.Immutable.ImplementationVisibility;
 import com.google.common.annotations.Beta;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Bean related style-customizations. Serve mostly as examples
+ */
 //@Target({})
-public @interface Style {
+public @interface BeanStyle {
 
   /**
    * Annotations that applies speculative Java Bean-style accessor naming convention
@@ -22,5 +26,21 @@ public @interface Style {
   @Value.Style(get = {"is*", "get*"})
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface BeanAccessors {}
+  public @interface Accessors {}
+
+  /**
+   * Special combination of styles: separate top builder, private implementation,
+   * set-get prefixes, new builder etc.
+   */
+  @Beta
+  @Value.Style(
+      get = {"is*", "get*"},
+      init = "set*",
+      of = "new*",
+      instance = "getInstance",
+      builder = "new",
+      defaults = @Value.Immutable(visibility = ImplementationVisibility.PRIVATE))
+  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Conservative {}
 }
