@@ -19,37 +19,23 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
+import org.immutables.value.*;
+import org.immutables.value.processor.meta.Constitution.NameForms;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.*;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor7;
-import org.immutables.value.Jackson;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Parboil;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Constitution.NameForms;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Proto.Protoclass;
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -182,12 +168,6 @@ public class ValueType extends TypeIntrospectionBase {
     Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
     if (declaringType.isPresent()) {
       if (declaringType.get().hasAnnotation(annotationType)) {
-        return true;
-      }
-    }
-    Optional<DeclaringType> enclosingOf = constitution.protoclass().enclosingOf();
-    if (enclosingOf.isPresent()) {
-      if (enclosingOf.get().hasAnnotation(annotationType)) {
         return true;
       }
     }

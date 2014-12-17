@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.PackageElement;
+import javax.annotation.processing.ProcessingEnvironment;
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -415,10 +417,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
         Json.Subclasses.class.getCanonicalName(), "value", element.getAnnotationMirrors());
   }
 
-  private boolean marshaledElement;
-  private boolean marshaledSecondaryElement;
-  private boolean specialMarshaledElement;
-  private boolean specialMarshaledSecondaryElement;
+  @Nullable
+  private TypeElement marshaledElement;
+  @Nullable
+  private TypeElement marshaledSecondaryElement;
+  @Nullable
+  private TypeElement specialMarshaledElement;
+  @Nullable
+  private TypeElement specialMarshaledSecondaryElement;
 
   private boolean hasEnumFirstTypeParameter;
   private TypeElement containedTypeElement;
@@ -426,6 +432,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private TypeMirror arrayComponent;
   private boolean regularAttribute;
   private boolean nullable;
+  public ProcessingEnvironment processing;
 
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
@@ -491,9 +498,9 @@ public class ValueAttribute extends TypeIntrospectionBase {
               if (typeSecondArgument instanceof DeclaredType) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
                 @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
-                marshaledSecondaryElement = generateMarshaler != null;
+                marshaledSecondaryElement = generateMarshaler != null ? typeElement : null;
                 specialMarshaledSecondaryElement =
-                    isSpecialMarshaledElement(marshaledSecondaryElement, typeElement.getQualifiedName());
+                    asSpecialMarshaledElement(marshaledSecondaryElement, typeElement);
               }
             }
           }
@@ -514,8 +521,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
       this.containedTypeElement = typeElement;
 
       @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
-      marshaledElement = generateMarshaler != null;
-      specialMarshaledElement = isSpecialMarshaledElement(marshaledElement, typeElement.getQualifiedName());
+      marshaledElement = generateMarshaler != null ? typeElement : null;
+      specialMarshaledElement = asSpecialMarshaledElement(marshaledElement, typeElement);
     }
 
     intospectTypeMirror(typeMirror);
@@ -602,12 +609,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isSpecialMarshaledElement() {
     ensureTypeIntrospected();
-    return specialMarshaledElement;
+    return specialMarshaledElement != null;
   }
 
   public boolean isSpecialMarshaledSecondaryElement() {
     ensureTypeIntrospected();
-    return specialMarshaledSecondaryElement;
+    return specialMarshaledSecondaryElement != null;
   }
 
   public boolean isMarshaledElement() {
@@ -615,42 +622,45 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     ensureTypeIntrospected();
-    return marshaledElement;
+    return marshaledElement != null;
   }
 
   public boolean isMarshaledSecondaryElement() {
     ensureTypeIntrospected();
-    return marshaledSecondaryElement;
+    return marshaledSecondaryElement != null;
   }
 
   public boolean isPrimitiveElement() {
     return isPrimitiveType(getUnwrappedElementType());
   }
 
-  private boolean isSpecialMarshaledElement(boolean isMarshaled, Object qualifiedName) {
-    if (isMarshaled) {
-      return true;
+  private TypeElement asSpecialMarshaledElement(@Nullable TypeElement marshaled, TypeElement element) {
+    if (marshaled != null) {
+      return marshaled;
     }
-    return !isRegularMarshalableType(qualifiedName.toString());
+    if (!isRegularMarshalableType(element.getQualifiedName().toString())) {
+      return element;
+    }
+    return null;
   }
 
-  private static String marshalerNameFor(String typeName) {
-    SegmentedName name = SegmentedName.from(typeName);
-    return name.packageName + "." + name.simpleName + "Marshaler";
+  private String marshalerNameFor(TypeElement element) {
+    String marshalerClassName = element.getSimpleName().toString() + "Marshaler";
+    PackageElement packageElement = processing.getElementUtils().getPackageOf(element);
+    if (!packageElement.isUnnamed()) {
+      marshalerClassName = packageElement.getQualifiedName() + "." + marshalerClassName;
+    }
+    return marshalerClassName;
   }
 
   Collection<String> getMarshaledImportRoutines() {
     Collection<String> imports = Lists.newArrayListWithExpectedSize(2);
     if (isMarshaledElement()) {
-      String typeName = isContainerType()
-          ? getUnwrappedElementType()
-          : getType();
-
-      imports.add(marshalerNameFor(typeName));
+      imports.add(marshalerNameFor(marshaledElement));
     }
 
     if (isMapType() && isMarshaledSecondaryElement()) {
-      imports.add(marshalerNameFor(getUnwrappedSecondaryElementType()));
+      imports.add(marshalerNameFor(marshaledSecondaryElement));
     }
     return imports;
   }
@@ -662,18 +672,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
           ? getUnwrappedElementType()
           : getType();
 
-      addIfSpecialMarshalable(marshaledTypeSet, typeName);
+      marshaledTypeSet.add(typeName);
     }
     if (isMapType() && isSpecialMarshaledSecondaryElement()) {
-      addIfSpecialMarshalable(marshaledTypeSet, getUnwrappedSecondaryElementType());
+      marshaledTypeSet.add(specialMarshaledSecondaryElement.getQualifiedName().toString());
     }
     return marshaledTypeSet;
-  }
-
-  static void addIfSpecialMarshalable(Collection<String> marshaledTypes, String typeName) {
-    if (!isRegularMarshalableType(typeName)) {
-      marshaledTypes.add(typeName);
-    }
   }
 
   public boolean isAuxiliary() {

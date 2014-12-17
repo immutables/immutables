@@ -1,7 +1,7 @@
 [template generate]
-  [for type in values.values if type.generateMarshaled and type.kind.isValue]
-    [checkAttributes type]
-
+  [for type in values.values if type.generateMarshaled]
+    [if type.kind.isValue]
+      [checkAttributes type]
 [output.java type.package (type.typeAbstract.simple 'Marshaler')]
 [generateMarshaler type]
 [/output.java]
@@ -9,7 +9,11 @@
 [output.java type.package ('_Marshaling_' type.typeAbstract.simple)]
 [generateMarshaling type]
 [/output.java]
-
+    [else]
+[output.error]
+Use @Json.Marshaled to annotate @Value.Immutable abstract value types
+[/output.error]
+    [/if]
   [/for]
   [for e in values.asMap.entrySet]
     [generateMarshalingContributor e.key e.value]

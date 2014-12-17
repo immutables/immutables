@@ -266,11 +266,10 @@ public final class MarshalingSupport {
 
   public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {
     // unchecked: relies on how nice are marshalers contributors
-    @SuppressWarnings("unchecked")
-    @Nullable
-    Marshaler<T> marshaler = (Marshaler<T>) Registry.marshalers.get(type);
+    @SuppressWarnings("unchecked") @Nullable Marshaler<T> marshaler = (Marshaler<T>) Registry.marshalers.get(type);
     Preconditions.checkArgument(marshaler != null,
-        "Cannot find marshaler for type %s. Use @Json.Marshaled annotation to generate associated marshaler", type);
+        "Cannot find marshaler for type %s. Use @Json.Marshaled annotation to generate associated marshaler",
+        type.getCanonicalName());
     return marshaler;
   }
 
