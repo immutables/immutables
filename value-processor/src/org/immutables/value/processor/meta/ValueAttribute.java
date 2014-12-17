@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Joiner;
+import java.util.SortedMap;
+import java.util.NavigableMap;
 import javax.lang.model.element.PackageElement;
 import javax.annotation.processing.ProcessingEnvironment;
 import com.google.common.base.Functions;
@@ -49,6 +52,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public class ValueAttribute extends TypeIntrospectionBase {
+  private static final Joiner COMMA_JOINER = Joiner.on(", ");
   private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
@@ -65,7 +69,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
-  public ImmutableList<String> typeParameters;
+  public ImmutableList<String> typeParameters = ImmutableList.of();
   public Reporter reporter;
 
   TypeMirror returnType;
@@ -170,23 +174,32 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public String getImplementationType() {
     if (implementationType == null) {
-      String type = getType();
+      String implementationRawType = "";
       if (isMapType()) {
-        implementationType = type.replace(Map.class.getName(),
-            UnshadeGuava.typeString("collect.ImmutableMap"));
+        if (isGenerateSortedMap()) {
+          implementationRawType = UnshadeGuava.typeString("collect.ImmutableSortedMap");
+        } else {
+          implementationRawType = UnshadeGuava.typeString("collect.ImmutableMap");
+        }
       } else if (isListType()) {
-        implementationType = type.replace(List.class.getName(),
-            UnshadeGuava.typeString("collect.ImmutableList"));
+        implementationRawType = UnshadeGuava.typeString("collect.ImmutableList");
       } else if (isGenerateSortedSet()) {
-        implementationType = type.replace(List.class.getName(),
-            UnshadeGuava.typeString("collect.ImmutableSortedSet"));
+        implementationRawType = UnshadeGuava.typeString("collect.ImmutableSortedSet");
       } else if (isSetType()) {
-        implementationType = type.replace(Set.class.getName(),
-            isGenerateOrdinalValueSet()
-                ? "org.immutables.common.collect.".concat("ImmutableOrdinalSet")
-                : UnshadeGuava.typeString("collect.ImmutableSet"));
+        implementationRawType = isGenerateOrdinalValueSet()
+            ? "org.immutables.common.collect.".concat("ImmutableOrdinalSet")
+            : UnshadeGuava.typeString("collect.ImmutableSet");
+      }
+
+      if (implementationRawType.isEmpty()) {
+        implementationType = getType();
       } else {
-        implementationType = type;
+        implementationType = implementationRawType;
+
+        List<String> parameters = typeParameters();
+        if (!parameters.isEmpty()) {
+          implementationType += "<" + COMMA_JOINER.join(parameters) + ">";
+        }
       }
     }
     return implementationType;
@@ -204,7 +217,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isMapType == null) {
-      isMapType = returnTypeName.startsWith(Map.class.getName());
+      isMapType = returnTypeName.startsWith(Map.class.getName())
+          || isSortedMapType();
     }
     return isMapType;
   }
@@ -226,7 +240,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
   @Nullable
   private Boolean isSortedSetType;
   @Nullable
+  private Boolean isSortedMapType;
+  @Nullable
   private Boolean shouldGenerateSortedSet;
+  @Nullable
+  private Boolean shouldGenerateSortedMap;
+
   private OrderKind orderKind = OrderKind.NONE;
 
   private enum OrderKind {
@@ -244,11 +263,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean hasNaturalOrder() {
-    return isSortedSetType() && orderKind == OrderKind.NATURAL;
+    return orderKind == OrderKind.NATURAL;
   }
 
   public boolean hasReverseOrder() {
-    return isSortedSetType() && orderKind == OrderKind.REVERSE;
+    return orderKind == OrderKind.REVERSE;
   }
 
   public boolean isSortedSetType() {
@@ -263,51 +282,80 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return isSortedSetType;
   }
 
+  public boolean isSortedMapType() {
+    if (isRegularAttribute()) {
+      return false;
+    }
+    if (isSortedMapType == null) {
+      isSortedMapType = returnTypeName.startsWith(Map.class.getName())
+          || returnTypeName.startsWith(SortedMap.class.getName())
+          || returnTypeName.startsWith(NavigableMap.class.getName());
+    }
+    return isSortedMapType;
+  }
+
   public boolean isGenerateSortedSet() {
     if (isRegularAttribute()) {
       return false;
     }
     if (shouldGenerateSortedSet == null) {
       boolean isEligibleSetType = isSortedSetType();
-
-      @Nullable Value.Order.Natural naturalOrderAnnotation = element.getAnnotation(Value.Order.Natural.class);
-      @Nullable Value.Order.Reverse reverseOrderAnnotation = element.getAnnotation(Value.Order.Reverse.class);
-
-      if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
-        reporter.withElement(element)
-            .error("@Value.Order.Natural and @Value.Order.Reverse annotations could not be used on the same attribute");
-      } else if (naturalOrderAnnotation != null) {
-        if (isEligibleSetType) {
-          if (isComparable()) {
-            orderKind = OrderKind.NATURAL;
-          } else {
-            reporter.withElement(element)
-                .forAnnotation(Value.Order.Natural.class)
-                .error("@Value.Order.Natural should used on a set of Comparable elements");
-          }
-        } else {
-          reporter.withElement(element)
-              .forAnnotation(Value.Order.Natural.class)
-              .error("@Value.Order.Natural should specify order for Set, SortedSet or NavigableSet attribute");
-        }
-      } else if (reverseOrderAnnotation != null) {
-        if (isEligibleSetType) {
-          if (isComparable()) {
-            orderKind = OrderKind.REVERSE;
-          } else {
-            reporter.withElement(element)
-                .forAnnotation(Value.Order.Reverse.class)
-                .error("@Value.Order.Reverse should used with a set of Comparable elements");
-          }
-        } else {
-          reporter.withElement(element)
-              .forAnnotation(Value.Order.Reverse.class)
-              .error("@Value.Order.Reverse should specify order for Set, SortedSet or NavigableSet attribute");
-        }
-      }
+      checkOrderAnnotations();
       shouldGenerateSortedSet = isEligibleSetType && orderKind != OrderKind.NONE;
     }
     return shouldGenerateSortedSet;
+  }
+
+  public boolean isGenerateSortedMap() {
+    if (isRegularAttribute()) {
+      return false;
+    }
+    if (shouldGenerateSortedMap == null) {
+      boolean isEligibleType = isSortedMapType();
+      checkOrderAnnotations();
+      shouldGenerateSortedMap = isEligibleType && orderKind != OrderKind.NONE;
+    }
+    return shouldGenerateSortedMap;
+  }
+
+  private void checkOrderAnnotations() {
+    boolean isEligibleType = isSortedMapType() || isSortedSetType();
+
+    @Nullable Value.Order.Natural naturalOrderAnnotation = element.getAnnotation(Value.Order.Natural.class);
+    @Nullable Value.Order.Reverse reverseOrderAnnotation = element.getAnnotation(Value.Order.Reverse.class);
+
+    if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
+      reporter.withElement(element)
+          .error("@Value.Order.Natural and @Value.Order.Reverse annotations could not be used on the same attribute");
+    } else if (naturalOrderAnnotation != null) {
+      if (isEligibleType) {
+        if (isComparable()) {
+          orderKind = OrderKind.NATURAL;
+        } else {
+          reporter.withElement(element)
+              .forAnnotation(Value.Order.Natural.class)
+              .error("@Value.Order.Natural should used on a set of Comparable elements (map keys)");
+        }
+      } else {
+        reporter.withElement(element)
+            .forAnnotation(Value.Order.Natural.class)
+            .error("@Value.Order.Natural should specify order for sorted set or map attribute");
+      }
+    } else if (reverseOrderAnnotation != null) {
+      if (isEligibleType) {
+        if (isComparable()) {
+          orderKind = OrderKind.REVERSE;
+        } else {
+          reporter.withElement(element)
+              .forAnnotation(Value.Order.Reverse.class)
+              .error("@Value.Order.Reverse should used with a set of Comparable elements");
+        }
+      } else {
+        reporter.withElement(element)
+            .forAnnotation(Value.Order.Reverse.class)
+            .error("@Value.Order.Reverse should specify order for sorted set or map attribute");
+      }
+    }
   }
 
   private Boolean isOptionalType;
@@ -503,6 +551,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
                     asSpecialMarshaledElement(marshaledSecondaryElement, typeElement);
               }
             }
+
+            typeMirror = typeArgument;
           }
 
           typeParameters.addAll(Lists.transform(typeArguments, Functions.toStringFunction()));
@@ -703,14 +753,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
               .error("@Nullable could not be used with primitive type attibutes");
         } else {
           nullable = true;
-          if (isCollectionType()) {
+          if (isContainerType()) {
             regularAttribute = true;
           }
         }
       }
     }
 
-    if (isGenerateDefault && isContainerType() && !isArrayType()) {
+    if (isGenerateDefault && isContainerType()) {
       // ad-hoc. stick it here, but should work
       regularAttribute = true;
 

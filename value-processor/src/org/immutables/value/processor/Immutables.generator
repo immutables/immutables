@@ -375,6 +375,9 @@ public static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutabl
       com.google.common.collect.Immutable[v.rawCollectionType].builder();
 [else if v.optionalType]
   private [v.type] [v.name] = com.google.common.base.Optional.absent();
+[else if v.generateSortedMap]
+  private com.google.common.collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      com.google.common.collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
 [else if v.mapType]
   private com.google.common.collect.ImmutableMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
       com.google.common.collect.ImmutableMap.builder();
@@ -1082,6 +1085,13 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
 [else if a.collectionType]
   com.google.common.collect.Immutable[a.rawCollectionType].copyOf([expression])
+[else if a.generateSortedMap]
+  com.google.common.collect.ImmutableSortedMap.copyOf([expression],
+  [if a.hasNaturalOrder]
+      com.google.common.collect.Ordering.<[a.elementType]>natural()
+  [else]
+      com.google.common.collect.Ordering.<[a.elementType]>natural().reverse()
+  [/if])
 [else if a.generateEnumMap]
   com.google.common.collect.Maps.immutableEnumMap([expression])
 [else if a.mapType]
