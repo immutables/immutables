@@ -71,7 +71,12 @@ public final class Marshaling {
       JsonParser parser = JSON_FACTORY.createParser(json);
       return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      RuntimeException problem = new RuntimeException(ex.getMessage());
+      problem.setStackTrace(ex.getStackTrace());
+      if (ex.getCause() != null) {
+        problem.initCause(ex.getCause());
+      }
+      throw problem;
     }
   }
 

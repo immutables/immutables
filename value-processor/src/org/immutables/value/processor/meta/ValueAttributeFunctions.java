@@ -18,7 +18,7 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.Predicate;
 
 /**
- * Only function left in this previously generated file (long time ago)
+ * Only functions left in this previously generated file (long time ago)
  */
 final class ValueAttributeFunctions {
   private ValueAttributeFunctions() {}

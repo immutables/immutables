@@ -45,8 +45,8 @@ public final class BuiltinMarshalingRoutines {
       JsonParser parser,
       @Nullable Object objectNull,
       Class<?> expectedClass) throws IOException {
-    // TODO NEED TO RETHINK
-    throw new AssertionError("No marshaler can handle " + expectedClass);
+    // TODO NEED TO RETHINK?
+    throw new IOException("No marshaler can handle " + expectedClass);
   }
 
   /**
@@ -187,6 +187,10 @@ public final class BuiltinMarshalingRoutines {
       JsonParser parser,
       @Nullable Enum<T> enumNull,
       Class<T> expectedClass) throws IOException {
+    JsonToken t = parser.getCurrentToken();
+    if (t != JsonToken.VALUE_STRING && t != JsonToken.FIELD_NAME) {
+      MarshalingSupport.ensureToken(JsonToken.VALUE_STRING, t, expectedClass);
+    }
     return Enum.valueOf(expectedClass, parser.getText());
   }
 

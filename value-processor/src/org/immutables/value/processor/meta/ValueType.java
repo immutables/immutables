@@ -173,6 +173,7 @@ public class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
+  @SuppressWarnings("deprecation")
   public boolean isGenerateGetters() {
     return element.getAnnotation(Value.Getters.class) != null;
   }
