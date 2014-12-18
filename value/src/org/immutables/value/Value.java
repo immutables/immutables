@@ -201,9 +201,15 @@ public @interface Value {
   @Target(ElementType.TYPE)
   public @interface Transformer {}
 
+/*
+  @Beta
+  @Documented
+  @Retention(RetentionPolicy.SOURCE)
+  @Target(ElementType.METHOD)
+  public @interface Builder {}
+*/
   /*
    * Generate visitor for a set of nested classes.
-   
   @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
@@ -302,8 +308,8 @@ public @interface Value {
    * Generated accessor methods have annotation copied from original accessor method. However
    * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
    * work with immutable types as they can with beans, using getters and annotations on them.
-   * @deprecated consider using styles, such as {@link Style#} May be undeprecated if it will be
-   *             usefull.
+   * @deprecated consider using styles, such as {@link BeanStyle.Accessors}. May be undeprecated if
+   *             found to be useful.
    */
   @Deprecated
   @Documented
