@@ -18,12 +18,14 @@ package org.immutables.common.marshal.internal;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.ObjectCodec;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.types.ObjectId;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import javax.annotation.Nullable;
+import org.immutables.common.marshal.Marshaling;
 import org.immutables.common.repository.Id;
 import org.immutables.common.time.TimeInstant;
 import org.immutables.common.time.TimeMeasure;
@@ -45,8 +47,17 @@ public final class BuiltinMarshalingRoutines {
       JsonParser parser,
       @Nullable Object objectNull,
       Class<?> expectedClass) throws IOException {
-    // TODO NEED TO RETHINK?
-    throw new IOException("No marshaler can handle " + expectedClass);
+    @Nullable ObjectCodec codec = parser.getCodec();
+    if (codec == null) {
+      codec = Marshaling.getFallbackCodec();
+    }
+    if (codec != null) {
+      @SuppressWarnings("unchecked") T value = (T) codec.readValue(parser, expectedClass);
+      return value;
+    }
+    throw new IOException("No marshaler can handle " + expectedClass
+        + ". Add appropriate mapping or you can set fallback codec:"
+        + " Marshaling.Marshaling.setFallbackCodec()");
   }
 
   /**
@@ -250,7 +261,15 @@ public final class BuiltinMarshalingRoutines {
     if (instance == null) {
       generator.writeNull();
     } else {
-      generator.writeString(instance.toString());
+      @Nullable ObjectCodec codec = generator.getCodec();
+      if (codec == null) {
+        codec = Marshaling.getFallbackCodec();
+      }
+      if (codec != null) {
+        codec.writeValue(generator, instance);
+      } else {
+        generator.writeString(instance.toString());
+      }
     }
   }
 

@@ -15,6 +15,8 @@
  */
 package org.immutables.common.marshal.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -90,7 +92,7 @@ public final class MarshalingSupport {
       throws IOException {
     String message = exception.toString()
         + INDENT + "using " + contextType.getCanonicalName()
-        + INDENT + "path (" + generator.getOutputContext() + ")";
+        + INDENT + "path (" + buildJsonPath(generator.getOutputContext()) + ")";
     IOException problem = new IOException(message, exception);
     problem.setStackTrace(new StackTraceElement[] {problem.getStackTrace()[0]});
     throw problem;
@@ -249,7 +251,7 @@ public final class MarshalingSupport {
   public static <T> T fromTokenBuffers(
       Marshaler<T> marshaler,
       Map<String, TokenBuffer> buffers) throws IOException {
-    TokenBuffer buffer = new TokenBuffer(null, false);
+    TokenBuffer buffer = new TokenBuffer(findCodec(buffers), false);
     buffer.writeStartObject();
     for (Map.Entry<String, TokenBuffer> entry : buffers.entrySet()) {
       buffer.writeFieldName(entry.getKey());
@@ -259,6 +261,13 @@ public final class MarshalingSupport {
     JsonParser parser = buffer.asParser();
     parser.nextToken();
     return marshaler.unmarshalInstance(parser);
+  }
+
+  @Nullable
+  private static ObjectCodec findCodec(Map<String, TokenBuffer> buffers) {
+    return !buffers.isEmpty()
+        ? buffers.values().iterator().next().getCodec()
+        : null;
   }
 
   public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {

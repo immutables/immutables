@@ -15,14 +15,26 @@
  */
 package org.immutables.fixture.jackson;
 
-import org.immutables.fixture.jackson.ImmutableSampleJacksonMapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import org.immutables.common.marshal.Marshaling;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
 public class ObjectMappedTest {
-  ObjectMapper objectMapper = new ObjectMapper();
+  private static final ObjectMapper objectMapper = new ObjectMapper();
+
+  @BeforeClass
+  public static void setup() {
+    Marshaling.setFallbackCodec(objectMapper);
+  }
+
+  @AfterClass
+  public static void teardown() {
+    Marshaling.setFallbackCodec(null);
+  }
 
   public static class Wrapper {
     public ImmutableSampleJacksonMapped mapped;
@@ -42,6 +54,23 @@ public class ObjectMappedTest {
 
     String json = objectMapper.writeValueAsString(wrapper);
     check(objectMapper.readValue(json, Wrapper.class).mapped).is(wrapper.mapped);
+  }
+
+  @Test
+  public void jacksonRoundtrip() throws IOException {
+    SampleJacksonMapped.RegularPojo pojo = new SampleJacksonMapped.RegularPojo();
+    pojo.x = 1;
+    pojo.y = 2;
+
+    ImmutableSampleJacksonMapped original = ImmutableSampleJacksonMapped.builder()
+        .a("a")
+        .pojo(pojo)
+        .build();
+
+    String json = objectMapper.writeValueAsString(original);
+    SampleJacksonMapped value = objectMapper.readValue(json, SampleJacksonMapped.class);
+    check(value).is(original);
+    check(value).not().same(original);
   }
 
   @Test
