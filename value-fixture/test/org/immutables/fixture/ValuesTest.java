@@ -55,15 +55,15 @@ public class ValuesTest {
     OrderAttributeValue value = ImmutableOrderAttributeValue.builder()
         .addNatural(3, 2, 4, 1)
         .addReverse("a", "z", "b", "y")
-        .putNaturalMap(2, "2")
-        .putNaturalMap(1, "1")
+        .putNavigableMap(2, "2")
+        .putNavigableMap(1, "1")
         .putReverseMap("a", "a")
         .putReverseMap("b", "b")
         .build();
 
     check(value.natural()).isOf(1, 2, 3, 4);
     check(value.reverse()).isOf("z", "y", "b", "a");
-    check(value.naturalMap().keySet()).isOf(1, 2);
+    check(value.navigableMap().keySet()).isOf(1, 2);
     check(value.reverseMap().keySet()).isOf("b", "a");
   }
 

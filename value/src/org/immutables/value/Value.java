@@ -318,44 +318,36 @@ public @interface Value {
   public @interface Getters {}
 
   /**
-   * Use one of the nested annotations on the {@link SortedSet}, {@link NavigableSet} or
-   * {@link SortedMap}, {@link NavigableMap} attribute to enjoy special support for building
-   * immutable sorted set or map implementation. Non-annotated special collection will be
+   * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
+   * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
+   * sorted collection of elements which are not implementing {@link Comparable}.
+   * Non-annotated special collection will be
    * generated/implemented as "nothing-special" attributes.
+   * @see ImmutableSortedSet#naturalOrder()
+   * @see ImmutableSortedMap#naturalOrder()
+   * @see ReverseOrder
    */
   @Beta
-  @Target({})
+  @Documented
+  @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Order {
+  public @interface NaturalOrder {}
 
-    /**
-     * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
-     * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
-     * sorted collection of elements which are not implementing {@link Comparable}.
-     * @see ImmutableSortedSet#naturalOrder()
-     * @see ImmutableSortedMap#naturalOrder()
-     * @see Reverse
-     */
-    @Beta
-    @Documented
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Natural {}
-
-    /**
-     * Specified reversed natural ordering for the implemented {@link SortedSet},
-     * {@link NavigableSet} or {@link SortedMap}, {@link NavigableMap}. It an error to annotate
-     * sorted collection of elements which are not implementing {@link Comparable}.
-     * @see ImmutableSortedSet#reverseOrder()
-     * @see ImmutableSortedMap#reverseOrder()
-     * @see Natural
-     */
-    @Beta
-    @Documented
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Reverse {}
-  }
+  /**
+   * Specified reversed natural ordering for the implemented {@link SortedSet}, {@link NavigableSet}
+   * or {@link SortedMap}, {@link NavigableMap}. It an error to annotate
+   * sorted collection of elements which are not implementing {@link Comparable}.
+   * Non-annotated special collection will be
+   * generated/implemented as "nothing-special" attributes.
+   * @see ImmutableSortedSet#reverseOrder()
+   * @see ImmutableSortedMap#reverseOrder()
+   * @see NaturalOrder
+   */
+  @Beta
+  @Documented
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface ReverseOrder {}
 
   /**
    * Naming and structural style could be used to customize convention of the generated
