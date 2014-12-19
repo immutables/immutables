@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ElementKind;
 import com.google.common.base.Joiner;
 import java.util.SortedMap;
 import java.util.NavigableMap;
@@ -377,6 +378,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateEnumSet() {
     ensureTypeIntrospected();
     return isSetType() && hasEnumFirstTypeParameter;
+  }
+
+  public CharSequence defaultInterface() {
+    Element enclosing = element.getEnclosingElement();
+    if (enclosing.getKind() == ElementKind.INTERFACE && isGenerateDefault) {
+      return ((TypeElement) enclosing).getQualifiedName();
+    }
+    return "";
   }
 
   public boolean isGenerateEnumMap() {
