@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables.org authors
+    Copyright 2013-2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package org.immutables.common.marshal.internal;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -35,6 +37,8 @@ import org.immutables.common.marshal.Marshaler;
  * Marshaling support used by other utilities as well as by generated code.
  */
 public final class MarshalingSupport {
+  private static final String INDENT = "\n\t";
+
   private MarshalingSupport() {}
 
   @Nullable
@@ -65,8 +69,14 @@ public final class MarshalingSupport {
    */
   public static IOException diagnosed(Exception exception, JsonParser parser, Class<?> contextType)
       throws IOException {
-    // TODO need to implement
-    throw new IOException(exception);
+    String message = exception.toString()
+        + INDENT + "using " + contextType.getCanonicalName()
+        + INDENT + "path (" + buildJsonPath(parser.getParsingContext()) + ")"
+        + INDENT + "token '" + parser.getText() + "'"
+        + INDENT + "in " + parser.getCurrentLocation();
+    IOException problem = new IOException(message, exception);
+    problem.setStackTrace(new StackTraceElement[] {problem.getStackTrace()[0]});
+    throw problem;
   }
 
   /**
@@ -79,42 +89,30 @@ public final class MarshalingSupport {
    */
   public static IOException diagnosed(Exception exception, JsonGenerator generator, Class<?> contextType)
       throws IOException {
-    // TODO need to implement
-    throw new IOException(exception);
+    String message = exception.toString()
+        + INDENT + "using " + contextType.getCanonicalName()
+        + INDENT + "path (" + buildJsonPath(generator.getOutputContext()) + ")";
+    IOException problem = new IOException(message, exception);
+    problem.setStackTrace(new StackTraceElement[] {problem.getStackTrace()[0]});
+    throw problem;
   }
 
-/*
-  @Deprecated
-  public static IOException diagnose(JsonParser parser, String attribute, Object builder, Exception exception)
-      throws IOException {
-
-    String text = parser.getText();
-    JsonLocation location = parser.getTokenLocation();
-    String message = "";
-    if (exception instanceof JsonProcessingException) {
-      JsonProcessingException processingException = (JsonProcessingException) exception;
-      location = processingException.getLocation();
-      message += processingException.getOriginalMessage();
-    } else {
-      message += exception.getMessage();
+  private static String buildJsonPath(JsonStreamContext context) {
+    StringBuilder builder = new StringBuilder();
+    for (JsonStreamContext c = context; c != null; c = c.getParent()) {
+      if (c.inArray()) {
+        builder.insert(0, "[" + c.getCurrentIndex() + "]");
+      } else if (c.inObject()) {
+        builder.insert(0, "." + c.getCurrentName());
+      } else if (c.inRoot()) {
+        if (builder.length() > 0 && builder.charAt(0) == '.') {
+          builder.deleteCharAt(0);
+        }
+      }
     }
-    message += "\n  after '" + text + "'";
-    if (!attribute.isEmpty()) {
-      message += "\n  field \"" + attribute + "\"";
-    }
-    message += "\n  with " + builder;
-    message += "\n  at " + location;
-
-    // UnmarshalingProblemException problem = new UnmarshalingProblemException(message);
-    // problem.setStackTrace(exception.getStackTrace());
-    // if (exception.getCause() != null) {
-    // problem.initCause(exception);
-    // }
-
-    // throw problem;
-    throw new IOException(exception);
+    return builder.toString();
   }
-*/
+
   public static void ensureToken(JsonToken expected, JsonToken actual, Class<?> marshaledType) throws IOException {
     if (expected != actual) {
       throw new UnmarshalMismatchException(marshaledType.getName(), "~", "", actual);
@@ -155,12 +153,12 @@ public final class MarshalingSupport {
 
     @Override
     public String getMessage() {
-      return String.format("[%s.%s : %s] %s", hostType, attributeName, attributeType, super.getMessage());
+      return String.format("%s.%s : %s </= %s", hostType, attributeName, attributeType, super.getMessage());
     }
 
     @Override
     public String toString() {
-      return "problem during unmarshaling: " + getMessage();
+      return "Cannot unmarshal " + getMessage();
     }
   }
 
@@ -252,7 +250,7 @@ public final class MarshalingSupport {
   public static <T> T fromTokenBuffers(
       Marshaler<T> marshaler,
       Map<String, TokenBuffer> buffers) throws IOException {
-    TokenBuffer buffer = new TokenBuffer(null, false);
+    TokenBuffer buffer = new TokenBuffer(findCodec(buffers), false);
     buffer.writeStartObject();
     for (Map.Entry<String, TokenBuffer> entry : buffers.entrySet()) {
       buffer.writeFieldName(entry.getKey());
@@ -262,6 +260,13 @@ public final class MarshalingSupport {
     JsonParser parser = buffer.asParser();
     parser.nextToken();
     return marshaler.unmarshalInstance(parser);
+  }
+
+  @Nullable
+  private static ObjectCodec findCodec(Map<String, TokenBuffer> buffers) {
+    return !buffers.isEmpty()
+        ? buffers.values().iterator().next().getCodec()
+        : null;
   }
 
   public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {

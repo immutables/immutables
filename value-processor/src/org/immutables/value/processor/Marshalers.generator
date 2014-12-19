@@ -443,13 +443,22 @@ static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonPars
 
 private static void unmarshalAttribute(JsonParser parser, [type.typeBuilder.relative] builder, String attributeName)
     throws IOException {
-  [for s in type.unmarshaledAttributes]
-  if ("[s.marshaledName]".equals(attributeName)) {
-    unmarshalAttribute[toUpper s.name](parser, builder);
-    return;
-  }
+[for Mm mm = byFirstCharacter type.unmarshaledAttributes,
+     es = mm.asMap.entrySet]
+  switch (attributeName.charAt(0)) {
+  [for e in es]
+  case '[e.key]':
+    [for a in e.value]
+    if ("[a.marshaledName]".equals(attributeName)) {
+      unmarshalAttribute[toUpper a.name](parser, builder);
+      return;
+    }
+    [/for]
   [/for]
-  unmarshalUnknownAttribute(parser, attributeName);
+  default:
+    unmarshalUnknownAttribute(parser, attributeName);
+  }
+[/for]
 }
 
 private static void unmarshalUnknownAttribute(JsonParser parser, String attributeName)

@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -51,9 +51,9 @@ public @interface Jackson {
    * Annotated abstract value type requires to be annotated with {@link Value.Immutable} and
    * {@link Json.Marshaled} in order for the Jackson delegating methods to be generated. When
    * marshaling is delegated to JSON marshalers from <em>Immutables</em> toolkit, any nested
-   * marshaling and unmarshaling is done according to rules of {@link Json Json.*} annotations, including
-   * any custom marshaling routines, so Jackson's mappings and customizations will not work for
-   * during marshaling nested attributes of the immutable object.
+   * marshaling and unmarshaling is done according to rules of {@link Json Json.*} annotations,
+   * including any custom marshaling routines, so Jackson's mappings and customizations will not
+   * work for during marshaling nested attributes of the immutable object.
    * <p>
    * <em>Note: Be sure to use immutable implementation
    * class when defining properties that has to be marshaled by Jackson.
@@ -65,6 +65,8 @@ public @interface Jackson {
    *   ImmutableValue value;
    * }
    * </pre>
+   * <p>
+   * ImmutableValue could in turn contain
    */
   @Beta
   @Retention(RetentionPolicy.SOURCE)

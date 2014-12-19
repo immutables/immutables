@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables.org authors
+    Copyright 2013-2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package org.immutables.common.marshal;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.io.StringWriter;
+import javax.annotation.Nullable;
 import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
@@ -35,12 +37,38 @@ public final class Marshaling {
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory();
 
+  @Nullable
+  private static volatile ObjectCodec fallbackCodec;
+
+  /**
+   * Allows to inialize statically shared object codec, which will be used a last resort for
+   * object marshaling. Prefer to use marshaling routines or mapped immutable objects.
+   * <p>
+   * 
+   * <pre>
+   * Marshaling.setObjectCodec(new ObjectMapper());
+   * </pre>
+   * @param fallbackCodec the new default codec
+   */
+  public static void setFallbackCodec(@Nullable ObjectCodec fallbackCodec) {
+    Marshaling.fallbackCodec = fallbackCodec;
+  }
+
+  /**
+   * Currently configured via {@link #setFallbackCodec(ObjectCodec)} fallback codec.
+   * @return fallback codec or {@code null}
+   */
+  @Nullable
+  public static ObjectCodec getFallbackCodec() {
+    return fallbackCodec;
+  }
+
   /**
    * Marshal object to JSON. Output JSON string is pretty-printed.
    * @param object the object
    * @return JSON string
    */
-  // safe to not care of in-memory resource closing, which will be handled by GC
+  // safe to not care of in-memory resource closing, leave everything to GC
   @SuppressWarnings("resource")
   public static String toJson(Object object) {
     Marshaler<Object> marshaler = marshalerFor(object.getClass());
@@ -71,7 +99,12 @@ public final class Marshaling {
       JsonParser parser = JSON_FACTORY.createParser(json);
       return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      RuntimeException problem = new RuntimeException(ex.getMessage());
+      problem.setStackTrace(ex.getStackTrace());
+      if (ex.getCause() != null) {
+        problem.initCause(ex.getCause());
+      }
+      throw problem;
     }
   }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -201,9 +201,15 @@ public @interface Value {
   @Target(ElementType.TYPE)
   public @interface Transformer {}
 
+/*
+  @Beta
+  @Documented
+  @Retention(RetentionPolicy.SOURCE)
+  @Target(ElementType.METHOD)
+  public @interface Builder {}
+*/
   /*
    * Generate visitor for a set of nested classes.
-   
   @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
@@ -302,8 +308,8 @@ public @interface Value {
    * Generated accessor methods have annotation copied from original accessor method. However
    * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
    * work with immutable types as they can with beans, using getters and annotations on them.
-   * @deprecated consider using styles, such as {@link Style#} May be undeprecated if it will be
-   *             usefull.
+   * @deprecated consider using styles, such as {@link BeanStyle.Accessors}. May be undeprecated if
+   *             found to be useful.
    */
   @Deprecated
   @Documented
@@ -312,44 +318,36 @@ public @interface Value {
   public @interface Getters {}
 
   /**
-   * Use one of the nested annotations on the {@link SortedSet}, {@link NavigableSet} or
-   * {@link SortedMap}, {@link NavigableMap} attribute to enjoy special support for building
-   * immutable sorted set or map implementation. Non-annotated special collection will be
+   * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
+   * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
+   * sorted collection of elements which are not implementing {@link Comparable}.
+   * Non-annotated special collection will be
    * generated/implemented as "nothing-special" attributes.
+   * @see ImmutableSortedSet#naturalOrder()
+   * @see ImmutableSortedMap#naturalOrder()
+   * @see ReverseOrder
    */
   @Beta
-  @Target({})
+  @Documented
+  @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Order {
+  public @interface NaturalOrder {}
 
-    /**
-     * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
-     * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
-     * sorted collection of elements which are not implementing {@link Comparable}.
-     * @see ImmutableSortedSet#naturalOrder()
-     * @see ImmutableSortedMap#naturalOrder()
-     * @see Reverse
-     */
-    @Beta
-    @Documented
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Natural {}
-
-    /**
-     * Specified reversed natural ordering for the implemented {@link SortedSet},
-     * {@link NavigableSet} or {@link SortedMap}, {@link NavigableMap}. It an error to annotate
-     * sorted collection of elements which are not implementing {@link Comparable}.
-     * @see ImmutableSortedSet#reverseOrder()
-     * @see ImmutableSortedMap#reverseOrder()
-     * @see Natural
-     */
-    @Beta
-    @Documented
-    @Target(ElementType.METHOD)
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Reverse {}
-  }
+  /**
+   * Specified reversed natural ordering for the implemented {@link SortedSet}, {@link NavigableSet}
+   * or {@link SortedMap}, {@link NavigableMap}. It an error to annotate
+   * sorted collection of elements which are not implementing {@link Comparable}.
+   * Non-annotated special collection will be
+   * generated/implemented as "nothing-special" attributes.
+   * @see ImmutableSortedSet#reverseOrder()
+   * @see ImmutableSortedMap#reverseOrder()
+   * @see NaturalOrder
+   */
+  @Beta
+  @Documented
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface ReverseOrder {}
 
   /**
    * Naming and structural style could be used to customize convention of the generated

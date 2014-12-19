@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables.org authors
+    Copyright 2013-2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.Predicate;
 
 /**
- * Only function left in this previously generated file (long time ago)
+ * Only functions left in this previously generated file (long time ago)
  */
 final class ValueAttributeFunctions {
   private ValueAttributeFunctions() {}

@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables.org authors
+    Copyright 2013-2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ElementKind;
 import com.google.common.base.Joiner;
 import java.util.SortedMap;
 import java.util.NavigableMap;
@@ -275,8 +276,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedSetType == null) {
-      isSortedSetType = returnTypeName.startsWith(Set.class.getName())
-          || returnTypeName.startsWith(SortedSet.class.getName())
+      isSortedSetType = returnTypeName.startsWith(SortedSet.class.getName())
           || returnTypeName.startsWith(NavigableSet.class.getName());
     }
     return isSortedSetType;
@@ -287,8 +287,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedMapType == null) {
-      isSortedMapType = returnTypeName.startsWith(Map.class.getName())
-          || returnTypeName.startsWith(SortedMap.class.getName())
+      isSortedMapType = returnTypeName.startsWith(SortedMap.class.getName())
           || returnTypeName.startsWith(NavigableMap.class.getName());
     }
     return isSortedMapType;
@@ -321,25 +320,25 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private void checkOrderAnnotations() {
     boolean isEligibleType = isSortedMapType() || isSortedSetType();
 
-    @Nullable Value.Order.Natural naturalOrderAnnotation = element.getAnnotation(Value.Order.Natural.class);
-    @Nullable Value.Order.Reverse reverseOrderAnnotation = element.getAnnotation(Value.Order.Reverse.class);
+    @Nullable Value.NaturalOrder naturalOrderAnnotation = element.getAnnotation(Value.NaturalOrder.class);
+    @Nullable Value.ReverseOrder reverseOrderAnnotation = element.getAnnotation(Value.ReverseOrder.class);
 
     if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
       reporter.withElement(element)
-          .error("@Value.Order.Natural and @Value.Order.Reverse annotations could not be used on the same attribute");
+          .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
     } else if (naturalOrderAnnotation != null) {
       if (isEligibleType) {
         if (isComparable()) {
           orderKind = OrderKind.NATURAL;
         } else {
           reporter.withElement(element)
-              .forAnnotation(Value.Order.Natural.class)
-              .error("@Value.Order.Natural should used on a set of Comparable elements (map keys)");
+              .forAnnotation(Value.NaturalOrder.class)
+              .error("@Value.Natural should used on a set of Comparable elements (map keys)");
         }
       } else {
         reporter.withElement(element)
-            .forAnnotation(Value.Order.Natural.class)
-            .error("@Value.Order.Natural should specify order for sorted set or map attribute");
+            .forAnnotation(Value.NaturalOrder.class)
+            .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
     } else if (reverseOrderAnnotation != null) {
       if (isEligibleType) {
@@ -347,13 +346,13 @@ public class ValueAttribute extends TypeIntrospectionBase {
           orderKind = OrderKind.REVERSE;
         } else {
           reporter.withElement(element)
-              .forAnnotation(Value.Order.Reverse.class)
-              .error("@Value.Order.Reverse should used with a set of Comparable elements");
+              .forAnnotation(Value.ReverseOrder.class)
+              .error("@Value.Reverse should used with a set of Comparable elements");
         }
       } else {
         reporter.withElement(element)
-            .forAnnotation(Value.Order.Reverse.class)
-            .error("@Value.Order.Reverse should specify order for sorted set or map attribute");
+            .forAnnotation(Value.ReverseOrder.class)
+            .error("@Value.Reverse should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
     }
   }
@@ -377,6 +376,14 @@ public class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateEnumSet() {
     ensureTypeIntrospected();
     return isSetType() && hasEnumFirstTypeParameter;
+  }
+
+  public CharSequence defaultInterface() {
+    Element enclosing = element.getEnclosingElement();
+    if (enclosing.getKind() == ElementKind.INTERFACE && isGenerateDefault) {
+      return ((TypeElement) enclosing).getQualifiedName();
+    }
+    return "";
   }
 
   public boolean isGenerateEnumMap() {

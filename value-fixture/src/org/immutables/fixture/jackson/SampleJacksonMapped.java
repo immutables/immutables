@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 import org.immutables.value.Jackson;
@@ -29,4 +31,24 @@ public interface SampleJacksonMapped {
   String a();
 
   List<Integer> b();
+
+  Optional<RegularPojo> pojo();
+
+  public class RegularPojo {
+    public int x, y;
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(x, y);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof RegularPojo) {
+        return ((RegularPojo) obj).x == x
+            && ((RegularPojo) obj).y == y;
+      }
+      return false;
+    }
+  }
 }
