@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Ievgen Lukash
+    Copyright 2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import org.immutables.value.Value;
 import simple.GetterAnnotation;
 import simple.GetterAnnotation.InnerAnnotation;
 
+@SuppressWarnings("deprecation")
 @Value.Immutable
 @Value.Getters
 public interface GetterEncloser {

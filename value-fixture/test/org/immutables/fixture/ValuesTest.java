@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables.org authors
+    Copyright 2013-2014 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
