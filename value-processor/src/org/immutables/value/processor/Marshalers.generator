@@ -209,14 +209,19 @@ import java.io.IOException;
 [generateImportRoutines type]
 import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
+[if classpath.available 'org.immutables.common.repository.internal.ExtendedBuiltinMarshalingRoutines']
+import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalingRoutines.*;
+[/if]
 
 /**
  * Internal routines for marshaling and unmarshaling instances of [type.typeAbstract.relative].
- * Uses Jackson JSON processor API. See {@code [type.typeAbstract.simple]Marshaler} for the entry point to this API
+ * Uses Jackson JSON processor API.
+ * @deprecated Do not use directly, use {@link [type.typeAbstract.simple]Marshaler} as an entry point to these routines
  */
 @SuppressWarnings("all")
 @Generated({"Marshalers.generator", "[type.typeAbstract.relative]"})
 @ParametersAreNonnullByDefault
+@Deprecated
 final class _Marshaling_[type.typeAbstract.simple] {
   private _Marshaling_[type.typeAbstract.simple]() {
   }
@@ -443,10 +448,9 @@ static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonPars
 
 private static void unmarshalAttribute(JsonParser parser, [type.typeBuilder.relative] builder, String attributeName)
     throws IOException {
-[for Mm mm = byFirstCharacter type.unmarshaledAttributes,
-     es = mm.asMap.entrySet]
   switch (attributeName.charAt(0)) {
-  [for e in es]
+  [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
+     e in mm.asMap.entrySet]
   case '[e.key]':
     [for a in e.value]
     if ("[a.marshaledName]".equals(attributeName)) {
@@ -454,11 +458,11 @@ private static void unmarshalAttribute(JsonParser parser, [type.typeBuilder.rela
       return;
     }
     [/for]
+    break;
   [/for]
   default:
-    unmarshalUnknownAttribute(parser, attributeName);
   }
-[/for]
+  unmarshalUnknownAttribute(parser, attributeName);
 }
 
 private static void unmarshalUnknownAttribute(JsonParser parser, String attributeName)
