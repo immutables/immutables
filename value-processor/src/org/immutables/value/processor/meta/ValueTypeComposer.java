@@ -15,12 +15,14 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.Protoclass;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import org.immutables.value.processor.meta.Proto.Protoclass;
 
 /**
  * It may grow later in some better abstraction, but as it stands now, currently it is
@@ -53,21 +55,26 @@ public final class ValueTypeComposer {
         .protoclass(protoclass)
         .build();
 
-    if (isAbstractValueType(type.element)) {
-      if (protoclass.kind().isValue()) {
-        new AttributesCollector(protoclass, type).collect();
-      }
-    } else {
-      protoclass.report().error(
-          "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
-          protoclass.sourceElement().getSimpleName());
-      // Do nothing now. kind of way to less blow things up when it happens. actually need to revise
-    }
+    if (protoclass.kind().isFactory()) {
 
+    } else {
+      // This check is legacy, most such checks should have been done on a higher level?
+      if (isAbstractValueType(type.element)) {
+        if (protoclass.kind().isValue()) {
+          new AccessorAttributesCollector(protoclass, type).collect();
+        }
+      } else {
+        protoclass.report().error(
+            "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
+            protoclass.sourceElement().getSimpleName());
+        // Do nothing now. kind of way to less blow things up when it happens. actually need to
+        // revise
+      }
+    }
     return type;
   }
 
-  static boolean isAbstractValueType(TypeElement element) {
+  static boolean isAbstractValueType(Element element) {
     boolean ofSupportedKind = false
         || element.getKind() == ElementKind.INTERFACE
         || element.getKind() == ElementKind.ANNOTATION_TYPE

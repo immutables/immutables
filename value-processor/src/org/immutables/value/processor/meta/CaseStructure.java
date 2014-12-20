@@ -50,7 +50,7 @@ public class CaseStructure {
     ImmutableSetMultimap.Builder<String, ValueType> builder = ImmutableSetMultimap.builder();
 
     for (ValueType type : implementationTypes) {
-      builder.put(type.element.getQualifiedName().toString(), type);
+      builder.put(type.typeAbstract().toString(), type);
 
       for (String className : type.getExtendedClassesNames()) {
         builder.put(className, type);
@@ -77,7 +77,7 @@ public class CaseStructure {
           Set<ValueType> subtypes = subtyping.get(typeName);
           subtypeUsages.putAll(typeName, subtypes);
           for (ValueType subtype : subtypes) {
-            subtypeUsages.put(subtype.valueTypeName(), subtype);
+            subtypeUsages.put(subtype.typeAbstract().toString(), subtype);
           }
           return subtypes;
         }

@@ -32,6 +32,7 @@
     <module>value-fixture</module>
     <module>value-standalone</module>
     <module>quickstart</module>
+    <module>json-runtime</module>
   </modules>
 
   <organization>
@@ -109,7 +110,7 @@
           <source>1.7</source>
           <target>1.7</target>
           <compilerArgs>
-            <arg>-Xlint:deprecation</arg>
+            <!-- <arg>-Xlint:deprecation</arg> -->
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
         </configuration>

@@ -237,26 +237,20 @@ public final class MarshalingSupport {
   }
 
   /**
-   * Used to call from generated code as a workaround for
+   * Used to call from generated code.
+   * Requires Jackson version 2.4.4 or up as it's dependent of fix
    * <a href="https://github.com/FasterXML/jackson-databind/issues/592">
    * https://github.com/FasterXML/jackson-databind/issues/592</a>
    * @param <T> the type of expected unmarshaled type.
    * @param marshaler the marshaler
-   * @param buffers token buffers per each attribute
+   * @param buffer token buffer
    * @return unmarshaled instance
    * @throws IOException If JSON processing error occured.
    */
   @SuppressWarnings("resource")
-  public static <T> T fromTokenBuffers(
+  public static <T> T fromTokenBuffer(
       Marshaler<T> marshaler,
-      Map<String, TokenBuffer> buffers) throws IOException {
-    TokenBuffer buffer = new TokenBuffer(findCodec(buffers), false);
-    buffer.writeStartObject();
-    for (Map.Entry<String, TokenBuffer> entry : buffers.entrySet()) {
-      buffer.writeFieldName(entry.getKey());
-      entry.getValue().serialize(buffer);
-    }
-    buffer.writeEndObject();
+      TokenBuffer buffer) throws IOException {
     JsonParser parser = buffer.asParser();
     parser.nextToken();
     return marshaler.unmarshalInstance(parser);

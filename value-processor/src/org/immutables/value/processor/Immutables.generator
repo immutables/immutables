@@ -65,8 +65,18 @@ package [type.package];
 /**
  * Immutable implementation of {@link [type.typeAbstract.relative]}.
  * <p>
- * Use static factory methods to create instances: {@code [type.names.of]()} or
- * {@code [type.names.builder]()}.
+ [if type.useBuilder]
+ * Use builder to create immutable instances:
+ * {@link [type.factoryBuilder.relative] [type.factoryBuilder.relative]()}.
+ [/if]
+ [if type.useConstructor]
+ * Use static factory method to create immutable instances:
+ * {@link [type.factoryOf.relative] [type.factoryOf.relative]()}.
+ [/if]
+ [if type.useSingleton]
+ * Use static factory method to get default singleton instance:
+ * {@link [type.factoryInstance.relative] [type.factoryInstance.relative]()}.
+ [/if]
  */
 [annotationsWhenTopLevel type topLevel]
 @javax.annotation.concurrent.Immutable
@@ -720,8 +730,8 @@ public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws ja
 }
 
 @com.fasterxml.jackson.annotation.JsonCreator
-public static [type.typeValue.relative] fromTokenBuffer(java.util.Map<String, com.fasterxml.jackson.databind.util.TokenBuffer> buffers) throws java.io.IOException {
-  return [type.names.copyOf](org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffers([marshalerInstance], buffers));
+public static [type.typeValue.relative] fromTokenBuffer(com.fasterxml.jackson.databind.util.TokenBuffer buffer) throws java.io.IOException {
+  return [type.names.copyOf](org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffer([marshalerInstance], buffer));
 }
 [/if]
 [/template]
@@ -762,7 +772,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalToType][if type.annotationType][type.valueTypeName][else][type.typeImmutable.simple][/if][/let]
+[let equalToType][if type.annotationType][type.typeAbstract.relative][else][type.typeImmutable.simple][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if not type.equalToDefined]
 
@@ -1029,7 +1039,7 @@ static {
   try {
   [for a in type.implementedAttributes if a.generateDefault]
     DEFAULT_VALUE_[toConstant a.name] =
-        cast([type.valueTypeName].class.getDeclaredMethod("[a.name]").getDefaultValue());
+        cast([type.typeAbstract.relative].class.getDeclaredMethod("[a.name]").getDefaultValue());
   [/for]
   } catch(Exception e) {
     throw new ExceptionInInitializerError(e);

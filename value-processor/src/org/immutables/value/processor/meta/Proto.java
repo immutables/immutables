@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ExecutableElement;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -399,6 +400,7 @@ public final class Proto {
       INCLUDED_IN_PACKAGE,
       INCLUDED_ON_TYPE,
       INCLUDED_IN_TYPE,
+      DEFINED_FACTORY,
       DEFINED_TYPE,
       DEFINED_AND_ENCLOSING_TYPE,
       DEFINED_ENCLOSING_TYPE,
@@ -436,9 +438,21 @@ public final class Proto {
       }
 
       public boolean isValue() {
-        return this != DEFINED_ENCLOSING_TYPE;
+        switch (this) {
+        case DEFINED_FACTORY:
+        case DEFINED_ENCLOSING_TYPE:
+          return false;
+        default:
+          return true;
+        }
+      }
+
+      public boolean isFactory() {
+        return this == DEFINED_FACTORY;
       }
     }
+
+    public abstract Optional<ExecutableElement> sourceMethodElement();
   }
 
   private enum ElementToName implements Function<TypeElement, String> {

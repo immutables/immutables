@@ -201,13 +201,37 @@ public @interface Value {
   @Target(ElementType.TYPE)
   public @interface Transformer {}
 
-/*
+  /**
+   * Annotate static factory methods that produce some value (non-void, non-private) to create
+   * builder out of constructor parameters.
+   * 
+   * <pre>
+   * class Sum {
+   *   {@literal @}Value.Builder
+   *   static Integer from(int a, int b) {
+   *      return a + b;
+   *   }
+   * }
+   * ... // generates builder
+   * Integer result = new SumBuilder()
+   *    .a(111)
+   *    .b(222)
+   *    .build();
+   * </pre>
+   * <p>
+   * Methods level, package level style annotations fully supported (see {@link Style}).
+   * <p>
+   * <em>
+   * This annotation is for static factory methods to generate arbitrary builders. It's not for
+   * immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
+   * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
+   */
   @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Builder {}
-*/
+
   /*
    * Generate visitor for a set of nested classes.
   @Beta
@@ -251,9 +275,34 @@ public @interface Value {
   public @interface Auxiliary {}
 
   /**
+   * Lazy attributes cannot be set, defined as method that computes value, which is invoke lazily
+   * once and only once in a thread safe manner.
+   * 
+   * <pre>
+   * &#064;Value.Immutable
+   * public abstract class Order {
+   * 
+   *   public abstract List&lt;Item&gt; items();
+   * 
+   *   &#064;Value.Lazy
+   *   public int totalCost() {
+   *     int cost = 0;
+   * 
+   *     for (Item i : items())
+   *       cost += i.count() * i.price();
+   * 
+   *     return cost;
+   *   }
+   * }
+   * </pre>
+   * <p>
    * This kind of attribute cannot be set during building, but they are lazily computed from other
    * attributes and stored in non-final field, but initialization is guarded by synchronization with
    * volatile field check. Should be applied to non-abstract method - attribute value initializer.
+   * <p>
+   * In general, lazy attribute initializer is more safe than using {@link Derived} attributes, lazy
+   * attribute's initializer method body can refer to abstract mandatory and container attributes as
+   * well as to other lazy attributes. Though lazy attributes act as {@link Auxiliary}.
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)

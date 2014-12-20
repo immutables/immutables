@@ -30,9 +30,11 @@ import java.util.Objects;
  * rather that inheritance.
  */
 public class Builtins {
-
   public final boolean $$true = true;
   public final boolean $$false = false;
+
+  public final Output output = new Output();
+  public final ClasspathAvailability classpath = new ClasspathAvailability();
 
   public final Predicate<Object> not =
       new Predicate<Object>() {
@@ -137,8 +139,6 @@ public class Builtins {
         }
       };
 
-  public final Output output = new Output();
-
   public final Literal literal = new Literal();
 
   public static final class Literal implements Function<Object, String> {
@@ -169,7 +169,7 @@ public class Builtins {
 
       @Override
       public String toString() {
-        return Builtins.class.getSimpleName() + ".hex";
+        return Literal.this.toString() + ".hex";
       }
     };
 
@@ -187,7 +187,7 @@ public class Builtins {
 
       @Override
       public String toString() {
-        return Builtins.class.getSimpleName() + ".bin";
+        return Literal.this.toString() + ".bin";
       }
     };
 

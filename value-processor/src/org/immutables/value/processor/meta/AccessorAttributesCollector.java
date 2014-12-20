@@ -15,27 +15,22 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.collect.Lists;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.Protoclass;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.value.Value;
-import com.google.common.collect.Lists;
-import org.immutables.value.processor.meta.Proto.Protoclass;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
 
-final class AttributesCollector {
+final class AccessorAttributesCollector {
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
    * and long parameters and reserved slots for technical parameters).
@@ -54,7 +49,7 @@ final class AttributesCollector {
   private final Styles styles;
   private final Reporter reporter;
 
-  AttributesCollector(Protoclass protoclass, ValueType type) {
+  AccessorAttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
     this.styles = protoclass.styles();
@@ -63,7 +58,7 @@ final class AttributesCollector {
   }
 
   void collect() {
-    collectGeneratedCandidateMethods(type.element);
+    collectGeneratedCandidateMethods((TypeElement) type.element);
 
     if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
       ArrayList<ValueAttribute> list = Lists.newArrayListWithCapacity(USEFUL_PARAMETER_COUNT_LIMIT);
@@ -180,29 +175,46 @@ final class AttributesCollector {
 
       ValueAttribute attribute = new ValueAttribute();
 
-      if (isAbstract(attributeMethodCandidate)) {
+      boolean isFinal = isFinal(attributeMethodCandidate);
+      boolean isAbstract = isAbstract(attributeMethodCandidate);
+      boolean defaultAnnotationPresent = hasAnnotation(attributeMethodCandidate, Value.Default.class);
+      boolean derivedAnnotationPresent = hasAnnotation(attributeMethodCandidate, Value.Derived.class);
+
+      if (isAbstract) {
         attribute.isGenerateAbstract = true;
         if (attributeMethodCandidate.getDefaultValue() != null) {
           attribute.isGenerateDefault = true;
+        } else if (defaultAnnotationPresent) {
+          report(attributeMethodCandidate)
+              .forAnnotation(Value.Default.class)
+              .error("@Value.Default should have initializer body", name);
+        } else if (derivedAnnotationPresent) {
+          report(attributeMethodCandidate)
+              .forAnnotation(Value.Derived.class)
+              .error("@Value.Derived should have initializer body", name);
         }
-      } else if (hasAnnotation(attributeMethodCandidate, Value.Default.class)) {
+      } else if (defaultAnnotationPresent && derivedAnnotationPresent) {
+        report(attributeMethodCandidate)
+            .forAnnotation(Value.Derived.class)
+            .error("Attribute '%s' cannot be both @Value.Default and @Value.Derived", name);
         attribute.isGenerateDefault = true;
-      } else if (hasAnnotation(attributeMethodCandidate, Value.Derived.class)) {
+        attribute.isGenerateDerived = false;
+      } else if ((defaultAnnotationPresent || derivedAnnotationPresent) && isFinal) {
+        report(attributeMethodCandidate)
+            .error("Annotated attribute '%s' will be overriden and cannot be final", name);
+      } else if (defaultAnnotationPresent) {
+        attribute.isGenerateDefault = true;
+      } else if (derivedAnnotationPresent) {
         attribute.isGenerateDerived = true;
       }
-/*!!  if (hasAnnotation(attributeMethodCandidate, GeneratePredicate.class)
-          && returnType.getKind() == TypeKind.BOOLEAN) {
-        attributeBuilder.isGeneratePredicate(true);
-      } else if (hasAnnotation(attributeMethodCandidate, GenerateFunction.class)) {
-        attributeBuilder.isGenerateFunction(true);
-      }
-*/
+
       if (hasAnnotation(attributeMethodCandidate, Value.Lazy.class)) {
-        if (isAbstract(attributeMethodCandidate) || isFinal(attributeMethodCandidate)) {
+        if (isAbstract || isFinal) {
           report(attributeMethodCandidate)
-              .error("Method '%s' annotated with @%s must be non abstract and non-final",
-                  attributeMethodCandidate.getSimpleName(),
-                  Value.Lazy.class.getSimpleName());
+              .error("@Value.Lazy attribute '%s' must be non abstract and non-final", name);
+        } else if (defaultAnnotationPresent || derivedAnnotationPresent) {
+          report(attributeMethodCandidate)
+              .error("@Value.Lazy attribute '%s' cannot be @Value.Derived or @Value.Default", name);
         } else {
           attribute.isGenerateLazy = true;
         }

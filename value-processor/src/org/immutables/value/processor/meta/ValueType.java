@@ -44,9 +44,10 @@ import java.util.Set;
 public class ValueType extends TypeIntrospectionBase {
 
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
+  // TBD Should we change this field to usage of [classpath.available] templating directive???
   public String typeMoreObjects;
 
-  public TypeElement element;
+  public Element element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
   public boolean isHashCodeDefined;
   public boolean isEqualToDefined;
@@ -107,10 +108,6 @@ public class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateJacksonMapped() {
     return element.getAnnotation(Jackson.Mapped.class) != null;
-  }
-
-  public String valueTypeName() {
-    return element.getQualifiedName().toString();
   }
 
   public boolean isTopLevel() {
@@ -396,6 +393,7 @@ public class ValueType extends TypeIntrospectionBase {
 
   private enum NonAuxiliary implements Predicate<ValueAttribute> {
     PREDICATE;
+
     @Override
     public boolean apply(ValueAttribute input) {
       return !input.isAuxiliary();

@@ -1,7 +1,7 @@
 [template generate]
   [for type in values.values if type.generateParboiled]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[output.java type.package (type.typeAbstract.simple 'Parboiled')]
+[output.java type.package ('Parboiled' type.typeAbstract.simple)]
 [generateParboiled type]
 [/output.java]
     [else]
@@ -17,7 +17,7 @@ Use @Parboil.Ast to annotate umbrella class with @Value.Nested, but not @Value.I
 package [type.package];
 [/if]
 
-import org.immutables.generator.processor.Extractions;
+import org.immutables.common.ast.Extractions;
 // Generated imports
 
 @SuppressWarnings("all")
@@ -84,7 +84,7 @@ public static class [type.typeAbstract.simple] {
   public static Extractions.Applicator builder() {
     return new Extractions.Builder<[type.typeBuilder]>() {
       @Override
-      public [type.typeBuilder].Builder builder() {
+      public [type.typeBuilder] builder() {
         return [type.factoryBuilder]();
       }
       @Override
