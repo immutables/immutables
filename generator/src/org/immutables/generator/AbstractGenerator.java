@@ -15,7 +15,6 @@
  */
 package org.immutables.generator;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -23,7 +22,10 @@ import com.google.common.collect.Sets;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import org.immutables.generator.Generator.SupportedAnnotations;
@@ -56,6 +58,15 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   protected final void invoke(Templates.Invokable invokable) {
     checkArgument(invokable.arity() == 0, "Entry template fragment should not have parameters");
     invokable.invoke(Templates.Invokation.initial());
+  }
+
+  @Override
+  public SourceVersion getSupportedSourceVersion() {
+    @Nullable SupportedSourceVersion sourceVersion = this.getClass().getAnnotation(SupportedSourceVersion.class);
+    if (sourceVersion != null) {
+      return sourceVersion.value();
+    }
+    return SourceVersion.latestSupported();
   }
 
   @Override

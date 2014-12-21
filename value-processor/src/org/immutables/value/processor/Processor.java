@@ -25,11 +25,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Round;
 import org.immutables.value.processor.meta.ValueType;
 
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
-
 @AutoService(javax.annotation.processing.Processor.class)
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 @Generator.SupportedAnnotations({
     Value.Immutable.class,
     Value.Nested.class,
