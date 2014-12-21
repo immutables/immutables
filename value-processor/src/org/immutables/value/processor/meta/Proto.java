@@ -15,8 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.ExecutableElement;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -30,6 +30,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
@@ -39,6 +40,7 @@ import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 @Value.Nested
 public final class Proto {
@@ -231,6 +233,10 @@ public final class Proto {
     public String name() {
       return element().isUnnamed() ? "" : element().getQualifiedName().toString();
     }
+
+    public String asPrefix() {
+      return element().isUnnamed() ? "" : (name() + ".");
+    }
   }
 
   @Value.Immutable(intern = true)
@@ -281,6 +287,26 @@ public final class Proto {
           .element(processing().getElementUtils().getPackageOf(element()))
           .build();
     }
+
+    public boolean verifiedFactory(ExecutableElement element) {
+      if (element.getAnnotation(Value.Builder.class) == null) {
+        return false;
+      }
+      if (!isTopLevel()
+          || element.getModifiers().contains(Modifier.PRIVATE)
+          || !element.getModifiers().contains(Modifier.STATIC)
+          || !element.getThrownTypes().isEmpty()
+          || !element.getTypeParameters().isEmpty()) {
+        report().withElement(element)
+            .forAnnotation(Value.Builder.class)
+            .error("@Value.Builder method '%s' should be static, non-private,"
+                + " with no type parameters or throws declaration, and enclosed in top level type",
+                element.getSimpleName());
+        return false;
+      }
+
+      return true;
+    }
   }
 
   /**
@@ -291,12 +317,12 @@ public final class Proto {
   public static abstract class Protoclass extends Diagnosable {
 
     /**
-     * Source elements stores type element which is used as a source of value type model.
+     * Source type elements stores type element which is used as a source of value type model.
      * It is the annotated class for {@code @Value.Immutable} or type referenced in
      * {@code @Value.Immutable.Include}.
      * @return source element
      */
-    public abstract TypeElement sourceElement();
+    public abstract Element sourceElement();
 
     /**
      * Declaring package that defines value type (usually by import).
@@ -325,15 +351,15 @@ public final class Proto {
     public abstract ValueTypeComposer composer();
 
     @Value.Derived
-    public TypeVisibility visibility() {
-      return TypeVisibility.of(sourceElement());
+    public Visibility visibility() {
+      return Visibility.of(sourceElement());
     }
 
-    public TypeVisibility declaringVisibility() {
+    public Visibility declaringVisibility() {
       if (declaringType().isPresent()) {
-        return TypeVisibility.of(declaringType().get().element());
+        return Visibility.of(declaringType().get().element());
       }
-      return TypeVisibility.PUBLIC;
+      return Visibility.PUBLIC;
     }
 
     /**
@@ -343,6 +369,9 @@ public final class Proto {
     @Value.Derived
     @Override
     public Element element() {
+      if (kind().isFactory()) {
+        return sourceElement();
+      }
       if (declaringType().isPresent()) {
         return declaringType().get().element();
       }
@@ -382,11 +411,16 @@ public final class Proto {
 
     @Value.Derived
     public Optional<DeclaringType> enclosingOf() {
-      if (declaringType().isPresent() && kind().isNested()) {
-        if (kind().isIncluded()) {
+      if (declaringType().isPresent()) {
+        if (kind().isFactory()) {
           return declaringType();
         }
-        return declaringType().get().enclosingOf();
+        if (kind().isNested()) {
+          if (kind().isIncluded()) {
+            return declaringType();
+          }
+          return declaringType().get().enclosingOf();
+        }
       }
       return Optional.absent();
     }
@@ -394,6 +428,25 @@ public final class Proto {
     @Value.Lazy
     public ValueType type() {
       return composer().compose(this);
+    }
+
+    @Value.Lazy
+    public String sourceQualifedName() {
+      Element element = sourceElement();
+      if (element instanceof TypeElement) {
+        return ((TypeElement) element).getQualifiedName().toString();
+      }
+      Element enclosingElement = element.getEnclosingElement();
+      if (enclosingElement instanceof TypeElement) {
+        return Joiner.on('.').join(
+            ((TypeElement) element).getQualifiedName(),
+            element.getSimpleName());
+      }
+      return element.getSimpleName().toString();
+    }
+
+    TypeNames createTypeNames() {
+      return styles().forType(sourceElement().getSimpleName().toString());
     }
 
     public enum Kind {
@@ -439,11 +492,26 @@ public final class Proto {
 
       public boolean isValue() {
         switch (this) {
-        case DEFINED_FACTORY:
-        case DEFINED_ENCLOSING_TYPE:
-          return false;
-        default:
+        case INCLUDED_IN_PACKAGE:
+        case INCLUDED_ON_TYPE:
+        case INCLUDED_IN_TYPE:
+        case DEFINED_TYPE:
+        case DEFINED_AND_ENCLOSING_TYPE:
+        case DEFINED_NESTED_TYPE:
           return true;
+        default:
+          return false;
+        }
+      }
+
+      public boolean isDefinedValue() {
+        switch (this) {
+        case DEFINED_TYPE:
+        case DEFINED_AND_ENCLOSING_TYPE:
+        case DEFINED_NESTED_TYPE:
+          return true;
+        default:
+          return false;
         }
       }
 
@@ -451,11 +519,9 @@ public final class Proto {
         return this == DEFINED_FACTORY;
       }
     }
-
-    public abstract Optional<ExecutableElement> sourceMethodElement();
   }
 
-  private enum ElementToName implements Function<TypeElement, String> {
+  enum ElementToName implements Function<TypeElement, String> {
     FUNCTION;
     @Override
     public String apply(TypeElement input) {
@@ -463,7 +529,7 @@ public final class Proto {
     }
   }
 
-  private enum DeclatedTypeToElement implements Function<DeclaredType, TypeElement> {
+  enum DeclatedTypeToElement implements Function<DeclaredType, TypeElement> {
     FUNCTION;
     @Override
     public TypeElement apply(DeclaredType input) {
@@ -471,7 +537,7 @@ public final class Proto {
     }
   }
 
-  private enum IsPublic implements Predicate<Element> {
+  enum IsPublic implements Predicate<Element> {
     PREDICATE;
     @Override
     public boolean apply(Element input) {

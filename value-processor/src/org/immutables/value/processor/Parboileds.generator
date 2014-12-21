@@ -1,7 +1,7 @@
 [template generate]
   [for type in values.values if type.generateParboiled]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[output.java type.package ('Parboiled' type.typeAbstract.simple)]
+[output.java type.package ('Parboiled' type.name)]
 [generateParboiled type]
 [/output.java]
     [else]
@@ -22,9 +22,9 @@ import org.immutables.common.ast.Extractions;
 
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
-[type.typeAbstract.access]final class Parboiled[type.typeAbstract.simple] {
-  private Parboiled[type.typeAbstract.simple]() {}
+@javax.annotation.Generated({"Parboileds.generator", "[type.typeAbstract.relative]"})
+[type.typeAbstract.access]final class Parboiled[type.name] {
+  private Parboiled[type.name]() {}
 [for v in type.nested]
   [generateParboiledType v]
 [/for]
@@ -33,20 +33,20 @@ import org.immutables.common.ast.Extractions;
 
 [template generateParboiledType Type type]
 
-@javax.annotation.Generated({"Parboileds.generator", "[type.name]"})
-public static class [type.typeAbstract.simple] {
-  private [type.typeAbstract.simple]() {}
+@javax.annotation.Generated({"Parboileds.generator", "[type.typeAbstract.relative]"})
+public static class [type.name] {
+  private [type.name]() {}
 [if type.useSingleton]
 
-  public static Extractions.Extractor<[type.name]> of() {
-    return new Extractions.Instance<[type.name]>() {
+  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
+    return new Extractions.Instance<[type.typeAbstract.relative]>() {
       @Override
-      public [type.name] get() {
+      public [type.typeAbstract.relative] get() {
         return [type.factoryInstance]();
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].of()";
+        return "[type.name].of()";
       }
     };
   }
@@ -55,25 +55,25 @@ public static class [type.typeAbstract.simple] {
   [for c in type.constructorArguments]
   [if c.stringType]
 
-  public static Extractions.Extractor<[type.name]> of() {
+  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
     return of(Extractions.matched());
   }
   [else]
 
-  public static Extractions.Extractor<[type.name]> of() {
+  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
     return of(Extractions.<[c.wrapperType]>popped());
   }
   [/if]
 
-  public static Extractions.Extractor<[type.name]> of(Extractions.Extractor<[c.wrapperType]> [c.name]) {
-    return new Extractions.Construct<[type.name], [c.wrapperType]>([c.name]) {
+  public static Extractions.Extractor<[type.typeAbstract.relative]> of(Extractions.Extractor<[c.wrapperType]> [c.name]) {
+    return new Extractions.Construct<[type.typeAbstract.relative], [c.wrapperType]>([c.name]) {
       @Override
-      public [type.name] get([c.wrapperType] value) {
+      public [type.typeAbstract.relative] get([c.wrapperType] value) {
         return [type.factoryOf](value);
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].of()";
+        return "[type.name].of()";
       }
     };
   }
@@ -89,20 +89,20 @@ public static class [type.typeAbstract.simple] {
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].builder()";
+        return "[type.name].builder()";
       }
     };
   }
 
   public static Extractions.Extractor<[type.typeAbstract]> build() {
-    return new Extractions.Build<[type.typeBuilder], [type.name]>() {
+    return new Extractions.Build<[type.typeBuilder], [type.typeAbstract.relative]>() {
       @Override
-      public [type.name] build([type.typeBuilder] builder) {
+      public [type.typeAbstract.relative] build([type.typeBuilder] builder) {
         return builder.[type.names.build]();
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].build()";
+        return "[type.name].build()";
       }
     };
   }
@@ -121,7 +121,7 @@ public static class [type.typeAbstract.simple] {
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].add[toUpper a.name]()";
+        return "[type.name].add[toUpper a.name]()";
       }
     };
   }
@@ -140,7 +140,7 @@ public static class [type.typeAbstract.simple] {
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].[a.name]()";
+        return "[type.name].[a.name]()";
       }
     };
   }
@@ -164,7 +164,7 @@ public static class [type.typeAbstract.simple] {
       }
       @Override
       public String toString() {
-        return "[type.typeAbstract.simple].[a.name]()";
+        return "[type.name].[a.name]()";
       }
     };
   }

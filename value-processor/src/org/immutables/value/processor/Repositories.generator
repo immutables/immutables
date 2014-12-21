@@ -1,7 +1,7 @@
 [template generate]
   [for type in values.values if type.generateRepository]
     [if type.kind.isValue]
-[output.java type.package (type.typeAbstract.simple 'Repository')]
+[output.java type.package (type.name 'Repository')]
 [generateRepository type]
 [/output.java]
     [else]
@@ -30,7 +30,7 @@ import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*
 import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 
 /**
- * {@code [type.typeAbstract.simple]Repository} provides type safe access for storing and retrieving documents
+ * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
  * from the MongoDB collection "[type.documentName]".
  */
 @javax.inject.Singleton
@@ -38,7 +38,7 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
 @javax.annotation.Generated({"Repositories.generator", "[type.name]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-[type.typeAbstract.access]final class [type.typeAbstract.simple]Repository extends Repositories.Repository<[type.name]> {
+[type.typeAbstract.access]final class [type.name]Repository extends Repositories.Repository<[type.name]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
   /**
@@ -46,8 +46,8 @@ import static org.immutables.common.marshal.internal.MarshalingSupport.*;
    * @param configuration the repository configuration
    */
   @javax.inject.Inject
-  public [type.typeAbstract.simple]Repository(RepositorySetup configuration) {
-    super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeAbstract.simple]Marshaler.instance());
+  public [type.name]Repository(RepositorySetup configuration) {
+    super(configuration, DOCUMENT_COLLECTION_NAME, [type.name]Marshaler.instance());
   }
   
   /**
@@ -167,7 +167,7 @@ public [tT] exclude[toUpper a.name]() {
 [template generateFinder Type type]
 
 /**
- * Find document by {@link [type.typeAbstract.simple]Repository#where() criteria}. Use returned {@link Finder} object to complete
+ * Find document by {@link [type.name]Repository#where() criteria}. Use returned {@link Finder} object to complete
  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
  * @param criteria search criteria
  * @return finder object to complete operation
@@ -181,11 +181,11 @@ public Finder find(Criteria criteria) {
  * Finder object used to proceed with find operation by using methods
  * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()} or {@link Finder#deleteFirst()} methods.
  * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods.
- * @see [type.typeAbstract.simple]Repository#find(Criteria)
+ * @see [type.name]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Finder extends Repositories.Finder<[type.name], Finder> {
-  private Finder([type.typeAbstract.simple]Repository repository, ConstraintSupport.ConstraintHost criteria) {
+  private Finder([type.name]Repository repository, ConstraintSupport.ConstraintHost criteria) {
     super(repository);
     this.criteria = criteria;
   }
@@ -230,7 +230,7 @@ public Indexer index() {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Indexer extends Repositories.Indexer<[type.name], Indexer> {
-  private Indexer([type.typeAbstract.simple]Repository repository) {
+  private Indexer([type.name]Repository repository) {
     super(repository);
   }
 [for a in type.implementedAttributes]
@@ -273,7 +273,7 @@ public Updater update(Criteria criteria) {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Updater extends Repositories.Updater<[type.name]> {
-  private Updater([type.typeAbstract.simple]Repository repository, Criteria criteria) {
+  private Updater([type.name]Repository repository, Criteria criteria) {
     super(repository);
     this.criteria = (ConstraintSupport.ConstraintHost) criteria;
   }
@@ -710,7 +710,7 @@ private static final class InternalCriteria extends Criteria implements Constrai
 
   @Override
   public String toString() {
-    return "[type.typeAbstract.simple]Repository.where(" + RepositorySupport.stringify(this) + ")";
+    return "[type.name]Repository.where(" + RepositorySupport.stringify(this) + ")";
   }
 }
 [/template]
@@ -728,7 +728,7 @@ public static Criteria where() {
 }
 
 /**
- * {@code [type.typeAbstract.simple]Repository.Criteria} is a [type.name] document search query.
+ * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
  * Call methods on criteria to add constraint for search query.
  */
 @javax.annotation.concurrent.Immutable
@@ -785,7 +785,10 @@ public static abstract class Criteria extends Repositories.Criteria {
 [/template]
 
 [template generateImportRoutines Type type]
-[for s in type.generateMarshaledImportRoutines]
+[for m in type.generateImportedMarshalers]
+import static [m.packaged][m.name]Marshaler.*;
+[/for]
+[for s in type.generateImportedMarshalRoutines]
 import static [s].*;
 [/for]
 [/template]

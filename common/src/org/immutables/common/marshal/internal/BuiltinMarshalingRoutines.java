@@ -19,16 +19,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
-import de.undercouch.bson4jackson.BsonGenerator;
-import de.undercouch.bson4jackson.types.ObjectId;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
 import javax.annotation.Nullable;
 import org.immutables.common.marshal.Marshaling;
-import org.immutables.common.repository.Id;
-import org.immutables.common.time.TimeInstant;
-import org.immutables.common.time.TimeMeasure;
 
 /** Marshaling for built-in types and alike. */
 public final class BuiltinMarshalingRoutines {

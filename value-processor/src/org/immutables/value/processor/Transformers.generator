@@ -1,7 +1,7 @@
 [template generate]
   [for type in values.values if type.generateTransformer]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[output.java type.package (type.typeAbstract.simple 'Transformer')]
+[output.java type.package (type.name 'Transformer')]
 [generateTransformer type]
 [/output.java]
     [else]
@@ -20,13 +20,13 @@ package [transformerType.package];
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeAbstract.access]abstract class [transformerType.typeAbstract.simple]Transformer<C> {
-  protected [transformerType.typeAbstract.simple]Transformer() {}
+[transformerType.typeAbstract.access]abstract class [transformerType.name]Transformer<C> {
+  protected [transformerType.name]Transformer() {}
 
   [for cases = transformerType.cases,
        type in cases.implementationTypes,
        t = type.typeImmutable.toString,
-       s = type.typeAbstract.simple]
+       s = type.name]
 
   public [t] transform(C context, [t] value) {
     return value[for a in type.settableAttributes if type.useCopyMethods]
@@ -61,7 +61,7 @@ package [transformerType.package];
     [/if]
   [for et = a.unwrappedElementType]
 
-  protected [et] transform[type.typeAbstract.simple][toUpper a.name](C context, [t] value, [et] element) {
+  protected [et] transform[type.name][toUpper a.name](C context, [t] value, [et] element) {
     [if cases.isImplementationType et]
     return transform(context, element);
     [else][for Type subtype in cases.knownSubtypes et, sub = subtype.typeImmutable.toString]
@@ -79,7 +79,7 @@ package [transformerType.package];
 
   protected [e.key] transform[simplifyName e.key](C context, [e.value.typeImmutable.toString] value) {
     [if e.key ne e.value.typeImmutable.toString]
-    return transform[simplifyName e.value.typeAbstract.simple](context, value);
+    return transform[simplifyName e.value.name](context, value);
     [else]
     return transform(context, value);
     [/if]

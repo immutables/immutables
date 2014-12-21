@@ -15,26 +15,26 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.ElementKind;
-import com.google.common.base.Joiner;
-import java.util.SortedMap;
-import java.util.NavigableMap;
-import javax.lang.model.element.PackageElement;
-import javax.annotation.processing.ProcessingEnvironment;
 import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
@@ -45,6 +45,7 @@ import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
@@ -450,26 +451,69 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private List<String> expectedSubclasses;
+  private List<SimpleTypeDerivationBase> expectedSubclasses;
 
-  public List<String> getExpectedSubclasses() {
+  public List<SimpleTypeDerivationBase> getExpectedSubclasses() {
     if (expectedSubclasses == null) {
-      if (element.getAnnotation(Json.Subclasses.class) != null) {
-        expectedSubclasses = listExpectedSubclassesFromElement(element);
+      if (isPrimitiveElement()) {
+        expectedSubclasses = ImmutableList.<SimpleTypeDerivationBase>of();
       } else {
-        ensureTypeIntrospected();
+        @Nullable Iterable<TypeElement> expectedSubclassesType = findDeclaredSubclasses();
         expectedSubclasses =
-            containedTypeElement != null
-                ? listExpectedSubclassesFromElement(containedTypeElement)
-                : ImmutableList.<String>of();
+            expectedSubclassesType != null
+                ? toMarshaledTypeDerivations(expectedSubclassesType)
+                : ImmutableList.<SimpleTypeDerivationBase>of();
       }
     }
     return expectedSubclasses;
   }
 
-  private static List<String> listExpectedSubclassesFromElement(Element element) {
-    return ValueType.extractedClassNamesFromAnnotationMirrors(
-        Json.Subclasses.class.getCanonicalName(), "value", element.getAnnotationMirrors());
+  @Nullable
+  private Iterable<TypeElement> findDeclaredSubclasses() {
+    if (element.getAnnotation(Json.Subclasses.class) != null) {
+      return listExpectedSubclassesFromElement(element);
+    }
+    ensureTypeIntrospected();
+    if (containedTypeElement != null) {
+      return listExpectedSubclassesFromElement(containedTypeElement);
+    }
+    return null;
+  }
+
+  private List<SimpleTypeDerivationBase> toMarshaledTypeDerivations(Iterable<TypeElement> elements) {
+    List<SimpleTypeDerivationBase> derivations = Lists.newArrayList();
+    for (TypeElement element : elements) {
+      Optional<Protoclass> protoclass = round.definedValueProtoclassFor(element);
+      if (protoclass.isPresent()) {
+        if (protoclass.get().declaringType().get().hasAnnotation(Json.Marshaled.class)) {
+          derivations.add(new SimpleTypeDerivationBase(protoclass.get()));
+        }
+      }
+    }
+    return ImmutableList.copyOf(derivations);
+  }
+
+  /**
+   * used to derive type name, using package prefix and simple name, it's expected that prefix of
+   * suffix will be added to a type name
+   */
+  public static final class SimpleTypeDerivationBase {
+    public final String packaged;
+    public final String name;
+
+    SimpleTypeDerivationBase(Protoclass protoclass) {
+      this.packaged = protoclass.packageOf().asPrefix();
+      this.name = protoclass.createTypeNames().raw;
+    }
+  }
+
+  private static FluentIterable<TypeElement> listExpectedSubclassesFromElement(Element element) {
+    return FluentIterable.from(
+        ValueType.extractedTypesFromAnnotationMirrors(
+            Json.Subclasses.class.getCanonicalName(),
+            "value",
+            element.getAnnotationMirrors()))
+        .transform(Proto.DeclatedTypeToElement.FUNCTION);
   }
 
   @Nullable
@@ -487,7 +531,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private TypeMirror arrayComponent;
   private boolean regularAttribute;
   private boolean nullable;
-  public ProcessingEnvironment processing;
+  Round round;
 
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
@@ -701,25 +745,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return null;
   }
 
-  private String marshalerNameFor(TypeElement element) {
-    String marshalerClassName = element.getSimpleName().toString() + "Marshaler";
-    PackageElement packageElement = processing.getElementUtils().getPackageOf(element);
-    if (!packageElement.isUnnamed()) {
-      marshalerClassName = packageElement.getQualifiedName() + "." + marshalerClassName;
-    }
-    return marshalerClassName;
-  }
-
-  Collection<String> getMarshaledImportRoutines() {
-    Collection<String> imports = Lists.newArrayListWithExpectedSize(2);
+  Collection<SimpleTypeDerivationBase> getMarshaledImportRoutines() {
+    Collection<TypeElement> imports = Lists.newArrayListWithExpectedSize(2);
     if (isMarshaledElement()) {
-      imports.add(marshalerNameFor(marshaledElement));
+      imports.add(marshaledElement);
     }
-
     if (isMapType() && isMarshaledSecondaryElement()) {
-      imports.add(marshalerNameFor(marshaledSecondaryElement));
+      imports.add(marshaledSecondaryElement);
     }
-    return imports;
+    return toMarshaledTypeDerivations(imports);
   }
 
   Collection<String> getSpecialMarshaledTypes() {
@@ -775,5 +809,10 @@ public class ValueAttribute extends TypeIntrospectionBase {
           .forAnnotation(Value.Default.class)
           .warning("@Value.Default on a container attribute make it lose it's special treatment");
     }
+  }
+
+  @Override
+  public String toString() {
+    return "Attribute[" + name() + "]";
   }
 }

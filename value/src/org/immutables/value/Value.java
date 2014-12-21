@@ -32,6 +32,7 @@ import java.util.SortedSet;
  * This annotation provides namespace for annotations that models generated value objects.
  * Use one of the nested annotation.
  * @see Value.Immutable
+ * @see Value.Immutable.Include
  * @see Value.Nested
  */
 // @Target({}) // may cause problems with auto completion
@@ -87,7 +88,7 @@ public @interface Value {
 
     /**
      * If {@code copy=false} then generation of copying methods will be disabled.
-     * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
+     * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods.
      * Default is {@literal true}, generate copy methods.
      */
     boolean copy() default true;
@@ -219,7 +220,7 @@ public @interface Value {
    *    .build();
    * </pre>
    * <p>
-   * Methods level, package level style annotations fully supported (see {@link Style}).
+   * Class level and package level style annotations fully supported (see {@link Style}).
    * <p>
    * <em>
    * This annotation is for static factory methods to generate arbitrary builders. It's not for
@@ -378,7 +379,7 @@ public @interface Value {
    */
   @Beta
   @Documented
-  @Target(ElementType.METHOD)
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.SOURCE)
   public @interface NaturalOrder {}
 
@@ -404,11 +405,11 @@ public @interface Value {
    * directly or serve as meta annotation.
    * <p>
    * <em>
-   * Be careful to not use keywords or inapropriate characters as identifiers or identifier parts.
+   * Be careful to not use keywords or inappropriate characters as parts of naming templates.
    * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
    * <p>
    * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
-   * as {@literal @}{@link Value.Nested}. So define styles on the eclosing class.
+   * as {@literal @}{@link Value.Nested}. So define styles on the enclosing class.
    * In this way there will be no issues with the naming and structural conventions
    * mismatch on enclosing and nested types.</em>
    */

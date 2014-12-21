@@ -16,25 +16,42 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
-import org.immutables.value.*;
-import org.immutables.value.processor.meta.Constitution.NameForms;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Proto.Protoclass;
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import javax.annotation.Nullable;
-import javax.lang.model.element.*;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import org.immutables.value.Jackson;
+import org.immutables.value.Json;
+import org.immutables.value.Mongo;
+import org.immutables.value.Parboil;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Constitution.NameForms;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.ValueAttribute.SimpleTypeDerivationBase;
 
 /**
  * It's pointless to refactor this mess until
@@ -55,7 +72,7 @@ public class ValueType extends TypeIntrospectionBase {
   public Constitution constitution;
 
   public TypeNames names() {
-    return constitution.allNames();
+    return constitution.names();
   }
 
   public NameForms factoryOf() {
@@ -180,7 +197,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public String name() {
-    return constitution.typeAbstract().relative();
+    return names().raw;
   }
 
   public boolean isGenerateOrdinalValue() {
@@ -197,7 +214,8 @@ public class ValueType extends TypeIntrospectionBase {
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()
         && immutableFeatures.withers()
-        && !constitution.implementationVisibility().isPrivate();
+        && !constitution.implementationVisibility().isPrivate()
+        && !getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseCopyConstructor() {
@@ -266,21 +284,28 @@ public class ValueType extends TypeIntrospectionBase {
     return String.valueOf(a);
   }
 
-  private Set<String> importedMarshalledRoutines;
+  private Set<String> importedMarshalRoutines;
 
-  public Set<String> getGenerateMarshaledImportRoutines() {
-    if (importedMarshalledRoutines == null) {
+  public Set<String> getGenerateImportedMarshalRoutines() {
+    if (importedMarshalRoutines == null) {
       Set<String> imports = Sets.newLinkedHashSet();
+      collectImportRoutines(imports);
+      importedMarshalRoutines = ImmutableSet.copyOf(imports);
+    }
+    return importedMarshalRoutines;
+  }
 
+  private List<SimpleTypeDerivationBase> importedMarshalers;
+
+  public List<SimpleTypeDerivationBase> getGenerateImportedMarshalers() {
+    if (importedMarshalers == null) {
+      List<SimpleTypeDerivationBase> imports = Lists.newArrayList();
       for (ValueAttribute a : attributes()) {
         imports.addAll(a.getMarshaledImportRoutines());
       }
-
-      collectImportRoutines(imports);
-      importedMarshalledRoutines = ImmutableSet.copyOf(imports);
+      importedMarshalers = ImmutableList.copyOf(imports);
     }
-
-    return importedMarshalledRoutines;
+    return importedMarshalers;
   }
 
   private void collectImportRoutines(Set<String> imports) {
@@ -322,21 +347,35 @@ public class ValueType extends TypeIntrospectionBase {
     return generateMarshaledTypes;
   }
 
+  public boolean isUseReferenceEquality() {
+    if (isAnnotationType()) {
+      return false;
+    }
+    return isUseInterned() || isGenerateOrdinalValue() || isUseSingletonOnly();
+  }
+
+  public boolean isUseSingletonOnly() {
+    return isUseSingleton() && !isUseConstructor() && !isUseBuilder();
+  }
+
   private List<String> extractClassNamesFromMirrors(
       Class<?> annotationType,
       String annotationValueName,
       List<? extends AnnotationMirror> annotationMirrors) {
-    return extractedClassNamesFromAnnotationMirrors(
-        annotationType.getCanonicalName(),
-        annotationValueName,
-        annotationMirrors);
+    return FluentIterable.from(
+        extractedTypesFromAnnotationMirrors(
+            annotationType.getCanonicalName(),
+            annotationValueName,
+            annotationMirrors))
+        .transform(Functions.toStringFunction())
+        .toList();
   }
 
-  public static List<String> extractedClassNamesFromAnnotationMirrors(
+  public static Iterable<DeclaredType> extractedTypesFromAnnotationMirrors(
       String annotationTypeName,
       String annotationValueName,
       List<? extends AnnotationMirror> annotationMirrors) {
-    final List<String> collectClassNames = Lists.<String>newArrayList();
+    final List<DeclaredType> collectTypes = Lists.newArrayList();
 
     for (AnnotationMirror annotationMirror : annotationMirrors) {
       if (annotationMirror.getAnnotationType().toString().equals(annotationTypeName)) {
@@ -354,7 +393,9 @@ public class ValueType extends TypeIntrospectionBase {
 
               @Override
               public Void visitType(TypeMirror t, Void p) {
-                collectClassNames.add(t.toString());
+                if (t instanceof DeclaredType) {
+                  collectTypes.add((DeclaredType) t);
+                }
                 return null;
               }
             }, null);
@@ -363,7 +404,7 @@ public class ValueType extends TypeIntrospectionBase {
       }
     }
 
-    return ImmutableList.copyOf(collectClassNames);
+    return collectTypes;
   }
 
   public List<ValueAttribute> getSettableAttributes() {
@@ -514,9 +555,13 @@ public class ValueType extends TypeIntrospectionBase {
    */
   @Override
   public int hashCode() {
-    return constitution.protoclass()
-        .sourceElement()
-        .getQualifiedName()
+    return 31 * constitution.protoclass()
+        .sourceQualifedName()
         .hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return "Value[" + name() + "]";
   }
 }

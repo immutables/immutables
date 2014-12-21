@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
-
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
@@ -48,8 +47,10 @@ final class AccessorAttributesCollector {
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
   private final Reporter reporter;
+  private final Round round;
 
-  AccessorAttributesCollector(Protoclass protoclass, ValueType type) {
+  AccessorAttributesCollector(Round round, Protoclass protoclass, ValueType type) {
+    this.round = round;
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
     this.styles = protoclass.styles();
@@ -70,7 +71,7 @@ final class AccessorAttributesCollector {
           "Value objects with more than %d attributes (including inherited) are not supported."
               + " Please decompose '%s' class into a smaller ones",
           USEFUL_PARAMETER_COUNT_LIMIT,
-          protoclass.sourceElement().getQualifiedName());
+          protoclass.sourceQualifedName());
     }
 
     for (ValueAttribute attribute : attributes) {
@@ -221,7 +222,7 @@ final class AccessorAttributesCollector {
       }
 
       attribute.reporter = reporter;
-      attribute.processing = processing;
+      attribute.round = round;
       attribute.returnTypeName = returnType.toString();
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());

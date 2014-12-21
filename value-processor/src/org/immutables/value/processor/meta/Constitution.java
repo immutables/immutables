@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ExecutableElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -33,13 +34,15 @@ import static com.google.common.base.Verify.*;
 @Value.Nested
 @Value.Immutable
 public abstract class Constitution {
-  private static final Joiner JOINER = Joiner.on('.').skipNulls();
+  private static final String NA_ERROR = "!error!";
   private static final String NEW_KEYWORD = "new";
+
+  private static final Joiner JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
 
   @Value.Derived
-  public TypeVisibility implementationVisibility() {
+  public Visibility implementationVisibility() {
     return protoclass().visibility().forImplementation(
         protoclass().features().visibility());
   }
@@ -49,9 +52,8 @@ public abstract class Constitution {
   }
 
   @Value.Derived
-  public TypeNames allNames() {
-    return protoclass().styles().forType(
-        protoclass().sourceElement().getSimpleName().toString());
+  public TypeNames names() {
+    return protoclass().createTypeNames();
   }
 
   /**
@@ -66,6 +68,18 @@ public abstract class Constitution {
           ? typeAbstract()
           : typeImmutable();
     }
+    if (isFactory()) {
+      ExecutableElement method = (ExecutableElement) protoclass().sourceElement();
+      String type = method.getReturnType().toString();
+
+      return ImmutableConstitution.NameForms.builder()
+          .simple(NA_ERROR)
+          .relative(type)
+          .packageOf(NA_ERROR)
+          .relativeAlreadyQualified(true)
+          .visibility(protoclass().visibility())
+          .build();
+    }
     return typeEnclosing();
   }
 
@@ -75,7 +89,11 @@ public abstract class Constitution {
   }
 
   public boolean hasTopLevelBuilder() {
-    return isTopLevelValue() && isOutsideBuilder();
+    return isFactory() || (isTopLevelValue() && isOutsideBuilder());
+  }
+
+  private boolean isFactory() {
+    return protoclass().kind().isFactory();
   }
 
   public boolean hasTopLevelImmutable() {
@@ -118,7 +136,7 @@ public abstract class Constitution {
     }
 
     return ImmutableConstitution.NameForms.builder()
-        .simple(allNames().typeAbstract)
+        .simple(names().typeAbstract)
         .relative(relative)
         .packageOf(packageOf)
         .relativeAlreadyQualified(relativeAlreadyQualified)
@@ -154,13 +172,13 @@ public abstract class Constitution {
     boolean nested = protoclass().kind().isNested();
     boolean inside = hasImmutableInBuilder();
 
-    String simple = allNames().typeImmutable;
+    String simple = names().typeImmutable;
 
     String relative;
 
     if (nested) {
       String enclosingSimpleName = typeImmutableEnclosingSimpleName();
-      simple = allNames().typeImmutableNested;
+      simple = names().typeImmutableNested;
       relative = inPackage(enclosingSimpleName, simple);
     } else if (inside) {
       relative = inPackage(typeBuilderSimpleName(), simple);
@@ -184,16 +202,16 @@ public abstract class Constitution {
   @Value.Lazy
   String typeImmutableEnclosingSimpleName() {
     String enclosingSimpleName = protoclass().enclosingOf().get().element().getSimpleName().toString();
-    String enclosingRawName = allNames().rawFromAbstract(enclosingSimpleName);
-    return allNames().namings.typeImmutableEnclosing.apply(enclosingRawName);
+    String enclosingRawName = names().rawFromAbstract(enclosingSimpleName);
+    return names().namings.typeImmutableEnclosing.apply(enclosingRawName);
   }
 
   private String typeBuilderSimpleName() {
-    Naming builderNaming = allNames().namings.typeBuilder;
-    if (isImplementationHidden()) {
+    Naming builderNaming = names().namings.typeBuilder;
+    if (isImplementationHidden() || isFactory()) {
       builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
     }
-    return Naming.Usage.CAPITALIZED.apply(builderNaming.apply(allNames().raw));
+    return Naming.Usage.CAPITALIZED.apply(builderNaming.apply(names().raw));
   }
 
   @Value.Lazy
@@ -202,22 +220,32 @@ public abstract class Constitution {
         ? typeBuilder()
         : typeImmutable();
 
-    return nameForms.applied(allNames().builder);
+    return nameForms.applied(names().builder);
   }
 
   @Value.Lazy
   public NameForms factoryOf() {
-    return applyFactoryNaming(allNames().namings.of);
+    if (isFactory()) {
+      return ImmutableConstitution.NameForms.builder()
+          .simple(protoclass().declaringType().get().element().getSimpleName().toString())
+          .relative(protoclass().declaringType().get().name())
+          .relativeAlreadyQualified(true)
+          .packageOf(protoclass().packageOf().name())
+          .visibility(protoclass().visibility().min(protoclass().declaringVisibility()))
+          .build()
+          .applied(protoclass().sourceElement().getSimpleName().toString());
+    }
+    return applyFactoryNaming(names().namings.of);
   }
 
   @Value.Lazy
   public NameForms factoryInstance() {
-    return applyFactoryNaming(allNames().namings.instance);
+    return applyFactoryNaming(names().namings.instance);
   }
 
   @Value.Lazy
   public NameForms factoryCopyOf() {
-    return applyFactoryNaming(allNames().namings.copyOf);
+    return applyFactoryNaming(names().namings.copyOf);
   }
 
   private NameForms applyFactoryNaming(Naming naming) {
@@ -229,7 +257,7 @@ public abstract class Constitution {
         ? typeEnclosing()
         : typeImmutable();
 
-    String applyName = Naming.Usage.LOWERIZED.apply(naming.apply(allNames().raw));
+    String applyName = Naming.Usage.LOWERIZED.apply(naming.apply(names().raw));
 
     return nameForms.applied(applyName);
   }
@@ -237,8 +265,8 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms typeEnclosing() {
     return ImmutableConstitution.NameForms.builder()
-        .simple(allNames().typeImmutableEnclosing)
-        .relative(allNames().typeImmutableEnclosing)
+        .simple(names().typeImmutableEnclosing)
+        .relative(names().typeImmutableEnclosing)
         .packageOf(protoclass().packageOf().name())
         .visibility(protoclass().declaringVisibility())
         .build();
@@ -246,9 +274,9 @@ public abstract class Constitution {
 
   @Value.Lazy
   public NameForms typeBuilder() {
-    TypeNames names = allNames();
+    TypeNames names = names();
 
-    boolean outside = isOutsideBuilder();
+    boolean outside = isOutsideBuilder() || isFactory();
     boolean nested = protoclass().kind().isNested();
 
     String simple = typeBuilderSimpleName();
@@ -280,7 +308,7 @@ public abstract class Constitution {
 
     public abstract String packageOf();
 
-    public abstract TypeVisibility visibility();
+    public abstract Visibility visibility();
 
     @Value.Default
     public boolean relativeAlreadyQualified() {
@@ -307,7 +335,8 @@ public abstract class Constitution {
           .packageOf(packageOf())
           .simple(applyTo(simple(), input, false))
           .relative(applyTo(relative(), input, true))
-          .visibility(TypeVisibility.PUBLIC)
+          .visibility(visibility())
+          .relativeAlreadyQualified(relativeAlreadyQualified())
           .build();
     }
 

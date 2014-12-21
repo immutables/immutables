@@ -17,7 +17,6 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
 import java.util.List;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
@@ -27,21 +26,21 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
 final class FactoryMethodAttributesCollector {
   private final Protoclass protoclass;
   private final ValueType type;
-  private final ProcessingEnvironment processing;
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
   private final Reporter reporter;
+  private final Round round;
 
-  FactoryMethodAttributesCollector(Protoclass protoclass, ValueType type) {
+  FactoryMethodAttributesCollector(Round round, Protoclass protoclass, ValueType type) {
+    this.round = round;
     this.protoclass = protoclass;
-    this.processing = protoclass.processing();
     this.styles = protoclass.styles();
     this.type = type;
     this.reporter = protoclass.report();
   }
 
   void collect() {
-    ExecutableElement element = protoclass.sourceMethodElement().get();
+    ExecutableElement element = (ExecutableElement) protoclass.sourceElement();
     List<? extends VariableElement> parameters = element.getParameters();
 
     for (VariableElement parameter : parameters) {
@@ -52,7 +51,7 @@ final class FactoryMethodAttributesCollector {
       ValueAttribute attribute = new ValueAttribute();
       attribute.isGenerateAbstract = true;
       attribute.reporter = reporter;
-      attribute.processing = processing;
+      attribute.round = round;
       attribute.returnType = returnType;
       attribute.returnTypeName = returnType.toString();
 
