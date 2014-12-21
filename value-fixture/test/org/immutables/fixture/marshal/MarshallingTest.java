@@ -15,6 +15,9 @@
  */
 package org.immutables.fixture.marshal;
 
+import org.immutables.fixture.nested.ImmutableCadabra;
+import org.immutables.fixture.nested.NonGrouped.Cadabra;
+import org.immutables.fixture.nested.NonGrouped;
 import com.google.common.base.CharMatcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -53,6 +56,13 @@ public class MarshallingTest {
         Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
 
     check(substructure).not().isNull();
+  }
+
+  @Test
+  public void unmarshalSingleton() {
+    check(Marshaling.fromJson("[11]", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+    check(Marshaling.fromJson("{\"x\": true}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+    check(Marshaling.fromJson("null", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
   }
 
   @Test

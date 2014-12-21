@@ -24,9 +24,9 @@ public abstract class NonGrouped {
   @Json.Marshaled
   abstract static class Abra {}
 
-  @Value.Immutable
+  @Value.Immutable(builder = false)
   @Json.Marshaled
-  interface Cadabra {
+  public interface Cadabra {
 
   }
 

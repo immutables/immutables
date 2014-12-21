@@ -403,8 +403,18 @@ static Iterable<[type.typeAbstract.relative]> unmarshalIterableOf[type.typeAbstr
   }
   return result;
 }
+[if type.useSingletonOnly]
 
-[if type.useConstructorOnly]
+static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonParser parser)
+    throws IOException {
+  JsonToken t = parser.getCurrentToken();
+  if (!t.isScalarValue()) {
+    parser.skipChildren();
+  }
+  return [type.factoryInstance]();
+}
+[else if type.useConstructorOnly]
+
 [for ca = type.constructorArguments]
 private static JsonParser nextTokenAdvance(JsonParser parser) throws IOException {
   parser.nextToken();
@@ -440,8 +450,10 @@ static [type.typeAbstract.relative] unmarshal[type.typeAbstract.simple](JsonPars
   ensure(t == JsonToken.START_OBJECT, "{", "", t);
   while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
     ensure(t == JsonToken.FIELD_NAME, "*", "", t);
+  [if not type.unmarshaledAttributes.isEmpty]
     attributeName = parser.getText();
     unmarshalAttribute(parser, builder, attributeName);
+  [/if]
   }
   return builder.[type.names.build]();
 }
