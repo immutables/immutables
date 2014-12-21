@@ -52,11 +52,15 @@ public final class Templates {
     private boolean wasNewline = true;
 
     void append(CharSequence string) {
-      if (string.length() == 0) {
-        return;
-      }
       beforeAppend();
       builder.append(string);
+    }
+
+    void append(String string) {
+      beforeAppend();
+      if (string != null) {
+        builder.append(string);
+      }
     }
 
     void append(char c) {
@@ -104,6 +108,7 @@ public final class Templates {
         delimit = false;
       } else {
         builder.append('\n');
+        delimit = false;
       }
       lineStartIndex = builder.length();
       wasNewline = true;
@@ -156,6 +161,13 @@ public final class Templates {
     public Invokation ln() {
       if (consumer != null) {
         consumer.newline();
+      }
+      return this;
+    }
+
+    public Invokation out(String string) {
+      if (consumer != null) {
+        consumer.append(string);
       }
       return this;
     }
