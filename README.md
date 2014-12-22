@@ -30,6 +30,7 @@ Changelog
   - Deprecated `@Value.Immutable(withers)` in favor of `@Value.Immutable(copy)`
   - Deprecated `@Value.Getters` in favor of using `@Value.Style`. May be undeprecated if found really useful
 * Incompatibilites
+  - Upgrade to Jackson 2.4.4 for Jackson `ObjectMapper` cross-marshaling to work
   - Possible incompatibity: `@Json.Marshaled` now is required on each nested `@Value.Immutable`, marshaled annotation on `@Value.Nested` will not have effect
   - [#59](https://github.com/immutables/immutables/issues/59) `@Value.Default` on collection attributes now issues warning, that makes collection attribute generated as plain regular attributes without any special collection support in builder
 
