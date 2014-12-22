@@ -85,6 +85,32 @@ package [type.package];
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
+[generateImmutableMembers type]
+[generateLazyValues type]
+[generateSingletonInstance type]
+[generateConstructionAndInterning type]
+  [generateImmutableCopyOf type]
+[if type.useBuilder and (not type.constitution.isOutsideBuilder)]
+  [if type.names.builder ne 'new']
+
+  /**
+   * Creates builder for {@link [type.typeValue]}.
+   * @return new [type.typeValue.simple] builder
+   */
+  [type.typeImmutable.access]static [type.typeBuilder.relative] [type.names.builder]() {
+    return new [type.typeBuilder.relative]();
+  }
+  [/if]
+  [generateBuilder type false]
+[/if]
+[for v in type.nested]
+  [generateImmutable v false]
+[/for]
+}
+[/for]
+[/template]
+
+[template generateConstructionAndInterning Type type]
 [if type.useInterned or type.generateOrdinalValue]
 
   private static class InternProxy {
@@ -195,30 +221,6 @@ package [type.package];
 [/if]
     return instance;
   }
-
-  [generateImmutableCopyOf type]
-[if type.useBuilder and (not type.constitution.isOutsideBuilder)]
-  [if type.names.builder ne 'new']
-
-  /**
-   * Creates builder for {@link [type.typeValue]}.
-   * @return new [type.typeValue.simple] builder
-   */
-  [type.typeImmutable.access]static [type.typeBuilder.relative] [type.names.builder]() {
-    return new [type.typeBuilder.relative]();
-  }
-  [/if]
-  [generateBuilder type false]
-[/if]
-[generateSingletonInstance type]
-[generateImmutableMembers type]
-[generateLazyValues type]
-
-[for v in type.nested]
-  [generateImmutable v false]
-[/for]
-}
-[/for]
 [/template]
 
 [template generateSingletonInstance Type type]
