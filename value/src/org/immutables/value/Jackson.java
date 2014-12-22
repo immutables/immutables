@@ -28,6 +28,11 @@ import java.lang.annotation.Target;
  * Instead, all work is delegated to {@link Json.Marshaled} marshalers, while integration is handled
  * by pair of generated delegating methods that takes and returns {@code TokenBuffer} which
  * annotated with {@code JsonCreator} and {@code JsonValue} respectively.
+ * <p>
+ * <em>Note that as of since version 1.1 {@link Jackson.Mapped} annotation is implied when Jackson's
+ * {@code @JsonDeserialize} or {@code @JsonSerialize} annotation.
+ * </em>
+ * @see Mapped
  */
 @Beta
 @Retention(RetentionPolicy.SOURCE)

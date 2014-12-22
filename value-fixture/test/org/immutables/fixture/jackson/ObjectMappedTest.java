@@ -41,6 +41,13 @@ public class ObjectMappedTest {
   }
 
   @Test
+  public void topUnmarshalMinimumAnnotations() throws IOException {
+    ImmutableMinimumAnnotationsMapped mapped = ImmutableMinimumAnnotationsMapped.builder().a("a").addB(1, 2).build();
+    String json = objectMapper.writeValueAsString(mapped);
+    check(objectMapper.readValue(json, ImmutableMinimumAnnotationsMapped.class)).is(mapped);
+  }
+
+  @Test
   public void topLevelMarshalUnmarshal() throws IOException {
     ImmutableSampleJacksonMapped mapped = ImmutableSampleJacksonMapped.builder().a("a").addB(1, 2).build();
     String json = objectMapper.writeValueAsString(mapped);

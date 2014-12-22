@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.TypeElement;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -123,8 +124,29 @@ public class ValueType extends TypeIntrospectionBase {
     return constitution.isImplementationHidden();
   }
 
+  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
+      ImmutableSet.of(
+          Jackson.Mapped.class.getCanonicalName(),
+          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+
   public boolean isGenerateJacksonMapped() {
-    return element.getAnnotation(Jackson.Mapped.class) != null;
+    generateJacksonMapped = inferJacksonMapped();
+    if (generateJacksonMapped != null) {
+      generateJacksonMapped = inferJacksonMapped();
+    }
+    return generateJacksonMapped;
+  }
+
+  private boolean inferJacksonMapped() {
+    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+    for (AnnotationMirror annotation : annotationMirrors) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean isTopLevel() {
@@ -240,7 +262,9 @@ public class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateMarshaled() {
     if (generateMarshaled == null) {
-      generateMarshaled = hasAnnotation(Json.Marshaled.class) || isGenerateRepository();
+      generateMarshaled = hasAnnotation(Json.Marshaled.class)
+          || isGenerateJacksonMapped()
+          || isGenerateRepository();
     }
     return generateMarshaled;
   }
@@ -488,6 +512,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   private List<ValueAttribute> implementedAttributes;
+  private Boolean generateJacksonMapped;
 
   private FluentIterable<ValueAttribute> attributes() {
     return FluentIterable.from(attributes);
