@@ -16,7 +16,6 @@
 package org.immutables.value;
 
 import com.google.common.annotations.Beta;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -28,10 +27,6 @@ import java.lang.annotation.Target;
  * Instead, all work is delegated to {@link Json.Marshaled} marshalers, while integration is handled
  * by pair of generated delegating methods that takes and returns {@code TokenBuffer} which
  * annotated with {@code JsonCreator} and {@code JsonValue} respectively.
- * <p>
- * <em>Note that as of since version 1.1 {@link Jackson.Mapped} annotation is implied when Jackson's
- * {@code @JsonDeserialize} or {@code @JsonSerialize} annotation.
- * </em>
  * @see Mapped
  */
 @Beta
@@ -71,10 +66,15 @@ public @interface Jackson {
    * }
    * </pre>
    * <p>
-   * ImmutableValue could in turn contain
+   * Immutable value could in turn contain attribute value which are POJO serialized by Jackson.
+   * Sometimes in order to serialiaze such nested POJO, fallback codec need to be provided using
+   * {@code Marshaling.setFallbackCodec()}.
+   * <p>
+   * <em> Note that as of since version 1.1 {@link Jackson.Mapped} annotation is implied when
+   * Jackson's {@code @JsonDeserialize} or {@code @JsonSerialize} annotation present. </em>
    */
   @Beta
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ ElementType.TYPE })
+  @Target({ElementType.TYPE})
   public @interface Mapped {}
 }
