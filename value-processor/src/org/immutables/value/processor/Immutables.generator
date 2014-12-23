@@ -285,11 +285,11 @@ package [type.package];
   [if lz][for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   @javax.annotation.concurrent.GuardedBy("this")
-  private volatile long lazyInitBitmap[l.index];
+  private volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
-  [let bitmapFieldName]lazyInitBitmap[pos.index][/let]
+  [let bitmapFieldName]lazyInitBitmap[emptyIfZero pos.index][/let]
 
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
@@ -349,6 +349,15 @@ package [type.package];
 @javax.annotation.concurrent.NotThreadSafe
 [type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
     extends [type.typeAbstract].Builder {[else] {[/if]
+  [for l in positions.longs]
+  private static final long INITIALIZED_BITSET_ALL_[emptyIfZero l.index] = [literal.hex l.occupation];
+  [/for]
+  [for p in primdefs, BitPosition pos = defpos p]
+  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
+  [/for]
+  [for m in mandatories, BitPosition pos = positions m]
+  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+  [/for]
 [if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
   private [type.typeBuilder.simple]() {}
   [if type.constitution.isOutsideBuilder]
@@ -362,20 +371,11 @@ package [type.package];
   }
   [/if]
 [/if]
-  [for p in primdefs, BitPosition pos = defpos p]
-  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
-  [/for]
-  [for l in positions.longs]
-  private static final long INITIALIZED_BITSET_ALL_[l.index] = [literal.hex l.occupation];
-  [/for]
-  [for m in mandatories, BitPosition pos = positions m]
-  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
-  [/for]
   [for l in defpos.longs]
-  private long nondefaultBitset[l.index];
+  private long nondefaultBitset[emptyIfZero l.index];
   [/for]
   [for l in positions.longs]
-  private long initializedBitset[l.index];
+  private long initializedBitset[emptyIfZero l.index];
   [/for]
 
   [for v in setters]
@@ -410,13 +410,13 @@ package [type.package];
   [-- Being called from builder initializer methods --]
   [let nondefaultSetInBuilder Attribute v]
   [if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
-    nondefaultBitset[pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+    nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
   [/for][/if]
   [/let]
   [-- Being called from builder initializer methods --]
   [let mandatorySetInBuilder Attribute v]
   [if v.mandatory][for BitPosition pos = positions v]
-    initializedBitset[pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+    initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/for][/if]
   [/let]
   [for v in setters]
@@ -565,20 +565,20 @@ package [type.package];
   [for p in primdefs, BitPosition pos = defpos p]
 
   private boolean [p.name]IsSet() {
-    return (nondefaultBitset[pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
+    return (nondefaultBitset[emptyIfZero pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
 
   private boolean [m.name]IsSet() {
-    return (initializedBitset[pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
+    return (initializedBitset[emptyIfZero pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
   }
   [/for]
   [if positions.longs]
 
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
-        | [/if]initializedBitset[l.index] != INITIALIZED_BITSET_ALL_[l.index][/for]) {
+        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL_[emptyIfZero l.index][/for]) {
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }

@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.annotation.Nullable;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Converter;
@@ -196,6 +197,13 @@ public class Builtins {
       return Builtins.class.getSimpleName() + ".literal";
     }
   }
+
+  public final Function<Integer, String> emptyIfZero = new Function<Integer, String>() {
+    @Override
+    public String apply(Integer input) {
+      return input == 0 ? "" : input.toString();
+    }
+  };
 
   public final Converter<String, String> toUpper =
       CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
