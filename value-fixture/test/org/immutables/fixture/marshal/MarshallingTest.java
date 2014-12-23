@@ -15,23 +15,49 @@
  */
 package org.immutables.fixture.marshal;
 
-import com.google.common.base.CharMatcher;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
-import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.marshal.Marshaling;
-import org.immutables.fixture.*;
-import org.immutables.fixture.routine.SillyRoutineImport;
-import org.immutables.fixture.routine.SillyRoutineImportMarshaler;
-import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import static org.immutables.check.Checkers.check;
+import org.immutables.common.marshal.Marshaler;
+import org.immutables.common.marshal.Marshaling;
+import org.immutables.fixture.ImmutableHasNullable;
+import org.immutables.fixture.ImmutableJsonIgnore;
+import org.immutables.fixture.ImmutableSillyDumb;
+import org.immutables.fixture.ImmutableSillySub1;
+import org.immutables.fixture.ImmutableSillySub2;
+import org.immutables.fixture.ImmutableSillySub3;
+import org.immutables.fixture.JsonIgnore;
+import org.immutables.fixture.SillyDumb;
+import org.immutables.fixture.SillyDumbMarshaler;
+import org.immutables.fixture.SillyIntWrap;
+import org.immutables.fixture.SillyIntWrapMarshaler;
+import org.immutables.fixture.SillyMapHolder;
+import org.immutables.fixture.SillyMapHolderMarshaler;
+import org.immutables.fixture.SillyMapTup;
+import org.immutables.fixture.SillyMapTupMarshaler;
+import org.immutables.fixture.SillyPolyHost;
+import org.immutables.fixture.SillyPolyHost2;
+import org.immutables.fixture.SillyPolyHost2Marshaler;
+import org.immutables.fixture.SillyPolyHostMarshaler;
+import org.immutables.fixture.SillyStructure;
+import org.immutables.fixture.SillyStructureMarshaler;
+import org.immutables.fixture.SillySubstructure;
+import org.immutables.fixture.SillySubstructureMarshaler;
+import org.immutables.fixture.SillyTuplie;
+import org.immutables.fixture.SillyTuplieMarshaler;
+import org.immutables.fixture.nested.ImmutableCadabra;
+import org.immutables.fixture.nested.NonGrouped;
+import org.immutables.fixture.routine.SillyRoutineImport;
+import org.immutables.fixture.routine.SillyRoutineImportMarshaler;
+import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 @SuppressWarnings("resource")
 public class MarshallingTest {
@@ -53,6 +79,13 @@ public class MarshallingTest {
         Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
 
     check(substructure).not().isNull();
+  }
+
+  @Test
+  public void unmarshalSingleton() {
+    check(Marshaling.fromJson("[11]", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+    check(Marshaling.fromJson("{\"x\": true}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+    check(Marshaling.fromJson("null", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
   }
 
   @Test

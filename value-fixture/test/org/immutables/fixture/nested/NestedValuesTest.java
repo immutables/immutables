@@ -47,10 +47,8 @@ public class NestedValuesTest {
 
   @Test
   public void nonNestedGroupingCompilation() {
-    NonGrouped.Abra a = ImmutableAbra.builder().build();
-    check(a).notNull();
-    NonGrouped.Cadabra c = ImmutableCadabra.builder().build();
-    check(c).notNull();
+    check(ImmutableAbra.builder().build()).notNull();
+    check(ImmutableCadabra.of()).notNull();
   }
 
   @Test

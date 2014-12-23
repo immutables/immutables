@@ -19,7 +19,6 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.ObjectCodec;
-import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.io.StringWriter;
 import javax.annotation.Nullable;
@@ -80,8 +79,17 @@ public final class Marshaling {
       generator.close();
       return writer.toString();
     } catch (IOException ex) {
-      throw Throwables.propagate(ex);
+      throw toRuntimeException(ex);
     }
+  }
+
+  private static RuntimeException toRuntimeException(IOException ex) {
+    RuntimeException problem = new RuntimeException(ex.getMessage());
+    problem.setStackTrace(ex.getStackTrace());
+    if (ex.getCause() != null) {
+      problem.initCause(ex.getCause());
+    }
+    throw problem;
   }
 
   /**
@@ -99,12 +107,7 @@ public final class Marshaling {
       JsonParser parser = JSON_FACTORY.createParser(json);
       return marshaler.unmarshalInstance(parser);
     } catch (IOException ex) {
-      RuntimeException problem = new RuntimeException(ex.getMessage());
-      problem.setStackTrace(ex.getStackTrace());
-      if (ex.getCause() != null) {
-        problem.initCause(ex.getCause());
-      }
-      throw problem;
+      throw toRuntimeException(ex);
     }
   }
 

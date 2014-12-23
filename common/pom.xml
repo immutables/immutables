@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -35,6 +35,13 @@
       <artifactId>technology</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <!-- this dependency doesn't fall into "quickstart dependencies" listed in org.immutables.dependency:technology -->
+      <groupId>org.parboiled</groupId>
+      <artifactId>parboiled-java</artifactId>
+      <version>1.1.6</version>
       <optional>true</optional>
     </dependency>
   </dependencies>

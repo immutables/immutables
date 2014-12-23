@@ -15,8 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multiset;
+import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -28,10 +33,12 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
  */
 public final class ValueTypeComposer {
   private final ProcessingEnvironment processing;
+  private final Round round;
   private final String typeMoreObjects;
 
-  ValueTypeComposer(ProcessingEnvironment processing) {
-    this.processing = processing;
+  ValueTypeComposer(Round round) {
+    this.round = round;
+    this.processing = round.processing();
     this.typeMoreObjects = inferTypeMoreObjects();
   }
 
@@ -53,21 +60,50 @@ public final class ValueTypeComposer {
         .protoclass(protoclass)
         .build();
 
-    if (isAbstractValueType(type.element)) {
-      if (protoclass.kind().isValue()) {
-        new AttributesCollector(protoclass, type).collect();
-      }
+    if (protoclass.kind().isFactory()) {
+      new FactoryMethodAttributesCollector(round, protoclass, type).collect();
     } else {
-      protoclass.report().error(
-          "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
-          protoclass.sourceElement().getSimpleName());
-      // Do nothing now. kind of way to less blow things up when it happens. actually need to revise
+      // This check is legacy, most such checks should have been done on a higher level?
+      if (isAbstractValueType(type.element)) {
+        if (protoclass.kind().isValue()) {
+          new AccessorAttributesCollector(round, protoclass, type).collect();
+        }
+      } else {
+        protoclass.report().error(
+            "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
+            protoclass.sourceElement().getSimpleName());
+        // Do nothing now. kind of way to less blow things up when it happens. actually need to
+        // revise
+      }
     }
 
+    checkAttributeNamesForDuplicates(type, protoclass);
     return type;
   }
 
-  static boolean isAbstractValueType(TypeElement element) {
+  private void checkAttributeNamesForDuplicates(ValueType type, Protoclass protoclass) {
+    if (!type.attributes.isEmpty()) {
+      Multiset<String> attributeNames = HashMultiset.create(type.attributes.size());
+      for (ValueAttribute attribute : type.attributes) {
+        attributeNames.add(attribute.name());
+      }
+
+      List<String> duplicates = Lists.newArrayList();
+      for (Multiset.Entry<String> entry : attributeNames.entrySet()) {
+        if (entry.getCount() > 1) {
+          duplicates.add(entry.getElement());
+        }
+      }
+
+      if (!duplicates.isEmpty()) {
+        protoclass.report()
+            .error("Duplicate attribute names %s. You should check if correct @Value.Style applied",
+                duplicates);
+      }
+    }
+  }
+
+  static boolean isAbstractValueType(Element element) {
     boolean ofSupportedKind = false
         || element.getKind() == ElementKind.INTERFACE
         || element.getKind() == ElementKind.ANNOTATION_TYPE

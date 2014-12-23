@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>value-fixture</artifactId>
@@ -36,6 +36,11 @@
       <artifactId>h2</artifactId>
       <version>1.4.182</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.parboiled</groupId>
+      <artifactId>parboiled-java</artifactId>
+      <version>1.1.6</version>
     </dependency>
   </dependencies>
 </project>

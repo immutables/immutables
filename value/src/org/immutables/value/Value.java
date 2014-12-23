@@ -32,6 +32,7 @@ import java.util.SortedSet;
  * This annotation provides namespace for annotations that models generated value objects.
  * Use one of the nested annotation.
  * @see Value.Immutable
+ * @see Value.Immutable.Include
  * @see Value.Nested
  */
 // @Target({}) // may cause problems with auto completion
@@ -87,7 +88,7 @@ public @interface Value {
 
     /**
      * If {@code copy=false} then generation of copying methods will be disabled.
-     * This appies to static "copyOf" methods as well as modiby-by-copy "withAttributeName" methods.
+     * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods.
      * Default is {@literal true}, generate copy methods.
      */
     boolean copy() default true;
@@ -201,13 +202,37 @@ public @interface Value {
   @Target(ElementType.TYPE)
   public @interface Transformer {}
 
-/*
+  /**
+   * Annotate static factory methods that produce some value (non-void, non-private) to create
+   * builder out of constructor parameters.
+   * 
+   * <pre>
+   * class Sum {
+   *   {@literal @}Value.Builder
+   *   static Integer from(int a, int b) {
+   *      return a + b;
+   *   }
+   * }
+   * ... // generates builder
+   * Integer result = new SumBuilder()
+   *    .a(111)
+   *    .b(222)
+   *    .build();
+   * </pre>
+   * <p>
+   * Class level and package level style annotations fully supported (see {@link Style}).
+   * <p>
+   * <em>
+   * This annotation is for static factory methods to generate arbitrary builders. It's not for
+   * immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
+   * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
+   */
   @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Builder {}
-*/
+
   /*
    * Generate visitor for a set of nested classes.
   @Beta
@@ -251,9 +276,34 @@ public @interface Value {
   public @interface Auxiliary {}
 
   /**
+   * Lazy attributes cannot be set, defined as method that computes value, which is invoke lazily
+   * once and only once in a thread safe manner.
+   * 
+   * <pre>
+   * &#064;Value.Immutable
+   * public abstract class Order {
+   * 
+   *   public abstract List&lt;Item&gt; items();
+   * 
+   *   &#064;Value.Lazy
+   *   public int totalCost() {
+   *     int cost = 0;
+   * 
+   *     for (Item i : items())
+   *       cost += i.count() * i.price();
+   * 
+   *     return cost;
+   *   }
+   * }
+   * </pre>
+   * <p>
    * This kind of attribute cannot be set during building, but they are lazily computed from other
    * attributes and stored in non-final field, but initialization is guarded by synchronization with
    * volatile field check. Should be applied to non-abstract method - attribute value initializer.
+   * <p>
+   * In general, lazy attribute initializer is more safe than using {@link Derived} attributes, lazy
+   * attribute's initializer method body can refer to abstract mandatory and container attributes as
+   * well as to other lazy attributes. Though lazy attributes act as {@link Auxiliary}.
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
@@ -329,7 +379,7 @@ public @interface Value {
    */
   @Beta
   @Documented
-  @Target(ElementType.METHOD)
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.SOURCE)
   public @interface NaturalOrder {}
 
@@ -355,11 +405,11 @@ public @interface Value {
    * directly or serve as meta annotation.
    * <p>
    * <em>
-   * Be careful to not use keywords or inapropriate characters as identifiers or identifier parts.
+   * Be careful to not use keywords or inappropriate characters as parts of naming templates.
    * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
    * <p>
    * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
-   * as {@literal @}{@link Value.Nested}. So define styles on the eclosing class.
+   * as {@literal @}{@link Value.Nested}. So define styles on the enclosing class.
    * In this way there will be no issues with the naming and structural conventions
    * mismatch on enclosing and nested types.</em>
    */

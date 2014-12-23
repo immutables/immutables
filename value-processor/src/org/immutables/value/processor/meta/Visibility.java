@@ -23,7 +23,7 @@ import org.immutables.value.Value.Immutable.ImplementationVisibility;
 /**
  * Type visibility interpretation. Treat protected as package.
  */
-public enum TypeVisibility {
+public enum Visibility {
   PRIVATE, PACKAGE, PUBLIC;
 
   public boolean isPublic() {
@@ -34,7 +34,7 @@ public enum TypeVisibility {
     return this == PRIVATE;
   }
 
-  public TypeVisibility forImplementation(ImplementationVisibility visibility) {
+  public Visibility forImplementation(ImplementationVisibility visibility) {
     switch (visibility) {
     case PACKAGE:
       return PACKAGE;
@@ -48,11 +48,15 @@ public enum TypeVisibility {
     }
   }
 
-  public TypeVisibility max(TypeVisibility visibility) {
+  public Visibility max(Visibility visibility) {
     return Ordering.natural().max(this, visibility);
   }
 
-  public static TypeVisibility of(Element element) {
+  public Visibility min(Visibility visibility) {
+    return Ordering.natural().min(this, visibility);
+  }
+
+  public static Visibility of(Element element) {
     if (element.getModifiers().contains(Modifier.PUBLIC)) {
       return PUBLIC;
     }
@@ -62,7 +66,7 @@ public enum TypeVisibility {
     return PACKAGE;
   }
 
-  public boolean isMoreRestrictiveThan(TypeVisibility visibility) {
+  public boolean isMoreRestrictiveThan(Visibility visibility) {
     return this.compareTo(visibility) < 0;
   }
 }
