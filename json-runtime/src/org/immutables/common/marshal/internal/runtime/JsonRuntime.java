@@ -15,6 +15,6 @@
  */
 package org.immutables.common.marshal.internal.runtime;
 
-/** Dummy class */
+/** Dummy class used for Javadoc to avoid error. It is excluded from shaded jar. */
 @Deprecated
 public class JsonRuntime {}
