@@ -62,18 +62,15 @@ public final class ValueTypeComposer {
 
     if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(round, protoclass, type).collect();
-    } else {
+    } else if (protoclass.kind().isValue()) {
       // This check is legacy, most such checks should have been done on a higher level?
       if (isAbstractValueType(type.element)) {
-        if (protoclass.kind().isValue()) {
-          new AccessorAttributesCollector(round, protoclass, type).collect();
-        }
+        new AccessorAttributesCollector(round, protoclass, type).collect();
       } else {
         protoclass.report().error(
             "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
             protoclass.sourceElement().getSimpleName());
-        // Do nothing now. kind of way to less blow things up when it happens. actually need to
-        // revise
+        // Do nothing now. kind of way to less blow things up when it happens.
       }
     }
 
