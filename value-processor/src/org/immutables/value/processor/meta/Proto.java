@@ -43,7 +43,7 @@ import org.immutables.value.Value.Style;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 @Value.Nested
-public final class Proto {
+public class Proto {
   private Proto() {}
 
   @Value.Immutable(intern = true, builder = false)
