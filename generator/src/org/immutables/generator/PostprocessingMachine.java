@@ -28,6 +28,7 @@ final class PostprocessingMachine {
     int packageFrom = -1;
     int importFrom = -1;
     FiniteStateMachine machine = new FiniteStateMachine();
+    FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
@@ -57,7 +58,7 @@ final class PostprocessingMachine {
         }
         break;
       case CLASS:
-        state = State.UNDEFINED;
+        fullyQualifiedNameMachine.nextChar(c, i);
         break;
       }
     }
@@ -67,14 +68,14 @@ final class PostprocessingMachine {
     return JOINER.join(parts);
   }
 
-  private enum State {
+  enum State {
     UNDEFINED,
     PACKAGE,
     IMPORTS,
     CLASS
   }
 
-  private static final class FiniteStateMachine {
+  static final class FiniteStateMachine {
     private static final char[][] vocabulary = new char[][] {
         {'p', 'a', 'c', 'k', 'a', 'g', 'e'},
         {'i', 'm', 'p', 'o', 'r', 't'},
@@ -133,13 +134,17 @@ final class PostprocessingMachine {
     }
   }
 
-  private static final class ImportsBuilder {
+  static final class ImportsBuilder {
     private static final String JAVA_LANG = "java.lang";
 
     private TreeSet<String> imports = Sets.newTreeSet();
 
     void addImport(String importedPackage) {
-      imports.add(importedPackage);
+      imports.add(normalize(importedPackage));
+    }
+
+    private String normalize(String s) {
+      return s.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "");
     }
 
     String build(String currentPackage) {
@@ -159,21 +164,115 @@ final class PostprocessingMachine {
     }
   }
 
+  static final class FullyQualifiedNameMachine {
+    FullyQualifiedNameState state = FullyQualifiedNameState.UNDEFINED;
+    int importFrom = -1;
+    int importTo = -1;
+    int packageTo = -1;
+
+    void nextChar(char c, int i) {
+      switch (state) {
+      case UNDEFINED:
+        if (Character.isLetter(c) && Character.isAlphabetic(c)) {
+          state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
+          importFrom = i;
+        }
+        break;
+      case PACKAGE_PART_CANDIDATE:
+        if (c == '.') {
+          state = FullyQualifiedNameState.DOT;
+        } else if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !isSpaceChar(c)) {
+          state = FullyQualifiedNameState.UNDEFINED;
+        }
+        break;
+      case DOT:
+        if (Character.isAlphabetic(c) && Character.isLowerCase(c)) {
+          state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
+        } else if (Character.isAlphabetic(c) && Character.isUpperCase(c)) {
+          state = FullyQualifiedNameState.CLASS;
+        } else if (!isSpaceChar(c)) {
+          state = FullyQualifiedNameState.UNDEFINED;
+        }
+        break;
+      case CLASS:
+        if (packageTo == -1) {
+          packageTo = i - 1;
+        }
+        if (!Character.isAlphabetic(c) && !Character.isDigit(c) && !isSpaceChar(c)) {
+          state = FullyQualifiedNameState.AFTER_CLASS;
+        }
+        break;
+      case AFTER_CLASS:
+        if (importTo == -1) {
+          importTo = i - 1;
+        }
+        if (Character.isAlphabetic(c)) {
+          state = FullyQualifiedNameState.METHOD_OR_FIELD;
+        } else if (c == '(' || c == '<' || c == ')' || c == '>') {
+          state = FullyQualifiedNameState.FINISH;
+        } else if (!isSpaceChar(c)) {
+          state = FullyQualifiedNameState.UNDEFINED;
+        }
+        break;
+      case METHOD_OR_FIELD:
+        if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
+          state = FullyQualifiedNameState.FINISH;
+        }
+        break;
+      case FINISH:
+        reset();
+        break;
+      }
+    }
+
+    void reset() {
+      state = FullyQualifiedNameState.UNDEFINED;
+      importFrom = -1;
+      importTo = -1;
+      packageTo = 1;
+    }
+  }
+
+  enum FullyQualifiedNameState {
+    UNDEFINED,
+    PACKAGE_PART_CANDIDATE,
+    DOT,
+    CLASS,
+    AFTER_CLASS,
+    METHOD_OR_FIELD,
+    FINISH
+  }
+
+  private static boolean isSpaceChar(char c) {
+    return Character.isSpaceChar(c) || c == '\n' || c == '\t' || c == '\r';
+  }
+
   public static void main(String[] args) {
-    Joiner LINES = Joiner.on('\n');
+    String s1 = "com.      google.\tcommon.base\n. Function    .  apply();";
+    String s2 = "com.google.common.base.Function.class;";
+    String s3 = "com.google.common.base.Function();";
+    String s4 = "com.google.common.collect.ImmutableList.Builder<>;";
+    String s5 = "com.google.common.base.Preconditions.checkState();";
 
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        LINES.join(
-            "// subpackage start;",
-            "package start;",
-            "import java.util.TreeSet;",
-            "import com.google.common.base.Function;",
-            "import java.util.List;",
-            "import java.util.Map;",
-            "class My extends java.util.Set {}"
-        ));
+    test(s1);
+    test(s2);
+    test(s3);
+    test(s4);
+    test(s5);
+  }
 
-    System.out.println(rewrited);
+  private static void test(String s) {
+    FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      fullyQualifiedNameMachine.nextChar(c, i);
+
+      if (FullyQualifiedNameState.FINISH.equals(fullyQualifiedNameMachine.state)) {
+        System.out.println(s.substring(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo));
+        System.out.println(s.substring(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.packageTo));
+      }
+    }
+    System.out.println();
     System.out.println();
   }
 }
