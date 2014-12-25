@@ -1,4 +1,24 @@
-Read documentation at http://immutables.org
+```java
+// Define abstract value type using interface, abstract class or annotation
+@Value.Immutable
+public interface ValueObject {
+  String name();
+  List<Integer> counts();
+  Optional<String> description();
+}
+// Use generated immutable implementation and builder
+ValueObject valueObject =
+    ImmutableValueObject.builder()
+        .name("Nameless")
+        .description("present")
+        .addCounts(1)
+        .addCounts(2)
+        .build();
+// Modify by copy with structural sharing
+valueObject = valueObject.withName("Named");
+```
+
+Read full documentation at http://immutables.org
 
 [![Build Status](https://travis-ci.org/immutables/immutables.png?branch=master)](https://travis-ci.org/immutables/immutables)
 
