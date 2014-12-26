@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.ExecutableElement;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -23,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;

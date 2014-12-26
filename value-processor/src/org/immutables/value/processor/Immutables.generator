@@ -67,15 +67,15 @@ package [type.package];
  * <p>
  [if type.useBuilder]
  * Use builder to create immutable instances:
- * {@link [type.factoryBuilder.relative] [type.factoryBuilder.relative]()}.
+ * {@code [type.factoryBuilder.relative]()}.
  [/if]
  [if type.useConstructor]
  * Use static factory method to create immutable instances:
- * {@link [type.factoryOf.relative] [type.factoryOf.relative]()}.
+ * {@code [type.factoryOf.relative]()}.
  [/if]
  [if type.useSingleton]
  * Use static factory method to get default singleton instance:
- * {@link [type.factoryInstance.relative] [type.factoryInstance.relative]()}.
+ * {@code [type.factoryInstance.relative]()}.
  [/if]
  */
 [annotationsWhenTopLevel type topLevel]
