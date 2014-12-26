@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.TypeElement;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -40,9 +39,11 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import org.immutables.generator.Templates;
 import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;

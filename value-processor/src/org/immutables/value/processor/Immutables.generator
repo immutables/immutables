@@ -358,19 +358,6 @@ package [type.package];
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
-[if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
-  private [type.typeBuilder.simple]() {}
-  [if type.constitution.isOutsideBuilder]
-
-  /**
-   * Creates builder for {@link [type.typeValue]}.
-   * @return new [type.typeValue.simple] builder
-   */
-  public static [type.typeBuilder.simple] [type.names.builder]() {
-    return new [type.typeBuilder.simple]();
-  }
-  [/if]
-[/if]
   [for l in defpos.longs]
   private long nondefaultBitset[emptyIfZero l.index];
   [/for]
@@ -399,6 +386,19 @@ package [type.package];
   private @javax.annotation.Nullable [v.type] [v.name];
 [/if]
   [/for]
+[if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
+  private [type.typeBuilder.simple]() {}
+  [if type.constitution.isOutsideBuilder]
+
+  /**
+   * Creates builder for {@link [type.typeValue]}.
+   * @return new [type.typeValue.simple] builder
+   */
+  public static [type.typeBuilder.simple] [type.names.builder]() {
+    return new [type.typeBuilder.simple]();
+  }
+  [/if]
+[/if]
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
 

@@ -38,7 +38,7 @@ public final class Templates {
 
   public interface Invokable {
     @Nullable
-    Invokable invoke(Invokation invokation, Object... parameters);
+    Invokable invoke(Invokation parentInvokation, Object... parameters);
 
     int arity();
   }
@@ -145,6 +145,10 @@ public final class Templates {
     Invokation(@Nullable CharConsumer consumer, Object... params) {
       this.consumer = consumer;
       this.params = checkNotNull(params);
+    }
+
+    public int arity() {
+      return params.length;
     }
 
     public Object param(int ordinal) {

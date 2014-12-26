@@ -15,7 +15,13 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.*;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -24,21 +30,21 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharSink;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
-import javax.annotation.Nullable;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.FilerException;
-import javax.tools.Diagnostic;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.annotation.Nullable;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.FilerException;
+import javax.tools.Diagnostic;
+import javax.tools.FileObject;
+import javax.tools.StandardLocation;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+import static com.google.common.base.Preconditions.*;
 
 public final class Output {
   public final Templates.Invokable error = new Templates.Invokable() {
@@ -74,31 +80,43 @@ public final class Output {
     }
   };
 
-  public final Templates.Invokable java = new Templates.Fragment(3) {
+  public final Templates.Invokable java = new Templates.Invokable() {
     @Override
-    public void run(Invokation invokation) {
-      String packageName = invokation.param(0).toString();
-      String simpleName = invokation.param(1).toString();
-      Invokable body = (Invokable) invokation.param(2);
+    public Invokable invoke(Invokation invokation, Object... parameters) {
+      String packageName = parameters[0].toString();
+      String simpleName = parameters[1].toString();
+      Invokable body = (Invokable) parameters[2];
 
       ResourceKey key = new ResourceKey(packageName, simpleName);
       SourceFile javaFile = getFiles().sourceFiles.getUnchecked(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
+      return null;
+    }
+
+    @Override
+    public int arity() {
+      return 3;
     }
   };
 
-  public final Templates.Invokable service = new Templates.Fragment(3) {
+  public final Templates.Invokable service = new Templates.Invokable() {
     private static final String META_INF_SERVICES = "META-INF/services/";
 
     @Override
-    public void run(Invokation invokation) {
-      String interfaceName = invokation.param(0).toString();
-      Invokable body = (Invokable) invokation.param(1);
+    public Invokable invoke(Invokation invokation, Object... parameters) {
+      String interfaceName = parameters[0].toString();
+      Invokable body = (Invokable) parameters[1];
 
       ResourceKey key = new ResourceKey("", META_INF_SERVICES + interfaceName);
-      AppendResourceFile servicesFile = getFiles().appendResourceFiles.getUnchecked(key);
+      AppendServiceFile servicesFile = getFiles().appendResourceFiles.getUnchecked(key);
       body.invoke(new Invokation(servicesFile.consumer));
+      return null;
+    }
+
+    @Override
+    public int arity() {
+      return 3;
     }
   };
 
@@ -134,25 +152,23 @@ public final class Output {
     }
   }
 
-  private static class AppendResourceFile {
-    private static final Pattern COMMENT_LINE = Pattern.compile("^\\#.*");
+  private static class AppendServiceFile {
+    private static final Pattern SERVICE_FILE_COMMENT_LINE = Pattern.compile("^\\#.*");
 
     final ResourceKey key;
     final Templates.CharConsumer consumer = new Templates.CharConsumer();
 
-    AppendResourceFile(ResourceKey key) {
+    AppendServiceFile(ResourceKey key) {
       this.key = key;
     }
 
     void complete() {
-      if (!StaticEnvironment.round().errorRaised()) {
-        try {
-          writeFile();
-        } catch (FilerException ex) {
-          throw Throwables.propagate(ex);
-        } catch (IOException ex) {
-          throw Throwables.propagate(ex);
-        }
+      try {
+        writeFile();
+      } catch (FilerException ex) {
+        throw Throwables.propagate(ex);
+      } catch (IOException ex) {
+        throw Throwables.propagate(ex);
       }
     }
 
@@ -161,7 +177,7 @@ public final class Output {
       try {
         FileObject existing = getFiler().getResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
         FluentIterable.from(CharStreams.readLines(existing.openReader(true)))
-            .filter(Predicates.not(Predicates.contains(COMMENT_LINE)))
+            .filter(Predicates.not(Predicates.contains(SERVICE_FILE_COMMENT_LINE)))
             .copyInto(services);
       } catch (Exception ex) {
         // unable to read existing file
@@ -190,23 +206,12 @@ public final class Output {
     }
 
     void complete() {
-      if (!StaticEnvironment.round().errorRaised()) {
-        try {
-          writeFile();
-        } catch (IOException ex) {
-          throw Throwables.propagate(ex);
-        }
-      }
-    }
-
-    private void writeFile() throws IOException {
       CharSequence sourceCode = extractSourceCode();
-
       try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
         writer.append(sourceCode);
       } catch (IOException ex) {
         if (!identicalFileIsAlreadyGenerated(sourceCode)) {
-          throw ex;
+          throw Throwables.propagate(ex);
         }
       }
     }
@@ -266,21 +271,19 @@ public final class Output {
           }
         });
 
-    final LoadingCache<ResourceKey, AppendResourceFile> appendResourceFiles = CacheBuilder.newBuilder()
+    final LoadingCache<ResourceKey, AppendServiceFile> appendResourceFiles = CacheBuilder.newBuilder()
         .concurrencyLevel(1)
-        .build(new CacheLoader<ResourceKey, AppendResourceFile>() {
+        .build(new CacheLoader<ResourceKey, AppendServiceFile>() {
           @Override
-          public AppendResourceFile load(ResourceKey key) throws Exception {
-            return new AppendResourceFile(key);
+          public AppendServiceFile load(ResourceKey key) throws Exception {
+            return new AppendServiceFile(key);
           }
         });
 
     @Override
     public void complete() {
-      if (!StaticEnvironment.round().errorRaised()) {
-        for (AppendResourceFile file : appendResourceFiles.asMap().values()) {
-          file.complete();
-        }
+      for (AppendServiceFile file : appendResourceFiles.asMap().values()) {
+        file.complete();
       }
     }
   }

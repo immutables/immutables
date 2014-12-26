@@ -189,7 +189,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
         implementationRawType = UnshadeGuava.typeString("collect.ImmutableSortedSet");
       } else if (isSetType()) {
         implementationRawType = isGenerateOrdinalValueSet()
-            ? "org.immutables.common.collect.".concat("ImmutableOrdinalSet")
+            ? "org.immutables.common.".concat("collect.ImmutableOrdinalSet")
             : UnshadeGuava.typeString("collect.ImmutableSet");
       }
 
@@ -557,8 +557,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
     TypeMirror typeMirror = internalTypeMirror();
 
     if (isContainerType()) {
-
-      // TODO THIS IS THE MESS
       if (typeMirror instanceof DeclaredType) {
         DeclaredType declaredType = (DeclaredType) typeMirror;
 
@@ -567,7 +565,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
         List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
 
         if (!typeArguments.isEmpty()) {
-          // XXX 1? can it be reused for map for example
           if (typeArguments.size() == 1) {
             final TypeMirror typeArgument = typeArguments.get(0);
             if (typeArgument instanceof DeclaredType) {

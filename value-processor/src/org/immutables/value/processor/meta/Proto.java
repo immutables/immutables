@@ -57,10 +57,9 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Deprecated
-    // TBD Make nullable. Annotation processing bug
-    public Optional<Style> style() {
-      return Optional.fromNullable(element().getAnnotation(Value.Style.class));
+    @Nullable
+    public Style style() {
+      return element().getAnnotation(Value.Style.class);
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
@@ -166,36 +165,34 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Deprecated
-    // TBD Make Nullable (annotation processor bug)
-    public Optional<Value.Immutable> features() {
-      return Optional.fromNullable(element().getAnnotation(Value.Immutable.class));
+    @Nullable
+    public Value.Immutable features() {
+      return element().getAnnotation(Value.Immutable.class);
     }
 
     public boolean isImmutable() {
-      return features().isPresent();
+      return features() != null;
     }
 
     @Value.Derived
     @Value.Auxiliary
-    @Deprecated
-    // TBD Make Nullable (annotation processor bug)
-    public Optional<Value.Style> style() {
-      Value.Style style = element().getAnnotation(Value.Style.class);
+    @Nullable
+    public Value.Style style() {
+      @Nullable Value.Style style = element().getAnnotation(Value.Style.class);
 
       if (style != null) {
-        return Optional.of(style);
+        return style;
       }
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
         MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
-        @Nullable Value.Style metaStyle = metaAnnotated.style().orNull();
+        @Nullable Value.Style metaStyle = metaAnnotated.style();
         if (metaStyle != null) {
-          return Optional.of(metaStyle);
+          return metaStyle;
         }
       }
 
-      return Optional.absent();
+      return null;
     }
 
     /**
@@ -379,9 +376,10 @@ public class Proto {
     }
 
     @Value.Lazy
+    @Nullable
     public Immutable features() {
       if (declaringType().isPresent() && !declaringType().get().useImmutableDefaults()) {
-        return declaringType().get().features().orNull();
+        return declaringType().get().features();
       }
       return styles().defaults();
     }
@@ -391,18 +389,18 @@ public class Proto {
       if (declaringType().isPresent()) {
         Optional<DeclaringType> enclosing = enclosingOf();
         if (enclosing.isPresent()) {
-          @Nullable Style enclosingStyle = enclosing.get().style().orNull();
+          @Nullable Style enclosingStyle = enclosing.get().style();
           if (enclosingStyle != null) {
             return Styles.using(enclosingStyle);
           }
         } else {
-          @Nullable Style style = declaringType().get().style().orNull();
+          @Nullable Style style = declaringType().get().style();
           if (style != null) {
             return Styles.using(style);
           }
         }
       }
-      @Nullable Style packageStyle = packageOf().style().orNull();
+      @Nullable Style packageStyle = packageOf().style();
       if (packageStyle != null) {
         return Styles.using(packageStyle);
       }
