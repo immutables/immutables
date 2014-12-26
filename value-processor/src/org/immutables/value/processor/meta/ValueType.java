@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -43,7 +44,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
-import org.immutables.generator.Templates;
 import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
@@ -300,13 +300,7 @@ public class ValueType extends TypeIntrospectionBase {
     if (annotation != null && !annotation.value().isEmpty()) {
       return annotation.value();
     }
-    return inferDocumentCollectionName(constitution.typeValue().simple());
-  }
-
-  private String inferDocumentCollectionName(String name) {
-    char[] a = name.toCharArray();
-    a[0] = Character.toLowerCase(a[0]);
-    return String.valueOf(a);
+    return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, name());
   }
 
   private Set<String> importedMarshalRoutines;
