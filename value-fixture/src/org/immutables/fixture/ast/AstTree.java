@@ -15,14 +15,15 @@
  */
 package org.immutables.fixture.ast;
 
-import org.immutables.value.Parboil;
+import org.immutables.value.ext.ExtValue;
+import org.immutables.value.ext.Parboil;
 import org.immutables.value.Value;
 
 /**
  * Compilation test for Ast Tree generation.
  */
 @Parboil.Ast
-@Value.Transformer
+@ExtValue.Transformer
 @Value.Nested
 public class AstTree {
   interface Expression {}

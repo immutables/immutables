@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value;
+package org.immutables.value.ext;
 
 import com.google.common.annotations.Beta;
 import java.lang.annotation.Documented;

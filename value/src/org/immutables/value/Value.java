@@ -192,17 +192,6 @@ public @interface Value {
   public @interface Nested {}
 
   /**
-   * Generate transformer for a set of nested classes. Should only be used on {@link Nested}
-   * umbrella classes. Then generated *Transformer class used to exploit and refine transformation
-   * of immutable graph.
-   */
-  @Beta
-  @Documented
-  @Retention(RetentionPolicy.SOURCE)
-  @Target(ElementType.TYPE)
-  public @interface Transformer {}
-
-  /**
    * Annotate static factory methods that produce some value (non-void, non-private) to create
    * builder out of constructor parameters.
    * 
@@ -232,15 +221,6 @@ public @interface Value {
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Builder {}
-
-  /*
-   * Generate visitor for a set of nested classes.
-  @Beta
-  @Documented
-  @Retention(RetentionPolicy.SOURCE)
-  @Target(ElementType.TYPE)
-  public @interface Visitor {}
-  */
 
   /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other

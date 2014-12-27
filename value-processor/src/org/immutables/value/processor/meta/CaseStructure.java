@@ -15,9 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.SetMultimap;
@@ -26,22 +26,21 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 public class CaseStructure {
-  public final List<ValueType> implementationTypes;
-  public final SetMultimap<String, ValueType> subtyping;
-  public final Set<String> implementationTypeNames;
+  public final List<ValueType> implementedTypes;
+  private final Set<String> implementedTypeNames;
+  private final SetMultimap<String, ValueType> subtyping;
   public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
-  public final SetMultimap<String, ValueType> abstractUsages = HashMultimap.create();
 
   CaseStructure(ValueType discoveredValue) {
-    this.implementationTypes = discoveredValue.nested;
-    this.implementationTypeNames = buildImplementationType(implementationTypes);
-    this.subtyping = buildSubtyping(implementationTypes);
+    this.implementedTypes = discoveredValue.nested;
+    this.implementedTypeNames = buildImplementedTypesSet(implementedTypes);
+    this.subtyping = buildSubtyping(implementedTypes);
   }
 
-  private static Set<String> buildImplementationType(List<ValueType> implementationTypes) {
+  private static Set<String> buildImplementedTypesSet(List<ValueType> implementationTypes) {
     ImmutableSet.Builder<String> builder = ImmutableSet.builder();
     for (ValueType discoveredValue : implementationTypes) {
-      builder.add(discoveredValue.typeImmutable().toString());
+      builder.add(discoveredValue.typeAbstract().toString());
     }
     return builder.build();
   }
@@ -50,23 +49,28 @@ public class CaseStructure {
     ImmutableSetMultimap.Builder<String, ValueType> builder = ImmutableSetMultimap.builder();
 
     for (ValueType type : implementationTypes) {
-      builder.put(type.typeAbstract().toString(), type);
+      String abstractValueTypeName = type.typeAbstract().toString();
+      builder.put(abstractValueTypeName, type);
 
       for (String className : type.getExtendedClassesNames()) {
-        builder.put(className, type);
+        if (!className.equals(abstractValueTypeName)) {
+          builder.put(className, type);
+        }
       }
       for (String interfaceName : type.getImplementedInterfacesNames()) {
-        builder.put(interfaceName, type);
+        if (!interfaceName.equals(abstractValueTypeName)) {
+          builder.put(interfaceName, type);
+        }
       }
     }
 
     return builder.build();
   }
 
-  public final Predicate<String> isImplementationType = new Predicate<String>() {
+  public final Predicate<String> isImplementedType = new Predicate<String>() {
     @Override
     public boolean apply(String input) {
-      return implementationTypeNames.contains(input);
+      return implementedTypeNames.contains(input);
     }
   };
 
