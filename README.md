@@ -7,7 +7,7 @@ public interface ValueObject {
   Optional<String> description();
 }
 // Use generated immutable implementation and builder
-ValueObject valueObject =
+ImmutableValueObject valueObject =
     ImmutableValueObject.builder()
         .name("Nameless")
         .description("present")
@@ -25,7 +25,7 @@ Read full documentation at http://immutables.org
 Changelog
 ---------
 
-### 1.1.0-rc1
+### 1.1 (27)
 
 #### Features
 + [#53](https://github.com/immutables/immutables/issues/53) Implemented `SortedSet`/`NavigableSet`/`SortedMap`/`NavigableMap` attributes specifying `@Value.NaturalOrder` or `@Value.ReverseOrder` annotation. Idea contributed by Facebook Buck team. Thanks!
@@ -41,7 +41,7 @@ Changelog
 
 #### Changes
 * Dozens of fixes, including
-  - [#61](https://github.com/immutables/immutables/issues/61) Fixed `@Value.Default` methods on Java 8 implemented with interface `default` methods
+  - [#61](https://github.com/immutables/immutables/issues/61) Partially fixed `@Value.Default` methods on Java 8 implemented with interface `default` methods. Known issue is with more complex interface inheritance [#67](https://github.com/immutables/immutables/issues/67)
   - [#48](https://github.com/immutables/immutables/issues/48) JDBI marshaling fixes
   - [#50](https://github.com/immutables/immutables/issues/50) Support for older versions of Guava, which did not have `MoreObjects` for example, detected from classpath
   - Fixed resolution of accesors inherited from couple of interfaces. (Still do not take into account most specific covariant override)
@@ -49,6 +49,7 @@ Changelog
   - Deprecated `@Value.Immutable(nonpublic)` in favor of `@Value.Immutable(visibility)`, nonpublic not working now, but it should not break
   - Deprecated `@Value.Immutable(withers)` in favor of `@Value.Immutable(copy)`
   - Deprecated `@Value.Getters` in favor of using `@Value.Style`. May be undeprecated if found really useful
+  - Removed underdeveloped annotations and processors to be reintroduced later (Transformer, Visitor, Parboiled)
 * Incompatibilites
   - Upgrade to Jackson 2.4.4 for Jackson `ObjectMapper` cross-marshaling to work
   - Possible incompatibity: `@Json.Marshaled` now is required on each nested `@Value.Immutable`, marshaled annotation on `@Value.Nested` will not have effect
