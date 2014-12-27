@@ -15,7 +15,6 @@
  */
 package org.immutables.generator;
 
-import javax.annotation.Nullable;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Converter;
