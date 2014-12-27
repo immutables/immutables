@@ -15,17 +15,21 @@
  */
 package org.immutables.common.repository;
 
-import javax.annotation.concurrent.Immutable;
-
-import org.bson.types.ObjectId;
-
 import com.google.common.base.Objects;
+import javax.annotation.concurrent.Immutable;
+import org.bson.types.ObjectId;
 
 /**
  * Represents ObjectId type from MongoDB. Usually when modelling documents there's no
  * real need to use special {@link Id} type and some other simple or special value types will
  * perfectly work. But if for some reason this type is expected.
+ * <p>
+ * <em>
+ * Be warned that format of internal data structure will be changed for version 3.x of Mongo Java Driver to adhere to specification.
+ * Use this class as opaque storage and don't use field representation: {@link #time()}, {@link #machine()}, {@link #inc()}.
+ * </em>
  */
+@SuppressWarnings("deprecation")
 @Immutable
 public final class Id {
   private final int time;
@@ -45,6 +49,7 @@ public final class Id {
    * @param inc some increment value
    * @return the id
    */
+  @Deprecated
   public static Id of(int time, int machine, int inc) {
     return new Id(time, machine, inc);
   }
@@ -63,7 +68,7 @@ public final class Id {
    * @return the id
    */
   public static Id generate() {
-    return fromObjectId(new ObjectId());
+    return fromObjectId(ObjectId.get());
   }
 
   private static Id fromObjectId(ObjectId objectId) {
@@ -77,6 +82,7 @@ public final class Id {
    * Increment part of {@link Id}.
    * @return counter value
    */
+  @Deprecated
   public int inc() {
     return inc;
   }
@@ -85,6 +91,7 @@ public final class Id {
    * Machine part of {@link Id}.
    * @return combines machine/process into
    */
+  @Deprecated
   public int machine() {
     return machine;
   }
@@ -92,6 +99,7 @@ public final class Id {
   /**
    * @return time part of {@link Id}
    */
+  @Deprecated
   public int time() {
     return time;
   }
@@ -121,6 +129,6 @@ public final class Id {
    */
   @Override
   public String toString() {
-    return new ObjectId(time, machine, inc).toString();
+    return ObjectId.createFromLegacyFormat(time, machine, inc).toString();
   }
 }

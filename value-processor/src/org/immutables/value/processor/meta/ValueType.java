@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.ext.ExtValue;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -47,8 +48,8 @@ import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
-import org.immutables.value.Parboil;
 import org.immutables.value.Value;
+import org.immutables.value.ext.Parboil;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
@@ -159,11 +160,11 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateParboiled() {
-    return !kind().isValue() && element.getAnnotation(Parboil.Ast.class) != null;
+    return kind().isEnclosing() && element.getAnnotation(Parboil.Ast.class) != null;
   }
 
   public boolean isGenerateTransformer() {
-    return !kind().isValue() && element.getAnnotation(Value.Transformer.class) != null;
+    return kind().isValue() && element.getAnnotation(ExtValue.Transformer.class) != null;
   }
 
   private CaseStructure caseStructure;

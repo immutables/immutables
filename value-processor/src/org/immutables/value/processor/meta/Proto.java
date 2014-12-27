@@ -516,6 +516,10 @@ public class Proto {
       public boolean isFactory() {
         return this == DEFINED_FACTORY;
       }
+
+      public boolean isEnclosingOnly() {
+        return this == DEFINED_ENCLOSING_TYPE;
+      }
     }
   }
 
