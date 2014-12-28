@@ -10,7 +10,6 @@ public class PostprocessingMachineTest {
   private static final Joiner LINES = Joiner.on('\n');
 
   @Test
-  @Ignore
   public void imports() {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
@@ -19,8 +18,8 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
-            "import java.util.Set;",
             "import java.util.List;",
+            "import java.util.Set;",
             "class My extends Set {}"));
   }
 
@@ -43,7 +42,6 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  @Ignore
   public void javaLangImports() {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
