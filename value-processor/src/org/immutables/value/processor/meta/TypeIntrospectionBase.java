@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.HashSet;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
@@ -69,6 +70,7 @@ public abstract class TypeIntrospectionBase {
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;
   protected ImmutableSet<String> implementedInterfacesNames;
+  protected ImmutableList<TypeElement> implementedInterfaceElements;
 
   protected abstract TypeMirror internalTypeMirror();
 
@@ -131,8 +133,21 @@ public abstract class TypeIntrospectionBase {
         .transform(ToNameOfTypeElement.FUNCTION)
         .toList();
 
-    implementedInterfacesNames = FluentIterable.from(implementedInterfaces)
-        .filter(DeclaredType.class)
+    FluentIterable<DeclaredType> superIntefaceTypes =
+        FluentIterable.from(implementedInterfaces)
+            .filter(DeclaredType.class);
+
+    Iterable<TypeElement> superIntefaces =
+        superIntefaceTypes
+            .transform(ToDeclaredTypeElement.FUNCTION)
+            .toList()
+            .reverse();
+
+    superIntefaces = FluentIterable.from(superIntefaces).toSet();
+
+    implementedInterfaceElements = ImmutableList.copyOf(superIntefaces).reverse();
+
+    implementedInterfacesNames = superIntefaceTypes
         .transform(ToNameOfTypeElement.FUNCTION)
         .toSet();
   }

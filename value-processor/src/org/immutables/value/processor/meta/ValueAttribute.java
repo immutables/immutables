@@ -22,31 +22,19 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import javax.annotation.Nullable;
+import javax.lang.model.element.*;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
+import java.util.*;
 
 /**
  * It's pointless to refactor this mess until
@@ -76,6 +64,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   TypeMirror returnType;
   Element element;
+  ValueType containingType;
   String returnTypeName;
 
   public boolean isBoolean() {
@@ -140,19 +129,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isForceEmpty() {
     return element.getAnnotation(Json.ForceEmpty.class) != null;
-  }
-
-  @Deprecated
-  @Nullable
-  public CharSequence getAnnotationDefaultValue() {
-    // Currently it is not used?
-    if (element instanceof ExecutableElement) {
-      @Nullable AnnotationValue defaultValue = ((ExecutableElement) element).getDefaultValue();
-      if (defaultValue != null) {
-        return AnnotationMirrors.toCharSequence(defaultValue);
-      }
-    }
-    return null;
   }
 
   @Override
@@ -379,10 +355,25 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return isSetType() && hasEnumFirstTypeParameter;
   }
 
+  @Nullable
+  private CharSequence defaultInterface;
+
   public CharSequence defaultInterface() {
+    if (!isGenerateDefault) {
+      return "";
+    }
+    if (defaultInterface == null) {
+      defaultInterface = inferDefaultInterface();
+    }
+    return defaultInterface;
+  }
+
+  private CharSequence inferDefaultInterface() {
     Element enclosing = element.getEnclosingElement();
-    if (enclosing.getKind() == ElementKind.INTERFACE && isGenerateDefault) {
-      return ((TypeElement) enclosing).getQualifiedName();
+    if (enclosing.getKind() == ElementKind.INTERFACE) {
+      if (containingType.element.getKind() == ElementKind.INTERFACE) {
+        return containingType.typeAbstract().relative();
+      }
     }
     return "";
   }
