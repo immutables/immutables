@@ -15,12 +15,13 @@
  */
 package org.immutables.fixture.nested;
 
+import org.immutables.value.ext.ExtValue;
 import com.google.common.base.Optional;
 import org.immutables.value.Json;
 import org.immutables.value.Value;
 
 @Value.Nested
-@Value.Transformer
+@ExtValue.Transformer
 class GroupedClasses {
   interface Other {}
 

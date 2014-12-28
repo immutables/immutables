@@ -34,11 +34,9 @@ import com.mongodb.DBEncoder;
 import com.mongodb.DBObject;
 import com.mongodb.DefaultDBEncoder;
 import com.mongodb.LazyDBCallback;
-
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,9 +48,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
-
 import org.bson.BSONCallback;
 import org.bson.BSONObject;
 import org.bson.BasicBSONDecoder;
@@ -162,7 +158,7 @@ public final class BsonEncoding {
     public int writeObject(OutputBuffer buffer, BSONObject object) {
       try {
         if (object instanceof WritableObjectPosition) {
-          return ((WritableObjectPosition) object).writeCurrent(buffer);
+          return ((WritableObjectPosition) object).writePlainCurrent(buffer);
         }
         return DefaultDBEncoder.FACTORY.create().writeObject(buffer, object);
       } catch (IOException ex) {
@@ -181,6 +177,8 @@ public final class BsonEncoding {
 
   interface WritableObjectPosition {
     int writeCurrent(OutputBuffer buffer) throws IOException;
+
+    int writePlainCurrent(OutputBuffer buffer) throws IOException;
   }
 
   private static class UpdateObject<T> implements DBObject, WritableObjectPosition {
@@ -200,6 +198,11 @@ public final class BsonEncoding {
       marshaler.marshalInstance(generator, instance);
       generator.close();
       return outputStream.count;
+    }
+
+    @Override
+    public int writePlainCurrent(OutputBuffer buffer) throws IOException {
+      return writeCurrent(buffer);
     }
 
     @Override
@@ -280,6 +283,15 @@ public final class BsonEncoding {
         closeGenerator();
       }
       return outputStream.count - previousByteCount;
+    }
+
+    @Override
+    public int writePlainCurrent(OutputBuffer buffer) throws IOException {
+      CountingOutputBufferStream outputStream = new CountingOutputBufferStream(buffer);
+      JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
+      marshaler.marshalInstance(generator, list.get(position));
+      generator.close();
+      return outputStream.count;
     }
 
     private void closeGenerator() throws IOException {
@@ -478,8 +490,7 @@ public final class BsonEncoding {
       return ImmutableList.of();
     }
     // Safe as long as caller will use same T for decoder and unwrap
-    @SuppressWarnings("unchecked")
-    List<T> results = ((ResultDecoder<T>) result.get(0)).results;
+    @SuppressWarnings("unchecked") List<T> results = ((ResultDecoder<T>) result.get(0)).results;
 
     return ImmutableList.copyOf(results);
   }

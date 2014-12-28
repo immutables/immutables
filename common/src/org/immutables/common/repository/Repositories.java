@@ -113,7 +113,7 @@ public final class Repositories {
       return submit(new Callable<Void>() {
         @Override
         public Void call() {
-          collection().ensureIndex(
+          collection().createIndex(
               extractDbObject(fields),
               extractDbObject(options));
           return null;
@@ -123,8 +123,7 @@ public final class Repositories {
 
     protected final FluentFuture<Integer> doInsert(final ImmutableList<T> documents) {
       if (documents.isEmpty()) {
-        return FluentFutures.from(
-            Futures.immediateFuture(0));
+        return FluentFutures.from(Futures.immediateFuture(0));
       }
       return submit(new Callable<WriteResult>() {
         @Override
@@ -154,8 +153,7 @@ public final class Repositories {
         public Optional<T> call() throws Exception {
           DBCollection collection = collection();
 
-          @Nullable
-          DBObject result = collection.findAndModify(
+          @Nullable DBObject result = collection.findAndModify(
               extractDbObject(criteria),
               extractDbObject(exclusion),
               extractDbObject(ordering),
@@ -241,10 +239,8 @@ public final class Repositories {
         public List<T> call() throws Exception {
           DBCollection collection = collection();
 
-          @Nullable
-          DBObject query = criteria != null ? extractDbObject(criteria) : null;
-          @Nullable
-          DBObject keys = !exclusion.isNil() ? extractDbObject(exclusion) : null;
+          @Nullable DBObject query = criteria != null ? extractDbObject(criteria) : null;
+          @Nullable DBObject keys = !exclusion.isNil() ? extractDbObject(exclusion) : null;
 
           DBCursor cursor = collection.find(query, keys);
 

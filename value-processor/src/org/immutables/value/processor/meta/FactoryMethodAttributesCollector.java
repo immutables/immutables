@@ -57,6 +57,7 @@ final class FactoryMethodAttributesCollector {
 
       attribute.names = styles.forAccessor(name.toString());
       attribute.element = parameter;
+      attribute.containingType = type;
       attributes.add(attribute);
     }
 

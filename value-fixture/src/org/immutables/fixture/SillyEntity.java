@@ -27,11 +27,11 @@ import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Import({ SillyEntity.class })
+@Json.Import({SillyEntity.class})
 @Mongo.Repository
 public abstract class SillyEntity {
 
-  @Json.Named("_id")
+  @Mongo.Id
   public abstract int id();
 
   @Json.Named("v")

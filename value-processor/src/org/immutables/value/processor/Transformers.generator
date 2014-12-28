@@ -25,14 +25,23 @@ package [transformerType.package];
 
   [for cases = transformerType.cases,
        type in cases.implementationTypes,
-       t = type.typeImmutable.toString,
-       s = type.name]
+       t = type.typeValue,
+       s = type.name,
+       Boolean useCopy = useCopyConstructor and type.useCopyMethods]
+
+  [if useCopy]
 
   public [t] transform(C context, [t] value) {
-    return value[for a in type.settableAttributes if type.useCopyMethods]
+    return [t.factoryCopyOf](value)[for a in type.settableAttributes]
         .[a.names.with](transform[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
   }
-  [for a in type.settableAttributes if type.useCopyMethods]
+  [else]
+
+  public [t] transform(C context, [t] value) {
+    return value;
+  }
+  [/if]
+  [for a in type.settableAttributes if useCopy]
     [if a.nullable]
 
   protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
@@ -64,9 +73,9 @@ package [transformerType.package];
   protected [et] transform[type.name][toUpper a.name](C context, [t] value, [et] element) {
     [if cases.isImplementationType et]
     return transform(context, element);
-    [else][for Type subtype in cases.knownSubtypes et, sub = subtype.typeImmutable.toString]
-    if (element instanceof [sub]) {
-      return transform[simplifyName et](context, ([sub]) element);
+    [else][for Type subtype in cases.knownSubtypes et]
+    if (element instanceof [subtype.typeValue]) {
+      return transform(context, ([subtype.typeValue]) element);
     }
     [/for]
     return element;

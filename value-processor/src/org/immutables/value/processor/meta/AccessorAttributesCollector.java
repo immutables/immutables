@@ -227,6 +227,7 @@ final class AccessorAttributesCollector {
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());
       attribute.element = attributeMethodCandidate;
+      attribute.containingType = type;
       attributes.add(attribute);
     }
   }

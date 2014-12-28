@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>value-fixture</artifactId>
@@ -22,7 +22,12 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-processor</artifactId>
+      <artifactId>value-standalone</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

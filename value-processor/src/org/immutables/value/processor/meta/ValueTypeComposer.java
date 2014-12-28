@@ -67,9 +67,10 @@ public final class ValueTypeComposer {
       if (isAbstractValueType(type.element)) {
         new AccessorAttributesCollector(round, protoclass, type).collect();
       } else {
-        protoclass.report().error(
-            "Type '%s' annotated or included as value must be non-final class, interface or annotation type",
-            protoclass.sourceElement().getSimpleName());
+        protoclass.report()
+            .error(
+                "Type '%s' annotated or included as value must be non-final class, interface or annotation type (and without type parameters)",
+                protoclass.sourceElement().getSimpleName());
         // Do nothing now. kind of way to less blow things up when it happens.
       }
     }
@@ -112,6 +113,7 @@ public final class ValueTypeComposer {
 
     boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
 
-    return ofSupportedKind && staticOrTopLevel && nonFinal;
+    boolean hasNoTypeParameters = ofSupportedKind && ((TypeElement) element).getTypeParameters().isEmpty();
+    return ofSupportedKind && staticOrTopLevel && nonFinal && hasNoTypeParameters;
   }
 }

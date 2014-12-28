@@ -41,6 +41,7 @@ public final class ExtendedBuiltinMarshalingRoutines {
    * @return the id
    * @throws IOException Signals that an I/O exception has occurred.
    */
+  @SuppressWarnings("deprecation")
   public static Id unmarshal(
       JsonParser parser,
       @Nullable Id idNull,
@@ -57,6 +58,7 @@ public final class ExtendedBuiltinMarshalingRoutines {
     return Id.fromString(parser.getText());
   }
 
+  @SuppressWarnings("deprecation")
   public static void marshal(
       JsonGenerator generator,
       Id value) throws IOException {

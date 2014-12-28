@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.repository;
 
+import org.immutables.common.repository.Id;
 import org.immutables.common.concurrent.FluentFuture;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -59,8 +60,8 @@ import org.immutables.fixture.SillyStructureWithId;
 import org.immutables.fixture.SillyStructureWithIdMarshaler;
 import org.immutables.fixture.SillyStructureWithIdRepository;
 
-@SuppressWarnings({ "unused", "resource" })
-public final class SillyManualFixture {
+@SuppressWarnings({"unused", "resource"})
+public final class ManualFixture {
 
   static BsonFactory bsonFactory = new BsonFactory();
 
@@ -92,22 +93,33 @@ public final class SillyManualFixture {
     return baos.toByteArray();
   }
 
-  public static void main55(String... args) {
+  public static void main999(String... args) {
 
     RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
 
     SillyEntitySecondRepository repository = new SillyEntitySecondRepository(setup);
 
-    repository.upsert(ImmutableSillyEntitySecond.builder().build()).getUnchecked();
+    repository.findAll().deleteAll().getUnchecked();
 
-    Optional<SillyEntitySecond> unchecked = repository.find("{_id: %s}", "{$ne:null}")
-        .fetchFirst()
-        .getUnchecked();
+    ImmutableSillyEntitySecond build = ImmutableSillyEntitySecond.builder()
+        .build();
 
-    System.out.println(unchecked);
+    // repository.insert(build).getUnchecked();
+
+    repository.insert(build).getUnchecked();
+    repository.insert(ImmutableSillyEntitySecond.builder()
+        .build()).getUnchecked();
+
+//    repository.upsert(ImmutableSillyEntitySecond.builder().build()).getUnchecked();
+//
+//    Optional<SillyEntitySecond> unchecked = repository.find("{_id: %s}", "{$ne:null}")
+//        .fetchFirst()
+//        .getUnchecked();
+//
+//    System.out.println(unchecked);
   }
 
-  public static void main77(String... args) throws Exception {
+  public static void main(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     MongoClient mongo = new MongoClient();
@@ -117,6 +129,12 @@ public final class SillyManualFixture {
             .database(mongo.getDB("test"))
             .executor(executor)
             .build());
+
+    repository.index().withId().withInts().ensure().getUnchecked();
+
+    repository.index().withId().withDerDesceding().named("Index222").ensure().getUnchecked();
+
+    repository.findAll().deleteAll().getUnchecked();
 
     repository.upsert(ImmutableSillyEntity.builder()
         .id(11)
@@ -163,7 +181,7 @@ public final class SillyManualFixture {
     TimeMeasure.seconds(2).sleep();
   }
 
-  public static void main(String... args) throws Exception {
+  public static void main334477(String... args) throws Exception {
     ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
 
     MongoClient mongo = new MongoClient();
@@ -174,11 +192,58 @@ public final class SillyManualFixture {
             .executor(executor)
             .build());
 
-    repository.index()
-        .withIdDesceding()
-        .withPayload()
-        .named("myindex")
-        .ensure().get();
+    repository.findAll().deleteAll().get();
+
+    repository.insert(
+        ImmutableSillyEntity.builder()
+            .id(7777)
+            .val("22222")
+            .putPayload("AA", 9)
+            .putPayload("BB", 9)
+            .build())
+        .get();
+
+    repository.insert(
+        ImmutableSillyEntity.builder()
+            .id(3454)
+            .val("43535")
+            .putPayload("AA", 9)
+            .putPayload("BB", 9)
+            .build())
+        .get();
+
+    repository.insert(
+        ImmutableSillyEntity.builder()
+            .id(4656457)
+            .val("dsfghfhd")
+            .build())
+        .get();
+
+    List<SillyEntity> list = repository.findAll().fetchAll().get();
+
+    System.out.println("!!!! " + list);
+
+    // System.out.println();
+
+//    repository.index()
+//        .withIdDesceding()
+//        .withPayload()
+//        .named("myindex")
+//        .ensure().get();
+//
+    repository.insert(ImmutableList.of(
+        ImmutableSillyEntity.builder()
+            .id(4)
+            .val("11")
+            .putPayload("AA", 9)
+            .putPayload("BB", 9)
+            .build(),
+        ImmutableSillyEntity.builder()
+            .id(2)
+            .val("11")
+            .putPayload("AA", 9)
+            .putPayload("BB", 9)
+            .build())).get();
 
     repository.insert(ImmutableList.of(
         ImmutableSillyEntity.builder()

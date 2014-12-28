@@ -31,7 +31,8 @@ abstract class Marshalers extends ValuesTemplate {
         public Multimap<Character, ValueAttribute> apply(Iterable<ValueAttribute> attributes) {
           ImmutableMultimap.Builder<Character, ValueAttribute> builder = ImmutableMultimap.builder();
           for (ValueAttribute attribute : attributes) {
-            char firstChar = attribute.name().charAt(0);
+            String name = attribute.getMarshaledName();
+            char firstChar = name.charAt(0);
             builder.put(firstChar, attribute);
           }
           return builder.build();
