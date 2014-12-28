@@ -70,7 +70,6 @@ public abstract class TypeIntrospectionBase {
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;
   protected ImmutableSet<String> implementedInterfacesNames;
-  protected ImmutableList<TypeElement> implementedInterfaceElements;
 
   protected abstract TypeMirror internalTypeMirror();
 
@@ -136,7 +135,7 @@ public abstract class TypeIntrospectionBase {
     FluentIterable<DeclaredType> superIntefaceTypes =
         FluentIterable.from(implementedInterfaces)
             .filter(DeclaredType.class);
-
+/*
     Iterable<TypeElement> superIntefaces =
         superIntefaceTypes
             .transform(ToDeclaredTypeElement.FUNCTION)
@@ -146,7 +145,7 @@ public abstract class TypeIntrospectionBase {
     superIntefaces = FluentIterable.from(superIntefaces).toSet();
 
     implementedInterfaceElements = ImmutableList.copyOf(superIntefaces).reverse();
-
+*/
     implementedInterfacesNames = superIntefaceTypes
         .transform(ToNameOfTypeElement.FUNCTION)
         .toSet();
