@@ -15,12 +15,13 @@
  */
 package org.immutables.fixture.builder;
 
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
 import com.google.common.collect.Iterables;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Immutable.ImplementationVisibility;
+
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.SortedSet;
-import javax.annotation.Nullable;
-import org.immutables.value.Value;
 
 /**
  * Builders for simple attributes, collection, generic and primitive variations.
@@ -45,6 +46,12 @@ class ImprovisedFactories {
   }
 
   void use() {
+
+    int sumOf1and2 = new SumBuilder()
+        .a(1)
+        .b(2)
+        .build();
+
     String superstring = new SuperstringBuilder()
         .theory(0)
         .reality("")
@@ -58,10 +65,6 @@ class ImprovisedFactories {
 
     concat.toString();
 
-    int sumOf1and2 = new SumBuilder()
-        .a(1)
-        .b(2)
-        .build();
 
     String.valueOf(sumOf1and2);
   }

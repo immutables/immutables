@@ -25,7 +25,7 @@ Read full documentation at http://immutables.org
 Changelog
 ---------
 
-### 1.1 (27)
+### 1.1 (2014-27)
 
 #### Features
 + [#53](https://github.com/immutables/immutables/issues/53) Implemented `SortedSet`/`NavigableSet`/`SortedMap`/`NavigableMap` attributes specifying `@Value.NaturalOrder` or `@Value.ReverseOrder` annotation. Idea contributed by Facebook Buck team. Thanks!
@@ -43,7 +43,7 @@ Changelog
 * Dozens of fixes, including
   - [#61](https://github.com/immutables/immutables/issues/61) Partially fixed `@Value.Default` methods on Java 8 implemented with interface `default` methods. Known issue is with more complex interface inheritance [#67](https://github.com/immutables/immutables/issues/67)
   - [#48](https://github.com/immutables/immutables/issues/48) JDBI marshaling fixes
-  - [#50](https://github.com/immutables/immutables/issues/50) Support for older versions of Guava, which did not have `MoreObjects` for example, detected from classpath
+  - [#50](https://github.com/immutables/immutables/issues/50) Support for older versions of Guava, which did not have `MoreObjects` for example, detected from classpath. Checked with Guava v12, v16
   - Fixed resolution of accesors inherited from couple of interfaces. (Still do not take into account most specific covariant override)
 * Deprecations
   - Deprecated `@Value.Immutable(nonpublic)` in favor of `@Value.Immutable(visibility)`, nonpublic not working now, but it should not break
@@ -69,7 +69,6 @@ Changelog
 
 ### 1.0
 Release with all of what was developed, including reengineering of template engine, project/module restructuring and annotation API changes
-Migration guide
 
 #### Changes
 * Immutable generation annotation now nested below umbrella annotation `@org.immutables.value.Value` which provided grouping and namespacing for the nested annotations.

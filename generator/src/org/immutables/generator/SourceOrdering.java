@@ -25,10 +25,12 @@ import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.FieldDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -153,7 +155,7 @@ public final class SourceOrdering {
    * @param type the type to traverse
    * @return all accessors in source order
    */
-  public static ImmutableList<Element> getAllAccessors(
+  public static ImmutableList<ExecutableElement> getAllAccessors(
       final Elements elements, final TypeElement type) {
 
     class CollectedOrdering
@@ -230,8 +232,7 @@ public final class SourceOrdering {
       }
     }
 
-    return FluentIterable.from(ImmutableList.<Element>of())
-        .append(elements.getAllMembers(type))
+    return FluentIterable.from(ElementFilter.methodsIn(elements.getAllMembers(type)))
         .filter(IsAccessor.PREDICATE)
         .toSortedList(new CollectedOrdering());
   }
