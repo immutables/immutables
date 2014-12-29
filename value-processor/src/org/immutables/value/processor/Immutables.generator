@@ -909,11 +909,12 @@ private int computeHashCode() {
 }
 [/if]
 [if not type.hashCodeDefined]
+
 /**
 [if type.usePrehashed]
- * Returns precomputed on construction hash code from attributes: [for a in type.equivalenceAttributes]{@code [a.name]}[/for].
+ * Returns precomputed on construction hash code from attributes: [for a in type.equivalenceAttributes][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
- * Computes hash code from attributes: [for a in type.equivalenceAttributes]{@code [a.name]}[/for].
+ * Computes hash code from attributes: [for a in type.equivalenceAttributes][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
  * @return hashCode value
  */
