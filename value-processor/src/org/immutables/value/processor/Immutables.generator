@@ -1120,13 +1120,15 @@ public [v.implementationType] [if v.boolean]is[else]get[/if][toUpper v.name]() {
 [/template]
 
 [template defaultAnnotationValues Type type]
-[for a in type.implementedAttributes if a.generateDefault]
+[for defaults = type.defaultAttributes]
+[if defaults]
+[for a in defaults]
 private static final [a.type] DEFAULT_VALUE_[toConstant a.name];
 [/for]
 
 static {
   try {
-  [for a in type.implementedAttributes if a.generateDefault]
+  [for a in defaults]
     DEFAULT_VALUE_[toConstant a.name] =
         cast([type.typeAbstract.relative].class.getDeclaredMethod("[a.name]").getDefaultValue());
   [/for]
@@ -1139,6 +1141,8 @@ static {
 private static <T> T cast(Object object) {
   return (T) object;
 }
+[/if]
+[/for]
 [/template]
 
 [template forwardingEnclosingFactoryMethods Type type]

@@ -544,6 +544,16 @@ public class ValueType extends TypeIntrospectionBase {
     return builder.build();
   }
 
+  public List<ValueAttribute> getDefaultAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getImplementedAttributes()) {
+      if (attribute.isGenerateDefault) {
+        builder.add(attribute);
+      }
+    }
+    return builder.build();
+  }
+
   public List<ValueAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
       implementedAttributes = attributes()
