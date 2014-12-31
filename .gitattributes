@@ -1,0 +1,2 @@
+# never use crlf for templates
+*.generator  eol=lf
