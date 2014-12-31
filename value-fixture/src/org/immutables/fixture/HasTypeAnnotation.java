@@ -15,14 +15,18 @@
  */
 package org.immutables.fixture;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.util.Map;
-
 import javax.annotation.Nullable;
-
-import org.example.TypeA;
-import org.example.TypeB;
 import org.immutables.value.Json;
 import org.immutables.value.Value;
+
+@Target(ElementType.TYPE_USE)
+@interface TypeA {}
+
+@Target(ElementType.TYPE_USE)
+@interface TypeB {}
 
 @Value.Immutable
 @Json.Marshaled
@@ -30,5 +34,5 @@ public abstract class HasTypeAnnotation {
   @Nullable
   public abstract @TypeA @TypeB String str();
   @Nullable
-  public abstract @TypeA @TypeB Map<String, String> map();
+  public abstract @TypeA @TypeB Map<@TypeA String, @TypeB String> map();
 }
