@@ -27,13 +27,13 @@ import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import java.util.*;
 
 /**
@@ -359,9 +359,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private CharSequence defaultInterface;
 
   public CharSequence defaultInterface() {
-    if (!isGenerateDefault) {
-      return "";
-    }
     if (defaultInterface == null) {
       defaultInterface = inferDefaultInterface();
     }
@@ -369,8 +366,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private CharSequence inferDefaultInterface() {
-    Element enclosing = element.getEnclosingElement();
-    if (enclosing.getKind() == ElementKind.INTERFACE) {
+    if (element.getEnclosingElement().getKind() == ElementKind.INTERFACE
+        && !element.getModifiers().contains(Modifier.ABSTRACT)) {
       if (containingType.element.getKind() == ElementKind.INTERFACE) {
         return containingType.typeAbstract().relative();
       }
