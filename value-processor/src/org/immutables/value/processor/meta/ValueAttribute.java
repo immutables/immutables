@@ -393,13 +393,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawType() {
-    String type = getType();
-    int endIndex = type.length();
-    int firstIndexOfGenerics = type.indexOf('<');
-    if (firstIndexOfGenerics > 0) {
-      endIndex = firstIndexOfGenerics;
-    }
-    return type.substring(0, endIndex);
+    return extractRawType(getType());
   }
 
   public String getConsumedElementType() {
@@ -411,11 +405,16 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private String extractRawType(String className) {
-    int indexOfGenerics = className.indexOf('<');
+    String rawType = className;
+    int indexOfGenerics = rawType.indexOf('<');
     if (indexOfGenerics > 0) {
-      return className.substring(0, indexOfGenerics);
+      rawType = rawType.substring(0, indexOfGenerics);
     }
-    return className;
+    int endOfTypeAnnotations = rawType.lastIndexOf(' ');
+    if (endOfTypeAnnotations > 0) {
+      rawType = rawType.substring(endOfTypeAnnotations + 1);
+    }
+    return rawType;
   }
 
   public boolean isUnwrappedElementPrimitiveType() {
