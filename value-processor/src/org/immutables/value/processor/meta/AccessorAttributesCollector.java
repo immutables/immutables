@@ -16,15 +16,20 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
+
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
@@ -223,7 +228,17 @@ final class AccessorAttributesCollector {
 
       attribute.reporter = reporter;
       attribute.round = round;
-      attribute.returnTypeName = returnType.toString();
+      String returnTypeString = returnType.toString();
+      if (returnTypeString.startsWith("(")) {
+        // has type annotations, e.g.
+        // (@org.example.TypeA,@org.example.TypeB :: Map<java.lang.String,java.lang.String>)
+        int index = returnTypeString.indexOf(" :: ");
+        String typeAnnotations = returnTypeString.substring(1, index);
+        String type = returnTypeString.substring(index + 4, returnTypeString.length() - 1);
+        attribute.returnTypeName = typeAnnotations.replace(',', ' ') + ' ' + type;
+      } else {
+        attribute.returnTypeName = returnType.toString();
+      }
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());
       attribute.element = attributeMethodCandidate;
