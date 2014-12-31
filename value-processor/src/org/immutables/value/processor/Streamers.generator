@@ -1,0 +1,609 @@
+[template generate]
+  [for type in values.values if type.generateStreamed]
+    [if type.kind.isValue]
+      [checkAttributes type]
+[output.java type.package (type.name 'Streamer')]
+[generateStreamer type]
+[/output.java]
+
+[output.java type.package ('_Streaming_' type.name)]
+[generateMarshaling type]
+[/output.java]
+    [else]
+[output.error]
+Use @Json.Marshaled to annotate @Value.Immutable abstract value types
+[/output.error]
+    [/if]
+  [/for]
+[/template]
+
+[template checkAttributes Type type]
+[for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
+[-- mandatory constructor arguments are not checked, should they? --]
+[output.error]
+  @Json.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
+[/output.error]
+[/for]
+[/template]
+
+[template generateStreamer Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+import com.google.gson.stream.*;
+import javax.annotation.*;
+import java.io.IOException;
+import org.immutables.marshal.gson.*;
+// Generated imports
+
+/**
+ * Streamer that could marshal and unmarshal instances of {@code [type.typeAbstract.relative]}.
+ * Uses Gson JSON processor API.
+ */
+@SuppressWarnings("all")
+@Generated({"Streamers.writer", "[type.typeAbstract.relative]"})
+@ParametersAreNonnullByDefault
+[type.typeAbstract.access]final class [type.name]Streamer
+    extends Streamer<[type.typeAbstract.relative]> {
+
+  private static final [type.name]Streamer INSTANCE = new [type.name]Streamer();
+  
+  private [type.name]Streamer() {}
+  
+  /**
+   * Singleton marshaler that is bound to marshal and unmarshal instances of [type.typeAbstract.relative].
+   * @return marshaler
+   */
+  public static [type.name]Streamer instance() {
+    return INSTANCE;
+  }
+
+  /**
+   * Marshal instance of {@link [type.typeAbstract.relative]}.
+   * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
+   * @param writer jackson JSON writer
+   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
+   * @throws IOException either IO failure or parsing problem
+   */
+  public static void marshal(@WillNotClose JsonWriter writer, [type.typeAbstract.relative] instance) throws IOException {
+    _Streaming_[type.name].marshal[type.name](writer, instance);
+  }
+
+  /**
+   * Marshal instance of {@link [type.typeAbstract.relative]}.
+   * @param writer jackson JSON writer
+   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
+   * @throws IOException either IO failure or parsing problem
+   */
+  @Override
+  public void marshalInstance(@WillNotClose JsonWriter writer, [type.typeAbstract.relative] instance) throws IOException {
+    //try {
+      _Streaming_[type.name].marshal[type.name](writer, instance);
+    //} catch (Exception ex) {
+    //  throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, writer, getExpectedType());
+    //}
+  }
+
+  /**
+   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
+   * <p>
+   * {@link JsonReader}'s current token should be {@link JsonToken#START_OBJECT}
+   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
+   * @param reader jackson JSON reader
+   * @param nullSample always {@code null}, used for static method overload resolution
+   * @param expectedClass will be an {@code [type.typeAbstract.relative].class}
+   * @return instance of {@link [type.typeAbstract.relative]}
+   * @throws IOException either IO failure or parsing problem
+   */
+  public static [type.typeAbstract.relative] unmarshal(
+      @WillNotClose JsonReader reader,
+      @Nullable [type.typeAbstract.relative] nullSample,
+      Class<?> expectedClass) throws IOException {
+    return _Streaming_[type.name].unmarshal[type.name](reader);
+  }
+
+  /**
+   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
+   * <p>
+   * {@link JsonReader}'s current token should be {@link JsonToken#START_OBJECT}
+   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
+   * @param reader jackson JSON reader
+   * @return instance of {@link [type.typeAbstract.relative]}
+   * @throws IOException either IO failure or parsing problem
+   */
+  @Override
+  public [type.typeAbstract.relative] unmarshalInstance(@WillNotClose JsonReader reader) throws IOException {
+    //try {
+      return _Streaming_[type.name].unmarshal[type.name](reader);
+    //} catch (Exception ex) {
+    //  throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, reader, getExpectedType());
+    //}
+  }
+
+  /**
+   * Expected type to be marshaled and unmarshaled by this marshaler.
+   * Actual marshaled classes might be subtypes of [type.typeAbstract.relative] type.
+   * @return [type.typeAbstract.relative] class
+   */
+  @Override
+  public Class<[type.typeAbstract.relative]> getExpectedType() {
+    return [type.typeAbstract.relative].class;
+  }
+
+  @Override
+  public String toString() {
+    return "[type.name]Streamer.instance()";
+  }
+}
+[/template]
+
+[template generateMarshaling Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+import com.google.gson.stream.*;
+import javax.annotation.*;
+import java.io.IOException;
+import org.immutables.marshal.gson.*;
+// Generated imports
+[generateImportRoutines type]
+import static org.immutables.marshal.gson.Routines.*;
+
+/**
+ * Internal routines for marshaling and unmarshaling instances of [type.typeAbstract.relative].
+ * Uses Gson JSON processor API.
+ * @deprecated Do not use directly, use {@link [type.name]Streamer} as an entry point to these routines
+ */
+@SuppressWarnings("all")
+@Generated({"Streamers.writer", "[type.typeAbstract.relative]"})
+@ParametersAreNonnullByDefault
+@Deprecated
+final class _Streaming_[type.name] {
+  private _Streaming_[type.name]() {
+  }
+  [generateMarshalingMethods type]
+  [generateUnmarshalingMethods type]
+}
+[/template]
+
+[template generateImportRoutines Type type]
+[for m in type.generateImportedMarshalers]
+import static [m.packaged][m.name]Streamer.*;
+[/for]
+[for s in type.generateImportedMarshalRoutines]
+import static [s].*;
+[/for]
+[/template]
+
+[template generateMarshalingMethods Type type]
+
+static void marshal[type.name](JsonWriter writer, [type.typeAbstract.relative] instance)
+    throws IOException {
+[if type.useConstructorOnly]
+  [for ca = type.constructorArguments]
+  [if singular ca]
+  [for a in ca]
+  [generateMarshalConstructorValue type a]
+  [/for]
+  [else]
+  writer.beginArray();
+  [for a in ca]
+  [generateMarshalConstructorValue type a]
+  [/for]
+  writer.endArray();
+  [/if]
+  [/for]
+[else]
+  writer.beginObject();
+  [for a in type.marshaledAttributes]
+  [generateMarshalAttributeValue type a]
+  [/for]
+  writer.endObject();
+[/if]
+}
+[/template]
+
+[template generateMarshalConstructorValue Type type Attribute a]
+  [if a.nullable]
+[a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+} else {
+  writer.writeNull();
+}
+  [else if a.optionalType]
+[a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value.isPresent()) {
+  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
+} else {
+  writer.writeNull();
+}
+  [else if a.mapType]
+[a.type] [a.name]Map = instance.[a.names.get]();
+writer.beginObject();
+for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
+    [-- only use toString with objects and boxed primitives]
+    writer.name(marshalKey(e.getKey()));
+  [-- here we assign to a unwrapped variable so overload resolution will precise]
+  [a.unwrappedSecondaryElementType] value = e.getValue();
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
+}
+writer.endObject();
+  [else if a.collectionType]
+writer.beginArray();
+for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
+}
+writer.endArray();
+  [else]
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()')]
+  [/if]
+[/template]
+
+[template generateMarshalAttributeValue Type type Attribute a]
+  [if a.nullable]
+[a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  writer.name("[a.marshaledName]");
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+    [if a.forceEmpty]
+} else {
+  writer.name("[a.marshaledName]");
+  writer.nullValue();
+    [/if]
+}
+  [else if a.optionalType]
+[a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value.isPresent()) {
+  writer.name("[a.marshaledName]");
+  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
+    [if a.forceEmpty]
+} else {
+  writer.name("[a.marshaledName]");
+  writer.nullValue();
+    [/if]
+}
+  [else if a.mapType]
+[a.type] [a.name]Map = instance.[a.names.get]();
+if (![a.name]Map.isEmpty()) {
+  writer.name("[a.marshaledName]");
+  writer.beginObject();
+  for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
+    [-- only use toString with objects and boxed primitives]
+    writer.name(marshalKey(e.getKey()));
+    [-- here we assign to a unwrapped variable so overload resolution will precisely]
+    [a.unwrappedSecondaryElementType] value = e.getValue();
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
+  }
+  writer.endObject();
+    [if a.forceEmpty]
+} else {
+  writer.name("[a.marshaledName]");
+  writer.beginObject();
+  writer.endObject();
+    [/if]
+}
+  [else if a.collectionType]
+[a.type] [a.name]Elements = instance.[a.names.get]();
+if (![a.name]Elements.isEmpty()) {
+  writer.name("[a.marshaledName]");
+  writer.beginArray();
+  for ([a.unwrappedElementType] e : [a.name]Elements) {
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
+  }
+  writer.endArray();
+    [if a.forceEmpty]
+} else {
+  writer.name("[a.marshaledName]");
+  writer.beginArray();
+  writer.endArray();
+    [/if]
+}
+  [else]
+writer.name("[a.marshaledName]");
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()')]
+  [/if]
+[/template]
+
+[template generateUnmarshalingMethods Type type]
+
+private static char requireChar(String string) {
+  if (string.length() == 1) {
+    return string.charAt(0);
+  }
+  throw new IllegalArgumentException(
+      String.format("Expected string with a single character but was: '%s'", string));
+}
+[if type.useSingletonOnly]
+
+static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+    throws IOException {
+  reader.skipValue();
+  return [type.factoryInstance]();
+}
+[else if type.useConstructorOnly]
+
+[for ca = type.constructorArguments]
+static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+    throws IOException {
+[if singular ca]
+  [for a in ca]
+  boolean inArray = reader.peek() == JsonToken.BEGIN_ARRAY;
+  if (inArray) {
+    reader.beginArray();
+  }
+  [type.typeAbstract.relative] instance = [type.factoryOf.relative](unmarshalConstructorArgument[toUpper a.name](reader));
+  if (inArray) {
+    reader.endArray();
+  }
+  return instance;
+  [/for]
+[else]
+  reader.beginArray();
+  [type.typeAbstract.relative] instance = [type.factoryOf.relative]([for a in ca][if not for.first],[/if]
+    unmarshalConstructorArgument[toUpper a.name](reader)[/for]);
+  reader.endArray();
+  return instance;
+[/if]
+}
+[for a in ca]
+[generateConstructorArgumentUnmarshal type a]
+[/for]
+[/for]
+[else]    
+
+static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+    throws IOException {
+  [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+    [if type.unmarshaledAttributes]
+  reader.beginObject();
+  while (reader.hasNext()) {
+    unmarshalAttribute(reader, builder, reader.nextName());
+  }
+  reader.endObject();
+    [else]
+  reader.skipValue();
+    [/if]
+  return builder.[type.names.build]();
+}
+
+private static void unmarshalAttribute(JsonReader reader, [type.typeBuilder.relative] builder, String attributeName)
+    throws IOException {
+  switch (attributeName.charAt(0)) {
+  [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
+     e in mm.asMap.entrySet]
+  case '[e.key]':
+    [for a in e.value]
+    if ("[a.marshaledName]".equals(attributeName)) {
+      unmarshalAttribute[toUpper a.name](reader, builder);
+      return;
+    }
+    [/for]
+    break;
+  [/for]
+  default:
+  }
+  unmarshalUnknownAttribute(reader, attributeName);
+}
+
+private static void unmarshalUnknownAttribute(JsonReader reader, String attributeName)
+    throws IOException {
+  reader.skipValue();
+}
+[for s in type.unmarshaledAttributes]  
+[generateUnmarshalAttribute type s]
+[/for]
+[/if]
+[/template]
+
+[template generateConstructorArgumentUnmarshal Type type Attribute a]
+
+private static [a.atNullability][a.type] unmarshalConstructorArgument[toUpper a.name](JsonReader reader)
+    throws IOException {
+  [if a.primitive]
+  return [simpleTypeNext a.type];
+  [else]
+  [generateConstructorArgumentComplexUnmarshal type a]
+  [/if]
+}
+  [if a.mapType]
+[generateMapUnmarshalMethod type a]
+  [/if]
+[/template]
+
+[template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
+JsonToken t = reader.peek();
+  [if a.nullable]
+if (t == JsonToken.NULL) {
+  reader.nextNull();
+  return null;
+}
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+return value;
+  [else if a.optionalType]
+if (t == JsonToken.NULL) {
+  reader.nextNull();
+  return Optional.absent();
+}
+    [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+return Optional.<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
+    [else]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
+return Optional.of(value);
+    [/if]
+  [else if a.mapType]
+return unmarshalMap[toUpper a.name](reader);
+  [else if a.collectionType]
+java.util.List<[a.elementType]> elements = com.google.common.collect.Lists.newArrayList();  
+[generateCollectionUnmarshalCode type a 'elements.add']
+return com.google.common.collect.Immutable[a.rawCollectionType].copyOf(elements);
+  [else]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
+return value;
+  [/if]
+[/template]
+
+[template generateUnmarshalAttribute Type type Attribute a]
+
+private static void unmarshalAttribute[toUpper a.name](JsonReader reader, [type.typeBuilder.relative] builder)
+    throws IOException {
+  [if a.primitive]
+  builder.[a.names.init]([simpleTypeNext a.type]);
+  [else]
+  [generateComplexTypeUnmarshalAttribute type a]
+  [/if]
+}
+[if a.mapType]
+[generateMapUnmarshalMethod type a]
+[/if]
+[/template]
+
+[template generateMapUnmarshalMethod Type type Attribute a]
+
+private static [a.type] unmarshalMap[toUpper a.name](JsonReader reader)
+    throws IOException {
+  if (reader.peek() == JsonToken.VALUE_NULL) {
+    reader.nextNull();
+    return ImmutableMap.of();
+  }
+  com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
+  reader.beginObject();
+  while(reader.hasNext()) {
+    String rawKey = reader.nextName();
+[if a.unwrappedElementPrimitiveType]
+  [if a.unwrappedElementType eq 'char']
+    char key = requireChar(rawKey);
+  [else]
+    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
+  [/if]
+[else if a.wrappedElementType eq 'java.lang.String']
+    [a.wrappedElementType] key = rawKey;
+[else]
+    [a.wrappedElementType] key = unmarshal(reader, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
+[/if]
+[if a.unwrappedSecondaryElementPrimitiveType or (a.wrappedSecondaryElementType eq 'java.lang.String')]
+    [a.unwrappedSecondaryElementType] value = [simpleTypeNext a.unwrappedSecondaryElementType];
+[else]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType]
+[/if]
+    builder.put(key, value);
+  }
+  reader.endObject();
+    
+  return builder.build();
+}
+[/template]
+
+[template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
+if (t == JsonToken.BEGIN_ARRAY) {
+  reader.beginArray();
+  while(reader.hasNext()) {
+    [unmarshalCollectionElement]
+  }
+  reader.endArray();
+} else if (t == JsonToken.NULL) {
+  reader.nextNull();
+} else {
+  [unmarshalCollectionElement]
+}
+[/template]
+
+[template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression]
+[collectionUnmarshalCaseNullSingleArray]
+  [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+[collectorExpression]([simpleTypeNext a.unwrappedElementType]);
+  [else]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
+[collectorExpression](value);
+  [/if]
+[/collectionUnmarshalCaseNullSingleArray]
+[/template]
+
+[template generateComplexTypeUnmarshalAttribute Type type Attribute a]
+JsonToken t = reader.peek();
+  [if a.nullable]
+if (t == JsonToken.NULL) {
+  reader.nextNull();
+} else {
+    [if a.stringType]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+  builder.[a.names.init](value);
+    [/if]
+}
+  [else if a.stringType]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+  [else if a.optionalType]
+if (t == JsonToken.NULL) {
+  reader.nextNull();
+} else {
+    [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
+  builder.[a.names.init](value);
+    [/if]
+}
+  [else if a.mapType]
+builder.[a.names.putAll](unmarshalMap[toUpper a.name](reader));
+  [else if a.collectionType]
+[generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+  [else]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
+builder.[a.names.init](value);
+  [/if]
+[/template]
+
+[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue Type type Attribute attribute String genericType String rawType]
+[genericType] value =
+[for cx = attribute.expectedSubclasses]
+  [if cx]
+    ([genericType]) unmarshalWithOneOfStreamers(reader, "[type.typeAbstract.relative]", "[attribute.name]", "[genericType]"[for c in cx],
+        [c.packaged][c.name]Streamer.instance()[/for]);
+  [else]
+    unmarshal(reader, ([genericType]) null, [rawType].class);
+  [/if]
+[/for]
+[/template]
+
+[template generatePossiblyPolymorphicTypeMarshalAttributeValue Type type Attribute attribute String variableName]
+[for cx = attribute.expectedSubclasses]
+  [if cx]
+marshalWithOneOfStreamers(writer, [variableName][for c in cx],
+    [c.packaged][c.name]Streamer.instance()[/for]);
+  [else]
+marshal(writer, [variableName]);
+  [/if]
+[/for]
+[/template]
+
+
+[template simpleTypeNext String typeName][output.trim]
+[if typeName eq 'boolean']
+  reader.nextBoolean()
+[else if typeName eq 'byte']
+  (byte) reader.nextInt()
+[else if typeName eq 'short']
+  (short) reader.nextInt()
+[else if typeName eq 'int']
+  reader.nextInt()
+[else if typeName eq 'long']
+  reader.nextLong()
+[else if typeName eq 'float']
+  (float) reader.nextDouble()
+[else if typeName eq 'double']
+  reader.nextDouble()
+[else if typeName eq 'java.lang.String']
+  reader.nextString()
+[else if typeName eq 'char']
+  requireChar(reader.nextString())
+[else][-- don't know if it's a good default: null --]
+  nextNull()
+[/if]
+[/output.trim][/template]
+
