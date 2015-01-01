@@ -27,7 +27,6 @@ import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
@@ -229,7 +228,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private enum OrderKind {
     NONE, NATURAL, REVERSE
   }
-  
+
   public boolean isSetType() {
     if (isRegularAttribute()) {
       return false;
