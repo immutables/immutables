@@ -229,7 +229,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private enum OrderKind {
     NONE, NATURAL, REVERSE
   }
-
+  
   public boolean isSetType() {
     if (isRegularAttribute()) {
       return false;

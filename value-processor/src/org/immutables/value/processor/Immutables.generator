@@ -369,9 +369,15 @@ package [type.package];
 [if v.generateSortedSet]
   private com.google.common.collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+
 [else if v.collectionType]
+  [if v.listType]
+  private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder;
+  private Iterable<[v.consumedElementType]> [v.name]Iterable;
+  [else]
   private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.Immutable[v.rawCollectionType].builder();
+  [/if]
 [else if v.optionalType]
   private [v.type] [v.name] = com.google.common.base.Optional.absent();
 [else if v.generateSortedMap]
@@ -421,7 +427,59 @@ package [type.package];
   [/let]
   [for v in setters]
   [if v.collectionType]
+    [if v.listType]
 
+  /**
+   * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param element [v.name] element
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType] element) {
+    if ([v.name]Builder == null) {
+      [v.name]Builder = com.google.common.collect.Immutable[v.rawCollectionType].builder();
+      if ([v.name]Iterable != null) {
+        [v.name]Builder.addAll([v.name]Iterable);
+        [v.name]Iterable = null;
+      }
+    }
+    [v.name]Builder.add(element);
+    return this;
+  }
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements array of [v.name] elements
+   * @return {@code this} builder for chained invocation
+   */
+  [if v.nonRawElemementType]@SafeVarargs[/if]
+  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
+    return [v.names.addAll]([arrayAsList v 'elements']);
+  }
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements iterable of [v.name] elements
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+    if ([v.name]Builder != null) {
+      [v.name]Builder.addAll(elements);
+    } else {
+      [v.name]Iterable = elements;
+    }
+    return this;
+  }
+
+  private final [v.implementationType] build[toUpper v.name]() {
+    if ([v.name]Iterable != null) {
+      return [immutableCollectionCopyOf v][v.name]Iterable[/immutableCollectionCopyOf];
+    }
+    if ([v.name]Builder != null) {
+      return [v.name]Builder.build();
+    }
+    return com.google.common.collect.Immutable[v.rawCollectionType].of();
+  }
+    [else]
   /**
    * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
    * @param element [v.name] element
@@ -439,8 +497,7 @@ package [type.package];
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
   public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
-    [v.name]Builder.addAll([immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf]);
-    return this;
+    return [v.names.addAll]([arrayAsList v 'elements']);
   }
 
   /**
@@ -452,6 +509,7 @@ package [type.package];
     [v.name]Builder.addAll(elements);
     return this;
   }
+    [/if]
   [else if v.optionalType]
 
   /**
@@ -602,7 +660,9 @@ package [type.package];
     return [type.typeMoreObjects].toStringHelper("[type.typeBuilder.relative]")
         .omitNullValues()
   [for v in setters]
-    [if v.collectionType or v.mapType]
+    [if v.listType]
+        .add("[v.name]", build[toUpper v.name]())
+    [else if v.collectionType or v.mapType]
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
         .add("[v.name]", [v.name].orNull())
@@ -628,6 +688,8 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
     [output.trim]
   [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
     [immutableCollectionCopyOf v][v.name]Builder.build()[/immutableCollectionCopyOf]
+  [else if v.listType]
+    build[toUpper v.name]()
   [else if v.collectionType or v.mapType]
     [v.name]Builder.build()
   [else if v.primitive or v.nullable]
@@ -709,6 +771,8 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper v].[v.
 [for v in getters if not v.generateDerived, n = v.name]
   [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
     this.[n] = [immutableCollectionCopyOf v]builder.[n]Builder.build()[/immutableCollectionCopyOf];
+  [else if v.listType]
+    this.[n] = builder.build[toUpper v.name]();
   [else if v.collectionType or v.mapType]
     this.[n] = builder.[n]Builder.build();
   [else if not v.generateDefault]
