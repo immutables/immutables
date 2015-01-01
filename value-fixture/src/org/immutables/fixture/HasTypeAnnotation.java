@@ -13,30 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.annotation;
+package org.immutables.fixture;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+import java.util.Map;
+import javax.annotation.Nullable;
+import org.immutables.value.Json;
 import org.immutables.value.Value;
 
+@Target(ElementType.TYPE_USE)
+@interface TypeA {}
+
+@Target(ElementType.TYPE_USE)
+@interface TypeB {}
+
 @Value.Immutable
-@interface NoDefault {
-  int value();
-
-  String otherValue();
-}
-
-@Retention(RetentionPolicy.RUNTIME)
-@Value.Immutable
-@interface An {
-  @Value.Parameter
-  int value();
-
-  Be[] bees() default {@Be, @Be};
-}
-
-@Retention(RetentionPolicy.SOURCE)
-@Value.Immutable
-@interface Be {
-  Class<? extends Number>[] cl() default {Integer.class};
+@Json.Marshaled
+public abstract class HasTypeAnnotation {
+  @Nullable
+  public abstract @TypeA @TypeB String str();
+  @Nullable
+  public abstract @TypeA @TypeB Map<@TypeA String, @TypeB String> map();
 }

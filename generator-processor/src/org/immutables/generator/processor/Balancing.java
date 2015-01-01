@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -118,6 +119,13 @@ public final class Balancing {
         return new InvokeScope(this, (Invoke) directive);
       }
       return this;
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .addValue(parts)
+          .toString();
     }
   }
 

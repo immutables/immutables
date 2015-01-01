@@ -27,13 +27,13 @@ import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import java.util.*;
 
 /**
@@ -229,7 +229,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private enum OrderKind {
     NONE, NATURAL, REVERSE
   }
-
+  
   public boolean isSetType() {
     if (isRegularAttribute()) {
       return false;
@@ -359,9 +359,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private CharSequence defaultInterface;
 
   public CharSequence defaultInterface() {
-    if (!isGenerateDefault) {
-      return "";
-    }
     if (defaultInterface == null) {
       defaultInterface = inferDefaultInterface();
     }
@@ -369,8 +366,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private CharSequence inferDefaultInterface() {
-    Element enclosing = element.getEnclosingElement();
-    if (enclosing.getKind() == ElementKind.INTERFACE) {
+    if (element.getEnclosingElement().getKind() == ElementKind.INTERFACE
+        && !element.getModifiers().contains(Modifier.ABSTRACT)) {
       if (containingType.element.getKind() == ElementKind.INTERFACE) {
         return containingType.typeAbstract().relative();
       }
@@ -396,13 +393,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawType() {
-    String type = getType();
-    int endIndex = type.length();
-    int firstIndexOfGenerics = type.indexOf('<');
-    if (firstIndexOfGenerics > 0) {
-      endIndex = firstIndexOfGenerics;
-    }
-    return type.substring(0, endIndex);
+    return extractRawType(getType());
   }
 
   public String getConsumedElementType() {
@@ -414,11 +405,16 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private String extractRawType(String className) {
-    int indexOfGenerics = className.indexOf('<');
+    String rawType = className;
+    int indexOfGenerics = rawType.indexOf('<');
     if (indexOfGenerics > 0) {
-      return className.substring(0, indexOfGenerics);
+      rawType = rawType.substring(0, indexOfGenerics);
     }
-    return className;
+    int endOfTypeAnnotations = rawType.lastIndexOf(' ');
+    if (endOfTypeAnnotations > 0) {
+      rawType = rawType.substring(endOfTypeAnnotations + 1);
+    }
+    return rawType;
   }
 
   public boolean isUnwrappedElementPrimitiveType() {

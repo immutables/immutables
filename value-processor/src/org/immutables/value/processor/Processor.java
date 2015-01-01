@@ -47,5 +47,6 @@ public final class Processor extends AbstractGenerator {
     invoke(new Generator_Repositories().usingValues(values).generate());
 //    invoke(new Generator_Parboileds().usingValues(values).generate());
 //    invoke(new Generator_Transformers().usingValues(values).generate());
+    invoke(new Generator_Streamers().usingValues(values).generate());
   }
 }

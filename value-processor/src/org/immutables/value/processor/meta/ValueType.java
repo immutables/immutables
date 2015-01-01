@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.ext.Gson;
 import org.immutables.value.ext.ExtValue;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
@@ -269,6 +270,10 @@ public class ValueType extends TypeIntrospectionBase {
           || isGenerateRepository();
     }
     return generateMarshaled;
+  }
+
+  public boolean isGenerateStreamed() {
+    return hasAnnotation(Gson.Streamed.class);
   }
 
   public boolean isGenerateRepository() {
@@ -538,6 +543,16 @@ public class ValueType extends TypeIntrospectionBase {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getSettableAttributes()) {
       if (attribute.isPrimitive() && attribute.isGenerateDefault) {
+        builder.add(attribute);
+      }
+    }
+    return builder.build();
+  }
+
+  public List<ValueAttribute> getDefaultAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getImplementedAttributes()) {
+      if (attribute.isGenerateDefault) {
         builder.add(attribute);
       }
     }

@@ -242,6 +242,12 @@ public final class BuiltinMarshalingRoutines {
     return object.toString();
   }
 
+  public static void marshal(
+      JsonGenerator generator,
+      @Nullable String instance) throws IOException {
+    generator.writeString(instance);
+  }
+
   /**
    * Default catch-all marshal for objects, does {@link Object#toString()} or writes null-literal if
    * object is {@code null}.

@@ -129,6 +129,12 @@ public class ValuesTest {
   }
 
   @Test
+  public void java8TypeAnnotation() {
+    ImmutableHasTypeAnnotation hasTypeAnnotation = ImmutableHasTypeAnnotation.builder().build();
+    check(hasTypeAnnotation.str()).isNull();
+  }
+
+  @Test
   public void withMethods() {
     ImmutableSillyValidatedBuiltValue value = ImmutableSillyValidatedBuiltValue.builder()
         .value(-10)

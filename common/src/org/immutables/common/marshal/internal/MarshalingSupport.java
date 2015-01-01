@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -266,10 +265,13 @@ public final class MarshalingSupport {
   public static <T> Marshaler<T> getMarshalerFor(Class<? extends T> type) {
     // unchecked: relies on how nice are marshalers contributors
     @SuppressWarnings("unchecked") @Nullable Marshaler<T> marshaler = (Marshaler<T>) Registry.marshalers.get(type);
-    Preconditions.checkArgument(marshaler != null,
-        "Cannot find marshaler for type %s. Use @Json.Marshaled annotation to generate associated marshaler",
-        type.getCanonicalName());
-    return marshaler;
+    if (marshaler != null) {
+      return marshaler;
+    }
+    throw new IllegalArgumentException(
+        String.format(
+            "Cannot find marshaler for type %s. Use @Json.Marshaled annotation to generate associated marshaler",
+            type.getCanonicalName()));
   }
 
   public static boolean hasAssociatedMarshaler(Class<?> type) {
