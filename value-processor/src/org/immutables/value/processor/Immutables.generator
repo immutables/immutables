@@ -670,7 +670,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper v].[v.
 [template generateImmutableMembers Type type]
 [for setters = type.settableAttributes, getters = type.implementedAttributes]
 [for v in getters]
-  private final [v.atNullability][v.implementationType] [v.name];
+  private final [v.atNullability][immutableImplementationType v] [v.name];
 [/for]
 [if type.usePrehashed]
   private final int hashCode;
@@ -752,7 +752,7 @@ this.[n] = com.google.common.base.Preconditions.checkNotNull([invokeSuper v].[v.
 
   private [type.typeImmutable.simple](
       [type.typeImmutable.simple] original[for v in getters],
-      [v.atNullability][v.implementationType] [v.name][/for]) {
+      [v.atNullability][immutableImplementationType v] [v.name][/for]) {
   [for v in getters]
     this.[v.name] = [v.name];
   [/for]
@@ -816,7 +816,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [line]
 [/for]
 @Override
-public [v.implementationType] [v.names.get]() {
+public [immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]
@@ -990,7 +990,7 @@ return checkPreconditions(new [type.typeImmutable.simple](
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
 public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... elements) {
-  [v.implementationType] newValue = elements.clone();
+  [immutableImplementationType v] newValue = elements.clone();
   [generateReturnCopyContextual type v]
 }
     [else if v.collectionType]
@@ -1002,7 +1002,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... eleme
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]... elements) {
-  [v.implementationType] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
   [generateReturnCopyContextual type v]
 }
 
@@ -1016,7 +1016,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
   if (this.[v.name] == elements) {
     return this;
   }
-  [v.implementationType] newValue = [immutableCollectionCopyOf v 'elements'];
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
 }
     [else if v.optionalType]
@@ -1027,7 +1027,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
-  [v.implementationType] newValue = com.google.common.base.Optional.of(value);
+  [immutableImplementationType v] newValue = com.google.common.base.Optional.of(value);
   [generateReturnCopyContextual type v]
 }
 
@@ -1041,7 +1041,7 @@ public final [type.typeImmutable.simple] [v.names.with](com.google.common.base.O
   if (this.[v.name] == optional) {
     return this;
   }
-  [v.implementationType] newValue = com.google.common.base.Preconditions.checkNotNull(optional);
+  [immutableImplementationType v] newValue = com.google.common.base.Preconditions.checkNotNull(optional);
   [generateReturnCopyContextual type v]
 }
     [else if v.mapType]
@@ -1058,7 +1058,7 @@ public final [type.typeImmutable.simple] [v.names.with](java.util.Map<[gE], ? ex
   if (this.[v.name] == entries) {
     return this;
   }
-  [v.implementationType] newValue = [immutableCollectionCopyOf v 'entries'];
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'entries'];
   [generateReturnCopyContextual type v]
 }
     [/for]
@@ -1081,9 +1081,9 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
   }
     [/if]
     [if v.nullable or v.primitive]
-  [v.atNullability][v.implementationType] newValue = value;
+  [v.atNullability][immutableImplementationType v] newValue = value;
     [else]
-  [v.implementationType] newValue = com.google.common.base.Preconditions.checkNotNull(value);
+  [immutableImplementationType v] newValue = com.google.common.base.Preconditions.checkNotNull(value);
     [/if]
   [generateReturnCopyContextual type v]
 }
@@ -1111,7 +1111,7 @@ public @javax.annotation.Nullable [v.wrappedElementType] get[toUpper v.name]() {
   return [v.name]().orNull();
 }
   [else]
-public [v.implementationType] [if v.boolean]is[else]get[/if][toUpper v.name]() {
+public [immutableImplementationType v] [if v.boolean]is[else]get[/if][toUpper v.name]() {
   return [v.name]();
 }
   [/if]
@@ -1172,6 +1172,22 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
     [/if]
   [/if]
 [/template]
+
+[template immutableImplementationType Attribute v][output.trim]
+[if v.generateOrdinalValueSet]
+  org.immutables.common.collect.ImmutableOrdinalSet<[v.elementType]>
+[else if v.generateSortedSet]
+  com.google.common.collect.ImmutableSortedSet<[v.elementType]>
+[else if v.collectionType]
+  com.google.common.collect.Immutable[v.rawCollectionType]<[v.elementType]>
+[else if v.generateSortedMap]
+  com.google.common.collect.ImmutableSortedMap<[v.elementType], [v.secondaryElementType]>
+[else if v.mapType]
+  com.google.common.collect.ImmutableMap<[v.elementType], [v.secondaryElementType]>
+[else]
+  [v.type]
+[/if]
+[/output.trim][/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
 [if a.generateSortedSet]

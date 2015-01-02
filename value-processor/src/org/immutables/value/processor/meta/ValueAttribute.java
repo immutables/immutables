@@ -16,24 +16,34 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Functions;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
-import javax.annotation.Nullable;
-import javax.lang.model.element.*;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.util.*;
 
 /**
  * It's pointless to refactor this mess until
@@ -41,7 +51,6 @@ import java.util.*;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public class ValueAttribute extends TypeIntrospectionBase {
-  private static final Joiner COMMA_JOINER = Joiner.on(", ");
   private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
@@ -145,41 +154,6 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isJsonIgnore() {
     return element.getAnnotation(Json.Ignore.class) != null;
-  }
-
-  private String implementationType;
-
-  public String getImplementationType() {
-    if (implementationType == null) {
-      String implementationRawType = "";
-      if (isMapType()) {
-        if (isGenerateSortedMap()) {
-          implementationRawType = UnshadeGuava.typeString("collect.ImmutableSortedMap");
-        } else {
-          implementationRawType = UnshadeGuava.typeString("collect.ImmutableMap");
-        }
-      } else if (isListType()) {
-        implementationRawType = UnshadeGuava.typeString("collect.ImmutableList");
-      } else if (isGenerateSortedSet()) {
-        implementationRawType = UnshadeGuava.typeString("collect.ImmutableSortedSet");
-      } else if (isSetType()) {
-        implementationRawType = isGenerateOrdinalValueSet()
-            ? "org.immutables.common.".concat("collect.ImmutableOrdinalSet")
-            : UnshadeGuava.typeString("collect.ImmutableSet");
-      }
-
-      if (implementationRawType.isEmpty()) {
-        implementationType = getType();
-      } else {
-        implementationType = implementationRawType;
-
-        List<String> parameters = typeParameters();
-        if (!parameters.isEmpty()) {
-          implementationType += "<" + COMMA_JOINER.join(parameters) + ">";
-        }
-      }
-    }
-    return implementationType;
   }
 
   public List<String> typeParameters() {
@@ -350,8 +324,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateEnumSet() {
+    if (!isSetType()) {
+      return false;
+    }
     ensureTypeIntrospected();
-    return isSetType() && hasEnumFirstTypeParameter;
+    return hasEnumFirstTypeParameter;
   }
 
   @Nullable
@@ -375,8 +352,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateEnumMap() {
+    if (!isMapType()) {
+      return false;
+    }
     ensureTypeIntrospected();
-    return isMapType() && hasEnumFirstTypeParameter;
+    return hasEnumFirstTypeParameter;
   }
 
   public String getUnwrappedElementType() {
