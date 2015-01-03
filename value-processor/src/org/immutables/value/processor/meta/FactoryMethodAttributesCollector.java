@@ -29,10 +29,8 @@ final class FactoryMethodAttributesCollector {
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
   private final Reporter reporter;
-  private final Round round;
 
-  FactoryMethodAttributesCollector(Round round, Protoclass protoclass, ValueType type) {
-    this.round = round;
+  FactoryMethodAttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.styles = protoclass.styles();
     this.type = type;
@@ -51,7 +49,6 @@ final class FactoryMethodAttributesCollector {
       ValueAttribute attribute = new ValueAttribute();
       attribute.isGenerateAbstract = true;
       attribute.reporter = reporter;
-      attribute.round = round;
       attribute.returnType = returnType;
       attribute.returnTypeName = returnType.toString();
 

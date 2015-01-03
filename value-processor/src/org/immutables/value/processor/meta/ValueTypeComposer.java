@@ -34,6 +34,7 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
 public final class ValueTypeComposer {
   private final ProcessingEnvironment processing;
   private final Round round;
+  @Nullable
   private final String typeMoreObjects;
 
   ValueTypeComposer(Round round) {
@@ -42,17 +43,31 @@ public final class ValueTypeComposer {
     this.typeMoreObjects = inferTypeMoreObjects();
   }
 
+  /**
+   * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
+   */
+  @Nullable
   String inferTypeMoreObjects() {
     String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
     String typeObjects = UnshadeGuava.typeString("base.Objects");
     @Nullable TypeElement typeElement =
         processing.getElementUtils().getTypeElement(typeMoreObjects);
 
-    return typeElement != null ? typeMoreObjects : typeObjects;
+    if (typeElement != null) {
+      return typeMoreObjects;
+    }
+
+    typeElement = processing.getElementUtils().getTypeElement(typeObjects);
+    if (typeElement != null) {
+      return typeObjects;
+    }
+
+    return null;
   }
 
   ValueType compose(Protoclass protoclass) {
     ValueType type = new ValueType();
+    type.round = round;
     type.typeMoreObjects = typeMoreObjects;
     type.element = protoclass.sourceElement();
     type.immutableFeatures = protoclass.features();
@@ -61,11 +76,11 @@ public final class ValueTypeComposer {
         .build();
 
     if (protoclass.kind().isFactory()) {
-      new FactoryMethodAttributesCollector(round, protoclass, type).collect();
+      new FactoryMethodAttributesCollector(protoclass, type).collect();
     } else if (protoclass.kind().isValue()) {
       // This check is legacy, most such checks should have been done on a higher level?
       if (isAbstractValueType(type.element)) {
-        new AccessorAttributesCollector(round, protoclass, type).collect();
+        new AccessorAttributesCollector(protoclass, type).collect();
       } else {
         protoclass.report()
             .error(

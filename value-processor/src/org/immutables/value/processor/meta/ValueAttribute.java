@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -50,12 +51,14 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public class ValueAttribute extends TypeIntrospectionBase {
-  private static final String NULLABLE_PREFIX = "@javax.annotation.Nullable ";
+public final class ValueAttribute extends TypeIntrospectionBase {
+  private static final String GUAVA_OPTIONAL = UnshadeGuava.typeString("base.Optional");
+  private static final String JAVA_UTIL_OPTIONAL = "java.util.Optional";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
   public AttributeNames names;
+  private String nullabilityPrefix;
 
   public String name() {
     return names.raw;
@@ -76,7 +79,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   String returnTypeName;
 
   public boolean isBoolean() {
-    return internalTypeMirror().getKind() == TypeKind.BOOLEAN;
+    return returnType.getKind() == TypeKind.BOOLEAN;
+  }
+
+  public boolean isInt() {
+    return returnType.getKind() == TypeKind.INT;
   }
 
   public boolean isStringType() {
@@ -84,11 +91,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean charType() {
-    return internalTypeMirror().getKind() == TypeKind.CHAR;
+    return returnType.getKind() == TypeKind.CHAR;
   }
 
   public String atNullability() {
-    return isNullable() ? NULLABLE_PREFIX : "";
+    return isNullable() ? nullabilityPrefix : "";
   }
 
   public boolean isSimpleLiteralType() {
@@ -168,7 +175,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isMapType == null) {
-      isMapType = returnTypeName.startsWith(Map.class.getName())
+      isMapType = Map.class.getName().equals(rawTypeName)
           || isSortedMapType();
     }
     return isMapType;
@@ -181,7 +188,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isListType == null) {
-      isListType = returnTypeName.startsWith(List.class.getName());
+      isListType = List.class.getName().equals(rawTypeName);
     }
     return isListType;
   }
@@ -208,7 +215,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSetType == null) {
-      isSetType = returnTypeName.startsWith(Set.class.getName());
+      isSetType = Set.class.getName().equals(rawTypeName);
     }
     return isSetType;
   }
@@ -226,8 +233,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedSetType == null) {
-      isSortedSetType = returnTypeName.startsWith(SortedSet.class.getName())
-          || returnTypeName.startsWith(NavigableSet.class.getName());
+      isSortedSetType = SortedSet.class.getName().equals(rawTypeName)
+          || NavigableSet.class.getName().equals(rawTypeName);
     }
     return isSortedSetType;
   }
@@ -237,8 +244,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedMapType == null) {
-      isSortedMapType = returnTypeName.startsWith(SortedMap.class.getName())
-          || returnTypeName.startsWith(NavigableMap.class.getName());
+      isSortedMapType = SortedMap.class.getName().equals(rawTypeName)
+          || NavigableMap.class.getName().equals(rawTypeName);
     }
     return isSortedMapType;
   }
@@ -307,6 +314,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
+  private boolean jdkOptional;
+
+  public boolean isJdkOptional() {
+    return isOptionalType() & jdkOptional;
+  }
+
   private Boolean isOptionalType;
 
   public boolean isOptionalType() {
@@ -314,7 +327,8 @@ public class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isOptionalType == null) {
-      isOptionalType = returnTypeName.startsWith(UnshadeGuava.typeString("base.Optional"));
+      jdkOptional = JAVA_UTIL_OPTIONAL.equals(rawTypeName);
+      isOptionalType = jdkOptional || GUAVA_OPTIONAL.equals(rawTypeName);
     }
     return isOptionalType;
   }
@@ -372,7 +386,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawType() {
-    return extractRawType(getType());
+    return rawTypeName != null ? rawTypeName : extractRawType(returnTypeName);
   }
 
   public String getConsumedElementType() {
@@ -449,7 +463,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private List<SimpleTypeDerivationBase> toMarshaledTypeDerivations(Iterable<TypeElement> elements) {
     List<SimpleTypeDerivationBase> derivations = Lists.newArrayList();
     for (TypeElement element : elements) {
-      Optional<Protoclass> protoclass = round.definedValueProtoclassFor(element);
+      Optional<Protoclass> protoclass = containingType.round.definedValueProtoclassFor(element);
       if (protoclass.isPresent()) {
         if (protoclass.get().declaringType().get().hasAnnotation(Json.Marshaled.class)) {
           derivations.add(new SimpleTypeDerivationBase(protoclass.get()));
@@ -497,7 +511,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
   private TypeMirror arrayComponent;
   private boolean regularAttribute;
   private boolean nullable;
-  Round round;
+  @Nullable
+  private String rawTypeName;
+
+  public boolean isGenerateJdkOnly() {
+    return containingType.isGenerateJdkOnly();
+  }
 
   public boolean isGenerateOrdinalValueSet() {
     if (!isSetType()) {
@@ -515,12 +534,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isArrayType() {
     return !isRegularAttribute()
-        && internalTypeMirror().getKind() == TypeKind.ARRAY;
+        && returnType.getKind() == TypeKind.ARRAY;
   }
 
   @Override
   protected void introspectType() {
-    TypeMirror typeMirror = internalTypeMirror();
+    TypeMirror typeMirror = returnType;
 
     if (isContainerType()) {
       if (typeMirror instanceof DeclaredType) {
@@ -628,7 +647,7 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isNumberType() {
-    TypeKind kind = internalTypeMirror().getKind();
+    TypeKind kind = returnType.getKind();
     return kind.isPrimitive()
         && kind != TypeKind.CHAR
         && kind != TypeKind.BOOLEAN;
@@ -639,11 +658,11 @@ public class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isFloat() {
-    return internalTypeMirror().getKind() == TypeKind.FLOAT;
+    return returnType.getKind() == TypeKind.FLOAT;
   }
 
   public boolean isDouble() {
-    return internalTypeMirror().getKind() == TypeKind.DOUBLE;
+    return returnType.getKind() == TypeKind.DOUBLE;
   }
 
   public boolean isNonRawElemementType() {
@@ -658,12 +677,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
   public String getWrapperType() {
     return isPrimitive()
-        ? wrapType(returnTypeName)
+        ? wrapType(rawTypeName)
         : returnTypeName;
   }
 
   public boolean isPrimitive() {
-    return internalTypeMirror().getKind().isPrimitive();
+    return returnType.getKind().isPrimitive();
   }
 
   public int getConstructorArgumentOrder() {
@@ -750,13 +769,15 @@ public class ValueAttribute extends TypeIntrospectionBase {
   /** Validates things that were not validated otherwise */
   void initAndValidate() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
-      if (annotation.getAnnotationType().asElement().getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
         if (isPrimitive()) {
           reporter.withElement(element)
               .annotationNamed(NULLABLE_SIMPLE_NAME)
               .error("@Nullable could not be used with primitive type attibutes");
         } else {
           nullable = true;
+          nullabilityPrefix = "@" + annotationElement.getQualifiedName() + " ";
           if (isContainerType()) {
             regularAttribute = true;
           }
@@ -770,7 +791,19 @@ public class ValueAttribute extends TypeIntrospectionBase {
 
       reporter.withElement(element)
           .forAnnotation(Value.Default.class)
-          .warning("@Value.Default on a container attribute make it lose it's special treatment");
+          .warning("@Value.Default on a container attribute makes it lose it's special treatment");
+    }
+
+    if (returnType.getKind() == TypeKind.DECLARED) {
+      rawTypeName = ((TypeElement) ((DeclaredType) returnType).asElement()).getQualifiedName().toString();
+    } else if (returnType.getKind().isPrimitive()) {
+      rawTypeName = Ascii.toLowerCase(returnType.getKind().name());
+    }
+
+    if (containingType.isAnnotationType() && nullable) {
+      reporter.withElement(element)
+          .annotationNamed(NULLABLE_SIMPLE_NAME)
+          .error("@Nullable could not be used with annotation attribute, use default value");
     }
   }
 
