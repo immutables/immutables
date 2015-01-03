@@ -199,12 +199,23 @@ package [type.package];
     return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
   }
 [else if type.useInterned]
+  [if type.generateJdkOnly]
 
-  private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
+  private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
+    [type.typeImmutable.simple] canonical = INTERNER.putIfAbsent(new InternProxy(instance), instance);
+    return canonical != null ? canonical : instance;
+  }
+  [else]
+
+  private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
 
   private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
     return INTERNER.intern(new InternProxy(instance)).instance;
   }
+  [/if]
 [/if]
 [if type.useConstructor]
 
@@ -251,15 +262,15 @@ package [type.package];
 
 /**
  * Creates immutable copy of {@link [type.typeAbstract.relative]}.
- * Uses accessors to get values to initialize new immutable instance.
- * If instance is already immutable, it returns it unchanged.
+ * Uses accessors to get values to initialize immutable instance.
+ * If an instance is already immutable, it is returned as is.
  */
 [type.typeImmutable.access]static [type.typeValue.relative] [type.names.copyOf](`[type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
 [if type.useBuilder]
-  [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](instance);
+  [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
   return [type.names.builder]()
   [for v in type.settableAttributes]
     [if v.collectionType]
@@ -283,7 +294,7 @@ package [type.package];
  */
 @Deprecated
 [type.typeImmutable.access]static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutable.simple] instance) {
-  return [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](instance);
+  return [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
 }
 [/if]
 [/template]
@@ -320,7 +331,7 @@ package [type.package];
             [if l.primitive or l.nullable]
           this.[l.name] = [invokeSuper l].[l.names.get]();
             [else]
-          this.[l.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper l].[l.names.get]());
+          this.[l.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper l].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -378,20 +389,20 @@ package [type.package];
 
   [for v in setters]
 [if v.generateSortedSet]
-  private com.google.common.collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
-      com.google.common.collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+  private [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
+      [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
 
 [else if v.collectionType]
-  private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
-      com.google.common.collect.Immutable[v.rawCollectionType].builder();
+  private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
+      [guava].collect.Immutable[v.rawCollectionType].builder();
 [else if v.optionalType]
-  private [v.type] [v.name] = com.google.common.base.Optional.absent();
+  private [v.type] [v.name] = [guava].base.Optional.absent();
 [else if v.generateSortedMap]
-  private com.google.common.collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      com.google.common.collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+  private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
 [else if v.mapType]
-  private com.google.common.collect.ImmutableMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      com.google.common.collect.ImmutableMap.builder();
+  private [guava].collect.ImmutableMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      [guava].collect.ImmutableMap.builder();
 [else if v.primitive]
   private [v.type] [v.name];
 [else]
@@ -415,7 +426,7 @@ package [type.package];
   private Domain domain = Domain.get();
 
   public [type.typeBuilder.simple] domain(Domain domain) {
-    this.domain = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](domain);
+    this.domain = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
     return this;
   }
   [/if]
@@ -471,7 +482,7 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
-    this.[v.name] = com.google.common.base.Optional.of([v.name]);
+    this.[v.name] = [guava].base.Optional.of([v.name]);
     return this;
   }
 
@@ -480,8 +491,8 @@ package [type.package];
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
-    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name]);
+  public final [type.typeBuilder.simple] [v.names.init]([guava].base.Optional<[v.wrappedElementType]> [v.name]) {
+    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     return this;
   }
   [else if v.mapType]
@@ -549,7 +560,7 @@ package [type.package];
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
-    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
@@ -595,11 +606,11 @@ package [type.package];
   }
     [if type.generateJdkOnly]
   private String formatRequiredAttributesMessage() {
-    return ("Cannot build [type.name], some of required attributes are not set {"
+    return new StringBuilder("Cannot build [type.name], some of required attributes are not set {")
       [for m in mandatories]
-        + (![m.name]IsSet() ? ", [m.name]" : "")
+        .append(![m.name]IsSet() ? ", [m.name]" : "")
       [/for]
-        + "}").replaceFirst("{, ", "{");
+        .append('}').toString().replaceFirst("{, ", "{");
   }
     [else]
   private String formatRequiredAttributesMessage() {
@@ -620,21 +631,21 @@ package [type.package];
   [if type.generateJdkOnly]
   @Override
   public String toString() {
-    return ("[type.typeBuilder.relative]{"
+    return new StringBuilder("[type.typeBuilder.relative]{")
   [for v in setters]
     [if v.collectionType or v.mapType]
-        + ", [v.name]=" + [v.name]Builder
+        .append(", [v.name]=").append([v.name]Builder)
     [else if v.optionalType]
-        + ", [v.name]=" + ([v.name].isPresent() ? [v.name].get() : "?")
+        .append(", [v.name]=").append(([v.name].isPresent() ? [v.name].get() : "<?>")
     [else if v.arrayType]
-        + ", [v.name]=" + java.util.Arrays.toString([v.name])
+        .append(", [v.name]=").append(java.util.Arrays.toString([v.name]))
     [else if v.primitive]
-        + ", [v.name]" + ([v.name]IsSet() ? [v.name] : "?")
+        .append(", [v.name]" ).append([v.name]IsSet() ? [v.name] : "<?>")
     [else]
-        + ", [v.name]" + [v.name]
+        .append(", [v.name]").append([v.name])
     [/if]
   [/for]
-        + "}").replaceFirst("{ ,", "{");
+        .append('}').toString().replaceFirst("{, ", "{");
   }
   [else]
   @Override
@@ -644,11 +655,11 @@ package [type.package];
     [if v.collectionType or v.mapType]
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
-        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "?")
+        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "<?>")
     [else if v.arrayType]
         .add("[v.name]", java.util.Arrays.toString([v.name]))
     [else if v.primitive]
-        .add("[v.name]", [v.name]IsSet() ? [v.name] : "?")
+        .add("[v.name]", [v.name]IsSet() ? [v.name] : "<?>")
     [else]
         .add("[v.name]", [v.name])
     [/if]
@@ -673,7 +684,7 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
   [else if v.primitive or v.nullable]
     [v.name]
   [else]
-    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name])
+    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name])
   [/if]
 [/output.trim][/for]);
 [/template]
@@ -681,11 +692,11 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
   [if v.optionalType]
-this.[n] = com.google.common.base.Optional.absent();
+this.[n] = [guava].base.Optional.absent();
   [else if v.mapType]
-this.[n] = com.google.common.collect.ImmutableMap.of();
+this.[n] = [guava].collect.ImmutableMap.of();
   [else if v.collectionType]
-this.[n] = com.google.common.collect.Immutable[v.rawCollectionType].of();
+this.[n] = [guava].collect.Immutable[v.rawCollectionType].of();
   [else if v.nullable]
 this.[n] = null;
   [else]
@@ -701,7 +712,7 @@ this.[n] = DEFAULT_VALUE_[toConstant v.name];
   [if v.primitive or v.nullable]
 this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -736,7 +747,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.go
   [else if v.primitive or v.nullable]
     this.[n] = [n];
   [else]
-    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([n]);
+    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([n]);
   [/if]
 [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
@@ -774,14 +785,14 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.go
       [else if v.nullable]
         : [invokeSuper v].[v.names.get]();
       [else]
-        : [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+        : [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
       [/if]
   [/if]
 [else if v.generateDerived]
   [if v.primitive or v.nullable]
     this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -932,7 +943,7 @@ private int computeHashCode() {
   int h = 31;
 [for v in getters]
 [if v.nullable]
-  h = h * 17 + com.google.common.base.Objects.hashCode([v.name]);
+  h = h * 17 + [if type.generateJdkOnly]java.util.Objects.hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
 [else if v.arrayType]
   h = h * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
@@ -948,9 +959,9 @@ private int computeHashCode() {
 
 /**
 [if type.usePrehashed]
- * Returns precomputed on construction hash code from attributes: [for a in type.equivalenceAttributes][if not for.first], [/if]{@code [a.name]}[/for].
+ * Returns precomputed on construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
- * Computes hash code from attributes: [for a in type.equivalenceAttributes][if not for.first], [/if]{@code [a.name]}[/for].
+ * Computes hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
  * @return hashCode value
  */
@@ -975,14 +986,25 @@ public int hashCode() {
  * excluding any non-generated and auxiliary attributes.
  * @return string representation of value
  */
+  [if type.generateJdkOnly]
+@Override
+public String toString() {
+  return new StringBuilder("[if type.annotationType]@[/if][type.name]{")
+  [for v in type.equivalenceAttributes]
+  [if v.arrayType]
+      .append(", [v.name]=").append(java.util.Arrays.toString([v.name]))
+  [else]
+      .append(", [v.name]=").append([v.name])
+  [/if]
+  [/for]
+      .append('}').toString().replaceFirst("{, ", "{");
+}
+  [else]
 @Override
 public String toString() {
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
-      .omitNullValues()
   [for v in type.equivalenceAttributes]
-  [if v.optionalType]
-      .add("[v.name]", [v.name].orNull())
-  [else if v.arrayType]
+  [if v.arrayType]
       .add("[v.name]", java.util.Arrays.toString([v.name]))
   [else]
       .add("[v.name]", [v.name])
@@ -990,6 +1012,7 @@ public String toString() {
   [/for]
       .toString();
 }
+  [/if]
 [/if]
 [/template]
 
@@ -1063,7 +1086,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
-  [immutableImplementationType v] newValue = com.google.common.base.Optional.of(value);
+  [immutableImplementationType v] newValue = [guava].base.Optional.of(value);
   [generateReturnCopyContextual type v]
 }
 
@@ -1073,11 +1096,11 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.typeImmutable.simple] [v.names.with](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
+public final [type.typeImmutable.simple] [v.names.with]([guava].base.Optional<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
     return this;
   }
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](optional);
+  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](optional);
   [generateReturnCopyContextual type v]
 }
     [else if v.mapType]
@@ -1119,7 +1142,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
     [if v.nullable or v.primitive]
   [v.atNullability][immutableImplementationType v] newValue = value;
     [else]
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](value);
+  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](value);
     [/if]
   [generateReturnCopyContextual type v]
 }
@@ -1215,13 +1238,13 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if v.generateOrdinalValueSet]
   org.immutables.common.collect.ImmutableOrdinalSet<[v.elementType]>
 [else if v.generateSortedSet]
-  com.google.common.collect.ImmutableSortedSet<[v.elementType]>
+  [guava].collect.ImmutableSortedSet<[v.elementType]>
 [else if v.collectionType]
-  com.google.common.collect.Immutable[v.rawCollectionType]<[v.elementType]>
+  [guava].collect.Immutable[v.rawCollectionType]<[v.elementType]>
 [else if v.generateSortedMap]
-  com.google.common.collect.ImmutableSortedMap<[v.elementType], [v.secondaryElementType]>
+  [guava].collect.ImmutableSortedMap<[v.elementType], [v.secondaryElementType]>
 [else if v.mapType]
-  com.google.common.collect.ImmutableMap<[v.elementType], [v.secondaryElementType]>
+  [guava].collect.ImmutableMap<[v.elementType], [v.secondaryElementType]>
 [else]
   [v.type]
 [/if]
@@ -1232,30 +1255,30 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [output.error]Not implemented!!![/output.error]
 [else]
   [if a.generateSortedSet]
-    com.google.common.collect.ImmutableSortedSet.copyOf(
+    [guava].collect.ImmutableSortedSet.copyOf(
       [if a.hasNaturalOrder]
-        com.google.common.collect.Ordering.<[a.elementType]>natural(),
+        [guava].collect.Ordering.<[a.elementType]>natural(),
       [else]
-        com.google.common.collect.Ordering.<[a.elementType]>natural().reverse(),
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse(),
       [/if]
         [expression])
   [else if a.generateEnumSet]
-    com.google.common.collect.Sets.immutableEnumSet([expression])
+    [guava].collect.Sets.immutableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
     org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
   [else if a.collectionType]
-    com.google.common.collect.Immutable[a.rawCollectionType].copyOf([expression])
+    [guava].collect.Immutable[a.rawCollectionType].copyOf([expression])
   [else if a.generateSortedMap]
-    com.google.common.collect.ImmutableSortedMap.copyOf([expression],
+    [guava].collect.ImmutableSortedMap.copyOf([expression],
     [if a.hasNaturalOrder]
-        com.google.common.collect.Ordering.<[a.elementType]>natural()
+        [guava].collect.Ordering.<[a.elementType]>natural()
     [else]
-        com.google.common.collect.Ordering.<[a.elementType]>natural().reverse()
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse()
     [/if])
   [else if a.generateEnumMap]
-    com.google.common.collect.Maps.immutableEnumMap([expression])
+    [guava].collect.Maps.immutableEnumMap([expression])
   [else if a.mapType]
-    com.google.common.collect.ImmutableMap.copyOf([expression])
+    [guava].collect.ImmutableMap.copyOf([expression])
   [else]
     [expression]
   [/if]
@@ -1276,7 +1299,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [if a.generateJdkOnly]
     java.util.Objects.equals([a.name], [getOther])
   [else]
-    com.google.common.base.Objects.equal([a.name], [getOther])
+    [guava].base.Objects.equal([a.name], [getOther])
   [/if]
 [else]
   [a.name].equals([getOther])
@@ -1288,7 +1311,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [if a.generateJdkOnly]
     [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
   [else]
-    com.google.common.primitives.[toUpper a.unwrappedElementType]s.asList([expression])
+    [guava].primitives.[toUpper a.unwrappedElementType]s.asList([expression])
   [/if]
 [else]
   java.util.Arrays.asList([expression])
@@ -1301,17 +1324,19 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if v.generateJdkOnly]
   [if classpath.available 'java.lang.FunctionalInterface']
     [v.wrapperType].hashCode([v.name])
+  [else if v.long]
+    (int) ([v.name] ^ ([v.name] >>> 32))
   [else if v.boolean]
     ([v.name] ? 1231 : 1237)
   [else if v.float]
     Float.floatToIntBits([v.name])
-  [else if v.double][-- Microbenchmarks shows that it's ok to new Double, probably due escape analysis --]
+  [else if v.double][-- Microbenchmark showed that it's ok to new Double, probably due escape analysis --]
     new Double([v.name]).hashCode()
   [else]
     (int) [v.name]
   [/if]
 [else]
-  com.google.common.primitives.[toUpper v.type]s.hashCode([v.name])
+  [guava].primitives.[toUpper v.type]s.hashCode([v.name])
 [/if]
 [/output.trim][/template]
 
@@ -1327,3 +1352,4 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 
 [/template]
 
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

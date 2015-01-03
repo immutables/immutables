@@ -86,6 +86,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind() == TypeKind.INT;
   }
 
+  public boolean isLong() {
+    return returnType.getKind() == TypeKind.LONG;
+  }
+
   public boolean isStringType() {
     return returnTypeName.equals(String.class.getName());
   }
@@ -804,6 +808,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       reporter.withElement(element)
           .annotationNamed(NULLABLE_SIMPLE_NAME)
           .error("@Nullable could not be used with annotation attribute, use default value");
+    }
+    if (containingType.isAnnotationType() && isAuxiliary()) {
+      reporter.withElement(element)
+          .forAnnotation(Value.Auxiliary.class)
+          .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
   }
 

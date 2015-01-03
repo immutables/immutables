@@ -467,8 +467,11 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       return this;
     }
 
-    public Context delimit() {
-      out("__.delimit();");
+    Context delimit() {
+      // Avoid delimits on a top level when there's not surrounding template
+      if (indentLevel > 0) {
+        out("__.delimit();");
+      }
       return this;
     }
 

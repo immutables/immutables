@@ -125,7 +125,7 @@ public class ValuesTest {
     check(ImmutableHasNullable.of(null)).is(hasNullable);
     check(ImmutableHasNullable.of()).is(hasNullable);
     check(ImmutableHasNullable.of().hashCode()).is(hasNullable.hashCode());
-    check(hasNullable).hasToString("HasNullable{}");
+    check(hasNullable).hasToString("HasNullable{in=null, def=null, der=null}");
   }
 
   @Test

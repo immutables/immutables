@@ -552,6 +552,8 @@ package [type.package];
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
 [/if]
+[if type.generateJdkOnly]
+[/if]
 }
 [/for]
 [/template]
