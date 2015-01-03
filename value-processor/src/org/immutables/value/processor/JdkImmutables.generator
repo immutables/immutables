@@ -1,5 +1,5 @@
 [template generate]
-  [for type in values.values]
+  [for type in values.values if type.generateJdkOnly]
     [if type.constitution.hasTopLevelImmutable]
 [-- Top level immutable type --]
 [output.java type.package type.typeImmutable.simple]
@@ -21,14 +21,9 @@
   [/for]
 [/template]
 
-[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
-
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
 @SuppressWarnings("all")
-[if classpath.available 'javax.annotation.Nullable']
-@javax.annotation.ParametersAreNonnullByDefault
-[/if]
 [if classpath.available 'javax.annotation.Generated']
 @javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
 [/if]
@@ -85,9 +80,7 @@ package [type.package];
  [/if]
  */
 [annotationsWhenTopLevel type topLevel]
-[if classpath.available 'javax.annotation.concurrent.Immutable']
-@javax.annotation.concurrent.Immutable
-[/if]
+[--@javax.annotation.concurrent.Immutable--]
 [type.typeImmutable.access][if not topLevel]static [/if]final class [type.typeImmutable.simple]
     [type.inheritsKeyword] `[type.typeAbstract] {
 [if type.annotationType]
@@ -119,7 +112,7 @@ package [type.package];
 [/template]
 
 [template generateConstructionAndInterning Type type]
-[if type.useInterned or type.generateOrdinalValue]
+[if type.useInterned]
 
   private static class InternProxy {
     final [type.typeImmutable.simple] instance;
@@ -128,7 +121,7 @@ package [type.package];
       this.instance = instance;
     }
 
-    public boolean equals([atNullable]Object another) {
+    public boolean equals(Object another) {
       assert another instanceof InternProxy;
       return instance.equalTo(((InternProxy) another).instance);
     }
@@ -138,72 +131,14 @@ package [type.package];
     }
   }
 [/if]
-[if type.generateOrdinalValue]
+[if type.useInterned]
 
-  /**
-   * Copy constructor used for interning of objects implementing
-   * {@link org.immutables.common.collect.OrdinalValue}
-   */
-  private [type.typeImmutable.simple]([type.typeImmutable.simple] instance, int ordinal) {
-  [for v in type.implementedAttributes]
-    this.[v.name] = instance.[v.name];
-  [/for]
-  [if type.usePrehashed]
-    this.hashCode = instance.hashCode;
-  [/if]
-    this.domain = instance.domain;
-    this.ordinal = ordinal;
-  }
-
-  /**
-   * Instances of {@code [type.name]} will be interned and registered with the domain.
-   */
-  public static final class Domain
-      extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
-
-    private static final Domain INSTANCE = new Domain();
-
-    /** Construct ordinal domain of [type.name] values. */
-    public Domain() {}
-
-    protected [type.name] extractValue(InternProxy proxy, int ordinal) {
-      return new [type.typeImmutable.simple](proxy.instance, ordinal);
-    }
-
-    @Override
-    public String toString() {
-      if (this == INSTANCE) {
-        return "[type.typeImmutable.simple].Domain.get()";
-      }
-      return [type.typeMoreObjects].toStringHelper("[type.typeImmutable.simple].Domain")
-        .add("length", length())
-        .toString();
-    }
-
-    /**
-     * Gets static singleton instance of {@link OrdinalDomain}.
-     * All instances that was not build with specified domain will be bound to static domain.
-     * @return ordinal domain of all instances
-     */
-    public static Domain get() {
-      return INSTANCE;
-    }
-  }
-
-  @Override
-  public org.immutables.common.collect.OrdinalDomain<[type.typeAbstract.relative]> domain() {
-    return domain;
-  }
+  private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
+      new java.util.concurrent.ConcurrentHashMap<>();
 
   private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
-  }
-[else if type.useInterned]
-
-  private static final com.google.common.collect.Interner<InternProxy> INTERNER = com.google.common.collect.Interners.newStrongInterner();
-
-  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    return INTERNER.intern(new InternProxy(instance)).instance;
+    [type.typeImmutable.simple] canonical = INTERNER.putIfAbsent(new InternProxy(instance), instance);
+    return canonical != null ? canonical : instance;
   }
 [/if]
 [if type.useConstructor]
@@ -259,7 +194,7 @@ package [type.package];
     return ([type.typeImmutable.simple]) instance;
   }
 [if type.useBuilder]
-  [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](instance);
+  java.util.Objects.requireNonNull(instance);
   return [type.names.builder]()
   [for v in type.settableAttributes]
     [if v.collectionType]
@@ -283,17 +218,15 @@ package [type.package];
  */
 @Deprecated
 [type.typeImmutable.access]static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutable.simple] instance) {
-  return [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](instance);
+  return java.util.Objects.requireNonNull(instance);
 }
 [/if]
 [/template]
 
 [template generateLazyValues Type type]
-[for lz = type.lazyAttributes,
-  Boolean atGuarded = classpath.available 'javax.annotation.concurrent.GuardedBy']
+[for lz = type.lazyAttributes]
   [if lz][for LongPositions positions = longsFor lz]
   [for l in positions.longs]
-  [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
   private volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
@@ -302,7 +235,6 @@ package [type.package];
 
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
-  [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
   private [l.type] [l.name];
 
   /**
@@ -320,7 +252,7 @@ package [type.package];
             [if l.primitive or l.nullable]
           this.[l.name] = [invokeSuper l].[l.names.get]();
             [else]
-          this.[l.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper l].[l.names.get]());
+          this.[l.name] = java.util.Objects.requireNonNull([invokeSuper l].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -355,9 +287,6 @@ package [type.package];
  * but used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
-[if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
-@javax.annotation.concurrent.NotThreadSafe
-[/if]
 [type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
     extends [type.typeAbstract].Builder {[else] {[/if]
   [for l in positions.longs]
@@ -385,7 +314,7 @@ package [type.package];
   private com.google.common.collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       com.google.common.collect.Immutable[v.rawCollectionType].builder();
 [else if v.optionalType]
-  private [v.type] [v.name] = com.google.common.base.Optional.absent();
+  private [v.type] [v.name] = java.util.Optional.empty();
 [else if v.generateSortedMap]
   private com.google.common.collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
       com.google.common.collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
@@ -395,7 +324,7 @@ package [type.package];
 [else if v.primitive]
   private [v.type] [v.name];
 [else]
-  private [atNullable][v.type] [v.name];
+  private [v.type] [v.name];
 [/if]
   [/for]
 [if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
@@ -411,14 +340,6 @@ package [type.package];
   }
   [/if]
 [/if]
-  [if type.generateOrdinalValue]
-  private Domain domain = Domain.get();
-
-  public [type.typeBuilder.simple] domain(Domain domain) {
-    this.domain = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](domain);
-    return this;
-  }
-  [/if]
   [-- Being called from builder initializer methods --]
   [let nondefaultSetInBuilder Attribute v]
   [if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
@@ -471,7 +392,7 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
-    this.[v.name] = com.google.common.base.Optional.of([v.name]);
+    this.[v.name] = java.util.Optional.of([v.name]);
     return this;
   }
 
@@ -480,8 +401,8 @@ package [type.package];
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init](com.google.common.base.Optional<[v.wrappedElementType]> [v.name]) {
-    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name]);
+  public final [type.typeBuilder.simple] [v.names.init](java.util.Optional<[v.wrappedElementType]> [v.name]) {
+    this.[v.name] = java.util.Objects.requireNonNull([v.name]);
     return this;
   }
   [else if v.mapType]
@@ -549,7 +470,7 @@ package [type.package];
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
-    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = java.util.Objects.requireNonNull([v.name]);
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
@@ -593,69 +514,41 @@ package [type.package];
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }
-    [if type.generateJdkOnly]
+
   private String formatRequiredAttributesMessage() {
-    return ("Cannot build [type.name], some of required attributes are not set {"
-      [for m in mandatories]
-        + (![m.name]IsSet() ? ", [m.name]" : "")
+    Set<String> missingAttributes = new HashSet<String>();
+    [for m in mandatories]
+        .append(![m.name]IsSet() ? "[m.name]" : "")
       [/for]
-        + "}").replaceFirst("{, ", "{");
-  }
-    [else]
-  private String formatRequiredAttributesMessage() {
-    return [type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
-        .omitNullValues()
-      [for m in mandatories]
-        .addValue(![m.name]IsSet() ? "[m.name]" : null)
-      [/for]
+    return new StringBuilder("Cannot build [type.name], some of required attributes are not set ")
+
         .toString();
   }
-    [/if]
   [/if]
 
   /**
    * Prints currently set attributes.
    * @return string representation of builder
    */
-  [if type.generateJdkOnly]
-  @Override
-  public String toString() {
-    return ("[type.typeBuilder.relative]{"
-  [for v in setters]
-    [if v.collectionType or v.mapType]
-        + ", [v.name]=" + [v.name]Builder
-    [else if v.optionalType]
-        + ", [v.name]=" + ([v.name].isPresent() ? [v.name].get() : "?")
-    [else if v.arrayType]
-        + ", [v.name]=" + java.util.Arrays.toString([v.name])
-    [else if v.primitive]
-        + ", [v.name]" + ([v.name]IsSet() ? [v.name] : "?")
-    [else]
-        + ", [v.name]" + [v.name]
-    [/if]
-  [/for]
-        + "}").replaceFirst("{ ,", "{");
-  }
-  [else]
   @Override
   public String toString() {
     return [type.typeMoreObjects].toStringHelper("[type.typeBuilder.relative]")
+        .omitNullValues()
   [for v in setters]
     [if v.collectionType or v.mapType]
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
-        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "?")
+        .add("[v.name]", [v.name].orNull())
     [else if v.arrayType]
         .add("[v.name]", java.util.Arrays.toString([v.name]))
     [else if v.primitive]
-        .add("[v.name]", [v.name]IsSet() ? [v.name] : "?")
+        .add("[v.name]", [v.name]IsSet() ? [v.name] : null)
     [else]
         .add("[v.name]", [v.name])
     [/if]
   [/for]
         .toString();
   }
-  [/if]
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
 [/if]
@@ -673,7 +566,7 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
   [else if v.primitive or v.nullable]
     [v.name]
   [else]
-    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([v.name])
+    java.util.Objects.requireNonNull([v.name])
   [/if]
 [/output.trim][/for]);
 [/template]
@@ -681,7 +574,7 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
   [if v.optionalType]
-this.[n] = com.google.common.base.Optional.absent();
+this.[n] = java.util.Optional.absent();
   [else if v.mapType]
 this.[n] = com.google.common.collect.ImmutableMap.of();
   [else if v.collectionType]
@@ -701,7 +594,7 @@ this.[n] = DEFAULT_VALUE_[toConstant v.name];
   [if v.primitive or v.nullable]
 this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[n] = java.util.Objects.requireNonNull([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -736,7 +629,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.go
   [else if v.primitive or v.nullable]
     this.[n] = [n];
   [else]
-    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([n]);
+    this.[n] = java.util.Objects.requireNonNull([n]);
   [/if]
 [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
@@ -774,14 +667,14 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.go
       [else if v.nullable]
         : [invokeSuper v].[v.names.get]();
       [else]
-        : [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+        : java.util.Objects.requireNonNull([invokeSuper v].[v.names.get]());
       [/if]
   [/if]
 [else if v.generateDerived]
   [if v.primitive or v.nullable]
     this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-    this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+    this.[n] = java.util.Objects.requireNonNull([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -864,7 +757,6 @@ public [immutableImplementationType v] [v.names.get]() {
 [/if]
 }
   [/for]
-[generateGetters type]
   [if type.generateOrdinalValue]
 
 @Override
@@ -892,7 +784,7 @@ public int ordinal() {
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
 @Override
-public boolean equals([atNullable]Object another) {
+public boolean equals(Object another) {
   [if type.useReferenceEquality]
   return this == another;
   [else]
@@ -913,10 +805,12 @@ private int computeHashCode() {
 [for v in getters]
 [if v.arrayType]
   h += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
-[else if v.primitive]
-  h += 127 * "[v.name]".hashCode() ^ [primitiveHashCode v];
-[else]
+[else if not v.primitive]
   h += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
+[else if v.type eq 'int']
+  h += 127 * "[v.name]".hashCode() ^ [v.name];
+[else]
+  h += 127 * "[v.name]".hashCode() ^ com.google.common.primitives.[toUpper v.type]s.hashCode([v.name]);
 [/if]
 [/for]
   return h;
@@ -935,10 +829,12 @@ private int computeHashCode() {
   h = h * 17 + com.google.common.base.Objects.hashCode([v.name]);
 [else if v.arrayType]
   h = h * 17 + java.util.Arrays.hashCode([v.name]);
-[else if v.primitive]
-  h = h * 17 + [primitiveHashCode v];
-[else]
+[else if not v.primitive]
   h = h * 17 + [v.name].hashCode();
+[else if v.type eq 'int']
+  h = h * 17 + [v.name];
+[else]
+  h = h * 17 + com.google.common.primitives.[toUpper v.type]s.hashCode([v.name]);
 [/if]
 [/for]
   return h;
@@ -1063,7 +959,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
-  [immutableImplementationType v] newValue = com.google.common.base.Optional.of(value);
+  [immutableImplementationType v] newValue = java.util.Optional.of(value);
   [generateReturnCopyContextual type v]
 }
 
@@ -1073,11 +969,11 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.typeImmutable.simple] [v.names.with](com.google.common.base.Optional<[v.wrappedElementType]> optional) {
+public final [type.typeImmutable.simple] [v.names.with](java.util.Optional<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
     return this;
   }
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](optional);
+  [immutableImplementationType v] newValue = java.util.Objects.requireNonNull(optional);
   [generateReturnCopyContextual type v]
 }
     [else if v.mapType]
@@ -1119,40 +1015,12 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
     [if v.nullable or v.primitive]
   [v.atNullability][immutableImplementationType v] newValue = value;
     [else]
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else]com.google.common.base.Preconditions.checkNotNull[/if](value);
+  [immutableImplementationType v] newValue = java.util.Objects.requireNonNull(value);
     [/if]
   [generateReturnCopyContextual type v]
 }
     [/if]
   [/for]
-[/template]
-
-[template generateGetters Type type]
-  [if type.generateGetters]
-    [for v in type.allAccessibleAttributes]
-
-/**
- * Gets the value of [sourceDocRef type v] attribute.
-[if v.optionalType]
- * @return value of [v.name] if present, {@code null} if absent
-[else]
- * @return value for [v.name], non-null
-[/if]
- */
-  [for line in v.annotations]
-[line]
-  [/for]
-  [if v.optionalType]
-public [atNullable][v.wrappedElementType] get[toUpper v.name]() {
-  return [v.name]().orNull();
-}
-  [else]
-public [immutableImplementationType v] [if v.boolean]is[else]get[/if][toUpper v.name]() {
-  return [v.name]();
-}
-  [/if]
-    [/for]
-  [/if]
 [/template]
 
 [template defaultAnnotationValues Type type]
@@ -1210,9 +1078,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/template]
 
 [template immutableImplementationType Attribute v][output.trim]
-[if v.generateJdkOnly][-- for now jdk only will be the same --]
-  [v.type]
-[else if v.generateOrdinalValueSet]
+[if v.generateOrdinalValueSet]
   org.immutables.common.collect.ImmutableOrdinalSet<[v.elementType]>
 [else if v.generateSortedSet]
   com.google.common.collect.ImmutableSortedSet<[v.elementType]>
@@ -1228,37 +1094,33 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/output.trim][/template]
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
-[if a.generateJdkOnly]
-  [output.error]Not implemented!!![/output.error]
-[else]
-  [if a.generateSortedSet]
-    com.google.common.collect.ImmutableSortedSet.copyOf(
-      [if a.hasNaturalOrder]
-        com.google.common.collect.Ordering.<[a.elementType]>natural(),
-      [else]
-        com.google.common.collect.Ordering.<[a.elementType]>natural().reverse(),
-      [/if]
-        [expression])
-  [else if a.generateEnumSet]
-    com.google.common.collect.Sets.immutableEnumSet([expression])
-  [else if a.generateOrdinalValueSet]
-    org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
-  [else if a.collectionType]
-    com.google.common.collect.Immutable[a.rawCollectionType].copyOf([expression])
-  [else if a.generateSortedMap]
-    com.google.common.collect.ImmutableSortedMap.copyOf([expression],
+[if a.generateSortedSet]
+  com.google.common.collect.ImmutableSortedSet.copyOf(
     [if a.hasNaturalOrder]
-        com.google.common.collect.Ordering.<[a.elementType]>natural()
+      com.google.common.collect.Ordering.<[a.elementType]>natural(),
     [else]
-        com.google.common.collect.Ordering.<[a.elementType]>natural().reverse()
-    [/if])
-  [else if a.generateEnumMap]
-    com.google.common.collect.Maps.immutableEnumMap([expression])
-  [else if a.mapType]
-    com.google.common.collect.ImmutableMap.copyOf([expression])
+      com.google.common.collect.Ordering.<[a.elementType]>natural().reverse(),
+    [/if]
+      [expression])
+[else if a.generateEnumSet]
+  com.google.common.collect.Sets.immutableEnumSet([expression])
+[else if a.generateOrdinalValueSet]
+  org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
+[else if a.collectionType]
+  com.google.common.collect.Immutable[a.rawCollectionType].copyOf([expression])
+[else if a.generateSortedMap]
+  com.google.common.collect.ImmutableSortedMap.copyOf([expression],
+  [if a.hasNaturalOrder]
+      com.google.common.collect.Ordering.<[a.elementType]>natural()
   [else]
-    [expression]
-  [/if]
+      com.google.common.collect.Ordering.<[a.elementType]>natural().reverse()
+  [/if])
+[else if a.generateEnumMap]
+  com.google.common.collect.Maps.immutableEnumMap([expression])
+[else if a.mapType]
+  com.google.common.collect.ImmutableMap.copyOf([expression])
+[else]
+  [expression]
 [/if]
 [/output.trim][/template]
 
@@ -1273,11 +1135,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if a.arrayType]
   java.util.Arrays.equals([a.name], [getOther])
 [else if a.nullable]
-  [if a.generateJdkOnly]
-    java.util.Objects.equals([a.name], [getOther])
-  [else]
-    com.google.common.base.Objects.equal([a.name], [getOther])
-  [/if]
+  com.google.common.base.Objects.equal([a.name], [getOther])
 [else]
   [a.name].equals([getOther])
 [/if]
@@ -1285,45 +1143,24 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 
 [template arrayAsList Attribute a String expression][output.trim]
 [if a.unwrappedElementPrimitiveType]
-  [if a.generateJdkOnly]
-    [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
-  [else]
-    com.google.common.primitives.[toUpper a.unwrappedElementType]s.asList([expression])
-  [/if]
+  com.google.common.primitives.[toUpper a.unwrappedElementType]s.asList([expression])
 [else]
   java.util.Arrays.asList([expression])
 [/if]
 [/output.trim][/template]
 
-[template primitiveHashCode Attribute v][output.trim]
-[if v.int]
-  [v.name]
-[else if v.generateJdkOnly]
-  [if classpath.available 'java.lang.FunctionalInterface']
-    [v.wrapperType].hashCode([v.name])
-  [else if v.boolean]
-    ([v.name] ? 1231 : 1237)
-  [else if v.float]
-    Float.floatToIntBits([v.name])
-  [else if v.double][-- Microbenchmarks shows that it's ok to new Double, probably due escape analysis --]
-    new Double([v.name]).hashCode()
-  [else]
-    (int) [v.name]
-  [/if]
-[else]
-  com.google.common.primitives.[toUpper v.type]s.hashCode([v.name])
-[/if]
-[/output.trim][/template]
+[template unmodifiableSetFromIterable Attribute a String sourceVariable String destinationVariable]
+[a.type] [destinationVariable];
+{
+  [a.type] [sourceVariable]Set = new LinkedHashSet<>();
+  switch ([sourceVariable]Set.size()) {
+  case 0: [destinationVariable] = ; break;
+  case 1: [destinationVariable] = java.util.Collections.singleton([sourceVariable]Set); break;
+  default: [destinationVariable] = java.util.Collections.emptySet();
+  }
+}
+[template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
 [template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.name]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
-
-[template immutableCollectionFromBuilder Attribute v]
-
-[/template]
-
-[template immutableCollectionFromExternal Attribute v]
-
-[/template]
-

@@ -16,23 +16,24 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
-
-import org.immutables.generator.AnnotationMirrors;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Proto.Protoclass;
-
-import javax.annotation.Nullable;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
-
 import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class AccessorAttributesCollector {
   /**
@@ -52,10 +53,8 @@ final class AccessorAttributesCollector {
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
   private final Reporter reporter;
-  private final Round round;
 
-  AccessorAttributesCollector(Round round, Protoclass protoclass, ValueType type) {
-    this.round = round;
+  AccessorAttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
     this.styles = protoclass.styles();
@@ -227,24 +226,26 @@ final class AccessorAttributesCollector {
       }
 
       attribute.reporter = reporter;
-      attribute.round = round;
-      String returnTypeString = returnType.toString();
-      if (returnTypeString.startsWith("(")) {
-        // has type annotations, e.g.
-        // (@org.example.TypeA,@org.example.TypeB :: Map<java.lang.String,java.lang.String>)
-        int index = returnTypeString.indexOf(" :: ");
-        String typeAnnotations = returnTypeString.substring(1, index);
-        String type = returnTypeString.substring(index + 4, returnTypeString.length() - 1);
-        attribute.returnTypeName = typeAnnotations.replace(',', ' ') + ' ' + type;
-      } else {
-        attribute.returnTypeName = returnType.toString();
-      }
+      attribute.returnTypeName = computeReturnTypeString(returnType);
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());
       attribute.element = attributeMethodCandidate;
       attribute.containingType = type;
       attributes.add(attribute);
     }
+  }
+
+  private String computeReturnTypeString(TypeMirror returnType) {
+    String returnTypeString = returnType.toString();
+    if (returnTypeString.startsWith("(")) {
+      // has type annotations, e.g.
+      // (@org.example.TypeA,@org.example.TypeB :: Map<java.lang.String,java.lang.String>)
+      int index = returnTypeString.indexOf(" :: ");
+      String typeAnnotations = returnTypeString.substring(1, index);
+      String type = returnTypeString.substring(index + 4, returnTypeString.length() - 1);
+      return typeAnnotations.replace(',', ' ') + ' ' + type;
+    }
+    return returnType.toString();
   }
 
   private static boolean isAbstract(Element element) {
