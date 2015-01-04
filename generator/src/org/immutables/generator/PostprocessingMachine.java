@@ -38,7 +38,7 @@ final class PostprocessingMachine {
       switch (state) {
       case UNDEFINED:
         state = machine.nextChar(c).or(state);
-        if (!Character.isAlphabetic(c)) {
+        if (!isAlphabetic(c)) {
           nextPartFrom = i + 1;
         }
         break;
@@ -116,7 +116,7 @@ final class PostprocessingMachine {
 
       if (wordIndex == -2) {
 
-        if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
+        if (!isAlphabetic(c) && !isDigit(c)) {
           wordIndex = -1;
         }
 
@@ -130,7 +130,7 @@ final class PostprocessingMachine {
           }
         }
 
-        if (wordIndex == -1 && (Character.isAlphabetic(c) || Character.isDigit(c))) {
+        if (wordIndex == -1 && (isAlphabetic(c) || isDigit(c))) {
           wordIndex = -2;
         }
 
@@ -205,7 +205,7 @@ final class PostprocessingMachine {
     void nextChar(char c, int i) {
       switch (state) {
       case UNDEFINED:
-        if (Character.isLetter(c) && Character.isAlphabetic(c)) {
+        if (isAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
         }
@@ -215,14 +215,14 @@ final class PostprocessingMachine {
           state = FullyQualifiedNameState.DOT;
         } else if (isSpaceChar(c)) {
           state = FullyQualifiedNameState.SPACE_BEFORE_DOT;
-        } else if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
+        } else if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.UNDEFINED;
         }
         break;
       case SPACE_BEFORE_DOT:
         if (c == '.') {
           state = FullyQualifiedNameState.DOT;
-        } else if (Character.isAlphabetic(c)) {
+        } else if (isAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
         } else if (!isSpaceChar(c)) {
@@ -230,9 +230,9 @@ final class PostprocessingMachine {
         }
         break;
       case DOT:
-        if (Character.isAlphabetic(c) && Character.isLowerCase(c)) {
+        if (isLowerCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
-        } else if (Character.isAlphabetic(c) && Character.isUpperCase(c)) {
+        } else if (isUpperCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.CLASS;
         } else if (!isSpaceChar(c)) {
           state = FullyQualifiedNameState.UNDEFINED;
@@ -242,7 +242,7 @@ final class PostprocessingMachine {
         if (packageTo == -1) {
           packageTo = i - 1;
         }
-        if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
+        if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.AFTER_CLASS;
         }
         break;
@@ -250,7 +250,7 @@ final class PostprocessingMachine {
         if (importTo == -1) {
           importTo = i - 1;
         }
-        if (Character.isAlphabetic(c)) {
+        if (isAlphabetic(c)) {
           state = FullyQualifiedNameState.METHOD_OR_FIELD;
         } else if (c == '(' || c == '<' || c == ')' || c == '>' || c == '{' || c == '}') {
           state = FullyQualifiedNameState.FINISH;
@@ -259,7 +259,7 @@ final class PostprocessingMachine {
         }
         break;
       case METHOD_OR_FIELD:
-        if (!Character.isAlphabetic(c) && !Character.isDigit(c)) {
+        if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
         }
         break;
@@ -348,34 +348,22 @@ final class PostprocessingMachine {
     return Character.isSpaceChar(c) || c == '\n' || c == '\t' || c == '\r';
   }
 
-  public static void main(String[] args) {
-    String s0 = "s java.until.Set {}";
-    String s1 = "com.      google.\tcommon.base\n. Function    .  apply();";
-    String s2 = "com.google.common.base.Function.class;";
-    String s3 = "com.google.common.base.Function();";
-    String s4 = "com.google.common.collect.ImmutableList.Builder<>;";
-    String s5 = "com.google.common.base.Preconditions.checkState();";
-
-    test(s0);
-    test(s1);
-    test(s2);
-    test(s3);
-    test(s4);
-    test(s5);
+  private static boolean isDigit(char c) {
+    return c >= '0' && c <= '9';
   }
 
-  private static void test(String s) {
-    FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
-    for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
-      fullyQualifiedNameMachine.nextChar(c, i);
+  private static boolean isAlphabetic(char c) {
+    return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
+  }
 
-      if (FullyQualifiedNameState.FINISH.equals(fullyQualifiedNameMachine.state)) {
-        System.out.println(s.substring(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo));
-        System.out.println(s.substring(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.packageTo));
-      }
-    }
-    System.out.println();
-    System.out.println();
+  private static boolean isLowerCaseAlphabetic(char c) {
+    return c >= 'a' && c <= 'z';
+  }
+
+  private static boolean isUpperCaseAlphabetic(char c) {
+    return c >= 'A' && c <= 'Z';
+  }
+
+  public static void main(String[] args) {
   }
 }
