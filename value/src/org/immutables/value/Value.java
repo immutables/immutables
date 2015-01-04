@@ -117,6 +117,18 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
+     * When {@code true} &mdash; forces to generate code which use only JDK 7+ standard library
+     * classes. It is {@code false} by default, however usage of JDK-only classes will be turned on
+     * automatically if <em>Google Guava</em> library is not found in classpath. The generated code
+     * will have subtle differences, but nevertheless will be functionally equivalent.
+     * <p>
+     * <em>Note that some additional annotation processors may not work without
+     * Guava being accessible to the generated classes</em>
+     * @return if forced JDK-only class usage
+     */
+    boolean jdkOnly() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.

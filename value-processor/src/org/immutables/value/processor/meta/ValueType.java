@@ -62,10 +62,16 @@ import org.immutables.value.processor.meta.ValueAttribute.SimpleTypeDerivationBa
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public class ValueType extends TypeIntrospectionBase {
-
+public final class ValueType extends TypeIntrospectionBase {
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
+  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
+      ImmutableSet.of(
+          Jackson.Mapped.class.getCanonicalName(),
+          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+
   // TBD Should we change this field to usage of [classpath.available] templating directive???
+  @Nullable
   public String typeMoreObjects;
 
   public Element element;
@@ -74,6 +80,7 @@ public class ValueType extends TypeIntrospectionBase {
   public boolean isEqualToDefined;
   public boolean isToStringDefined;
   public Constitution constitution;
+  Round round;
 
   public TypeNames names() {
     return constitution.names();
@@ -127,15 +134,12 @@ public class ValueType extends TypeIntrospectionBase {
     return constitution.isImplementationHidden();
   }
 
-  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
-      ImmutableSet.of(
-          Jackson.Mapped.class.getCanonicalName(),
-          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
-          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+  public boolean isGenerateJdkOnly() {
+    return typeMoreObjects == null || immutableFeatures.jdkOnly();
+  }
 
   public boolean isGenerateJacksonMapped() {
-    generateJacksonMapped = inferJacksonMapped();
-    if (generateJacksonMapped != null) {
+    if (generateJacksonMapped == null) {
       generateJacksonMapped = inferJacksonMapped();
     }
     return generateJacksonMapped;
@@ -226,7 +230,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateOrdinalValue() {
-    return isOrdinalValue();
+    return !isGenerateJdkOnly() && isOrdinalValue();
   }
 
   public boolean isUseConstructorOnly() {
@@ -513,6 +517,7 @@ public class ValueType extends TypeIntrospectionBase {
   }
 
   private List<ValueAttribute> implementedAttributes;
+  @Nullable
   private Boolean generateJacksonMapped;
 
   private FluentIterable<ValueAttribute> attributes() {
@@ -584,6 +589,69 @@ public class ValueType extends TypeIntrospectionBase {
   @Override
   protected TypeMirror internalTypeMirror() {
     return element.asType();
+  }
+
+  public boolean hasListAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isListType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasSetAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isSetType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasRegularSetAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isSetType() && !attribute.isSortedSetType() && !attribute.isGenerateEnumSet()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasEnumSetAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isGenerateEnumSet()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasEnumMapAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isGenerateEnumMap()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasRegularMapAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isMapType() && !attribute.isSortedMapType() && !attribute.isGenerateEnumMap()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasMapAttribute() {
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isMapType()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

@@ -377,10 +377,9 @@ generator.writeFieldName("[a.marshaledName]");
 
 [template generateUnmarshalingMethods Type type]
 
-private static void ensure(boolean condition, String attributeName, String attributeType, Object message)
+private static void mismatch(String attributeName, String attributeType, Object message)
     throws IOException {
-  ensureCondition(
-      condition,
+  ensureCondition(false,
       "[type.typeAbstract.relative]",
       attributeName,
       attributeType,
@@ -394,12 +393,16 @@ static Iterable<[type.typeAbstract.relative]> unmarshalIterableOf[type.name](Jso
   if (t == JsonToken.START_OBJECT) {
     [-- Special case for array encoded as objects {'0':{..}, '1':{..}} faced with BSON]
     while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
-      ensure(t == JsonToken.FIELD_NAME, "*", "", t);
+      if (t != JsonToken.FIELD_NAME) {
+        mismatch("*", "", t);
+      }
       parser.nextToken();
       result.add(unmarshal[type.name](parser));
     }
   } else {
-    ensure(t == JsonToken.START_ARRAY, "*", "List<[type.name]>", t);
+    if (t != JsonToken.START_ARRAY) {
+      mismatch("*", "List<[type.name]>", t);
+    }
     while ((t = parser.nextToken()) != JsonToken.END_ARRAY) {
       result.add(unmarshal[type.name](parser));
     }
@@ -432,10 +435,15 @@ static [type.typeAbstract.relative] unmarshal[type.name](JsonParser parser)
   [/for]
 [else]
   JsonToken t = parser.getCurrentToken();
-  ensure(t == JsonToken.START_ARRAY, "['[']", "", t);
+  if (t != JsonToken.START_ARRAY) {
+    mismatch("['[']", "", t);
+  }
   [type.typeAbstract.relative] instance = [type.factoryOf.relative]([for a in ca][if not for.first],[/if]
     unmarshalConstructorArgument[toUpper a.name](nextTokenAdvance(parser))[/for]);
-  ensure(parser.nextToken() == JsonToken.END_ARRAY, "[']']", "", parser.getCurrentToken());
+  t = parser.nextToken();
+  if (t != JsonToken.END_ARRAY) {
+    mismatch("[']']", "", parser.getCurrentToken());
+  }
   return instance;
 [/if]
 }
@@ -448,21 +456,25 @@ static [type.typeAbstract.relative] unmarshal[type.name](JsonParser parser)
 static [type.typeAbstract.relative] unmarshal[type.name](JsonParser parser)
     throws IOException {
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
-  String attributeName = "";
   JsonToken t = parser.getCurrentToken();
-  ensure(t == JsonToken.START_OBJECT, "{", "", t);
+  if (t != JsonToken.START_OBJECT) {
+    mismatch("{", "", t);
+  }
   while ((t = parser.nextToken()) != JsonToken.END_OBJECT) {
-    ensure(t == JsonToken.FIELD_NAME, "*", "", t);
-  [if not type.unmarshaledAttributes.isEmpty]
-    attributeName = parser.getText();
-    unmarshalAttribute(parser, builder, attributeName);
+    if (t != JsonToken.FIELD_NAME) {
+      mismatch("*", "", t);
+    }
+  [if type.unmarshaledAttributes]
+    unmarshalAttribute(parser, builder, parser.getText());
   [/if]
   }
   return builder.[type.names.build]();
 }
+[if type.unmarshaledAttributes]
 
 private static void unmarshalAttribute(JsonParser parser, [type.typeBuilder.relative] builder, String attributeName)
     throws IOException {
+  [-- This switch only wins in performance when there's really large number of attributes --]
   switch (attributeName.charAt(0)) {
   [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
      e in mm.asMap.entrySet]
@@ -487,6 +499,7 @@ private static void unmarshalUnknownAttribute(JsonParser parser, String attribut
     parser.skipChildren();
   }
 }
+[/if]
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]
@@ -499,7 +512,9 @@ private static [a.atNullability][a.type] unmarshalConstructorArgument[toUpper a.
     throws IOException {
   [if a.primitive]
   JsonToken t = parser.getCurrentToken();
-  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  if (!t.isScalarValue()) {
+    mismatch("[a.name]", "[a.type]", t);
+  }
     [if a.charType]
   return parser.getText().charAt(0);
     [else]
@@ -527,7 +542,9 @@ return null;
   [else if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
     [if a.unwrappedElementPrimitiveType]
-  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  if (!t.isScalarValue()) {
+    mismatch("[a.name]", "[a.type]", t);
+  }
   return Optional.<[a.elementType]>of(parser.get[toUpper a.unwrappedElementType]Value());
     [else]
   [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
@@ -550,7 +567,10 @@ return value;
 private static void unmarshalAttribute[toUpper a.name](JsonParser parser, [type.typeBuilder.relative] builder)
     throws IOException {
   [if a.primitive]
-  ensure(parser.nextToken().isScalarValue(), "[a.name]", "[a.type]", parser.getCurrentToken());
+  JsonToken t = parser.nextToken();
+  if (!t.isScalarValue()) {
+    mismatch("[a.name]", "[a.type]", parser.getCurrentToken());
+  }
     [if a.charType]
   builder.[a.names.init](parser.getText().charAt(0));
     [else]
@@ -576,16 +596,20 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
   if (t == JsonToken.VALUE_NULL) {
     return ImmutableMap.of();
   }
-  ensure(t == JsonToken.START_OBJECT, "[a.name]", "[a.type]", t);
+  if (t != JsonToken.START_OBJECT) {
+    mismatch("[a.name]", "[a.type]", t);
+  }
   com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
 
   while((t = parser.nextToken()) != JsonToken.END_OBJECT) {
-    ensure(t == JsonToken.FIELD_NAME, "[a.name]['[*]']", "[a.type]", t);
+    if (t != JsonToken.FIELD_NAME) {
+      mismatch("[a.name]['[*]']", "[a.type]", t);
+    }
 [if a.unwrappedElementPrimitiveType]
   [if a.unwrappedElementType eq 'char']
     String rawKey = parser.getText();
     if (rawKey.length() != 1) {
-      ensure(false, "[a.name]['[']" + rawKey + "[']']", "[a.type]['[char]']", rawKey);
+      mismatch("[a.name]['[']" + rawKey + "[']']", "[a.type]['[char]']", rawKey);
     }
     char key = rawKey.charAt(0);
   [else]
@@ -598,7 +622,9 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
 [/if]
     t = parser.nextToken();
 [if a.unwrappedSecondaryElementPrimitiveType]
-    ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+    if (!t.isScalarValue()) {
+      mismatch("[a.name]", "[a.type]", t);
+    }
     [a.unwrappedSecondaryElementType] value = parser.get[toUpper a.unwrappedSecondaryElementType]Value();
 [else if a.wrappedSecondaryElementType eq 'java.lang.String']
     String value = parser.getText();
@@ -616,11 +642,15 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
   [if a.unwrappedElementPrimitiveType]
 if (t == JsonToken.START_ARRAY) {
   while((t = parser.nextToken()) != JsonToken.END_ARRAY) {
-    ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+    if (!t.isScalarValue()) {
+      mismatch("[a.name]", "[a.type]", t);
+    }
     [collectorExpression](parser.get[toUpper a.unwrappedElementType]Value());
   }
 } else if (t != JsonToken.VALUE_NULL) {
-  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  if (!t.isScalarValue()) {
+    mismatch("[a.name]", "[a.type]", t);
+  }
   [collectorExpression](parser.get[toUpper a.unwrappedElementType]Value());
 }
   [else]
@@ -646,7 +676,9 @@ if (t != JsonToken.VALUE_NULL) {
   [else if a.optionalType]
 if (t != JsonToken.VALUE_NULL) {
     [if a.unwrappedElementPrimitiveType]
-  ensure(t.isScalarValue(), "[a.name]", "[a.type]", t);
+  if (!t.isScalarValue()) {
+    mismatch("[a.name]", "[a.type]", t);
+  }
   builder.[a.names.init](parser.get[toUpper a.unwrappedElementType]Value());
     [else]
   [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
