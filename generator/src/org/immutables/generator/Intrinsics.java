@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import java.util.Collection;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -51,7 +52,7 @@ public final class Intrinsics {
     return unary.apply(value);
   }
 
-  public static <F> Boolean $(Predicate<? super F> predicate, F value) {
+  public static <F> boolean $(Predicate<? super F> predicate, F value) {
     return predicate.apply(value);
   }
 
@@ -61,6 +62,10 @@ public final class Intrinsics {
 
   public static <T> T $(Apply<T> apply, Object... parameters) {
     return apply.apply(parameters);
+  }
+
+  public static String $(String a, String b) {
+    return a.concat(b);
   }
 
   public static Product $(Object... parameters) {
@@ -92,8 +97,28 @@ public final class Intrinsics {
     invokation.out(object).out(parameters);
   }
 
+  public static void $(Invokation invokation, Object object) {
+    invokation.out(object);
+  }
+
+  public static void $(Invokation invokation, String string) {
+    invokation.out(string);
+  }
+
   public static boolean $if(boolean value) {
     return value;
+  }
+
+  public static boolean $if(Boolean value) {
+    return value == Boolean.TRUE;
+  }
+
+  public static boolean $if(String value) {
+    return value != null && !value.isEmpty();
+  }
+
+  public static boolean $if(Collection<?> value) {
+    return !value.isEmpty();
   }
 
   public static boolean $if(Object value) {
@@ -126,9 +151,13 @@ public final class Intrinsics {
     return optional.asSet();
   }
 
-  public static <T> Iterable<T> $in(T[] elements) {
-    return Arrays.asList(elements);
+  public static <T> T[] $in(T[] elements) {
+    return elements;
   }
+
+//  public static <T> Iterable<T> $in(T[] elements) {
+//    return Arrays.asList(elements);
+//  }
 
   public static Iterable<Character> $in(char[] elements) {
     return Chars.asList(elements);
