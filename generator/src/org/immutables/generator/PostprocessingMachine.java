@@ -27,9 +27,10 @@ final class PostprocessingMachine {
     State state = State.UNDEFINED;
     int packageFrom = -1;
     int importFrom = -1;
-    int nextPartFrom = -1;
+    int nextPartFrom = 0;
     FiniteStateMachine machine = new FiniteStateMachine();
     FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
+    CommentMachine commentMachine = new CommentMachine();
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
@@ -63,12 +64,16 @@ final class PostprocessingMachine {
         }
         break;
       case CLASS:
-        fullyQualifiedNameMachine.nextChar(c, i);
-        if (fullyQualifiedNameMachine.isFinished()) {
-          importsBuilder.addImport(
-              content.subSequence(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo).toString());
-          parts.add(content.subSequence(nextPartFrom, fullyQualifiedNameMachine.importFrom).toString());
-          nextPartFrom = fullyQualifiedNameMachine.packageTo;
+        commentMachine.nextChar(c);
+        if (!commentMachine.isInComment()) {
+          fullyQualifiedNameMachine.nextChar(c, i);
+          if (fullyQualifiedNameMachine.isFinished()) {
+            importsBuilder.addImport(
+                content.subSequence(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo)
+                    .toString());
+            parts.add(content.subSequence(nextPartFrom, fullyQualifiedNameMachine.importFrom).toString());
+            nextPartFrom = fullyQualifiedNameMachine.packageTo;
+          }
         }
         break;
       }
@@ -76,7 +81,9 @@ final class PostprocessingMachine {
     // last part
     parts.add(content.subSequence(nextPartFrom, content.length()).toString());
 
-    parts.set(0, "package " + currentPackage + ";\n");
+    if (!currentPackage.isEmpty()) {
+      parts.set(0, "package " + currentPackage + ";\n");
+    }
     parts.set(1, importsBuilder.build());
     return JOINER.join(parts);
   }
@@ -283,6 +290,58 @@ final class PostprocessingMachine {
     AFTER_CLASS,
     METHOD_OR_FIELD,
     FINISH
+  }
+
+  static final class CommentMachine {
+    CommentState state = CommentState.NOT_IN_COMMENT;
+
+    void nextChar(char c) {
+      switch (state) {
+      case NOT_IN_COMMENT:
+        if (c == '/') {
+          state = CommentState.COMMENT_CANDIDATE;
+        }
+        break;
+      case COMMENT_CANDIDATE:
+        if (c == '/') {
+          state = CommentState.LINE_COMMENT;
+        } else if (c == '*') {
+          state = CommentState.BLOCK_COMMENT;
+        }
+        break;
+      case LINE_COMMENT:
+        if (c == '\n') {
+          state = CommentState.NOT_IN_COMMENT;
+        }
+        break;
+      case BLOCK_COMMENT:
+        if (c == '*') {
+          state = CommentState.BLOCK_COMMENT_OUT_CANDIDATE;
+        }
+        break;
+      case BLOCK_COMMENT_OUT_CANDIDATE:
+        if (c == '/') {
+          state = CommentState.NOT_IN_COMMENT;
+        } else {
+          state = CommentState.BLOCK_COMMENT;
+        }
+        break;
+      }
+    }
+
+    boolean isInComment() {
+      return CommentState.LINE_COMMENT.equals(state)
+          || CommentState.BLOCK_COMMENT.equals(state)
+          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state);
+    }
+  }
+
+  enum CommentState {
+    NOT_IN_COMMENT,
+    COMMENT_CANDIDATE,
+    LINE_COMMENT,
+    BLOCK_COMMENT,
+    BLOCK_COMMENT_OUT_CANDIDATE
   }
 
   private static boolean isSpaceChar(char c) {
