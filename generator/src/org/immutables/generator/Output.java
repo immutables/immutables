@@ -15,13 +15,7 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
-import com.google.common.base.Supplier;
-import com.google.common.base.Throwables;
+import com.google.common.base.*;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -30,21 +24,23 @@ import com.google.common.collect.Sets;
 import com.google.common.io.CharSink;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.regex.Pattern;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
-import static com.google.common.base.Preconditions.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Output {
   public final Templates.Invokable error = new Templates.Invokable() {
@@ -52,8 +48,7 @@ public final class Output {
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
       String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
-      StaticEnvironment.processing().getMessager().printMessage(
-          Diagnostic.Kind.ERROR, message);
+      StaticEnvironment.processing().getMessager().printMessage(Diagnostic.Kind.ERROR, message);
       return null;
     }
 

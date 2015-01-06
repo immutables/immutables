@@ -15,47 +15,32 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.ext.Gson;
-import org.immutables.value.ext.ExtValue;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
-import java.lang.annotation.Annotation;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import com.google.common.base.*;
+import com.google.common.collect.*;
 import org.immutables.value.Jackson;
 import org.immutables.value.Json;
 import org.immutables.value.Mongo;
 import org.immutables.value.Value;
+import org.immutables.value.ext.ExtValue;
+import org.immutables.value.ext.Gson;
 import org.immutables.value.ext.Parboil;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import org.immutables.value.processor.meta.ValueAttribute.SimpleTypeDerivationBase;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.SimpleAnnotationValueVisitor7;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * It's pointless to refactor this mess until
@@ -475,7 +460,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
     @Override
     public Integer apply(ValueAttribute input) {
-      return input.getConstructorArgumentOrder();
+      return input.getConstructorParameterOrder();
     }
   }
 
@@ -591,67 +576,113 @@ public final class ValueType extends TypeIntrospectionBase {
     return element.asType();
   }
 
-  public boolean hasListAttribute() {
+  enum CollectionKind implements Predicate<ValueAttribute> {
+    LIST,
+    REGULAR_SET,
+    ENUM_SET,
+    SORTED_SET,
+    REGULAR_MAP,
+    ENUM_MAP,
+    SORTED_MAP;
+
+    @Override
+    public boolean apply(ValueAttribute attribute) {
+      switch (this) {
+      case LIST:
+        return attribute.isListType();
+      case REGULAR_SET:
+        return attribute.isSetType() && !attribute.isSortedSetType() && !attribute.isGenerateEnumSet();
+      case ENUM_SET:
+        return attribute.isGenerateEnumSet();
+      case SORTED_SET:
+        return attribute.isGenerateSortedSet();
+      case REGULAR_MAP:
+        return attribute.isMapType() && !attribute.isSortedMapType() && !attribute.isGenerateEnumMap();
+      case ENUM_MAP:
+        return attribute.isGenerateEnumMap();
+      case SORTED_MAP:
+        return attribute.isGenerateSortedMap();
+      default:
+        return false;
+      }
+    }
+
+/*
+    enum From implements Predicate<ValueAttribute> {
+      // Builder, i.e. collecting container guarantees there will be no {@code null}s inside and
+      // size is known.
+      BUILDER {
+        @Override
+        public boolean apply(ValueAttribute input) {
+          return input.containingType.isUseBuilder() || input.containingType.kind().isFactory();
+        }
+      },
+
+      // Iterables has unknows size and may contains nulls. This also applies to map
+      ITERABLE {
+        @Override
+        public boolean apply(ValueAttribute input) {
+          return input.containingType.isUseCopyMethods()
+              || input.isConstructorParameter();
+        }
+      }
+    }
+    */
+  }
+
+  public boolean isUseListUtility() {
+    return useCollectionUtility(CollectionKind.LIST);
+  }
+
+  public boolean isUseSetUtility() {
+    return useCollectionUtility(CollectionKind.REGULAR_SET);
+  }
+
+  public boolean isUseEnumSetUtility() {
+    return useCollectionUtility(CollectionKind.ENUM_SET);
+  }
+
+  public boolean isUseSortedSetUtility() {
+    return useCollectionUtility(CollectionKind.SORTED_SET);
+  }
+
+  public boolean isUseMapUtility() {
+    return useCollectionUtility(CollectionKind.REGULAR_MAP);
+  }
+
+  public boolean isUseEnumMapUtility() {
+    return useCollectionUtility(CollectionKind.ENUM_MAP);
+  }
+
+  public boolean isUseSortedMapUtility() {
+    return useCollectionUtility(CollectionKind.SORTED_MAP);
+  }
+
+  private boolean useCollectionUtility(CollectionKind construction) {
+    for (ValueType n : nested) {
+      if (Iterables.any(n.getSettableAttributes(), construction)) {
+        return true;
+      }
+    }
+    return Iterables.any(getSettableAttributes(), construction);
+  }
+
+  public boolean hasCollectionAttribute() {
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isListType()) {
+      if (attribute.isCollectionType()) {
         return true;
       }
     }
     return false;
   }
 
-  public boolean hasSetAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isSetType()) {
+  public boolean isUseCollectionUtility() {
+    for (ValueType n : nested) {
+      if (n.hasCollectionAttribute()) {
         return true;
       }
     }
-    return false;
-  }
-
-  public boolean hasRegularSetAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isSetType() && !attribute.isSortedSetType() && !attribute.isGenerateEnumSet()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public boolean hasEnumSetAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isGenerateEnumSet()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public boolean hasEnumMapAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isGenerateEnumMap()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public boolean hasRegularMapAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isMapType() && !attribute.isSortedMapType() && !attribute.isGenerateEnumMap()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  public boolean hasMapAttribute() {
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isMapType()) {
-        return true;
-      }
-    }
-    return false;
+    return hasCollectionAttribute();
   }
 
   /**

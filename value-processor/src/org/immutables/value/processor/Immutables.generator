@@ -61,6 +61,9 @@ package [type.package];
   [/if]
   [forwardingEnclosingFactoryMethods v]
 [/for]
+[if type.generateJdkOnly and type.useCollectionUtility]
+  [collectionUtility type]
+[/if]
 }
 [/template]
 
@@ -114,6 +117,9 @@ package [type.package];
 [for v in type.nested]
   [generateImmutable v false]
 [/for]
+[if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
+  [collectionUtility type]
+[/if]
 }
 [/for]
 [/template]
@@ -568,6 +574,26 @@ package [type.package];
   }
   [/if]
   [/for]
+  [if type.generateJdkOnly]
+    [for a in setters if a.collectionType or a.mapType]
+
+  private [immutableImplementationType a] [a.name]Build() {
+  [if a.generateSortedSet]
+    return createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], toSafeList([a.name]Builder))
+  [else if a.generateEnumSet]
+    return createUnmodifiableEnumSet([a.name]Builder)
+  [else if a.generateOrdinalValueSet]
+    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
+  [else if a.listType]
+    return createUnmodifiableList(true, [a.name]Builder);
+  [else if a.setType]
+    return createUnmodifiableSet([a.name]Builder);
+  [else]
+    [output.error]Unimplemented[/output.error]
+  [/if]
+  }
+    [/for]
+  [/if]
 
   /**
    * Builds new {@link [type.name]}.
@@ -634,18 +660,18 @@ package [type.package];
     return new StringBuilder("[type.typeBuilder.relative]{")
   [for v in setters]
     [if v.collectionType or v.mapType]
-        .append(", [v.name]=").append([v.name]Builder)
+        .append("[if not for.first], [/if][v.name]=").append([v.name]Builder)
     [else if v.optionalType]
-        .append(", [v.name]=").append(([v.name].isPresent() ? [v.name].get() : "<?>")
+        .append("[if not for.first], [/if][v.name]=").append(([v.name].isPresent() ? [v.name].get() : "?")
     [else if v.arrayType]
-        .append(", [v.name]=").append(java.util.Arrays.toString([v.name]))
+        .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
     [else if v.primitive]
-        .append(", [v.name]" ).append([v.name]IsSet() ? [v.name] : "<?>")
+        .append("[if not for.first], [/if][v.name]=" ).append([v.name]IsSet() ? [v.name] : "?")
     [else]
-        .append(", [v.name]").append([v.name])
+        .append("[if not for.first], [/if][v.name]=").append([v.name])
     [/if]
   [/for]
-        .append('}').toString().replaceFirst("{, ", "{");
+        .append('}').toString();
   }
   [else]
   @Override
@@ -655,11 +681,11 @@ package [type.package];
     [if v.collectionType or v.mapType]
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
-        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "<?>")
+        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "?")
     [else if v.arrayType]
         .add("[v.name]", java.util.Arrays.toString([v.name]))
     [else if v.primitive]
-        .add("[v.name]", [v.name]IsSet() ? [v.name] : "<?>")
+        .add("[v.name]", [v.name]IsSet() ? [v.name] : "?")
     [else]
         .add("[v.name]", [v.name])
     [/if]
@@ -670,6 +696,9 @@ package [type.package];
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
 [/if]
+[if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
+  [collectionUtility type]
+[/if]
 }
 [/for]
 [/template]
@@ -677,14 +706,18 @@ package [type.package];
 [template returnFactoryBuild Type type]
 return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/if]
     [output.trim]
-  [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
+  [if v.collectionType or v.mapType]
+      [if type.generateJdkOnly]
+    [v.name]Build()
+      [else if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
     [immutableCollectionCopyOf v][v.name]Builder.build()[/immutableCollectionCopyOf]
-  [else if v.collectionType or v.mapType]
+      [else]
     [v.name]Builder.build()
+      [/if]
   [else if v.primitive or v.nullable]
     [v.name]
   [else]
-    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name])
+    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name], "[v.name] is null")
   [/if]
 [/output.trim][/for]);
 [/template]
@@ -758,10 +791,14 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
-  [if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
+  [if v.collectionType or v.mapType]
+      [if type.generateJdkOnly]
+    this.[n] = builder.[n]Build();
+      [else if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
     this.[n] = [immutableCollectionCopyOf v]builder.[n]Builder.build()[/immutableCollectionCopyOf];
-  [else if v.collectionType or v.mapType]
+      [else]
     this.[n] = builder.[n]Builder.build();
+      [/if]
   [else if not v.generateDefault]
     this.[n] = builder.[n];
   [/if]
@@ -989,15 +1026,21 @@ public int hashCode() {
   [if type.generateJdkOnly]
 @Override
 public String toString() {
-  return new StringBuilder("[if type.annotationType]@[/if][type.name]{")
+  [-- I first tried with concatenation, but StringBuilder looks prettier. Bytecode is the same though --]
+  [if type.annotationType]
+  return new StringBuilder("@[type.name](")
+  [else]
+  return new StringBuilder("[type.name]{")
+  [/if]
   [for v in type.equivalenceAttributes]
   [if v.arrayType]
-      .append(", [v.name]=").append(java.util.Arrays.toString([v.name]))
+      .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
   [else]
-      .append(", [v.name]=").append([v.name])
+      .append("[if not for.first], [/if][v.name]=").append([v.name])
   [/if]
   [/for]
-      .append('}').toString().replaceFirst("{, ", "{");
+      .append([if type.annotationType]')'[else]'}'[/if]).toString();
+
 }
   [else]
 @Override
@@ -1252,7 +1295,31 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 
 [template immutableCollectionCopyOf Attribute a String expression][output.trim]
 [if a.generateJdkOnly]
-  [output.error]Not implemented!!![/output.error]
+  [if a.generateSortedSet]
+    createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], toSafeList([expression]))
+  [else if a.generateEnumSet]
+    createUnmodifiableEnumSet([expression])
+  [else if a.generateOrdinalValueSet]
+    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
+  [else if a.listType]
+    createUnmodifiableList(false, toSafeList([expression]))
+  [else if a.setType]
+    createUnmodifiableSet(toSafeList([expression]))
+  [else if a.generateSortedMap]
+    [-- Unimplemented --]
+    [guava].collect.ImmutableSortedMap.copyOf([expression],
+    [if a.hasNaturalOrder]
+        [guava].collect.Ordering.<[a.elementType]>natural()
+    [else]
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse()
+    [/if])
+  [else if a.generateEnumMap]
+    [guava].collect.Maps.immutableEnumMap([expression])
+  [else if a.mapType]
+    [guava].collect.ImmutableMap.copyOf([expression])
+  [else]
+    [expression]
+  [/if]
 [else]
   [if a.generateSortedSet]
     [guava].collect.ImmutableSortedSet.copyOf(
@@ -1350,6 +1417,83 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 
 [template immutableCollectionFromExternal Attribute v]
 
+[/template]
+
+[template nonClashingIdentifier Attribute... vs String identifier][output.trim]
+[for v in vs if v.name eq identifier]$$[/for][identifier]
+[/output.trim][/template]
+
+[template collectionUtility Type type]
+
+/** Makes sure that supplied iterable have been copies to a separate storage and validated. */
+private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> iterable) {
+  java.util.ArrayList<T> list = iterable instanceof java.util.Collection<?>
+    ? new java.util.ArrayList<T>(((java.util.Collection<?>) iterable).size())
+    : new java.util.ArrayList<T>();
+
+  for (T element : iterable) {
+    list.add(java.util.Objects.requireNonNull(element, "Null in collection attribute is not allowed"));
+  }
+  return list;
+}
+[if type.useListUtility]
+
+private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.ArrayList<T> list) {
+  switch(list.size()) {
+  case 0: return java.util.Collections.emptyList();
+  case 1: return java.util.Collections.singletonList(list.get(0));
+  default: return java.util.Collections.unmodifiableList(clone ? new java.util.ArrayList<T>(list) : list);
+  }
+}
+[/if]
+[if type.useSetUtility]
+/** Unmodifiable set constructed from list to avoid rehashing. */
+private static <T> java.util.Set<T> createUnmodifiableSet(java.util.ArrayList<T> list) {
+  switch(list.size()) {
+  case 0: return java.util.Collections.emptySet();
+  case 1: return java.util.Collections.singleton(list.get(0));
+  default:
+    java.util.Set<T> set = new java.util.LinkedHashSet<T>(list.size());
+    set.addAll(list);
+    return java.util.Collections.unmodifiableSet(set);
+  }
+}
+[/if]
+[if type.useEnumSetUtility]
+
+private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(Iterable<T> iterable) {
+  if (iterable instanceof java.util.EnumSet<?>) {
+    return java.util.Collections.unmodifiableSet(new java.util.EnumSet<T>((java.util.EnumSet<T>) iterable));
+  }
+  ArrayList<T> list = toSafeList(iterable);
+  switch(list.size()) {
+  case 0: return java.util.Collections.emptySet();
+  case 1: return java.util.Collections.singleton(list.get(0));
+  return java.util.Collections.unmodifiableSet(new java.util.EnumSet<T>(list)));
+  }
+}
+[/if]
+[if type.useSortedSetUtility]
+[let unmodifiableSortedSetInterface][output.trim]
+[if classpath.available 'java.lang.FunctionalInterface']
+  NavigableSet
+[else]
+  SortedSet
+[/if]
+[/output.trim][/let]
+
+private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, ArrayList<T> list) {
+  java.util.TreeSet<T> set = reverse
+      ? new java.util.TreeSet<T>(java.util.Collections.reverseOrder())
+      : new java.util.TreeSet<T>();
+  set.addAll(list);
+  return java.util.Collections.unmodifiable[unmodifiableSortedSetInterface](set);
+}
+[/if]
+[if type.useMapUtility]
+
+
+[/if]
 [/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

@@ -237,8 +237,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedSetType == null) {
-      isSortedSetType = SortedSet.class.getName().equals(rawTypeName)
-          || NavigableSet.class.getName().equals(rawTypeName);
+      isSortedSetType =
+          NavigableSet.class.getName().equals(rawTypeName)
+              || SortedSet.class.getName().equals(rawTypeName);
     }
     return isSortedSetType;
   }
@@ -248,8 +249,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return false;
     }
     if (isSortedMapType == null) {
-      isSortedMapType = SortedMap.class.getName().equals(rawTypeName)
-          || NavigableMap.class.getName().equals(rawTypeName);
+      isSortedMapType =
+          SortedMap.class.getName().equals(rawTypeName)
+              || NavigableMap.class.getName().equals(rawTypeName);
     }
     return isSortedMapType;
   }
@@ -624,10 +626,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isPrimitiveOrWrapped(name);
   }
 
+  /**
+   * Suitable for JavaDocs, intemediate name mangling and for Guava intergration.
+   * @return the raw collection type
+   */
   public String getRawCollectionType() {
     return isListType() ? List.class.getSimpleName()
         : isSetType() ? Set.class.getSimpleName()
             : isSortedSetType() ? SortedSet.class.getSimpleName() : "";
+  }
+
+  public String simpleContainerName() {
+    return isContainerType()
+        ? ((DeclaredType) returnType).asElement().getSimpleName().toString()
+        : "";
   }
 
   public String getSecondaryElementType() {
@@ -689,9 +701,18 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind().isPrimitive();
   }
 
-  public int getConstructorArgumentOrder() {
-    Value.Parameter annotation = element.getAnnotation(Value.Parameter.class);
-    return annotation != null ? annotation.order() : -1;
+  private int constructorOrder = Integer.MIN_VALUE;
+
+  int getConstructorParameterOrder() {
+    if (constructorOrder < -1) {
+      Value.Parameter annotation = element.getAnnotation(Value.Parameter.class);
+      constructorOrder = annotation != null ? annotation.order() : -1;
+    }
+    return constructorOrder;
+  }
+
+  public boolean isConstructorParameter() {
+    return getConstructorParameterOrder() >= 0;
   }
 
   public boolean isSpecialMarshaledElement() {
