@@ -29,7 +29,6 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import org.immutables.value.processor.meta.ValueAttribute.SimpleTypeDerivationBase;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -669,7 +668,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean hasCollectionAttribute() {
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isCollectionType()) {
+      if (attribute.isCollectionType() || attribute.isMapLike()) {
         return true;
       }
     }

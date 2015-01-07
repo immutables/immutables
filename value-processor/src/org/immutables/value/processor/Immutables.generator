@@ -26,7 +26,7 @@
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
 @SuppressWarnings("all")
-[if classpath.available 'javax.annotation.Nullable']
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if classpath.available 'javax.annotation.Generated']
@@ -242,7 +242,11 @@ package [type.package];
     instance.[type.validationMethodName]();
 [/if]
 [if type.useInterned or type.generateOrdinalValue]
-    instance = intern(instance);
+    instance = intern(instance);[-- singletons will be interned as every object --]
+[else if type.useSingleton]
+    if (INSTANCE != null && INSTANCE.equals(instance)) {[-- may be null during initialization --]
+      return INSTANCE;
+    }
 [/if]
     return instance;
   }
@@ -394,26 +398,45 @@ package [type.package];
   [/for]
 
   [for v in setters]
-[if v.generateSortedSet]
-  private [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
+    [if v.containerType]
+      [if type.generateJdkOnly]
+  [if v.optionalType]
+  private [v.type] [v.name] = java.util.Optional.empty();
+  [else if v.generateEnumMap]
+  private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+  [else if v.mapType]
+  private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+  [else if v.generateEnumSet]
+  private final java.util.EnumSet<[v.elementType]> [v.name]Builder =
+      java.util.EnumSet.noneOf([v.elementType].class);
+  [else]
+  private final java.util.ArrayList<[v.elementType]> [v.name]Builder = new java.util.ArrayList<[v.elementType]>();
+  [/if]
+      [else]
+  [if v.generateSortedSet]
+  private final [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
       [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
 
-[else if v.collectionType]
-  private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
+  [else if v.collectionType]
+  private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       [guava].collect.Immutable[v.rawCollectionType].builder();
-[else if v.optionalType]
+  [else if v.optionalType]
   private [v.type] [v.name] = [guava].base.Optional.absent();
-[else if v.generateSortedMap]
-  private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+  [else if v.generateSortedMap]
+  private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
       [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
-[else if v.mapType]
-  private [guava].collect.ImmutableMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      [guava].collect.ImmutableMap.builder();
-[else if v.primitive]
+  [else if v.mapType]
+  private final [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
+      [guava].collect.Immutable[v.rawMapType].builder();
+  [/if]
+      [/if]
+    [else if v.primitive]
   private [v.type] [v.name];
-[else]
+    [else]
   private [atNullable][v.type] [v.name];
-[/if]
+    [/if]
   [/for]
 [if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
   private [type.typeBuilder.simple]() {}
@@ -457,7 +480,11 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType] element) {
+    [if type.generateJdkOnly and (not v.primitiveElement)]
+    [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+    [else]
     [v.name]Builder.add(element);
+    [/if]
     return this;
   }
 
@@ -468,7 +495,18 @@ package [type.package];
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
   public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
+    [if type.generateJdkOnly]
+    for([v.unwrappedElementType] element : elements) {
+      [if v.primitiveElement]
+      [v.name]Builder.add(element);
+      [else]
+      [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+      [/if]
+    }
+    return this;
+    [else]
     return [v.names.addAll]([arrayAsList v 'elements']);
+    [/if]
   }
 
   /**
@@ -477,7 +515,13 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+    [if type.generateJdkOnly]
+    for([v.unwrappedElementType] element : elements) {
+      [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+    }
+    [else]
     [v.name]Builder.addAll(elements);
+    [/if]
     return this;
   }
   [else if v.optionalType]
@@ -488,7 +532,7 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
-    this.[v.name] = [guava].base.Optional.of([v.name]);
+    this.[v.name] = [v.rawType].of([v.name]);
     return this;
   }
 
@@ -497,13 +541,36 @@ package [type.package];
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init]([guava].base.Optional<[v.wrappedElementType]> [v.name]) {
+  public final [type.typeBuilder.simple] [v.names.init]([v.rawType]<[v.wrappedElementType]> [v.name]) {
     this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     return this;
   }
   [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+      [if v.multimapType]
 
+  /**
+   * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key the key for [v.name]
+   * @param values the values for [v.name]
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [v.names.putAll]([uK] key, [uV]... values) {
+    [v.name]Builder.putAll(key, values);
+    return this;
+  }
+
+  /**
+   * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key the key for [v.name]
+   * @param values the values for [v.name]
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+    [v.name]Builder.putAll(key, values);
+    return this;
+  }
+      [/if]
   /**
    * Put one entry to [sourceDocRef type v] map.
    * @param key the key in [v.name] map
@@ -511,7 +578,13 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV] value) {
+    [if type.generateJdkOnly]
+    [v.name]Builder.put(
+        java.util.Objects.requireNonNull(key, "Key cannot be null"),
+        java.util.Objects.requireNonNull(value, "Value cannot be null"));
+    [else]
     [v.name]Builder.put(key, value);
+    [/if]
     return this;
   }
 
@@ -521,7 +594,13 @@ package [type.package];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+    [if type.generateJdkOnly]
+    [v.name]Builder.put(
+        java.util.Objects.requireNonNull(entry.getKey(), "Key cannot be null"),
+        java.util.Objects.requireNonNull(entry.getValue(), "Value cannot be null"));
+    [else]
     [v.name]Builder.put(entry);
+    [/if]
     return this;
   }
 
@@ -530,8 +609,16 @@ package [type.package];
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.putAll](java.util.Map<[gE], ? extends [wV]> entries) {
+  public final [type.typeBuilder.simple] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+    [if type.generateJdkOnly]
+    for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
+      [v.name]Builder.put(
+          java.util.Objects.requireNonNull(entry.getKey(), "Key cannot be null"),
+          java.util.Objects.requireNonNull(entry.getValue(), "Value cannot be null"));
+    }
+    [else]
     [v.name]Builder.putAll(entries);
+    [/if]
     return this;
   }
 
@@ -574,26 +661,6 @@ package [type.package];
   }
   [/if]
   [/for]
-  [if type.generateJdkOnly]
-    [for a in setters if a.collectionType or a.mapType]
-
-  private [immutableImplementationType a] [a.name]Build() {
-  [if a.generateSortedSet]
-    return createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], toSafeList([a.name]Builder))
-  [else if a.generateEnumSet]
-    return createUnmodifiableEnumSet([a.name]Builder)
-  [else if a.generateOrdinalValueSet]
-    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
-  [else if a.listType]
-    return createUnmodifiableList(true, [a.name]Builder);
-  [else if a.setType]
-    return createUnmodifiableSet([a.name]Builder);
-  [else]
-    [output.error]Unimplemented[/output.error]
-  [/if]
-  }
-    [/for]
-  [/if]
 
   /**
    * Builds new {@link [type.name]}.
@@ -707,13 +774,7 @@ package [type.package];
 return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/if]
     [output.trim]
   [if v.collectionType or v.mapType]
-      [if type.generateJdkOnly]
-    [v.name]Build()
-      [else if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
-    [immutableCollectionCopyOf v][v.name]Builder.build()[/immutableCollectionCopyOf]
-      [else]
-    [v.name]Builder.build()
-      [/if]
+    [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
   [else if v.primitive or v.nullable]
     [v.name]
   [else]
@@ -727,7 +788,7 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
   [if v.optionalType]
 this.[n] = [guava].base.Optional.absent();
   [else if v.mapType]
-this.[n] = [guava].collect.ImmutableMap.of();
+this.[n] = [guava].collect.Immutable[v.rawMapType].of();
   [else if v.collectionType]
 this.[n] = [guava].collect.Immutable[v.rawCollectionType].of();
   [else if v.nullable]
@@ -792,13 +853,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
   [if v.collectionType or v.mapType]
-      [if type.generateJdkOnly]
-    this.[n] = builder.[n]Build();
-      [else if v.generateOrdinalValueSet or (v.generateEnumSet or v.generateEnumMap)]
-    this.[n] = [immutableCollectionCopyOf v]builder.[n]Builder.build()[/immutableCollectionCopyOf];
-      [else]
-    this.[n] = builder.[n]Builder.build();
-      [/if]
+    this.[n] = [immutableCollectionBuild v]builder.[n]Builder[/immutableCollectionBuild];
   [else if not v.generateDefault]
     this.[n] = builder.[n];
   [/if]
@@ -1040,7 +1095,6 @@ public String toString() {
   [/if]
   [/for]
       .append([if type.annotationType]')'[else]'}'[/if]).toString();
-
 }
   [else]
 @Override
@@ -1104,7 +1158,15 @@ public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... eleme
  */
 [if v.nonRawElemementType]@SafeVarargs[/if]
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]... elements) {
+  [if v.generateJdkOnly and v.primitiveElement]
+  java.util.ArrayList<[v.wrappedElementType]> wrappedList = new java.util.ArrayList<[v.wrappedElementType]>(elements.length);
+  for ([v.unwrappedElementType] element : elements) {
+    wrappedList.add(element);
+  }
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe];
+  [else]
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
+  [/if]
   [generateReturnCopyContextual type v]
 }
 
@@ -1129,7 +1191,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
-  [immutableImplementationType v] newValue = [guava].base.Optional.of(value);
+  [immutableImplementationType v] newValue = [v.rawType].of(value);
   [generateReturnCopyContextual type v]
 }
 
@@ -1139,7 +1201,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.typeImmutable.simple] [v.names.with]([guava].base.Optional<[v.wrappedElementType]> optional) {
+public final [type.typeImmutable.simple] [v.names.with]([v.rawType]<[v.wrappedElementType]> optional) {
   if (this.[v.name] == optional) {
     return this;
   }
@@ -1156,7 +1218,7 @@ public final [type.typeImmutable.simple] [v.names.with]([guava].base.Optional<[v
  * @param entries to be added to [v.name] map
  * @return modified copy of {@code this} object
  */
-public final [type.typeImmutable.simple] [v.names.with](java.util.Map<[gE], ? extends [wV]> entries) {
+public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   if (this.[v.name] == entries) {
     return this;
   }
@@ -1287,36 +1349,61 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if v.generateSortedMap]
   [guava].collect.ImmutableSortedMap<[v.elementType], [v.secondaryElementType]>
 [else if v.mapType]
-  [guava].collect.ImmutableMap<[v.elementType], [v.secondaryElementType]>
+  [guava].collect.Immutable[v.rawMapType]<[v.elementType], [v.secondaryElementType]>
 [else]
   [v.type]
 [/if]
 [/output.trim][/template]
 
-[template immutableCollectionCopyOf Attribute a String expression][output.trim]
+[template immutableCollectionBuild Attribute a String expression][output.trim]
 [if a.generateJdkOnly]
   [if a.generateSortedSet]
-    createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], toSafeList([expression]))
+    createUnmodifiableSortedSet([a.hasReverseOrder], createSafeList([expression]))
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
     [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
   [else if a.listType]
-    createUnmodifiableList(false, toSafeList([expression]))
+    createUnmodifiableList(true, [expression])
   [else if a.setType]
-    createUnmodifiableSet(toSafeList([expression]))
-  [else if a.generateSortedMap]
-    [-- Unimplemented --]
-    [guava].collect.ImmutableSortedMap.copyOf([expression],
-    [if a.hasNaturalOrder]
-        [guava].collect.Ordering.<[a.elementType]>natural()
-    [else]
-        [guava].collect.Ordering.<[a.elementType]>natural().reverse()
-    [/if])
+    createUnmodifiableSet([expression])
   [else if a.generateEnumMap]
-    [guava].collect.Maps.immutableEnumMap([expression])
+    createUnmodifiableEnumMap(false, [expression])
+  [else if a.generateSortedMap]
+    createUnmodifiableSortedMap([a.hasReverseOrder], false, [expression])
   [else if a.mapType]
-    [guava].collect.ImmutableMap.copyOf([expression])
+    createUnmodifiableMap(false, [expression])
+  [/if]
+[else]
+  [if a.generateOrdinalValueSet or (a.generateEnumSet or a.generateEnumMap)]
+    [immutableCollectionCopyOf a][expression].build()[/immutableCollectionCopyOf]
+  [else]
+    [expression].build()
+  [/if]
+[/if]
+[/output.trim][/template]
+
+[template immutableCollectionCopyOf Attribute a String expression][immutableCollectionCopyOfSafe a true expression][/template]
+
+[template immutableCollectionCopyOfSafe Attribute a Boolean safe String expression][output.trim]
+[if a.generateJdkOnly]
+[let safeList][if safe]createSafeList([expression])[else][expression][/if][/let]
+  [if a.generateSortedSet]
+    createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], [safeList])
+  [else if a.generateEnumSet]
+    createUnmodifiableEnumSet([expression])
+  [else if a.generateOrdinalValueSet]
+    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
+  [else if a.listType]
+    createUnmodifiableList(false, [safeList])
+  [else if a.setType]
+    createUnmodifiableSet([safeList])
+  [else if a.generateEnumMap]
+    createUnmodifiableEnumMap(true, [expression])
+  [else if a.generateSortedMap]
+    createUnmodifiableSortedMap([a.hasReverseOrder], true, [expression])
+  [else if a.mapType]
+    createUnmodifiableMap(true, [expression])
   [else]
     [expression]
   [/if]
@@ -1345,7 +1432,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.generateEnumMap]
     [guava].collect.Maps.immutableEnumMap([expression])
   [else if a.mapType]
-    [guava].collect.ImmutableMap.copyOf([expression])
+    [guava].collect.Immutable[a.rawMapType].copyOf([expression])
   [else]
     [expression]
   [/if]
@@ -1407,46 +1494,38 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
-
-[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.name]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
-
-[template immutableCollectionFromBuilder Attribute v]
-
-[/template]
-
-[template immutableCollectionFromExternal Attribute v]
-
-[/template]
-
-[template nonClashingIdentifier Attribute... vs String identifier][output.trim]
-[for v in vs if v.name eq identifier]$$[/for][identifier]
-[/output.trim][/template]
-
 [template collectionUtility Type type]
+[if type.useListUtility or (type.useSetUtility or (type.useEnumSetUtility or type.useSortedSetUtility))]
 
-/** Makes sure that supplied iterable have been copies to a separate storage and validated. */
 private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> iterable) {
   java.util.ArrayList<T> list = iterable instanceof java.util.Collection<?>
-    ? new java.util.ArrayList<T>(((java.util.Collection<?>) iterable).size())
-    : new java.util.ArrayList<T>();
+      ? new java.util.ArrayList<T>(((java.util.Collection<?>) iterable).size())
+      : new java.util.ArrayList<T>();
 
   for (T element : iterable) {
     list.add(java.util.Objects.requireNonNull(element, "Null in collection attribute is not allowed"));
   }
   return list;
 }
+[/if]
 [if type.useListUtility]
 
 private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.ArrayList<T> list) {
   switch(list.size()) {
   case 0: return java.util.Collections.emptyList();
   case 1: return java.util.Collections.singletonList(list.get(0));
-  default: return java.util.Collections.unmodifiableList(clone ? new java.util.ArrayList<T>(list) : list);
+  default:
+    if (clone) {
+      return java.util.Collections.unmodifiableList(new java.util.ArrayList<T>(list));
+    } else {
+      list.trimToSize();
+      return java.util.Collections.unmodifiableList(list);
+    }
   }
 }
 [/if]
 [if type.useSetUtility]
+
 /** Unmodifiable set constructed from list to avoid rehashing. */
 private static <T> java.util.Set<T> createUnmodifiableSet(java.util.ArrayList<T> list) {
   switch(list.size()) {
@@ -1463,13 +1542,13 @@ private static <T> java.util.Set<T> createUnmodifiableSet(java.util.ArrayList<T>
 
 private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(Iterable<T> iterable) {
   if (iterable instanceof java.util.EnumSet<?>) {
-    return java.util.Collections.unmodifiableSet(new java.util.EnumSet<T>((java.util.EnumSet<T>) iterable));
+    return java.util.Collections.unmodifiableSet(java.util.EnumSet.copyOf((java.util.EnumSet<T>) iterable));
   }
-  ArrayList<T> list = toSafeList(iterable);
+  java.util.ArrayList<T> list = createSafeList(iterable);
   switch(list.size()) {
   case 0: return java.util.Collections.emptySet();
   case 1: return java.util.Collections.singleton(list.get(0));
-  return java.util.Collections.unmodifiableSet(new java.util.EnumSet<T>(list)));
+  default: return java.util.Collections.unmodifiableSet(java.util.EnumSet.copyOf(list));
   }
 }
 [/if]
@@ -1492,8 +1571,63 @@ private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterfa
 [/if]
 [if type.useMapUtility]
 
+private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
+  java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap(map.size());
+  linkedMap.putAll(map);
+  if (checkNulls) {
+    for (java.util.Map.Entry<K, V> e : linkedMap.entrySet()) {
+      java.util.Objects.requireNonNull(e.getKey(), "Null key are not allowed in map");
+      java.util.Objects.requireNonNull(e.getValue(), "Null values are not allowed in map");
+    }
+  }
+  switch (linkedMap.size()) {
+  case 0: return java.util.Collections.emptyMap();
+  case 1:
+    java.util.Map.Entry<K, V> e = linkedMap.entrySet().iterator().next();
+    return java.util.Collections.singletonMap(e.getKey(), e.getValue());
+  default: return java.util.Collections.unmodifiableMap(linkedMap);
+  }
+}
+[/if]
+[if type.useEnumMapUtility]
 
+private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
+  java.util.EnumMap<K, V> enumMap = new java.util.EnumMap(map);
+  if (checkNulls) {
+    for (V value : enumMap.values()) {
+      java.util.Objects.requireNonNull(value, "Null values are not allowed in map");
+    }
+  }
+  return java.util.Collections.unmodifiableMap(enumMap);
+}
+[/if]
+[if type.useSortedMapUtility]
+[let unmodifiableSortedMapInterface][output.trim]
+[if classpath.available 'java.lang.FunctionalInterface']
+  NavigableMap
+[else]
+  SortedMap
+[/if]
+[/output.trim][/let]
+
+private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
+  java.util.TreeMap<K, V> sortedMap = reverse
+      ? new java.util.TreeMap<K, V>(java.util.Collections.reverseOrder())
+      : new java.util.TreeMap<K, V>();
+  sortedMap.putAll(map);
+  if (checkNulls) {
+    for (java.util.Map.Entry<K, V> e : sortedMap.entrySet()) {
+      java.util.Objects.requireNonNull(e.getKey(), "Null key are not allowed in map");
+      java.util.Objects.requireNonNull(e.getValue(), "Null values are not allowed in map");
+    }
+  }
+  return java.util.Collections.unmodifiable[unmodifiableSortedMapInterface](sortedMap);
+}
 [/if]
 [/template]
+
+[template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
+
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.name]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

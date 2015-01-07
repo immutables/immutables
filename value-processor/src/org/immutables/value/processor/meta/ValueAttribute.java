@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.base.Ascii;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -52,7 +53,18 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
+  private static final String GUAVA_MULTISET_SIMPLE_NAME = "Multiset";
   private static final String GUAVA_OPTIONAL = UnshadeGuava.typeString("base.Optional");
+  private static final String GUAVA_LIST_MULTIMAP = UnshadeGuava.typeString("collect.ListMultimap");
+  private static final String GUAVA_SET_MULTIMAP = UnshadeGuava.typeString("collect.SetMultimap");
+  private static final String GUAVA_MULTIMAP = UnshadeGuava.typeString("collect.Multimap");
+  private static final String GUAVA_MULTISET = UnshadeGuava.typeString("collect.Multiset");
+  private static final ImmutableSet<String> GUAVA_MULTIMAPS =
+      ImmutableSet.of(
+          GUAVA_MULTIMAP,
+          GUAVA_LIST_MULTIMAP,
+          GUAVA_SET_MULTIMAP);
+
   private static final String JAVA_UTIL_OPTIONAL = "java.util.Optional";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
@@ -180,9 +192,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
     if (isMapType == null) {
       isMapType = Map.class.getName().equals(rawTypeName)
+          || isMultimapType()
           || isSortedMapType();
     }
     return isMapType;
+  }
+
+  public boolean isMultimapType() {
+    return GUAVA_MULTIMAPS.contains(rawTypeName);
   }
 
   private Boolean isListType;
@@ -340,7 +357,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isCollectionType() {
-    return isSortedSetType() || isSetType() || isListType();
+    return isSortedSetType() || isSetType() || isListType() || isMultisetType();
   }
 
   public boolean isGenerateEnumSet() {
@@ -369,6 +386,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
     }
     return "";
+  }
+
+  public boolean isMapLike() {
+    return isMapType();
   }
 
   public boolean isGenerateEnumMap() {
@@ -633,7 +654,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String getRawCollectionType() {
     return isListType() ? List.class.getSimpleName()
         : isSetType() ? Set.class.getSimpleName()
-            : isSortedSetType() ? SortedSet.class.getSimpleName() : "";
+            : isSortedSetType() ? SortedSet.class.getSimpleName()
+                : isMultisetType() ? GUAVA_MULTISET_SIMPLE_NAME : "";
+  }
+
+  public boolean isMultisetType() {
+    return GUAVA_MULTISET.equals(rawTypeName);
+  }
+
+  public String getRawMapType() {
+    int lastIndexOf = rawTypeName.lastIndexOf('.');
+    return lastIndexOf >= 0 ? rawTypeName.substring(lastIndexOf + 1) : rawTypeName;
   }
 
   public String simpleContainerName() {

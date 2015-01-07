@@ -26,7 +26,6 @@ import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
-
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
@@ -39,7 +38,6 @@ import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.regex.Pattern;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Output {
@@ -62,7 +60,7 @@ public final class Output {
     @Override
     public void run(Invokation invokation) {
       invokation.out(CharMatcher.WHITESPACE.trimFrom(
-          toCharSequence(invokation.param(0).toString())));
+          toCharSequence(invokation.param(0))));
     }
 
     private CharSequence toCharSequence(Object param) {
