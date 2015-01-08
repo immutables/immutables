@@ -822,8 +822,48 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return getMarshaledName().equals(ID_ATTRIBUTE_NAME);
   }
 
-  /** Validates things that were not validated otherwise */
+  /** Initialized Validates things that were not validated otherwise */
   void initAndValidate() {
+    makeRegularAndNullableWithValidation();
+    makeRegularIfContainsWildcards();
+    makeRegularIfDefaultWithValidation();
+    initRawTypeName();
+    prohibitAuxiliaryOnAnnotationTypes();
+  }
+
+  private void prohibitAuxiliaryOnAnnotationTypes() {
+    if (containingType.isAnnotationType() && isAuxiliary()) {
+      reporter.withElement(element)
+          .forAnnotation(Value.Auxiliary.class)
+          .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
+    }
+  }
+
+  private void initRawTypeName() {
+    if (returnType.getKind() == TypeKind.DECLARED) {
+      rawTypeName = ((TypeElement) ((DeclaredType) returnType).asElement()).getQualifiedName().toString();
+    } else if (returnType.getKind().isPrimitive()) {
+      rawTypeName = Ascii.toLowerCase(returnType.getKind().name());
+    }
+  }
+
+  private void makeRegularIfDefaultWithValidation() {
+    if (isGenerateDefault && isContainerType()) {
+      regularAttribute = true;
+      reporter.withElement(element)
+          .forAnnotation(Value.Default.class)
+          .warning("@Value.Default on a container attribute make it lose it's special treatment");
+    }
+  }
+
+  private void makeRegularIfContainsWildcards() {
+    // I hope this check isn't too simplistic
+    if (returnTypeName.indexOf('?') >= 0) {
+      regularAttribute = true;
+    }
+  }
+
+  private void makeRegularAndNullableWithValidation() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
@@ -840,31 +880,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         }
       }
     }
-
-    if (isGenerateDefault && isContainerType()) {
-      // ad-hoc. stick it here, but should work
-      regularAttribute = true;
-
-      reporter.withElement(element)
-          .forAnnotation(Value.Default.class)
-          .warning("@Value.Default on a container attribute makes it lose it's special treatment");
-    }
-
-    if (returnType.getKind() == TypeKind.DECLARED) {
-      rawTypeName = ((TypeElement) ((DeclaredType) returnType).asElement()).getQualifiedName().toString();
-    } else if (returnType.getKind().isPrimitive()) {
-      rawTypeName = Ascii.toLowerCase(returnType.getKind().name());
-    }
-
     if (containingType.isAnnotationType() && nullable) {
       reporter.withElement(element)
           .annotationNamed(NULLABLE_SIMPLE_NAME)
           .error("@Nullable could not be used with annotation attribute, use default value");
-    }
-    if (containingType.isAnnotationType() && isAuxiliary()) {
-      reporter.withElement(element)
-          .forAnnotation(Value.Auxiliary.class)
-          .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
   }
 

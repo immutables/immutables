@@ -93,8 +93,7 @@ public abstract class AbstractGenerator extends AbstractProcessor {
     } catch (Exception ex) {
       processingEnv.getMessager()
           .printMessage(Diagnostic.Kind.ERROR,
-              Joiner.on('\n').join(
-                  AbstractGenerator.class.getName() + " threw", Throwables.getStackTraceAsString(ex)));
+              Joiner.on('\n').join(getClass().getName() + " threw", Throwables.getStackTraceAsString(ex)));
     }
     return false;
   }
