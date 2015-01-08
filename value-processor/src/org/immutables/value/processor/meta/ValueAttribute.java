@@ -747,8 +747,23 @@ public class ValueAttribute extends TypeIntrospectionBase {
     return getMarshaledName().equals(ID_ATTRIBUTE_NAME);
   }
 
-  /** Validates things that were not validated otherwise */
+  /** Initialized Validates things that were not validated otherwise */
   void initAndValidate() {
+    makeRegularAndNullableWithValidation();
+    makeRegularIfContainsWildcards();
+    makeRegularIfDefaultWithValidation();
+  }
+
+  private void makeRegularIfDefaultWithValidation() {
+    if (isGenerateDefault && isContainerType()) {
+      regularAttribute = true;
+      reporter.withElement(element)
+          .forAnnotation(Value.Default.class)
+          .warning("@Value.Default on a container attribute make it lose it's special treatment");
+    }
+  }
+
+  private void makeRegularAndNullableWithValidation() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       if (annotation.getAnnotationType().asElement().getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
         if (isPrimitive()) {
@@ -763,14 +778,12 @@ public class ValueAttribute extends TypeIntrospectionBase {
         }
       }
     }
+  }
 
-    if (isGenerateDefault && isContainerType()) {
-      // ad-hoc. stick it here, but should work
+  private void makeRegularIfContainsWildcards() {
+    // I hope this check isn't too simplistic
+    if (returnTypeName.indexOf('?') >= 0) {
       regularAttribute = true;
-
-      reporter.withElement(element)
-          .forAnnotation(Value.Default.class)
-          .warning("@Value.Default on a container attribute make it lose it's special treatment");
     }
   }
 
