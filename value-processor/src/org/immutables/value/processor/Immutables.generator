@@ -537,7 +537,7 @@ package [type.package];
   }
 
   /**
-   * Initializes optional value for {@link [type.name]#[v.name]()}.
+   * Initializes optional value for [sourceDocRef type v].
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
@@ -729,7 +729,7 @@ package [type.package];
     [if v.collectionType or v.mapType]
         .append("[if not for.first], [/if][v.name]=").append([v.name]Builder)
     [else if v.optionalType]
-        .append("[if not for.first], [/if][v.name]=").append(([v.name].isPresent() ? [v.name].get() : "?")
+        .append("[if not for.first], [/if][v.name]=").append([v.name].isPresent() ? [v.name].get() : "?")
     [else if v.arrayType]
         .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
     [else if v.primitive]
