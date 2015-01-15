@@ -588,19 +588,19 @@ public final class ValueType extends TypeIntrospectionBase {
     public boolean apply(ValueAttribute attribute) {
       switch (this) {
       case LIST:
-        return attribute.isListType();
+        return attribute.typeKind().isList();
       case REGULAR_SET:
-        return attribute.isSetType() && !attribute.isSortedSetType() && !attribute.isGenerateEnumSet();
+        return attribute.typeKind().isSet();
       case ENUM_SET:
-        return attribute.isGenerateEnumSet();
+        return attribute.typeKind().isEnumSet();
       case SORTED_SET:
-        return attribute.isGenerateSortedSet();
+        return attribute.typeKind().isSortedSet();
       case REGULAR_MAP:
-        return attribute.isMapType() && !attribute.isSortedMapType() && !attribute.isGenerateEnumMap();
+        return attribute.typeKind().isMap();
       case ENUM_MAP:
-        return attribute.isGenerateEnumMap();
+        return attribute.typeKind().isEnumMap();
       case SORTED_MAP:
-        return attribute.isGenerateSortedMap();
+        return attribute.typeKind().isSortedMap();
       default:
         return false;
       }

@@ -1389,7 +1389,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [if a.generateJdkOnly]
 [let safeList][if safe]createSafeList([expression])[else][expression][/if][/let]
   [if a.generateSortedSet]
-    createUnmodifiableSortedSet([if a.hasReverseOrder]true[else]false[/if], [safeList])
+    createUnmodifiableSortedSet([a.hasReverseOrder], [safeList])
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
   [else if a.generateOrdinalValueSet]

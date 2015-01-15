@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.base.Ascii;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -25,12 +24,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -53,31 +46,11 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
-  private static final String GUAVA_MULTISET_SIMPLE_NAME = "Multiset";
-  private static final String GUAVA_OPTIONAL = UnshadeGuava.typeString("base.Optional");
-  private static final String GUAVA_LIST_MULTIMAP = UnshadeGuava.typeString("collect.ListMultimap");
-  private static final String GUAVA_SET_MULTIMAP = UnshadeGuava.typeString("collect.SetMultimap");
-  private static final String GUAVA_MULTIMAP = UnshadeGuava.typeString("collect.Multimap");
-  private static final String GUAVA_MULTISET = UnshadeGuava.typeString("collect.Multiset");
-  private static final ImmutableSet<String> GUAVA_MULTIMAPS =
-      ImmutableSet.of(
-          GUAVA_MULTIMAP,
-          GUAVA_LIST_MULTIMAP,
-          GUAVA_SET_MULTIMAP);
 
-  private static final String JAVA_UTIL_OPTIONAL = "java.util.Optional";
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
   public AttributeNames names;
-  private String nullabilityPrefix;
-
-  public String name() {
-    return names.raw;
-  }
-
-  public boolean isGenerateFunction;
-  public boolean isGeneratePredicate;
   public boolean isGenerateDefault;
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
@@ -89,6 +62,29 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   Element element;
   ValueType containingType;
   String returnTypeName;
+
+  @Nullable
+  private TypeElement marshaledElement;
+  @Nullable
+  private TypeElement marshaledSecondaryElement;
+  @Nullable
+  private TypeElement specialMarshaledElement;
+  @Nullable
+  private TypeElement specialMarshaledSecondaryElement;
+
+  private boolean hasEnumFirstTypeParameter;
+  private TypeElement containedTypeElement;
+  private boolean generateOrdinalValueSet;
+  private TypeMirror arrayComponent;
+  private boolean nullable;
+  private String nullabilityPrefix;
+
+  @Nullable
+  private String rawTypeName;
+
+  public String name() {
+    return names.raw;
+  }
 
   public boolean isBoolean() {
     return returnType.getKind() == TypeKind.BOOLEAN;
@@ -184,46 +180,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return arrayComponent != null ? ImmutableList.of(arrayComponent.toString()) : typeParameters;
   }
 
-  private Boolean isMapType;
-
   public boolean isMapType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isMapType == null) {
-      isMapType = Map.class.getName().equals(rawTypeName)
-          || isMultimapType()
-          || isSortedMapType();
-    }
-    return isMapType;
+    return typeKind.isMappingKind();
   }
 
   public boolean isMultimapType() {
-    return GUAVA_MULTIMAPS.contains(rawTypeName);
+    return typeKind.isMultimapKind();
   }
-
-  private Boolean isListType;
 
   public boolean isListType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isListType == null) {
-      isListType = List.class.getName().equals(rawTypeName);
-    }
-    return isListType;
+    return typeKind.isList();
   }
-
-  @Nullable
-  private Boolean isSetType;
-  @Nullable
-  private Boolean isSortedSetType;
-  @Nullable
-  private Boolean isSortedMapType;
-  @Nullable
-  private Boolean shouldGenerateSortedSet;
-  @Nullable
-  private Boolean shouldGenerateSortedMap;
 
   private OrderKind orderKind = OrderKind.NONE;
 
@@ -232,13 +199,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isSetType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isSetType == null) {
-      isSetType = Set.class.getName().equals(rawTypeName);
-    }
-    return isSetType;
+    return typeKind.isSet();
   }
 
   public boolean hasNaturalOrder() {
@@ -250,56 +211,22 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isSortedSetType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isSortedSetType == null) {
-      isSortedSetType =
-          NavigableSet.class.getName().equals(rawTypeName)
-              || SortedSet.class.getName().equals(rawTypeName);
-    }
-    return isSortedSetType;
+    return typeKind.isSortedSet();
   }
 
   public boolean isSortedMapType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isSortedMapType == null) {
-      isSortedMapType =
-          SortedMap.class.getName().equals(rawTypeName)
-              || NavigableMap.class.getName().equals(rawTypeName);
-    }
-    return isSortedMapType;
+    return typeKind.isSortedMap();
   }
 
   public boolean isGenerateSortedSet() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (shouldGenerateSortedSet == null) {
-      boolean isEligibleSetType = isSortedSetType();
-      checkOrderAnnotations();
-      shouldGenerateSortedSet = isEligibleSetType && orderKind != OrderKind.NONE;
-    }
-    return shouldGenerateSortedSet;
+    return typeKind.isSortedSet();
   }
 
   public boolean isGenerateSortedMap() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (shouldGenerateSortedMap == null) {
-      boolean isEligibleType = isSortedMapType();
-      checkOrderAnnotations();
-      shouldGenerateSortedMap = isEligibleType && orderKind != OrderKind.NONE;
-    }
-    return shouldGenerateSortedMap;
+    return typeKind.isSortedMap();
   }
 
   private void checkOrderAnnotations() {
-    boolean isEligibleType = isSortedMapType() || isSortedSetType();
-
     @Nullable Value.NaturalOrder naturalOrderAnnotation = element.getAnnotation(Value.NaturalOrder.class);
     @Nullable Value.ReverseOrder reverseOrderAnnotation = element.getAnnotation(Value.ReverseOrder.class);
 
@@ -307,7 +234,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       reporter.withElement(element)
           .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
     } else if (naturalOrderAnnotation != null) {
-      if (isEligibleType) {
+      if (typeKind.isSortedKind()) {
         if (isComparable()) {
           orderKind = OrderKind.NATURAL;
         } else {
@@ -321,7 +248,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
     } else if (reverseOrderAnnotation != null) {
-      if (isEligibleType) {
+      if (typeKind.isSortedKind()) {
         if (isComparable()) {
           orderKind = OrderKind.REVERSE;
         } else {
@@ -337,35 +264,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
-  private boolean jdkOptional;
-
   public boolean isJdkOptional() {
-    return isOptionalType() & jdkOptional;
+    return typeKind.isOptionalJdk();
   }
 
-  private Boolean isOptionalType;
-
   public boolean isOptionalType() {
-    if (isRegularAttribute()) {
-      return false;
-    }
-    if (isOptionalType == null) {
-      jdkOptional = JAVA_UTIL_OPTIONAL.equals(rawTypeName);
-      isOptionalType = jdkOptional || GUAVA_OPTIONAL.equals(rawTypeName);
-    }
-    return isOptionalType;
+    return typeKind.isOptionalKind();
   }
 
   public boolean isCollectionType() {
-    return isSortedSetType() || isSetType() || isListType() || isMultisetType();
+    return typeKind.isCollectionKind();
   }
 
   public boolean isGenerateEnumSet() {
-    if (!isSetType()) {
-      return false;
-    }
-    ensureTypeIntrospected();
-    return hasEnumFirstTypeParameter;
+    return typeKind.isEnumSet();
   }
 
   @Nullable
@@ -389,15 +301,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isMapLike() {
-    return isMapType();
+    return typeKind.isMappingKind();
   }
 
   public boolean isGenerateEnumMap() {
-    if (!isMapType()) {
-      return false;
-    }
-    ensureTypeIntrospected();
-    return hasEnumFirstTypeParameter;
+    return typeKind.isEnumMap();
   }
 
   public String getUnwrappedElementType() {
@@ -523,24 +431,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         .transform(Proto.DeclatedTypeToElement.FUNCTION);
   }
 
-  @Nullable
-  private TypeElement marshaledElement;
-  @Nullable
-  private TypeElement marshaledSecondaryElement;
-  @Nullable
-  private TypeElement specialMarshaledElement;
-  @Nullable
-  private TypeElement specialMarshaledSecondaryElement;
-
-  private boolean hasEnumFirstTypeParameter;
-  private TypeElement containedTypeElement;
-  private boolean generateOrdinalValueSet;
-  private TypeMirror arrayComponent;
-  private boolean regularAttribute;
-  private boolean nullable;
-  @Nullable
-  private String rawTypeName;
-
   public boolean isGenerateJdkOnly() {
     return containingType.isGenerateJdkOnly();
   }
@@ -560,8 +450,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isArrayType() {
-    return !isRegularAttribute()
-        && returnType.getKind() == TypeKind.ARRAY;
+    return typeKind.isArray();
   }
 
   @Override
@@ -638,8 +527,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     intospectTypeMirror(typeMirror);
   }
 
-  private boolean isRegularAttribute() {
-    return regularAttribute;
+  public AttributeTypeKind typeKind() {
+    return typeKind;
   }
 
   static boolean isRegularMarshalableType(String name) {
@@ -652,25 +541,19 @@ public final class ValueAttribute extends TypeIntrospectionBase {
    * @return the raw collection type
    */
   public String getRawCollectionType() {
-    return isListType() ? List.class.getSimpleName()
-        : isSetType() ? Set.class.getSimpleName()
-            : isSortedSetType() ? SortedSet.class.getSimpleName()
-                : isMultisetType() ? GUAVA_MULTISET_SIMPLE_NAME : "";
+    return typeKind.rawSimpleName();
   }
 
   public boolean isMultisetType() {
-    return GUAVA_MULTISET.equals(rawTypeName);
+    return typeKind.isMultiset();
   }
 
   public String getRawMapType() {
-    int lastIndexOf = rawTypeName.lastIndexOf('.');
-    return lastIndexOf >= 0 ? rawTypeName.substring(lastIndexOf + 1) : rawTypeName;
+    return typeKind.rawSimpleName();
   }
 
   public String simpleContainerName() {
-    return isContainerType()
-        ? ((DeclaredType) returnType).asElement().getSimpleName().toString()
-        : "";
+    return typeKind.rawSimpleName();
   }
 
   public String getSecondaryElementType() {
@@ -733,6 +616,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private int constructorOrder = Integer.MIN_VALUE;
+  private AttributeTypeKind typeKind;
 
   int getConstructorParameterOrder() {
     if (constructorOrder < -1) {
@@ -824,11 +708,24 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   /** Initialized Validates things that were not validated otherwise */
   void initAndValidate() {
+    initRawTypeName();
+    initTypeKind();
+    initOrderKind();
+
     makeRegularAndNullableWithValidation();
     makeRegularIfContainsWildcards();
     makeRegularIfDefaultWithValidation();
-    initRawTypeName();
+
     prohibitAuxiliaryOnAnnotationTypes();
+  }
+
+  private void initOrderKind() {
+    if (typeKind.isSortedKind()) {
+      checkOrderAnnotations();
+      if (orderKind == OrderKind.NONE) {
+        typeKind = AttributeTypeKind.REGULAR;
+      }
+    }
   }
 
   private void prohibitAuxiliaryOnAnnotationTypes() {
@@ -847,9 +744,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
+  private void initTypeKind() {
+    if (returnType.getKind() == TypeKind.ARRAY) {
+      typeKind = AttributeTypeKind.ARRAY;
+      ensureTypeIntrospected();
+    } else {
+      typeKind = AttributeTypeKind.forRawType(rawTypeName);
+      ensureTypeIntrospected();
+      typeKind = typeKind.withHasEnumFirstTypeParameter(hasEnumFirstTypeParameter);
+    }
+  }
+
   private void makeRegularIfDefaultWithValidation() {
     if (isGenerateDefault && isContainerType()) {
-      regularAttribute = true;
+      typeKind = AttributeTypeKind.REGULAR;
       reporter.withElement(element)
           .forAnnotation(Value.Default.class)
           .warning("@Value.Default on a container attribute make it lose it's special treatment");
@@ -859,7 +767,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void makeRegularIfContainsWildcards() {
     // I hope this check isn't too simplistic
     if (returnTypeName.indexOf('?') >= 0) {
-      regularAttribute = true;
+      typeKind = AttributeTypeKind.REGULAR;
     }
   }
 
@@ -874,8 +782,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         } else {
           nullable = true;
           nullabilityPrefix = "@" + annotationElement.getQualifiedName() + " ";
-          if (isContainerType()) {
-            regularAttribute = true;
+          if (nullable) {
+            typeKind = AttributeTypeKind.REGULAR;
           }
         }
       }
