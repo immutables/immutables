@@ -401,7 +401,7 @@ package [type.package];
     [if v.containerType]
       [if type.generateJdkOnly]
   [if v.optionalType]
-  private [v.type] [v.name] = java.util.Optional.empty();
+  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateEnumMap]
   private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
       new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
@@ -423,7 +423,7 @@ package [type.package];
   private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
       [guava].collect.Immutable[v.rawCollectionType].builder();
   [else if v.optionalType]
-  private [v.type] [v.name] = [guava].base.Optional.absent();
+  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateSortedMap]
   private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
       [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
@@ -644,7 +644,7 @@ package [type.package];
   /**
    * Initializes value for [sourceDocRef type v].
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have {@link [type.name]#[v.names.get]() default value}.</em>
+   * <p><em>If not set, this attribute will have default value returned by initializer of [sourceDocRef type v].</em>
   [/if]
    * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
    * @return {@code this} builder for chained invocation
