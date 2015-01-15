@@ -594,12 +594,12 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonParser parser)
     throws IOException {
   JsonToken t = parser.getCurrentToken();
   if (t == JsonToken.VALUE_NULL) {
-    return ImmutableMap.of();
+    return com.google.common.collect.ImmutableMap.of();
   }
   if (t != JsonToken.START_OBJECT) {
     mismatch("[a.name]", "[a.type]", t);
   }
-  com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
+  com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = com.google.common.collect.ImmutableMap.builder();
 
   while((t = parser.nextToken()) != JsonToken.END_OBJECT) {
     if (t != JsonToken.FIELD_NAME) {

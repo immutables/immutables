@@ -21,7 +21,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.Reflection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,10 +36,13 @@ import javax.annotation.Nullable;
  */
 @Deprecated
 final class LegacyJavaPostprocessing {
+  private static final String JAVA_LANG = "java.lang";
+  private static final String JAVA_LANG_PREFIX = "java.lang.";
+
   private static final char DONT_IMPORT_ESCAPE = '`';
 
   private static final Pattern FULLY_QUALIFIED_PATTERN =
-      Pattern.compile("(\\W)(([a-z0-9_]+\\.)+)([A-Z][A-Za-z0-9_]*)");
+      Pattern.compile("(\\W)(([a-z0-9_]+\\.)*)([A-Z][A-Za-z0-9_]+)");
 
   private static final Pattern PACKAGE_DECLARATION =
       Pattern.compile("package ([a-z0-9_\\.]+)");
@@ -47,6 +52,7 @@ final class LegacyJavaPostprocessing {
   private static final Splitter LINE_SPLITTER = Splitter.on('\n');
 
   static CharSequence rewrite(CharSequence content) {
+    Map<String, String> takenImports = new HashMap<>();
     List<String> modifiedLines = Lists.newArrayList();
     Set<String> importStatements = Sets.newTreeSet();
     @Nullable String packageName = null;
@@ -77,17 +83,44 @@ final class LegacyJavaPostprocessing {
         continue;
       }
       Matcher matcher = FULLY_QUALIFIED_PATTERN.matcher(l);
+      StringBuilder modifiedLine = new StringBuilder();
+      int offset = 0;
       while (matcher.find()) {
-        String importClass = matcher.group().substring(1);
-        if (!Reflection.getPackageName(importClass).equals("java.lang")) {
-          importStatements.add("import " + importClass + ";");
+        int start = matcher.start();
+        modifiedLine.append(l.substring(offset, start));
+
+        String group = matcher.group();
+        modifiedLine.append(group.charAt(0));
+
+        String importClass = group.substring(1);
+
+        String simpleName = matcher.group(4);
+
+        if (importClass.length() == simpleName.length()) {
+          takenImports.put(simpleName, importClass);
+          modifiedLine.append(simpleName);
+        } else {
+          String className = takenImports.get(simpleName);
+          boolean shouldImportNoConflict = className == null || className.equals(importClass);
+          if (!shouldImportNoConflict) {
+            shouldImportNoConflict = JAVA_LANG_PREFIX.concat(className).equals(importClass);
+          }
+          if (shouldImportNoConflict) {
+            boolean noImportNeeded = Reflection.getPackageName(importClass).equals(JAVA_LANG)
+                || samePackage(packageName, simpleName, importClass);
+            if (!noImportNeeded) {
+              importStatements.add("import " + importClass + ";");
+            }
+            takenImports.put(simpleName, importClass);
+            modifiedLine.append(simpleName);
+          } else {
+            modifiedLine.append(importClass);
+          }
         }
+        offset = matcher.end();
       }
-      modifiedLines.add(FULLY_QUALIFIED_PATTERN
-          .matcher(l)
-          .replaceAll("$1$4")
-          .replace(",", ", ")
-          .replace(",  ", ", "));
+      modifiedLine.append(l.substring(offset, l.length()));
+      modifiedLines.add(modifiedLine.toString());
     }
 
     if (indexOfGenImportsPlaceholder < 0) {
@@ -95,6 +128,11 @@ final class LegacyJavaPostprocessing {
     }
     modifiedLines.addAll(indexOfGenImportsPlaceholder, importStatements);
     return LINE_JOINER.join(modifiedLines);
+  }
+
+  private static boolean samePackage(String packageName, String simpleName, String importClass) {
+    String fullyQualifiedName = packageName == null ? simpleName : (packageName + '.' + simpleName);
+    return fullyQualifiedName.equals(importClass);
   }
 
   private static String extractPackageName(String l) {

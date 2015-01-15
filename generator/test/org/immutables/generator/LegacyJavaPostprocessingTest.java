@@ -66,6 +66,14 @@ public class LegacyJavaPostprocessingTest {
   }
 
   @Test
+  public void dumpConflictPrevention() {
+    CharSequence rewrited = LegacyJavaPostprocessing.rewrite(
+        "class Set extends java.util.Set {}");
+    check(rewrited).hasToString(
+        "class Set extends java.util.Set {}");
+  }
+
+  @Test
   public void importsNoPlaceholders() {
     CharSequence rewrited = LegacyJavaPostprocessing.rewrite(
         "class My extends java.util.Set {}");
