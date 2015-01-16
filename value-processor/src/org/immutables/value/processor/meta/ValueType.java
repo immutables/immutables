@@ -592,95 +592,54 @@ public final class ValueType extends TypeIntrospectionBase {
     return element.asType();
   }
 
-  enum CollectionKind implements Predicate<ValueAttribute> {
-    LIST,
-    REGULAR_SET,
-    ENUM_SET,
-    SORTED_SET,
-    REGULAR_MAP,
-    ENUM_MAP,
-    SORTED_MAP;
+  private static class KindPredicate implements Predicate<ValueAttribute> {
+    private final AttributeTypeKind kind;
+
+    KindPredicate(AttributeTypeKind kind) {
+      this.kind = kind;
+    }
 
     @Override
     public boolean apply(ValueAttribute attribute) {
-      switch (this) {
-      case LIST:
-        return attribute.typeKind().isList();
-      case REGULAR_SET:
-        return attribute.typeKind().isSet();
-      case ENUM_SET:
-        return attribute.typeKind().isEnumSet();
-      case SORTED_SET:
-        return attribute.typeKind().isSortedSet();
-      case REGULAR_MAP:
-        return attribute.typeKind().isMap();
-      case ENUM_MAP:
-        return attribute.typeKind().isEnumMap();
-      case SORTED_MAP:
-        return attribute.typeKind().isSortedMap();
-      default:
-        return false;
-      }
+      return attribute.typeKind() == kind;
     }
-
-/*
-    enum From implements Predicate<ValueAttribute> {
-      // Builder, i.e. collecting container guarantees there will be no {@code null}s inside and
-      // size is known.
-      BUILDER {
-        @Override
-        public boolean apply(ValueAttribute input) {
-          return input.containingType.isUseBuilder() || input.containingType.kind().isFactory();
-        }
-      },
-
-      // Iterables has unknows size and may contains nulls. This also applies to map
-      ITERABLE {
-        @Override
-        public boolean apply(ValueAttribute input) {
-          return input.containingType.isUseCopyMethods()
-              || input.isConstructorParameter();
-        }
-      }
-    }
-    */
   }
 
   public boolean isUseListUtility() {
-    return useCollectionUtility(CollectionKind.LIST);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.LIST));
   }
 
   public boolean isUseSetUtility() {
-    return useCollectionUtility(CollectionKind.REGULAR_SET);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SET));
   }
 
   public boolean isUseEnumSetUtility() {
-    return useCollectionUtility(CollectionKind.ENUM_SET);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.ENUM_SET));
   }
 
   public boolean isUseSortedSetUtility() {
-    return useCollectionUtility(CollectionKind.SORTED_SET);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SORTED_SET));
   }
 
   public boolean isUseMapUtility() {
-    return useCollectionUtility(CollectionKind.REGULAR_MAP);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.MAP));
   }
 
   public boolean isUseEnumMapUtility() {
-    return useCollectionUtility(CollectionKind.ENUM_MAP);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.ENUM_MAP));
   }
 
   public boolean isUseSortedMapUtility() {
-    return useCollectionUtility(CollectionKind.SORTED_MAP);
+    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SORTED_MAP));
   }
 
-  private boolean useCollectionUtility(CollectionKind construction) {
+  private boolean useCollectionUtility(Predicate<ValueAttribute> predicate) {
     for (ValueType n : nested) {
-      if (Iterables.any(n.getSettableAttributes(), construction)) {
+      if (Iterables.any(n.getSettableAttributes(), predicate)) {
         return true;
       }
     }
-    return Iterables.any(getSettableAttributes(), construction);
+    return Iterables.any(getSettableAttributes(), predicate);
   }
 
   public boolean hasCollectionAttribute() {
