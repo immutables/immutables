@@ -16,13 +16,15 @@
 package org.immutables.generator;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import javax.lang.model.element.TypeElement;
 
 public final class ClasspathAvailability {
   // static non-thread-safe cache? ok!
-  private static final Map<String, Boolean> availableClasses = Maps.newHashMap();
+  private static final Map<String, Boolean> availableClasses =
+      Collections.synchronizedMap(new HashMap<String, Boolean>());
 
   public final Predicate<String> available = new Predicate<String>() {
     @Override

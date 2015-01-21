@@ -26,23 +26,62 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 
+/**
+ * This design is flawed and should be removed. Last time it was not done "right"
+ * because of lack of some form of dependency injection in generators and infrastructure.
+ */
 final class StaticEnvironment {
   private StaticEnvironment() {}
 
-  private static ClassToInstanceMap<Completable> components;
-  private static ProcessingEnvironment processing;
-  private static RoundEnvironment round;
-  private static Set<TypeElement> annotations;
-  private static boolean initialized;
+  private static class EnvironmentState {
+    private ClassToInstanceMap<Completable> components;
+    private ProcessingEnvironment processing;
+    private RoundEnvironment round;
+    private Set<TypeElement> annotations;
+    private boolean initialized;
+
+    void shutdown() {
+      for (Completable component : components.values()) {
+        component.complete();
+      }
+      components = null;
+      processing = null;
+      round = null;
+      annotations = null;
+      initialized = false;
+
+      state.remove();
+    }
+
+    void init(Set<? extends TypeElement> annotations, RoundEnvironment round, ProcessingEnvironment processing) {
+      this.components = MutableClassToInstanceMap.create();
+      this.processing = processing;
+      this.round = round;
+      this.annotations = ImmutableSet.copyOf(annotations);
+      this.initialized = true;
+    }
+  }
+
+  private static final ThreadLocal<EnvironmentState> state = new ThreadLocal<EnvironmentState>() {
+    @Override
+    protected EnvironmentState initialValue() {
+      return new EnvironmentState();
+    }
+  };
+
+  private static EnvironmentState state() {
+    EnvironmentState s = state.get();
+    Preconditions.checkState(s.initialized, "Static environment should be initialized");
+    return s;
+  }
 
   interface Completable {
     void complete();
   }
 
   static <T extends Completable> T getInstance(Class<T> type, Supplier<T> supplier) {
-    checkInitialized();
-    @Nullable
-    T instance = components.getInstance(type);
+    ClassToInstanceMap<Completable> components = state().components;
+    @Nullable T instance = components.getInstance(type);
     if (instance == null) {
       instance = supplier.get();
       components.putInstance(type, instance);
@@ -51,44 +90,26 @@ final class StaticEnvironment {
   }
 
   static ProcessingEnvironment processing() {
-    checkInitialized();
-    return processing;
+    return state().processing;
   }
 
   static RoundEnvironment round() {
-    checkInitialized();
-    return round;
+    return state().round;
   }
 
   static Set<TypeElement> annotations() {
-    checkInitialized();
-    return annotations;
-  }
-
-  private static void checkInitialized() {
-    Preconditions.checkState(initialized, "Static environment should be initialized");
+    return state().annotations;
   }
 
   static void shutdown() throws Exception {
-    for (Completable component : components.values()) {
-      component.complete();
-    }
-    components = null;
-    processing = null;
-    round = null;
-    annotations = null;
-    initialized = false;
+    state().shutdown();
   }
 
   static void init(
       Set<? extends TypeElement> annotations,
       RoundEnvironment round,
       ProcessingEnvironment processing) {
-    StaticEnvironment.components = MutableClassToInstanceMap.create();
-    StaticEnvironment.processing = processing;
-    StaticEnvironment.round = round;
-    StaticEnvironment.annotations = ImmutableSet.copyOf(annotations);
-    StaticEnvironment.initialized = true;
+    state.get().init(annotations, round, processing);
   }
 
 }

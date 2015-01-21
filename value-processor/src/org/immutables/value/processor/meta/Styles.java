@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.annotation.concurrent.GuardedBy;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import java.util.Map;
@@ -23,7 +24,7 @@ import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
 
 public final class Styles {
-  // Let it be static non-thread-safe cache, it's ok for now
+  @GuardedBy("cache")
   private static final Map<Style, Styles> cache = Maps.newHashMap();
 
   @Style
@@ -36,12 +37,14 @@ public final class Styles {
   }
 
   public static Styles using(Style style) {
-    Styles namings = cache.get(style);
-    if (namings == null) {
-      namings = new Styles(style);
-      cache.put(style, namings);
+    synchronized (cache) {
+      Styles namings = cache.get(style);
+      if (namings == null) {
+        namings = new Styles(style);
+        cache.put(style, namings);
+      }
+      return namings;
     }
-    return namings;
   }
 
   private final Style style;
