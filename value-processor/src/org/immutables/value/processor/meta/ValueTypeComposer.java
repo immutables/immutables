@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Set;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.ElementFilter;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -80,6 +83,8 @@ public final class ValueTypeComposer {
     } else if (protoclass.kind().isValue()) {
       // This check is legacy, most such checks should have been done on a higher level?
       if (isAbstractValueType(type.element)) {
+        checkForMutableFields(protoclass, (TypeElement) type.element);
+
         new AccessorAttributesCollector(protoclass, type).collect();
       } else {
         protoclass.report()
@@ -92,6 +97,21 @@ public final class ValueTypeComposer {
 
     checkAttributeNamesForDuplicates(type, protoclass);
     return type;
+  }
+
+  private void checkForMutableFields(Protoclass protoclass, TypeElement element) {
+    for (VariableElement field : ElementFilter.fieldsIn(
+        processing.getElementUtils().getAllMembers(element))) {
+      if (!field.getModifiers().contains(Modifier.FINAL)) {
+        Reporter report = protoclass.report();
+        boolean ownField = field.getEnclosingElement().equals(element);
+        if (ownField) {
+          report.withElement(field).warning("Avoid introduction of fields (except constants) in abstract value types");
+        } else {
+          report.warning("Abstract value type inherits mutable fields");
+        }
+      }
+    }
   }
 
   private void checkAttributeNamesForDuplicates(ValueType type, Protoclass protoclass) {
