@@ -15,6 +15,7 @@
  */
 package org.immutables.common.marshal;
 
+import org.immutables.metainf.Metainf;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -42,6 +43,7 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
  * @see org.immutables.value.Value.Immutable
  * @see org.immutables.value.Json.Marshaled
  */
+@Metainf.Service
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)

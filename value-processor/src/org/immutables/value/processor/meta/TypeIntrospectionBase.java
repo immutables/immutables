@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -24,15 +23,9 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
-import java.util.List;
-import java.util.Set;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.generator.TypeHierarchyCollector;
 
 public abstract class TypeIntrospectionBase {
   protected static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
@@ -118,88 +111,9 @@ public abstract class TypeIntrospectionBase {
   }
 
   protected void intospectTypeMirror(TypeMirror typeMirror) {
-    List<TypeMirror> extendedClasses = Lists.newArrayList();
-    Set<TypeMirror> implementedInterfaces = Sets.newLinkedHashSet();
-
-    if (typeMirror.getKind() == TypeKind.DECLARED) {
-      collectHierarchyMirrors(typeMirror, extendedClasses, implementedInterfaces);
-    }
-
-    extendedClassesNames = FluentIterable.from(extendedClasses)
-        .filter(DeclaredType.class)
-        .transform(ToNameOfTypeElement.FUNCTION)
-        .toList();
-
-    FluentIterable<DeclaredType> superIntefaceTypes =
-        FluentIterable.from(implementedInterfaces)
-            .filter(DeclaredType.class);
-/*
-    Iterable<TypeElement> superIntefaces =
-        superIntefaceTypes
-            .transform(ToDeclaredTypeElement.FUNCTION)
-            .toList()
-            .reverse();
-
-    superIntefaces = FluentIterable.from(superIntefaces).toSet();
-
-    implementedInterfaceElements = ImmutableList.copyOf(superIntefaces).reverse();
-*/
-    implementedInterfacesNames = superIntefaceTypes
-        .transform(ToNameOfTypeElement.FUNCTION)
-        .toSet();
+    TypeHierarchyCollector collector = new TypeHierarchyCollector();
+    collector.collectFrom(typeMirror);
+    this.extendedClassesNames = collector.extendedClassNames();
+    this.implementedInterfacesNames = collector.implementedInterfaceNames();
   }
-
-  private void collectHierarchyMirrors(
-      TypeMirror topClass,
-      List<TypeMirror> extendedClasses,
-      Set<TypeMirror> implementedInterfaces) {
-    if (topClass.getKind() != TypeKind.DECLARED || topClass.toString().equals(Object.class.getName())) {
-      return;
-    }
-    collectInterfacesMirrors(topClass, implementedInterfaces);
-
-    TypeElement e = toTypeElement(topClass);
-    TypeMirror superClass = e.getSuperclass();
-
-    extendedClasses.add(superClass);
-    collectHierarchyMirrors(superClass, extendedClasses, implementedInterfaces);
-
-    for (TypeMirror typeMirror : e.getInterfaces()) {
-      collectInterfacesMirrors(typeMirror, implementedInterfaces);
-    }
-  }
-
-  private void collectInterfacesMirrors(
-      TypeMirror topClass,
-      Set<TypeMirror> implementedInterfaces) {
-    TypeElement e = toTypeElement(topClass);
-
-    if (e.getKind().isInterface()) {
-      implementedInterfaces.add(topClass);
-      for (TypeMirror typeMirror : e.getInterfaces()) {
-        collectInterfacesMirrors(typeMirror, implementedInterfaces);
-      }
-    }
-  }
-
-  private TypeElement toTypeElement(TypeMirror input) {
-    return ToDeclaredTypeElement.FUNCTION.apply(input);
-  }
-
-  private enum ToDeclaredTypeElement implements Function<TypeMirror, TypeElement> {
-    FUNCTION;
-    @Override
-    public TypeElement apply(TypeMirror input) {
-      return (TypeElement) ((DeclaredType) input).asElement();
-    }
-  }
-
-  private enum ToNameOfTypeElement implements Function<TypeMirror, String> {
-    FUNCTION;
-    @Override
-    public String apply(TypeMirror input) {
-      return ToDeclaredTypeElement.FUNCTION.apply(input).getQualifiedName().toString();
-    }
-  }
-
 }

@@ -15,30 +15,38 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.*;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+import com.google.common.base.Supplier;
+import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSink;
 import com.google.common.io.CharSource;
 import com.google.common.io.CharStreams;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+import static com.google.common.base.Preconditions.*;
 
 public final class Output {
   public final Templates.Invokable error = new Templates.Invokable() {
@@ -167,6 +175,13 @@ public final class Output {
 
     private void writeFile() throws IOException {
       LinkedHashSet<String> services = Sets.newLinkedHashSet();
+      readExistingEntriesInto(services);
+      copyNewMetaservicesInto(services);
+      removeBlankLinesIn(services);
+      writeLinesFrom(services);
+    }
+
+    private void readExistingEntriesInto(Collection<String> services) {
       try {
         FileObject existing = getFiler().getResource(StandardLocation.CLASS_OUTPUT, key.packageName, key.relativeName);
         FluentIterable.from(CharStreams.readLines(existing.openReader(true)))
@@ -175,10 +190,9 @@ public final class Output {
       } catch (Exception ex) {
         // unable to read existing file
       }
+    }
 
-      FluentIterable.from(Splitter.on("\n").split(consumer.asCharSequence()))
-          .copyInto(services);
-
+    private void writeLinesFrom(Iterable<String> services) throws IOException {
       new CharSink() {
         @Override
         public Writer openStream() throws IOException {
@@ -188,6 +202,16 @@ public final class Output {
         }
       }.writeLines(services, "\n");
     }
+
+    private void removeBlankLinesIn(Iterable<String> services) {
+      Iterables.removeIf(services, Predicates.equalTo(""));
+    }
+
+    private void copyNewMetaservicesInto(Collection<String> services) {
+      FluentIterable.from(Splitter.on("\n").split(consumer.asCharSequence()))
+          .copyInto(services);
+    }
+
   }
 
   private static class SourceFile {

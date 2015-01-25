@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.Set;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.ElementFilter;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -28,6 +25,8 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.ElementFilter;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 /**

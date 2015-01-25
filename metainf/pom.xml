@@ -2,29 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <parent>
-    <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
+    <groupId>org.immutables</groupId>
     <version>1.1.3-SNAPSHOT</version>
   </parent>
 
-  <artifactId>value-processor</artifactId>
+  <artifactId>metainf</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Immutable objects processor, new generation</description>
+  <description>Simple, but superior to others, META-INF/service file generator</description>
 
   <dependencies>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-    </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>generator</artifactId>
@@ -32,22 +20,15 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>metainf</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>generator-processor</artifactId>
       <version>${project.version}</version>
-      <optional>true</optional>
       <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
-      <version>1.1</version>
+      <groupId>com.google.auto.service</groupId>
+      <artifactId>auto-service</artifactId>
+      <version>1.0-rc2</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
@@ -58,5 +39,4 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>

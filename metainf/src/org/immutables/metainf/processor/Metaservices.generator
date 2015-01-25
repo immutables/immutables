@@ -1,0 +1,7 @@
+[template generate]
+  [for e in allMetaservices.entries]
+[output.service e.value]
+[e.key]
+[/output.service]
+  [/for]
+[/template]

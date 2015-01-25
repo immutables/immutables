@@ -15,17 +15,17 @@
  */
 package org.immutables.value.processor;
 
-import com.google.auto.service.AutoService;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.Generator;
+import org.immutables.metainf.Metainf;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.ImmutableRound;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Round;
 import org.immutables.value.processor.meta.ValueType;
 
-@AutoService(javax.annotation.processing.Processor.class)
+@Metainf.Service
 @Generator.SupportedAnnotations({
     Value.Immutable.class,
     Value.Nested.class,
@@ -47,6 +47,6 @@ public final class Processor extends AbstractGenerator {
     invoke(new Generator_Repositories().usingValues(values).generate());
 //    invoke(new Generator_Parboileds().usingValues(values).generate());
 //    invoke(new Generator_Transformers().usingValues(values).generate());
-    invoke(new Generator_Streamers().usingValues(values).generate());
+    invoke(new Generator_Gsons().usingValues(values).generate());
   }
 }
