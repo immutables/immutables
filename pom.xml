@@ -33,6 +33,8 @@
     <module>value-standalone</module>
     <module>quickstart</module>
     <module>json-runtime</module>
+    <module>gson</module>
+    <module>metainf</module>
   </modules>
 
   <organization>

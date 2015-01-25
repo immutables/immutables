@@ -22,7 +22,7 @@ import org.immutables.generator.Generator;
 import org.immutables.value.processor.meta.ValueAttribute;
 
 @Generator.Template
-abstract class Streamers extends ValuesTemplate {
+abstract class Gsons extends ValuesTemplate {
   @Generator.Typedef
   Multimap<Character, ValueAttribute> Mm;
   public final Function<Iterable<ValueAttribute>, Multimap<Character, ValueAttribute>> byFirstCharacter =
