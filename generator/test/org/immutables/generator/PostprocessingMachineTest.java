@@ -2,6 +2,7 @@
 package org.immutables.generator;
 
 import com.google.common.base.Joiner;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -95,5 +96,15 @@ public class PostprocessingMachineTest {
         LINES.join("package start;",
             "import java.util.Set;",
             "class My extends Set {}"));
+  }
+
+  @Test
+  @Ignore
+  public void conflictResolution() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        "class Set extends java.util.Set {}");
+
+    check(rewrited).hasToString(
+        "class Set extends java.util.Set {}");
   }
 }
