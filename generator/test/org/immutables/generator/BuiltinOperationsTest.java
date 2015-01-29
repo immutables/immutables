@@ -51,9 +51,9 @@ public class BuiltinOperationsTest {
 
   @Test
   public void cases() {
-    check(operations.toConstant.convert("attName")).is("ATT_NAME");
-    check(operations.toLower.convert("AttName")).is("attName");
-    check(operations.toUpper.convert("attName")).is("AttName");
+    check(operations.toConstant.apply("attName")).is("ATT_NAME");
+    check(operations.toLower.apply("AttName")).is("attName");
+    check(operations.toUpper.apply("attName")).is("AttName");
   }
 
   @Test

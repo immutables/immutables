@@ -22,12 +22,9 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Chars;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
+import org.immutables.generator.Templates.*;
+
 import java.util.Collection;
-import org.immutables.generator.Templates.Apply;
-import org.immutables.generator.Templates.Binary;
-import org.immutables.generator.Templates.Invokable;
-import org.immutables.generator.Templates.Invokation;
-import org.immutables.generator.Templates.Product;
 
 public final class Intrinsics {
   private Intrinsics() {}
@@ -71,6 +68,10 @@ public final class Intrinsics {
     return new Product(parameters);
   }
 
+  public static <F> void $(Invokation invokation, Predicate<? super F> predicate, F value) {
+    invokation.out($(predicate, value));
+  }
+
   public static <F> void $(Invokation invokation, Function<? super F, ?> unary, F value) {
     invokation.out($(unary, value));
   }
@@ -91,11 +92,11 @@ public final class Intrinsics {
     invokable.invoke(invokation, parameters);
   }
 
-  public static void $(Invokation invokation, Object object, Object... parameters) {
+/*  public static void $(Invokation invokation, Object object, Object... parameters) {
     // TBD do we need this overload
     invokation.out(object).out(parameters);
   }
-
+*/
   public static void $(Invokation invokation, Object object) {
     invokation.out(object);
   }

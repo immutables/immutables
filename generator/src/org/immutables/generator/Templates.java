@@ -17,10 +17,12 @@ package org.immutables.generator;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
-import javax.annotation.Nullable;
-import static com.google.common.base.Preconditions.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Basis for the functionality of generated templates
@@ -266,9 +268,11 @@ public final class Templates {
       if (invokation.consumer != null) {
         indentationToResore = invokation.consumer.indentation;
 
-        invokation.consumer.indentation = capturedIndentation != null
+        // FIXME is it was a good idea?
+        invokation.consumer.indentation = /* capturedIndentation != null
             ? capturedIndentation
-            : invokation.consumer.getCurrentIndentation();
+            :*/
+            invokation.consumer.getCurrentIndentation();
       }
 
       run(new Invokation(invokation.consumer, params));
@@ -286,7 +290,8 @@ public final class Templates {
       if (arity == 0) {
         CharConsumer consumer = new CharConsumer();
         invoke(new Invokation(consumer));
-        return consumer.asCharSequence();
+        CharSequence cs = consumer.asCharSequence();
+        return cs;
       }
       return super.toString();
     }
