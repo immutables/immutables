@@ -21,6 +21,8 @@ public @interface Ann {
 
   Retention retention() default @Retention(RetentionPolicy.RUNTIME);
 
+  Nest nest() default @Nest;
+
   String[] vals() default {};
 
   String value();
@@ -30,6 +32,9 @@ public @interface Ann {
   enum En {
     V1, V2
   }
+
+  @Mirror.Annotation("some.sample.annotation.Nest")
+  public @interface Nest {}
 
   static class CompiledUse {
     void use() {
@@ -43,8 +48,12 @@ public @interface Ann {
       mirror.bool();
       mirror.vals().clone();
       mirror.value();
-      mirror.getMirror();
+      mirror.getAnnotationMirror();
       mirror.annotationType();
+
+      Optional<NestMirror> optNest = NestMirror.find(Collections.<AnnotationMirror>emptyList());
+
+      mirror.nest().equals(optNest.get());
     }
   }
 }

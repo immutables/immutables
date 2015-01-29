@@ -12,20 +12,40 @@ package [m.package];
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.*;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
+import [guava].base.Verify;
+import [guava].base.Preconditions;
+import [guava].base.Optional;
+import [guava].collect.ImmutableList;
 
 /**
  * [m.name]Mirror used to parse data of AnnotationMirror for annotation {@value #ANNOTATION_NAME}
- * during annotation processing. Interface is being described using {@link [m.name]} annotation,
+ * during annotation processing. Interface is being described using {@link [m.element.qualifiedName]} annotation,
  * which should be structurally compatible to the annotation being modelled.
  * @see #find(Iterable)
  * @see #from(AnnotationMirror)
  */
 @SuppressWarnings("all")
-public class [m.name]Mirror implements [m.name] {
+public class [m.name]Mirror implements [m.element.qualifiedName] {
   public static final String ANNOTATION_NAME = "[m.annotationTypeCommas]".replace(',', '.');
+
+  public static boolean isPresent(Element annotatedElement) {
+    for (AnnotationMirror mirror : annotatedElement.getAnnotationMirrors()) {
+      TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
+      if (element.getQualifiedName().contentEquals(ANNOTATION_NAME)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Finds first annotation of this type on the element.
+   * @param element annotated element
+   * @return optional {@code [m.name]Mirror}, present if this annotation found
+   */
+  public static Optional<[m.name]Mirror> find(Element element) {
+    return find(element.getAnnotationMirrors());
+  }
 
   /**
    * Finds first annotation of this type in an iterable of annotation mirrors.
@@ -67,16 +87,22 @@ public class [m.name]Mirror implements [m.name] {
     return find(java.util.Collections.singleton(mirror));
   }
 
-  private final AnnotationMirror mirror;
+  private final AnnotationMirror annotationMirror;
 [for a in m.attributes]
   private final [targetAttributeType a][a.suffix] [a.name];
   [if a.kind.type]
   private final String[a.suffix] [a.name]Name;
   [/if]
+  [if a.mirrorModel]
+  private final [mirrorType a][a.suffix] [a.name]Mirror;
+  [/if]
 [/for]
 
-  private [m.name]Mirror(AnnotationMirror mirror) {
-    this.mirror = mirror;
+  private [m.name]Mirror(TypeElement defaultAnnotationElement) {
+    Preconditions.checkArgument(defaultAnnotationElement.getQualifiedName().contentEquals(ANNOTATION_NAME));
+    this.annotationMirror = null;
+
+    // TBD TODO BIG
 
   [if m.attributes]
   [for a in m.attributes]
@@ -85,6 +111,9 @@ public class [m.name]Mirror implements [m.name] {
     String[a.suffix] [a.name]Name = null;
     [else if a.kind.annotation]
     AnnotationMirror[a.suffix] [a.name] = null;
+      [if a.mirrorModel]
+    [mirrorType a][a.suffix] [a.name]Mirror = null;
+      [/if]
     [else if a.kind.primitive]
     [a.type][a.suffix] [a.name] = [if a.boolean]false[else]0[/if];
     [else]
@@ -92,9 +121,74 @@ public class [m.name]Mirror implements [m.name] {
     [/if]
   [/for]
 
-    java.util.Map<? extends ExecutableElement, ? extends AnnotationValue> attributeValues = mirror.getElementValues();
     for (ExecutableElement attributeElement
-        : ElementFilter.methodsIn(mirror.getAnnotationType().asElement().getEnclosedElements())) {
+        : ElementFilter.methodsIn(annotationMirror.getAnnotationType().asElement().getEnclosedElements())) {
+      String name = attributeElement.getSimpleName().toString();
+      [for a in m.attributes]
+      if ("[a.name]".equals(name)) {
+        AnnotationValue annotationValue = attributeElement.getDefaultValue();
+        if (annotationValue == null) {
+          throw new IllegalStateException("All annotation attributes should have default value to create mirror of @" + ANNOTATION_NAME);
+        }
+        [toUpper a.name]Extractor [a.name]Extractor = new [toUpper a.name]Extractor();
+        annotationValue.accept([a.name]Extractor, null);
+
+          [if a.kind.type]
+        [a.name] = [a.name]Extractor.get();
+        [a.name]Name = [a.name]Extractor.name();
+          [else if a.kind.annotation]
+        [a.name] = [a.name]Extractor.get();
+            [if a.mirrorModel]
+        [a.name]Mirror = [a.name]Extractor.mirror();
+            [/if]
+          [else]
+        [a.name] = [a.name]Extractor.get();
+          [/if]
+        continue;
+      }
+      [/for]
+    }
+    [for a in m.attributes]
+      [if a.kind.type]
+    this.[a.name] = Preconditions.checkNotNull([a.name]);
+    this.[a.name]Name = Preconditions.checkNotNull([a.name]Name);
+      [else if a.kind.annotation]
+    this.[a.name] = Preconditions.checkNotNull([a.name]);
+         [if a.mirrorModel]
+    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror);
+         [/if]
+      [else if a.kind.primitive]
+    this.[a.name] = [a.name];
+      [else]
+    this.[a.name] = Preconditions.checkNotNull([a.name]);
+      [/if]
+    [/for]
+  [/if]
+  }
+
+  private [m.name]Mirror(AnnotationMirror annotationMirror) {
+    this.annotationMirror = annotationMirror;
+
+  [if m.attributes]
+  [for a in m.attributes]
+    [if a.kind.type]
+    TypeMirror[a.suffix] [a.name] = null;
+    String[a.suffix] [a.name]Name = null;
+    [else if a.kind.annotation]
+    AnnotationMirror[a.suffix] [a.name] = null;
+      [if a.mirrorModel]
+    [mirrorType a][a.suffix] [a.name]Mirror = null;
+      [/if]
+    [else if a.kind.primitive]
+    [a.type][a.suffix] [a.name] = [if a.boolean]false[else]0[/if];
+    [else]
+    [a.type][a.suffix] [a.name] = null;
+    [/if]
+  [/for]
+
+    java.util.Map<? extends ExecutableElement, ? extends AnnotationValue> attributeValues = annotationMirror.getElementValues();
+    for (ExecutableElement attributeElement
+        : ElementFilter.methodsIn(annotationMirror.getAnnotationType().asElement().getEnclosedElements())) {
       String name = attributeElement.getSimpleName().toString();
       [for a in m.attributes]
       if ("[a.name]".equals(name)) {
@@ -113,6 +207,9 @@ public class [m.name]Mirror implements [m.name] {
         [a.name]Name = [a.name]Extractor.name();
           [else if a.kind.annotation]
         [a.name] = [a.name]Extractor.get();
+            [if a.mirrorModel]
+        [a.name]Mirror = [a.name]Extractor.mirror();
+            [/if]
           [else]
         [a.name] = [a.name]Extractor.get();
           [/if]
@@ -126,6 +223,9 @@ public class [m.name]Mirror implements [m.name] {
     this.[a.name]Name = Preconditions.checkNotNull([a.name]Name);
       [else if a.kind.annotation]
     this.[a.name] = Preconditions.checkNotNull([a.name]);
+         [if a.mirrorModel]
+    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror);
+         [/if]
       [else if a.kind.primitive]
     this.[a.name] = [a.name];
       [else]
@@ -167,6 +267,16 @@ public class [m.name]Mirror implements [m.name] {
   public [targetAttributeType a][a.suffix] [a.name]Mirror() {
     return [a.name][if a.array].clone()[/if];
   }
+    [if a.mirrorModel]
+
+  /**
+   * @return reified annotation mirror for {@link [a.type]}
+   */
+  @Override
+  public [mirrorType a][a.suffix] [a.name]() {
+    return [a.name]Mirror;
+  }
+    [else]
 
   /**
    * @deprecated Always throws UnsupportedOperationException. Use {@link #[a.name]Mirror()}.
@@ -176,6 +286,7 @@ public class [m.name]Mirror implements [m.name] {
   public [a.type][a.suffix] [a.name]() {
     throw new UnsupportedOperationException("Use '[a.name]Mirror()' to get to the annotation value");
   }
+    [/if]
   [else]
 
   /**
@@ -191,17 +302,48 @@ public class [m.name]Mirror implements [m.name] {
   /**
    * @return underlying annotation mirror
    */
-  public AnnotationMirror getMirror() {
-    return mirror;
+  public AnnotationMirror getAnnotationMirror() {
+    Preconditions.checkState(annotationMirror != null, "this is default mirror without originating AnnotationMirror");
+    return annotationMirror;
   }
 
   /**
    * @return {@code [m.name].class}
    */
+  @Override
   public Class<? extends java.lang.annotation.Annotation> annotationType() {
-    return [m.name].class;
+    return [m.element.qualifiedName].class;
   }
 
+  @Override
+  public int hashCode() {
+    int h = 0;
+[for a in m.attributes]
+  [if a.array]
+    h += 127 * "[a.name]".hashCode() ^ java.util.Arrays.hashCode([a.name][if a.kind.type]Name[/if]);
+  [else if a.kind.primitive]
+    h += 127 * "[a.name]".hashCode() ^ [guava].primitives.[toUpper a.type]s.hashCode([a.name]);
+  [else]
+    h += 127 * "[a.name]".hashCode() ^ [a.name][if a.kind.type]Name[/if].hashCode();
+  [/if]
+[/for]
+    return h;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other instanceof [m.name]Mirror) {
+      [m.name]Mirror otherMirror = ([m.name]Mirror) other;
+      return [if not m.attributes]true[/if][for a in m.attributes][if not for.first]
+          && [/if][equalsAttribute a][/for];
+    }
+    return false;
+  }
+
+  @Override
+  public String toString() {
+    return "[m.name]Mirror:" + annotationMirror;
+  }
 [for a in m.attributes]
   [attributeExtractor a]
 [/for]
@@ -240,7 +382,7 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
   @Override
   public Void visitArray(java.util.List<? extends AnnotationValue> array, Void p) {
     this.values = new [targetType]['[']array.size()[']'];
-    com.google.common.base.Verify.verify(position == 0);
+    Verify.verify(position == 0);
     for (AnnotationValue value : array) {
       value.accept(this, null);
     }
@@ -256,6 +398,16 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
     String[brackets] names = new String['[']values.length[']'];
     for (int i = 0; i < values.length; i++) {
       names['[i]'] = values['[i]'].toString();
+    }
+    return names;
+  }
+  [/if]
+  [if a.mirrorModel]
+
+  public [mirrorType a][brackets] mirror() {
+    [mirrorType a][brackets] mirrors = new [mirrorType a]['[']values.length[']'];
+    for (int i = 0; i < values.length; i++) {
+      mirrors['[i]'] = [mirrorType a].from(values['[i]']).get();
     }
     return names;
   }
@@ -295,7 +447,13 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
     return value.toString();
   }
   [/if]
+  [if a.mirrorModel]
+  [let mirrorType][a.mirrorModel.package].[a.mirrorModel.name]Mirror[/let]
 
+  public [mirrorType a] mirror() {
+    return [mirrorType a].from(value).get();
+  }
+  [/if]
   [targetType] get() {
     return value;
   }
@@ -308,6 +466,8 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
 }
 [/template]
 
+[template mirrorType AttributeModel a][a.mirrorModel.package].[a.mirrorModel.name]Mirror[/template]
+
 [template targetAttributeType AttributeModel a][output.trim]
   [if a.kind.type]
     TypeMirror
@@ -317,3 +477,21 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
     [a.type]
   [/if]
 [/output.trim][/template]
+
+[template equalsAttribute AttributeModel a][output.trim]
+[let getOther]otherMirror.[a.name][if a.kind.type]Name[/if][/let]
+[let getThis][a.name][if a.kind.type]Name[/if][/let]
+[if a.array]
+  java.util.Arrays.equals([getThis], [getOther])
+[else if a.float]
+  Float.floatToIntBits([getThis]) == Float.floatToIntBits([getOther])
+[else if a.double]
+  Double.doubleToLongBits([getThis]) == Double.doubleToLongBits([getOther])
+[else if a.kind.primitive]
+  [getThis] == [getOther]
+[else]
+  [getThis].equals([getOther])
+[/if]
+[/output.trim][/template]
+
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

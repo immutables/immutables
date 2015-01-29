@@ -51,7 +51,16 @@ class Mirrors extends AbstractTemplate {
       }
       this.attributes = builder.build();
       this.name = element.getSimpleName().toString();
-      this.$$package = ((PackageElement) element.getEnclosingElement()).getQualifiedName().toString();
+
+      PackageElement packageElement;
+      for (Element e = element;; e = e.getEnclosingElement()) {
+        if (e.getKind() == ElementKind.PACKAGE) {
+          packageElement = (PackageElement) e;
+          break;
+        }
+      }
+
+      this.$$package = packageElement.getQualifiedName().toString();
     }
 
     String annotationTypeCommas() {
@@ -65,7 +74,8 @@ class Mirrors extends AbstractTemplate {
       final TypeMirror type;
       final AttributeTypeKind kind;
       final String suffix;
-      final boolean isBoolean;
+      @Nullable
+      final MirrorModel mirrorModel;
 
       AttributeModel(ExecutableElement element) {
         this.element = element;
@@ -74,11 +84,34 @@ class Mirrors extends AbstractTemplate {
         TypeMirror type = element.getReturnType();
 
         this.isArray = type.getKind() == TypeKind.ARRAY;
-        this.isBoolean = type.getKind() == TypeKind.BOOLEAN;
         this.type = this.isArray ? ((ArrayType) type).getComponentType() : type;
         this.kind = AttributeTypeKind.from(this.type);
 
         this.suffix = this.isArray ? "[]" : "";
+        this.mirrorModel = getMirrorModelIfAnnotation();
+      }
+
+      @Nullable
+      private MirrorModel getMirrorModelIfAnnotation() {
+        if (this.kind == AttributeTypeKind.ANNOTATION) {
+          TypeElement element = toElement(this.type);
+          if (element.getAnnotation(Mirror.Annotation.class) != null) {
+            return new MirrorModel(element);
+          }
+        }
+        return null;
+      }
+
+      boolean isBoolean() {
+        return type.getKind() == TypeKind.BOOLEAN;
+      }
+
+      boolean isFloat() {
+        return type.getKind() == TypeKind.FLOAT;
+      }
+
+      boolean isDouble() {
+        return type.getKind() == TypeKind.DOUBLE;
       }
     }
   }
@@ -126,10 +159,10 @@ class Mirrors extends AbstractTemplate {
       }
       throw new AssertionError();
     }
+  }
 
-    private static TypeElement toElement(TypeMirror type) {
-      return (TypeElement) ((DeclaredType) type).asElement();
-    }
+  private static TypeElement toElement(TypeMirror type) {
+    return (TypeElement) ((DeclaredType) type).asElement();
   }
 
   @Nullable
@@ -139,14 +172,14 @@ class Mirrors extends AbstractTemplate {
     if (element.getKind() == ElementKind.ANNOTATION_TYPE
         && element.getModifiers().contains(Modifier.PUBLIC)
         && enclosingElement != null
-        && enclosingElement.getKind() == ElementKind.PACKAGE
-        && !((PackageElement) enclosingElement).isUnnamed()) {
+        && (enclosingElement.getKind() != ElementKind.PACKAGE
+        || !((PackageElement) enclosingElement).isUnnamed())) {
       return (TypeElement) element;
     }
 
     processing().getMessager().printMessage(
         Diagnostic.Kind.ERROR,
-        "Element annotated with @Mirror.Annotation annotation should top-level annotation type in a package",
+        "Element annotated with @Mirror.Annotation annotation should public annotation type in a package",
         element);
 
     return null;
