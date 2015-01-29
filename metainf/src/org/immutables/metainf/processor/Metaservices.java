@@ -1,6 +1,5 @@
 package org.immutables.metainf.processor;
 
-import org.immutables.generator.TypeHierarchyCollector;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
@@ -12,6 +11,7 @@ import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -19,6 +19,7 @@ import javax.tools.Diagnostic;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.Generator;
+import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.metainf.Metainf;
 
 @Generator.Template
@@ -88,15 +89,17 @@ class Metaservices extends AbstractTemplate {
 
     if (element.getKind() == ElementKind.CLASS
         && element.getModifiers().contains(Modifier.PUBLIC)
+        && !element.getModifiers().contains(Modifier.ABSTRACT)
         && enclosingElement != null
-        && enclosingElement.getKind() == ElementKind.PACKAGE) {
+        && enclosingElement.getKind() == ElementKind.PACKAGE
+        && !((PackageElement) enclosingElement).isUnnamed()) {
       return (TypeElement) element;
     }
 
-    processing().getMessager().printMessage(
-        Diagnostic.Kind.ERROR,
-        "Element annotated with @Metainf.Service annotation should be public top-level class in a package",
-        element);
+    processing().getMessager()
+        .printMessage(Diagnostic.Kind.ERROR,
+            "Element annotated with @Metainf.Service annotation should be public top-level non-abstract class in a package",
+            element);
 
     return null;
   }
