@@ -4,9 +4,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 final class PostprocessingMachine {
@@ -18,11 +19,6 @@ final class PostprocessingMachine {
   static CharSequence rewrite(CharSequence content) {
     String currentPackage = "";
     ImportsBuilder importsBuilder = new ImportsBuilder();
-    ArrayList<String> parts = Lists.newArrayList();
-    // reserve position for package
-    parts.add("");
-    // reserve position for imports
-    parts.add("");
 
     State state = State.UNDEFINED;
     int packageFrom = -1;
@@ -68,24 +64,46 @@ final class PostprocessingMachine {
         if (!commentMachine.isInComment()) {
           fullyQualifiedNameMachine.nextChar(c, i);
           if (fullyQualifiedNameMachine.isFinished()) {
-            importsBuilder.addImport(
+
+            importsBuilder.addImportCandidate(
+                content.subSequence(fullyQualifiedNameMachine.packageTo, fullyQualifiedNameMachine.importTo).toString(),
                 content.subSequence(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo)
-                    .toString());
-            parts.add(content.subSequence(nextPartFrom, fullyQualifiedNameMachine.importFrom).toString());
-            nextPartFrom = fullyQualifiedNameMachine.packageTo;
+                    .toString(),
+                fullyQualifiedNameMachine.importFrom,
+                fullyQualifiedNameMachine.importTo,
+                fullyQualifiedNameMachine.packageTo);
           }
         }
         break;
       }
     }
-    // last part
-    parts.add(content.subSequence(nextPartFrom, content.length()).toString());
 
-    if (!currentPackage.isEmpty()) {
-      parts.set(0, "package " + currentPackage + ";\n");
+    importsBuilder.preBuild();
+
+    StringBuilder stringBuilder = new StringBuilder(content.length() << 1);
+
+    for (ImportCandidate importCandidate : importsBuilder.importCandidates.values()) {
+      if (importCandidate.importTo != -1) {
+        importsBuilder.addImport(importCandidate.preparedImport);
+      }
+      stringBuilder.append(content.subSequence(nextPartFrom, importCandidate.importFrom));
+      nextPartFrom = importCandidate.packageTo;
     }
-    parts.set(1, importsBuilder.build());
-    return JOINER.join(parts);
+
+    String imports = importsBuilder.build();
+
+    stringBuilder
+        // last part
+        .append(content.subSequence(nextPartFrom, content.length()))
+            // imports
+        .insert(0, imports);
+
+    // package
+    if (!currentPackage.isEmpty()) {
+      stringBuilder.insert(0, ";\n").insert(0, currentPackage).insert(0, "package ");
+    }
+
+    return stringBuilder.toString();
   }
 
   enum State {
@@ -159,19 +177,32 @@ final class PostprocessingMachine {
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
+    private TreeMap<String, ImportCandidate> importCandidates = Maps.newTreeMap();
+    private HashSet<String> exceptions = Sets.newHashSet();
 
-    void addImport(String importedPackage) {
-      String normalized = normalize(importedPackage);
+    void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
+      String normalized = normalize(fullyQualifiedName);
 
       if (normalized.startsWith(JAVA_LANG)) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
         return;
       }
 
       if (currentPackage.isPresent() && normalized.startsWith(currentPackage.get())) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
         return;
       }
 
-      imports.add(normalized);
+      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, normalized));
+    }
+
+    // TODO use it
+    void addException(String name) {
+      exceptions.add(name);
+    }
+
+    void addImport(String importedPackage) {
+      imports.add(normalize(importedPackage));
     }
 
     void setCurrentPackage(String currentPackage) {
@@ -180,6 +211,12 @@ final class PostprocessingMachine {
 
     private String normalize(String s) {
       return s.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "");
+    }
+
+    void preBuild() {
+      for (String exception : exceptions) {
+        importCandidates.remove(exception);
+      }
     }
 
     String build() {
@@ -344,6 +381,20 @@ final class PostprocessingMachine {
     BLOCK_COMMENT_OUT_CANDIDATE
   }
 
+  private static final class ImportCandidate {
+    final int importFrom;
+    final int importTo;
+    final int packageTo;
+    String preparedImport;
+
+    private ImportCandidate(int importFrom, int importTo, int packageTo, String preparedImport) {
+      this.importFrom = importFrom;
+      this.importTo = importTo;
+      this.packageTo = packageTo;
+      this.preparedImport = preparedImport;
+    }
+  }
+
   private static boolean isSpaceChar(char c) {
     return Character.isSpaceChar(c) || c == '\n' || c == '\t' || c == '\r';
   }
@@ -362,8 +413,5 @@ final class PostprocessingMachine {
 
   private static boolean isUpperCaseAlphabetic(char c) {
     return c >= 'A' && c <= 'Z';
-  }
-
-  public static void main(String[] args) {
   }
 }
