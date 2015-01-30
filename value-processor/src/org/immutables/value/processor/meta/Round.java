@@ -49,6 +49,11 @@ public abstract class Round {
     return new ValueTypeComposer(this);
   }
 
+  @Value.Derived
+  Proto.Environment environment() {
+    return ImmutableProto.Environment.of(processing());
+  }
+
   public Multimap<DeclaringPackage, ValueType> collectValues() {
     final ImmutableMultimap.Builder<DeclaringPackage, ValueType> builder =
         ImmutableMultimap.builder();
@@ -141,13 +146,13 @@ public abstract class Round {
 
     void collectDefinedBy(ExecutableElement element) {
       DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
-          .processing(processing())
+          .environment(environment())
           .element((TypeElement) element.getEnclosingElement())
           .build();
 
       if (declaringType.verifiedFactory(element)) {
         builder.add(ImmutableProto.Protoclass.builder()
-            .processing(processing())
+            .environment(environment())
             .composer(composer())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
@@ -159,14 +164,14 @@ public abstract class Round {
 
     void collectIncludedBy(PackageElement element) {
       final DeclaringPackage declaringPackage = ImmutableProto.DeclaringPackage.builder()
-          .processing(processing())
+          .environment(environment())
           .element(element)
           .build();
 
       if (declaringPackage.hasInclude()) {
         for (TypeElement sourceElement : declaringPackage.includedTypes()) {
           builder.add(ImmutableProto.Protoclass.builder()
-              .processing(processing())
+              .environment(environment())
               .composer(composer())
               .packageOf(declaringPackage)
               .sourceElement(sourceElement)
@@ -178,7 +183,7 @@ public abstract class Round {
 
     void collectIncludedAndDefinedBy(TypeElement element) {
       DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
-          .processing(processing())
+          .environment(environment())
           .element(element)
           .build();
 
@@ -189,7 +194,7 @@ public abstract class Round {
 
         for (TypeElement sourceElement : declaringType.includedTypes()) {
           builder.add(ImmutableProto.Protoclass.builder()
-              .processing(processing())
+              .environment(environment())
               .composer(composer())
               .packageOf(declaringType.packageOf())
               .sourceElement(sourceElement)
@@ -203,7 +208,7 @@ public abstract class Round {
         Kind kind = kindOfDefinedBy(declaringType);
 
         builder.add(ImmutableProto.Protoclass.builder()
-            .processing(processing())
+            .environment(environment())
             .composer(composer())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)

@@ -15,7 +15,6 @@
  */
 package org.immutables.value;
 
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
 import com.google.common.annotations.Beta;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Bean related style-customizations. Serve mostly as examples
+ * Bean related style-customizations. Serve mostly as example
  */
 //@Target({})
 @Beta
@@ -43,20 +42,4 @@ public @interface BeanStyle {
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
   public @interface Accessors {}
-
-  /**
-   * Special combination of styles: separate top builder, private implementation,
-   * set-get prefixes, new builder etc.
-   */
-  @Beta
-  @Value.Style(
-      get = {"is*", "get*"},
-      init = "set*",
-      of = "new*",
-      instance = "getInstance",
-      builder = "new",
-      defaults = @Value.Immutable(visibility = ImplementationVisibility.PRIVATE))
-  @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Conservative {}
 }

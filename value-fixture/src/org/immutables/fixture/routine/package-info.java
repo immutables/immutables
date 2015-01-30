@@ -17,5 +17,5 @@
 @Json.Import(SillyMarshalingRoutines2.class)
 package org.immutables.fixture.routine;
 
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 

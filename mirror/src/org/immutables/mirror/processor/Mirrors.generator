@@ -28,6 +28,10 @@ import [guava].collect.ImmutableList;
 public class [m.name]Mirror implements [m.element.qualifiedName] {
   public static final String ANNOTATION_NAME = "[m.annotationTypeCommas]".replace(',', '.');
 
+  public static String simpleName() {
+    return "[m.simpleName]";
+  }
+
   public static boolean isPresent(Element annotatedElement) {
     for (AnnotationMirror mirror : annotatedElement.getAnnotationMirrors()) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
@@ -79,6 +83,15 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
   }
 
   /**
+   * Creates mirror with default values using annotation element (i.e. declaration, not usage).
+   * @param element annotation type element
+   * @return {@code [m.name]Mirror}
+   */
+  public static [m.name]Mirror from(TypeElement element) {
+    return new [m.name]Mirror(element);
+  }
+
+  /**
    * Tries to convert annotation mirror to this annotation type.
    * @param mirror annotation mirror
    * @return optional {@code [m.name]Mirror}, present if mirror matched this annotation type
@@ -122,7 +135,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
   [/for]
 
     for (ExecutableElement attributeElement
-        : ElementFilter.methodsIn(annotationMirror.getAnnotationType().asElement().getEnclosedElements())) {
+        : ElementFilter.methodsIn(defaultAnnotationElement.getEnclosedElements())) {
       String name = attributeElement.getSimpleName().toString();
       [for a in m.attributes]
       if ("[a.name]".equals(name)) {
@@ -441,6 +454,10 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
     array.get(0).accept(this, null);
     return null;
   }
+
+  [targetType] get() {
+    return value;
+  }
   [if a.kind.type]
 
   public String name() {
@@ -448,15 +465,11 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
   }
   [/if]
   [if a.mirrorModel]
-  [let mirrorType][a.mirrorModel.package].[a.mirrorModel.name]Mirror[/let]
 
   public [mirrorType a] mirror() {
     return [mirrorType a].from(value).get();
   }
   [/if]
-  [targetType] get() {
-    return value;
-  }
 [/if]
 
   @Override

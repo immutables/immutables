@@ -38,8 +38,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Style;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 @Value.Nested
@@ -58,8 +56,8 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     @Nullable
-    public Style style() {
-      return element().getAnnotation(Value.Style.class);
+    public StyleMirror style() {
+      return StyleMirror.find(element()).orNull();
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
@@ -76,10 +74,27 @@ public class Proto {
     abstract Element element();
 
     @Value.Auxiliary
-    abstract ProcessingEnvironment processing();
+    abstract Environment environment();
+
+    ProcessingEnvironment processing() {
+      return environment().processing();
+    }
 
     protected Reporter report() {
       return Reporter.from(processing()).withElement(element());
+    }
+  }
+
+  @Value.Immutable
+  abstract static class Environment {
+    private static final String STYLE_ANNOTATION = "org.immutables.value.Value.Style";
+
+    @Value.Parameter
+    abstract ProcessingEnvironment processing();
+
+    @Value.Lazy
+    StyleMirror defaultStyles() {
+      return StyleMirror.from(processing().getElementUtils().getTypeElement(STYLE_ANNOTATION));
     }
   }
 
@@ -91,11 +106,10 @@ public class Proto {
 
     @Value.Lazy
     public List<TypeElement> includedTypes() {
-      ImmutableList<TypeMirror> typeMirrors =
-          AnnotationMirrors.getTypesFromMirrors(
-              Value.Immutable.Include.class.getCanonicalName(),
-              "value",
-              element().getAnnotationMirrors());
+      Optional<IncludeMirror> includes = IncludeMirror.find(element());
+      ImmutableList<TypeMirror> typeMirrors = includes.isPresent()
+          ? ImmutableList.copyOf(includes.get().valueMirror())
+          : ImmutableList.<TypeMirror>of();
 
       ImmutableSet<String> typeNames = FluentIterable.from(typeMirrors)
           .filter(DeclaredType.class)
@@ -105,7 +119,7 @@ public class Proto {
           .toSet();
 
       if (typeNames.size() != typeMirrors.size()) {
-        report().forAnnotation(Value.Immutable.Include.class)
+        report().annotationNamed(IncludeMirror.simpleName())
             .warning("Some types were ignored, non-supported for inclusion: duplicates, non reference types, non-public");
       }
 
@@ -118,15 +132,10 @@ public class Proto {
 
     @Value.Lazy
     public boolean useImmutableDefaults() {
-      @Nullable AnnotationMirror annotation =
-          AnnotationMirrors.findAnnotation(
-              element().getAnnotationMirrors(),
-              Value.Immutable.class);
-
-      if (annotation != null) {
-        return annotation.getElementValues().isEmpty();
+      Optional<ImmutableMirror> immutables = ImmutableMirror.find(element());
+      if (immutables.isPresent()) {
+        return immutables.get().getAnnotationMirror().getElementValues().isEmpty();
       }
-
       return true;
     }
 
@@ -139,17 +148,13 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     public boolean hasInclude() {
-      return AnnotationMirrors.isAnnotationPresent(
-          element().getAnnotationMirrors(),
-          Value.Immutable.Include.class);
+      return IncludeMirror.isPresent(element());
     }
 
     @Value.Derived
     @Value.Auxiliary
     public boolean isEnclosing() {
-      return AnnotationMirrors.isAnnotationPresent(
-          element().getAnnotationMirrors(),
-          Value.Nested.class);
+      return NestedMirror.isPresent(element());
     }
 
     /**
@@ -166,8 +171,8 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     @Nullable
-    public Value.Immutable features() {
-      return element().getAnnotation(Value.Immutable.class);
+    public ImmutableMirror features() {
+      return ImmutableMirror.find(element()).orNull();
     }
 
     public boolean isImmutable() {
@@ -177,8 +182,8 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     @Nullable
-    public Value.Style style() {
-      @Nullable Value.Style style = element().getAnnotation(Value.Style.class);
+    public StyleMirror style() {
+      @Nullable StyleMirror style = StyleMirror.find(element()).orNull();
 
       if (style != null) {
         return style;
@@ -186,7 +191,7 @@ public class Proto {
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
         MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
-        @Nullable Value.Style metaStyle = metaAnnotated.style();
+        @Nullable StyleMirror metaStyle = metaAnnotated.style();
         if (metaStyle != null) {
           return metaStyle;
         }
@@ -203,10 +208,12 @@ public class Proto {
     @Value.Check
     protected void validate() {
       if (hasInclude() && !isTopLevel()) {
-        report().forAnnotation(Value.Immutable.Include.class).error("@Include could not be used on nested types.");
+        report().annotationNamed(IncludeMirror.simpleName())
+            .error("@Include could not be used on nested types.");
       }
       if (isEnclosing() && !isTopLevel()) {
-        report().forAnnotation(Value.Nested.class).error("@Nested should only be used on a top-level types.");
+        report().annotationNamed(NestedMirror.simpleName())
+            .error("@Nested should only be used on a top-level types.");
       }
       if (element().getKind() == ElementKind.ENUM) {
         report().error("@Value.* annotations are not supported on enums");
@@ -264,7 +271,7 @@ public class Proto {
       }
       if (top != element()) {
         ImmutableProto.DeclaringType enclosingType = ImmutableProto.DeclaringType.builder()
-            .processing(processing())
+            .environment(environment())
             .element(top)
             .build();
 
@@ -280,13 +287,13 @@ public class Proto {
     @Value.Auxiliary
     public DeclaringPackage packageOf() {
       return ImmutableProto.DeclaringPackage.builder()
-          .processing(processing())
+          .environment(environment())
           .element(processing().getElementUtils().getPackageOf(element()))
           .build();
     }
 
     public boolean verifiedFactory(ExecutableElement element) {
-      if (element.getAnnotation(Value.Builder.class) == null) {
+      if (!BuilderMirror.isPresent(element)) {
         return false;
       }
       if (!isTopLevel()
@@ -295,7 +302,7 @@ public class Proto {
           || !element.getThrownTypes().isEmpty()
           || !element.getTypeParameters().isEmpty()) {
         report().withElement(element)
-            .forAnnotation(Value.Builder.class)
+            .annotationNamed(BuilderMirror.simpleName())
             .error("@Value.Builder method '%s' should be static, non-private,"
                 + " with no type parameters or throws declaration, and enclosed in top level type",
                 element.getSimpleName());
@@ -377,7 +384,7 @@ public class Proto {
 
     @Value.Lazy
     @Nullable
-    public Immutable features() {
+    public ImmutableMirror features() {
       if (declaringType().isPresent() && !declaringType().get().useImmutableDefaults()) {
         return declaringType().get().features();
       }
@@ -389,22 +396,36 @@ public class Proto {
       if (declaringType().isPresent()) {
         Optional<DeclaringType> enclosing = enclosingOf();
         if (enclosing.isPresent()) {
-          @Nullable Style enclosingStyle = enclosing.get().style();
+          if (enclosing.get() != declaringType().get()) {
+            warnIfNestedStylePresent();
+          }
+          @Nullable StyleMirror enclosingStyle = enclosing.get().style();
           if (enclosingStyle != null) {
             return Styles.using(enclosingStyle);
           }
         } else {
-          @Nullable Style style = declaringType().get().style();
+          @Nullable StyleMirror style = declaringType().get().style();
           if (style != null) {
             return Styles.using(style);
           }
         }
       }
-      @Nullable Style packageStyle = packageOf().style();
+      @Nullable StyleMirror packageStyle = packageOf().style();
       if (packageStyle != null) {
         return Styles.using(packageStyle);
       }
-      return Styles.using(Styles.defaultStyle());
+      return Styles.using(environment().defaultStyles());
+    }
+
+    private void warnIfNestedStylePresent() {
+      @Nullable StyleMirror style = declaringType().get().style();
+      if (style != null) {
+        report().annotationNamed(StyleMirror.simpleName())
+            .warning("Use styles only on enclosing types."
+                + " All nested styles will inherit it."
+                + " Nested immutables cannot deviate in style from enclosing type,"
+                + " so generated stucture will be consistent");
+      }
     }
 
     @Value.Derived

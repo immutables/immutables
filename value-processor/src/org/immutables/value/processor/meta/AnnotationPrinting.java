@@ -31,12 +31,17 @@ final class AnnotationPrinting {
   private static final String PREFIX_JAVA_LANG = "@java.lang.";
   private static final String PREFIX_ORG_IMMUTABLES = "@org.immutables.";
 
+  // This one is somehow very Ad Hoc
+  private static final String PREFIX_JSON_PROPERTY_ANNOTATION = "@" + JsonPropertyMirror.ANNOTATION_NAME;
+
   static List<CharSequence> getAnnotationLines(Element element) {
     List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       String string = annotation.toString();
-      if (string.startsWith(PREFIX_ORG_IMMUTABLES) || string.startsWith(PREFIX_JAVA_LANG)) {
+      if (string.startsWith(PREFIX_ORG_IMMUTABLES)
+          || string.startsWith(PREFIX_JAVA_LANG)
+          || string.startsWith(PREFIX_JSON_PROPERTY_ANNOTATION)) {
         continue;
       }
       lines.add(AnnotationMirrors.toCharSequence(annotation));

@@ -15,10 +15,10 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.Mongo;
+import org.immutables.value.ext.Mongo;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable

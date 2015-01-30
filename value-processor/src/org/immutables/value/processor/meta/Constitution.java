@@ -36,19 +36,22 @@ import static com.google.common.base.Verify.*;
 public abstract class Constitution {
   private static final String NA_ERROR = "!error!";
   private static final String NEW_KEYWORD = "new";
-
   private static final Joiner JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
 
   @Value.Derived
   public Visibility implementationVisibility() {
-    return protoclass().visibility().forImplementation(
-        protoclass().features().visibility());
+    return protoclass().visibility().forImplementation(style().visibility());
   }
 
   public boolean isImplementationHidden() {
     return implementationVisibility().isMoreRestrictiveThan(protoclass().visibility());
+  }
+
+  public boolean returnsAbstractValueType() {
+    return isImplementationHidden()
+        || style().visibility() == ValueMirrors.Style.ImplementationVisibility.SAME_NON_RETURNED;
   }
 
   @Value.Derived
@@ -64,7 +67,7 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms typeValue() {
     if (protoclass().kind().isValue()) {
-      return isImplementationHidden()
+      return returnsAbstractValueType()
           ? typeAbstract()
           : typeImmutable();
     }
@@ -142,6 +145,10 @@ public abstract class Constitution {
         .relativeAlreadyQualified(relativeAlreadyQualified)
         .visibility(protoclass().visibility())
         .build();
+  }
+
+  public StyleMirror style() {
+    return protoclass().styles().style();
   }
 
   private Element collectClassSegments(List<String> classSegments) {

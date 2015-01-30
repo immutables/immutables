@@ -34,8 +34,8 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
+import org.immutables.value.ext.Json;
+import org.immutables.value.ext.Mongo;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
@@ -58,9 +58,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public ImmutableList<String> typeParameters = ImmutableList.of();
   public Reporter reporter;
 
+  public ValueType containingType;
+
   TypeMirror returnType;
   Element element;
-  ValueType containingType;
   String returnTypeName;
 
   @Nullable
@@ -115,7 +116,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isStringType()
         || isEnumType();
   }
-
+  
   public boolean isMandatory() {
     return isGenerateAbstract && !isContainerType() && !isNullable();
   }
@@ -150,6 +151,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     @Nullable Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
     if (idAnnotation != null) {
       return ID_ATTRIBUTE_NAME;
+    }
+
+    Optional<JsonPropertyMirror> jsonProperty = JsonPropertyMirror.find(element);
+    if (jsonProperty.isPresent()) {
+      String name = jsonProperty.get().value();
+      if (!name.isEmpty()) {
+        return name;
+      }
     }
     return names.raw;
   }
@@ -239,12 +248,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           orderKind = OrderKind.NATURAL;
         } else {
           reporter.withElement(element)
-              .forAnnotation(Value.NaturalOrder.class)
+              .annotationNamed(NaturalOrderMirror.simpleName())
               .error("@Value.Natural should used on a set of Comparable elements (map keys)");
         }
       } else {
         reporter.withElement(element)
-            .forAnnotation(Value.NaturalOrder.class)
+            .annotationNamed(NaturalOrderMirror.simpleName())
             .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
     } else if (reverseOrderAnnotation != null) {
@@ -253,12 +262,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           orderKind = OrderKind.REVERSE;
         } else {
           reporter.withElement(element)
-              .forAnnotation(Value.ReverseOrder.class)
+              .annotationNamed(ReverseOrderMirror.simpleName())
               .error("@Value.Reverse should used with a set of Comparable elements");
         }
       } else {
         reporter.withElement(element)
-            .forAnnotation(Value.ReverseOrder.class)
+            .annotationNamed(ReverseOrderMirror.simpleName())
             .error("@Value.Reverse should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
     }
@@ -731,7 +740,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void prohibitAuxiliaryOnAnnotationTypes() {
     if (containingType.isAnnotationType() && isAuxiliary()) {
       reporter.withElement(element)
-          .forAnnotation(Value.Auxiliary.class)
+          .annotationNamed(AuxiliaryMirror.simpleName())
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
   }
@@ -759,7 +768,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (isGenerateDefault && isContainerType()) {
       typeKind = AttributeTypeKind.REGULAR;
       reporter.withElement(element)
-          .forAnnotation(Value.Default.class)
+          .annotationNamed(DefaultMirror.simpleName())
           .warning("@Value.Default on a container attribute make it lose it's special treatment");
     }
   }

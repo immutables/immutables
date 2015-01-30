@@ -15,11 +15,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
@@ -33,6 +28,13 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>metainf</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>mirror</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
       <scope>provided</scope>

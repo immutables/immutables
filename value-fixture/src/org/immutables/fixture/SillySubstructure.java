@@ -15,12 +15,12 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.Mongo;
+import org.immutables.value.ext.Mongo;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable

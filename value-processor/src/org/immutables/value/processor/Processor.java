@@ -16,21 +16,21 @@
 package org.immutables.value.processor;
 
 import com.google.common.collect.Multimap;
+import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
-import org.immutables.generator.Generator;
 import org.immutables.metainf.Metainf;
-import org.immutables.value.Value;
 import org.immutables.value.processor.meta.ImmutableRound;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Round;
 import org.immutables.value.processor.meta.ValueType;
 
 @Metainf.Service
-@Generator.SupportedAnnotations({
-    Value.Immutable.class,
-    Value.Nested.class,
-    Value.Immutable.Include.class,
-    Value.Builder.class})
+@SupportedAnnotationTypes({
+    "org.immutables.value.Value.Builder",
+    "org.immutables.value.Value.Immutable",
+    "org.immutables.value.Value.Nested",
+    "org.immutables.value.Value.Immutable.Include"
+})
 public final class Processor extends AbstractGenerator {
   @Override
   protected void process() {

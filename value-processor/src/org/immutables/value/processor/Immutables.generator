@@ -298,14 +298,6 @@ package [type.package];
       .[o.names.with](instance.[o.names.get]())[/for][/if];
 [/if]
 }
-
-/**
- * @deprecated Already an immutable object, no need to create immutable copy
- */
-@Deprecated
-[type.typeImmutable.access]static [type.typeImmutable.simple] [type.names.copyOf]([type.typeImmutable.simple] instance) {
-  return [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
-}
 [/if]
 [/template]
 
@@ -403,33 +395,25 @@ package [type.package];
   [if v.optionalType]
   private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateEnumMap]
-  private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+  private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
   [else if v.mapType]
-  private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+  private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
   [else if v.generateEnumSet]
-  private final java.util.EnumSet<[v.elementType]> [v.name]Builder =
-      java.util.EnumSet.noneOf([v.elementType].class);
+  private final java.util.EnumSet<[v.elementType]> [v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
   [else]
   private final java.util.ArrayList<[v.elementType]> [v.name]Builder = new java.util.ArrayList<[v.elementType]>();
   [/if]
       [else]
   [if v.generateSortedSet]
-  private final [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder =
-      [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
-
+  private final [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder = [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
   [else if v.collectionType]
-  private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder =
-      [guava].collect.Immutable[v.rawCollectionType].builder();
+  private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
   [else if v.optionalType]
   private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateSortedMap]
-  private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+  private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
   [else if v.mapType]
-  private final [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder =
-      [guava].collect.Immutable[v.rawMapType].builder();
+  private final [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.Immutable[v.rawMapType].builder();
   [/if]
       [/if]
     [else if v.primitive]
@@ -462,13 +446,13 @@ package [type.package];
   [-- Being called from builder initializer methods --]
   [let nondefaultSetInBuilder Attribute v]
   [if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
-    nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+  nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
   [/for][/if]
   [/let]
   [-- Being called from builder initializer methods --]
   [let mandatorySetInBuilder Attribute v]
   [if v.mandatory][for BitPosition pos = positions v]
-    initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+  initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/for][/if]
   [/let]
   [for v in setters]
@@ -698,6 +682,7 @@ package [type.package];
     }
   }
     [if type.generateJdkOnly]
+
   private String formatRequiredAttributesMessage() {
     return new StringBuilder("Cannot build [type.name], some of required attributes are not set {")
       [for m in mandatories]
@@ -706,6 +691,7 @@ package [type.package];
         .append('}').toString().replaceFirst("{, ", "{");
   }
     [else]
+
   private String formatRequiredAttributesMessage() {
     return [type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
         .omitNullValues()
@@ -909,7 +895,51 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 [/for]
 [/template]
 
+[template jacksonPropertyAnnotation Attribute a]
+[if a.containingType.generateJacksonMapped]
+@com.fasterxml.jackson.annotation.JsonProperty("[a.marshaledName]")
+[/if]
+[/template]
+
 [template generateJacksonMapped Type type]
+[if type.generateJacksonMapped]
+
+@com.fasterxml.jackson.annotation.JsonCreator
+public static [type.typeValue.relative] fromAllAttributes(
+    [for v in type.settableAttributes][if not for.first],
+    [/if]@com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
+[if type.useBuilder]
+  [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
+  [type.typeBuilder.relative] [builderIdentifier] = [type.names.builder]();
+  [for v in type.settableAttributes]
+  if ([v.name] != null) {
+      [if v.collectionType]
+    [builderIdentifier].[v.names.addAll]([v.name]);
+      [else if v.mapType]
+    [builderIdentifier].[v.names.putAll]([v.name]);
+      [else]
+    [builderIdentifier].[v.names.init]([v.name]);
+      [/if]
+  }
+  [/for]
+  return [builderIdentifier].[type.names.build]();
+[else]
+  [let instanceIdentifier]instance[for v in type.settableAttributes if v.name eq 'instance']$$[/for][/let]
+  [type.typeValue.relative] [instanceIdentifier] = [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
+  [if type.useCopyMethods]
+    [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
+  if ([o.name] != null) {
+    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]());
+  }
+    [/for]
+  [/if]
+  return [instanceIdentifier];
+[/if]
+}
+[/if]
+[/template]
+
+[template generateJacksonMappedOld Type type]
 [if type.generateJacksonMapped]
 [if not type.useBuilder]
   [output.error]Cannot use @Jackson.Mapped without builder enabled[/output.error]
@@ -958,6 +988,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [for line in v.annotations]
 [line]
 [/for]
+[jacksonPropertyAnnotation v]
 @Override
 public [immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
@@ -967,7 +998,6 @@ public [immutableImplementationType v] [v.names.get]() {
 [/if]
 }
   [/for]
-[generateGetters type]
   [if type.generateOrdinalValue]
 
 @Override
@@ -1253,34 +1283,6 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
 }
     [/if]
   [/for]
-[/template]
-
-[template generateGetters Type type]
-  [if type.generateGetters]
-    [for v in type.allAccessibleAttributes]
-
-/**
- * Gets the value of [sourceDocRef type v] attribute.
-[if v.optionalType]
- * @return value of [v.name] if present, {@code null} if absent
-[else]
- * @return value for [v.name], non-null
-[/if]
- */
-  [for line in v.annotations]
-[line]
-  [/for]
-  [if v.optionalType]
-public [atNullable][v.wrappedElementType] get[toUpper v.name]() {
-  return [v.name]().orNull();
-}
-  [else]
-public [immutableImplementationType v] [if v.boolean]is[else]get[/if][toUpper v.name]() {
-  return [v.name]();
-}
-  [/if]
-    [/for]
-  [/if]
 [/template]
 
 [template defaultAnnotationValues Type type]
@@ -1572,7 +1574,7 @@ private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterfa
 [if type.useMapUtility]
 
 private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
-  java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap(map.size());
+  java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap<K, V>(map.size());
   linkedMap.putAll(map);
   if (checkNulls) {
     for (java.util.Map.Entry<K, V> e : linkedMap.entrySet()) {
@@ -1591,8 +1593,8 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
 [/if]
 [if type.useEnumMapUtility]
 
-private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
-  java.util.EnumMap<K, V> enumMap = new java.util.EnumMap(map);
+private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, java.util.Map<K, ? extends V> map) {
+  java.util.EnumMap<K, V> enumMap = new java.util.EnumMap<K, V>(map);
   if (checkNulls) {
     for (V value : enumMap.values()) {
       java.util.Objects.requireNonNull(value, "Null values are not allowed in map");

@@ -17,7 +17,7 @@ package org.immutables.fixture.builder;
 
 import com.google.common.collect.Iterables;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.SortedSet;
  * Builders for simple attributes, collection, generic and primitive variations.
  * Builders are public as of style annotation.
  */
-@Value.Style(defaults = @Value.Immutable(visibility = ImplementationVisibility.PUBLIC))
+@Value.Style(visibility = ImplementationVisibility.PUBLIC)
 class ImprovisedFactories {
 
   @Value.Builder

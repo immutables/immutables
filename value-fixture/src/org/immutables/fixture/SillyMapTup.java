@@ -17,7 +17,7 @@ package org.immutables.fixture;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)

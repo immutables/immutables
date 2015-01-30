@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.jdbi;
 
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 import org.immutables.value.Value;
 import com.google.common.base.Optional;
 

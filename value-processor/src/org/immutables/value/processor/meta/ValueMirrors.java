@@ -13,8 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value;
+package org.immutables.value.processor.meta;
 
+import org.immutables.mirror.Mirror;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -28,16 +29,9 @@ import java.util.NavigableSet;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-/**
- * This annotation provides namespace for annotations that models generated value objects.
- * Use one of the nested annotation.
- * @see Value.Immutable
- * @see Value.Immutable.Include
- * @see Value.Nested
- */
-// @Target({}) // may cause problems with auto completion
-@Retention(RetentionPolicy.SOURCE)
-public @interface Value {
+public final class ValueMirrors {
+  private ValueMirrors() {}
+
   /**
    * Instruct processor to generate immutable implementation of abstract value type.
    * Classes, Interface and Annotation types are supported including top level and non-private
@@ -53,6 +47,7 @@ public @interface Value {
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
+  @Mirror.Annotation("org.immutables.value.Value.Immutable")
   public @interface Immutable {
 
     /**
@@ -71,9 +66,9 @@ public @interface Value {
     /**
      * If {@code copy=false} then generation of copying methods will be disabled.
      * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods.
-     * Default value is {@literal true}, i.e generate copy methods.
+     * Default is {@literal false}, i.e do not generate copy methods.
      */
-    boolean copy() default true;
+    boolean copy() default false;
 
     /**
      * If {@code prehash=true} then {@code hashCode} will be precomputed during construction.
@@ -93,11 +88,12 @@ public @interface Value {
      * Includes specified abstract value types into generation of processing.
      * This is usually used to generate immutable implementation of classes from different
      * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
-     * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
+     * Only public types of suppored kinds is supported (see {@link ValueMirrors.Immutable}).
      */
     @Beta
     @Target({ElementType.TYPE, ElementType.PACKAGE})
     @Retention(RetentionPolicy.SOURCE)
+    @Mirror.Annotation("org.immutables.value.Value.Immutable.Include")
     public @interface Include {
       Class<?>[] value();
     }
@@ -108,7 +104,7 @@ public @interface Value {
    * Immutable implementation classes will be generated as classes nested into special "umbrella"
    * top
    * level class, essentialy named after annotated class with "Immutable" prefix. This could mix
-   * with {@link Value.Immutable} annotation, so immutable implementation class will contains
+   * with {@link ValueMirrors.Immutable} annotation, so immutable implementation class will contains
    * nested immutable implementation classes.
    * <p>
    * Implementation classes nested under top level class with "Immutable" prefix
@@ -136,6 +132,7 @@ public @interface Value {
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
+  @Mirror.Annotation("org.immutables.value.Value.Nested")
   public @interface Nested {}
 
   /**
@@ -167,6 +164,7 @@ public @interface Value {
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Builder")
   public @interface Builder {}
 
   /**
@@ -177,6 +175,7 @@ public @interface Value {
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Derived")
   public @interface Derived {}
 
   /**
@@ -187,19 +186,21 @@ public @interface Value {
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Default")
   public @interface Default {}
 
   /**
    * Annotate attribute as <em>auxiliary</em> and it will be stored and will be accessible, but will
    * be excluded from generated {@code equals}, {@code hashCode} and {@code toString} methods.
    * {@link Lazy Lazy} attributes are always <em>auxiliary</em>.
-   * @see Value.Immutable
-   * @see Value.Derived
-   * @see Value.Default
+   * @see ValueMirrors.Immutable
+   * @see ValueMirrors.Derived
+   * @see ValueMirrors.Default
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Auxiliary")
   public @interface Auxiliary {}
 
   /**
@@ -235,22 +236,26 @@ public @interface Value {
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Lazy")
   public @interface Lazy {}
 
   /**
-   * Works with {@link Value.Immutable} classes to mark abstract accessor method be included as
+   * Works with {@link ValueMirrors.Immutable} classes to mark abstract accessor method be included
+   * as
    * "{@code of(..)}" constructor parameter.
    * <p>
    * Following rules applies:
    * <ul>
-   * <li>No constructor generated, if none of methods have {@link Value.Parameter} annotation</li>
+   * <li>No constructor generated, if none of methods have {@link ValueMirrors.Parameter} annotation
+   * </li>
    * <li>For object to be constructible with a constructor - all non-default and non-derived
-   * attributes should be annotated with {@link Value.Parameter}.
+   * attributes should be annotated with {@link ValueMirrors.Parameter}.
    * </ul>
    */
   @Documented
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
+  @Mirror.Annotation("org.immutables.value.Value.Parameter")
   public @interface Parameter {
     /**
      * Used to specify order of constructor argument. It's defaults to zero and allows for
@@ -275,6 +280,7 @@ public @interface Value {
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Mirror.Annotation("org.immutables.value.Value.Check")
   public @interface Check {}
 
   /**
@@ -291,6 +297,7 @@ public @interface Value {
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.SOURCE)
+  @Mirror.Annotation("org.immutables.value.Value.NaturalOrder")
   public @interface NaturalOrder {}
 
   /**
@@ -307,6 +314,7 @@ public @interface Value {
   @Documented
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
+  @Mirror.Annotation("org.immutables.value.Value.ReverseOrder")
   public @interface ReverseOrder {}
 
   /**
@@ -319,17 +327,17 @@ public @interface Value {
    * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
    * <p>
    * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
-   * as {@literal @}{@link Value.Nested}. So define styles on the enclosing class.
+   * as {@literal @}{@link ValueMirrors.Nested}. So define styles on the enclosing class.
    * In this way there will be no issues with the naming and structural conventions
    * mismatch on enclosing and nested types.</em>
    */
   @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)
+  @Mirror.Annotation("org.immutables.value.Value.Style")
   public @interface Style {
     /**
-     * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
-     * mimick style of bean getters.
+     * Patterns to recognize accessors.
      * @return naming template
      */
     String[] get() default {};
@@ -444,6 +452,15 @@ public @interface Value {
     Immutable defaults() default @Immutable;
 
     /**
+     * Specify the mode in which accibility visibility is derived from abstract value type.
+     * It is a good idea to not specify such attributea inline with immutable values, but rather
+     * create style annotation (@see Style).
+     * @return implementation visibility
+     */
+    @Beta
+    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
+
+    /**
      * When {@code true} &mdash; forces to generate code which use only JDK 7+ standard library
      * classes. It is {@code false} by default, however usage of JDK-only classes will be turned on
      * automatically if <em>Google Guava</em> library is not found in classpath. The generated code
@@ -454,15 +471,6 @@ public @interface Value {
      * @return if forced JDK-only class usage
      */
     boolean jdkOnly() default false;
-
-    /**
-     * Specify the mode in which accibility visibility is derived from abstract value type.
-     * It is a good idea to not specify such attributea inline with immutable values, but rather
-     * create style annotation (@see Style).
-     * @return implementation visibility
-     */
-    @Beta
-    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

@@ -15,28 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.annotation.concurrent.GuardedBy;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import java.util.Map;
+import javax.annotation.concurrent.GuardedBy;
 import org.immutables.generator.Naming;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Style;
 
 public final class Styles {
   @GuardedBy("cache")
-  private static final Map<Style, Styles> cache = Maps.newHashMap();
+  private static final Map<StyleMirror, Styles> cache = Maps.newHashMap();
 
-  @Style
-  private static class DefaultStyle {
-    static Style style = DefaultStyle.class.getAnnotation(Style.class);
-  }
-
-  public static Style defaultStyle() {
-    return DefaultStyle.style;
-  }
-
-  public static Styles using(Style style) {
+  public static Styles using(StyleMirror style) {
     synchronized (cache) {
       Styles namings = cache.get(style);
       if (namings == null) {
@@ -47,16 +36,20 @@ public final class Styles {
     }
   }
 
-  private final Style style;
+  private final StyleMirror style;
   private final Scheme scheme;
 
-  private Styles(Style style) {
+  private Styles(StyleMirror style) {
     this.style = style;
     this.scheme = new Scheme();
   }
 
-  public Immutable defaults() {
+  public ImmutableMirror defaults() {
     return style.defaults();
+  }
+
+  public StyleMirror style() {
+    return style;
   }
 
   public UsingName.TypeNames forType(String name) {

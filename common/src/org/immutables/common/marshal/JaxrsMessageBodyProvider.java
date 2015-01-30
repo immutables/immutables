@@ -41,7 +41,6 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 /**
  * JSON marshaling JAX-RS provider for immutable classes with generated marshaler.
  * @see org.immutables.value.Value.Immutable
- * @see org.immutables.value.Json.Marshaled
  */
 @Metainf.Service
 @Provider
