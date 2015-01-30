@@ -236,18 +236,14 @@ public final class Templates {
 
   public static abstract class Fragment implements Invokable {
     private final int arity;
-    @Nullable
-    private final CharSequence capturedIndentation;
 
+    /**
+     * @param arity number of fragment parameters
+     * @param capturedInvokation surrounding invokation when fragment is defined, not when invoked
+     */
     protected Fragment(int arity, @Nullable Invokation capturedInvokation) {
       assert arity >= 0;
       this.arity = arity;
-      this.capturedIndentation =
-          capturedInvokation != null
-              ? (capturedInvokation.consumer != null
-                  ? capturedInvokation.consumer.indentation
-                  : "")
-              : null;
     }
 
     protected Fragment(int arity) {
@@ -267,12 +263,8 @@ public final class Templates {
       CharSequence indentationToResore = "";
       if (invokation.consumer != null) {
         indentationToResore = invokation.consumer.indentation;
-
-        // FIXME is it was a good idea?
-        invokation.consumer.indentation = /* capturedIndentation != null
-            ? capturedIndentation
-            :*/
-            invokation.consumer.getCurrentIndentation();
+        // switch to the current indentation inside fragment
+        invokation.consumer.indentation = invokation.consumer.getCurrentIndentation();
       }
 
       run(new Invokation(invokation.consumer, params));

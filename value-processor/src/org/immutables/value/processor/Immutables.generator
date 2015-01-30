@@ -443,18 +443,18 @@ package [type.package];
     return this;
   }
   [/if]
-  [-- Being called from builder initializer methods --]
-  [let nondefaultSetInBuilder Attribute v]
-  [if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
-  nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
-  [/for][/if]
-  [/let]
-  [-- Being called from builder initializer methods --]
-  [let mandatorySetInBuilder Attribute v]
-  [if v.mandatory][for BitPosition pos = positions v]
-  initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
-  [/for][/if]
-  [/let]
+[-- Being called from builder initializer methods --]
+[let nondefaultSetInBuilder Attribute v]
+[if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
+nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+[/for][/if]
+[/let]
+[-- Being called from builder initializer methods --]
+[let mandatorySetInBuilder Attribute v]
+[if v.mandatory][for BitPosition pos = positions v]
+initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+[/for][/if]
+[/let]
   [for v in setters]
   [if v.collectionType]
 
