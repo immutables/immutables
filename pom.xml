@@ -35,8 +35,6 @@
     <module>value-processor</module>
     <module>value-standalone</module>
     <module>value-fixture</module>
-    <module>quickstart</module>
-    <module>json-runtime</module>
     <module>gson</module>
   </modules>
 
