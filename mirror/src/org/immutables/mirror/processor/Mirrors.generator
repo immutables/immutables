@@ -26,7 +26,11 @@ import [guava].collect.ImmutableList;
  */
 @SuppressWarnings("all")
 public class [m.name]Mirror implements [m.element.qualifiedName] {
-  public static final String ANNOTATION_NAME = "[m.annotationTypeCommas]".replace(',', '.');
+  private static final String ANNOTATION_NAME = "[m.annotationTypeCommas]".replace(',', '.');
+
+  public static String qualifiedName() {
+    return ANNOTATION_NAME;
+  }
 
   public static String simpleName() {
     return "[m.simpleName]";
