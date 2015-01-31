@@ -49,9 +49,9 @@ public abstract class Round {
     return new ValueTypeComposer(this);
   }
 
-  @Value.Derived
+  @Value.Lazy
   Proto.Environment environment() {
-    return ImmutableProto.Environment.of(processing());
+    return ImmutableProto.Environment.of(processing(), this);
   }
 
   public Multimap<DeclaringPackage, ValueType> collectValues() {

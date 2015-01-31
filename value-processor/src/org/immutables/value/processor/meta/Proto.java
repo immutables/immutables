@@ -89,9 +89,20 @@ public class Proto {
     @Value.Parameter
     abstract ProcessingEnvironment processing();
 
+    @Value.Parameter
+    abstract Round round();
+
     @Value.Derived
     StyleMirror defaultStyles() {
       return StyleMirror.from(processing().getElementUtils().getTypeElement(STYLE_ANNOTATION));
+    }
+
+    ValueType composeValue(Protoclass protoclass) {
+      return round().composer().compose(protoclass);
+    }
+
+    Optional<Protoclass> definedValueProtoclassFor(TypeElement typeElement) {
+      return round().definedValueProtoclassFor(typeElement);
     }
   }
 

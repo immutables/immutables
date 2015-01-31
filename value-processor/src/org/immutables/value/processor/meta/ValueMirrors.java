@@ -59,7 +59,7 @@ public final class ValueMirrors {
     boolean builder() default true;
   }
 
-  @Mirror.Annotation("org.immutables.value.Value.Immutable.Include")
+  @Mirror.Annotation("org.immutables.value.Value.Include")
   public @interface Include {
     Class<?>[] value();
   }
@@ -206,35 +206,6 @@ public final class ValueMirrors {
      * @return naming template
      */
     String typeImmutableNested() default "*";
-
-    /**
-     * Modifiable companion class name template
-     * @return naming template
-     */
-    String typeModifiable() default "Modifiable*";
-
-    /**
-     * Modifiable object "setter" method. Used for mutable implementations.
-     * @return naming template
-     */
-    String set() default "set*";
-
-    /**
-     * @return naming template
-     */
-    String isSet() default "*IsSet";
-
-    /**
-     * Factory method for modifiable (mutable) implementation
-     * @return naming template
-     */
-    String create() default "create";
-
-    /**
-     * Method to convert to instance of companion modifiable type to "canonical" immutable instance.
-     * @return naming template
-     */
-    String toImmutable() default "toImmutable*";
 
     /**
      * Specify default options for the generated immutable objects.

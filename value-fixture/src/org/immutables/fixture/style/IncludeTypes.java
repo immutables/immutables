@@ -28,7 +28,7 @@ import org.immutables.value.Value;
  * <li>Package style application
  * </ul>
  */
-@Value.Immutable.Include({Serializable.class})
+@Value.Include(Serializable.class)
 @Value.Immutable
 public class IncludeTypes {
 

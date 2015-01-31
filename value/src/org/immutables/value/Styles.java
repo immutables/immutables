@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2014-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -22,15 +22,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Bean related style-customizations. Serve mostly as example
+ * Bean related style-customizations. Serve mostly as example.
  */
-//@Target({})
 @Beta
-public @interface BeanStyle {
+@Target({})
+public @interface Styles {
 
   /**
    * Annotations that applies speculative Java Bean-style accessor naming convention
-   * to the generate immutable and other derived classes.
+   * to the generate immutable and other derived classes (builders).
    * It works by being annotated with {@literal @}{@link Value.Style} annotation which specifies
    * customized naming templates. This annotation could be placed on a class, surrounding
    * {@link Value.Nested} class or even a package (declared in {@code package-info.java}). This
@@ -38,8 +38,8 @@ public @interface BeanStyle {
    * useful annotation.
    */
   @Beta
-  @Value.Style(get = {"is*", "get*"})
+  @Value.Style(get = {"is*", "get*"}, init = "set*")
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Accessors {}
+  public @interface BeanAccessors {}
 }

@@ -48,7 +48,7 @@ package [type.package];
  * {@code [type.typeEnclosing.simple]} contains immutable implementation classes generated from
  * abstract value types defined as nested inside {@link [type.typeAbstract.relative]}.
 [for v in type.nested]
- * @see [v.typeImmutable.relative]
+ * @see [v.typeValue.relative]
 [/for]
  */
 [annotationsWhenTopLevel type true]

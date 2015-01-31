@@ -15,10 +15,11 @@
  */
 package org.immutables.fixture.style;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 import org.immutables.value.Value;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
 @Value.Nested
-@Value.Immutable.Include({Target.class, Retention.class})
+@Value.Include({Target.class, Retention.class})
 public interface IncludeNestedTypes {}

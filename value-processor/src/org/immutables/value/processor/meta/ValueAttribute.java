@@ -289,6 +289,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isEnumSet();
   }
 
+  public boolean isGuavaContainerKind() {
+    return typeKind.isGuavaContainerKind();
+  }
+
   @Nullable
   private CharSequence defaultInterface;
 
@@ -609,6 +613,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isContainerType() {
+    // TBD replace with typeKind.isContainerKind() ?
     return isCollectionType()
         || isOptionalType()
         || isMapType();

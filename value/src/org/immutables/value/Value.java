@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2014-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.immutables.value;
 
-import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import java.lang.annotation.Documented;
@@ -32,7 +31,7 @@ import java.util.SortedSet;
  * This annotation provides namespace for annotations that models generated value objects.
  * Use one of the nested annotation.
  * @see Value.Immutable
- * @see Value.Immutable.Include
+ * @see Value.Include
  * @see Value.Nested
  */
 // @Target({}) // may cause problems with auto completion
@@ -58,6 +57,10 @@ public @interface Value {
     /**
      * If {@code singleton=true}, generates internal singleton object constructed without any
      * specified parameters. Default is {@literal false}.
+     * <p>
+     * Note that {@code singleton=true} does not imply that only one instance of given abstract
+     * type. But it does mean that only one "default" instance of the immutable implementation type
+     * exist.
      */
     boolean singleton() default false;
 
@@ -89,19 +92,19 @@ public @interface Value {
      * {@literal true}.
      */
     boolean builder() default true;
+  }
 
-    /**
-     * Includes specified abstract value types into generation of processing.
-     * This is usually used to generate immutable implementation of classes from different
-     * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
-     * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
-     */
-    @Beta
-    @Target({ElementType.TYPE, ElementType.PACKAGE})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Include {
-      Class<?>[] value();
-    }
+  /**
+   * Includes specified abstract value types into generation of processing.
+   * This is usually used to generate immutable implementation of classes from different
+   * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
+   * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
+   */
+  @Documented
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Include {
+    Class<?>[] value();
   }
 
   /**
@@ -140,38 +143,6 @@ public @interface Value {
   public @interface Nested {}
 
   /**
-   * {@code Modifiable} is a companion annotation to {@link Immutable}. It instructs annotation
-   * processor to generate modifiable companion class, which may be thought of as less
-   * constrained builders. Modifiable objects conforms to the abstract value type, but not
-   * necessarily could be used interchangably with immutable instances.
-   * <p>
-   * Please, note, that generated modifiable companion types will not be completely JavaBean-POJO
-   * compatible (if one can define what it is). Here's the list of specific things about
-   * {@code Modifiable} objects:
-   * <ul>
-   * <li>Modifiable objects are not thread safe, unlike canonical immutable instances</li>
-   * <li>It has identity, but doesn't have value in terms of how equals and hashCode is implemented.
-   * Convert to canonical immutable instance ({@code toImmutable*()}) to have a value. Overall,
-   * using value equality for mutable objects is almost always a bad practive.</li>
-   * <li>Runtime exception will be throws when trying to access mandatory attribute that has not
-   * been set. Special accessors ({@code hasSet*}) could be used to find out whether attribute have
-   * been set or not.</li>
-   * <li>Special collection attributes are implemented as mutable collections which may be accessed
-   * using getters, but cannot be replaced. Values could be changed, cleared, but there's no setters
-   * for special collection attributes.</li>
-   * <li>{@link Value.Derived}, {@link Value.Default} (if not set) and {@link Value.Lazy} attributes
-   * will be recomputed on each access. Use immutable instances to properly handle those.</li>
-   * </ul>
-   * <p>
-   * Among other limitations is that {@code Modifiable} types are generated as top level classes in
-   * package and ignores special nesting provided by {@link Value.Nested} annotation.
-   */
-  @Documented
-  @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Modifiable {}
-
-  /**
    * Annotate static factory methods that produce some value (non-void, non-private) to create
    * builder out of constructor parameters.
    * 
@@ -196,7 +167,6 @@ public @interface Value {
    * immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
    * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
    */
-  @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
@@ -465,35 +435,6 @@ public @interface Value {
     String typeImmutableNested() default "*";
 
     /**
-     * Modifiable companion class name template
-     * @return naming template
-     */
-    String typeModifiable() default "Modifiable*";
-
-    /**
-     * Modifiable object "setter" method. Used for mutable implementations.
-     * @return naming template
-     */
-    String set() default "set*";
-
-    /**
-     * @return naming template
-     */
-    String isSet() default "*IsSet";
-
-    /**
-     * Factory method for modifiable (mutable) implementation
-     * @return naming template
-     */
-    String create() default "create";
-
-    /**
-     * Method to convert to instance of companion modifiable type to "canonical" immutable instance.
-     * @return naming template
-     */
-    String toImmutable() default "toImmutable*";
-
-    /**
      * Specify default options for the generated immutable objects.
      * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,
      * then this default will not be taken into account, objects will be generated using attributes
@@ -513,13 +454,6 @@ public @interface Value {
      * @return if forced JDK-only class usage
      */
     boolean jdkOnly() default false;
-
-    /**
-     * "Deep analisys" enables more detailed analysis of attribute types which allows to generate
-     * more convenient initializers. It is not yet investigated if this is
-     * @return if deep analysis
-     */
-    boolean deepAnalysis() default true;
 
     /**
      * Specify the mode in which accibility visibility is derived from abstract value type.
@@ -560,31 +494,4 @@ public @interface Value {
       PRIVATE
     }
   }
-
-  // / Future styles
-
-  /*
-   * Modifiable companion class name template
-   * @return naming template
-   */
-//  String typeTransformer() default "*Transformer";
-
-  /*
-   * Modifiable companion class name template
-   * @return naming template
-   */
-//  String typeVisitor() default "*Visitor";
-
-  /*
-   * Unset attribute method. Used for mutable implementations.
-   * @return naming template
-   */
-//  String unset() default "unset*";
-
-  /*
-   * Clear collection (or other container). Used for mutable implementations.
-   * @return naming template
-   */
-//  String clear() default "clear*";
-
 }

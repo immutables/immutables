@@ -272,6 +272,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateModifiable() {
+    // TODO propagate this from somewhere?
     return ModifiableMirror.isPresent(element);
   }
 
