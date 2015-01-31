@@ -348,13 +348,6 @@ public class Proto {
      */
     public abstract Kind kind();
 
-    /**
-     * Ad-hoc holder for the current round's {@link ValueTypeComposer}.
-     * @return composer
-     */
-    @Value.Auxiliary
-    public abstract ValueTypeComposer composer();
-
     @Value.Derived
     public Visibility visibility() {
       return Visibility.of(sourceElement());
@@ -450,11 +443,6 @@ public class Proto {
       return Optional.absent();
     }
 
-    @Value.Lazy
-    public ValueType type() {
-      return composer().compose(this);
-    }
-
     TypeNames createTypeNames() {
       return styles().forType(sourceElement().getSimpleName().toString());
     }
@@ -532,6 +520,13 @@ public class Proto {
       public boolean isEnclosingOnly() {
         return this == DEFINED_ENCLOSING_TYPE;
       }
+    }
+
+    @Value.Lazy
+    public Constitution constitution() {
+      return ImmutableConstitution.builder()
+          .protoclass(this)
+          .build();
     }
   }
 

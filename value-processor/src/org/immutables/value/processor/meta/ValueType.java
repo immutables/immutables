@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -655,8 +656,7 @@ public final class ValueType extends TypeIntrospectionBase {
    */
   @Override
   public int hashCode() {
-    return 31 * constitution.protoclass().name()
-        .hashCode();
+    return Objects.hash(constitution.protoclass().name());
   }
 
   @Override

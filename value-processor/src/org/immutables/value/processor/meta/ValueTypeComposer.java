@@ -73,9 +73,7 @@ public final class ValueTypeComposer {
     type.typeMoreObjects = typeMoreObjects;
     type.element = protoclass.sourceElement();
     type.immutableFeatures = protoclass.features();
-    type.constitution = ImmutableConstitution.builder()
-        .protoclass(protoclass)
-        .build();
+    type.constitution = protoclass.constitution();
 
     if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(protoclass, type).collect();

@@ -55,41 +55,40 @@ public abstract class Round {
   }
 
   public Multimap<DeclaringPackage, ValueType> collectValues() {
-    final ImmutableMultimap.Builder<DeclaringPackage, ValueType> builder =
-        ImmutableMultimap.builder();
+    ImmutableList<Protoclass> protoclasses = collectProtoclasses();
+    Map<DeclaringType, ValueType> enclosingTypes = Maps.newHashMap();
 
-    class ValueCombiner {
-      final ImmutableList<Protoclass> protoclasses = collectProtoclasses();
-      final Map<DeclaringType, ValueType> enclosingTypes = Maps.newHashMap();
+    ImmutableMultimap.Builder<DeclaringPackage, ValueType> builder = ImmutableMultimap.builder();
 
-      void combine() {
-        collectEnclosing();
-        attachNested();
-      }
-
-      void collectEnclosing() {
-        for (Protoclass protoclass : protoclasses) {
-          if (protoclass.kind().isEnclosing()) {
-            ValueType type = protoclass.type();
-            enclosingTypes.put(protoclass.declaringType().get(), type);
-          }
-        }
-      }
-
-      void attachNested() {
-        for (Protoclass protoclass : protoclasses) {
-          if (protoclass.kind().isNested()) {
-            @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
-            if (enclosing != null) {
-              enclosing.addNested(protoclass.type());
-            }
-          }
-          builder.put(protoclass.packageOf(), protoclass.type());
-        }
+    // Collect enclosing
+    for (Protoclass protoclass : protoclasses) {
+      if (protoclass.kind().isEnclosing()) {
+        ValueType type = composer().compose(protoclass);
+        enclosingTypes.put(protoclass.declaringType().get(), type);
       }
     }
-
-    new ValueCombiner().combine();
+    // Collect remaining and attach if nested
+    for (Protoclass protoclass : protoclasses) {
+      @Nullable ValueType current = null;
+      if (protoclass.kind().isNested()) {
+        @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
+        if (enclosing != null) {
+          current = composer().compose(protoclass);
+          // Attach nested to enclosing
+          enclosing.addNested(current);
+        }
+      }
+      // getting the ValueType if it was alredy created and put into enclosingTypes
+      if (current == null && protoclass.kind().isEnclosing()) {
+        current = enclosingTypes.get(protoclass.declaringType().get());
+      }
+      // If none then we just create it
+      if (current == null) {
+        current = composer().compose(protoclass);
+      }
+      // We put all enclosing and nested values by the package
+      builder.put(protoclass.packageOf(), current);
+    }
 
     return builder.build();
   }
@@ -153,7 +152,6 @@ public abstract class Round {
       if (declaringType.verifiedFactory(element)) {
         builder.add(ImmutableProto.Protoclass.builder()
             .environment(environment())
-            .composer(composer())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
             .declaringType(declaringType)
@@ -172,7 +170,6 @@ public abstract class Round {
         for (TypeElement sourceElement : declaringPackage.includedTypes()) {
           builder.add(ImmutableProto.Protoclass.builder()
               .environment(environment())
-              .composer(composer())
               .packageOf(declaringPackage)
               .sourceElement(sourceElement)
               .kind(Kind.INCLUDED_IN_PACKAGE)
@@ -195,7 +192,6 @@ public abstract class Round {
         for (TypeElement sourceElement : declaringType.includedTypes()) {
           builder.add(ImmutableProto.Protoclass.builder()
               .environment(environment())
-              .composer(composer())
               .packageOf(declaringType.packageOf())
               .sourceElement(sourceElement)
               .declaringType(declaringType)
@@ -209,7 +205,6 @@ public abstract class Round {
 
         builder.add(ImmutableProto.Protoclass.builder()
             .environment(environment())
-            .composer(composer())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
             .declaringType(declaringType)
