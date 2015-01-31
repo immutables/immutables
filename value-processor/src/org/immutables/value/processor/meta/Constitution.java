@@ -18,10 +18,8 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import java.util.Collections;
 import java.util.List;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import org.immutables.generator.Naming;
@@ -126,7 +124,7 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms typeAbstract() {
     List<String> classSegments = Lists.newArrayListWithExpectedSize(2);
-    Element e = collectClassSegments(classSegments);
+    Element e = SourceNames.collectClassSegments(protoclass().sourceElement(), classSegments);
     verify(e instanceof PackageElement);
 
     String packageOf = ((PackageElement) e).getQualifiedName().toString();
@@ -149,15 +147,6 @@ public abstract class Constitution {
 
   public StyleMirror style() {
     return protoclass().styles().style();
-  }
-
-  private Element collectClassSegments(List<String> classSegments) {
-    Element e = protoclass().sourceElement();
-    for (; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
-      classSegments.add(e.getSimpleName().toString());
-    }
-    Collections.reverse(classSegments);
-    return e;
   }
 
   /**

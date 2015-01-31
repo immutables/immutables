@@ -46,7 +46,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import org.immutables.value.ext.ExtValue;
-import org.immutables.value.ext.Gson;
 import org.immutables.value.ext.Json;
 import org.immutables.value.ext.Mongo;
 import org.immutables.value.ext.Parboil;
@@ -267,8 +266,9 @@ public final class ValueType extends TypeIntrospectionBase {
     return generateMarshaled;
   }
 
-  public boolean isGenerateStreamed() {
-    return hasAnnotation(Gson.Streamed.class);
+  public boolean isGenerateTypeAdapted() {
+    // TODO propagate this from MetaAnnotated
+    return TypeAdaptedMirror.isPresent(element);
   }
 
   public boolean isGenerateRepository() {
@@ -655,8 +655,7 @@ public final class ValueType extends TypeIntrospectionBase {
    */
   @Override
   public int hashCode() {
-    return 31 * constitution.protoclass()
-        .sourceQualifedName()
+    return 31 * constitution.protoclass().name()
         .hashCode();
   }
 

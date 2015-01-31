@@ -32,7 +32,7 @@ final class AnnotationPrinting {
   private static final String PREFIX_ORG_IMMUTABLES = "@org.immutables.";
 
   // This one is somehow very Ad Hoc
-  private static final String PREFIX_JSON_PROPERTY_ANNOTATION = "@" + JsonPropertyMirror.ANNOTATION_NAME;
+  private static final String PREFIX_JSON_PROPERTY_ANNOTATION = "@" + JsonPropertyMirror.qualifiedName();
 
   static List<CharSequence> getAnnotationLines(Element element) {
     List<CharSequence> lines = Lists.newArrayList();

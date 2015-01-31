@@ -72,7 +72,7 @@ final class AccessorAttributesCollector {
           "Value objects with more than %d attributes (including inherited) are not supported."
               + " Please decompose '%s' class into a smaller ones",
           USEFUL_PARAMETER_COUNT_LIMIT,
-          protoclass.sourceQualifedName());
+          protoclass.name());
     }
 
     for (ValueAttribute attribute : attributes) {

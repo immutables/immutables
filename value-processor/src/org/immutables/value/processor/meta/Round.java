@@ -94,7 +94,7 @@ public abstract class Round {
     return builder.build();
   }
 
-  Optional<Protoclass> definedValueProtoclassFor(TypeElement element) {
+  public Optional<Protoclass> definedValueProtoclassFor(TypeElement element) {
     ProtoclassCollecter collecter = new ProtoclassCollecter();
     collecter.collect(element);
     for (Protoclass protoclass : collecter.builder.build()) {

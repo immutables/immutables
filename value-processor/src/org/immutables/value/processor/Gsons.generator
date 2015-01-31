@@ -1,5 +1,5 @@
 [template generate]
-  [for type in values.values if type.generateStreamed]
+  [for type in values.values if type.generateTypeAdapted]
     [if type.kind.isValue]
       [checkAttributes type]
 [output.java type.package (type.name 'Streamer')]

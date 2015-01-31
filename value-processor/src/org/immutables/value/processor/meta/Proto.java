@@ -16,7 +16,6 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -25,7 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.util.List;
-import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -55,9 +53,8 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public StyleMirror style() {
-      return StyleMirror.find(element()).orNull();
+    public Optional<StyleMirror> style() {
+      return StyleMirror.find(element());
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
@@ -92,7 +89,7 @@ public class Proto {
     @Value.Parameter
     abstract ProcessingEnvironment processing();
 
-    @Value.Lazy
+    @Value.Derived
     StyleMirror defaultStyles() {
       return StyleMirror.from(processing().getElementUtils().getTypeElement(STYLE_ANNOTATION));
     }
@@ -107,32 +104,31 @@ public class Proto {
     @Value.Lazy
     public List<TypeElement> includedTypes() {
       Optional<IncludeMirror> includes = IncludeMirror.find(element());
+
       ImmutableList<TypeMirror> typeMirrors = includes.isPresent()
           ? ImmutableList.copyOf(includes.get().valueMirror())
           : ImmutableList.<TypeMirror>of();
 
-      ImmutableSet<String> typeNames = FluentIterable.from(typeMirrors)
+      FluentIterable<TypeElement> typeElements = FluentIterable.from(typeMirrors)
           .filter(DeclaredType.class)
-          .transform(DeclatedTypeToElement.FUNCTION)
+          .transform(DeclatedTypeToElement.FUNCTION);
+
+      ImmutableSet<String> uniqueTypeNames = typeElements
           .filter(IsPublic.PREDICATE)
           .transform(ElementToName.FUNCTION)
           .toSet();
 
-      if (typeNames.size() != typeMirrors.size()) {
+      if (uniqueTypeNames.size() != typeMirrors.size()) {
         report().annotationNamed(IncludeMirror.simpleName())
-            .warning("Some types were ignored, non-supported for inclusion: duplicates, non reference types, non-public");
+            .warning("Some types were ignored, non-supported for inclusion: duplicates, non declared reference types, non-public");
       }
 
-      ImmutableList.Builder<TypeElement> builder = ImmutableList.builder();
-      for (String typeName : typeNames) {
-        builder.add(processing().getElementUtils().getTypeElement(typeName));
-      }
-      return builder.build();
+      return typeElements.toList();
     }
 
     @Value.Lazy
     public boolean useImmutableDefaults() {
-      Optional<ImmutableMirror> immutables = ImmutableMirror.find(element());
+      Optional<ImmutableMirror> immutables = features();
       if (immutables.isPresent()) {
         return immutables.get().getAnnotationMirror().getElementValues().isEmpty();
       }
@@ -170,34 +166,32 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public ImmutableMirror features() {
-      return ImmutableMirror.find(element()).orNull();
+    public Optional<ImmutableMirror> features() {
+      return ImmutableMirror.find(element());
     }
 
     public boolean isImmutable() {
-      return features() != null;
+      return features().isPresent();
     }
 
     @Value.Derived
     @Value.Auxiliary
-    @Nullable
-    public StyleMirror style() {
-      @Nullable StyleMirror style = StyleMirror.find(element()).orNull();
+    public Optional<StyleMirror> style() {
+      Optional<StyleMirror> style = StyleMirror.find(element());
 
-      if (style != null) {
+      if (style.isPresent()) {
         return style;
       }
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
         MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
-        @Nullable StyleMirror metaStyle = metaAnnotated.style();
-        if (metaStyle != null) {
+        Optional<StyleMirror> metaStyle = metaAnnotated.style();
+        if (metaStyle.isPresent()) {
           return metaStyle;
         }
       }
 
-      return null;
+      return Optional.absent();
     }
 
     /**
@@ -315,10 +309,15 @@ public class Proto {
 
   /**
    * Prototypical model for generated derived classes. {@code Protoclass} could be used to projects
-   * different kind of derived classes,
+   * different kind of derived classes.
    */
-  @Value.Immutable
+  @Value.Immutable(intern = true)
   public static abstract class Protoclass extends Diagnosable {
+
+    @Value.Derived
+    public String name() {
+      return SourceNames.sourceQualifiedNameFor(sourceElement());
+    }
 
     /**
      * Source type elements stores type element which is used as a source of value type model.
@@ -326,6 +325,7 @@ public class Proto {
      * {@code @Value.Immutable.Include}.
      * @return source element
      */
+    @Value.Auxiliary
     public abstract Element sourceElement();
 
     /**
@@ -352,6 +352,7 @@ public class Proto {
      * Ad-hoc holder for the current round's {@link ValueTypeComposer}.
      * @return composer
      */
+    @Value.Auxiliary
     public abstract ValueTypeComposer composer();
 
     @Value.Derived
@@ -371,6 +372,7 @@ public class Proto {
      * real model provided by {@link #sourceElement()}.
      */
     @Value.Derived
+    @Value.Auxiliary
     @Override
     public Element element() {
       if (kind().isFactory()) {
@@ -383,43 +385,46 @@ public class Proto {
     }
 
     @Value.Lazy
-    @Nullable
     public ImmutableMirror features() {
-      if (declaringType().isPresent() && !declaringType().get().useImmutableDefaults()) {
-        return declaringType().get().features();
+      if (declaringType().isPresent()
+          && !declaringType().get().useImmutableDefaults()) {
+        Optional<ImmutableMirror> features = declaringType().get().features();
+        if (features.isPresent()) {
+          return features.get();
+        }
       }
       return styles().defaults();
     }
 
     @Value.Lazy
     public Styles styles() {
+      return Styles.using(inferStyle().or(environment().defaultStyles()));
+    }
+
+    private Optional<StyleMirror> inferStyle() {
       if (declaringType().isPresent()) {
         Optional<DeclaringType> enclosing = enclosingOf();
         if (enclosing.isPresent()) {
           if (enclosing.get() != declaringType().get()) {
             warnIfNestedStylePresent();
           }
-          @Nullable StyleMirror enclosingStyle = enclosing.get().style();
-          if (enclosingStyle != null) {
-            return Styles.using(enclosingStyle);
+          Optional<StyleMirror> enclosingStyle = enclosing.get().style();
+          if (enclosingStyle.isPresent()) {
+            return enclosingStyle;
           }
         } else {
-          @Nullable StyleMirror style = declaringType().get().style();
-          if (style != null) {
-            return Styles.using(style);
+          Optional<StyleMirror> style = declaringType().get().style();
+          if (style.isPresent()) {
+            return style;
           }
         }
       }
-      @Nullable StyleMirror packageStyle = packageOf().style();
-      if (packageStyle != null) {
-        return Styles.using(packageStyle);
-      }
-      return Styles.using(environment().defaultStyles());
+      return packageOf().style();
     }
 
     private void warnIfNestedStylePresent() {
-      @Nullable StyleMirror style = declaringType().get().style();
-      if (style != null) {
+      Optional<StyleMirror> style = declaringType().get().style();
+      if (style.isPresent()) {
         report().annotationNamed(StyleMirror.simpleName())
             .warning("Use styles only on enclosing types."
                 + " All nested styles will inherit it."
@@ -429,6 +434,7 @@ public class Proto {
     }
 
     @Value.Derived
+    @Value.Auxiliary
     public Optional<DeclaringType> enclosingOf() {
       if (declaringType().isPresent()) {
         if (kind().isFactory()) {
@@ -447,21 +453,6 @@ public class Proto {
     @Value.Lazy
     public ValueType type() {
       return composer().compose(this);
-    }
-
-    @Value.Lazy
-    public String sourceQualifedName() {
-      Element element = sourceElement();
-      if (element instanceof TypeElement) {
-        return ((TypeElement) element).getQualifiedName().toString();
-      }
-      Element enclosingElement = element.getEnclosingElement();
-      if (enclosingElement instanceof TypeElement) {
-        return Joiner.on('.').join(
-            ((TypeElement) element).getQualifiedName(),
-            element.getSimpleName());
-      }
-      return element.getSimpleName().toString();
     }
 
     TypeNames createTypeNames() {

@@ -34,9 +34,9 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.value.Value;
 import org.immutables.value.ext.Json;
 import org.immutables.value.ext.Mongo;
-import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
