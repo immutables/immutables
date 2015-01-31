@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.collect;
+package org.immutables.value.ordinal;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ForwardingSet;
@@ -65,17 +65,17 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * @param rest the rest of elements
    * @return empty set
    */
-  // @SafeVarargs
+  @SafeVarargs
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> of(
       E first, E... rest) {
     OrdinalDomain<E> domain = first.domain();
     if (rest.length == 0) {
-      return new SingletonImmutableOrdinalSet<E>(first);
+      return new SingletonImmutableOrdinalSet<>(first);
     }
     OrdinalValue<?>[] array = new OrdinalValue<?>[1 + rest.length];
     array[0] = first;
     System.arraycopy(rest, 0, array, 1, rest.length);
-    return new RegularImmutableOrdinalSet<E>(domain, array);
+    return new RegularImmutableOrdinalSet<>(domain, array);
   }
 
   /**
@@ -97,9 +97,9 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
       return of();
     case 1:
       // Safe unchecked as element is known to be of type E
-      return new SingletonImmutableOrdinalSet<E>((E) array[0]);
+      return new SingletonImmutableOrdinalSet<>((E) array[0]);
     default:
-      return new RegularImmutableOrdinalSet<E>(((E) array[0]).domain(), array);
+      return new RegularImmutableOrdinalSet<>(((E) array[0]).domain(), array);
     }
   }
 
@@ -438,12 +438,12 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
   }
 
   /**
-   * Build instances of {@link ImmutableOrdinalSet}
+   * Build instances of {@link ImmutableOrdinalSet}.
    * @param <E> element type
    * @return builder
    */
   public static <E extends OrdinalValue<E>> Builder<E> builder() {
-    return new Builder<E>();
+    return new Builder<>();
   }
 
   /**

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import org.immutables.value.ordinal.ImmutableOrdinalSet;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
@@ -23,7 +24,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.POST;
-import org.immutables.common.collect.ImmutableOrdinalSet;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
 import org.junit.Test;

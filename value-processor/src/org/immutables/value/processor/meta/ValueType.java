@@ -232,7 +232,6 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public ImmutableMirror immutableFeatures;
 
-  @SuppressWarnings("deprecation")
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()
         && !constitution.returnsAbstractValueType()

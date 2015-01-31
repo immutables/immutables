@@ -13,34 +13,37 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.collect;
+package org.immutables.value.ordinal;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
-class Ord implements OrdinalValue<Ord> {
-  private final Domain domain;
-  private final int ordinal;
+class Domain extends OrdinalDomain<Ord> {
+  private final LoadingCache<Integer, Ord> values =
+      CacheBuilder.newBuilder()
+          .build(new CacheLoader<Integer, Ord>() {
+            @Override
+            public Ord load(Integer key) {
+              return new Ord(Domain.this, key);
+            }
+          });
 
-  public Ord(Domain domain, int ordinal) {
-    this.domain = domain;
-    this.ordinal = ordinal;
+  @Override
+  public Ord get(int ordinal) {
+    return values.getUnchecked(ordinal);
   }
 
   @Override
-  public int ordinal() {
-    return ordinal;
-  }
-
-  @Override
-  public OrdinalDomain<Ord> domain() {
-    return domain;
+  public int length() {
+    return values.asMap().size();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("domain", domain)
-        .add("ordinal", ordinal)
+        .addValue(length())
         .toString();
   }
 }

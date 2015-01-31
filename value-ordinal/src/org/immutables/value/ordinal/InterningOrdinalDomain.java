@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.collect.internal;
+package org.immutables.value.ordinal;
 
-import com.google.common.annotations.Beta;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -23,14 +22,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.concurrent.ThreadSafe;
-import org.immutables.common.collect.OrdinalDomain;
-import org.immutables.common.collect.OrdinalValue;
 
 @ThreadSafe
-@Beta
 public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> extends OrdinalDomain<E> {
 
-  private final List<E> values = new CopyOnWriteArrayList<E>();
+  private final List<E> values = new CopyOnWriteArrayList<>();
 
   private final LoadingCache<S, E> cache =
       CacheBuilder.newBuilder()

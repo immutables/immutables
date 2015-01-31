@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.common.collect.OrdinalValue;
+import org.immutables.value.ordinal.OrdinalValue;
 import org.immutables.value.Value;
 
 @Value.Immutable

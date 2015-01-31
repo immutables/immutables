@@ -33,6 +33,11 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>value-ordinal</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

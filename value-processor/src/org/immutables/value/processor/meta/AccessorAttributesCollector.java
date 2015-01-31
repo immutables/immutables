@@ -38,8 +38,6 @@ final class AccessorAttributesCollector {
    * and long parameters and reserved slots for technical parameters).
    */
   private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
-  private static final String ORDINAL_VALUE_TYPE = "org.immutables.common.collect.OrdinalValue";
-
   private static final String EQUALS_METHOD = "equals";
   private static final String TO_STRING_METHOD = "toString";
   private static final String HASH_CODE_METHOD = "hashCode";
@@ -124,7 +122,7 @@ final class AccessorAttributesCollector {
     if (definitionType.equals(Object.class.getName())) {
       return false;
     }
-    if (definitionType.startsWith(ORDINAL_VALUE_TYPE)) {
+    if (definitionType.startsWith(TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE)) {
       return false;
     }
     return true;

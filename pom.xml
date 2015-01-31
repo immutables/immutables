@@ -31,6 +31,7 @@
     <module>metainf</module>
     <module>mirror</module>
     <module>value</module>
+    <module>value-ordinal</module>
     <module>value-processor</module>
     <module>value-standalone</module>
     <module>value-fixture</module>
