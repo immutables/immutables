@@ -105,9 +105,9 @@ public class JsonParserReader extends JsonReader {
     return toGsonToken(peek);
   }
 
-  private void expect(com.fasterxml.jackson.core.JsonToken expected) throws IOException {
+  private void expect(com.fasterxml.jackson.core.JsonToken expected) {
     if (peek != expected) {
-      throw new IllegalStateException("Expected " + toGsonToken(expected) + " but was " + peek());
+      throw new IllegalStateException("Expected " + toGsonToken(expected) + " but was " + peek);
     }
   }
 
@@ -123,11 +123,13 @@ public class JsonParserReader extends JsonReader {
   @Override
   public String nextString() throws IOException {
     requirePeek();
+    if (!isLenient()) {
+      expect(VALUE_STRING);
+    }
     String value = parser.getText();
     clearPeek();
     return value;
   }
-
   @Override
   public boolean nextBoolean() throws IOException {
     requirePeek();
