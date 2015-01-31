@@ -38,6 +38,7 @@ final class AccessorAttributesCollector {
    * and long parameters and reserved slots for technical parameters).
    */
   private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
+
   private static final String EQUALS_METHOD = "equals";
   private static final String TO_STRING_METHOD = "toString";
   private static final String HASH_CODE_METHOD = "hashCode";
@@ -62,13 +63,13 @@ final class AccessorAttributesCollector {
 
     if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
       ArrayList<ValueAttribute> list = Lists.newArrayListWithCapacity(USEFUL_PARAMETER_COUNT_LIMIT);
-      list.addAll(attributes);
+      list.addAll(attributes.subList(0, USEFUL_PARAMETER_COUNT_LIMIT));
       attributes.clear();
       attributes.addAll(list);
 
       protoclass.report().error(
           "Value objects with more than %d attributes (including inherited) are not supported."
-              + " Please decompose '%s' class into a smaller ones",
+              + " You can decompose '%s' class into a smaller ones",
           USEFUL_PARAMETER_COUNT_LIMIT,
           protoclass.name());
     }
