@@ -271,6 +271,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return TypeAdaptedMirror.isPresent(element);
   }
 
+  public boolean isGenerateModifiable() {
+    return ModifiableMirror.isPresent(element);
+  }
+
   public boolean isGenerateRepository() {
     return element.getAnnotation(Mongo.Repository.class) != null;
   }

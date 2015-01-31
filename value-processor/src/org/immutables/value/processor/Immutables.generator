@@ -148,7 +148,7 @@ package [type.package];
 
   /**
    * Copy constructor used for interning of objects implementing
-   * {@link org.immutables.common.collect.OrdinalValue}
+   * {@link org.immutables.value.ordinal.OrdinalValue}
    */
   private [type.typeImmutable.simple]([type.typeImmutable.simple] instance, int ordinal) {
   [for v in type.implementedAttributes]
@@ -165,7 +165,7 @@ package [type.package];
    * Instances of {@code [type.name]} will be interned and registered with the domain.
    */
   public static final class Domain
-      extends org.immutables.common.collect.internal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
+      extends org.immutables.value.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
 
     private static final Domain INSTANCE = new Domain();
 
@@ -197,7 +197,7 @@ package [type.package];
   }
 
   @Override
-  public org.immutables.common.collect.OrdinalDomain<[type.typeAbstract.relative]> domain() {
+  public org.immutables.value.ordinal.OrdinalDomain<[type.typeAbstract.relative]> domain() {
     return domain;
   }
 
@@ -939,28 +939,6 @@ public static [type.typeValue.relative] fromAllAttributes(
 [/if]
 [/template]
 
-[template generateJacksonMappedOld Type type]
-[if type.generateJacksonMapped]
-[if not type.useBuilder]
-  [output.error]Cannot use @Jackson.Mapped without builder enabled[/output.error]
-[/if]
-[if not type.generateMarshaled]
-  [output.error]Cannot use @Jackson.Mapped without @Json.Marshaled annotation[/output.error]
-[/if]
-[let marshalerInstance][type.name]Marshaler.instance()[/let]
-
-@com.fasterxml.jackson.annotation.JsonValue
-public com.fasterxml.jackson.databind.util.TokenBuffer toTokenBuffer() throws java.io.IOException {
-  return org.immutables.common.marshal.internal.MarshalingSupport.toTokenBuffer([marshalerInstance], this);
-}
-
-@com.fasterxml.jackson.annotation.JsonCreator
-public static [type.typeValue.relative] fromTokenBuffer(com.fasterxml.jackson.databind.util.TokenBuffer buffer) throws java.io.IOException {
-  return [type.names.copyOf](org.immutables.common.marshal.internal.MarshalingSupport.fromTokenBuffer([marshalerInstance], buffer));
-}
-[/if]
-[/template]
-
 [template generateAccessorMethods Type type]
 [if type.annotationType]
 
@@ -1343,7 +1321,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [if v.generateJdkOnly][-- for now jdk only will be the same --]
   [v.type]
 [else if v.generateOrdinalValueSet]
-  org.immutables.common.collect.ImmutableOrdinalSet<[v.elementType]>
+  org.immutables.value.ordinal.ImmutableOrdinalSet<[v.elementType]>
 [else if v.generateSortedSet]
   [guava].collect.ImmutableSortedSet<[v.elementType]>
 [else if v.collectionType]
@@ -1364,7 +1342,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
-    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
+    [output.error]Not implemented generate OrdinalValue set for JDK only[/output.error]
   [else if a.listType]
     createUnmodifiableList(true, [expression])
   [else if a.setType]
@@ -1395,7 +1373,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
-    [output.error]Not implemented generate OrdinalValueSet for JDK only[/output.error]
+    [output.error]Not implemented generate OrdinalValue set for JDK only[/output.error]
   [else if a.listType]
     createUnmodifiableList(false, [safeList])
   [else if a.setType]
@@ -1421,7 +1399,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.generateEnumSet]
     [guava].collect.Sets.immutableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
-    org.immutables.common.collect.ImmutableOrdinalSet.copyOf([expression])
+    org.immutables.value.ordinal.ImmutableOrdinalSet.copyOf([expression])
   [else if a.collectionType]
     [guava].collect.Immutable[a.rawCollectionType].copyOf([expression])
   [else if a.generateSortedMap]

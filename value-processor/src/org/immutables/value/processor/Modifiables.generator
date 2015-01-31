@@ -1,0 +1,17 @@
+[template generate]
+  [for type in values.values if type.generateModifiable]
+    [if type.kind.isValue]
+[output.java type.package ('Modifiable' type.name)]
+[generateModifiable type]
+[/output.java]
+    [else]
+[output.error]
+Use @Value.Modifiable to annotate @Value.Immutable abstract value types
+[/output.error]
+    [/if]
+  [/for]
+[/template]
+
+[template generateModifiable Type type]
+
+[/template]
