@@ -99,7 +99,6 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  @Ignore
   public void staticImport() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "import static org.immutables.check.Checkers.*;",

@@ -24,6 +24,7 @@ final class PostprocessingMachine {
     int packageFrom = -1;
     int importFrom = -1;
     int nextPartFrom = 0;
+    boolean importStarts = false;
     FiniteStateMachine machine = new FiniteStateMachine();
     FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
     CommentMachine commentMachine = new CommentMachine();
@@ -50,13 +51,15 @@ final class PostprocessingMachine {
         }
         break;
       case IMPORTS:
-        if (c == ' ') {
+        if (!importStarts && c == ' ') {
           importFrom = i + 1;
+          importStarts = true;
         }
         if (c == ';') {
           importsBuilder.addImport(content.subSequence(importFrom, i).toString());
           state = State.UNDEFINED;
           importFrom = -1;
+          importStarts = false;
         }
         break;
       case CLASS:
@@ -202,7 +205,7 @@ final class PostprocessingMachine {
     }
 
     void addImport(String importedPackage) {
-      imports.add(normalize(importedPackage));
+      imports.add(importedPackage);
     }
 
     void setCurrentPackage(String currentPackage) {
