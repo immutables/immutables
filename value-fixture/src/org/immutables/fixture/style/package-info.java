@@ -1,4 +1,4 @@
-@org.immutables.value.Value.Immutable.Include(Ticker.class)
+@org.immutables.value.Value.Include(Ticker.class)
 @org.immutables.fixture.style.PackageStyle
 package org.immutables.fixture.style;
 

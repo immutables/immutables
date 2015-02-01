@@ -17,7 +17,7 @@ package org.immutables.fixture;
 
 import java.util.List;
 import org.immutables.value.Value;
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 
 @Value.Immutable
 @Json.Marshaled

@@ -17,10 +17,12 @@ package org.immutables.generator;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
+
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
-import javax.annotation.Nullable;
-import static com.google.common.base.Preconditions.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Basis for the functionality of generated templates
@@ -234,18 +236,14 @@ public final class Templates {
 
   public static abstract class Fragment implements Invokable {
     private final int arity;
-    @Nullable
-    private final CharSequence capturedIndentation;
 
+    /**
+     * @param arity number of fragment parameters
+     * @param capturedInvokation surrounding invokation when fragment is defined, not when invoked
+     */
     protected Fragment(int arity, @Nullable Invokation capturedInvokation) {
       assert arity >= 0;
       this.arity = arity;
-      this.capturedIndentation =
-          capturedInvokation != null
-              ? (capturedInvokation.consumer != null
-                  ? capturedInvokation.consumer.indentation
-                  : "")
-              : null;
     }
 
     protected Fragment(int arity) {
@@ -265,10 +263,8 @@ public final class Templates {
       CharSequence indentationToResore = "";
       if (invokation.consumer != null) {
         indentationToResore = invokation.consumer.indentation;
-
-        invokation.consumer.indentation = capturedIndentation != null
-            ? capturedIndentation
-            : invokation.consumer.getCurrentIndentation();
+        // switch to the current indentation inside fragment
+        invokation.consumer.indentation = invokation.consumer.getCurrentIndentation();
       }
 
       run(new Invokation(invokation.consumer, params));
@@ -286,7 +282,8 @@ public final class Templates {
       if (arity == 0) {
         CharConsumer consumer = new CharConsumer();
         invoke(new Invokation(consumer));
-        return consumer.asCharSequence();
+        CharSequence cs = consumer.asCharSequence();
+        return cs;
       }
       return super.toString();
     }

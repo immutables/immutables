@@ -16,7 +16,7 @@
 package org.immutables.fixture.style;
 
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Feature combination
@@ -27,7 +27,7 @@ import org.immutables.value.Value.Immutable.ImplementationVisibility;
 @Value.Nested
 @Value.Style(
     builder = "new",
-    defaults = @Value.Immutable(visibility = ImplementationVisibility.PRIVATE))
+    visibility = ImplementationVisibility.PRIVATE)
 public abstract class EnclosingBuilderNew {
   @Value.Immutable
   public static class Hidden {}

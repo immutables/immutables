@@ -15,12 +15,11 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.value.BeanStyle;
 import java.util.List;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@BeanStyle.Conservative
+@Conservative
 abstract class ConservativeStyleDetected {
   abstract List<String> getEm();
 

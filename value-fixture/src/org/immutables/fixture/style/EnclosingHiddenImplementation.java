@@ -16,7 +16,7 @@
 package org.immutables.fixture.style;
 
 import com.google.common.base.Optional;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.Value;
 
 @Value.Style(
@@ -24,7 +24,8 @@ import org.immutables.value.Value;
     instance = "singletonInstance",
     of = "new*",
     builder = "create",
-    defaults = @Value.Immutable(singleton = true, visibility = ImplementationVisibility.PRIVATE))
+    visibility = ImplementationVisibility.PRIVATE,
+    defaults = @Value.Immutable(singleton = true))
 @interface Priv {}
 
 /**
@@ -48,7 +49,7 @@ public abstract class EnclosingHiddenImplementation {
     public abstract Optional<Integer> cons();
   }
 
-  @Value.Immutable(builder = false, visibility = ImplementationVisibility.SAME)
+  @Value.Immutable(builder = false)
   public static abstract class VisibleImplementation {
     @Value.Parameter
     public abstract Optional<Integer> cons();
@@ -63,6 +64,6 @@ public abstract class EnclosingHiddenImplementation {
     // Strictly follows naming template
     EnclosingFactory.newNonexposedImplementation(Optional.of(11));
     // Implementation is visible
-    EnclosingFactory.VisibleImplementation.newVisibleImplementation(Optional.<Integer>absent());
+    EnclosingFactory.newVisibleImplementation(Optional.<Integer>absent());
   }
 }

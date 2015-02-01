@@ -7,7 +7,8 @@ import java.util.Set;
 import java.util.List;
 import org.immutables.value.Value;
 
-@Value.Immutable(singleton = true, jdkOnly = true)
+@Value.Immutable(singleton = true)
+@Value.Style(jdkOnly = true)
 public interface JdkColl {
   List<String> str();
 

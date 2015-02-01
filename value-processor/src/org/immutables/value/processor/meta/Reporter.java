@@ -62,7 +62,7 @@ abstract class Reporter {
   }
 
   void warning(String message, Object... parameters) {
-    reportMessage(Diagnostic.Kind.WARNING, message, parameters);
+    reportMessage(Diagnostic.Kind.MANDATORY_WARNING, message, parameters);
   }
 
   private void reportMessage(Diagnostic.Kind messageKind, String message, Object... parameters) {

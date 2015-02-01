@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.Json;
+import org.immutables.value.ext.Json;
 
 @Json.Subclasses({
     SillySub1.class,

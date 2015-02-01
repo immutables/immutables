@@ -17,7 +17,7 @@ package org.immutables.fixture.style;
 
 import org.immutables.fixture.style.ImmutableLessVisibleImplementation.LessVisibleImplementationBuilder;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Feature combination
@@ -26,7 +26,8 @@ import org.immutables.value.Value.Immutable.ImplementationVisibility;
  * <li>Builder returns abstract
  * </ul>
  */
-@Value.Immutable(visibility = ImplementationVisibility.PACKAGE)
+@Value.Immutable
+@Value.Style(visibility = ImplementationVisibility.PACKAGE)
 public class LessVisibleImplementation {
 
   void use() {

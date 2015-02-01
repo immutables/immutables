@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2014-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.immutables.value;
 
-import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import java.lang.annotation.Documented;
@@ -32,7 +31,7 @@ import java.util.SortedSet;
  * This annotation provides namespace for annotations that models generated value objects.
  * Use one of the nested annotation.
  * @see Value.Immutable
- * @see Value.Immutable.Include
+ * @see Value.Include
  * @see Value.Nested
  */
 // @Target({}) // may cause problems with auto completion
@@ -56,18 +55,12 @@ public @interface Value {
   public @interface Immutable {
 
     /**
-     * Generate non-public (i.e. package private) immutable subclass out of public
-     * abstract value type.
-     * @deprecated have no effect, please use {@link #visibility()} instead, will be removed in next
-     *             major release
-     */
-    @Beta
-    @Deprecated
-    boolean nonpublic() default false;
-
-    /**
      * If {@code singleton=true}, generates internal singleton object constructed without any
      * specified parameters. Default is {@literal false}.
+     * <p>
+     * Note that {@code singleton=true} does not imply that only one instance of given abstract
+     * type. But it does mean that only one "default" instance of the immutable implementation type
+     * exist.
      */
     boolean singleton() default false;
 
@@ -79,17 +72,10 @@ public @interface Value {
     boolean intern() default false;
 
     /**
-     * If {@code withers=false} then generation of copying methods starting with
-     * "withAttributeName" will be disabled. Default is {@literal true}.
-     * @deprecated use {@link #copy()} attribute instead, will be removed in next major release
-     */
-    @Deprecated
-    boolean withers() default true;
-
-    /**
      * If {@code copy=false} then generation of copying methods will be disabled.
-     * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods.
-     * Default is {@literal true}, generate copy methods.
+     * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods
+     * which returns modified copy using structural sharing where possible.
+     * Default value is {@literal true}, i.e generate copy methods.
      */
     boolean copy() default true;
 
@@ -106,66 +92,19 @@ public @interface Value {
      * {@literal true}.
      */
     boolean builder() default true;
+  }
 
-    /**
-     * Specify the mode in which accibility visibility is derived from abstract value type.
-     * It is a good idea to not specify such attributea inline with immutable values, but rather
-     * create style annotation (@see Style).
-     * @return implementation visibility
-     */
-    @Beta
-    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
-
-    /**
-     * When {@code true} &mdash; forces to generate code which use only JDK 7+ standard library
-     * classes. It is {@code false} by default, however usage of JDK-only classes will be turned on
-     * automatically if <em>Google Guava</em> library is not found in classpath. The generated code
-     * will have subtle differences, but nevertheless will be functionally equivalent.
-     * <p>
-     * <em>Note that some additional annotation processors may not work without
-     * Guava being accessible to the generated classes</em>
-     * @return if forced JDK-only class usage
-     */
-    boolean jdkOnly() default false;
-
-    /**
-     * If implementation visibility is more restrictive than visibility of abstract value type, then
-     * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
-     * constructon methods. Builder visibility will follow.
-     */
-    @Beta
-    public enum ImplementationVisibility {
-      /**
-       * 
-       */
-      PUBLIC,
-      /**
-       * Visibility is the same
-       */
-      SAME,
-      /**
-       * 
-       */
-      PACKAGE,
-      /**
-       * Allowed only when builder is enabled or nested inside enclosing type.
-       * Builder visibility will follow the umbrella class visibility.
-       */
-      PRIVATE
-    }
-
-    /**
-     * Includes specified abstract value types into generation of processing.
-     * This is usually used to generate immutable implementation of classes from different
-     * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
-     * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
-     */
-    @Beta
-    @Target({ElementType.TYPE, ElementType.PACKAGE})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface Include {
-      Class<?>[] value();
-    }
+  /**
+   * Includes specified abstract value types into generation of processing.
+   * This is usually used to generate immutable implementation of classes from different
+   * packages that source code cannot be changed to place {@literal @}{@code Value.Immutable}.
+   * Only public types of suppored kinds is supported (see {@link Value.Immutable}).
+   */
+  @Documented
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Include {
+    Class<?>[] value();
   }
 
   /**
@@ -228,7 +167,6 @@ public @interface Value {
    * immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
    * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
    */
-  @Beta
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
@@ -343,23 +281,6 @@ public @interface Value {
   public @interface Check {}
 
   /**
-   * Generate bean-style getter accesor method for each attribute.
-   * It needed sometimes for interoperability.
-   * Methods with 'get' (or 'is') prefixes and attribute name joined in camel-case.
-   * <p>
-   * Generated accessor methods have annotation copied from original accessor method. However
-   * {@code org.immutables.*} and {@code java.lang.*} are not copied. This allow some frameworks to
-   * work with immutable types as they can with beans, using getters and annotations on them.
-   * @deprecated consider using styles, such as {@link BeanStyle.Accessors}. May be undeprecated if
-   *             found to be useful.
-   */
-  @Deprecated
-  @Documented
-  @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Getters {}
-
-  /**
    * Specified natural ordering for the implemented {@link SortedSet}, {@link NavigableSet} or
    * {@link SortedMap}, {@link NavigableMap}. It an error to annotate
    * sorted collection of elements which are not implementing {@link Comparable}.
@@ -369,7 +290,6 @@ public @interface Value {
    * @see ImmutableSortedMap#naturalOrder()
    * @see ReverseOrder
    */
-  @Beta
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.SOURCE)
@@ -385,7 +305,6 @@ public @interface Value {
    * @see ImmutableSortedMap#reverseOrder()
    * @see NaturalOrder
    */
-  @Beta
   @Documented
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
@@ -405,12 +324,12 @@ public @interface Value {
    * In this way there will be no issues with the naming and structural conventions
    * mismatch on enclosing and nested types.</em>
    */
-  @Beta
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Style {
     /**
-     * Patterns to recognize accessors.
+     * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
+     * mimick style of bean getters.
      * @return naming template
      */
     String[] get() default {};
@@ -523,56 +442,56 @@ public @interface Value {
      * @return default configuration
      */
     Immutable defaults() default @Immutable;
+
+    /**
+     * When {@code true} &mdash; forces to generate code which use only JDK 7+ standard library
+     * classes. It is {@code false} by default, however usage of JDK-only classes will be turned on
+     * automatically if <em>Google Guava</em> library is not found in classpath. The generated code
+     * will have subtle differences, but nevertheless will be functionally equivalent.
+     * <p>
+     * <em>Note that some additional annotation processors may not work without
+     * Guava being accessible to the generated classes, and thus will not honor this attribute</em>
+     * @return if forced JDK-only class usage
+     */
+    boolean jdkOnly() default false;
+
+    /**
+     * Specify the mode in which accibility visibility is derived from abstract value type.
+     * It is a good idea to not specify such attributea inline with immutable values, but rather
+     * create style annotation (@see Style).
+     * @return implementation visibility
+     */
+    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
+
+    /**
+     * If implementation visibility is more restrictive than visibility of abstract value type, then
+     * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
+     * constructon methods. Builder visibility will follow.
+     */
+    public enum ImplementationVisibility {
+      /**
+       * Generated implementation class forced to be public.
+       */
+      PUBLIC,
+      /**
+       * Visibility is the same
+       */
+      SAME,
+
+      /**
+       * Visibility is the same, but it is not returned from build and factory method, instead
+       * abstract value type returned.
+       */
+      SAME_NON_RETURNED,
+      /**
+       * 
+       */
+      PACKAGE,
+      /**
+       * Allowed only when builder is enabled or nested inside enclosing type.
+       * Builder visibility will follow the umbrella class visibility.
+       */
+      PRIVATE
+    }
   }
-
-  // / Future styles
-  /*
-   * Modifiable companion class name template
-   * @return naming template
-   */
-//  String typeModifiable() default "Modifiable*";
-
-  /*
-   * Modifiable companion class name template
-   * @return naming template
-   */
-//  String typeTransformer() default "*Transformer";
-
-  /*
-   * Modifiable companion class name template
-   * @return naming template
-   */
-//  String typeVisitor() default "*Visitor";
-
-//  String hasSet() default "hasSet*";
-
-  /*
-   * Modifiable object "setter" method. Used for mutable implementations.
-   * @return naming template
-   */
-//  String set() default "set*";
-
-  /*
-   * Unset attribute method. Used for mutable implementations.
-   * @return naming template
-   */
-//  String unset() default "unset*";
-
-  /*
-   * Clear collection (or other container). Used for mutable implementations.
-   * @return naming template
-   */
-//  String clear() default "clear*";
-
-  /*
-   * Factory method for mutable implementation
-   * @return naming template
-   */
-//  String create() default "create";
-  /*
-   * Method to convert to instanse of companion type to "canonical" immutable instance.
-   * @return naming template
-   */
-//  String toImmutable() default "toImmutable*";
-
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.style;
 
+import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Retention;
@@ -23,5 +24,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.PACKAGE)
 @Retention(RetentionPolicy.SOURCE)
-@Value.Style(with = "copyWith*")
+@Value.Style(with = "copyWith*", defaults = @Immutable(copy = true))
 public @interface PackageStyle {}

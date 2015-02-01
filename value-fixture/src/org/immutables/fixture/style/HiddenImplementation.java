@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.Value;
 
 /**
@@ -26,7 +26,8 @@ import org.immutables.value.Value;
  * <li>Builder returns abstract
  * </ul>
  */
-@Value.Immutable(visibility = ImplementationVisibility.PRIVATE)
+@Value.Immutable
+@Value.Style(visibility = ImplementationVisibility.PRIVATE)
 public class HiddenImplementation {
 
   void use() {

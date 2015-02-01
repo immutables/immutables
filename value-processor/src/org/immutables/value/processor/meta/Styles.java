@@ -15,28 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.annotation.concurrent.GuardedBy;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Maps;
 import java.util.Map;
+import javax.annotation.concurrent.GuardedBy;
 import org.immutables.generator.Naming;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Style;
 
 public final class Styles {
   @GuardedBy("cache")
-  private static final Map<Style, Styles> cache = Maps.newHashMap();
+  private static final Map<StyleMirror, Styles> cache = Maps.newHashMap();
 
-  @Style
-  private static class DefaultStyle {
-    static Style style = DefaultStyle.class.getAnnotation(Style.class);
-  }
-
-  public static Style defaultStyle() {
-    return DefaultStyle.style;
-  }
-
-  public static Styles using(Style style) {
+  public static Styles using(StyleMirror style) {
     synchronized (cache) {
       Styles namings = cache.get(style);
       if (namings == null) {
@@ -47,16 +36,20 @@ public final class Styles {
     }
   }
 
-  private final Style style;
+  private final StyleMirror style;
   private final Scheme scheme;
 
-  private Styles(Style style) {
+  private Styles(StyleMirror style) {
     this.style = style;
     this.scheme = new Scheme();
   }
 
-  public Immutable defaults() {
+  public ImmutableMirror defaults() {
     return style.defaults();
+  }
+
+  public StyleMirror style() {
+    return style;
   }
 
   public UsingName.TypeNames forType(String name) {
@@ -86,14 +79,14 @@ public final class Styles {
 
 //    Naming typeModifiable = Naming.from(style.typeModifiable());
 //    Naming create = Naming.from(style.create());
+//    Naming set = Naming.from(style.set());
+//    Naming isSet = Naming.from(style.isSet());
 //    Naming toImmutable = Naming.from(style.toImmutable());
 
     Naming[] get = Naming.fromAll(style.get());
     Naming init = Naming.from(style.init());
     Naming with = Naming.from(style.with());
 
-//    Naming set = Naming.from(style.set());
-//    Naming hasSet = Naming.from(style.hasSet());
 //    Naming unset = Naming.from(style.unset());
 //    Naming clear = Naming.from(style.clear());
 
@@ -155,7 +148,8 @@ public final class Styles {
       public final String typeImmutableNested = scheme.typeImmutableNested.apply(raw);
       public final String of = scheme.of.apply(raw);
       public final String instance = scheme.instance.apply(raw);
-//      public final String typeBuilder = scheme.typeBuilder.apply(raw);
+      // Builder template is being applied programatically in Constitution class
+      // public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
       public final String builder = scheme.builder.apply(raw);
       public final String build = scheme.build.apply(raw);
@@ -178,9 +172,9 @@ public final class Styles {
       public final String addAll = scheme.addAll.apply(raw);
       public final String put = scheme.put.apply(raw);
       public final String putAll = scheme.putAll.apply(raw);
-
 //      public final String set = scheme.set.apply(raw);
-//      public final String hasSet = scheme.hasSet.apply(raw);
+//      public final String isSet = scheme.isSet.apply(raw);
+
 //      public final String unset = scheme.unset.apply(raw);
 //      public final String clear = scheme.clear.apply(raw);
     }

@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -45,12 +46,9 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor7;
-import org.immutables.value.Jackson;
-import org.immutables.value.Json;
-import org.immutables.value.Mongo;
-import org.immutables.value.Value;
 import org.immutables.value.ext.ExtValue;
-import org.immutables.value.ext.Gson;
+import org.immutables.value.ext.Json;
+import org.immutables.value.ext.Mongo;
 import org.immutables.value.ext.Parboil;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
@@ -67,7 +65,6 @@ public final class ValueType extends TypeIntrospectionBase {
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
   private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
       ImmutableSet.of(
-          Jackson.Mapped.class.getCanonicalName(),
           "com.fasterxml.jackson.databind.annotation.JsonSerialize",
           "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
 
@@ -136,7 +133,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateJdkOnly() {
-    return typeMoreObjects == null || immutableFeatures.jdkOnly();
+    return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
   public boolean isGenerateJacksonMapped() {
@@ -217,11 +214,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
-  @SuppressWarnings("deprecation")
-  public boolean isGenerateGetters() {
-    return element.getAnnotation(Value.Getters.class) != null;
-  }
-
   public String $$package() {
     return constitution.protoclass().packageOf().name();
   }
@@ -238,18 +230,16 @@ public final class ValueType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
-  public Value.Immutable immutableFeatures;
+  public ImmutableMirror immutableFeatures;
 
-  @SuppressWarnings("deprecation")
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()
-        && immutableFeatures.withers()
-        && !constitution.implementationVisibility().isPrivate()
+        && !constitution.returnsAbstractValueType()
         && !getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseCopyConstructor() {
-    return immutableFeatures.copy() && (isUseConstructor() || isUseBuilder());
+    return isUseCopyMethods() && (isUseConstructor() || isUseBuilder());
   }
 
   public boolean isUseSingleton() {
@@ -271,14 +261,19 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isGenerateMarshaled() {
     if (generateMarshaled == null) {
       generateMarshaled = hasAnnotation(Json.Marshaled.class)
-          || isGenerateJacksonMapped()
           || isGenerateRepository();
     }
     return generateMarshaled;
   }
 
-  public boolean isGenerateStreamed() {
-    return hasAnnotation(Gson.Streamed.class);
+  public boolean isGenerateTypeAdapted() {
+    // TODO propagate this from MetaAnnotated
+    return TypeAdaptedMirror.isPresent(element);
+  }
+
+  public boolean isGenerateModifiable() {
+    // TODO propagate this from somewhere?
+    return ModifiableMirror.isPresent(element);
   }
 
   public boolean isGenerateRepository() {
@@ -665,9 +660,7 @@ public final class ValueType extends TypeIntrospectionBase {
    */
   @Override
   public int hashCode() {
-    return 31 * constitution.protoclass()
-        .sourceQualifedName()
-        .hashCode();
+    return Objects.hash(constitution.protoclass().name());
   }
 
   @Override

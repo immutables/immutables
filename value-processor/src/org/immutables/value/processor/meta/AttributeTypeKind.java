@@ -13,10 +13,10 @@ enum AttributeTypeKind {
   MAP("Map", java.util.Map.class.getName()),
   ENUM_MAP("Map"),
   SORTED_MAP("SortedMap", java.util.SortedMap.class.getName(), java.util.NavigableMap.class.getName()),
+  MULTISET("Multiset", UnshadeGuava.typeString("collect.Multiset")),
   MULTIMAP("Multimap", UnshadeGuava.typeString("collect.Multimap")),
   LIST_MULTIMAP("ListMultimap", UnshadeGuava.typeString("collect.ListMultimap")),
   SET_MULTIMAP("SetMultimap", UnshadeGuava.typeString("collect.SetMultimap")),
-  MULTISET("Multiset", UnshadeGuava.typeString("collect.Multiset")),
   OPTIONAL_JDK("Optional", "java.util.Optional"),
   OPTIONAL_GUAVA("Optional", UnshadeGuava.typeString("base.Optional"));
 
@@ -111,6 +111,18 @@ enum AttributeTypeKind {
     case MAP:
     case ENUM_MAP:
     case SORTED_MAP:
+    case MULTIMAP:
+    case LIST_MULTIMAP:
+    case SET_MULTIMAP:
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  public boolean isGuavaContainerKind() {
+    switch (this) {
+    case MULTISET:
     case MULTIMAP:
     case LIST_MULTIMAP:
     case SET_MULTIMAP:

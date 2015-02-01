@@ -17,8 +17,8 @@ package org.immutables.generator;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
-import com.google.common.base.Converter;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import java.util.Map;
@@ -204,14 +204,20 @@ public class Builtins {
     }
   };
 
-  public final Converter<String, String> toUpper =
-      CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL);
+  public final Function<Object, String> toUpper =
+      Functions.compose(
+          CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_CAMEL),
+          Functions.toStringFunction());
 
-  public final Converter<String, String> toLower =
-      CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_CAMEL);
+  public final Function<Object, String> toLower =
+      Functions.compose(
+          CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_CAMEL),
+          Functions.toStringFunction());
 
-  public final Converter<String, String> toConstant =
-      CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE);
+  public final Function<Object, String> toConstant =
+      Functions.compose(
+          CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.UPPER_UNDERSCORE),
+          Functions.toStringFunction());
 
   // Does it belongs here?
   public final Function<Object, String> toSafeIdentifier = new Function<Object, String>() {

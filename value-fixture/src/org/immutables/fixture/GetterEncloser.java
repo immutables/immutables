@@ -25,12 +25,10 @@ import simple.GetterAnnotation.InnerAnnotation;
 
 @SuppressWarnings("deprecation")
 @Value.Immutable
-@Value.Getters
 public interface GetterEncloser {
   Optional<Integer> optional();
 
   @Value.Immutable
-  @Value.Getters
   public interface Getters {
     int ab();
 

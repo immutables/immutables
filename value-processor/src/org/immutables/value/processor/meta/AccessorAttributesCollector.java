@@ -16,10 +16,8 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -32,7 +30,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
-import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class AccessorAttributesCollector {
@@ -41,7 +38,6 @@ final class AccessorAttributesCollector {
    * and long parameters and reserved slots for technical parameters).
    */
   private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
-  private static final String ORDINAL_VALUE_TYPE = "org.immutables.common.collect.OrdinalValue";
 
   private static final String EQUALS_METHOD = "equals";
   private static final String TO_STRING_METHOD = "toString";
@@ -67,15 +63,15 @@ final class AccessorAttributesCollector {
 
     if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
       ArrayList<ValueAttribute> list = Lists.newArrayListWithCapacity(USEFUL_PARAMETER_COUNT_LIMIT);
-      list.addAll(attributes);
+      list.addAll(attributes.subList(0, USEFUL_PARAMETER_COUNT_LIMIT));
       attributes.clear();
       attributes.addAll(list);
 
       protoclass.report().error(
           "Value objects with more than %d attributes (including inherited) are not supported."
-              + " Please decompose '%s' class into a smaller ones",
+              + " You can decompose '%s' class into a smaller ones",
           USEFUL_PARAMETER_COUNT_LIMIT,
-          protoclass.sourceQualifedName());
+          protoclass.name());
     }
 
     for (ValueAttribute attribute : attributes) {
@@ -127,7 +123,7 @@ final class AccessorAttributesCollector {
     if (definitionType.equals(Object.class.getName())) {
       return false;
     }
-    if (definitionType.startsWith(ORDINAL_VALUE_TYPE)) {
+    if (definitionType.startsWith(TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE)) {
       return false;
     }
     return true;
@@ -158,8 +154,7 @@ final class AccessorAttributesCollector {
       return;
     }
 
-    @Nullable Value.Check validateAnnotation = attributeMethodCandidate.getAnnotation(Value.Check.class);
-    if (validateAnnotation != null) {
+    if (CheckMirror.isPresent(attributeMethodCandidate)) {
       if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
           && attributeMethodCandidate.getParameters().isEmpty()
           && !attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
@@ -171,7 +166,7 @@ final class AccessorAttributesCollector {
         report(attributeMethodCandidate)
             .error("Method '%s' annotated with @%s must be non-private parameter-less method and have void return type.",
                 attributeMethodCandidate.getSimpleName(),
-                Value.Check.class.getSimpleName());
+                CheckMirror.simpleName());
       }
     }
 
@@ -182,8 +177,8 @@ final class AccessorAttributesCollector {
 
       boolean isFinal = isFinal(attributeMethodCandidate);
       boolean isAbstract = isAbstract(attributeMethodCandidate);
-      boolean defaultAnnotationPresent = hasAnnotation(attributeMethodCandidate, Value.Default.class);
-      boolean derivedAnnotationPresent = hasAnnotation(attributeMethodCandidate, Value.Derived.class);
+      boolean defaultAnnotationPresent = DefaultMirror.isPresent(attributeMethodCandidate);
+      boolean derivedAnnotationPresent = DerivedMirror.isPresent(attributeMethodCandidate);
 
       if (isAbstract) {
         attribute.isGenerateAbstract = true;
@@ -191,16 +186,16 @@ final class AccessorAttributesCollector {
           attribute.isGenerateDefault = true;
         } else if (defaultAnnotationPresent) {
           report(attributeMethodCandidate)
-              .forAnnotation(Value.Default.class)
+              .annotationNamed(DefaultMirror.simpleName())
               .error("@Value.Default should have initializer body", name);
         } else if (derivedAnnotationPresent) {
           report(attributeMethodCandidate)
-              .forAnnotation(Value.Derived.class)
+              .annotationNamed(DerivedMirror.simpleName())
               .error("@Value.Derived should have initializer body", name);
         }
       } else if (defaultAnnotationPresent && derivedAnnotationPresent) {
         report(attributeMethodCandidate)
-            .forAnnotation(Value.Derived.class)
+            .annotationNamed(DerivedMirror.simpleName())
             .error("Attribute '%s' cannot be both @Value.Default and @Value.Derived", name);
         attribute.isGenerateDefault = true;
         attribute.isGenerateDerived = false;
@@ -213,7 +208,7 @@ final class AccessorAttributesCollector {
         attribute.isGenerateDerived = true;
       }
 
-      if (hasAnnotation(attributeMethodCandidate, Value.Lazy.class)) {
+      if (LazyMirror.isPresent(attributeMethodCandidate)) {
         if (isAbstract || isFinal) {
           report(attributeMethodCandidate)
               .error("@Value.Lazy attribute '%s' must be non abstract and non-final", name);
@@ -263,13 +258,9 @@ final class AccessorAttributesCollector {
   }
 
   private static boolean hasGenerateAnnotation(ExecutableElement attributeMethodCandidate) {
-    return hasAnnotation(attributeMethodCandidate, Value.Default.class)
-        || hasAnnotation(attributeMethodCandidate, Value.Derived.class)
-        || hasAnnotation(attributeMethodCandidate, Value.Lazy.class);
-  }
-
-  private static boolean hasAnnotation(Element element, Class<? extends Annotation> annotationType) {
-    return element.getAnnotation(annotationType) != null;
+    return DefaultMirror.isPresent(attributeMethodCandidate)
+        || DerivedMirror.isPresent(attributeMethodCandidate)
+        || LazyMirror.isPresent(attributeMethodCandidate);
   }
 
   private Reporter report(Element type) {

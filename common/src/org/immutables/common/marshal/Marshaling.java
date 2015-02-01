@@ -26,7 +26,7 @@ import org.immutables.common.marshal.internal.MarshalingSupport;
 
 /**
  * Contains convenient methods for marshaling and unmarshaling documents annotated with
- * {@link org.immutables.value.Json.Marshaled} to and from standard textual JSON.
+ * {@code Json.Marshaled} to and from standard textual JSON.
  * <p>
  * You can avoid using this class in favor of using Marshalers directly. But It's not always
  * possible if dynamic lookup is needed.

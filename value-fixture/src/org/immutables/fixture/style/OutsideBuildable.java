@@ -16,7 +16,7 @@
 package org.immutables.fixture.style;
 
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable.ImplementationVisibility;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Feature combination
@@ -25,7 +25,8 @@ import org.immutables.value.Value.Immutable.ImplementationVisibility;
  * <li>uses factory method.
  * </ul>
  */
-@Value.Immutable(visibility = ImplementationVisibility.PRIVATE)
+@Value.Immutable
+@Value.Style(visibility = ImplementationVisibility.PRIVATE)
 public class OutsideBuildable {
 
   void use() {
@@ -40,8 +41,8 @@ public class OutsideBuildable {
  * <li>uses factory method.
  * </ul>
  */
-@Value.Immutable(visibility = ImplementationVisibility.PRIVATE)
-@Value.Style(builder = "new")
+@Value.Immutable
+@Value.Style(builder = "new", visibility = ImplementationVisibility.PRIVATE)
 class OutsideBuildableNew {
 
   void use() {
