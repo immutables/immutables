@@ -15,7 +15,6 @@
  */
 package org.immutables.value;
 
-import com.google.common.annotations.Beta;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,7 +23,6 @@ import java.lang.annotation.Target;
 /**
  * Bean related style-customizations. Serve mostly as example.
  */
-@Beta
 @Target({})
 public @interface Styles {
 
@@ -37,7 +35,6 @@ public @interface Styles {
    * annotation more of example of how to define your own styles as meta-annotation rather than a
    * useful annotation.
    */
-  @Beta
   @Value.Style(get = {"is*", "get*"}, init = "set*")
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   @Retention(RetentionPolicy.SOURCE)
