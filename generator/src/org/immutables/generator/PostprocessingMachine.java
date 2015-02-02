@@ -80,9 +80,6 @@ final class PostprocessingMachine {
         commentMachine.nextChar(c);
         if (!commentMachine.isInComment()) {
           nameMachine.nextChar(c, i);
-          if (nameMachine.isFound()) {
-            importsBuilder.addException(content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
-          }
           fullyQualifiedNameMachine.nextChar(c, i);
           if (fullyQualifiedNameMachine.isFinished()) {
 
@@ -93,6 +90,12 @@ final class PostprocessingMachine {
                 fullyQualifiedNameMachine.importFrom,
                 fullyQualifiedNameMachine.importTo,
                 fullyQualifiedNameMachine.packageTo);
+          }
+          if (fullyQualifiedNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
+            nameMachine.reset();
+          }
+          if (nameMachine.isFound()) {
+            importsBuilder.addException(content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
           }
         }
         break;
@@ -419,6 +422,8 @@ final class PostprocessingMachine {
 
     void reset() {
       state = ClassNameState.UNDEFINED;
+      classNameFrom = -1;
+      classNameTo = -1;
     }
 
     void nextChar(char c, int i) {
