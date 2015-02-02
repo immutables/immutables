@@ -78,7 +78,7 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  public void importsNoPlaceholders() {
+  public void simpleImport() {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         "class My extends java.util.Set {}");
 
@@ -95,5 +95,38 @@ public class PostprocessingMachineTest {
         LINES.join("package start;",
             "import java.util.Set;",
             "class My extends Set {}"));
+  }
+
+  @Test
+  public void staticImport() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import static org.immutables.check.Checkers.*;",
+        "class My extends java.util.Set {}"));
+
+    check(rewrited).hasToString(LINES.join(
+            "import java.util.Set;",
+            "import static org.immutables.check.Checkers.*;",
+            "class My extends Set {}"));
+  }
+
+  @Test
+  public void conflictResolution() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        "class Set extends java.util.Set {}");
+
+    check(rewrited).hasToString(
+        "class Set extends java.util.Set {}");
+
+    rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import my.Set;",
+        "class X {",
+        "  my.Set same(Set set);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+            "import my.Set;",
+            "class X {",
+            "  Set same(Set set);",
+            "}"));
   }
 }
