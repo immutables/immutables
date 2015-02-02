@@ -13,13 +13,20 @@ public class PostprocessingMachineTest {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
             "import java.util.List;",
-            "class My extends java.util.Set {}"));
+            "import some.Some.Nested;",
+            "class My extends java.util.Set {",
+            "  private java.util.Map<java.lang.String, Integer> map;",
+            "}"));
 
     check(rewrited).hasToString(
         LINES.join("package start;",
             "import java.util.List;",
+            "import java.util.Map;",
             "import java.util.Set;",
-            "class My extends Set {}"));
+            "import some.Some.Nested;",
+            "class My extends Set {",
+            "  private Map<String, Integer> map;",
+            "}"));
   }
 
   @Test
@@ -75,26 +82,37 @@ public class PostprocessingMachineTest {
     check(rewrited).hasToString(
         LINES.join("package start;",
             "class My extends Throwable {}"));
-  }
-
-  @Test
-  public void simpleImport() {
-    CharSequence rewrited = PostprocessingMachine.rewrite(
-        "class My extends java.util.Set {}");
-
-    check(rewrited).hasToString(
-        LINES.join("import java.util.Set;",
-            "class My extends Set {}"));
 
     rewrited = PostprocessingMachine.rewrite(
-        LINES.join(
-            "package start;",
-            "class My extends java.util.Set {}"));
+        LINES.join("package start;",
+            "class Throwable extends java.lang.Throwable {}"));
 
     check(rewrited).hasToString(
         LINES.join("package start;",
-            "import java.util.Set;",
-            "class My extends Set {}"));
+            "class Throwable extends java.lang.Throwable {}"));
+  }
+
+  @Test
+  public void currentPackageImport() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        LINES.join("package start;",
+            "class My extends start.Utils {}"));
+
+    check(rewrited).hasToString(
+        LINES.join("package start;",
+            "class My extends Utils {}"));
+
+    rewrited = PostprocessingMachine.rewrite(
+        LINES.join("package start;",
+            "class Throwable extends start.Utils {",
+            "  private class Utils {}",
+            "}"));
+
+    check(rewrited).hasToString(
+        LINES.join("package start;",
+            "class Throwable extends start.Utils {",
+            "  private class Utils {}",
+            "}"));
   }
 
   @Test
@@ -104,9 +122,9 @@ public class PostprocessingMachineTest {
         "class My extends java.util.Set {}"));
 
     check(rewrited).hasToString(LINES.join(
-            "import java.util.Set;",
-            "import static org.immutables.check.Checkers.*;",
-            "class My extends Set {}"));
+        "import java.util.Set;",
+        "import static org.immutables.check.Checkers.*;",
+        "class My extends Set {}"));
   }
 
   @Test
@@ -124,9 +142,9 @@ public class PostprocessingMachineTest {
         "}"));
 
     check(rewrited).hasToString(LINES.join(
-            "import my.Set;",
-            "class X {",
-            "  Set same(Set set);",
-            "}"));
+        "import my.Set;",
+        "class X {",
+        "  Set same(Set set);",
+        "}"));
   }
 }
