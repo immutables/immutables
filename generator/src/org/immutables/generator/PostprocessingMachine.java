@@ -25,9 +25,13 @@ final class PostprocessingMachine {
     int importFrom = -1;
     int nextPartFrom = 0;
     boolean importStarts = false;
+    int classNameOccurrencesInImportBlock = 0;
+    int classNameFrom = -1;
+    int classNameTo = -1;
     FiniteStateMachine machine = new FiniteStateMachine();
     FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
     CommentMachine commentMachine = new CommentMachine();
+    ClassNameMachine nameMachine = new ClassNameMachine();
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
@@ -51,6 +55,12 @@ final class PostprocessingMachine {
         }
         break;
       case IMPORTS:
+        nameMachine.nextChar(c, i);
+        if (nameMachine.isFound()) {
+          classNameOccurrencesInImportBlock++;
+          classNameFrom = nameMachine.classNameFrom;
+          classNameTo = nameMachine.classNameTo;
+        }
         if (!importStarts && c == ' ') {
           importFrom = i + 1;
           importStarts = true;
@@ -60,11 +70,19 @@ final class PostprocessingMachine {
           state = State.UNDEFINED;
           importFrom = -1;
           importStarts = false;
+          if (classNameOccurrencesInImportBlock == 1) {
+            importsBuilder.addToStopList(content.subSequence(classNameFrom, classNameTo).toString());
+            nameMachine.reset();
+          }
         }
         break;
       case CLASS:
         commentMachine.nextChar(c);
         if (!commentMachine.isInComment()) {
+          nameMachine.nextChar(c, i);
+          if (nameMachine.isFound()) {
+            importsBuilder.addException(content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
+          }
           fullyQualifiedNameMachine.nextChar(c, i);
           if (fullyQualifiedNameMachine.isFinished()) {
 
@@ -182,6 +200,7 @@ final class PostprocessingMachine {
     private Optional<String> currentPackage = Optional.absent();
     private TreeMap<String, ImportCandidate> importCandidates = Maps.newTreeMap();
     private HashSet<String> exceptions = Sets.newHashSet();
+    private HashSet<String> stopList = Sets.newHashSet();
 
     void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
       String normalized = normalize(fullyQualifiedName);
@@ -199,9 +218,14 @@ final class PostprocessingMachine {
       importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, normalized));
     }
 
-    // TODO use it
+    void addToStopList(String name) {
+      stopList.add(name);
+    }
+
     void addException(String name) {
-      exceptions.add(name);
+      if (!stopList.contains(name)) {
+        exceptions.add(name);
+      }
     }
 
     void addImport(String importedPackage) {
@@ -382,6 +406,46 @@ final class PostprocessingMachine {
     LINE_COMMENT,
     BLOCK_COMMENT,
     BLOCK_COMMENT_OUT_CANDIDATE
+  }
+
+  static final class ClassNameMachine {
+    ClassNameState state = ClassNameState.UNDEFINED;
+    int classNameFrom = -1;
+    int classNameTo = -1;
+
+    boolean isFound() {
+      return classNameFrom != -1 && classNameTo != -1;
+    }
+
+    void reset() {
+      state = ClassNameState.UNDEFINED;
+    }
+
+    void nextChar(char c, int i) {
+      switch (state) {
+      case UNDEFINED:
+        if (isUpperCaseAlphabetic(c)) {
+          state = ClassNameState.CLASS_NAME;
+          classNameFrom = i;
+          classNameTo = -1;
+        } else {
+          classNameFrom = -1;
+          classNameTo = -1;
+        }
+        break;
+      case CLASS_NAME:
+        if (!isAlphabetic(c) && !isDigit(c) && c != '_') {
+          state = ClassNameState.UNDEFINED;
+          classNameTo = i;
+        }
+        break;
+      }
+    }
+  }
+
+  enum ClassNameState {
+    UNDEFINED,
+    CLASS_NAME
   }
 
   private static final class ImportCandidate {
