@@ -1,40 +1,38 @@
 [template generate]
-  [for type in values.values if type.generateTypeAdapted]
-    [if type.kind.isValue]
-      [checkAttributes type]
-[output.java type.package (type.name 'Streamer')]
-[generateStreamer type]
+  [for type in values.values if type.generateTypeAdapted and type.topLevel]
+
+[output.java type.package (type.name 'TypeAdapters')]
+[generateTypeAdapters type type.allValues]
 [/output.java]
 
-[output.java type.package ('_Streaming_' type.name)]
-[generateMarshaling type]
-[/output.java]
-    [else]
-[output.error]
-Use @Json.Marshaled to annotate @Value.Immutable abstract value types
-[/output.error]
-    [/if]
+[output.service 'com.google.gson.TypeAdapterFactory']
+[if type.package][type.package].[/if][type.name]TypeAdapters
+[/output.service]
+
   [/for]
 [/template]
 
 [template checkAttributes Type type]
-[for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
+[for a in type.implementedAttributes if a.gsonIgnore and a.mandatory]
 [-- mandatory constructor arguments are not checked, should they? --]
 [output.error]
-  @Json.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
+@Gson.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
 [/output.error]
 [/for]
 [/template]
 
-[template generateStreamer Type type]
+[template generateTypeAdapters Type type Type... allValues]
 [if type.package]
 package [type.package];
 [/if]
 
+[-- replace with fully qualified names where needed --]
+import com.google.gson.*;
 import com.google.gson.stream.*;
+import com.google.gson.reflect.*;
+
 import javax.annotation.*;
 import java.io.IOException;
-import org.immutables.marshal.gson.*;
 // Generated imports
 
 /**
@@ -42,144 +40,89 @@ import org.immutables.marshal.gson.*;
  * Uses Gson JSON processor API.
  */
 @SuppressWarnings("all")
-@Generated({"Streamers.writer", "[type.typeAbstract.relative]"})
+@Generated({"Gsons.generator", "[type.typeAbstract.relative]"})
 @ParametersAreNonnullByDefault
-[type.typeAbstract.access]final class [type.name]Streamer
-    extends Streamer<[type.typeAbstract.relative]> {
+public final class [type.name]TypeAdapters
+    implements TypeAdapterFactory {
 
-  private static final [type.name]Streamer INSTANCE = new [type.name]Streamer();
-  
-  private [type.name]Streamer() {}
-  
-  /**
-   * Singleton marshaler that is bound to marshal and unmarshal instances of [type.typeAbstract.relative].
-   * @return marshaler
-   */
-  public static [type.name]Streamer instance() {
-    return INSTANCE;
-  }
-
-  /**
-   * Marshal instance of {@link [type.typeAbstract.relative]}.
-   * <p>This method will itself write whole object including any opening and ending delimiters (braces) if needed.
-   * @param writer jackson JSON writer
-   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
-   * @throws IOException either IO failure or parsing problem
-   */
-  public static void marshal(@WillNotClose JsonWriter writer, [type.typeAbstract.relative] instance) throws IOException {
-    _Streaming_[type.name].marshal[type.name](writer, instance);
-  }
-
-  /**
-   * Marshal instance of {@link [type.typeAbstract.relative]}.
-   * @param writer jackson JSON writer
-   * @param instance instance of {@link [type.typeAbstract.relative]} to marshal
-   * @throws IOException either IO failure or parsing problem
-   */
+  @SuppressWarnings("unchecked") // safe unchecked, type is verified by type token equality
   @Override
-  public void marshalInstance(@WillNotClose JsonWriter writer, [type.typeAbstract.relative] instance) throws IOException {
-    //try {
-      _Streaming_[type.name].marshal[type.name](writer, instance);
-    //} catch (Exception ex) {
-    //  throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, writer, getExpectedType());
-    //}
-  }
-
-  /**
-   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
-   * <p>
-   * {@link JsonReader}'s current token should be {@link JsonToken#START_OBJECT}
-   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
-   * @param reader jackson JSON reader
-   * @param nullSample always {@code null}, used for static method overload resolution
-   * @param expectedClass will be an {@code [type.typeAbstract.relative].class}
-   * @return instance of {@link [type.typeAbstract.relative]}
-   * @throws IOException either IO failure or parsing problem
-   */
-  public static [type.typeAbstract.relative] unmarshal(
-      @WillNotClose JsonReader reader,
-      @Nullable [type.typeAbstract.relative] nullSample,
-      Class<?> expectedClass) throws IOException {
-    return _Streaming_[type.name].unmarshal[type.name](reader);
-  }
-
-  /**
-   * Unmarshal instance of {@link [type.typeAbstract.relative]}.
-   * <p>
-   * {@link JsonReader}'s current token should be {@link JsonToken#START_OBJECT}
-   * and this method postcondition will current token equal {@link JsonToken#END_OBJECT}
-   * @param reader jackson JSON reader
-   * @return instance of {@link [type.typeAbstract.relative]}
-   * @throws IOException either IO failure or parsing problem
-   */
-  @Override
-  public [type.typeAbstract.relative] unmarshalInstance(@WillNotClose JsonReader reader) throws IOException {
-    //try {
-      return _Streaming_[type.name].unmarshal[type.name](reader);
-    //} catch (Exception ex) {
-    //  throw org.immutables.common.marshal.internal.MarshalingSupport.diagnosed(ex, reader, getExpectedType());
-    //}
-  }
-
-  /**
-   * Expected type to be marshaled and unmarshaled by this marshaler.
-   * Actual marshaled classes might be subtypes of [type.typeAbstract.relative] type.
-   * @return [type.typeAbstract.relative] class
-   */
-  @Override
-  public Class<[type.typeAbstract.relative]> getExpectedType() {
-    return [type.typeAbstract.relative].class;
+  public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+    [for v in allValues]
+    if ([v.name]TypeAdapter.adapts(type)) {
+      return (TypeAdapter<T>) new [v.name]TypeAdapter(gson);
+    }
+    [/for]
+    return null;
   }
 
   @Override
   public String toString() {
-    return "[type.name]Streamer.instance()";
+    return "[type.name]TypeAdapted{}";
   }
+  [for v in allValues]
+  [generateTypeAdapter v]
+  [/for]
 }
 [/template]
 
-[template generateMarshaling Type type]
-[if type.package]
-package [type.package];
-[/if]
+[template generateTypeAdapter Type type]
+[for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract.relative, im = type.typeImmutable.relative]
 
-import com.google.gson.stream.*;
-import javax.annotation.*;
-import java.io.IOException;
-import org.immutables.marshal.gson.*;
-// Generated imports
-[generateImportRoutines type]
-import static org.immutables.marshal.gson.Routines.*;
+private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
+  private static final TypeToken<[t]> [toConstant type.name]_ABSTRACT = TypeToken.get([t].class);
+  private static final TypeToken<[im]> [toConstant type.name]_IMMUTABLE =  TypeToken.get([im].class);
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElemementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = new TypeToken<[a.secondaryElementType]>() {};
+    [/if]
+  [/for]
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+  private final TypeAdapter<[a.elementType]> [a.name]Adapter;
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+  private final TypeAdapter<[a.secondaryElementType]> [a.name]SecondaryAdapter;
+    [/if]
+  [/for]
 
-/**
- * Internal routines for marshaling and unmarshaling instances of [type.typeAbstract.relative].
- * Uses Gson JSON processor API.
- * @deprecated Do not use directly, use {@link [type.name]Streamer} as an entry point to these routines
- */
-@SuppressWarnings("all")
-@Generated({"Streamers.writer", "[type.typeAbstract.relative]"})
-@ParametersAreNonnullByDefault
-@Deprecated
-final class _Streaming_[type.name] {
-  private _Streaming_[type.name]() {
+  [type.name]TypeAdapter(Gson gson) {
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+    this.[a.name]Adapter = gson.getAdapter([toConstant a.name]_TYPE_TOKEN);
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+    this.[a.name]SecondaryAdapter = gson.getAdapter([toConstant a.name]_SECONDARY_TYPE_TOKEN);
+    [/if]
+  [/for]
+  }
+
+  static boolean adapts(TypeToken<?> type) {
+    return [toConstant type.name]_ABSTRACT.equals(type)
+        || [toConstant type.name]_IMMUTABLE.equals(type);
+  }
+
+  @Override
+  public void write(JsonWriter out, [t] value) throws IOException {
+    marshal[type.name](out, value);
+  }
+
+  @Override
+  public [t] read(JsonReader in) throws IOException {
+    return unmarshal[type.name](in);
   }
   [generateMarshalingMethods type]
   [generateUnmarshalingMethods type]
 }
-[/template]
-
-[template generateImportRoutines Type type]
-[for m in type.generateImportedMarshalers]
-import static [m.packaged][m.name]Streamer.*;
-[/for]
-[for s in type.generateImportedMarshalRoutines]
-import static [s].*;
 [/for]
 [/template]
 
 [template generateMarshalingMethods Type type]
 
-static void marshal[type.name](JsonWriter writer, [type.typeAbstract.relative] instance)
+void marshal[type.name](JsonWriter out, [type.typeAbstract.relative] instance)
     throws IOException {
 [if type.useConstructorOnly]
   [for ca = type.constructorArguments]
@@ -188,19 +131,19 @@ static void marshal[type.name](JsonWriter writer, [type.typeAbstract.relative] i
   [generateMarshalConstructorValue type a]
   [/for]
   [else]
-  writer.beginArray();
+  out.beginArray();
   [for a in ca]
   [generateMarshalConstructorValue type a]
   [/for]
-  writer.endArray();
+  out.endArray();
   [/if]
   [/for]
 [else]
-  writer.beginObject();
+  out.beginObject();
   [for a in type.marshaledAttributes]
   [generateMarshalAttributeValue type a]
   [/for]
-  writer.endObject();
+  out.endObject();
 [/if]
 }
 [/template]
@@ -209,37 +152,37 @@ static void marshal[type.name](JsonWriter writer, [type.typeAbstract.relative] i
   [if a.nullable]
 [a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value != null) {
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value') false]
 } else {
-  writer.writeNull();
+  out.writeNull();
 }
   [else if a.optionalType]
 [a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value.isPresent()) {
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value') false]
 } else {
-  writer.writeNull();
+  out.writeNull();
 }
   [else if a.mapType]
 [a.type] [a.name]Map = instance.[a.names.get]();
-writer.beginObject();
-for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
-    [-- only use toString with objects and boxed primitives]
-    writer.name(marshalKey(e.getKey()));
+out.beginObject();
+for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
+  [-- only use toString with objects and boxed primitives]
+  out.name(e.getKey().toString());
   [-- here we assign to a unwrapped variable so overload resolution will precise]
   [a.unwrappedSecondaryElementType] value = e.getValue();
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
 }
-writer.endObject();
+out.endObject();
   [else if a.collectionType]
-writer.beginArray();
+out.beginArray();
 for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e' false]
 }
-writer.endArray();
+out.endArray();
   [else]
-[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()')]
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()') false]
   [/if]
 [/template]
 
@@ -247,71 +190,71 @@ writer.endArray();
   [if a.nullable]
 [a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value != null) {
-  writer.name("[a.marshaledName]");
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value')]
+  out.name("[a.marshaledName]");
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value') false]
     [if a.forceEmpty]
 } else {
-  writer.name("[a.marshaledName]");
-  writer.nullValue();
+  out.name("[a.marshaledName]");
+  out.nullValue();
     [/if]
 }
   [else if a.optionalType]
 [a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value.isPresent()) {
-  writer.name("[a.marshaledName]");
+  out.name("[a.marshaledName]");
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value')]
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value') false]
     [if a.forceEmpty]
 } else {
-  writer.name("[a.marshaledName]");
-  writer.nullValue();
+  out.name("[a.marshaledName]");
+  out.nullValue();
     [/if]
 }
   [else if a.mapType]
 [a.type] [a.name]Map = instance.[a.names.get]();
 if (![a.name]Map.isEmpty()) {
-  writer.name("[a.marshaledName]");
-  writer.beginObject();
+  out.name("[a.marshaledName]");
+  out.beginObject();
   for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
     [-- only use toString with objects and boxed primitives]
-    writer.name(marshalKey(e.getKey()));
+    out.name(e.getKey().toString());
     [-- here we assign to a unwrapped variable so overload resolution will precisely]
     [a.unwrappedSecondaryElementType] value = e.getValue();
-    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value']
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
   }
-  writer.endObject();
+  out.endObject();
     [if a.forceEmpty]
 } else {
-  writer.name("[a.marshaledName]");
-  writer.beginObject();
-  writer.endObject();
+  out.name("[a.marshaledName]");
+  out.beginObject();
+  out.endObject();
     [/if]
 }
   [else if a.collectionType]
 [a.type] [a.name]Elements = instance.[a.names.get]();
 if (![a.name]Elements.isEmpty()) {
-  writer.name("[a.marshaledName]");
-  writer.beginArray();
+  out.name("[a.marshaledName]");
+  out.beginArray();
   for ([a.unwrappedElementType] e : [a.name]Elements) {
-    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e']
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e' false]
   }
-  writer.endArray();
+  out.endArray();
     [if a.forceEmpty]
 } else {
-  writer.name("[a.marshaledName]");
-  writer.beginArray();
-  writer.endArray();
+  out.name("[a.marshaledName]");
+  out.beginArray();
+  out.endArray();
     [/if]
 }
   [else]
-writer.name("[a.marshaledName]");
-[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()')]
+out.name("[a.marshaledName]");
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()') false]
   [/if]
 [/template]
 
 [template generateUnmarshalingMethods Type type]
 
-private static char requireChar(String string) {
+private char requireChar(String string) {
   if (string.length() == 1) {
     return string.charAt(0);
   }
@@ -320,33 +263,33 @@ private static char requireChar(String string) {
 }
 [if type.useSingletonOnly]
 
-static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
     throws IOException {
-  reader.skipValue();
+  in.skipValue();
   return [type.factoryInstance]();
 }
 [else if type.useConstructorOnly]
 
 [for ca = type.constructorArguments]
-static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
     throws IOException {
 [if singular ca]
   [for a in ca]
-  boolean inArray = reader.peek() == JsonToken.BEGIN_ARRAY;
+  boolean inArray = in.peek() == JsonToken.BEGIN_ARRAY;
   if (inArray) {
-    reader.beginArray();
+    in.beginArray();
   }
-  [type.typeAbstract.relative] instance = [type.factoryOf.relative](unmarshalConstructorArgument[toUpper a.name](reader));
+  [type.typeAbstract.relative] instance = [type.factoryOf.relative](unmarshalConstructorArgument[toUpper a.name](in));
   if (inArray) {
-    reader.endArray();
+    in.endArray();
   }
   return instance;
   [/for]
 [else]
-  reader.beginArray();
+  in.beginArray();
   [type.typeAbstract.relative] instance = [type.factoryOf.relative]([for a in ca][if not for.first],[/if]
-    unmarshalConstructorArgument[toUpper a.name](reader)[/for]);
-  reader.endArray();
+    unmarshalConstructorArgument[toUpper a.name](in)[/for]);
+  in.endArray();
   return instance;
 [/if]
 }
@@ -356,22 +299,22 @@ static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
 [/for]
 [else]    
 
-static [type.typeAbstract.relative] unmarshal[type.name](JsonReader reader)
+[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
     throws IOException {
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
     [if type.unmarshaledAttributes]
-  reader.beginObject();
-  while (reader.hasNext()) {
-    unmarshalAttribute(reader, builder, reader.nextName());
+  in.beginObject();
+  while (in.hasNext()) {
+    unmarshalAttribute(in, builder, in.nextName());
   }
-  reader.endObject();
+  in.endObject();
     [else]
-  reader.skipValue();
+  in.skipValue();
     [/if]
   return builder.[type.names.build]();
 }
 
-private static void unmarshalAttribute(JsonReader reader, [type.typeBuilder.relative] builder, String attributeName)
+private void unmarshalAttribute(JsonReader in, [type.typeBuilder.relative] builder, String attributeName)
     throws IOException {
   switch (attributeName.charAt(0)) {
   [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
@@ -379,7 +322,7 @@ private static void unmarshalAttribute(JsonReader reader, [type.typeBuilder.rela
   case '[e.key]':
     [for a in e.value]
     if ("[a.marshaledName]".equals(attributeName)) {
-      unmarshalAttribute[toUpper a.name](reader, builder);
+      unmarshalAttribute[toUpper a.name](in, builder);
       return;
     }
     [/for]
@@ -387,12 +330,12 @@ private static void unmarshalAttribute(JsonReader reader, [type.typeBuilder.rela
   [/for]
   default:
   }
-  unmarshalUnknownAttribute(reader, attributeName);
+  unmarshalUnknownAttribute(in, attributeName);
 }
 
-private static void unmarshalUnknownAttribute(JsonReader reader, String attributeName)
+private void unmarshalUnknownAttribute(JsonReader in, String attributeName)
     throws IOException {
-  reader.skipValue();
+  in.skipValue();
 }
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
@@ -402,7 +345,7 @@ private static void unmarshalUnknownAttribute(JsonReader reader, String attribut
 
 [template generateConstructorArgumentUnmarshal Type type Attribute a]
 
-private static [a.atNullability][a.type] unmarshalConstructorArgument[toUpper a.name](JsonReader reader)
+private [a.atNullability][constructorAcceptType a] unmarshalConstructorArgument[toUpper a.name](JsonReader in)
     throws IOException {
   [if a.primitive]
   return [simpleTypeNext a.type];
@@ -416,40 +359,41 @@ private static [a.atNullability][a.type] unmarshalConstructorArgument[toUpper a.
 [/template]
 
 [template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
-JsonToken t = reader.peek();
   [if a.nullable]
+JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
-  reader.nextNull();
+  in.nextNull();
   return null;
 }
-[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType false]
 return value;
   [else if a.optionalType]
+JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
-  reader.nextNull();
-  return Optional.absent();
+  in.nextNull();
+  return [if a.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
 }
     [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
-return Optional.<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
+return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
-[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
-return Optional.of(value);
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+return [a.rawType].of(value);
     [/if]
   [else if a.mapType]
-return unmarshalMap[toUpper a.name](reader);
+return constructMapping[toUpper a.name](unmarshalEntries[toUpper a.name](in));
   [else if a.collectionType]
-java.util.List<[a.elementType]> elements = com.google.common.collect.Lists.newArrayList();  
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
 [generateCollectionUnmarshalCode type a 'elements.add']
-return com.google.common.collect.Immutable[a.rawCollectionType].copyOf(elements);
+return elements;
   [else]
-[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 return value;
   [/if]
 [/template]
 
 [template generateUnmarshalAttribute Type type Attribute a]
 
-private static void unmarshalAttribute[toUpper a.name](JsonReader reader, [type.typeBuilder.relative] builder)
+private void unmarshalAttribute[toUpper a.name](JsonReader in, [type.typeBuilder.relative] builder)
     throws IOException {
   [if a.primitive]
   builder.[a.names.init]([simpleTypeNext a.type]);
@@ -463,17 +407,37 @@ private static void unmarshalAttribute[toUpper a.name](JsonReader reader, [type.
 [/template]
 
 [template generateMapUnmarshalMethod Type type Attribute a]
+[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
+[let entryType]java.util.Map.Entry[mapParams][/let]
+[if type.useConstructor]
 
-private static [a.type] unmarshalMap[toUpper a.name](JsonReader reader)
-    throws IOException {
-  if (reader.peek() == JsonToken.VALUE_NULL) {
-    reader.nextNull();
-    return ImmutableMap.of();
+private [constructorAcceptType a] constructMapping[toUpper a.name](java.util.List<[entryType]> entries) {
+[if a.typeKind.isListMultimap]
+  [guava].collect.ListMultimap[mapParams] mapping = [guava].collect.ArrayListMultimap.create(entries.size(), 2);
+[else if a.typeKind.isSetMultimap]
+  [guava].collect.SetMultimap[mapParams] mapping = [guava].collect.LinkedHashMultimap.create(entries.size(), 2);
+[else if a.typeKind.isMultimap]
+  [guava].collect.Multimap[mapParams] mapping = [guava].collect.LinkedHashMultimap.create(entries.size(), 2);
+[else]
+  java.util.Map[mapParams] mapping = new java.util.LinkedHashMap[mapParams](entries.size());
+[/if]
+  for ([entryType] entry : entries) {
+    mapping.put(entry.getKey(), entry.getValue());
   }
-  com.google.common.collect.ImmutableMap.Builder<[a.wrappedElementType], [a.wrappedSecondaryElementType]> builder = ImmutableMap.builder();
-  reader.beginObject();
-  while(reader.hasNext()) {
-    String rawKey = reader.nextName();
+  return mapping;
+}
+[/if]
+
+private java.util.List<[entryType]> unmarshalEntries[toUpper a.name](JsonReader in)
+    throws IOException {
+  if (in.peek() == JsonToken.NULL) {
+    in.nextNull();
+    return java.util.Collections.emptyList();
+  }
+  java.util.List<[entryType]> entries = new java.util.ArrayList<[entryType]>();
+  in.beginObject();
+  while(in.hasNext()) {
+    String rawKey = in.nextName();
 [if a.unwrappedElementPrimitiveType]
   [if a.unwrappedElementType eq 'char']
     char key = requireChar(rawKey);
@@ -483,30 +447,31 @@ private static [a.type] unmarshalMap[toUpper a.name](JsonReader reader)
 [else if a.wrappedElementType eq 'java.lang.String']
     [a.wrappedElementType] key = rawKey;
 [else]
-    [a.wrappedElementType] key = unmarshal(reader, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
+    [a.wrappedElementType] key = unmarshal(in, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
 [/if]
 [if a.unwrappedSecondaryElementPrimitiveType or (a.wrappedSecondaryElementType eq 'java.lang.String')]
     [a.unwrappedSecondaryElementType] value = [simpleTypeNext a.unwrappedSecondaryElementType];
 [else]
-    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
 [/if]
-    builder.put(key, value);
+    entries.add(new java.util.AbstractMap.SimpleEntry[mapParams](key, value));
   }
-  reader.endObject();
-    
-  return builder.build();
+  in.endObject();
+
+  return entries;
 }
 [/template]
 
 [template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
+JsonToken t = in.peek();
 if (t == JsonToken.BEGIN_ARRAY) {
-  reader.beginArray();
-  while(reader.hasNext()) {
+  in.beginArray();
+  while(in.hasNext()) {
     [unmarshalCollectionElement]
   }
-  reader.endArray();
+  in.endArray();
 } else if (t == JsonToken.NULL) {
-  reader.nextNull();
+  in.nextNull();
 } else {
   [unmarshalCollectionElement]
 }
@@ -517,93 +482,141 @@ if (t == JsonToken.BEGIN_ARRAY) {
   [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 [collectorExpression]([simpleTypeNext a.unwrappedElementType]);
   [else]
-    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
 [collectorExpression](value);
   [/if]
 [/collectionUnmarshalCaseNullSingleArray]
 [/template]
 
 [template generateComplexTypeUnmarshalAttribute Type type Attribute a]
-JsonToken t = reader.peek();
   [if a.nullable]
+JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
-  reader.nextNull();
+  in.nextNull();
 } else {
     [if a.stringType]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
-  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.unwrapperOrRawElementType false]
   builder.[a.names.init](value);
     [/if]
 }
   [else if a.stringType]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
   [else if a.optionalType]
+JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
-  reader.nextNull();
+  in.nextNull();
 } else {
     [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
-  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType]
+  [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
   builder.[a.names.init](value);
     [/if]
 }
   [else if a.mapType]
-builder.[a.names.putAll](unmarshalMap[toUpper a.name](reader));
+for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> entry : unmarshalEntries[toUpper a.name](in)) {
+  builder.[a.names.put](entry);
+}
   [else if a.collectionType]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
   [else]
-[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType]
+[generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 builder.[a.names.init](value);
   [/if]
 [/template]
 
-[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue Type type Attribute attribute String genericType String rawType]
+[template generatePossiblyPolymorphicTypeUnmarshalAttributeValue Type type Attribute attribute String genericType String rawType Boolean secondary]
 [genericType] value =
 [for cx = attribute.expectedSubclasses]
   [if cx]
-    ([genericType]) unmarshalWithOneOfStreamers(reader, "[type.typeAbstract.relative]", "[attribute.name]", "[genericType]"[for c in cx],
+    ([genericType]) unmarshalWithOneOfStreamers(in, "[type.typeAbstract.relative]", "[attribute.name]", "[genericType]"[for c in cx],
         [c.packaged][c.name]Streamer.instance()[/for]);
   [else]
-    unmarshal(reader, ([genericType]) null, [rawType].class);
+    [if secondary]
+      [if attribute.requiresMarshalingSecondaryAdapter]
+    [attribute.name]SecondaryAdapter.read(in);
+      [else]
+    [simpleTypeNext attribute.secondaryElementType];
+      [/if]
+    [else]
+      [if attribute.requiresMarshalingAdapter]
+    [attribute.name]Adapter.read(in);
+      [else]
+    [simpleTypeNext attribute.elementType];
+      [/if]
+    [/if]
   [/if]
 [/for]
 [/template]
 
-[template generatePossiblyPolymorphicTypeMarshalAttributeValue Type type Attribute attribute String variableName]
+[template generatePossiblyPolymorphicTypeMarshalAttributeValue Type type Attribute attribute String variableName Boolean secondary]
 [for cx = attribute.expectedSubclasses]
   [if cx]
-marshalWithOneOfStreamers(writer, [variableName][for c in cx],
+marshalWithOneOfStreamers(out, [variableName][for c in cx],
     [c.packaged][c.name]Streamer.instance()[/for]);
   [else]
-marshal(writer, [variableName]);
+    [if secondary]
+      [if attribute.requiresMarshalingSecondaryAdapter]
+[attribute.name]SecondaryAdapter.write(out, [variableName]);
+      [else]
+[simpleTypeWrite attribute.secondaryElementType variableName]
+      [/if]
+    [else]
+      [if attribute.requiresMarshalingAdapter]
+[attribute.name]Adapter.write(out, [variableName]);
+      [else]
+[simpleTypeWrite attribute.elementType variableName]
+      [/if]
+    [/if]
   [/if]
 [/for]
 [/template]
 
+[template simpleTypeWrite String typeName String variableName]
+[if typeName eq 'char']
+out.value(String.valueOf([variableName]));
+[else]
+out.value([variableName]);
+[/if]
+[/template]
 
 [template simpleTypeNext String typeName][output.trim]
 [if typeName eq 'boolean']
-  reader.nextBoolean()
+  in.nextBoolean()
 [else if typeName eq 'byte']
-  (byte) reader.nextInt()
+  (byte) in.nextInt()
 [else if typeName eq 'short']
-  (short) reader.nextInt()
+  (short) in.nextInt()
 [else if typeName eq 'int']
-  reader.nextInt()
+  in.nextInt()
 [else if typeName eq 'long']
-  reader.nextLong()
+  in.nextLong()
 [else if typeName eq 'float']
-  (float) reader.nextDouble()
+  (float) in.nextDouble()
 [else if typeName eq 'double']
-  reader.nextDouble()
+  in.nextDouble()
 [else if typeName eq 'java.lang.String']
-  reader.nextString()
+  in.nextString()
 [else if typeName eq 'char']
-  requireChar(reader.nextString())
-[else][-- don't know if it's a good default: null --]
-  nextNull()
+  requireChar(in.nextString())
+[else]
+  requireChar("assertion")
+  [output.error]assertion[/output.error]
 [/if]
 [/output.trim][/template]
 
+[template constructorAcceptType Attribute a][output.trim]
+[if a.typeKind.isMultimapKind]
+  [guava].collect.Multimap<[a.elementType]>
+[else if a.typeKind.isMapKind]
+  java.util.Map<[a.elementType], [a.secondaryElementType]>
+[else if a.typeKind.isCollectionKind]
+  Iterable<[a.elementType]>
+[else]
+  [a.type]
+[/if]
+[/output.trim][/template]
+
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

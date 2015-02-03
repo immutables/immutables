@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Map;
+import java.util.LinkedHashMap;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -177,6 +179,15 @@ public final class ValueType extends TypeIntrospectionBase {
       caseStructure = new CaseStructure(this);
     }
     return caseStructure;
+  }
+
+  public Iterable<ValueType> allValues() {
+    List<ValueType> values = Lists.newArrayList();
+    if (kind().isValue()) {
+      values.add(this);
+    }
+    values.addAll(nested);
+    return values;
   }
 
   public List<ValueType> nested = Collections.emptyList();
@@ -538,6 +549,31 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return builder.build();
+  }
+
+  public List<ValueAttribute> allMarshalingAttributes() {
+    class Collector {
+      Map<String, ValueAttribute> byNames = new LinkedHashMap<>();
+
+      List<ValueAttribute> collect() {
+        addUnique(getMarshaledAttributes());
+        addUnique(getUnmarshaledAttributes());
+        return ImmutableList.copyOf(byNames.values());
+      }
+
+      void addUnique(List<ValueAttribute> attributes) {
+        for (ValueAttribute attribute : attributes) {
+          String name = attribute.getMarshaledName();
+          ValueAttribute existing = byNames.get(name);
+          if (existing == null) {
+            byNames.put(name, attribute);
+          } else if (existing != attribute) {
+            attribute.report().error("Attribute has duplicate marshaled name, check @Named annotation");
+          }
+        }
+      }
+    }
+    return new Collector().collect();
   }
 
   public List<ValueAttribute> getPrimitiveDefaultAttributes() {

@@ -7,7 +7,7 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 import org.immutables.value.Value;
 
-@Value.Immutable
+@Value.Immutable(singleton = true)
 @Value.Style(visibility = ImplementationVisibility.PRIVATE, jdkOnly = true)
 public interface JdkMaps {
   Map<Long, Integer> just();

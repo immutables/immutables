@@ -116,7 +116,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isStringType()
         || isEnumType();
   }
-  
+
   public boolean isMandatory() {
     return isGenerateAbstract && !isContainerType() && !isNullable();
   }
@@ -184,6 +184,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return element.getAnnotation(Json.Ignore.class) != null;
   }
 
+  public boolean isGsonIgnore() {
+    // TBD need to optimize
+    return IgnoreMirror.isPresent(element);
+  }
+
   public List<String> typeParameters() {
     ensureTypeIntrospected();
     return arrayComponent != null ? ImmutableList.of(arrayComponent.toString()) : typeParameters;
@@ -240,19 +245,19 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     @Nullable Value.ReverseOrder reverseOrderAnnotation = element.getAnnotation(Value.ReverseOrder.class);
 
     if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
-      reporter.withElement(element)
+      report()
           .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
     } else if (naturalOrderAnnotation != null) {
       if (typeKind.isSortedKind()) {
         if (isComparable()) {
           orderKind = OrderKind.NATURAL;
         } else {
-          reporter.withElement(element)
+          report()
               .annotationNamed(NaturalOrderMirror.simpleName())
               .error("@Value.Natural should used on a set of Comparable elements (map keys)");
         }
       } else {
-        reporter.withElement(element)
+        report()
             .annotationNamed(NaturalOrderMirror.simpleName())
             .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
@@ -261,12 +266,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         if (isComparable()) {
           orderKind = OrderKind.REVERSE;
         } else {
-          reporter.withElement(element)
+          report()
               .annotationNamed(ReverseOrderMirror.simpleName())
               .error("@Value.Reverse should used with a set of Comparable elements");
         }
       } else {
-        reporter.withElement(element)
+        report()
             .annotationNamed(ReverseOrderMirror.simpleName())
             .error("@Value.Reverse should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
@@ -471,7 +476,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     TypeMirror typeMirror = returnType;
 
     if (isContainerType()) {
-      if (typeMirror instanceof DeclaredType) {
+      if (typeMirror.getKind() == TypeKind.DECLARED) {
         DeclaredType declaredType = (DeclaredType) typeMirror;
 
         List<String> typeParameters = Lists.newArrayList();
@@ -527,7 +532,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       typeMirror = arrayComponent;
     }
 
-    if (typeMirror instanceof DeclaredType) {
+    if (typeMirror.getKind() == TypeKind.DECLARED) {
       TypeElement typeElement = (TypeElement) ((DeclaredType) typeMirror).asElement();
 
       this.containedTypeElement = typeElement;
@@ -547,6 +552,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   static boolean isRegularMarshalableType(String name) {
     return String.class.getName().equals(name)
         || isPrimitiveOrWrapped(name);
+  }
+
+  public boolean isRequiresMarshalingAdapter() {
+    return !isRegularMarshalableType(getElementType());
+  }
+
+  public boolean isRequiresMarshalingSecondaryAdapter() {
+    return isMapLike() && !isRegularMarshalableType(getSecondaryElementType());
   }
 
   /**
@@ -708,9 +721,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isAuxiliary() {
-    return element.getAnnotation(Value.Auxiliary.class) != null;
+    return AuxiliaryMirror.isPresent(element);
   }
 
+  @Deprecated
   public boolean isMarshaledIgnore() {
     ensureTypeIntrospected();
     return isMarshaledElement();
@@ -744,7 +758,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void prohibitAuxiliaryOnAnnotationTypes() {
     if (containingType.isAnnotationType() && isAuxiliary()) {
-      reporter.withElement(element)
+      report()
           .annotationNamed(AuxiliaryMirror.simpleName())
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
@@ -772,7 +786,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void makeRegularIfDefaultWithValidation() {
     if (isGenerateDefault && isContainerType()) {
       typeKind = AttributeTypeKind.REGULAR;
-      reporter.withElement(element)
+      report()
           .annotationNamed(DefaultMirror.simpleName())
           .warning("@Value.Default on a container attribute make it lose it's special treatment");
     }
@@ -790,7 +804,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
         if (isPrimitive()) {
-          reporter.withElement(element)
+          report()
               .annotationNamed(NULLABLE_SIMPLE_NAME)
               .error("@Nullable could not be used with primitive type attibutes");
         } else {
@@ -803,10 +817,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
     }
     if (containingType.isAnnotationType() && nullable) {
-      reporter.withElement(element)
+      report()
           .annotationNamed(NULLABLE_SIMPLE_NAME)
           .error("@Nullable could not be used with annotation attribute, use default value");
     }
+  }
+
+  Reporter report() {
+    return reporter.withElement(element);
   }
 
   @Override
