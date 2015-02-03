@@ -347,7 +347,9 @@ final class PostprocessingMachine {
     void nextChar(char c) {
       switch (state) {
       case NOT_IN_COMMENT:
-        if (c == '/') {
+        if (c == '"') {
+          state = CommentState.STRING_LITERAL;
+        } else if (c == '/') {
           state = CommentState.COMMENT_CANDIDATE;
         }
         break;
@@ -356,6 +358,11 @@ final class PostprocessingMachine {
           state = CommentState.LINE_COMMENT;
         } else if (c == '*') {
           state = CommentState.BLOCK_COMMENT;
+        }
+        break;
+      case STRING_LITERAL:
+        if (c == '"') {
+          state = CommentState.NOT_IN_COMMENT;
         }
         break;
       case LINE_COMMENT:
@@ -381,7 +388,8 @@ final class PostprocessingMachine {
     boolean isInComment() {
       return CommentState.LINE_COMMENT.equals(state)
           || CommentState.BLOCK_COMMENT.equals(state)
-          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state);
+          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state)
+          || CommentState.STRING_LITERAL.equals(state);
     }
 
   }
@@ -389,6 +397,7 @@ final class PostprocessingMachine {
   enum CommentState {
     NOT_IN_COMMENT,
     COMMENT_CANDIDATE,
+    STRING_LITERAL,
     LINE_COMMENT,
     BLOCK_COMMENT,
     BLOCK_COMMENT_OUT_CANDIDATE

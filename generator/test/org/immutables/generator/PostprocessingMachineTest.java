@@ -37,7 +37,7 @@ public class PostprocessingMachineTest {
             "import java.util.List;",
             "class My extends java.util.Set {",
             "// comment",
-            "// comment with fully qualified class name java.until.Map",
+            "// comment with fully qualified class name java.util.Map",
             "}"));
 
     check(rewrited).hasToString(
@@ -46,7 +46,7 @@ public class PostprocessingMachineTest {
             "import java.util.Set;",
             "class My extends Set {",
             "// comment",
-            "// comment with fully qualified class name java.until.Map",
+            "// comment with fully qualified class name java.util.Map",
             "}"));
   }
 
@@ -56,9 +56,9 @@ public class PostprocessingMachineTest {
         LINES.join("package start;",
             "import java.util.List;",
             "class My extends java.util.Set {",
-            "/* class name in block comment java.until.Map.get()*/",
+            "/* class name in block comment java.util.Map.get()*/",
             "/**",
-            "class name in block comment java.until.Map.get()",
+            "class name in block comment java.util.Map.get()",
             "**/",
             "}"));
 
@@ -67,10 +67,28 @@ public class PostprocessingMachineTest {
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
-            "/* class name in block comment java.until.Map.get()*/",
+            "/* class name in block comment java.util.Map.get()*/",
             "/**",
-            "class name in block comment java.until.Map.get()",
+            "class name in block comment java.util.Map.get()",
             "**/",
+            "}"));
+  }
+
+  @Test
+  public void stringLiteral() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        LINES.join("package start;",
+            "import java.util.List;",
+            "class My extends java.util.Set {",
+            "\" class name in string literal java.util.Map.get() \"",
+            "}"));
+
+    check(rewrited).hasToString(
+        LINES.join("package start;",
+            "import java.util.List;",
+            "import java.util.Set;",
+            "class My extends Set {",
+            "\" class name in string literal java.util.Map.get() \"",
             "}"));
   }
 
