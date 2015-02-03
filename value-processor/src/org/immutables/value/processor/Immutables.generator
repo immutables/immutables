@@ -232,7 +232,7 @@ package [type.package];
 [/for]
    * @return immutable [type.name] instance
    */
-  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
     return checkPreconditions(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
   }
 [/if]
@@ -769,21 +769,42 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
 [/output.trim][/for]);
 [/template]
 
+[template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
+[if v.optionalType]
+  [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if]
+[else if v.mapType]
+  [if type.generateJdkOnly]
+    [if v.typeKind.isSortedMap]
+      [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType], [v.secondaryElementType]>emptyMap()[/immutableCollectionCopyOfSafe]
+    [else]
+      java.util.Collections.emptyMap()
+    [/if]
+  [else]
+    [guava].collect.Immutable[v.rawMapType].of()
+  [/if]
+[else if v.collectionType]
+  [if type.generateJdkOnly]
+    [if v.typeKind.isSortedSet]
+      [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType]>emptyList()[/immutableCollectionCopyOfSafe]
+    [else]
+      java.util.Collections.empty[v.rawCollectionType]()
+    [/if]
+  [else]
+    [guava].collect.Immutable[v.rawCollectionType].of()
+  [/if]
+[else if v.nullable]
+  null
+[else]
+  null
+  [output.error]
+    Could not generate constructor. Attribute '[v.name]' does not have default value.
+  [/output.error]
+[/if]
+[/output.trim][/template]
+
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
-  [if v.optionalType]
-this.[n] = [guava].base.Optional.absent();
-  [else if v.mapType]
-this.[n] = [guava].collect.Immutable[v.rawMapType].of();
-  [else if v.collectionType]
-this.[n] = [guava].collect.Immutable[v.rawCollectionType].of();
-  [else if v.nullable]
-this.[n] = null;
-  [else]
-    [output.error]
-      Could not generate constructor. Attribute '[v.name]' [v.generateDefault] does not have default value.
-    [/output.error]
-  [/if]
+this.[n] = [emptyImmutableInstanceInferred type v];
 [/for]
 [for v in attributes if v.generateDefault or v.generateDerived, n = v.name]
 [if type.annotationType]
@@ -820,7 +841,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 [if type.useConstructor]
 
   private [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first],[/if]
-      [v.atNullability][v.type] [v.name][/for]) {
+      [v.atNullability][constructorAcceptType v] [v.name][/for]) {
 [for v in type.constructorArguments, n = v.name]
   [if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionCopyOf v n];
@@ -900,6 +921,18 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 @com.fasterxml.jackson.annotation.JsonProperty("[a.marshaledName]")
 [/if]
 [/template]
+
+[template constructorAcceptType Attribute a][output.trim]
+[if a.typeKind.isMultimapKind]
+  [guava].collect.Multimap<[a.consumedElementType]>
+[else if a.typeKind.isMapKind]
+  java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
+[else if a.typeKind.isCollectionKind]
+  Iterable<[a.consumedElementType]>
+[else]
+  [a.type]
+[/if]
+[/output.trim][/template]
 
 [template generateJacksonMapped Type type]
 [if type.generateJacksonMapped]
@@ -1310,7 +1343,7 @@ public static [type.typeValue.relative] [type.factoryInstance.simple]() {
 [/for]
  * @return immutable [type.name] instance
  */
-public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]
@@ -1379,11 +1412,11 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.setType]
     createUnmodifiableSet([safeList])
   [else if a.generateEnumMap]
-    createUnmodifiableEnumMap(true, [expression])
+    createUnmodifiableEnumMap([safe], [expression])
   [else if a.generateSortedMap]
-    createUnmodifiableSortedMap([a.hasReverseOrder], true, [expression])
+    createUnmodifiableSortedMap([a.hasReverseOrder], [safe], [expression])
   [else if a.mapType]
-    createUnmodifiableMap(true, [expression])
+    createUnmodifiableMap([safe], [expression])
   [else]
     [expression]
   [/if]
@@ -1490,7 +1523,7 @@ private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> i
 [/if]
 [if type.useListUtility]
 
-private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.ArrayList<T> list) {
+private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.util.List<T> list) {
   switch(list.size()) {
   case 0: return java.util.Collections.emptyList();
   case 1: return java.util.Collections.singletonList(list.get(0));
@@ -1498,7 +1531,9 @@ private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.
     if (clone) {
       return java.util.Collections.unmodifiableList(new java.util.ArrayList<T>(list));
     } else {
-      list.trimToSize();
+      if (list instanceof java.util.ArrayList<?>) {
+        ((java.util.ArrayList<?>) list).trimToSize();
+      }
       return java.util.Collections.unmodifiableList(list);
     }
   }
@@ -1507,7 +1542,7 @@ private static <T> java.util.List<T> createUnmodifiableList(boolean clone, java.
 [if type.useSetUtility]
 
 /** Unmodifiable set constructed from list to avoid rehashing. */
-private static <T> java.util.Set<T> createUnmodifiableSet(java.util.ArrayList<T> list) {
+private static <T> java.util.Set<T> createUnmodifiableSet(java.util.List<T> list) {
   switch(list.size()) {
   case 0: return java.util.Collections.emptySet();
   case 1: return java.util.Collections.singleton(list.get(0));
@@ -1541,7 +1576,7 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
 [/if]
 [/output.trim][/let]
 
-private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, ArrayList<T> list) {
+private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterface]<T> createUnmodifiableSortedSet(boolean reverse, java.util.List<T> list) {
   java.util.TreeSet<T> set = reverse
       ? new java.util.TreeSet<T>(java.util.Collections.reverseOrder())
       : new java.util.TreeSet<T>();
