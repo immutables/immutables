@@ -7,7 +7,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 import java.util.TreeSet;
 
 final class PostprocessingMachine {
@@ -29,7 +29,7 @@ final class PostprocessingMachine {
     int classNameFrom = -1;
     int classNameTo = -1;
     FiniteStateMachine machine = new FiniteStateMachine();
-    FullyQualifiedNameMachine fullyQualifiedNameMachine = new FullyQualifiedNameMachine();
+    FullyQualifiedNameMachine fullyNameMachine = new FullyQualifiedNameMachine();
     CommentMachine commentMachine = new CommentMachine();
     ClassNameMachine nameMachine = new ClassNameMachine();
 
@@ -80,19 +80,22 @@ final class PostprocessingMachine {
         commentMachine.nextChar(c);
         if (!commentMachine.isInComment()) {
           nameMachine.nextChar(c, i);
-          if (nameMachine.isFound()) {
-            importsBuilder.addException(content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
-          }
-          fullyQualifiedNameMachine.nextChar(c, i);
-          if (fullyQualifiedNameMachine.isFinished()) {
-
+          fullyNameMachine.nextChar(c, i);
+          if (fullyNameMachine.isFinished()) {
             importsBuilder.addImportCandidate(
-                content.subSequence(fullyQualifiedNameMachine.packageTo, fullyQualifiedNameMachine.importTo).toString(),
-                content.subSequence(fullyQualifiedNameMachine.importFrom, fullyQualifiedNameMachine.importTo)
-                    .toString(),
-                fullyQualifiedNameMachine.importFrom,
-                fullyQualifiedNameMachine.importTo,
-                fullyQualifiedNameMachine.packageTo);
+                content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
+                content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
+                fullyNameMachine.importFrom,
+                fullyNameMachine.importTo,
+                fullyNameMachine.packageTo);
+            fullyNameMachine.reset();
+          }
+          if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
+            nameMachine.reset();
+          }
+          if (nameMachine.isFound()) {
+            importsBuilder.addException(
+                content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
           }
         }
         break;
@@ -198,24 +201,22 @@ final class PostprocessingMachine {
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
-    private TreeMap<String, ImportCandidate> importCandidates = Maps.newTreeMap();
+    private LinkedHashMap<String, ImportCandidate> importCandidates = Maps.newLinkedHashMap();
     private HashSet<String> exceptions = Sets.newHashSet();
     private HashSet<String> stopList = Sets.newHashSet();
 
     void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
-      String normalized = normalize(fullyQualifiedName);
-
-      if (normalized.startsWith(JAVA_LANG)) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
+      if (fullyQualifiedName.startsWith(JAVA_LANG)) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
         return;
       }
 
-      if (currentPackage.isPresent() && normalized.startsWith(currentPackage.get())) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
+      if (currentPackage.isPresent() && fullyQualifiedName.startsWith(currentPackage.get())) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
         return;
       }
 
-      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, normalized));
+      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, fullyQualifiedName));
     }
 
     void addToStopList(String name) {
@@ -234,10 +235,6 @@ final class PostprocessingMachine {
 
     void setCurrentPackage(String currentPackage) {
       this.currentPackage = Optional.of(currentPackage);
-    }
-
-    private String normalize(String s) {
-      return s.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "");
     }
 
     void preBuild() {
@@ -269,7 +266,7 @@ final class PostprocessingMachine {
     void nextChar(char c, int i) {
       switch (state) {
       case UNDEFINED:
-        if (isAlphabetic(c)) {
+        if (isLowerCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
         }
@@ -277,20 +274,8 @@ final class PostprocessingMachine {
       case PACKAGE_PART_CANDIDATE:
         if (c == '.') {
           state = FullyQualifiedNameState.DOT;
-        } else if (isSpaceChar(c)) {
-          state = FullyQualifiedNameState.SPACE_BEFORE_DOT;
         } else if (!isAlphabetic(c) && !isDigit(c)) {
-          state = FullyQualifiedNameState.UNDEFINED;
-        }
-        break;
-      case SPACE_BEFORE_DOT:
-        if (c == '.') {
-          state = FullyQualifiedNameState.DOT;
-        } else if (isAlphabetic(c)) {
-          state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
-          importFrom = i;
-        } else if (!isSpaceChar(c)) {
-          state = FullyQualifiedNameState.UNDEFINED;
+          reset();
         }
         break;
       case DOT:
@@ -298,15 +283,18 @@ final class PostprocessingMachine {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
         } else if (isUpperCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.CLASS;
-        } else if (!isSpaceChar(c)) {
-          state = FullyQualifiedNameState.UNDEFINED;
+        } else {
+          reset();
         }
         break;
       case CLASS:
         if (packageTo == -1) {
           packageTo = i - 1;
         }
-        if (!isAlphabetic(c) && !isDigit(c)) {
+        if (isSeparator(c)) {
+          state = FullyQualifiedNameState.FINISH;
+          importTo = i;
+        } else if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.AFTER_CLASS;
         }
         break;
@@ -316,10 +304,8 @@ final class PostprocessingMachine {
         }
         if (isAlphabetic(c)) {
           state = FullyQualifiedNameState.METHOD_OR_FIELD;
-        } else if (c == '(' || c == '<' || c == ')' || c == '>' || c == '{' || c == '}') {
+        } else if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
-        } else if (!isSpaceChar(c)) {
-          state = FullyQualifiedNameState.UNDEFINED;
         }
         break;
       case METHOD_OR_FIELD:
@@ -341,14 +327,13 @@ final class PostprocessingMachine {
       state = FullyQualifiedNameState.UNDEFINED;
       importFrom = -1;
       importTo = -1;
-      packageTo = 1;
+      packageTo = -1;
     }
   }
 
   enum FullyQualifiedNameState {
     UNDEFINED,
     PACKAGE_PART_CANDIDATE,
-    SPACE_BEFORE_DOT,
     DOT,
     CLASS,
     AFTER_CLASS,
@@ -357,6 +342,7 @@ final class PostprocessingMachine {
   }
 
   static final class CommentMachine {
+
     CommentState state = CommentState.NOT_IN_COMMENT;
 
     void nextChar(char c) {
@@ -398,6 +384,7 @@ final class PostprocessingMachine {
           || CommentState.BLOCK_COMMENT.equals(state)
           || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state);
     }
+
   }
 
   enum CommentState {
@@ -409,6 +396,7 @@ final class PostprocessingMachine {
   }
 
   static final class ClassNameMachine {
+
     ClassNameState state = ClassNameState.UNDEFINED;
     int classNameFrom = -1;
     int classNameTo = -1;
@@ -419,6 +407,8 @@ final class PostprocessingMachine {
 
     void reset() {
       state = ClassNameState.UNDEFINED;
+      classNameFrom = -1;
+      classNameTo = -1;
     }
 
     void nextChar(char c, int i) {
@@ -441,6 +431,7 @@ final class PostprocessingMachine {
         break;
       }
     }
+
   }
 
   enum ClassNameState {
@@ -449,6 +440,7 @@ final class PostprocessingMachine {
   }
 
   private static final class ImportCandidate {
+
     final int importFrom;
     final int importTo;
     final int packageTo;
@@ -460,10 +452,7 @@ final class PostprocessingMachine {
       this.packageTo = packageTo;
       this.preparedImport = preparedImport;
     }
-  }
 
-  private static boolean isSpaceChar(char c) {
-    return Character.isSpaceChar(c) || c == '\n' || c == '\t' || c == '\r';
   }
 
   private static boolean isDigit(char c) {
@@ -471,7 +460,7 @@ final class PostprocessingMachine {
   }
 
   private static boolean isAlphabetic(char c) {
-    return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z';
+    return isLowerCaseAlphabetic(c) || isUpperCaseAlphabetic(c);
   }
 
   private static boolean isLowerCaseAlphabetic(char c) {
@@ -480,5 +469,9 @@ final class PostprocessingMachine {
 
   private static boolean isUpperCaseAlphabetic(char c) {
     return c >= 'A' && c <= 'Z';
+  }
+
+  private static boolean isSeparator(char c) {
+    return c == '(' || c == '<' || c == ')' || c == '>' || c == '{' || c == '}' || c == ',' || c == ';';
   }
 }
