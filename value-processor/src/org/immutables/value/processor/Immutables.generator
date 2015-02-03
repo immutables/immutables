@@ -102,13 +102,13 @@ package [type.package];
 [generateConstructionAndInterning type]
   [generateImmutableCopyOf type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
-  [if type.names.builder ne 'new']
+  [if type.factoryBuilder.applied ne 'new']
 
   /**
    * Creates builder for {@link [type.typeValue]}.
    * @return new [type.typeValue.simple] builder
    */
-  [type.typeImmutable.access]static [type.typeBuilder.relative] [type.names.builder]() {
+  [type.typeImmutable.access]static [type.typeBuilder.relative] [type.factoryBuilder.applied]() {
     return new [type.typeBuilder.relative]();
   }
   [/if]
@@ -275,13 +275,13 @@ package [type.package];
  * Uses accessors to get values to initialize immutable instance.
  * If an instance is already immutable, it is returned as is.
  */
-[type.typeImmutable.access]static [type.typeValue.relative] [type.names.copyOf](`[type.typeAbstract] instance) {
+[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied](`[type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
 [if type.useBuilder]
   [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
-  return [type.names.builder]()
+  return [type.factoryBuilder.relative]()
   [for v in type.settableAttributes]
     [if v.collectionType]
       .[v.names.addAll](instance.[v.names.get]())
@@ -293,7 +293,7 @@ package [type.package];
   [/for]
       .[type.names.build]();
 [else]
-  return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
+  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
           o in type.constructorOmited if o.generateDefault or o.generateAbstract]
       .[o.names.with](instance.[o.names.get]())[/for][/if];
 [/if]
@@ -422,7 +422,7 @@ package [type.package];
   private [atNullable][v.type] [v.name];
     [/if]
   [/for]
-[if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
+[if ((type.factoryBuilder.applied ne 'new') and (not type.kind.isFactory))]
   private [type.typeBuilder.simple]() {}
   [if type.constitution.isOutsideBuilder]
 
@@ -430,7 +430,7 @@ package [type.package];
    * Creates builder for {@link [type.typeValue]}.
    * @return new [type.typeValue.simple] builder
    */
-  public static [type.typeBuilder.simple] [type.names.builder]() {
+  public static [type.typeBuilder.simple] [type.factoryBuilder.applied]() {
     return new [type.typeBuilder.simple]();
   }
   [/if]
@@ -943,7 +943,7 @@ public static [type.typeValue.relative] fromAllAttributes(
     [/if]@com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
 [if type.useBuilder]
   [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
-  [type.typeBuilder.relative] [builderIdentifier] = [type.names.builder]();
+  [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
   if ([v.name] != null) {
       [if v.collectionType]
@@ -958,7 +958,7 @@ public static [type.typeValue.relative] fromAllAttributes(
   return [builderIdentifier].[type.names.build]();
 [else]
   [let instanceIdentifier]instance[for v in type.settableAttributes if v.name eq 'instance']$$[/for][/let]
-  [type.typeValue.relative] [instanceIdentifier] = [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
+  [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
   [if type.useCopyMethods]
     [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
   if ([o.name] != null) {

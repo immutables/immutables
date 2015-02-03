@@ -15,6 +15,9 @@
  */
 package org.immutables.gson.stream;
 
+import org.immutables.value.Value.Style.ImplementationVisibility;
+import java.lang.reflect.Field;
+import org.immutables.value.Value;
 import java.util.List;
 import javax.ws.rs.core.Response;
 import com.google.common.base.Throwables;
@@ -60,7 +63,6 @@ import org.immutables.metainf.Metainf;
 @Produces(MediaType.WILDCARD)
 @SuppressWarnings({"resource", "unused"})
 public class GsonMessageBodyProvider implements MessageBodyReader<Object>, MessageBodyWriter<Object> {
-
   private final Gson gson;
   private final Set<MediaType> mediaTypes;
   private final Streamer streamer;
@@ -70,47 +72,36 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
    * and {@link MediaType#APPLICATION_JSON_TYPE application/json} media type to match.
    */
   public GsonMessageBodyProvider() {
-    this(createGson(), true);
+    this(new GsonProviderOptionsBuilder().build());
   }
 
   /**
    * Creates new provider with flexible setup.
-   * @param gson the fully configured gson instance
-   * @param allowJacksonIfAvailable allows Jackson streaming optimization if Jackson if available in
-   *          classpath. Use {@code false} to disable optimization and use pure Gson.
-   * @param mediaTypes the media types to match provider
+   * @param options options for provider
    */
-  public GsonMessageBodyProvider(Gson gson, boolean allowJacksonIfAvailable, MediaType... mediaTypes) {
-    this.gson = gson;
-    this.mediaTypes = mediaSetFrom(mediaTypes);
-    this.streamer = createStreamer(allowJacksonIfAvailable);
+  public GsonMessageBodyProvider(GsonProviderOptions options) {
+    this.gson = options.gson();
+    this.mediaTypes = mediaSetFrom(options.mediaTypes());
+    this.streamer = createStreamer(options.allowJackson(),
+        new StreamingOptions(options.gson(), options.lenient()));
   }
 
-  private static Gson createGson() {
-    GsonBuilder gsonBuilder = new GsonBuilder();
-    for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
-      gsonBuilder.registerTypeAdapterFactory(factory);
-    }
-    return gsonBuilder.create();
-  }
-
-  private static Streamer createStreamer(boolean allowJacksonIfAvailable) {
+  private static Streamer createStreamer(boolean allowJacksonIfAvailable, StreamingOptions options) {
     if (allowJacksonIfAvailable) {
       try {
-        return new JacksonStreamer();
+        return new JacksonStreamer(options);
       } catch (Throwable ex) {
-        System.err.println(ex.toString());// FIXME just during development
         // cannot load jackson streamer class, fallback to default
       }
     }
-    return new GsonStreamer();
+    return new GsonStreamer(options);
   }
 
-  private static Set<MediaType> mediaSetFrom(MediaType[] mediaTypes) {
-    if (mediaTypes.length == 0) {
+  private static Set<MediaType> mediaSetFrom(List<MediaType> mediaTypes) {
+    if (mediaTypes.isEmpty()) {
       return Collections.singleton(MediaType.APPLICATION_JSON_TYPE);
     }
-    return new HashSet<MediaType>(Arrays.asList(mediaTypes));
+    return new HashSet<MediaType>(mediaTypes);
   }
 
   @Override
@@ -180,6 +171,11 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
 
   private static class GsonStreamer implements Streamer {
     private static final String CHARSET_NAME = "utf-8";
+    private final StreamingOptions options;
+
+    GsonStreamer(StreamingOptions options) {
+      this.options = options;
+    }
 
     @Override
     public void write(Gson gson, Type type, Object object, OutputStream stream) throws IOException {
@@ -187,6 +183,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       boolean wasOriginalException = false;
       try {
         writer = new JsonWriter(new BufferedWriter(new OutputStreamWriter(stream, CHARSET_NAME)));
+        options.setWriterOptions(writer);
 
         gson.toJson(object, type, writer);
 
@@ -215,6 +212,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       @Nullable JsonReader reader = null;
       try {
         reader = new JsonReader(new BufferedReader(new InputStreamReader(stream, CHARSET_NAME)));
+        options.setReaderOptions(reader);
 
         return gson.fromJson(reader, type);
 
@@ -222,15 +220,6 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
         throw ex;
       } catch (Exception ex) {
         throw new IOException(ex);
-      } finally {
-        // input stream should not be closed
-//        if (reader != null) {
-//          try {
-//            reader.close();
-//          } catch (IOException ex) {
-//            // ignoring io exception on reader close
-//          }
-//        }
       }
     }
   }
@@ -240,12 +229,24 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
         .disable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
         .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
+    private final StreamingOptions options;
+
+    JacksonStreamer(StreamingOptions options) {
+      this.options = options;
+    }
+
     @Override
     public void write(Gson gson, Type type, Object object, OutputStream stream) throws IOException {
       @Nullable JsonGeneratorWriter writer = null;
       boolean wasOriginalException = false;
       try {
-        writer = new JsonGeneratorWriter(JSON_FACTORY.createGenerator(stream));
+        JsonGenerator generator = JSON_FACTORY.createGenerator(stream);
+        if (options.prettyPrinting) {
+          generator.useDefaultPrettyPrinter();
+        }
+        writer = new JsonGeneratorWriter(generator);
+        options.setWriterOptions(writer);
+
         gson.toJson(object, type, writer);
 
       } catch (IOException ex) {
@@ -273,6 +274,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       @Nullable JsonReader reader = null;
       try {
         reader = new JsonParserReader(JSON_FACTORY.createParser(stream));
+        options.setReaderOptions(reader);
 
         return gson.fromJson(reader, type);
 
@@ -290,6 +292,82 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
           }
         }
       }
+    }
+  }
+
+  @Value.Immutable(singleton = true)
+  @Value.Style(
+      // typeBuilder = "GsonProviderOptionsBuilder",
+      jdkOnly = true,
+      visibility = ImplementationVisibility.PRIVATE)
+  public static abstract class GsonProviderOptions {
+    /**
+     * the fully configured gson instance.
+     * @return the gson instanse
+     */
+    @Value.Default
+    public Gson gson() {
+      GsonBuilder gsonBuilder = new GsonBuilder();
+      for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
+        gsonBuilder.registerTypeAdapterFactory(factory);
+      }
+      return gsonBuilder.create();
+    }
+
+    /**
+     * Allows Jackson streaming optimization if Jackson if available in
+     * classpath. Use {@code false} to disable optimization and use pure Gson.
+     * @return {@code true} if Jackson allowed
+     */
+    @Value.Default
+    public boolean allowJackson() {
+      return true;
+    }
+
+    /**
+     * if {@code true} - enables non strict parsing and serialization.
+     * @return true, if successful
+     */
+    @Value.Default
+    public boolean lenient() {
+      return false;
+    }
+
+    public abstract List<MediaType> mediaTypes();
+  }
+
+  private static class StreamingOptions {
+    final boolean lenient;
+    final boolean serializeNulls;
+    final boolean htmlSafe;
+    final boolean prettyPrinting;
+
+    StreamingOptions(Gson gson, boolean lenient) {
+      this.lenient = lenient;
+      this.htmlSafe = accessField(gson, "htmlSafe", true);
+      this.serializeNulls = accessField(gson, "serializeNulls", false);
+      this.prettyPrinting = accessField(gson, "prettyPrinting", false);
+    }
+
+    private static boolean accessField(Gson gson, String name, boolean defaultValue) {
+      try {
+        Field field = Gson.class.getField(name);
+        field.setAccessible(true);
+        return field.get(gson) == Boolean.TRUE;
+      } catch (Exception ex) {
+        return defaultValue;
+      }
+    }
+
+    void setReaderOptions(JsonReader reader) {
+      reader.setLenient(lenient);
+    }
+
+    void setWriterOptions(JsonWriter writer) {
+      writer.setSerializeNulls(serializeNulls);
+      writer.setLenient(lenient);
+      writer.setHtmlSafe(htmlSafe);
+      writer.setIndent(prettyPrinting ? "  " : "");
     }
   }
 }

@@ -44,7 +44,7 @@ public abstract class Constitution {
   }
 
   public boolean isImplementationHidden() {
-    return implementationVisibility().isMoreRestrictiveThan(protoclass().visibility());
+    return implementationVisibility().isPrivate();
   }
 
   public boolean returnsAbstractValueType() {
@@ -104,7 +104,7 @@ public abstract class Constitution {
 
   public boolean isOutsideBuilder() {
     return protoclass().features().builder()
-        && implementationVisibility().isPrivate();
+        && isImplementationHidden();
   }
 
   private boolean isTopLevelValue() {
@@ -205,18 +205,30 @@ public abstract class Constitution {
   private String typeBuilderSimpleName() {
     Naming builderNaming = names().namings.typeBuilder;
     if (isImplementationHidden() || isFactory()) {
-      builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
+      // For outer builder we can override with constant builder naming, but not the default.
+      if (builderNaming.apply("").equals("Builder")) {
+        builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
+      }
     }
     return Naming.Usage.CAPITALIZED.apply(builderNaming.apply(names().raw));
   }
 
   @Value.Lazy
   public NameForms factoryBuilder() {
-    NameForms nameForms = isImplementationHidden()
+    boolean isOutside = isImplementationHidden() || isFactory();
+
+    Naming builderNaming = names().namings.builder;
+    if (isOutside) {
+      if (builderNaming.apply("").equals("builder")) {
+        builderNaming = Naming.from("new");
+      }
+    }
+
+    NameForms nameForms = isOutside
         ? typeBuilder()
         : typeImmutable();
 
-    return nameForms.applied(names().builder);
+    return nameForms.applied(builderNaming.apply(names().raw));
   }
 
   @Value.Lazy
@@ -279,7 +291,7 @@ public abstract class Constitution {
     String relative;
 
     if (outside && nested) {
-      relative = inPackage(inPackage(typeImmutableEnclosingSimpleName(), simple));
+      relative = inPackage(typeImmutableEnclosingSimpleName(), simple);
     } else if (outside) {
       relative = inPackage(simple);
     } else if (nested) {
@@ -311,6 +323,11 @@ public abstract class Constitution {
       return false;
     }
 
+    @Value.Default
+    public String applied() {
+      return "";
+    }
+
     /**
      * Access prefix. Includes trailing space separator if not empty (package private).
      * @return access keyword text
@@ -329,6 +346,7 @@ public abstract class Constitution {
     public NameForms applied(String input) {
       return ImmutableConstitution.NameForms.builder()
           .packageOf(packageOf())
+          .applied(input)
           .simple(applyTo(simple(), input, false))
           .relative(applyTo(relative(), input, true))
           .visibility(visibility())

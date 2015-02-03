@@ -21,7 +21,13 @@ import static org.immutables.check.Checkers.*;
 public class JaxrsTest {
 
   private static final GsonMessageBodyProvider PURE_GSON_TEXT_PLAIN =
-      new GsonMessageBodyProvider(new Gson(), false, MediaType.TEXT_PLAIN_TYPE) {};
+      new GsonMessageBodyProvider(
+          new GsonProviderOptionsBuilder()
+              .gson(new Gson())
+              .addMediaTypes(MediaType.TEXT_PLAIN_TYPE)
+              .allowJackson(false)
+              .lenient(true)
+              .build()) {};
 
   private static final URI SERVER_URI = URI.create("http://localhost:8997");
   private static HttpServer httpServer;
@@ -59,7 +65,7 @@ public class JaxrsTest {
         .path("/")
         .request(MediaType.APPLICATION_JSON_TYPE)
         .accept(MediaType.APPLICATION_JSON_TYPE)
-        .post(Entity.json(Collections.singleton(13)), new GenericType<List<String>>() {});
+        .post(Entity.json(Collections.singletonList(13)), new GenericType<List<String>>() {});
 
     check(result).isOf("a", "b", "c", "[13]");
   }
@@ -71,7 +77,7 @@ public class JaxrsTest {
         .path("/")
         .request(MediaType.TEXT_PLAIN_TYPE)
         .accept(MediaType.TEXT_PLAIN_TYPE)
-        .post(Entity.text(Collections.singleton("11")), new GenericType<List<String>>() {});
+        .post(Entity.text(Collections.singletonList("11")), new GenericType<List<String>>() {});
 
     check(result).isOf("x", "y", "[11]");
   }

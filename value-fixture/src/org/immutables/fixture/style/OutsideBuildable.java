@@ -30,7 +30,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 public class OutsideBuildable {
 
   void use() {
-    OutsideBuildableBuilder.builder().build();
+    new OutsideBuildableBuilder().build();
   }
 }
 
@@ -42,10 +42,10 @@ public class OutsideBuildable {
  * </ul>
  */
 @Value.Immutable
-@Value.Style(builder = "new", visibility = ImplementationVisibility.PRIVATE)
+@Value.Style(builder = "newBuilder", visibility = ImplementationVisibility.PRIVATE)
 class OutsideBuildableNew {
 
   void use() {
-    new OutsideBuildableNewBuilder().build();
+    OutsideBuildableNewBuilder.newBuilder().build();
   }
 }
