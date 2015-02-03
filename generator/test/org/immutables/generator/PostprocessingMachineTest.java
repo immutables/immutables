@@ -14,7 +14,7 @@ public class PostprocessingMachineTest {
         LINES.join("package start;",
             "import java.util.List;",
             "import some.Some.Nested;",
-            "class My extends java.util.Set {",
+            "final class My extends java.util.Set {",
             "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
             "}"));
 
@@ -25,7 +25,7 @@ public class PostprocessingMachineTest {
             "import java.util.Map;",
             "import java.util.Set;",
             "import some.Some.Nested;",
-            "class My extends Set {",
+            "final class My extends Set {",
             "  private Map<String, Integer> map = Maps.newHashMap();",
             "}"));
   }
@@ -166,5 +166,38 @@ public class PostprocessingMachineTest {
         "      .Maps.newHashMap();",
         "}"));
 
+  }
+
+  @Test
+  public void keepClassModifiers() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "package mypack;",
+        "private final class My{}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "package mypack;",
+        "private final class My{}"));
+
+    rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import java.util.List;",
+        "abstract class My{}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import java.util.List;",
+        "abstract class My{}"));
+
+    rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "package mypack;",
+        "import java.util.List;",
+        "abstract class My{}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "package mypack;",
+        "import java.util.List;",
+        "abstract class My{}"));
+
+    rewrited = PostprocessingMachine.rewrite("public final class My{}");
+
+    check(rewrited).hasToString("public final class My{}");
   }
 }

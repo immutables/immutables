@@ -39,15 +39,13 @@ final class PostprocessingMachine {
       switch (state) {
       case UNDEFINED:
         state = machine.nextChar(c).or(state);
-        if (!isAlphabetic(c)) {
-          nextPartFrom = i + 1;
-        }
         break;
       case PACKAGE:
         if (c == ' ') {
           packageFrom = i + 1;
         }
         if (c == ';') {
+          nextPartFrom = i + 2;
           currentPackage = content.subSequence(packageFrom, i).toString();
           importsBuilder.setCurrentPackage(currentPackage);
           state = State.UNDEFINED;
@@ -66,6 +64,7 @@ final class PostprocessingMachine {
           importStarts = true;
         }
         if (c == ';') {
+          nextPartFrom = i + 2;
           importsBuilder.addImport(content.subSequence(importFrom, i).toString());
           state = State.UNDEFINED;
           importFrom = -1;
