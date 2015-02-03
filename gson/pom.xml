@@ -66,18 +66,20 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <!-- Test compile generate api -->
+      <!-- Compile only generate api -->
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
-      <!-- Test compile generate sample adapters -->
+      <!-- Compile only generate sample adapters -->
       <groupId>org.immutables</groupId>
       <artifactId>value-standalone</artifactId>
       <version>${project.version}</version>
-      <scope>test</scope>
+      <scope>provided</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
     <!-- test only jersey dependency -->

@@ -1,5 +1,6 @@
 package org.immutables.gson;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -14,7 +15,13 @@ public @interface Gson {
    * <p>
    * Type adapter factories are also registered statically as services
    * {@code META-INF/services/com.google.gson.TypeAdapterFactory}. Easy way to configure
-   * {@link com.google.gson.Gson}
+   * {@link com.google.gson.Gson}.
+   * <p>
+   * Certain are gson options are supported for immutable objects in deliberate fashion:
+   * <ul>
+   * <li>{@link GsonBuilder#serializeNulls()} - When enabled, {@code null} fields and empty array
+   * fields will be included, otherwise omited</li>
+   * </ul>
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
@@ -73,18 +80,4 @@ public @interface Gson {
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Ignore {}
-
-  /**
-   * For {@link java.util.Set Set} or {@link java.util.List List} this will force output of
-   * JSON empty array if given collection is empty. By default, empty collection attribute will
-   * just
-   * be omitted.
-   * <p>
-   * For {@link com.google.common.base.Optional Optional} attributes it forces of output JSON
-   * {@code null} value for missing value, otherwise (by default) no absent attribute is written
-   */
-  @Documented
-  @Retention(RetentionPolicy.SOURCE)
-  @Target(ElementType.METHOD)
-  public @interface ForceEmpty {}
 }

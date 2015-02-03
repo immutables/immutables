@@ -79,7 +79,7 @@ public class JdkOnlyTest {
 
   @Test
   public void maps() {
-    JdkMaps maps = JdkMapsBuilder.builder()
+    JdkMaps maps = new JdkMapsBuilder()
         .putJust(1, -1)
         .putJust(2, -2)
         .putNavs("22", 2)
@@ -95,17 +95,17 @@ public class JdkOnlyTest {
   @Test
   public void mapNulls() {
     try {
-      JdkMapsBuilder.builder().putPols((RetentionPolicy) null, 1).build();
+      new JdkMapsBuilder().putPols((RetentionPolicy) null, 1).build();
       check(false);
     } catch (NullPointerException ex) {
     }
     try {
-      JdkMapsBuilder.builder().putJust(null).build();
+      new JdkMapsBuilder().putJust(null).build();
       check(false);
     } catch (NullPointerException ex) {
     }
     try {
-      JdkMapsBuilder.builder().putAllNavs(Collections.singletonMap(null, null)).build();
+      new JdkMapsBuilder().putAllNavs(Collections.singletonMap(null, null)).build();
       check(false);
     } catch (NullPointerException ex) {
     }

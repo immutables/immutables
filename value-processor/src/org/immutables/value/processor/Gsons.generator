@@ -192,11 +192,9 @@ out.endArray();
 if ([a.name]Value != null) {
   out.name("[a.marshaledName]");
   [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value') false]
-    [if a.forceEmpty]
-} else {
+} else if (out.getSerializeNulls()) {
   out.name("[a.marshaledName]");
   out.nullValue();
-    [/if]
 }
   [else if a.optionalType]
 [a.type] [a.name]Value = instance.[a.names.get]();
@@ -204,11 +202,9 @@ if ([a.name]Value.isPresent()) {
   out.name("[a.marshaledName]");
   [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
   [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value') false]
-    [if a.forceEmpty]
-} else {
+} else if (out.getSerializeNulls()) {
   out.name("[a.marshaledName]");
   out.nullValue();
-    [/if]
 }
   [else if a.mapType]
 [a.type] [a.name]Map = instance.[a.names.get]();
@@ -223,12 +219,10 @@ if (![a.name]Map.isEmpty()) {
     [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
   }
   out.endObject();
-    [if a.forceEmpty]
-} else {
+} else if (out.getSerializeNulls()) {
   out.name("[a.marshaledName]");
   out.beginObject();
   out.endObject();
-    [/if]
 }
   [else if a.collectionType]
 [a.type] [a.name]Elements = instance.[a.names.get]();
@@ -239,12 +233,10 @@ if (![a.name]Elements.isEmpty()) {
     [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e' false]
   }
   out.endArray();
-    [if a.forceEmpty]
-} else {
+} else if (out.getSerializeNulls()) {
   out.name("[a.marshaledName]");
   out.beginArray();
   out.endArray();
-    [/if]
 }
   [else]
 out.name("[a.marshaledName]");
@@ -275,20 +267,12 @@ private char requireChar(String string) {
     throws IOException {
 [if singular ca]
   [for a in ca]
-  boolean inArray = in.peek() == JsonToken.BEGIN_ARRAY;
-  if (inArray) {
-    in.beginArray();
-  }
-  [type.typeAbstract.relative] instance = [type.factoryOf.relative](unmarshalConstructorArgument[toUpper a.name](in));
-  if (inArray) {
-    in.endArray();
-  }
-  return instance;
+  return [type.factoryOf.relative](readParameter[toUpper a.name](in));
   [/for]
 [else]
   in.beginArray();
   [type.typeAbstract.relative] instance = [type.factoryOf.relative]([for a in ca][if not for.first],[/if]
-    unmarshalConstructorArgument[toUpper a.name](in)[/for]);
+    readParameter[toUpper a.name](in)[/for]);
   in.endArray();
   return instance;
 [/if]
@@ -305,7 +289,7 @@ private char requireChar(String string) {
     [if type.unmarshaledAttributes]
   in.beginObject();
   while (in.hasNext()) {
-    unmarshalAttribute(in, builder, in.nextName());
+    eachAttribute(in, builder);
   }
   in.endObject();
     [else]
@@ -314,15 +298,16 @@ private char requireChar(String string) {
   return builder.[type.names.build]();
 }
 
-private void unmarshalAttribute(JsonReader in, [type.typeBuilder.relative] builder, String attributeName)
+private void eachAttribute(JsonReader in, [type.typeBuilder.relative] builder)
     throws IOException {
+  String attributeName = in.nextName();
   switch (attributeName.charAt(0)) {
   [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
      e in mm.asMap.entrySet]
   case '[e.key]':
     [for a in e.value]
     if ("[a.marshaledName]".equals(attributeName)) {
-      unmarshalAttribute[toUpper a.name](in, builder);
+      readInAttribute[toUpper a.name](in, builder);
       return;
     }
     [/for]
@@ -330,13 +315,9 @@ private void unmarshalAttribute(JsonReader in, [type.typeBuilder.relative] build
   [/for]
   default:
   }
-  unmarshalUnknownAttribute(in, attributeName);
-}
-
-private void unmarshalUnknownAttribute(JsonReader in, String attributeName)
-    throws IOException {
   in.skipValue();
 }
+
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]
@@ -345,7 +326,7 @@ private void unmarshalUnknownAttribute(JsonReader in, String attributeName)
 
 [template generateConstructorArgumentUnmarshal Type type Attribute a]
 
-private [a.atNullability][constructorAcceptType a] unmarshalConstructorArgument[toUpper a.name](JsonReader in)
+private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name](JsonReader in)
     throws IOException {
   [if a.primitive]
   return [simpleTypeNext a.type];
@@ -380,7 +361,7 @@ return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
 return [a.rawType].of(value);
     [/if]
   [else if a.mapType]
-return constructMapping[toUpper a.name](unmarshalEntries[toUpper a.name](in));
+return constructMapping[toUpper a.name](readEntries[toUpper a.name](in));
   [else if a.collectionType]
 java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
 [generateCollectionUnmarshalCode type a 'elements.add']
@@ -393,7 +374,7 @@ return value;
 
 [template generateUnmarshalAttribute Type type Attribute a]
 
-private void unmarshalAttribute[toUpper a.name](JsonReader in, [type.typeBuilder.relative] builder)
+private void readInAttribute[toUpper a.name](JsonReader in, [type.typeBuilder.relative] builder)
     throws IOException {
   [if a.primitive]
   builder.[a.names.init]([simpleTypeNext a.type]);
@@ -428,7 +409,7 @@ private [constructorAcceptType a] constructMapping[toUpper a.name](java.util.Lis
 }
 [/if]
 
-private java.util.List<[entryType]> unmarshalEntries[toUpper a.name](JsonReader in)
+private java.util.List<[entryType]> readEntries[toUpper a.name](JsonReader in)
     throws IOException {
   if (in.peek() == JsonToken.NULL) {
     in.nextNull();
@@ -516,7 +497,7 @@ if (t == JsonToken.NULL) {
     [/if]
 }
   [else if a.mapType]
-for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> entry : unmarshalEntries[toUpper a.name](in)) {
+for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> entry : readEntries[toUpper a.name](in)) {
   builder.[a.names.put](entry);
 }
   [else if a.collectionType]

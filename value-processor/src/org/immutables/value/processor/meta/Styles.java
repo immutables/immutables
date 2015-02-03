@@ -151,8 +151,9 @@ public final class Styles {
       // Builder template is being applied programatically in Constitution class
       // public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
-      public final String builder = scheme.builder.apply(raw);
       public final String build = scheme.build.apply(raw);
+
+//      public final String builder = scheme.builder.apply(raw);
 
 //      public final String typeModifiable = scheme.typeModifiable.apply(raw);
 //      public final String create = scheme.create.apply(raw);

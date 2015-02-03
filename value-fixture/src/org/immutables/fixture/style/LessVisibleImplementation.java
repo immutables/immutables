@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.fixture.style.ImmutableLessVisibleImplementation.LessVisibleImplementationBuilder;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Style.ImplementationVisibility;
 
@@ -31,7 +30,8 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 public class LessVisibleImplementation {
 
   void use() {
-    LessVisibleImplementationBuilder returnsAbstract = ImmutableLessVisibleImplementation.builder();
-    returnsAbstract.build();
+    ImmutableLessVisibleImplementation.Builder lessVisibleBuilder = ImmutableLessVisibleImplementation.builder();
+    ImmutableLessVisibleImplementation lessVisibleImplementation = lessVisibleBuilder.build();
+    lessVisibleImplementation.use();
   }
 }
