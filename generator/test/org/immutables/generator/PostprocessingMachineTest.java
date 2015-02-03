@@ -15,17 +15,18 @@ public class PostprocessingMachineTest {
             "import java.util.List;",
             "import some.Some.Nested;",
             "class My extends java.util.Set {",
-            "  private java.util.Map<java.lang.String, Integer> map;",
+            "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
             "}"));
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "import com.google.common.collect.Maps;",
             "import java.util.List;",
             "import java.util.Map;",
             "import java.util.Set;",
             "import some.Some.Nested;",
             "class My extends Set {",
-            "  private Map<String, Integer> map;",
+            "  private Map<String, Integer> map = Maps.newHashMap();",
             "}"));
   }
 
@@ -146,5 +147,24 @@ public class PostprocessingMachineTest {
         "class X {",
         "  Set same(Set set);",
         "}"));
+  }
+
+  @Test
+  public void fullyQualifiedWithSpaces() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "class X {",
+        "  private java.util.Map<java.lang.String, Integer> map = ",
+        "    com.google.common.collect",
+        "      .Maps.newHashMap();",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import java.util.Map;",
+        "class X {",
+        "  private Map<String, Integer> map = ",
+        "    com.google.common.collect",
+        "      .Maps.newHashMap();",
+        "}"));
+
   }
 }

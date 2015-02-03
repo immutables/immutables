@@ -206,19 +206,17 @@ final class PostprocessingMachine {
     private HashSet<String> stopList = Sets.newHashSet();
 
     void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
-      String normalized = normalize(fullyQualifiedName);
-
-      if (normalized.startsWith(JAVA_LANG)) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
+      if (fullyQualifiedName.startsWith(JAVA_LANG)) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
         return;
       }
 
-      if (currentPackage.isPresent() && normalized.startsWith(currentPackage.get())) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, normalized));
+      if (currentPackage.isPresent() && fullyQualifiedName.startsWith(currentPackage.get())) {
+        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
         return;
       }
 
-      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, normalized));
+      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, fullyQualifiedName));
     }
 
     void addToStopList(String name) {
@@ -237,10 +235,6 @@ final class PostprocessingMachine {
 
     void setCurrentPackage(String currentPackage) {
       this.currentPackage = Optional.of(currentPackage);
-    }
-
-    private String normalize(String s) {
-      return s.replace(" ", "").replace("\n", "").replace("\t", "").replace("\r", "");
     }
 
     void preBuild() {
@@ -280,19 +274,7 @@ final class PostprocessingMachine {
       case PACKAGE_PART_CANDIDATE:
         if (c == '.') {
           state = FullyQualifiedNameState.DOT;
-        } else if (isSpaceChar(c)) {
-          state = FullyQualifiedNameState.SPACE_BEFORE_DOT;
         } else if (!isAlphabetic(c) && !isDigit(c)) {
-          reset();
-        }
-        break;
-      case SPACE_BEFORE_DOT:
-        if (c == '.') {
-          state = FullyQualifiedNameState.DOT;
-        } else if (isAlphabetic(c)) {
-          state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
-          importFrom = i;
-        } else if (!isSpaceChar(c)) {
           reset();
         }
         break;
@@ -301,7 +283,7 @@ final class PostprocessingMachine {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
         } else if (isUpperCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.CLASS;
-        } else if (!isSpaceChar(c)) {
+        } else {
           reset();
         }
         break;
@@ -322,10 +304,8 @@ final class PostprocessingMachine {
         }
         if (isAlphabetic(c)) {
           state = FullyQualifiedNameState.METHOD_OR_FIELD;
-        } else if (isSeparator(c)) {
+        } else if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
-        } else if (!isSpaceChar(c)) {
-          reset();
         }
         break;
       case METHOD_OR_FIELD:
@@ -354,12 +334,11 @@ final class PostprocessingMachine {
   enum FullyQualifiedNameState {
     UNDEFINED,
     PACKAGE_PART_CANDIDATE,
-    SPACE_BEFORE_DOT,
     DOT,
     CLASS,
     AFTER_CLASS,
     METHOD_OR_FIELD,
-    FINISH;
+    FINISH
   }
 
   static final class CommentMachine {
@@ -413,7 +392,7 @@ final class PostprocessingMachine {
     COMMENT_CANDIDATE,
     LINE_COMMENT,
     BLOCK_COMMENT,
-    BLOCK_COMMENT_OUT_CANDIDATE;
+    BLOCK_COMMENT_OUT_CANDIDATE
   }
 
   static final class ClassNameMachine {
@@ -457,7 +436,7 @@ final class PostprocessingMachine {
 
   enum ClassNameState {
     UNDEFINED,
-    CLASS_NAME;
+    CLASS_NAME
   }
 
   private static final class ImportCandidate {
@@ -474,10 +453,6 @@ final class PostprocessingMachine {
       this.preparedImport = preparedImport;
     }
 
-  }
-
-  private static boolean isSpaceChar(char c) {
-    return Character.isSpaceChar(c) || c == '\n' || c == '\t' || c == '\r';
   }
 
   private static boolean isDigit(char c) {
