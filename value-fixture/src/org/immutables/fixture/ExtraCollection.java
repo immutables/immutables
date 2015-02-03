@@ -7,7 +7,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import org.immutables.value.Value;
 
-@Value.Immutable
+@Value.Immutable(singleton = true)
 public interface ExtraCollection {
   Multiset<String> bag();
 
@@ -18,6 +18,7 @@ public interface ExtraCollection {
   SetMultimap<Integer, String> indexSet();
 
   default void use() {
+    ImmutableExtraCollection.of();
     ImmutableExtraCollection collection = ImmutableExtraCollection.builder()
         .addBag("2", "2")
         .putIndex(1, "2", "3", "4")

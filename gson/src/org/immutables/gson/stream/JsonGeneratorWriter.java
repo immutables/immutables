@@ -140,4 +140,9 @@ public class JsonGeneratorWriter extends JsonWriter {
   public void close() throws IOException {
     generator.close();
   }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName();
+  }
 }

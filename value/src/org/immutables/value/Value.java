@@ -15,8 +15,7 @@
  */
 package org.immutables.value;
 
-import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.ImmutableSortedSet;
+import java.util.Collections;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -67,7 +66,6 @@ public @interface Value {
     /**
      * If {@code intern=true} then instances will be strong interned on construction.
      * Default is {@literal false}.
-     * @see com.google.common.collect.Interners#newStrongInterner()
      */
     boolean intern() default false;
 
@@ -286,8 +284,6 @@ public @interface Value {
    * sorted collection of elements which are not implementing {@link Comparable}.
    * Non-annotated special collection will be
    * generated/implemented as "nothing-special" attributes.
-   * @see ImmutableSortedSet#naturalOrder()
-   * @see ImmutableSortedMap#naturalOrder()
    * @see ReverseOrder
    */
   @Documented
@@ -301,8 +297,7 @@ public @interface Value {
    * sorted collection of elements which are not implementing {@link Comparable}.
    * Non-annotated special collection will be
    * generated/implemented as "nothing-special" attributes.
-   * @see ImmutableSortedSet#reverseOrder()
-   * @see ImmutableSortedMap#reverseOrder()
+   * @see Collections#reverseOrder()
    * @see NaturalOrder
    */
   @Documented

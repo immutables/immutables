@@ -43,11 +43,13 @@ public final class Processor extends AbstractGenerator {
     Multimap<DeclaringPackage, ValueType> values = round.collectValues();
 
     invoke(new Generator_Immutables().usingValues(values).generate());
+    invoke(new Generator_Gsons().usingValues(values).generate());
+
     invoke(new Generator_Marshalers().usingValues(values).generate());
     invoke(new Generator_Repositories().usingValues(values).generate());
 //  invoke(new Generator_Modifiables().usingValues(values).generate());
 //  invoke(new Generator_Parboileds().usingValues(values).generate());
 //  invoke(new Generator_Transformers().usingValues(values).generate());
-    invoke(new Generator_Gsons().usingValues(values).generate());
+
   }
 }

@@ -3,7 +3,7 @@ package org.immutables.value.processor.meta;
 import com.google.common.collect.ImmutableMap;
 import org.immutables.value.internal.google.common.base.MoreObjects;
 
-enum AttributeTypeKind {
+public enum AttributeTypeKind {
   REGULAR(""),
   ARRAY(""),
   LIST("List", java.util.List.class.getName()),
@@ -106,6 +106,17 @@ enum AttributeTypeKind {
     }
   }
 
+  public boolean isMapKind() {
+    switch (this) {
+    case MAP:
+    case ENUM_MAP:
+    case SORTED_MAP:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   public boolean isMappingKind() {
     switch (this) {
     case MAP:
@@ -144,6 +155,16 @@ enum AttributeTypeKind {
     switch (this) {
     case OPTIONAL_GUAVA:
     case OPTIONAL_JDK:
+      return true;
+    default:
+      return false;
+    }
+  }
+
+  public boolean isEnumKeyed() {
+    switch (this) {
+    case ENUM_MAP:
+    case ENUM_SET:
       return true;
     default:
       return false;
