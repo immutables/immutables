@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import org.immutables.common.marshal.Marshaler;
 import org.immutables.common.marshal.Marshaling;
+import org.immutables.fixture.jackson.Calabra;
 import org.immutables.fixture.ImmutableHasNullable;
 import org.immutables.fixture.ImmutableJsonIgnore;
 import org.immutables.fixture.ImmutableSillyDumb;
@@ -52,6 +53,7 @@ import org.immutables.fixture.SillySubstructure;
 import org.immutables.fixture.SillySubstructureMarshaler;
 import org.immutables.fixture.SillyTuplie;
 import org.immutables.fixture.SillyTuplieMarshaler;
+import org.immutables.fixture.jackson.AbstractCalabra;
 import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
 import org.immutables.fixture.routine.SillyRoutineImport;
@@ -79,6 +81,12 @@ public class MarshallingTest {
         Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
 
     check(substructure).not().isNull();
+  }
+
+  @Test
+  public void customizedStyleMarshaling() {
+    Calabra c = Calabra.builder().setA("").setB(true).build();
+    check(Marshaling.fromJson(Marshaling.toJson(c), Calabra.class)).is(c);
   }
 
   @Test
