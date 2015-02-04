@@ -1,8 +1,8 @@
 package org.immutables.gson.adapters;
 
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.ListMultimap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,13 +12,16 @@ import org.immutables.value.Value;
 @Value.Immutable(builder = false)
 @Value.Nested
 @Gson.TypeAdapted
-public interface Adapt {
+public interface OtherType {
 
   @Value.Parameter
-  Set<Inr> set();
+  ListMultimap<String, Nst> listMultimap();
 
   @Value.Parameter
-  Multiset<Nst> bag();
+  SetMultimap<Integer, Nst> setMultimap();
+
+  @Value.Parameter
+  Map<String, Nst> map();
 
   @Value.Immutable
   public interface Inr {
@@ -26,9 +29,9 @@ public interface Adapt {
 
     Map<String, Nst> map();
 
-    ListMultimap<String, Nst> listMultimap();
+    Set<Inr> set();
 
-    SetMultimap<Integer, Nst> setMultimap();
+    Multiset<Nst> bag();
   }
 
   @Value.Immutable

@@ -8,8 +8,8 @@ public final class GsonMirrors {
   @Mirror.Annotation("org.immutables.gson.Gson.TypeAdapted")
   public @interface TypeAdapted {}
 
-  @Mirror.Annotation("org.immutables.gson.Gson.Subclasses")
-  public @interface Subclasses {
+  @Mirror.Annotation("org.immutables.gson.Gson.Subtypes")
+  public @interface Subtypes {
     Class<?>[] value();
   }
 
@@ -20,7 +20,4 @@ public final class GsonMirrors {
 
   @Mirror.Annotation("org.immutables.gson.Gson.Ignore")
   public @interface Ignore {}
-
-  @Mirror.Annotation("org.immutables.gson.Gson.ForceEmpty")
-  public @interface ForceEmpty {}
 }

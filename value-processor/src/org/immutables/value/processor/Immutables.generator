@@ -924,7 +924,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.typeKind.isMultimapKind]
-  [guava].collect.Multimap<[a.consumedElementType]>
+  [guava].collect.Multimap<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
   java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]

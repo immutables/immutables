@@ -1,5 +1,7 @@
 package org.immutables.fixture;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import java.util.Arrays;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
@@ -9,15 +11,24 @@ import org.immutables.value.Value;
 
 @Value.Immutable(singleton = true)
 public interface ExtraCollection {
+  @Value.Parameter
   Multiset<String> bag();
 
+  @Value.Parameter
   Multimap<Integer, String> index();
 
+  @Value.Parameter
   ListMultimap<Integer, String> indexList();
 
+  @Value.Parameter
   SetMultimap<Integer, String> indexSet();
 
   default void use() {
+    ImmutableExtraCollection.of(
+        ImmutableList.<String>of(),
+        ImmutableMultimap.<Integer, String>of(),
+        ImmutableMultimap.<Integer, String>of(),
+        ImmutableMultimap.<Integer, String>of());
     ImmutableExtraCollection.of();
     ImmutableExtraCollection collection = ImmutableExtraCollection.builder()
         .addBag("2", "2")
