@@ -555,7 +555,7 @@ package [type.package];
    * @param values the values for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.putAll]([uK] key, [uV]... values) {
+  public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV]... values) {
     [v.name]Builder.putAll(key, values);
     return this;
   }

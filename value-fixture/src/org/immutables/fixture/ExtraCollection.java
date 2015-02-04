@@ -20,11 +20,11 @@ public interface ExtraCollection {
   default void use() {
     ImmutableExtraCollection collection = ImmutableExtraCollection.builder()
         .addBag("2", "2")
-        .putAllIndex(1, "2", "3", "4")
+        .putIndex(1, "2", "3", "4")
         .putAllIndex(1, Arrays.asList("2", "3", "4"))
         .putIndex(2, "5")
         .putIndexList(1, "")
-        .putAllIndexSet(2, "2")
+        .putIndexSet(2, "2")
         .build();
 
     collection.bag().count("2");

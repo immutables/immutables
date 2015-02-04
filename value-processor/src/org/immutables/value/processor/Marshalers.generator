@@ -371,7 +371,7 @@ if (![a.name]Collection.isEmpty()) {
 }
   [else]
 generator.writeFieldName("[a.marshaledName]");
-[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()')]
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()')]
   [/if]
 [/template]
 
