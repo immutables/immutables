@@ -3,11 +3,15 @@ package org.immutables.generator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 final class PostprocessingMachine {
@@ -72,6 +76,7 @@ final class PostprocessingMachine {
           if (classNameOccurrencesInImportBlock == 1) {
             importsBuilder.addToStopList(content.subSequence(classNameFrom, classNameTo).toString());
             nameMachine.reset();
+            classNameOccurrencesInImportBlock = 0;
           }
         }
         break;
@@ -105,7 +110,7 @@ final class PostprocessingMachine {
 
     StringBuilder stringBuilder = new StringBuilder(content.length() << 1);
 
-    for (ImportCandidate importCandidate : importsBuilder.importCandidates.values()) {
+    for (ImportCandidate importCandidate : importsBuilder.candidates()) {
       if (importCandidate.importTo != -1) {
         importsBuilder.addImport(importCandidate.preparedImport);
       }
@@ -123,7 +128,7 @@ final class PostprocessingMachine {
 
     // package
     if (!currentPackage.isEmpty()) {
-      stringBuilder.insert(0, ";\n").insert(0, currentPackage).insert(0, "package ");
+      stringBuilder.insert(0, ";\n\n").insert(0, currentPackage).insert(0, "package ");
     }
 
     return stringBuilder.toString();
@@ -196,26 +201,34 @@ final class PostprocessingMachine {
   }
 
   static final class ImportsBuilder {
-    private static final String JAVA_LANG = "java.lang";
+    private static final String JAVA_LANG = "java.lang.";
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
-    private LinkedHashMap<String, ImportCandidate> importCandidates = Maps.newLinkedHashMap();
+    private Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
+    private HashMap<String, String> nameToFully = Maps.newHashMap();
     private HashSet<String> exceptions = Sets.newHashSet();
     private HashSet<String> stopList = Sets.newHashSet();
 
-    void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
-      if (fullyQualifiedName.startsWith(JAVA_LANG)) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
+    void addImportCandidate(String name, String fullyName, int importFrom, int importTo, int packageTo) {
+      String foundFully = nameToFully.get(name);
+      if (foundFully != null && !foundFully.equals(fullyName)) {
         return;
       }
 
-      if (currentPackage.isPresent() && fullyQualifiedName.startsWith(currentPackage.get())) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
+      nameToFully.put(name, fullyName);
+
+      if ((JAVA_LANG + name).equals(fullyName)) {
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
         return;
       }
 
-      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, fullyQualifiedName));
+      if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
+        return;
+      }
+
+      importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName));
     }
 
     void addToStopList(String name) {
@@ -238,12 +251,16 @@ final class PostprocessingMachine {
 
     void preBuild() {
       for (String exception : exceptions) {
-        importCandidates.remove(exception);
+        importCandidates.removeAll(nameToFully.get(exception));
       }
     }
 
     String build() {
       return JOINER.join(Iterables.transform(imports, ToImportStatement.FUNCTION));
+    }
+
+    List<ImportCandidate> candidates() {
+      return Ordering.natural().sortedCopy(importCandidates.values());
     }
   }
 
@@ -268,6 +285,13 @@ final class PostprocessingMachine {
         if (isLowerCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
+        } else if (isAlphabetic(c) || isDigit(c)) {
+          state = FullyQualifiedNameState.IDLE;
+        }
+        break;
+      case IDLE:
+        if (!isAlphabetic(c) && !isDigit(c) && c != '.') {
+          state = FullyQualifiedNameState.UNDEFINED;
         }
         break;
       case PACKAGE_PART_CANDIDATE:
@@ -332,6 +356,7 @@ final class PostprocessingMachine {
 
   enum FullyQualifiedNameState {
     UNDEFINED,
+    IDLE,
     PACKAGE_PART_CANDIDATE,
     DOT,
     CLASS,
@@ -347,7 +372,9 @@ final class PostprocessingMachine {
     void nextChar(char c) {
       switch (state) {
       case NOT_IN_COMMENT:
-        if (c == '/') {
+        if (c == '"') {
+          state = CommentState.STRING_LITERAL;
+        } else if (c == '/') {
           state = CommentState.COMMENT_CANDIDATE;
         }
         break;
@@ -356,6 +383,11 @@ final class PostprocessingMachine {
           state = CommentState.LINE_COMMENT;
         } else if (c == '*') {
           state = CommentState.BLOCK_COMMENT;
+        }
+        break;
+      case STRING_LITERAL:
+        if (c == '"') {
+          state = CommentState.NOT_IN_COMMENT;
         }
         break;
       case LINE_COMMENT:
@@ -381,7 +413,8 @@ final class PostprocessingMachine {
     boolean isInComment() {
       return CommentState.LINE_COMMENT.equals(state)
           || CommentState.BLOCK_COMMENT.equals(state)
-          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state);
+          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state)
+          || CommentState.STRING_LITERAL.equals(state);
     }
 
   }
@@ -389,6 +422,7 @@ final class PostprocessingMachine {
   enum CommentState {
     NOT_IN_COMMENT,
     COMMENT_CANDIDATE,
+    STRING_LITERAL,
     LINE_COMMENT,
     BLOCK_COMMENT,
     BLOCK_COMMENT_OUT_CANDIDATE
@@ -438,8 +472,7 @@ final class PostprocessingMachine {
     CLASS_NAME
   }
 
-  private static final class ImportCandidate {
-
+  private static final class ImportCandidate implements Comparable<ImportCandidate> {
     final int importFrom;
     final int importTo;
     final int packageTo;
@@ -452,6 +485,10 @@ final class PostprocessingMachine {
       this.preparedImport = preparedImport;
     }
 
+    @Override
+    public int compareTo(ImportCandidate other) {
+      return this.importFrom - other.importFrom;
+    }
   }
 
   private static boolean isDigit(char c) {

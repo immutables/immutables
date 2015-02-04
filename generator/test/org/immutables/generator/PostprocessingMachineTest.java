@@ -20,6 +20,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import com.google.common.collect.Maps;",
             "import java.util.List;",
             "import java.util.Map;",
@@ -37,16 +38,17 @@ public class PostprocessingMachineTest {
             "import java.util.List;",
             "class My extends java.util.Set {",
             "// comment",
-            "// comment with fully qualified class name java.until.Map",
+            "// comment with fully qualified class name java.util.Map",
             "}"));
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
             "// comment",
-            "// comment with fully qualified class name java.until.Map",
+            "// comment with fully qualified class name java.util.Map",
             "}"));
   }
 
@@ -56,21 +58,41 @@ public class PostprocessingMachineTest {
         LINES.join("package start;",
             "import java.util.List;",
             "class My extends java.util.Set {",
-            "/* class name in block comment java.until.Map.get()*/",
+            "/* class name in block comment java.util.Map.get()*/",
             "/**",
-            "class name in block comment java.until.Map.get()",
+            "class name in block comment java.util.Map.get()",
             "**/",
             "}"));
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
-            "/* class name in block comment java.until.Map.get()*/",
+            "/* class name in block comment java.util.Map.get()*/",
             "/**",
-            "class name in block comment java.until.Map.get()",
+            "class name in block comment java.util.Map.get()",
             "**/",
+            "}"));
+  }
+
+  @Test
+  public void stringLiteral() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        LINES.join("package start;",
+            "import java.util.List;",
+            "class My extends java.util.Set {",
+            "\" class name in string literal java.util.Map.get() \"",
+            "}"));
+
+    check(rewrited).hasToString(
+        LINES.join("package start;",
+            "",
+            "import java.util.List;",
+            "import java.util.Set;",
+            "class My extends Set {",
+            "\" class name in string literal java.util.Map.get() \"",
             "}"));
   }
 
@@ -82,6 +104,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class My extends Throwable {}"));
 
     rewrited = PostprocessingMachine.rewrite(
@@ -90,7 +113,18 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class Throwable extends java.lang.Throwable {}"));
+
+    rewrited = PostprocessingMachine.rewrite(
+        LINES.join("package start;",
+            "class Throwable extends java.lang.annotation.Retention {}"));
+
+    check(rewrited).hasToString(
+        LINES.join("package start;",
+            "",
+            "import java.lang.annotation.Retention;",
+            "class Throwable extends Retention {}"));
   }
 
   @Test
@@ -101,6 +135,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class My extends Utils {}"));
 
     rewrited = PostprocessingMachine.rewrite(
@@ -111,6 +146,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class Throwable extends start.Utils {",
             "  private class Utils {}",
             "}"));
@@ -176,6 +212,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(LINES.join(
         "package mypack;",
+        "",
         "private final class My{}"));
 
     rewrited = PostprocessingMachine.rewrite(LINES.join(
@@ -193,11 +230,72 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(LINES.join(
         "package mypack;",
+        "",
         "import java.util.List;",
         "abstract class My{}"));
 
     rewrited = PostprocessingMachine.rewrite("public final class My{}");
 
     check(rewrited).hasToString("public final class My{}");
+  }
+
+  @Test
+  public void multipleOccurrences() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import java.utils.Set;",
+        "class X extends java.utils.List {",
+        "  java.utils.List add(int key);",
+        "  my.List add(int key);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import java.utils.List;",
+        "import java.utils.Set;",
+        "class X extends List {",
+        "  List add(int key);",
+        "  my.List add(int key);",
+        "}"));
+  }
+
+  @Test
+  public void nestedClass() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import com.google.common.collect.ImmutableList;",
+        "class X {",
+        "ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import com.google.common.collect.ImmutableList;",
+        "class X {",
+        "ImmutableList.Builder<Mirror> builder = ImmutableList.builder();",
+        "}"));
+
+    rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "class X {",
+        "com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
+        "  com.google.common.collect.ImmutableList.builder();",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import com.google.common.collect.ImmutableList;",
+        "class X {",
+        "ImmutableList.Builder<Mirror> builder = ",
+        "  ImmutableList.builder();",
+        "}"));
+
+    rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import com.google.common.collect.ImmutableList;",
+        "class X {",
+        "com.google.common.collect.ImmutableList.Builder<Mirror> builder = ",
+        "  com.google.common.collect.ImmutableList.builder();",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import com.google.common.collect.ImmutableList;",
+        "class X {",
+        "ImmutableList.Builder<Mirror> builder = ",
+        "  ImmutableList.builder();",
+        "}"));
   }
 }
