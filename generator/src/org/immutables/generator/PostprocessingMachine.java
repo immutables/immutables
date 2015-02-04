@@ -201,7 +201,7 @@ final class PostprocessingMachine {
   }
 
   static final class ImportsBuilder {
-    private static final String JAVA_LANG = "java.lang";
+    private static final String JAVA_LANG = "java.lang.";
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
@@ -218,7 +218,7 @@ final class PostprocessingMachine {
 
       nameToFully.put(name, fullyName);
 
-      if (fullyName.startsWith(JAVA_LANG)) {
+      if ((JAVA_LANG + name).equals(fullyName)) {
         importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
         return;
       }
@@ -285,6 +285,13 @@ final class PostprocessingMachine {
         if (isLowerCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
+        } else if (isAlphabetic(c) || isDigit(c)) {
+          state = FullyQualifiedNameState.IDLE;
+        }
+        break;
+      case IDLE:
+        if (!isAlphabetic(c) && !isDigit(c) && c != '.') {
+          state = FullyQualifiedNameState.UNDEFINED;
         }
         break;
       case PACKAGE_PART_CANDIDATE:
@@ -349,6 +356,7 @@ final class PostprocessingMachine {
 
   enum FullyQualifiedNameState {
     UNDEFINED,
+    IDLE,
     PACKAGE_PART_CANDIDATE,
     DOT,
     CLASS,
