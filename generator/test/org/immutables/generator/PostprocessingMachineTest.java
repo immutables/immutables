@@ -2,6 +2,7 @@
 package org.immutables.generator;
 
 import com.google.common.base.Joiner;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -20,6 +21,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import com.google.common.collect.Maps;",
             "import java.util.List;",
             "import java.util.Map;",
@@ -42,6 +44,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
@@ -64,6 +67,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
@@ -85,6 +89,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "import java.util.List;",
             "import java.util.Set;",
             "class My extends Set {",
@@ -100,6 +105,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class My extends Throwable {}"));
 
     rewrited = PostprocessingMachine.rewrite(
@@ -108,6 +114,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class Throwable extends java.lang.Throwable {}"));
   }
 
@@ -119,6 +126,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class My extends Utils {}"));
 
     rewrited = PostprocessingMachine.rewrite(
@@ -129,6 +137,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(
         LINES.join("package start;",
+            "",
             "class Throwable extends start.Utils {",
             "  private class Utils {}",
             "}"));
@@ -194,6 +203,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(LINES.join(
         "package mypack;",
+        "",
         "private final class My{}"));
 
     rewrited = PostprocessingMachine.rewrite(LINES.join(
@@ -211,6 +221,7 @@ public class PostprocessingMachineTest {
 
     check(rewrited).hasToString(LINES.join(
         "package mypack;",
+        "",
         "import java.util.List;",
         "abstract class My{}"));
 

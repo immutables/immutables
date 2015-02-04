@@ -5,9 +5,11 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.TreeSet;
 
 final class PostprocessingMachine {
@@ -72,6 +74,7 @@ final class PostprocessingMachine {
           if (classNameOccurrencesInImportBlock == 1) {
             importsBuilder.addToStopList(content.subSequence(classNameFrom, classNameTo).toString());
             nameMachine.reset();
+            classNameOccurrencesInImportBlock = 0;
           }
         }
         break;
@@ -105,7 +108,7 @@ final class PostprocessingMachine {
 
     StringBuilder stringBuilder = new StringBuilder(content.length() << 1);
 
-    for (ImportCandidate importCandidate : importsBuilder.importCandidates.values()) {
+    for (ImportCandidate importCandidate : importsBuilder.candidates()) {
       if (importCandidate.importTo != -1) {
         importsBuilder.addImport(importCandidate.preparedImport);
       }
@@ -123,7 +126,7 @@ final class PostprocessingMachine {
 
     // package
     if (!currentPackage.isEmpty()) {
-      stringBuilder.insert(0, ";\n").insert(0, currentPackage).insert(0, "package ");
+      stringBuilder.insert(0, ";\n\n").insert(0, currentPackage).insert(0, "package ");
     }
 
     return stringBuilder.toString();
@@ -200,7 +203,7 @@ final class PostprocessingMachine {
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
-    private LinkedHashMap<String, ImportCandidate> importCandidates = Maps.newLinkedHashMap();
+    private HashMap<String, ImportCandidate> importCandidates = Maps.newHashMap();
     private HashSet<String> exceptions = Sets.newHashSet();
     private HashSet<String> stopList = Sets.newHashSet();
 
@@ -244,6 +247,10 @@ final class PostprocessingMachine {
 
     String build() {
       return JOINER.join(Iterables.transform(imports, ToImportStatement.FUNCTION));
+    }
+
+    List<ImportCandidate> candidates() {
+      return Ordering.natural().sortedCopy(importCandidates.values());
     }
   }
 
@@ -447,8 +454,7 @@ final class PostprocessingMachine {
     CLASS_NAME
   }
 
-  private static final class ImportCandidate {
-
+  private static final class ImportCandidate implements Comparable<ImportCandidate> {
     final int importFrom;
     final int importTo;
     final int packageTo;
@@ -461,6 +467,10 @@ final class PostprocessingMachine {
       this.preparedImport = preparedImport;
     }
 
+    @Override
+    public int compareTo(ImportCandidate other) {
+      return this.importFrom - other.importFrom;
+    }
   }
 
   private static boolean isDigit(char c) {
