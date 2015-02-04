@@ -3,8 +3,10 @@ package org.immutables.generator;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.util.HashMap;
@@ -203,22 +205,30 @@ final class PostprocessingMachine {
 
     private TreeSet<String> imports = Sets.newTreeSet();
     private Optional<String> currentPackage = Optional.absent();
-    private HashMap<String, ImportCandidate> importCandidates = Maps.newHashMap();
+    private Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
+    private HashMap<String, String> nameToFully = Maps.newHashMap();
     private HashSet<String> exceptions = Sets.newHashSet();
     private HashSet<String> stopList = Sets.newHashSet();
 
-    void addImportCandidate(String name, String fullyQualifiedName, int importFrom, int importTo, int packageTo) {
-      if (fullyQualifiedName.startsWith(JAVA_LANG)) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
+    void addImportCandidate(String name, String fullyName, int importFrom, int importTo, int packageTo) {
+      String foundFully = nameToFully.get(name);
+      if (foundFully != null && !foundFully.equals(fullyName)) {
         return;
       }
 
-      if (currentPackage.isPresent() && fullyQualifiedName.startsWith(currentPackage.get())) {
-        importCandidates.put(name, new ImportCandidate(importFrom, -1, packageTo, fullyQualifiedName));
+      nameToFully.put(name, fullyName);
+
+      if (fullyName.startsWith(JAVA_LANG)) {
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
         return;
       }
 
-      importCandidates.put(name, new ImportCandidate(importFrom, importTo, packageTo, fullyQualifiedName));
+      if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
+        return;
+      }
+
+      importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName));
     }
 
     void addToStopList(String name) {
@@ -241,7 +251,7 @@ final class PostprocessingMachine {
 
     void preBuild() {
       for (String exception : exceptions) {
-        importCandidates.remove(exception);
+        importCandidates.removeAll(nameToFully.get(exception));
       }
     }
 

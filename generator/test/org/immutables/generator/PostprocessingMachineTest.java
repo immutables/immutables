@@ -2,7 +2,6 @@
 package org.immutables.generator;
 
 import com.google.common.base.Joiner;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -228,5 +227,23 @@ public class PostprocessingMachineTest {
     rewrited = PostprocessingMachine.rewrite("public final class My{}");
 
     check(rewrited).hasToString("public final class My{}");
+  }
+
+  @Test
+  public void multipleOccurrences() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import java.utils.Set;",
+        "class X extends java.utils.List {",
+        "  java.utils.List add(int key);",
+        "  my.List add(int key);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import java.utils.List;",
+        "import java.utils.Set;",
+        "class X extends List {",
+        "  List add(int key);",
+        "  my.List add(int key);",
+        "}"));
   }
 }
