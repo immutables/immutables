@@ -62,7 +62,7 @@ final class PostprocessingMachine {
         }
         break;
       case IMPORTS:
-        nameMachine.nextChar(c, i);
+        nameMachine.nextChar(c, i, true);
         if (nameMachine.isFound()) {
           classNameOccurrencesInImportBlock++;
           classNameFrom = nameMachine.classNameFrom;
@@ -428,15 +428,28 @@ final class PostprocessingMachine {
     }
 
     void nextChar(char c, int i) {
+      nextChar(c, i, false);
+    }
+
+    void nextChar(char c, int i, boolean noIdle) {
       switch (state) {
       case UNDEFINED:
         if (isUpperCaseAlphabetic(c)) {
           state = ClassNameState.CLASS_NAME;
           classNameFrom = i;
           classNameTo = -1;
+        } else if (isAlphabetic(c) || isDigit(c)) {
+          if (!noIdle) {
+            state = ClassNameState.IDLE;
+          }
         } else {
           classNameFrom = -1;
           classNameTo = -1;
+        }
+        break;
+      case IDLE:
+        if (!isAlphabetic(c) && !isDigit(c) && c != '.') {
+          state = ClassNameState.UNDEFINED;
         }
         break;
       case CLASS_NAME:
@@ -452,6 +465,7 @@ final class PostprocessingMachine {
 
   enum ClassNameState {
     UNDEFINED,
+    IDLE,
     CLASS_NAME
   }
 
@@ -488,9 +502,5 @@ final class PostprocessingMachine {
 
   private static boolean isUpperCaseAlphabetic(char c) {
     return c >= 'A' && c <= 'Z';
-  }
-
-  private static boolean isSeparator(char c) {
-    return c == '(' || c == '<' || c == ')' || c == '>' || c == '{' || c == '}' || c == ',' || c == ';';
   }
 }
