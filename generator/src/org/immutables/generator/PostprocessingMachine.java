@@ -40,6 +40,11 @@ final class PostprocessingMachine {
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
 
+      commentMachine.nextChar(c);
+      if (commentMachine.isInComment()) {
+        continue;
+      }
+
       switch (state) {
       case UNDEFINED:
         state = machine.nextChar(c).or(state);
@@ -81,26 +86,23 @@ final class PostprocessingMachine {
         }
         break;
       case CLASS:
-        commentMachine.nextChar(c);
-        if (!commentMachine.isInComment()) {
-          nameMachine.nextChar(c, i);
-          fullyNameMachine.nextChar(c, i);
-          if (fullyNameMachine.isFinished()) {
-            importsBuilder.addImportCandidate(
-                content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
-                content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
-                fullyNameMachine.importFrom,
-                fullyNameMachine.importTo,
-                fullyNameMachine.packageTo);
-            fullyNameMachine.reset();
-          }
-          if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
-            nameMachine.reset();
-          }
-          if (nameMachine.isFound()) {
-            importsBuilder.addException(
-                content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
-          }
+        nameMachine.nextChar(c, i);
+        fullyNameMachine.nextChar(c, i);
+        if (fullyNameMachine.isFinished()) {
+          importsBuilder.addImportCandidate(
+              content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
+              content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
+              fullyNameMachine.importFrom,
+              fullyNameMachine.importTo,
+              fullyNameMachine.packageTo);
+          fullyNameMachine.reset();
+        }
+        if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
+          nameMachine.reset();
+        }
+        if (nameMachine.isFound()) {
+          importsBuilder.addException(
+              content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
         }
         break;
       }
@@ -403,7 +405,7 @@ final class PostprocessingMachine {
       case BLOCK_COMMENT_OUT_CANDIDATE:
         if (c == '/') {
           state = CommentState.NOT_IN_COMMENT;
-        } else {
+        } else if (c != '*') {
           state = CommentState.BLOCK_COMMENT;
         }
         break;
