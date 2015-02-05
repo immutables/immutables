@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
@@ -21,9 +22,9 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
+        <groupId>org.immutables.tools</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>2.3</version>
+        <version>2</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -33,6 +34,7 @@
             <configuration>
               <shadedArtifactAttached>false</shadedArtifactAttached>
               <createDependencyReducedPom>true</createDependencyReducedPom>
+            <!-- NOT YET   <minimizeJar>true</minimizeJar> -->
 
               <artifactSet>
                 <includes>
@@ -45,39 +47,53 @@
 
               <relocations>
                 <relocation>
-                  <pattern>com.google</pattern>
-                  <shadedPattern>org.immutables.value.internal.google</shadedPattern>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>org.immutables.value.internal.$guava$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>org.immutables.value.internal.$thirdparty$</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.immutables.value.processor</pattern>
-                  <shadedPattern>org.immutables.value.internal.processor</shadedPattern>
+                  <shadedPattern>org.immutables.value.internal.$processor$</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.immutables.generator</pattern>
-                  <shadedPattern>org.immutables.value.internal.generator</shadedPattern>
+                  <shadedPattern>org.immutables.value.internal.$generator$</shadedPattern>
                 </relocation>
               </relocations>
 
               <filters>
                 <filter>
                   <artifact>org.immutables:value-standalone</artifact>
+                  <!-- This excludes technical ad-hoc class for javadoc generation -->
                   <excludes>
                     <exclude>**</exclude>
                   </excludes>
                 </filter>
                 <filter>
+                  <artifact>org.immutables:value</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
+                <filter>
                   <artifact>org.immutables:value-processor</artifact>
-                  <excludes>
-                    <exclude>META-INF/services/**</exclude>
-                  </excludes>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
+                <filter>
+                  <artifact>org.immutables:generator</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
                 </filter>
               </filters>
 
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
-                  <resource>META-INF/services/javax.annotation.processing.Processor</resource>
-                  <file>javax.annotation.processing.Processor</file>
-                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
             </configuration>
           </execution>
