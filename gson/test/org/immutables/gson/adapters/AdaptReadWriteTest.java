@@ -10,13 +10,13 @@ public class AdaptReadWriteTest {
 
   private final Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new AdaptTypeAdapters())
-      .setPrettyPrinting()
       .create();
 
   private final Adapt adapt =
       ImmutableAdapt.of(
           ImmutableList.of(
               ImmutableAdapt.Inr.builder()
+                  .arr("a", "b", "c")
                   .addList(1, 2, 4)
                   .putMap("key",
                       ImmutableAdapt.Nst.builder()
@@ -40,6 +40,7 @@ public class AdaptReadWriteTest {
                           .build())
                   .build(),
               ImmutableAdapt.Inr.builder()
+                  .arr("x", "y", "z")
                   .addList(5, 6)
                   .putMap("ku",
                       ImmutableAdapt.Nst.builder()
@@ -75,10 +76,7 @@ public class AdaptReadWriteTest {
   @Test
   public void adapt() {
     String json = gson.toJson(adapt);
-
-    System.out.println(json);
     Adapt instance = gson.fromJson(json, Adapt.class);
-
     check(instance).is(adapt);
   }
 }

@@ -22,6 +22,8 @@ public interface Adapt {
 
   @Value.Immutable
   public interface Inr {
+    String[] arr();
+
     List<Integer> list();
 
     Map<String, Nst> map();

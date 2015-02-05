@@ -1,7 +1,7 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.ImmutableMap;
-import org.immutables.value.internal.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects;
 
 public enum AttributeTypeKind {
   REGULAR(""),

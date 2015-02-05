@@ -15,29 +15,30 @@ import org.immutables.value.Value;
 public interface OtherType {
 
   @Value.Parameter
-  ListMultimap<String, Nst> listMultimap();
+  ListMultimap<String, Hjk> listMultimap();
 
   @Value.Parameter
-  SetMultimap<Integer, Nst> setMultimap();
+  SetMultimap<Integer, Hjk> setMultimap();
 
-  @Value.Parameter
-  Map<String, Nst> map();
+  Map<String, Lui> map();
 
   @Value.Immutable
-  public interface Inr {
+  public interface Lui {
     List<Integer> list();
 
-    Map<String, Nst> map();
+    Map<String, Hjk> map();
 
-    Set<Inr> set();
+    Set<Hjk> set();
 
-    Multiset<Nst> bag();
+    Multiset<Hjk> bag();
+
+    @Value.Parameter
+    Object[] arr();
   }
 
-  @Value.Immutable
-  public interface Nst {
-    int value();
-
-    String string();
+  @Value.Immutable(builder = false)
+  public interface Hjk {
+    @Value.Parameter
+    String[] arr();
   }
 }

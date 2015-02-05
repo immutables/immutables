@@ -167,7 +167,7 @@ if ([a.name]Optional.isPresent()) {
   [else if a.mapType]
 [a.type] [a.name]Mapping = instance.[a.names.get]();
 [generateMarshalMapping type a]
-  [else if a.collectionType]
+  [else if a.collectionType or a.arrayType]
 out.beginArray();
 for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
   [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e' false]
@@ -231,9 +231,13 @@ if (![a.name]Mapping.isEmpty()) {
   out.beginObject();
   out.endObject();
 }
-  [else if a.collectionType]
+  [else if a.collectionType or a.arrayType]
 [a.type] [a.name]Elements = instance.[a.names.get]();
+[if a.arrayType]
+if ([a.name]Elements.length != 0) {
+[else]
 if (![a.name]Elements.isEmpty()) {
+[/if]
   out.name("[a.marshaledName]");
   out.beginArray();
   for ([a.unwrappedElementType] e : [a.name]Elements) {
@@ -324,7 +328,6 @@ private void eachAttribute(JsonReader in, [type.typeBuilder.relative] builder)
   }
   in.skipValue();
 }
-
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]
@@ -372,6 +375,10 @@ return [a.rawType].of(value);
 [createBuilderForCollection type a 'elements']
 [generateCollectionUnmarshalCode type a 'elements.add']
 [returnBuiltCollection type a 'elements']
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+return elements.toArray(new [a.elementType]['[']elements.size()[']']);
   [else]
 [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 return value;
@@ -511,6 +518,10 @@ if (t == JsonToken.NULL) {
 [generateMappingUnmarshalCode type a ('builder.' a.names.put)]
   [else if a.collectionType]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+builder.[a.names.init](elements.toArray(new [a.elementType]['[']elements.size()[']']));
   [else]
 [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 builder.[a.names.init](value);
