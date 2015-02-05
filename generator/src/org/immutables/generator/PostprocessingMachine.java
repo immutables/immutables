@@ -316,26 +316,9 @@ final class PostprocessingMachine {
         if (packageTo == -1) {
           packageTo = i - 1;
         }
-        if (isSeparator(c)) {
-          state = FullyQualifiedNameState.FINISH;
-          importTo = i;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
-          state = FullyQualifiedNameState.AFTER_CLASS;
-        }
-        break;
-      case AFTER_CLASS:
-        if (importTo == -1) {
-          importTo = i - 1;
-        }
-        if (isAlphabetic(c)) {
-          state = FullyQualifiedNameState.METHOD_OR_FIELD;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
-          state = FullyQualifiedNameState.FINISH;
-        }
-        break;
-      case METHOD_OR_FIELD:
         if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
+          importTo = i;
         }
         break;
       case FINISH:
@@ -362,8 +345,6 @@ final class PostprocessingMachine {
     PACKAGE_PART_CANDIDATE,
     DOT,
     CLASS,
-    AFTER_CLASS,
-    METHOD_OR_FIELD,
     FINISH
   }
 
