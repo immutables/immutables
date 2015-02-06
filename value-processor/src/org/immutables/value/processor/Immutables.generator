@@ -924,7 +924,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.typeKind.isMultimapKind]
-  [guava].collect.Multimap<[a.consumedElementType]>
+  [guava].collect.Multimap<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
   java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]
@@ -1489,7 +1489,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [if v.int]
   [v.name]
 [else if v.generateJdkOnly]
-  [if classpath.available 'java.lang.FunctionalInterface']
+  [if classpath.isJava8]
     [v.wrapperType].hashCode([v.name])
   [else if v.long]
     (int) ([v.name] ^ ([v.name] >>> 32))
@@ -1569,7 +1569,7 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
 [/if]
 [if type.useSortedSetUtility]
 [let unmodifiableSortedSetInterface][output.trim]
-[if classpath.available 'java.lang.FunctionalInterface']
+[if classpath.isJava8]
   NavigableSet
 [else]
   SortedSet
@@ -1618,7 +1618,7 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
 [/if]
 [if type.useSortedMapUtility]
 [let unmodifiableSortedMapInterface][output.trim]
-[if classpath.available 'java.lang.FunctionalInterface']
+[if classpath.isJava8]
   NavigableMap
 [else]
   SortedMap

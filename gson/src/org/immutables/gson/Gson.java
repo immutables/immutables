@@ -36,7 +36,7 @@ public @interface Gson {
    */
   @Retention(RetentionPolicy.SOURCE)
   @Target({ElementType.METHOD, ElementType.TYPE})
-  public @interface Subclasses {
+  public @interface Subtypes {
 
     /**
      * Specifies expected subclasses of an abstract type that is matched during parsing by

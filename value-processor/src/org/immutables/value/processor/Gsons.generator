@@ -107,12 +107,12 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
 
   @Override
   public void write(JsonWriter out, [t] value) throws IOException {
-    marshal[type.name](out, value);
+    write[type.name](out, value);
   }
 
   @Override
   public [t] read(JsonReader in) throws IOException {
-    return unmarshal[type.name](in);
+    return read[type.name](in);
   }
   [generateMarshalingMethods type]
   [generateUnmarshalingMethods type]
@@ -122,7 +122,7 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
 
 [template generateMarshalingMethods Type type]
 
-void marshal[type.name](JsonWriter out, [type.typeAbstract.relative] instance)
+private void write[type.name](JsonWriter out, [type.typeAbstract.relative] instance)
     throws IOException {
 [if type.useConstructorOnly]
   [for ca = type.constructorArguments]
@@ -157,25 +157,17 @@ if ([a.name]Value != null) {
   out.writeNull();
 }
   [else if a.optionalType]
-[a.type] [a.name]Value = instance.[a.names.get]();
-if ([a.name]Value.isPresent()) {
-  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('unwrapped' a.name 'Value') false]
+[a.type] [a.name]Optional = instance.[a.names.get]();
+if ([a.name]Optional.isPresent()) {
+  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.get();
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a (a.name 'Value') false]
 } else {
   out.writeNull();
 }
   [else if a.mapType]
-[a.type] [a.name]Map = instance.[a.names.get]();
-out.beginObject();
-for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
-  [-- only use toString with objects and boxed primitives]
-  out.name(e.getKey().toString());
-  [-- here we assign to a unwrapped variable so overload resolution will precise]
-  [a.unwrappedSecondaryElementType] value = e.getValue();
-  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
-}
-out.endObject();
-  [else if a.collectionType]
+[a.type] [a.name]Mapping = instance.[a.names.get]();
+[generateMarshalMapping type a]
+  [else if a.collectionType or a.arrayType]
 out.beginArray();
 for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
   [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'e' false]
@@ -184,6 +176,29 @@ out.endArray();
   [else]
 [generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()') false]
   [/if]
+[/template]
+
+[template generateMarshalMapping Type type Attribute a]
+out.beginObject();
+  [if a.typeKind.multimapKind]
+for (java.util.Map.Entry<[a.wrappedElementType], java.util.Collection<[a.wrappedSecondaryElementType]>> e : [a.name]Mapping.asMap().entrySet()) {
+  out.name(e.getKey().toString());
+  out.beginArray();
+  for ([a.unwrappedSecondaryElementType] value : e.getValue()) {
+    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
+  }
+  out.endArray();
+}
+  [else]
+for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> e : [a.name]Mapping.entrySet()) {
+  [-- only use toString with objects and boxed primitives]
+  out.name(e.getKey().toString());
+  [-- here we assign to a unwrapped variable so overload resolution will precise]
+  [a.unwrappedSecondaryElementType] value = e.getValue();
+  [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
+}
+  [/if]
+out.endObject();
 [/template]
 
 [template generateMarshalAttributeValue Type type Attribute a]
@@ -207,26 +222,22 @@ if ([a.name]Value.isPresent()) {
   out.nullValue();
 }
   [else if a.mapType]
-[a.type] [a.name]Map = instance.[a.names.get]();
-if (![a.name]Map.isEmpty()) {
+[a.type] [a.name]Mapping = instance.[a.names.get]();
+if (![a.name]Mapping.isEmpty()) {
   out.name("[a.marshaledName]");
-  out.beginObject();
-  for (java.util.Map.Entry<[a.wrappedElementType],[a.wrappedSecondaryElementType]> e : [a.name]Map.entrySet()) {
-    [-- only use toString with objects and boxed primitives]
-    out.name(e.getKey().toString());
-    [-- here we assign to a unwrapped variable so overload resolution will precisely]
-    [a.unwrappedSecondaryElementType] value = e.getValue();
-    [generatePossiblyPolymorphicTypeMarshalAttributeValue type a 'value' true]
-  }
-  out.endObject();
+  [generateMarshalMapping type a]
 } else if (out.getSerializeNulls()) {
   out.name("[a.marshaledName]");
   out.beginObject();
   out.endObject();
 }
-  [else if a.collectionType]
+  [else if a.collectionType or a.arrayType]
 [a.type] [a.name]Elements = instance.[a.names.get]();
+[if a.arrayType]
+if ([a.name]Elements.length != 0) {
+[else]
 if (![a.name]Elements.isEmpty()) {
+[/if]
   out.name("[a.marshaledName]");
   out.beginArray();
   for ([a.unwrappedElementType] e : [a.name]Elements) {
@@ -240,7 +251,7 @@ if (![a.name]Elements.isEmpty()) {
 }
   [else]
 out.name("[a.marshaledName]");
-[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.name '()') false]
+[generatePossiblyPolymorphicTypeMarshalAttributeValue type a ('instance.' a.names.get '()') false]
   [/if]
 [/template]
 
@@ -255,7 +266,7 @@ private char requireChar(String string) {
 }
 [if type.useSingletonOnly]
 
-[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
+private [type.typeAbstract.relative] read[type.name](JsonReader in)
     throws IOException {
   in.skipValue();
   return [type.factoryInstance]();
@@ -263,7 +274,7 @@ private char requireChar(String string) {
 [else if type.useConstructorOnly]
 
 [for ca = type.constructorArguments]
-[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
+private [type.typeAbstract.relative] read[type.name](JsonReader in)
     throws IOException {
 [if singular ca]
   [for a in ca]
@@ -283,7 +294,7 @@ private char requireChar(String string) {
 [/for]
 [else]    
 
-[type.typeAbstract.relative] unmarshal[type.name](JsonReader in)
+private [type.typeAbstract.relative] read[type.name](JsonReader in)
     throws IOException {
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
     [if type.unmarshaledAttributes]
@@ -307,7 +318,7 @@ private void eachAttribute(JsonReader in, [type.typeBuilder.relative] builder)
   case '[e.key]':
     [for a in e.value]
     if ("[a.marshaledName]".equals(attributeName)) {
-      readInAttribute[toUpper a.name](in, builder);
+      readIn[toUpper a.name](in, builder);
       return;
     }
     [/for]
@@ -317,7 +328,6 @@ private void eachAttribute(JsonReader in, [type.typeBuilder.relative] builder)
   }
   in.skipValue();
 }
-
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]
@@ -334,9 +344,6 @@ private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name]
   [generateConstructorArgumentComplexUnmarshal type a]
   [/if]
 }
-  [if a.mapType]
-[generateMapUnmarshalMethod type a]
-  [/if]
 [/template]
 
 [template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
@@ -361,11 +368,17 @@ return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
 return [a.rawType].of(value);
     [/if]
   [else if a.mapType]
-return constructMapping[toUpper a.name](readEntries[toUpper a.name](in));
+[createBuilderForCollection type a 'mappings']
+[generateMappingUnmarshalCode type a 'mappings.put']
+[returnBuiltCollection type a 'mappings']
   [else if a.collectionType]
-java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[createBuilderForCollection type a 'elements']
 [generateCollectionUnmarshalCode type a 'elements.add']
-return elements;
+[returnBuiltCollection type a 'elements']
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+return elements.toArray(new [a.elementType]['[']elements.size()[']']);
   [else]
 [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 return value;
@@ -374,7 +387,7 @@ return value;
 
 [template generateUnmarshalAttribute Type type Attribute a]
 
-private void readInAttribute[toUpper a.name](JsonReader in, [type.typeBuilder.relative] builder)
+private void readIn[toUpper a.name](JsonReader in, [type.typeBuilder.relative] builder)
     throws IOException {
   [if a.primitive]
   builder.[a.names.init]([simpleTypeNext a.type]);
@@ -382,65 +395,31 @@ private void readInAttribute[toUpper a.name](JsonReader in, [type.typeBuilder.re
   [generateComplexTypeUnmarshalAttribute type a]
   [/if]
 }
+[/template]
+
+[template createBuilderForCollection Type type Attribute a String variableName]
 [if a.mapType]
-[generateMapUnmarshalMethod type a]
+[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.Map[mapParams] [variableName] = new java.util.LinkedHashMap[mapParams]();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder[mapParams] [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
+[else if a.collectionType]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elementType]>();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder<[a.elementType]> [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
 [/if]
 [/template]
 
-[template generateMapUnmarshalMethod Type type Attribute a]
-[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
-[let entryType]java.util.Map.Entry[mapParams][/let]
-[if type.useConstructor]
-
-private [constructorAcceptType a] constructMapping[toUpper a.name](java.util.List<[entryType]> entries) {
-[if a.typeKind.isListMultimap]
-  [guava].collect.ListMultimap[mapParams] mapping = [guava].collect.ArrayListMultimap.create(entries.size(), 2);
-[else if a.typeKind.isSetMultimap]
-  [guava].collect.SetMultimap[mapParams] mapping = [guava].collect.LinkedHashMultimap.create(entries.size(), 2);
-[else if a.typeKind.isMultimap]
-  [guava].collect.Multimap[mapParams] mapping = [guava].collect.LinkedHashMultimap.create(entries.size(), 2);
-[else]
-  java.util.Map[mapParams] mapping = new java.util.LinkedHashMap[mapParams](entries.size());
-[/if]
-  for ([entryType] entry : entries) {
-    mapping.put(entry.getKey(), entry.getValue());
-  }
-  return mapping;
-}
-[/if]
-
-private java.util.List<[entryType]> readEntries[toUpper a.name](JsonReader in)
-    throws IOException {
-  if (in.peek() == JsonToken.NULL) {
-    in.nextNull();
-    return java.util.Collections.emptyList();
-  }
-  java.util.List<[entryType]> entries = new java.util.ArrayList<[entryType]>();
-  in.beginObject();
-  while(in.hasNext()) {
-    String rawKey = in.nextName();
-[if a.unwrappedElementPrimitiveType]
-  [if a.unwrappedElementType eq 'char']
-    char key = requireChar(rawKey);
+[template returnBuiltCollection Type type Attribute a String variableName]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+return [variableName];
   [else]
-    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
+return [variableName].build();
   [/if]
-[else if a.wrappedElementType eq 'java.lang.String']
-    [a.wrappedElementType] key = rawKey;
-[else]
-    [a.wrappedElementType] key = unmarshal(in, ([a.wrappedElementType]) null, [a.unwrapperOrRawElementType].class);
-[/if]
-[if a.unwrappedSecondaryElementPrimitiveType or (a.wrappedSecondaryElementType eq 'java.lang.String')]
-    [a.unwrappedSecondaryElementType] value = [simpleTypeNext a.unwrappedSecondaryElementType];
-[else]
-    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
-[/if]
-    entries.add(new java.util.AbstractMap.SimpleEntry[mapParams](key, value));
-  }
-  in.endObject();
-
-  return entries;
-}
 [/template]
 
 [template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
@@ -455,6 +434,45 @@ if (t == JsonToken.BEGIN_ARRAY) {
   in.nextNull();
 } else {
   [unmarshalCollectionElement]
+}
+[/template]
+
+[template generateMappingUnmarshalCode Type type Attribute a String collectorExpression]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+} else {
+  in.beginObject();
+  while(in.hasNext()) {
+    String rawKey = in.nextName();
+[if a.unwrappedElementPrimitiveType]
+  [if a.unwrappedElementType eq 'char']
+    char key = requireChar(rawKey);
+  [else]
+    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
+  [/if]
+[else if a.wrappedElementType eq 'java.lang.String']
+    [a.wrappedElementType] key = rawKey;
+[else][if not a.requiresMarshalingSecondaryAdapter][output.error]assertion[/output.error][/if]
+    [a.wrappedElementType] key = [a.name]Adapter.fromJson(rawKey);
+[/if]
+  [if a.typeKind.isMultimapKind]
+    if (in.peek() == JsonToken.BEGIN_ARRAY) {
+      in.beginArray();
+      while(in.hasNext()) {
+        [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+        [collectorExpression](key, value);
+      }
+      in.endArray();
+    } else {
+      [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+      [collectorExpression](key, value);
+    }
+  [else]
+    [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+    [collectorExpression](key, value);
+  [/if]
+  }
+  in.endObject();
 }
 [/template]
 
@@ -497,11 +515,13 @@ if (t == JsonToken.NULL) {
     [/if]
 }
   [else if a.mapType]
-for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> entry : readEntries[toUpper a.name](in)) {
-  builder.[a.names.put](entry);
-}
+[generateMappingUnmarshalCode type a ('builder.' a.names.put)]
   [else if a.collectionType]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+builder.[a.names.init](elements.toArray(new [a.elementType]['[']elements.size()[']']));
   [else]
 [generatePossiblyPolymorphicTypeUnmarshalAttributeValue type a a.type a.rawType false]
 builder.[a.names.init](value);
@@ -509,23 +529,23 @@ builder.[a.names.init](value);
 [/template]
 
 [template generatePossiblyPolymorphicTypeUnmarshalAttributeValue Type type Attribute attribute String genericType String rawType Boolean secondary]
-[genericType] value =
 [for cx = attribute.expectedSubclasses]
   [if cx]
+[genericType] value =
     ([genericType]) unmarshalWithOneOfStreamers(in, "[type.typeAbstract.relative]", "[attribute.name]", "[genericType]"[for c in cx],
         [c.packaged][c.name]Streamer.instance()[/for]);
   [else]
     [if secondary]
       [if attribute.requiresMarshalingSecondaryAdapter]
-    [attribute.name]SecondaryAdapter.read(in);
+[genericType] value = [attribute.name]SecondaryAdapter.read(in);
       [else]
-    [simpleTypeNext attribute.secondaryElementType];
+[genericType] value = [simpleTypeNext attribute.secondaryElementType];
       [/if]
     [else]
       [if attribute.requiresMarshalingAdapter]
-    [attribute.name]Adapter.read(in);
+[genericType] value = [attribute.name]Adapter.read(in);
       [else]
-    [simpleTypeNext attribute.elementType];
+[genericType] value = [simpleTypeNext attribute.elementType];
       [/if]
     [/if]
   [/if]
@@ -590,7 +610,7 @@ out.value([variableName]);
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.typeKind.isMultimapKind]
-  [guava].collect.Multimap<[a.elementType]>
+  [guava].collect.Multimap<[a.elementType], [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
   java.util.Map<[a.elementType], [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]

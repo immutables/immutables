@@ -19,12 +19,18 @@ import com.google.common.base.Predicate;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
 public final class ClasspathAvailability {
   // static non-thread-safe cache? ok!
   private static final Map<String, Boolean> availableClasses =
       Collections.synchronizedMap(new HashMap<String, Boolean>());
+
+  public boolean isJava8() {
+    SourceVersion sourceVersion = StaticEnvironment.processing().getSourceVersion();
+    return sourceVersion.compareTo(SourceVersion.RELEASE_7) > 0;
+  }
 
   public final Predicate<String> available = new Predicate<String>() {
     @Override

@@ -15,7 +15,6 @@
  */
 package org.immutables.generator;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -93,7 +92,7 @@ public abstract class AbstractGenerator extends AbstractProcessor {
     } catch (Exception ex) {
       processingEnv.getMessager()
           .printMessage(Diagnostic.Kind.ERROR,
-              Joiner.on('\n').join(getClass().getName() + " threw", Throwables.getStackTraceAsString(ex)));
+              getClass().getName() + " threw " + Throwables.getStackTraceAsString(ex));
     }
     return false;
   }

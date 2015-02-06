@@ -410,7 +410,8 @@ public @interface Value {
     String[] typeAbstract() default {};
 
     /**
-     * Modifiable type name template.
+     * Name template to generate immutable implementation type by using base/raw type name.
+     * Use {@link #typeAbstract()} to customize base/raw name inference.
      * @return naming template
      */
     String typeImmutable() default "Immutable*";

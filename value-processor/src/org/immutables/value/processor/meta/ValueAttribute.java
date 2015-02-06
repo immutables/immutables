@@ -34,7 +34,6 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.Value;
 import org.immutables.value.ext.Json;
 import org.immutables.value.ext.Mongo;
 import org.immutables.value.processor.meta.Proto.Protoclass;
@@ -241,13 +240,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void checkOrderAnnotations() {
-    @Nullable Value.NaturalOrder naturalOrderAnnotation = element.getAnnotation(Value.NaturalOrder.class);
-    @Nullable Value.ReverseOrder reverseOrderAnnotation = element.getAnnotation(Value.ReverseOrder.class);
+    Optional<NaturalOrderMirror> naturalOrderAnnotation = NaturalOrderMirror.find(element);
+    Optional<ReverseOrderMirror> reverseOrderAnnotation = ReverseOrderMirror.find(element);
 
-    if (naturalOrderAnnotation != null && reverseOrderAnnotation != null) {
+    if (naturalOrderAnnotation.isPresent() && reverseOrderAnnotation.isPresent()) {
       report()
           .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
-    } else if (naturalOrderAnnotation != null) {
+    } else if (naturalOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
         if (isComparable()) {
           orderKind = OrderKind.NATURAL;
@@ -261,7 +260,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .annotationNamed(NaturalOrderMirror.simpleName())
             .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
       }
-    } else if (reverseOrderAnnotation != null) {
+    } else if (reverseOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
         if (isComparable()) {
           orderKind = OrderKind.REVERSE;
@@ -647,8 +646,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   int getConstructorParameterOrder() {
     if (constructorOrder < -1) {
-      Value.Parameter annotation = element.getAnnotation(Value.Parameter.class);
-      constructorOrder = annotation != null ? annotation.order() : -1;
+      Optional<ParameterMirror> parameter = ParameterMirror.find(element);
+      constructorOrder = parameter.isPresent()
+          ? parameter.get().order()
+          : -1;
     }
     return constructorOrder;
   }
