@@ -40,6 +40,11 @@ final class PostprocessingMachine {
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
 
+      commentMachine.nextChar(c);
+      if (commentMachine.isInComment()) {
+        continue;
+      }
+
       switch (state) {
       case UNDEFINED:
         state = machine.nextChar(c).or(state);
@@ -57,7 +62,7 @@ final class PostprocessingMachine {
         }
         break;
       case IMPORTS:
-        nameMachine.nextChar(c, i);
+        nameMachine.nextChar(c, i, true);
         if (nameMachine.isFound()) {
           classNameOccurrencesInImportBlock++;
           classNameFrom = nameMachine.classNameFrom;
@@ -81,26 +86,23 @@ final class PostprocessingMachine {
         }
         break;
       case CLASS:
-        commentMachine.nextChar(c);
-        if (!commentMachine.isInComment()) {
-          nameMachine.nextChar(c, i);
-          fullyNameMachine.nextChar(c, i);
-          if (fullyNameMachine.isFinished()) {
-            importsBuilder.addImportCandidate(
-                content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
-                content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
-                fullyNameMachine.importFrom,
-                fullyNameMachine.importTo,
-                fullyNameMachine.packageTo);
-            fullyNameMachine.reset();
-          }
-          if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
-            nameMachine.reset();
-          }
-          if (nameMachine.isFound()) {
-            importsBuilder.addException(
-                content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
-          }
+        nameMachine.nextChar(c, i);
+        fullyNameMachine.nextChar(c, i);
+        if (fullyNameMachine.isFinished()) {
+          importsBuilder.addImportCandidate(
+              content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
+              content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
+              fullyNameMachine.importFrom,
+              fullyNameMachine.importTo,
+              fullyNameMachine.packageTo);
+          fullyNameMachine.reset();
+        }
+        if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
+          nameMachine.reset();
+        }
+        if (nameMachine.isFound()) {
+          importsBuilder.addException(
+              content.subSequence(nameMachine.classNameFrom, nameMachine.classNameTo).toString());
         }
         break;
       }
@@ -314,26 +316,9 @@ final class PostprocessingMachine {
         if (packageTo == -1) {
           packageTo = i - 1;
         }
-        if (isSeparator(c)) {
-          state = FullyQualifiedNameState.FINISH;
-          importTo = i;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
-          state = FullyQualifiedNameState.AFTER_CLASS;
-        }
-        break;
-      case AFTER_CLASS:
-        if (importTo == -1) {
-          importTo = i - 1;
-        }
-        if (isAlphabetic(c)) {
-          state = FullyQualifiedNameState.METHOD_OR_FIELD;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
-          state = FullyQualifiedNameState.FINISH;
-        }
-        break;
-      case METHOD_OR_FIELD:
         if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
+          importTo = i;
         }
         break;
       case FINISH:
@@ -360,8 +345,6 @@ final class PostprocessingMachine {
     PACKAGE_PART_CANDIDATE,
     DOT,
     CLASS,
-    AFTER_CLASS,
-    METHOD_OR_FIELD,
     FINISH
   }
 
@@ -403,7 +386,7 @@ final class PostprocessingMachine {
       case BLOCK_COMMENT_OUT_CANDIDATE:
         if (c == '/') {
           state = CommentState.NOT_IN_COMMENT;
-        } else {
+        } else if (c != '*') {
           state = CommentState.BLOCK_COMMENT;
         }
         break;
@@ -445,15 +428,28 @@ final class PostprocessingMachine {
     }
 
     void nextChar(char c, int i) {
+      nextChar(c, i, false);
+    }
+
+    void nextChar(char c, int i, boolean noIdle) {
       switch (state) {
       case UNDEFINED:
         if (isUpperCaseAlphabetic(c)) {
           state = ClassNameState.CLASS_NAME;
           classNameFrom = i;
           classNameTo = -1;
+        } else if (isAlphabetic(c) || isDigit(c)) {
+          if (!noIdle) {
+            state = ClassNameState.IDLE;
+          }
         } else {
           classNameFrom = -1;
           classNameTo = -1;
+        }
+        break;
+      case IDLE:
+        if (!isAlphabetic(c) && !isDigit(c) && c != '.') {
+          state = ClassNameState.UNDEFINED;
         }
         break;
       case CLASS_NAME:
@@ -469,6 +465,7 @@ final class PostprocessingMachine {
 
   enum ClassNameState {
     UNDEFINED,
+    IDLE,
     CLASS_NAME
   }
 
@@ -505,9 +502,5 @@ final class PostprocessingMachine {
 
   private static boolean isUpperCaseAlphabetic(char c) {
     return c >= 'A' && c <= 'Z';
-  }
-
-  private static boolean isSeparator(char c) {
-    return c == '(' || c == '<' || c == ')' || c == '>' || c == '{' || c == '}' || c == ',' || c == ';';
   }
 }
