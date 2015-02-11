@@ -24,7 +24,7 @@
     <module>dependency/utility</module>
     <module>dependency/technology</module>
     <module>testing</module>
-    <module>common</module>
+<!--     <module>common</module> -->
     <module>generator</module>
     <module>generator-processor</module>
     <module>generator-fixture</module>
@@ -34,8 +34,9 @@
     <module>value-ordinal</module>
     <module>value-processor</module>
     <module>value-standalone</module>
-    <module>value-fixture</module>
+    <!-- <module>value-fixture</module> -->
     <module>gson</module>
+    <module>mongo</module>
   </modules>
 
   <organization>
