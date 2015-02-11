@@ -21,7 +21,7 @@ import com.google.common.collect.Multimap;
 import org.immutables.generator.Generator;
 import org.immutables.value.processor.meta.ValueAttribute;
 
-@Generator.Template
+//@Generator.Template
 abstract class Marshalers extends ValuesTemplate {
   @Generator.Typedef
   Multimap<Character, ValueAttribute> Mm;

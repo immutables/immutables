@@ -20,36 +20,37 @@ package [type.package];
 // Generated imports
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
-import org.immutables.common.repository.*;
-import org.immutables.common.concurrent.FluentFuture;
-import org.immutables.common.repository.internal.ConstraintSupport;
-import org.immutables.common.repository.internal.RepositorySupport;
-[generateImportRoutines type]
-import static org.immutables.common.marshal.internal.BuiltinMarshalingRoutines.*;
-import static org.immutables.common.marshal.internal.MarshalingSupport.*;
-[if classpath.available 'org.immutables.common.repository.internal.ExtendedBuiltinMarshalingRoutines']
-import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalingRoutines.*;
-[/if]
+import org.immutables.mongo.repository.Repositories;
+import org.immutables.mongo.repository.RepositorySetup;
+import org.immutables.mongo.concurrent.FluentFuture;
+import org.immutables.mongo.repository.internal.Constraints;
+import org.immutables.mongo.repository.internal.Support;
+import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
- * from the MongoDB collection "[type.documentName]".
+ * from the MongoDB collection {@code "[type.documentName]"}.
  */
-@javax.inject.Singleton
 @SuppressWarnings("all")
 @javax.annotation.Generated({"Repositories.generator", "[type.name]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-[type.typeAbstract.access]final class [type.name]Repository extends Repositories.Repository<[type.name]> {
+[type.typeAbstract.access]final class [type.name]Repository extends Repositories.Repository<[type.typeAbstract]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
+
+  private final Serialization serialization;
+  private final Criteria anyCriteria;
 
   /**
    * Constructs {@link [type.name]} repository using {@link RepositorySetup configuration}.
    * @param configuration the repository configuration
    */
-  @javax.inject.Inject
   public [type.name]Repository(RepositorySetup configuration) {
-    super(configuration, DOCUMENT_COLLECTION_NAME, [type.name]Marshaler.instance());
+    super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeAbstract].class);
+    this.serialization = new Serialization(getGson());
+    this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
   
   /**
@@ -81,15 +82,14 @@ import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalin
   }
   
  /**
-  * Find document by criteria expressed as JSON string, additional parameters may be supplied to format
-  * string using {@link String#format(String, Object...)}. Use returned {@link Finder} object to complete
+  * Find document by criteria expressed as JSON string. Use returned {@link Finder} object to complete
   * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
-  * @param criteria search criteria
+  * @param jsonCriteria json string for native criteria
   * @return finder object to complete operation
   */
   @javax.annotation.CheckReturnValue
-  public Finder find(String jsonCriteria, Object... parameters) {
-    return new Finder(this, (ConstraintSupport.ConstraintHost) RepositorySupport.wrapString(jsonCriteria, parameters));
+  public Finder find(String jsonCriteria) {
+    return new Finder(this, Support.jsonQuery(jsonCriteria));
   }
 [for a = type.idAttribute]
 [-- It will rarely be otherwise --]
@@ -112,8 +112,8 @@ import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalin
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
   public FluentFuture<Integer> upsert([type.name] document) {
-    Criteria byId = where().[a.name](document.[a.name]());
-    return super.doUpsert((ConstraintSupport.ConstraintHost) byId, document);
+    Criteria byId = where().[a.name](document.[a.names.get]());
+    return super.doUpsert(byId.constraint, document);
   }
 [/if]
 [/for]
@@ -123,13 +123,14 @@ import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalin
   [generateModifier type]
   [generateIndexer type]
   [generateCriteriaApi type]
-  [generateInternalCriteria type]
-  [generateMarshalWrappers type]
+  [generateCriteria type]
+  [--generateMarshalWrappers type--]
+  [generateSerializationHelpers type]
 }
 [/template]
 
 [template generateOrderingAndExcludes Type type String tT]
-  [for a in type.implementedAttributes]
+  [for a in type.allMarshalingAttributes]
 
 /**
  * Order by {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
@@ -138,7 +139,7 @@ import static org.immutables.common.repository.internal.ExtendedBuiltinMarshalin
  * @return {@code this} [toLower tT] for chained invocation
  */
 public [tT] orderBy[toUpper a.name]() {
-  ordering = ordering.equal("[a.marshaledName]", false, 1);
+  ordering = ordering.equal(serialization.[a.name]Name, false, 1);
   return this;
 }
 
@@ -149,7 +150,7 @@ public [tT] orderBy[toUpper a.name]() {
  * @return {@code this} [toLower tT] for chained invocation
  */
 public [tT] orderBy[toUpper a.name]Desceding() {
-  ordering = ordering.equal("[a.marshaledName]", false, -1);
+  ordering = ordering.equal(serialization.[a.name]Name, false, -1);
   return this;
 }
   [/for]
@@ -160,7 +161,7 @@ public [tT] orderBy[toUpper a.name]Desceding() {
  * @return {@code this} [toLower tT] for chained invocation
  */    
 public [tT] exclude[toUpper a.name]() {
-  exclusion = exclusion.equal("[a.marshaledName]", false, -1);
+  exclusion = exclusion.equal(serialization.[a.name]Name, false, -1);
   return this;
 }
   [/for]
@@ -176,7 +177,7 @@ public [tT] exclude[toUpper a.name]() {
  */
 @javax.annotation.CheckReturnValue
 public Finder find(Criteria criteria) {
-  return new Finder(this, (ConstraintSupport.ConstraintHost) criteria);
+  return new Finder(this, criteria.constraint);
 }
 
 /**
@@ -187,9 +188,12 @@ public Finder find(Criteria criteria) {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Finder extends Repositories.Finder<[type.name], Finder> {
-  private Finder([type.name]Repository repository, ConstraintSupport.ConstraintHost criteria) {
+  private final Serialization serialization;
+
+  private Finder([type.name]Repository repository, Constraints.ConstraintHost criteria) {
     super(repository);
     this.criteria = criteria;
+    this.serialization = repository.serialization;
   }
   [generateOrderingAndExcludes type 'Finder']
   [generateAndModifyFirst type]
@@ -206,14 +210,14 @@ public static final class Finder extends Repositories.Finder<[type.name], Finder
  */
 @javax.annotation.CheckReturnValue
 public Modifier andModifyFirst() {
-  return new Modifier(repository, criteria, ordering, exclusion);
+  return new Modifier(([type.name]Repository) repository, criteria, ordering, exclusion);
 }
 [/template]
 
 [template generateIndexer Type type]
 
 /**
- * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure index} on collection "[type.documentName]" by one or
+ * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure index} on collection {@code "[type.documentName]"} by one or
  * more attributes using family of {@code with*()} attribute specific methods.
  * While indexes usually will be maintained by special administration scripts, for simple cases it is convenient
  * to ensure index on application startup.
@@ -227,22 +231,25 @@ public Indexer index() {
 }
 
 /**
- * Indexer used to create index on the "[type.documentName]" collection if it does not exist by one or more attributes.
+ * Indexer used to create index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
  * @see DBCollection#ensureIndex(DBObject, DBObject)
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Indexer extends Repositories.Indexer<[type.name], Indexer> {
+  private final Serialization serialization;
+
   private Indexer([type.name]Repository repository) {
     super(repository);
+    this.serialization = repository.serialization;
   }
-[for a in type.implementedAttributes]
+[for a in type.allMarshalingAttributes]
 
   /**
    * Specify next attribute to in index will be {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
    * @return {@code this} indexer for chained invocation
    */
   public Indexer with[toUpper a.name]() {
-    fields = fields.equal("[a.marshaledName]", false, 1);
+    fields = fields.equal(serialization.[a.name]Name, false, 1);
     return this;
   }
 
@@ -251,7 +258,7 @@ public static final class Indexer extends Repositories.Indexer<[type.name], Inde
    * @return {@code this} indexer for chained invocation
    */
   public Indexer with[toUpper a.name]Desceding() {
-    fields = fields.equal("[a.marshaledName]", false, -1);
+    fields = fields.equal(serialization.[a.name]Name, false, -1);
     return this;
   }
 [/for]
@@ -259,8 +266,9 @@ public static final class Indexer extends Repositories.Indexer<[type.name], Inde
 [/template]
 
 [template generateUpdater Type type]
+
 /**
- * Update set of "[type.documentName]" documents.
+ * Update set of {@code "[type.documentName]"} documents.
  * @param criteria search criteria for update
  * @return updater object to complete update.
  */
@@ -275,9 +283,12 @@ public Updater update(Criteria criteria) {
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Updater extends Repositories.Updater<[type.name]> {
+  private final Serialization serialization;
+
   private Updater([type.name]Repository repository, Criteria criteria) {
     super(repository);
-    this.criteria = (ConstraintSupport.ConstraintHost) criteria;
+    this.criteria = criteria.constraint;
+    this.serialization = repository.serialization;
   }
 [generateUpdatingMethods type 'Updater']
 }
@@ -287,12 +298,15 @@ public static final class Updater extends Repositories.Updater<[type.name]> {
 
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Modifier extends Repositories.Modifier<[type.name], Modifier> {
+  private final Serialization serialization;
+
   private Modifier(
-      Repositories.Repository<[type.name]> repository,
-      ConstraintSupport.ConstraintHost criteria,
-      ConstraintSupport.Constraint ordering,
-      ConstraintSupport.Constraint exclusion) {
+      [type.name]Repository repository,
+      Constraints.ConstraintHost criteria,
+      Constraints.Constraint ordering,
+      Constraints.Constraint exclusion) {
     super(repository);
+    this.serialization = repository.serialization;
     this.criteria = criteria;
     this.ordering = ordering;
     this.exclusion = exclusion;
@@ -302,7 +316,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
 [/template]
 
 [template generateUpdatingMethods Type type String tT]
-[for a in type.implementedAttributes,
+[for a in type.allMarshalingAttributes,
     wW = a.wrappedElementType,
     uU = a.unwrappedElementType]
 [if a.marshaledName ne '_id']
@@ -311,7 +325,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   /**
    * Clear {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
-[if a.forceEmpty]
+[if a.forcedEmpty]
    * Corresponds to MongoDB {@code $set} operator resetting to empty array
 [else]
    * Corresponds to MongoDB {@code $unset} operator
@@ -319,10 +333,10 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] clear[toUpper a.name]() {
-  [if a.forceEmpty]
-    setFields = setFields.equal("[a.marshaledName]", false, com.google.common.collect.ImmutableList.<Object>of());
+  [if a.forcedEmpty]
+    setFields = setFields.equal(serialization.[a.name]Name, false, com.google.common.collect.ImmutableList.<Object>of());
   [else]
-    unsetFields = unsetFields.equal("[a.marshaledName]", false, 1);
+    unsetFields = unsetFields.equal(serialization.[a.name]Name, false, 1);
   [/if]
     return this;
   }
@@ -335,7 +349,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] remove[toUpper a.name]([uU] value) {
-    pullFields = pullFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    pullFields = pullFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
     return this;
   }
 
@@ -352,9 +366,9 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    */
   public [tT] add[toUpper a.name]([uU] value) {
   [if a.setType]
-    addToSetFields = addToSetFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    addToSetFields = addToSetFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
   [else]
-    pushFields = pushFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    pushFields = pushFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
   [/if]
     return this;
   }
@@ -372,20 +386,20 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    */
   public [tT] addAll[toUpper a.name](Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
-    for ([wW] v : values) {
-      wrappedValues.add(wrapMarshalable(v));
+    for ([wW] value : values) {
+      wrappedValues.add([wrapMarshalable a]value));
     }
     if (wrappedValues.isEmpty()) {
       return this;
     }
     Object v = wrappedValues.size() == 1
         ? wrappedValues.get(0)
-        : RepositorySupport.bsonObjectAttribute("$each", wrappedValues);
+        : Support.bsonObjectAttribute("$each", wrappedValues);
 
   [if a.setType]
-    addToSetFields = addToSetFields.equal("[a.marshaledName]", false, v);
+    addToSetFields = addToSetFields.equal(serialization.[a.name]Name, false, v);
   [else]
-    pushFields = pushFields.equal("[a.marshaledName]", false, v);
+    pushFields = pushFields.equal(serialization.[a.name]Name, false, v);
   [/if]
     return this;
   }
@@ -401,7 +415,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] clear[toUpper a.name]() {
-    setFields = setFields.equal("[a.marshaledName]", false, RepositorySupport.emptyBsonObject());
+    setFields = setFields.equal(serialization.[a.name]Name, false, Support.emptyBsonObject());
     return this;
   }
 
@@ -414,7 +428,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] put[toUpper a.name]([uU] key, [a.unwrappedSecondaryElementType] value) {
-    setFields = setFields.equal("[a.marshaledName]." + key, false, wrapMarshalable(value));
+    setFields = setFields.equal(serialization.[a.name]Name + "." + key, false, [wrapSecondaryMarshalable a]value));
     return this;
   }
 
@@ -426,7 +440,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] remove[toUpper a.name]([uU] key) {
-    unsetFields = unsetFields.equal("[a.marshaledName]." + key, false, 1);
+    unsetFields = unsetFields.equal(serialization.[a.name]Name + "." + key, false, 1);
     return this;
   }
   [else]
@@ -435,7 +449,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
   /**
    * Clear {@code [a.name]} optional attribute.
    * <p>
-[if a.forceEmpty]
+[if a.forcedEmpty]
    * Corresponds to MongoDB {@code $set} operator resetting to {@code null}
 [else]
    * Corresponds to MongoDB {@code $unset} operator
@@ -443,10 +457,10 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] clear[toUpper a.name]() {
-      [if a.forceEmpty]
-    setFields = setFields.equal("[a.marshaledName]", false, null);
+      [if a.forcedEmpty]
+    setFields = setFields.equal(serialization.[a.name]Name, false, null);
       [else]
-    unsetFields = unsetFields.equal("[a.marshaledName]", false, 1);
+    unsetFields = unsetFields.equal(serialization.[a.name]Name, false, 1);
       [/if]
     return this;
   }
@@ -460,7 +474,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] set[toUpper a.name]([uU] value) {
-    setFields = setFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    setFields = setFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
     return this;
   }
 
@@ -473,7 +487,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] init[toUpper a.name]([uU] value) {
-    setOnInsertFields = setOnInsertFields.equal("[a.marshaledName]", false, wrapMarshalable(value));
+    setOnInsertFields = setOnInsertFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
     return this;
   }
 
@@ -487,7 +501,7 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
    * @return {@code this} [toLower tT] to complete update operation
    */
   public [tT] increment[toUpper a.name]([uU] increment) {
-    incrementFields = incrementFields.equal("[a.marshaledName]", false, increment);
+    incrementFields = incrementFields.equal(serialization.[a.name]Name, false, increment);
     return this;
   }
       [/if]
@@ -499,316 +513,251 @@ public static final class Modifier extends Repositories.Modifier<[type.name], Mo
 [/for]
 [/template]
 
-[template generateInternalCriteria Type type]
-
-@SuppressWarnings("unchecked")
-private static final class InternalCriteria extends Criteria implements ConstraintSupport.ConstraintHost {
-  final ConstraintSupport.Constraint constraint;
-
-  InternalCriteria(ConstraintSupport.Constraint constraint) {
-    this.constraint = constraint;
-  }
-
-  public <V extends ConstraintSupport.ConstraintVisitor<V>> V accept(V visitor) {
-    return constraint.accept(visitor);
-  }
-[for a in type.implementedAttributes,
-     wW = a.wrappedElementType,
-     uU = a.unwrappedElementType]
-[if a.collectionType]
-
-  @Override
-  public InternalCriteria [a.name]Empty() {
-    return new InternalCriteria(constraint.size("[a.marshaledName]", false, 0));
-  }
-
-  @Override
-  public InternalCriteria [a.name]NonEmpty() {
-    return new InternalCriteria(constraint.size("[a.marshaledName]", true, 0));
-  }
-
-  @Override
-  public InternalCriteria [a.name]Size(int size) {
-    return new InternalCriteria(constraint.size("[a.marshaledName]", false, size));
-  }
-
-  @Override
-  public InternalCriteria [a.name]Contains([uU] value) {
-    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, wrapMarshalable(value)));
-  }
-
-  @Override
-  public InternalCriteria [a.name]ContainsAll(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
-    for ([wW] v : values) {
-      wrappedValues.add(wrapMarshalable(v));
-    }
-    return new InternalCriteria(constraint.nested("[a.marshaledName]", ConstraintSupport.nilConstraint().equal("$all", false, wrappedValues)));
-  }
-  [if wW eq 'java.lang.String']
-  @Override
-  public InternalCriteria [a.name]AnyStartsWith(String prefix) {
-    return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
-  }
-
-  @Override
-  public InternalCriteria [a.name]AnyMatches(java.util.regex.Pattern pattern) {
-    return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
-  }
-  [/if]
-[/if]
-[if not a.collectionType]
-  [if a.documentElement]
-  [-- Nested constraints criteria --]
-  [/if]
-
-  @Override
-  public InternalCriteria [a.name]([uU] value) {
-    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, wrapMarshalable(value)));
-  }
-  [if uU ne 'boolean']
-
-  @Override
-  public InternalCriteria [a.name]Not([uU] value) {
-    return new InternalCriteria(constraint.equal("[a.marshaledName]", true, wrapMarshalable(value)));
-  }
-
-  @Override
-  public InternalCriteria [a.name]In(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
-    for ([wW] v : values) {
-      wrappedValues.add(wrapMarshalable(v));
-    }
-    return new InternalCriteria(constraint.in("[a.marshaledName]", false, wrappedValues));
-  }
-
-  @Override
-  public InternalCriteria [a.name]In([uU] first, [uU] second, [uU]... rest) {
-    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
-    values.add(wrapMarshalable(first));
-    values.add(wrapMarshalable(second));
-    for ([uU] value : rest) {
-      values.add(wrapMarshalable(value));
-    }
-    return new InternalCriteria(constraint.in("[a.marshaledName]", false, values));
-  }
-
-  @Override
-  public InternalCriteria [a.name]NotIn(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
-    for ([wW] v : values) {
-      wrappedValues.add(wrapMarshalable(v));
-    }
-    return new InternalCriteria(constraint.in("[a.marshaledName]", true, wrappedValues));
-  }
-
-  @Override
-  public InternalCriteria [a.name]NotIn([uU] first, [uU] second, [uU]... rest) {
-    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
-    values.add(wrapMarshalable(first));
-    values.add(wrapMarshalable(second));
-    for ([uU] value : rest) {
-      values.add(wrapMarshalable(value));
-    }
-    return new InternalCriteria(constraint.in("[a.marshaledName]", true, values));
-  }
-  [/if]
-[if a.stringType]
-
-  @Override
-  public InternalCriteria [a.name]StartsWith(String prefix) {
-    return new InternalCriteria(constraint.match("[a.marshaledName]", false, ConstraintSupport.prefixPatternOf(prefix)));
-  }
-
-  @Override
-  public InternalCriteria [a.name]Matches(java.util.regex.Pattern pattern) {
-    return new InternalCriteria(constraint.match("[a.marshaledName]", false, pattern));
-  }
-
-  @Override
-  public InternalCriteria [a.name]NotMatches(java.util.regex.Pattern pattern) {
-    return new InternalCriteria(constraint.match("[a.marshaledName]", true, pattern));
-  }
-[/if]
-[if a.optionalType]
-
-  @Override
-  public InternalCriteria [a.name]Present() {
-  [if a.forceEmpty or type.useConstructorOnly]
-    return new InternalCriteria(constraint.equal("[a.marshaledName]", true, null));
-  [else]
-    return new InternalCriteria(constraint.present("[a.marshaledName]", false));
-  [/if]
-  }
-
-  @Override
-  public InternalCriteria [a.name]Absent() {
-  [if a.forceEmpty or type.useConstructorOnly]
-    return new InternalCriteria(constraint.equal("[a.marshaledName]", false, null));
-  [else]
-    return new InternalCriteria(constraint.present("[a.marshaledName]", true));
-  [/if]
-  }
-[/if]
-[if a.comparable]
-
-  @Override
-  public InternalCriteria [a.name]GreaterThan([uU] lower) {
-    return [a.name]In(com.google.common.collect.Range.greaterThan(lower));
-  }
-
-  @Override
-  public InternalCriteria [a.name]LessThan([uU] upper) {
-    return [a.name]In(com.google.common.collect.Range.lessThan(upper));
-  }
-
-  @Override
-  public InternalCriteria [a.name]AtMost([uU] upperInclusive) {
-    return [a.name]In(com.google.common.collect.Range.atMost(upperInclusive));
-  }
-
-  @Override
-  public InternalCriteria [a.name]AtLeast([uU] lowerInclusive) {
-    return [a.name]In(com.google.common.collect.Range.atLeast(lowerInclusive));
-  }
-
-  @Override
-  public InternalCriteria [a.name]In(com.google.common.collect.Range<[wW]> range) {
-    return new InternalCriteria(constraint.range("[a.marshaledName]", false, wrappedRange[toUpper a.name](range)));
-  }
-
-  @Override
-  public InternalCriteria [a.name]NotIn(com.google.common.collect.Range<[wW]> range) {
-    return new InternalCriteria(constraint.range("[a.marshaledName]", true, wrappedRange[toUpper a.name](range)));
-  }
-
-  private static com.google.common.collect.Range<Comparable<Object>> wrappedRange[toUpper a.name](com.google.common.collect.Range<[wW]> range) {
-    if (range.hasLowerBound() && range.hasUpperBound()) {
-      return com.google.common.collect.Range.range(
-          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
-          range.lowerBoundType(),
-          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
-          range.upperBoundType());
-    } else if (range.hasLowerBound()) {
-      return com.google.common.collect.Range.downTo(
-          (Comparable<Object>) wrapMarshalable(range.lowerEndpoint()),
-          range.lowerBoundType());
-    } else if (range.hasUpperBound()) {
-      return com.google.common.collect.Range.upTo(
-          (Comparable<Object>) wrapMarshalable(range.upperEndpoint()),
-          range.upperBoundType());
-    }
-    throw new AssertionError();
-  }
-
-[/if]
-[/if]
-[/for]
-
-  @Override
-  public InternalCriteria or() {
-    return new InternalCriteria(constraint.disjunction());
-  }
-
-  @Override
-  public String toString() {
-    return "[type.name]Repository.where(" + RepositorySupport.stringify(this) + ")";
-  }
-}
-[/template]
-
-[template generateCriteriaApi Type type]
-private static final Criteria ANY_CRITERIA = new InternalCriteria(ConstraintSupport.nilConstraint());
-
-/**
- * Specify search criteria.
- * Returns initial object to create criteria by invoking methods that describe attribute specific constrains.
- * @return empty immutable criteria
- */
-public static Criteria where() {
-  return ANY_CRITERIA;
-}
+[template generateCriteria Type type]
 
 /**
  * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
  * Call methods on criteria to add constraint for search query.
  */
 @javax.annotation.concurrent.Immutable
-public static abstract class Criteria extends Repositories.Criteria {
-  Criteria() {}
-[for a in type.implementedAttributes,
+@SuppressWarnings("unchecked")
+public static final class Criteria extends Repositories.Criteria {
+  private final Constraints.Constraint constraint;
+  private final Serialization serialization;
+
+  Criteria(Serialization serialization, Constraints.Constraint constraint) {
+    this.constraint = constraint;
+    this.serialization = serialization;
+  }
+
+[for a in type.allMarshalingAttributes,
      wW = a.wrappedElementType,
      uU = a.unwrappedElementType]
-
 [if a.collectionType]
-  public abstract Criteria [a.name]Empty();
-  public abstract Criteria [a.name]NonEmpty();
-  public abstract Criteria [a.name]Size(int size);
-  public abstract Criteria [a.name]Contains([uU] value);
-  public abstract Criteria [a.name]ContainsAll(Iterable<[wW]> values);
+
+  public Criteria [a.name]Empty() {
+    return new Criteria(serialization, constraint.size(serialization.[a.name]Name, false, 0));
+  }
+
+  public Criteria [a.name]NonEmpty() {
+    return new Criteria(serialization, constraint.size(serialization.[a.name]Name, true, 0));
+  }
+
+  public Criteria [a.name]Size(int size) {
+    return new Criteria(serialization, constraint.size(serialization.[a.name]Name, false, size));
+  }
+
+  public Criteria [a.name]Contains([uU] value) {
+    return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value)));
+  }
+
+  public Criteria [a.name]ContainsAll(Iterable<[wW]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([wW] value : values) {
+      wrappedValues.add([wrapMarshalable a]value));
+    }
+    return new Criteria(serialization, constraint.nested(serialization.[a.name]Name, Constraints.nilConstraint().equal("$all", false, wrappedValues)));
+  }
   [if wW eq 'java.lang.String']
-  public abstract Criteria [a.name]AnyStartsWith(String prefix);
-  public abstract Criteria [a.name]AnyMatches(java.util.regex.Pattern pattern);
-  [/if]
-[else]
-  [if a.documentElement]
-  [-- nested element criteria constraints --]
-  [/if]
-  public abstract Criteria [a.name]([uU] value);
-  [if uU ne 'boolean']
-  public abstract Criteria [a.name]Not([uU] value);
-  public abstract Criteria [a.name]In(Iterable<[wW]> values);
-  public abstract Criteria [a.name]In([uU] first, [uU] second, [uU]... rest);
-  public abstract Criteria [a.name]NotIn(Iterable<[wW]> values);
-  public abstract Criteria [a.name]NotIn([uU] first, [uU] second, [uU]... rest);
-  [/if]
-  [if a.stringType]
-  public abstract Criteria [a.name]StartsWith(String prefix);
-  public abstract Criteria [a.name]Matches(java.util.regex.Pattern pattern);
-  public abstract Criteria [a.name]NotMatches(java.util.regex.Pattern pattern);
-  [/if]
-  [if a.optionalType]
-  public abstract Criteria [a.name]Present();
-  public abstract Criteria [a.name]Absent();
-  [/if]
-  [if a.comparable]
-  public abstract Criteria [a.name]GreaterThan([uU] lower);
-  public abstract Criteria [a.name]LessThan([uU] upper);
-  public abstract Criteria [a.name]AtMost([uU] upperInclusive);
-  public abstract Criteria [a.name]AtLeast([uU] lowerInclusive);
-  public abstract Criteria [a.name]In(com.google.common.collect.Range<[wW]> range);
-  public abstract Criteria [a.name]NotIn(com.google.common.collect.Range<[wW]> range);
+
+  public Criteria [a.name]AnyStartsWith(String prefix) {
+    return new Criteria(serialization, constraint.match(serialization.[a.name]Name, false, Constraints.prefixPatternOf(prefix)));
+  }
+
+  public Criteria [a.name]AnyMatches(java.util.regex.Pattern pattern) {
+    return new Criteria(serialization, constraint.match(serialization.[a.name]Name, false, pattern));
+  }
   [/if]
 [/if]
-[/for]
-  @Override
-  public abstract Criteria or();
-}
-[/template]
+[if not a.collectionType]
+  [-- Nested constraints criteria if document could go here --]
 
-[template generateImportRoutines Type type]
-[for m in type.generateImportedMarshalers]
-import static [m.packaged][m.name]Marshaler.*;
-[/for]
-[for s in type.generateImportedMarshalRoutines]
-import static [s].*;
-[/for]
-[/template]
+  public Criteria [a.name]([uU] value) {
+    return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value)));
+  }
+  [if uU ne 'boolean']
 
-[template generateMarshalWrappers Type type]
-private static Object wrapMarshalable(Object value) {
-  return value;
-}
+  public Criteria [a.name]Not([uU] value) {
+    return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, true, [wrapMarshalable a]value)));
+  }
 
-  [for tT in type.generateMarshaledTypes]
-private static Object wrapMarshalable(final [tT] value) {
-  return new RepositorySupport.MarshalableWrapper(value) {
-    @Override
-    protected void marshalWrapped(com.fasterxml.jackson.core.JsonGenerator generator) throws java.io.IOException {
-      marshal(generator, value);
+  public Criteria [a.name]In(Iterable<[wW]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([wW] value : values) {
+      wrappedValues.add([wrapMarshalable a]value));
     }
-  };
+    return new Criteria(serialization, constraint.in(serialization.[a.name]Name, false, wrappedValues));
+  }
+
+  public Criteria [a.name]In([uU] first, [uU] second, [uU]... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add([wrapMarshalable a]first));
+    values.add([wrapMarshalable a]second));
+    for ([uU] value : rest) {
+      values.add([wrapMarshalable a]value));
+    }
+    return new Criteria(serialization, constraint.in(serialization.[a.name]Name, false, values));
+  }
+
+  public Criteria [a.name]NotIn(Iterable<[wW]> values) {
+    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    for ([wW] value : values) {
+      wrappedValues.add([wrapMarshalable a]value));
+    }
+    return new Criteria(serialization, constraint.in(serialization.[a.name]Name, true, wrappedValues));
+  }
+
+  public Criteria [a.name]NotIn([uU] first, [uU] second, [uU]... rest) {
+    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    values.add([wrapMarshalable a]first));
+    values.add([wrapMarshalable a]second));
+    for ([uU] value : rest) {
+      values.add([wrapMarshalable a]value));
+    }
+    return new Criteria(serialization, constraint.in(serialization.[a.name]Name, true, values));
+  }
+  [/if]
+[if a.stringType]
+
+  public Criteria [a.name]StartsWith(String prefix) {
+    return new Criteria(serialization, constraint.match(serialization.[a.name]Name, false, Constraints.prefixPatternOf(prefix)));
+  }
+
+  public Criteria [a.name]Matches(java.util.regex.Pattern pattern) {
+    return new Criteria(serialization, constraint.match(serialization.[a.name]Name, false, pattern));
+  }
+
+  public Criteria [a.name]NotMatches(java.util.regex.Pattern pattern) {
+    return new Criteria(serialization, constraint.match(serialization.[a.name]Name, true, pattern));
+  }
+[/if]
+[if a.optionalType]
+
+  public Criteria [a.name]Present() {
+  [if a.forcedEmpty or type.useConstructorOnly]
+    return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, true, null));
+  [else]
+    return new Criteria(serialization, constraint.present(serialization.[a.name]Name, false));
+  [/if]
+  }
+
+  public Criteria [a.name]Absent() {
+  [if a.forcedEmpty or type.useConstructorOnly]
+    return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, false, null));
+  [else]
+    return new Criteria(serialization, constraint.present(serialization.[a.name]Name, true));
+  [/if]
+  }
+[/if]
+[if a.comparable]
+
+  public Criteria [a.name]GreaterThan([uU] lower) {
+    return [a.name]In(com.google.common.collect.Range.greaterThan(lower));
+  }
+
+  public Criteria [a.name]LessThan([uU] upper) {
+    return [a.name]In(com.google.common.collect.Range.lessThan(upper));
+  }
+
+  public Criteria [a.name]AtMost([uU] upperInclusive) {
+    return [a.name]In(com.google.common.collect.Range.atMost(upperInclusive));
+  }
+
+  public Criteria [a.name]AtLeast([uU] lowerInclusive) {
+    return [a.name]In(com.google.common.collect.Range.atLeast(lowerInclusive));
+  }
+
+  public Criteria [a.name]In(com.google.common.collect.Range<[wW]> range) {
+    return new Criteria(serialization, constraint.range(serialization.[a.name]Name, false, [wrapMarshalable a]range)));
+  }
+
+  public Criteria [a.name]NotIn(com.google.common.collect.Range<[wW]> range) {
+    return new Criteria(serialization, constraint.range(serialization.[a.name]Name, true, [wrapMarshalable a]range)));
+  }
+[/if]
+[/if]
+[/for]
+
+  @Override
+  public Criteria or() {
+    return new Criteria(serialization, constraint.disjunction());
+  }
+
+  @Override
+  public String toString() {
+    return "[type.name]Repository.where(" + Support.stringify(constraint) + ")";
+  }
 }
+[/template]
+
+[template generateCriteriaApi Type type]
+/**
+ * Specify search criteria.
+ * Returns initial object to create criteria by invoking methods that describe attribute specific constraints.
+ * @return empty immutable criteria
+ */
+public Criteria where() {
+  return anyCriteria;
+}
+[/template]
+
+[template generateSerializationHelpers Type type]
+
+[for allAttributes = type.allMarshalingAttributes]
+private static class Serialization {
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElemementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = new TypeToken<[a.secondaryElementType]>() {};
+    [/if]
+  [/for]
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+  final TypeAdapter<[a.elementType]> [a.name]TypeAdapter;
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+  final TypeAdapter<[a.secondaryElementType]> [a.name]SecondaryTypeAdapter;
+    [/if]
+  [/for]
+  final Gson gson;
+  [for a in allAttributes]
+  final String [a.name]Name;
   [/for]
 
+  Serialization(Gson gson) {
+    this.gson = gson;
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+    [getAdapterFromGson a false]
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+    [getAdapterFromGson a true]
+    [/if]
+  [/for]
+    org.immutables.gson.adapter.FieldNamingTranslator fieldNaming = new org.immutables.gson.adapter.FieldNamingTranslator(gson);
+  [for a in allAttributes]
+    this.[a.name]Name = fieldNaming.translateName([type.typeAbstract].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
+  [/for]
+  }
+}
+[/for]
 [/template]
+
+[template getAdapterFromGson Attribute a Boolean secondary]
+[for subs = a.expectedSubtypes,
+    Boolean suppotedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind))]
+  [if subs and suppotedSubs]
+this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
+    [toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN[for s in subs],
+    TypeToken.get([s].class)[/for]);
+  [else]
+this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN);
+  [/if]
+[/for]
+[/template]
+
+[template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]TypeAdapter, [else]Support.writable([/if][/template]
+
+[template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryTypeAdapter, [else]Support.writable([/if][/template]

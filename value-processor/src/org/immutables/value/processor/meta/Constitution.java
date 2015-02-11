@@ -32,8 +32,10 @@ import static com.google.common.base.Verify.*;
 @Value.Nested
 @Value.Immutable
 public abstract class Constitution {
-  private static final String NA_ERROR = "!error!";
+  private static final String NA_ERROR = "!assertion_error!";
   private static final String NEW_KEYWORD = "new";
+  private static final String BUILDER_CLASS_NAME = "Builder";
+  private static final String BUILDER_METHOD_NAME = "builder";
   private static final Joiner JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
@@ -206,7 +208,10 @@ public abstract class Constitution {
     Naming builderNaming = names().namings.typeBuilder;
     if (isImplementationHidden() || isFactory()) {
       // For outer builder we can override with constant builder naming, but not the default.
-      if (builderNaming.apply("").equals("Builder")) {
+      boolean isConstantDefault = builderNaming.isConstant()
+          && builderNaming.apply("").equals(BUILDER_CLASS_NAME);
+
+      if (isConstantDefault) {
         builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
       }
     }
@@ -219,8 +224,11 @@ public abstract class Constitution {
 
     Naming builderNaming = names().namings.builder;
     if (isOutside) {
-      if (builderNaming.apply("").equals("builder")) {
-        builderNaming = Naming.from("new");
+      boolean isConstantDefault = builderNaming.isConstant()
+          && builderNaming.apply("").equals(BUILDER_METHOD_NAME);
+
+      if (isConstantDefault) {
+        builderNaming = Naming.from(NEW_KEYWORD);
       }
     }
 
@@ -310,6 +318,9 @@ public abstract class Constitution {
 
   @Value.Immutable
   public static abstract class NameForms {
+    private static final String PUBLIC_MODIFIER_PREFIX = "public ";
+    private static final String PRIVATE_MODIFIER_PREFIX = "private ";
+
     public abstract String simple();
 
     public abstract String relative();
@@ -335,9 +346,9 @@ public abstract class Constitution {
     public String access() {
       switch (visibility()) {
       case PRIVATE:
-        return "private ";
+        return PRIVATE_MODIFIER_PREFIX;
       case PUBLIC:
-        return "public ";
+        return PUBLIC_MODIFIER_PREFIX;
       default:
         return "";
       }

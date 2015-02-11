@@ -21,7 +21,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -30,11 +29,11 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
@@ -59,6 +58,7 @@ public class Proto {
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
+
       return ImmutableProto.MetaAnnotated.of(
           element.getQualifiedName().toString(),
           element);
@@ -75,6 +75,12 @@ public class Proto {
 
     ProcessingEnvironment processing() {
       return environment().processing();
+    }
+
+    @Value.Auxiliary
+    @Value.Derived
+    public String simpleName() {
+      return element().getSimpleName().toString();
     }
 
     protected Reporter report() {
@@ -112,9 +118,27 @@ public class Proto {
   public static abstract class AbstractDeclaring extends Diagnosable {
     public abstract String name();
 
+    public abstract DeclaringPackage packageOf();
+
+    @Value.Derived
+    @Value.Auxiliary
+    protected Optional<IncludeMirror> include() {
+      return IncludeMirror.find(element());
+    }
+
+    public boolean hasInclude() {
+      return include().isPresent();
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public Optional<TypeAdaptersMirror> typeAdapters() {
+      return TypeAdaptersMirror.find(element());
+    }
+
     @Value.Lazy
     public List<TypeElement> includedTypes() {
-      Optional<IncludeMirror> includes = IncludeMirror.find(element());
+      Optional<IncludeMirror> includes = include();
 
       ImmutableList<TypeMirror> typeMirrors = includes.isPresent()
           ? ImmutableList.copyOf(includes.get().valueMirror())
@@ -137,54 +161,6 @@ public class Proto {
       return typeElements.toList();
     }
 
-    @Value.Lazy
-    public boolean useImmutableDefaults() {
-      Optional<ImmutableMirror> immutables = features();
-      if (immutables.isPresent()) {
-        return immutables.get().getAnnotationMirror().getElementValues().isEmpty();
-      }
-      return true;
-    }
-
-    public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
-      return AnnotationMirrors.isAnnotationPresent(
-          element().getAnnotationMirrors(),
-          annotationType);
-    }
-
-    @Value.Derived
-    @Value.Auxiliary
-    public boolean hasInclude() {
-      return IncludeMirror.isPresent(element());
-    }
-
-    @Value.Derived
-    @Value.Auxiliary
-    public boolean isEnclosing() {
-      return NestedMirror.isPresent(element());
-    }
-
-    /**
-     * TODO Move to {@link DeclaringType}?.
-     * @return true, if is top level
-     */
-    @Value.Derived
-    @Value.Auxiliary
-    public boolean isTopLevel() {
-      return element().getEnclosingElement() == null
-          || element().getEnclosingElement().getKind() == ElementKind.PACKAGE;
-    }
-
-    @Value.Derived
-    @Value.Auxiliary
-    public Optional<ImmutableMirror> features() {
-      return ImmutableMirror.find(element());
-    }
-
-    public boolean isImmutable() {
-      return features().isPresent();
-    }
-
     @Value.Derived
     @Value.Auxiliary
     public Optional<StyleMirror> style() {
@@ -204,26 +180,6 @@ public class Proto {
 
       return Optional.absent();
     }
-
-    /**
-     * Logic honors {@link ElementType} declared on annotation types to avoid some
-     * useless checks. But otherwise it's not exhaustive.
-     * TODO Move to {@link DeclaringType}?
-     */
-    @Value.Check
-    protected void validate() {
-      if (hasInclude() && !isTopLevel()) {
-        report().annotationNamed(IncludeMirror.simpleName())
-            .error("@Include could not be used on nested types.");
-      }
-      if (isEnclosing() && !isTopLevel()) {
-        report().annotationNamed(NestedMirror.simpleName())
-            .error("@Nested should only be used on a top-level types.");
-      }
-      if (element().getKind() == ElementKind.ENUM) {
-        report().error("@Value.* annotations are not supported on enums");
-      }
-    }
   }
 
   @Value.Immutable(intern = true)
@@ -232,6 +188,18 @@ public class Proto {
     @Override
     @Value.Auxiliary
     public abstract PackageElement element();
+
+    @Override
+    public DeclaringPackage packageOf() {
+      return this;
+    }
+
+    @Override
+    @Value.Auxiliary
+    @Value.Derived
+    public String simpleName() {
+      return element().isUnnamed() ? "" : element().getSimpleName().toString();
+    }
 
     /**
      * Name is the only equivalence attribute. Basically packages are interned by name.
@@ -260,41 +228,92 @@ public class Proto {
       return element().getQualifiedName().toString();
     }
 
-    @Override
+    /**
+     * returns this class if it's top level or enclosing top level type.
+     * @return accossiated top level type.
+     */
     @Value.Derived
     @Value.Auxiliary
-    public boolean isTopLevel() {
-      return element().getEnclosingElement().getKind() == ElementKind.PACKAGE;
+    public DeclaringType topLevel() {
+      return getTopLevelType();
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public Optional<RepositoryMirror> repository() {
+      return RepositoryMirror.find(element());
+    }
+
+    private DeclaringType getTopLevelType() {
+      TypeElement top = element();
+      for (Element e = top; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
+        top = (TypeElement) e;
+      }
+      if (top == element()) {
+        return this;
+      }
+      return ImmutableProto.DeclaringType.builder()
+          .environment(environment())
+          .element(top)
+          .build();
     }
 
     @Value.Derived
     @Value.Auxiliary
     public Optional<DeclaringType> enclosingOf() {
-      TypeElement top = element();
-      for (Element e = element(); e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
-        top = (TypeElement) e;
+      DeclaringType topLevel = getTopLevelType();
+      if (topLevel != this && topLevel.isEnclosing()) {
+        return Optional.of(topLevel);
       }
-      if (top != element()) {
-        ImmutableProto.DeclaringType enclosingType = ImmutableProto.DeclaringType.builder()
-            .environment(environment())
-            .element(top)
-            .build();
-
-        if (enclosingType.isEnclosing()) {
-          return Optional.<DeclaringType>of(enclosingType);
-        }
-      }
-
       return Optional.absent();
+    }
+
+    @Override
+    @Value.Derived
+    @Value.Auxiliary
+    public DeclaringPackage packageOf() {
+      Element e = element();
+      for (; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
+      }
+      return ImmutableProto.DeclaringPackage.builder()
+          .environment(environment())
+          .element((PackageElement) e)
+          .build();
     }
 
     @Value.Derived
     @Value.Auxiliary
-    public DeclaringPackage packageOf() {
-      return ImmutableProto.DeclaringPackage.builder()
-          .environment(environment())
-          .element(processing().getElementUtils().getPackageOf(element()))
-          .build();
+    public Optional<ImmutableMirror> features() {
+      return ImmutableMirror.find(element());
+    }
+
+    @Value.Lazy
+    public boolean useImmutableDefaults() {
+      Optional<ImmutableMirror> immutables = features();
+      if (immutables.isPresent()) {
+        return immutables.get().getAnnotationMirror().getElementValues().isEmpty();
+      }
+      return true;
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isEnclosing() {
+      return NestedMirror.isPresent(element());
+    }
+
+    /**
+     * TODO Move to {@link DeclaringType}?.
+     * @return true, if is top level
+     */
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isTopLevel() {
+      return element().getNestingKind() == NestingKind.TOP_LEVEL;
+    }
+
+    public boolean isImmutable() {
+      return features().isPresent();
     }
 
     public boolean verifiedFactory(ExecutableElement element) {
@@ -315,6 +334,26 @@ public class Proto {
       }
 
       return true;
+    }
+
+    /**
+     * Logic honors {@link ElementType} declared on annotation types to avoid some
+     * useless checks. But otherwise it's not exhaustive.
+     * TODO Move to {@link DeclaringType}?
+     */
+    @Value.Check
+    protected void validate() {
+      if (hasInclude() && !isTopLevel()) {
+        report().annotationNamed(IncludeMirror.simpleName())
+            .error("@Include could not be used on nested types.");
+      }
+      if (isEnclosing() && !isTopLevel()) {
+        report().annotationNamed(NestedMirror.simpleName())
+            .error("@Nested should only be used on a top-level types.");
+      }
+      if (element().getKind() == ElementKind.ENUM) {
+        report().error("@Value.* annotations are not supported on enums");
+      }
     }
   }
 
@@ -352,6 +391,36 @@ public class Proto {
      * @return declaring type
      */
     public abstract Optional<DeclaringType> declaringType();
+
+    @Value.Lazy
+    public Optional<AbstractDeclaring> typeAdaptersProvider() {
+      Optional<DeclaringType> typeDefining =
+          declaringType().isPresent()
+              ? Optional.of(declaringType().get().topLevel())
+              : Optional.<DeclaringType>absent();
+
+      Optional<TypeAdaptersMirror> typeDefined =
+          typeDefining.isPresent()
+              ? typeDefining.get().typeAdapters()
+              : Optional.<TypeAdaptersMirror>absent();
+
+      Optional<TypeAdaptersMirror> packageDefined = packageOf().typeAdapters();
+
+      if (packageDefined.isPresent()) {
+        if (typeDefined.isPresent()) {
+          report()
+              .withElement(typeDefining.get().element())
+              .annotationNamed(TypeAdaptersMirror.simpleName())
+              .warning("@%s is also used on the package, this type level annotation is ignored",
+                  TypeAdaptersMirror.simpleName());
+        }
+        return Optional.<AbstractDeclaring>of(packageOf());
+      }
+
+      return typeDefined.isPresent()
+          ? Optional.<AbstractDeclaring>of(typeDefining.get())
+          : Optional.<AbstractDeclaring>absent();
+    }
 
     /**
      * Kind of protoclass declaration, it specifies how exactly the protoclass was declared.

@@ -98,7 +98,7 @@ public final class ValueTypeComposer {
 
   private void checkForMutableFields(Protoclass protoclass, TypeElement element) {
     for (VariableElement field : ElementFilter.fieldsIn(
-        processing.getElementUtils().getAllMembers(element))) {
+        processing.getElementUtils().getAllMembers(CachingElements.getDelegate(element)))) {
       if (!field.getModifiers().contains(Modifier.FINAL)) {
         Reporter report = protoclass.report();
         boolean ownField = field.getEnclosingElement().equals(element);

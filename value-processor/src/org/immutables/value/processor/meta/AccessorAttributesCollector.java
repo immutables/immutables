@@ -82,7 +82,7 @@ final class AccessorAttributesCollector {
   }
 
   private void collectGeneratedCandidateMethods(TypeElement type) {
-    for (Element element : getAccessorsInSourceOrder(type)) {
+    for (Element element : getAccessorsInSourceOrder(CachingElements.getDelegate(type))) {
       if (isElegibleAccessorMethod(element)) {
         processGenerationCandidateMethod((ExecutableElement) element);
       }

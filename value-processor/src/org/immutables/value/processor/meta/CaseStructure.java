@@ -67,6 +67,10 @@ public class CaseStructure {
     return builder.build();
   }
 
+  public Set<ValueType> knownSubtypesOf(String typeName) {
+    return subtyping.get(typeName);
+  }
+
   public final Predicate<String> isImplementedType = new Predicate<String>() {
     @Override
     public boolean apply(String input) {

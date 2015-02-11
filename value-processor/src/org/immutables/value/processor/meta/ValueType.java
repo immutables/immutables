@@ -15,11 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.Map;
-import java.util.LinkedHashMap;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -29,34 +27,23 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor7;
 import org.immutables.value.ext.ExtValue;
-import org.immutables.value.ext.Json;
-import org.immutables.value.ext.Mongo;
 import org.immutables.value.ext.Parboil;
 import org.immutables.value.processor.meta.Constitution.NameForms;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import org.immutables.value.processor.meta.ValueAttribute.SimpleTypeDerivationBase;
 
 /**
  * It's pointless to refactor this mess until
@@ -81,6 +68,16 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isToStringDefined;
   public Constitution constitution;
   Round round;
+
+  /**
+   * Should be called when it is known that there type adapters generation provided.
+   * @return the type adapters annotation
+   */
+  public GsonMirrors.TypeAdapters gsonTypeAdapters() {
+    return constitution.protoclass()
+        .typeAdaptersProvider().get()
+        .typeAdapters().get();
+  }
 
   public TypeNames names() {
     return constitution.names();
@@ -138,6 +135,9 @@ public final class ValueType extends TypeIntrospectionBase {
     return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
+  @Nullable
+  private Boolean generateJacksonMapped;
+
   public boolean isGenerateJacksonMapped() {
     if (generateJacksonMapped == null) {
       generateJacksonMapped = inferJacksonMapped();
@@ -160,14 +160,22 @@ public final class ValueType extends TypeIntrospectionBase {
     return !kind().isNested();
   }
 
+  public boolean isGenerateRepository() {
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    return declaringType.isPresent()
+        && declaringType.get().repository().isPresent();
+  }
+
   public boolean isAnnotationType() {
     return element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
+  @Deprecated
   public boolean isGenerateParboiled() {
     return kind().isEnclosing() && element.getAnnotation(Parboil.Ast.class) != null;
   }
 
+  @Deprecated
   public boolean isGenerateTransformer() {
     return kind().isValue() && element.getAnnotation(ExtValue.Transformer.class) != null;
   }
@@ -193,7 +201,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<ValueType> nested = Collections.emptyList();
 
   @Nullable
-  private ValueType enclosingValue;
+  ValueType enclosingValue;
 
   public void addNested(ValueType nested) {
     if (this.nested.isEmpty()) {
@@ -213,16 +221,6 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public String getInheritsKeyword() {
     return isIface() ? "implements" : "extends";
-  }
-
-  public <T extends Annotation> boolean hasAnnotation(Class<T> annotationType) {
-    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
-    if (declaringType.isPresent()) {
-      if (declaringType.get().hasAnnotation(annotationType)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public String $$package() {
@@ -267,30 +265,17 @@ public final class ValueType extends TypeIntrospectionBase {
         || immutableFeatures.prehash();
   }
 
-  private Boolean generateMarshaled;
-
-  public boolean isGenerateMarshaled() {
-    if (generateMarshaled == null) {
-      generateMarshaled = hasAnnotation(Json.Marshaled.class)
-          || isGenerateRepository();
-    }
-    return generateMarshaled;
-  }
-
+/*
   public boolean isGenerateTypeAdapted() {
     // TODO propagate this from MetaAnnotated
-    return TypeAdaptedMirror.isPresent(element);
+    return TypeAdaptersMirror.isPresent(element);
   }
 
   public boolean isGenerateModifiable() {
     // TODO propagate this from somewhere?
     return ModifiableMirror.isPresent(element);
   }
-
-  public boolean isGenerateRepository() {
-    return element.getAnnotation(Mongo.Repository.class) != null;
-  }
-
+*/
   private Boolean hasAbstractBuilder;
 
   public boolean isHasAbstractBuilder() {
@@ -313,51 +298,14 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public String getDocumentName() {
-    @Nullable Mongo.Repository annotation = element.getAnnotation(Mongo.Repository.class);
-    if (annotation != null && !annotation.value().isEmpty()) {
-      return annotation.value();
+    Optional<RepositoryMirror> repositoryAnnotation = RepositoryMirror.find(element);
+    if (repositoryAnnotation.isPresent()) {
+      String value = repositoryAnnotation.get().value();
+      if (!value.isEmpty()) {
+        return value;
+      }
     }
     return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, name());
-  }
-
-  private Set<String> importedMarshalRoutines;
-
-  public Set<String> getGenerateImportedMarshalRoutines() {
-    if (importedMarshalRoutines == null) {
-      Set<String> imports = Sets.newLinkedHashSet();
-      collectImportRoutines(imports);
-      importedMarshalRoutines = ImmutableSet.copyOf(imports);
-    }
-    return importedMarshalRoutines;
-  }
-
-  private List<SimpleTypeDerivationBase> importedMarshalers;
-
-  public List<SimpleTypeDerivationBase> getGenerateImportedMarshalers() {
-    if (importedMarshalers == null) {
-      List<SimpleTypeDerivationBase> imports = Lists.newArrayList();
-      for (ValueAttribute a : attributes()) {
-        imports.addAll(a.getMarshaledImportRoutines());
-      }
-      importedMarshalers = ImmutableList.copyOf(imports);
-    }
-    return importedMarshalers;
-  }
-
-  private void collectImportRoutines(Set<String> imports) {
-    Element element = this.element;
-    for (;;) {
-      imports.addAll(
-          extractClassNamesFromMirrors(Json.Import.class,
-              "value",
-              element.getAnnotationMirrors()));
-
-      Element enclosingElement = element.getEnclosingElement();
-      if (enclosingElement == null || element instanceof PackageElement) {
-        break;
-      }
-      element = enclosingElement;
-    }
   }
 
   @Nullable
@@ -370,19 +318,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return null;
   }
 
-  private Set<String> generateMarshaledTypes;
-
-  public Set<String> getGenerateMarshaledTypes() {
-    if (generateMarshaledTypes == null) {
-      Set<String> marshaledTypes = Sets.newLinkedHashSet();
-      for (ValueAttribute a : attributes()) {
-        marshaledTypes.addAll(a.getSpecialMarshaledTypes());
-      }
-      generateMarshaledTypes = marshaledTypes;
-    }
-    return generateMarshaledTypes;
-  }
-
   public boolean isUseReferenceEquality() {
     if (isAnnotationType()) {
       return false;
@@ -392,55 +327,6 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseSingletonOnly() {
     return isUseSingleton() && !isUseConstructor() && !isUseBuilder();
-  }
-
-  private List<String> extractClassNamesFromMirrors(
-      Class<?> annotationType,
-      String annotationValueName,
-      List<? extends AnnotationMirror> annotationMirrors) {
-    return FluentIterable.from(
-        extractedTypesFromAnnotationMirrors(
-            annotationType.getCanonicalName(),
-            annotationValueName,
-            annotationMirrors))
-        .transform(Functions.toStringFunction())
-        .toList();
-  }
-
-  public static Iterable<DeclaredType> extractedTypesFromAnnotationMirrors(
-      String annotationTypeName,
-      String annotationValueName,
-      List<? extends AnnotationMirror> annotationMirrors) {
-    final List<DeclaredType> collectTypes = Lists.newArrayList();
-
-    for (AnnotationMirror annotationMirror : annotationMirrors) {
-      if (annotationMirror.getAnnotationType().toString().equals(annotationTypeName)) {
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : annotationMirror.getElementValues()
-            .entrySet()) {
-          if (e.getKey().getSimpleName().contentEquals(annotationValueName)) {
-            e.getValue().accept(new SimpleAnnotationValueVisitor7<Void, Void>() {
-              @Override
-              public Void visitArray(List<? extends AnnotationValue> vals, Void p) {
-                for (AnnotationValue annotationValue : vals) {
-                  annotationValue.accept(this, p);
-                }
-                return null;
-              }
-
-              @Override
-              public Void visitType(TypeMirror t, Void p) {
-                if (t instanceof DeclaredType) {
-                  collectTypes.add((DeclaredType) t);
-                }
-                return null;
-              }
-            }, null);
-          }
-        }
-      }
-    }
-
-    return collectTypes;
   }
 
   public List<ValueAttribute> getSettableAttributes() {
@@ -523,9 +409,8 @@ public final class ValueType extends TypeIntrospectionBase {
         .build();
   }
 
-  private List<ValueAttribute> implementedAttributes;
   @Nullable
-  private Boolean generateJacksonMapped;
+  private List<ValueAttribute> implementedAttributes;
 
   private FluentIterable<ValueAttribute> attributes() {
     return FluentIterable.from(attributes);
@@ -534,7 +419,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getMarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getImplementedAttributes()) {
-      if (!attribute.isJsonIgnore()) {
+      if (!attribute.isGsonIgnore()) {
         builder.add(attribute);
       }
     }
@@ -544,36 +429,42 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getUnmarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (!attribute.isJsonIgnore()) {
+      if (!attribute.isGsonIgnore()) {
         builder.add(attribute);
       }
     }
     return builder.build();
   }
 
+  @Nullable
+  private ImmutableList<ValueAttribute> allMarshalingAttributes;
+
   public List<ValueAttribute> allMarshalingAttributes() {
-    class Collector {
-      Map<String, ValueAttribute> byNames = new LinkedHashMap<>();
+    if (allMarshalingAttributes == null) {
+      class Collector {
+        Map<String, ValueAttribute> byNames = new LinkedHashMap<>();
 
-      List<ValueAttribute> collect() {
-        addUnique(getMarshaledAttributes());
-        addUnique(getUnmarshaledAttributes());
-        return ImmutableList.copyOf(byNames.values());
-      }
+        ImmutableList<ValueAttribute> collect() {
+          addUnique(getMarshaledAttributes());
+          addUnique(getUnmarshaledAttributes());
+          return ImmutableList.copyOf(byNames.values());
+        }
 
-      void addUnique(List<ValueAttribute> attributes) {
-        for (ValueAttribute attribute : attributes) {
-          String name = attribute.getMarshaledName();
-          ValueAttribute existing = byNames.get(name);
-          if (existing == null) {
-            byNames.put(name, attribute);
-          } else if (existing != attribute) {
-            attribute.report().error("Attribute has duplicate marshaled name, check @Named annotation");
+        void addUnique(List<ValueAttribute> attributes) {
+          for (ValueAttribute attribute : attributes) {
+            String name = attribute.getMarshaledName();
+            ValueAttribute existing = byNames.get(name);
+            if (existing == null) {
+              byNames.put(name, attribute);
+            } else if (existing != attribute) {
+              attribute.report().error("Attribute has duplicate marshaled name, check @Named annotation");
+            }
           }
         }
       }
+      allMarshalingAttributes = new Collector().collect();
     }
-    return new Collector().collect();
+    return allMarshalingAttributes;
   }
 
   public List<ValueAttribute> getPrimitiveDefaultAttributes() {

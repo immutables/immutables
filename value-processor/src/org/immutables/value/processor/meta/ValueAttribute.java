@@ -15,14 +15,14 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Set;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Ascii;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -34,9 +34,6 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.ext.Json;
-import org.immutables.value.ext.Mongo;
-import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
@@ -63,17 +60,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   Element element;
   String returnTypeName;
 
-  @Nullable
-  private TypeElement marshaledElement;
-  @Nullable
-  private TypeElement marshaledSecondaryElement;
-  @Nullable
-  private TypeElement specialMarshaledElement;
-  @Nullable
-  private TypeElement specialMarshaledSecondaryElement;
-
   private boolean hasEnumFirstTypeParameter;
+  @Nullable
   private TypeElement containedTypeElement;
+  @Nullable
+  private TypeElement containedSecondaryTypeElement;
+
   private boolean generateOrdinalValueSet;
   private TypeMirror arrayComponent;
   private boolean nullable;
@@ -126,44 +118,58 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   @Override
   public boolean isComparable() {
-    return isNumberType() || super.isComparable();
+    return isNumberType() || isStringType() || super.isComparable();
   }
 
   @Nullable
-  private String marshaledName;
+  private String serializedName;
 
-  public String getMarshaledName() {
-    if (marshaledName == null) {
-      marshaledName = inferMarshaledName();
+  /**
+   * Serialized name, actully specified via annotation
+   * @return name for JSON as overriden.
+   */
+  public String getSerializedName() {
+    if (serializedName == null) {
+      serializedName = readSerializedName();
     }
-    return marshaledName;
+    return serializedName;
   }
 
-  private String inferMarshaledName() {
-    @Nullable Json.Named namedAnnotaion = element.getAnnotation(Json.Named.class);
-    if (namedAnnotaion != null) {
-      String name = namedAnnotaion.value();
-      if (!name.isEmpty()) {
-        return name;
-      }
-    }
-    @Nullable Mongo.Id idAnnotation = element.getAnnotation(Mongo.Id.class);
-    if (idAnnotation != null) {
+  /**
+   * Marshaled name for compatibility with repository.
+   * @return get JSON name either specified or default.
+   */
+  public String getMarshaledName() {
+    if (isIdAttribute()) {
       return ID_ATTRIBUTE_NAME;
     }
-
-    Optional<JsonPropertyMirror> jsonProperty = JsonPropertyMirror.find(element);
-    if (jsonProperty.isPresent()) {
-      String name = jsonProperty.get().value();
-      if (!name.isEmpty()) {
-        return name;
-      }
+    String serializedName = getSerializedName();
+    if (!serializedName.isEmpty()) {
+      return serializedName;
     }
-    return names.raw;
+    return name();
   }
 
-  public boolean isForceEmpty() {
-    return element.getAnnotation(Json.ForceEmpty.class) != null;
+  private String readSerializedName() {
+    Optional<NamedMirror> namedAnnotation = NamedMirror.find(element);
+    if (namedAnnotation.isPresent()) {
+      String value = namedAnnotation.get().value();
+      if (!value.isEmpty()) {
+        return value;
+      }
+    }
+    Optional<JsonPropertyMirror> jsonProperty = JsonPropertyMirror.find(element);
+    if (jsonProperty.isPresent()) {
+      String value = jsonProperty.get().value();
+      if (!value.isEmpty()) {
+        return value;
+      }
+    }
+    return "";
+  }
+
+  public boolean isForcedEmpty() {
+    return !containingType.gsonTypeAdapters().emptyAsNulls();
   }
 
   @Override
@@ -177,10 +183,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public List<CharSequence> getAnnotations() {
     return AnnotationPrinting.getAnnotationLines(element);
-  }
-
-  public boolean isJsonIgnore() {
-    return element.getAnnotation(Json.Ignore.class) != null;
   }
 
   public boolean isGsonIgnore() {
@@ -326,7 +328,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getUnwrappedElementType() {
-    return unwrapType(containmentTypeName());
+    return isContainerType() ? unwrapType(containmentTypeName()) : getElementType();
   }
 
   public String getWrappedElementType() {
@@ -383,69 +385,46 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private List<SimpleTypeDerivationBase> expectedSubclasses;
+  private List<String> expectedSubtypes;
 
-  public List<SimpleTypeDerivationBase> getExpectedSubclasses() {
-    if (expectedSubclasses == null) {
-      if (isPrimitiveElement()) {
-        expectedSubclasses = ImmutableList.<SimpleTypeDerivationBase>of();
-      } else {
-        @Nullable Iterable<TypeElement> expectedSubclassesType = findDeclaredSubclasses();
-        expectedSubclasses =
-            expectedSubclassesType != null
-                ? toMarshaledTypeDerivations(expectedSubclassesType)
-                : ImmutableList.<SimpleTypeDerivationBase>of();
-      }
-    }
-    return expectedSubclasses;
-  }
-
-  @Nullable
-  private Iterable<TypeElement> findDeclaredSubclasses() {
-    if (element.getAnnotation(Json.Subclasses.class) != null) {
-      return listExpectedSubclassesFromElement(element);
-    }
-    ensureTypeIntrospected();
-    if (containedTypeElement != null) {
-      return listExpectedSubclassesFromElement(containedTypeElement);
-    }
-    return null;
-  }
-
-  private List<SimpleTypeDerivationBase> toMarshaledTypeDerivations(Iterable<TypeElement> elements) {
-    List<SimpleTypeDerivationBase> derivations = Lists.newArrayList();
-    for (TypeElement element : elements) {
-      Optional<Protoclass> protoclass = containingType.round.definedValueProtoclassFor(element);
-      if (protoclass.isPresent()) {
-        if (protoclass.get().declaringType().get().hasAnnotation(Json.Marshaled.class)) {
-          derivations.add(new SimpleTypeDerivationBase(protoclass.get()));
+  public List<String> getExpectedSubtypes() {
+    if (expectedSubtypes == null) {
+      ensureTypeIntrospected();
+      if (!isPrimitiveElement()) {
+        TypeElement supertypeElement = MoreObjects.firstNonNull(containedSecondaryTypeElement, containedTypeElement);
+        Optional<ExpectedSubtypesMirror> annotationOnAttribute = ExpectedSubtypesMirror.find(element);
+        if (annotationOnAttribute.isPresent()) {
+          expectedSubtypes = ImmutableList.copyOf(annotationOnAttribute.get().valueName());
+          if (expectedSubtypes.isEmpty()) {
+            expectedSubtypes = tryFindSubtypes(supertypeElement);
+          }
+        } else {
+          Optional<ExpectedSubtypesMirror> annotationOnType = ExpectedSubtypesMirror.find(supertypeElement);
+          if (annotationOnType.isPresent()) {
+            expectedSubtypes = ImmutableList.copyOf(annotationOnType.get().valueName());
+            if (expectedSubtypes.isEmpty()) {
+              expectedSubtypes = tryFindSubtypes(supertypeElement);
+            }
+          }
         }
       }
+      if (expectedSubtypes == null) {
+        expectedSubtypes = ImmutableList.of();
+      }
     }
-    return ImmutableList.copyOf(derivations);
+    return expectedSubtypes;
   }
 
-  /**
-   * used to derive type name, using package prefix and simple name, it's expected that prefix of
-   * suffix will be added to a type name
-   */
-  public static final class SimpleTypeDerivationBase {
-    public final String packaged;
-    public final String name;
-
-    SimpleTypeDerivationBase(Protoclass protoclass) {
-      this.packaged = protoclass.packageOf().asPrefix();
-      this.name = protoclass.createTypeNames().raw;
+  private ImmutableList<String> tryFindSubtypes(TypeElement supertypeElement) {
+    ValueType surroundingType =
+        MoreObjects.firstNonNull(containingType.enclosingValue, containingType);
+    Set<ValueType> subtypes =
+        surroundingType.getCases().knownSubtypesOf(supertypeElement.getQualifiedName().toString());
+    ImmutableList.Builder<String> builder = ImmutableList.builder();
+    for (ValueType valueType : subtypes) {
+      builder.add(valueType.typeAbstract().toString());
     }
-  }
-
-  private static FluentIterable<TypeElement> listExpectedSubclassesFromElement(Element element) {
-    return FluentIterable.from(
-        ValueType.extractedTypesFromAnnotationMirrors(
-            Json.Subclasses.class.getCanonicalName(),
-            "value",
-            element.getAnnotationMirrors()))
-        .transform(Proto.DeclatedTypeToElement.FUNCTION);
+    return builder.build();
   }
 
   public boolean isGenerateJdkOnly() {
@@ -460,12 +439,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return generateOrdinalValueSet;
   }
 
+/*
   public boolean isDocumentElement() {
     ensureTypeIntrospected();
     return containedTypeElement != null
         && containedTypeElement.getAnnotation(Mongo.Repository.class) != null;
   }
-
+*/
   public boolean isArrayType() {
     return typeKind.isArray();
   }
@@ -511,10 +491,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
               if (typeSecondArgument instanceof DeclaredType) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
-                @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
-                marshaledSecondaryElement = generateMarshaler != null ? typeElement : null;
-                specialMarshaledSecondaryElement =
-                    asSpecialMarshaledElement(marshaledSecondaryElement, typeElement);
+                this.containedSecondaryTypeElement = typeElement;
               }
             }
 
@@ -535,10 +512,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       TypeElement typeElement = (TypeElement) ((DeclaredType) typeMirror).asElement();
 
       this.containedTypeElement = typeElement;
-
-      @Nullable Json.Marshaled generateMarshaler = typeElement.getAnnotation(Json.Marshaled.class);
-      marshaledElement = generateMarshaler != null ? typeElement : null;
-      specialMarshaledElement = asSpecialMarshaledElement(marshaledElement, typeElement);
     }
 
     intospectTypeMirror(typeMirror);
@@ -548,17 +521,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind;
   }
 
-  static boolean isRegularMarshalableType(String name) {
+  private static boolean isRegularMarshalableType(String name, boolean couldBeWrapped) {
     return String.class.getName().equals(name)
-        || isPrimitiveOrWrapped(name);
+        || (couldBeWrapped ? isPrimitiveOrWrapped(name) : isPrimitiveType(name));
   }
 
   public boolean isRequiresMarshalingAdapter() {
-    return !isRegularMarshalableType(getElementType());
+    return !isRegularMarshalableType(getElementType(), isContainerType());
   }
 
   public boolean isRequiresMarshalingSecondaryAdapter() {
-    return isMapLike() && !isRegularMarshalableType(getSecondaryElementType());
+    return isMapLike() && !isRegularMarshalableType(getSecondaryElementType(), true);
   }
 
   /**
@@ -658,81 +631,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return getConstructorParameterOrder() >= 0;
   }
 
-  public boolean isSpecialMarshaledElement() {
-    ensureTypeIntrospected();
-    return specialMarshaledElement != null;
-  }
-
-  public boolean isSpecialMarshaledSecondaryElement() {
-    ensureTypeIntrospected();
-    return specialMarshaledSecondaryElement != null;
-  }
-
-  public boolean isMarshaledElement() {
-    if (isPrimitive()) {
-      return false;
-    }
-    ensureTypeIntrospected();
-    return marshaledElement != null;
-  }
-
-  public boolean isMarshaledSecondaryElement() {
-    ensureTypeIntrospected();
-    return marshaledSecondaryElement != null;
-  }
-
   public boolean isPrimitiveElement() {
     return isPrimitiveType(getUnwrappedElementType());
-  }
-
-  private TypeElement asSpecialMarshaledElement(@Nullable TypeElement marshaled, TypeElement element) {
-    if (marshaled != null) {
-      return marshaled;
-    }
-    if (!isRegularMarshalableType(element.getQualifiedName().toString())) {
-      return element;
-    }
-    return null;
-  }
-
-  Collection<SimpleTypeDerivationBase> getMarshaledImportRoutines() {
-    Collection<TypeElement> imports = Lists.newArrayListWithExpectedSize(2);
-    if (isMarshaledElement()) {
-      imports.add(marshaledElement);
-    }
-    if (isMapType() && isMarshaledSecondaryElement()) {
-      imports.add(marshaledSecondaryElement);
-    }
-    return toMarshaledTypeDerivations(imports);
-  }
-
-  Collection<String> getSpecialMarshaledTypes() {
-    Collection<String> marshaledTypeSet = Lists.newArrayListWithExpectedSize(2);
-    if (isSpecialMarshaledElement()) {
-      String typeName = isContainerType()
-          ? getUnwrappedElementType()
-          : getType();
-
-      marshaledTypeSet.add(typeName);
-    }
-    if (isMapType() && isSpecialMarshaledSecondaryElement()) {
-      marshaledTypeSet.add(specialMarshaledSecondaryElement.getQualifiedName().toString());
-    }
-    return marshaledTypeSet;
   }
 
   public boolean isAuxiliary() {
     return AuxiliaryMirror.isPresent(element);
   }
 
-  @Deprecated
-  public boolean isMarshaledIgnore() {
-    ensureTypeIntrospected();
-    return isMarshaledElement();
+  private boolean isMarkedAdMongoId() {
+    return IdMirror.isPresent(element);
   }
 
   boolean isIdAttribute() {
-    return getMarshaledName().equals(ID_ATTRIBUTE_NAME);
+    return isMarkedAdMongoId() || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
   /** Initialized Validates things that were not validated otherwise */
