@@ -28,7 +28,6 @@ import com.google.gson.reflect.*;
 
 import javax.annotation.*;
 import java.io.IOException;
-// Generated imports
 
 /**
  * Gson TypeAdapterFactory that handle all the immutable types generated under {@code [simpleName]}.

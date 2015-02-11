@@ -17,7 +17,6 @@ Use @Mongo.Repository to annotate @Value.Immutable abstract value types
 package [type.package];
 [/if]
 
-// Generated imports
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import org.immutables.mongo.repository.Repositories;
@@ -34,7 +33,7 @@ import com.google.gson.reflect.TypeToken;
  * from the MongoDB collection {@code "[type.documentName]"}.
  */
 @SuppressWarnings("all")
-@javax.annotation.Generated({"Repositories.generator", "[type.name]"})
+@javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
 [type.typeAbstract.access]final class [type.name]Repository extends Repositories.Repository<[type.typeAbstract]> {
@@ -58,7 +57,7 @@ import com.google.gson.reflect.TypeToken;
    * @param document [toLower type.name] to insert
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
-  public FluentFuture<Integer> insert([type.name] document) {
+  public FluentFuture<Integer> insert([type.typeAbstract] document) {
     return super.doInsert(com.google.common.collect.ImmutableList.of(document));
   }
 
@@ -67,7 +66,7 @@ import com.google.gson.reflect.TypeToken;
    * @param documents documents to insert
    * @return future of number of inserted documents if WriteConcern allows.
    */
-  public FluentFuture<Integer> insert(Iterable<? extends [type.name]> documents) {
+  public FluentFuture<Integer> insert(Iterable<? extends [type.typeAbstract]> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
 
@@ -111,7 +110,7 @@ import com.google.gson.reflect.TypeToken;
    * @param document [toLower type.name] to upsert
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
-  public FluentFuture<Integer> upsert([type.name] document) {
+  public FluentFuture<Integer> upsert([type.typeAbstract] document) {
     Criteria byId = where().[a.name](document.[a.names.get]());
     return super.doUpsert(byId.constraint, document);
   }
@@ -187,7 +186,7 @@ public Finder find(Criteria criteria) {
  * @see [type.name]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Finder extends Repositories.Finder<[type.name], Finder> {
+public static final class Finder extends Repositories.Finder<[type.typeAbstract], Finder> {
   private final Serialization serialization;
 
   private Finder([type.name]Repository repository, Constraints.ConstraintHost criteria) {
@@ -235,7 +234,7 @@ public Indexer index() {
  * @see DBCollection#ensureIndex(DBObject, DBObject)
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Indexer extends Repositories.Indexer<[type.name], Indexer> {
+public static final class Indexer extends Repositories.Indexer<[type.typeAbstract], Indexer> {
   private final Serialization serialization;
 
   private Indexer([type.name]Repository repository) {
@@ -282,7 +281,7 @@ public Updater update(Criteria criteria) {
  * update operation on a set of documents.
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Updater extends Repositories.Updater<[type.name]> {
+public static final class Updater extends Repositories.Updater<[type.typeAbstract]> {
   private final Serialization serialization;
 
   private Updater([type.name]Repository repository, Criteria criteria) {
@@ -297,7 +296,7 @@ public static final class Updater extends Repositories.Updater<[type.name]> {
 [template generateModifier Type type]
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Modifier extends Repositories.Modifier<[type.name], Modifier> {
+public static final class Modifier extends Repositories.Modifier<[type.typeAbstract], Modifier> {
   private final Serialization serialization;
 
   private Modifier(

@@ -30,7 +30,7 @@
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if classpath.available 'javax.annotation.Generated']
-@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract]"})
 [/if]
 [/if]
 [/template]
