@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.repository.internal;
+package org.immutables.mongo.repository.internal;
 
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -26,6 +25,8 @@ import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedBytes;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonWriter;
 import com.mongodb.DBCallback;
 import com.mongodb.DBCollection;
 import com.mongodb.DBDecoder;
@@ -54,8 +55,6 @@ import org.bson.BSONObject;
 import org.bson.BasicBSONDecoder;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
-import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.repository.internal.RepositorySupport.UnmarshalableWrapper;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
@@ -81,18 +80,18 @@ public final class BsonEncoding {
    * Although it may seem that re-parsing is bizarre, but it is one [of not so many] ways to do
    * proper marshaling. This kind of inefficiency will only hit query constraints that have many
    * object with custom marshaling, which considered to be a rare case.
-   * @param marshalableValue the value in a marshalable wrapper
+   * @param adapted adapted value that know how to write itself to {@link JsonWriter}
    * @return object converted to MongoDB driver's {@link BSONObject}.
    */
-  public static Object unwrapBsonable(RepositorySupport.MarshalableWrapper marshalableValue) {
+  public static Object unwrapBsonable(Support.Adapted<?> adapted) {
     try {
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       BsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
-      generator.writeStartObject();
-      generator.writeFieldName(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
-      marshalableValue.marshalWrapped(generator);
-      generator.writeEndObject();
-      generator.close();
+      BsonWriter writer = new BsonWriter(generator);
+      writer.beginObject().name(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
+      adapted.write(writer);
+      writer.endObject();
+      writer.close();
       BSONObject object = new BasicBSONDecoder().readObject(outputStream.toByteArray());
       return object.get(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
     } catch (IOException ex) {
@@ -100,9 +99,9 @@ public final class BsonEncoding {
     }
   }
 
-  public static DBObject unwrapJsonable(UnmarshalableWrapper value) {
+  public static DBObject unwrapJsonable(String json) {
     try {
-      JsonParser parser = JSON_FACTORY.createParser(value.toString());
+      JsonParser parser = JSON_FACTORY.createParser(json);
       parser.nextToken();
       ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
       BsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
@@ -116,13 +115,13 @@ public final class BsonEncoding {
     }
   }
 
-  public static <T> T unmarshalDbObject(DBObject dbObject, Marshaler<T> marshaler) throws IOException {
+  public static <T> T unmarshalDbObject(DBObject dbObject, TypeAdapter<T> adaper) throws IOException {
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     encoder().writeObject(buffer, dbObject);
-    JsonParser parser = BSON_FACTORY.createParser(buffer.toByteArray());
-    parser.nextToken();
-    T instance = marshaler.unmarshalInstance(parser);
-    parser.close();
+    BsonParser parser = BSON_FACTORY.createParser(buffer.toByteArray());
+    BsonReader reader = new BsonReader(parser);
+    T instance = adaper.read(reader);
+    reader.close();
     return instance;
   }
 
@@ -130,7 +129,7 @@ public final class BsonEncoding {
     final OutputBuffer buffer;
     int count;
 
-    public CountingOutputBufferStream(OutputBuffer buffer) {
+    CountingOutputBufferStream(OutputBuffer buffer) {
       this.buffer = buffer;
     }
 
@@ -167,12 +166,12 @@ public final class BsonEncoding {
     }
   }
 
-  public static <T> DBObject wrapUpdateObject(T instance, Marshaler<T> marshaler) {
-    return new UpdateObject<T>(instance, marshaler);
+  public static <T> DBObject wrapUpdateObject(T instance, TypeAdapter<T> adaper) {
+    return new UpdateObject<>(instance, adaper);
   }
 
-  public static <T> List<DBObject> wrapInsertObjectList(ImmutableList<T> list, Marshaler<T> marshaler) {
-    return new InsertObjectList<T>(list, marshaler);
+  public static <T> List<DBObject> wrapInsertObjectList(ImmutableList<T> list, TypeAdapter<T> adaper) {
+    return new InsertObjectList<>(list, adaper);
   }
 
   interface WritableObjectPosition {
@@ -184,19 +183,19 @@ public final class BsonEncoding {
   private static class UpdateObject<T> implements DBObject, WritableObjectPosition {
 
     private final T instance;
-    private final Marshaler<T> marshaler;
+    private final TypeAdapter<T> adaper;
 
-    UpdateObject(T instance, Marshaler<T> marshaler) {
+    UpdateObject(T instance, TypeAdapter<T> adaper) {
       this.instance = instance;
-      this.marshaler = marshaler;
+      this.adaper = adaper;
     }
 
     @Override
     public int writeCurrent(OutputBuffer buffer) throws IOException {
       CountingOutputBufferStream outputStream = new CountingOutputBufferStream(buffer);
-      JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
-      marshaler.marshalInstance(generator, instance);
-      generator.close();
+      BsonWriter writer = new BsonWriter(BSON_FACTORY.createGenerator(outputStream));
+      adaper.write(writer, instance);
+      writer.close();
       return outputStream.count;
     }
 
@@ -264,23 +263,23 @@ public final class BsonEncoding {
     private final ImmutableList<T> list;
     private int position;
     @Nullable
-    private JsonGenerator generator;
+    private JsonWriter writer;
 
     private CountingOutputBufferStream outputStream;
-    private final Marshaler<T> marshaler;
+    private final TypeAdapter<T> adaper;
 
-    InsertObjectList(ImmutableList<T> list, Marshaler<T> marshaler) {
+    InsertObjectList(ImmutableList<T> list, TypeAdapter<T> adaper) {
       this.list = list;
-      this.marshaler = marshaler;
+      this.adaper = adaper;
     }
 
     @Override
     public int writeCurrent(OutputBuffer buffer) throws IOException {
       createGeneratorIfNecessary(buffer);
       int previousByteCount = outputStream.count;
-      marshaler.marshalInstance(generator, list.get(position));
+      adaper.write(writer, list.get(position));
       if (isLastPosition()) {
-        closeGenerator();
+        closeWriter();
       }
       return outputStream.count - previousByteCount;
     }
@@ -288,23 +287,23 @@ public final class BsonEncoding {
     @Override
     public int writePlainCurrent(OutputBuffer buffer) throws IOException {
       CountingOutputBufferStream outputStream = new CountingOutputBufferStream(buffer);
-      JsonGenerator generator = BSON_FACTORY.createGenerator(outputStream);
-      marshaler.marshalInstance(generator, list.get(position));
-      generator.close();
+      BsonWriter writer = new BsonWriter(BSON_FACTORY.createGenerator(outputStream));
+      adaper.write(writer, list.get(position));
+      writer.close();
       return outputStream.count;
     }
 
-    private void closeGenerator() throws IOException {
-      if (generator != null) {
-        generator.close();
-        generator = null;
+    private void closeWriter() throws IOException {
+      if (writer != null) {
+        writer.close();
+        writer = null;
       }
     }
 
     private void createGeneratorIfNecessary(OutputBuffer buffer) throws IOException {
-      if (generator == null) {
+      if (writer == null) {
         outputStream = new CountingOutputBufferStream(buffer);
-        generator = BSON_FACTORY.createGenerator(outputStream);
+        writer = new BsonWriter(BSON_FACTORY.createGenerator(outputStream));
       }
     }
 
@@ -491,12 +490,11 @@ public final class BsonEncoding {
     }
     // Safe as long as caller will use same T for decoder and unwrap
     @SuppressWarnings("unchecked") List<T> results = ((ResultDecoder<T>) result.get(0)).results;
-
     return ImmutableList.copyOf(results);
   }
 
-  public static <T> DBDecoderFactory newResultDecoderFor(Marshaler<T> marshaler, int expectedSize) {
-    return new ResultDecoder<T>(marshaler, expectedSize);
+  public static <T> DBDecoderFactory newResultDecoderFor(TypeAdapter<T> adaper, int expectedSize) {
+    return new ResultDecoder<>(adaper, expectedSize);
   }
 
   /**
@@ -505,7 +503,7 @@ public final class BsonEncoding {
    * Extending buffered input stream
    * to prevent excessive wraping in another buffered stream by {@link BsonParser}
    */
-  static final class ObjectBufferInputStream extends BufferedInputStream {
+  private static final class ObjectBufferInputStream extends BufferedInputStream {
     private byte[] buffer;
     private int position;
     private int limit;
@@ -565,24 +563,24 @@ public final class BsonEncoding {
     }
   }
 
-  private static class ResultDecoder<T> implements DBDecoderFactory, DBDecoder, DBObject {
+  private static final class ResultDecoder<T> implements DBDecoderFactory, DBDecoder, DBObject {
     final List<T> results;
-    private final Marshaler<T> marshaler;
+    private final TypeAdapter<T> adaper;
     @Nullable
-    private BsonParser parser;
+    private BsonReader parser;
 
     private final ObjectBufferInputStream bufferStream = new ObjectBufferInputStream(2012);
 
-    public ResultDecoder(Marshaler<T> marshaler, int expectedSize) {
-      this.marshaler = marshaler;
+    ResultDecoder(TypeAdapter<T> adaper, int expectedSize) {
+      this.adaper = adaper;
       this.results = Lists.newArrayListWithExpectedSize(expectedSize);
     }
 
-    public BsonParser createParserIfNecessary() throws IOException {
+    private BsonReader createParserIfNecessary() throws IOException {
       if (parser != null) {
         parser.close();
       }
-      parser = BSON_FACTORY.createParser(bufferStream);
+      parser = new BsonReader(BSON_FACTORY.createParser(bufferStream));
       return parser;
     }
 
@@ -590,9 +588,8 @@ public final class BsonEncoding {
     public DBObject decode(InputStream inputStream, DBCollection collection) throws IOException {
       bufferStream.resetObjectFrom(inputStream);
       createParserIfNecessary();
-      parser.nextToken();
-      T unmarshaledObject = marshaler.unmarshalInstance(parser);
-      results.add(unmarshaledObject);
+      T object = adaper.read(parser);
+      results.add(object);
       return this;
     }
 

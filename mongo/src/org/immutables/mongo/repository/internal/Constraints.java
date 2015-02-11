@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.repository.internal;
+package org.immutables.mongo.repository.internal;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.*;
 
-public final class ConstraintSupport {
-  private ConstraintSupport() {}
+public final class Constraints {
+  private Constraints() {}
 
   private static final CharMatcher NON_LITERAL_REGEX_CHARACTERS = CharMatcher.anyOf("\\^$[]().*+").precomputed();
 

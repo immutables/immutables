@@ -13,8 +13,10 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.concurrent;
+package org.immutables.mongo.concurrent;
 
+import org.immutables.mongo.concurrent.FluentFuture;
+import org.immutables.mongo.concurrent.FluentFutures;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import java.util.concurrent.atomic.AtomicInteger;

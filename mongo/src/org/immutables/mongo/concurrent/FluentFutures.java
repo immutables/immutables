@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.concurrent;
+package org.immutables.mongo.concurrent;
 
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
@@ -87,12 +87,12 @@ public final class FluentFutures {
       if (this.executor == executor) {
         return this;
       }
-      return new WrapingFluentFuture<V>(delegate(), executor);
+      return new WrapingFluentFuture<>(delegate(), executor);
     }
 
     @Override
     public <T> FluentFuture<T> lazyTransform(Function<? super V, ? extends T> function) {
-      return new LazyTransformedFluentFuture<T, V>(this, function, executor);
+      return new LazyTransformedFluentFuture<>(this, function, executor);
     }
   }
 
@@ -145,6 +145,6 @@ public final class FluentFutures {
     if (future instanceof FluentFuture<?>) {
       return (FluentFuture<V>) future;
     }
-    return new WrapingFluentFuture<V>(future, MoreExecutors.directExecutor());
+    return new WrapingFluentFuture<>(future, MoreExecutors.directExecutor());
   }
 }

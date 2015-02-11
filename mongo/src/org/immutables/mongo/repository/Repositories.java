@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2014 Immutables Authors and Contributors
+   Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.repository;
+package org.immutables.mongo.repository;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.Futures;
+import com.google.gson.Gson;
+import com.google.gson.TypeAdapter;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -32,14 +32,12 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import org.immutables.common.concurrent.FluentFuture;
-import org.immutables.common.concurrent.FluentFutures;
-import org.immutables.common.marshal.Marshaler;
-import org.immutables.common.repository.internal.BsonEncoding;
-import org.immutables.common.repository.internal.ConstraintSupport;
-import org.immutables.common.time.TimeMeasure;
+import org.immutables.mongo.concurrent.FluentFuture;
+import org.immutables.mongo.concurrent.FluentFutures;
+import org.immutables.mongo.repository.internal.BsonEncoding;
+import org.immutables.mongo.repository.internal.Constraints;
 import static com.google.common.base.Preconditions.*;
-import static org.immutables.common.repository.internal.RepositorySupport.*;
+import static org.immutables.mongo.repository.internal.Support.*;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that
@@ -53,25 +51,6 @@ public final class Repositories {
   private Repositories() {}
 
   /**
-   * Call methods on Criteria to add constraint for search query.
-   * As each constraint that is added, new immutable criteria created and returned. {@code Criteria}
-   * objects are immutable so they can be passed along when needed in situations
-   * such as when you need to separate how you choose documents from how you process them.
-   * <p>
-   * Constraints keeps adding up as using 'AND' condition and could be separated in 'OR' blocks
-   * using {@link #or()} method, and ultimately, these blocks form a so called disjunctive normal
-   * form. Such approach (DNF) was taken to achieve fine power/expressiveness balance in criteria
-   * DSL embedded into Java language.
-   */
-  public static abstract class Criteria {
-    /**
-     * Returns chained criteria handle used to "OR" new constraint set to form logical DNF.
-     * @return disjunction separated criteria handle
-     */
-    public abstract Criteria or();
-  }
-
-  /**
    * Base abstract class for repositories.
    * @param <T> type of document
    */
@@ -80,15 +59,19 @@ public final class Repositories {
 
     private final RepositorySetup configuration;
     private final String collectionName;
-    private final Marshaler<T> marshaler;
+    private final TypeAdapter<T> adapter;
 
     protected Repository(
         RepositorySetup configuration,
         String collectionName,
-        Marshaler<T> marshaler) {
+        Class<T> type) {
       this.configuration = checkNotNull(configuration);
       this.collectionName = checkNotNull(collectionName);
-      this.marshaler = checkNotNull(marshaler);
+      this.adapter = configuration.gson.getAdapter(type);
+    }
+
+    protected final Gson getGson() {
+      return configuration.gson;
     }
 
     private DBCollection collection() {
@@ -108,8 +91,8 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Void> doIndex(
-        final ConstraintSupport.Constraint fields,
-        final ConstraintSupport.Constraint options) {
+        final Constraints.Constraint fields,
+        final Constraints.Constraint options) {
       return submit(new Callable<Void>() {
         @Override
         public Void call() {
@@ -130,7 +113,7 @@ public final class Repositories {
         public WriteResult call() {
           DBCollection collection = collection();
           return collection.insert(
-              BsonEncoding.wrapInsertObjectList(documents, marshaler),
+              BsonEncoding.wrapInsertObjectList(documents, adapter),
               collection.getWriteConcern(),
               BsonEncoding.encoder());
         }
@@ -138,10 +121,10 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Optional<T>> doModify(
-        final ConstraintSupport.ConstraintHost criteria,
-        final ConstraintSupport.Constraint ordering,
-        final ConstraintSupport.Constraint exclusion,
-        final ConstraintSupport.Constraint update,
+        final Constraints.ConstraintHost criteria,
+        final Constraints.Constraint ordering,
+        final Constraints.Constraint exclusion,
+        final Constraints.Constraint update,
         final boolean upsert,
         final boolean newOrOld,
         final boolean remove) {
@@ -163,7 +146,7 @@ public final class Repositories {
               upsert);
 
           if (result != null) {
-            return Optional.of(BsonEncoding.unmarshalDbObject(result, marshaler));
+            return Optional.of(BsonEncoding.unmarshalDbObject(result, adapter));
           }
 
           return Optional.absent();
@@ -172,8 +155,8 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Integer> doUpdate(
-        final ConstraintSupport.ConstraintHost criteria,
-        final ConstraintSupport.Constraint update,
+        final Constraints.ConstraintHost criteria,
+        final Constraints.Constraint update,
         final boolean upsert,
         final boolean multiple) {
       checkArgument(!multiple || !upsert);
@@ -194,7 +177,7 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Integer> doDelete(
-        final ConstraintSupport.ConstraintHost criteria) {
+        final Constraints.ConstraintHost criteria) {
       checkNotNull(criteria);
       return submit(new Callable<WriteResult>() {
         @Override
@@ -208,7 +191,7 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Integer> doUpsert(
-        final ConstraintSupport.ConstraintHost criteria,
+        final Constraints.ConstraintHost criteria,
         final T document) {
       checkNotNull(criteria);
       checkNotNull(document);
@@ -218,7 +201,7 @@ public final class Repositories {
           DBCollection collection = collection();
           return collection.update(
               extractDbObject(criteria),
-              BsonEncoding.wrapUpdateObject(document, marshaler),
+              BsonEncoding.wrapUpdateObject(document, adapter),
               true,
               false,
               collection.getWriteConcern(),
@@ -228,9 +211,9 @@ public final class Repositories {
     }
 
     protected final FluentFuture<List<T>> doFetch(
-        final @Nullable ConstraintSupport.ConstraintHost criteria,
-        final ConstraintSupport.Constraint ordering,
-        final ConstraintSupport.Constraint exclusion,
+        final @Nullable Constraints.ConstraintHost criteria,
+        final Constraints.Constraint ordering,
+        final Constraints.Constraint exclusion,
         final @Nonnegative int skip,
         final @Nonnegative int limit) {
       return submit(new Callable<List<T>>() {
@@ -263,13 +246,33 @@ public final class Repositories {
             }
           }
 
-          cursor.setDecoderFactory(BsonEncoding.newResultDecoderFor(marshaler, expectedSize));
+          cursor.setDecoderFactory(BsonEncoding.newResultDecoderFor(adapter, expectedSize));
 
           List<DBObject> array = cursor.toArray();
           return BsonEncoding.unwrapResultObjectList(array);
         }
       });
     }
+  }
+
+  /**
+   * Call methods on Criteria to add constraint for search query.
+   * As each constraint that is added, new immutable criteria created and returned. {@code Criteria}
+   * objects are immutable so they can be passed along when needed in situations
+   * such as when you need to separate how you choose documents from how you process them.
+   * <p>
+   * Constraints keeps adding up as using 'AND' condition and could be separated in 'OR' blocks
+   * using {@link #or()} method, and ultimately, these blocks form a so called disjunctive normal
+   * form. Such approach (DNF) was taken to achieve fine power/expressiveness balance in criteria
+   * DSL embedded into Java language.
+   */
+  @ThreadSafe
+  public static abstract class Criteria {
+    /**
+     * Returns chained criteria handle used to "OR" new constraint set to form logical DNF.
+     * @return disjunction separated criteria handle
+     */
+    public abstract Criteria or();
   }
 
   @NotThreadSafe
@@ -284,27 +287,27 @@ public final class Repositories {
   @NotThreadSafe
   static abstract class UpdatatingOperation<T> extends Operation<T> {
     @Nullable
-    protected ConstraintSupport.ConstraintHost criteria;
-    protected ConstraintSupport.Constraint setFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint setOnInsertFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint incrementFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint addToSetFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint pushFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint pullFields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint unsetFields = ConstraintSupport.nilConstraint();
+    protected Constraints.ConstraintHost criteria;
+    protected Constraints.Constraint setFields = Constraints.nilConstraint();
+    protected Constraints.Constraint setOnInsertFields = Constraints.nilConstraint();
+    protected Constraints.Constraint incrementFields = Constraints.nilConstraint();
+    protected Constraints.Constraint addToSetFields = Constraints.nilConstraint();
+    protected Constraints.Constraint pushFields = Constraints.nilConstraint();
+    protected Constraints.Constraint pullFields = Constraints.nilConstraint();
+    protected Constraints.Constraint unsetFields = Constraints.nilConstraint();
 
     protected UpdatatingOperation(Repository<T> repository) {
       super(repository);
     }
 
-    protected ConstraintSupport.Constraint collectRequiredUpdate() {
-      ConstraintSupport.Constraint update = collectUpdate();
+    protected Constraints.Constraint collectRequiredUpdate() {
+      Constraints.Constraint update = collectUpdate();
       checkState(!update.isNil());
       return update;
     }
 
-    protected ConstraintSupport.Constraint collectUpdate() {
-      ConstraintSupport.Constraint update = ConstraintSupport.nilConstraint();
+    protected Constraints.Constraint collectUpdate() {
+      Constraints.Constraint update = Constraints.nilConstraint();
       update = appendFields(update, "$set", setFields);
       update = appendFields(update, "$setOnInsert", setOnInsertFields);
       update = appendFields(update, "$inc", incrementFields);
@@ -315,10 +318,10 @@ public final class Repositories {
       return update;
     }
 
-    private ConstraintSupport.Constraint appendFields(
-        ConstraintSupport.Constraint fields,
+    private Constraints.Constraint appendFields(
+        Constraints.Constraint fields,
         String name,
-        ConstraintSupport.Constraint setOfFields) {
+        Constraints.Constraint setOfFields) {
       return !setOfFields.isNil() ? fields.equal(name, false, setOfFields) : fields;
     }
   }
@@ -372,8 +375,8 @@ public final class Repositories {
    */
   @NotThreadSafe
   public static abstract class Modifier<T, M extends Modifier<T, M>> extends UpdatatingOperation<T> {
-    protected ConstraintSupport.Constraint ordering = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint exclusion = ConstraintSupport.nilConstraint();
+    protected Constraints.Constraint ordering = Constraints.nilConstraint();
+    protected Constraints.Constraint exclusion = Constraints.nilConstraint();
 
     private boolean returnNewOrOld;
 
@@ -447,8 +450,8 @@ public final class Repositories {
    */
   @NotThreadSafe
   public static abstract class Indexer<T, I extends Indexer<T, I>> extends Operation<T> {
-    protected ConstraintSupport.Constraint fields = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint options = ConstraintSupport.nilConstraint();
+    protected Constraints.Constraint fields = Constraints.nilConstraint();
+    protected Constraints.Constraint options = Constraints.nilConstraint();
 
     protected Indexer(Repository<T> repository) {
       super(repository);
@@ -482,15 +485,13 @@ public final class Repositories {
      * removed when TTL will expire.
      * <p>
      * <em>Note: Care should be taken to configure TTL only on single time instant field</em>
-     * @param timeToLive time to live for an object, non-zero time in seconds required.
+     * @param timeToLiveSeconds time to live for an object, non-zero time in seconds required.
      * @return {@code this} indexer for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
-    public final I expireAfterSeconds(TimeMeasure timeToLive) {
-      Preconditions.checkArgument(timeToLive.toSeconds() < 1,
-          "unsupported precision for TTL, non-zero time in seconds required");
-      options = options.equal("expireAfterSeconds", false, Ints.checkedCast(timeToLive.toSeconds()));
+    public final I expireAfterSeconds(int timeToLiveSeconds) {
+      options = options.equal("expireAfterSeconds", false, timeToLiveSeconds);
       return (I) this;
     }
 
@@ -515,9 +516,9 @@ public final class Repositories {
     private int numberToSkip;
 
     @Nullable
-    protected ConstraintSupport.ConstraintHost criteria;
-    protected ConstraintSupport.Constraint ordering = ConstraintSupport.nilConstraint();
-    protected ConstraintSupport.Constraint exclusion = ConstraintSupport.nilConstraint();
+    protected Constraints.ConstraintHost criteria;
+    protected Constraints.Constraint ordering = Constraints.nilConstraint();
+    protected Constraints.Constraint exclusion = Constraints.nilConstraint();
 
     protected Finder(Repository<T> repository) {
       super(repository);
@@ -596,7 +597,7 @@ public final class Repositories {
     public FluentFuture<Optional<T>> deleteFirst() {
       checkState(numberToSkip == 0, "Cannot use .skip() with .deleteFirst()");
       return repository.doModify(
-          criteria, ordering, exclusion, ConstraintSupport.nilConstraint(), false, false, true);
+          criteria, ordering, exclusion, Constraints.nilConstraint(), false, false, true);
     }
   }
 }

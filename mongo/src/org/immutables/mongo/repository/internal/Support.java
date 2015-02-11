@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.common.repository.internal;
+package org.immutables.mongo.repository.internal;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -24,6 +23,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonWriter;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.QueryOperators;
@@ -35,29 +36,31 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BSONObject;
-import org.immutables.common.repository.Repositories;
-import org.immutables.common.repository.internal.ConstraintSupport.ConstraintVisitor;
+import org.immutables.mongo.repository.Repositories;
+import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
 
 /**
  * Routines and classes used by generated code and bridging code in {@link Repositories}
  */
-public final class RepositorySupport {
-  private RepositorySupport() {}
+public final class Support {
+  private Support() {}
 
-  public static DBObject extractDbObject(final ConstraintSupport.ConstraintHost fields) {
-    if (fields instanceof UnmarshalableWrapper) {
-      return BsonEncoding.unwrapJsonable((UnmarshalableWrapper) fields);
+  public static DBObject extractDbObject(final Constraints.ConstraintHost fields) {
+    if (fields instanceof JsonQuery) {
+      return BsonEncoding.unwrapJsonable(((JsonQuery) fields).value);
     }
-    BasicDBObject asDbObject = fields.accept(new ConstraintBuilder("")).asDbObject();
-    return asDbObject;
+    return fields.accept(new ConstraintBuilder("")).asDbObject();
   }
 
-  public static String stringify(final ConstraintSupport.ConstraintHost constraints) {
+  public static String stringify(final Constraints.ConstraintHost constraints) {
+    if (constraints instanceof JsonQuery) {
+      return ((JsonQuery) constraints).value;
+    }
     return extractDbObject(constraints).toString();
   }
 
   @NotThreadSafe
-  public static class ConstraintBuilder implements ConstraintSupport.ConstraintVisitor<ConstraintBuilder> {
+  public static class ConstraintBuilder implements Constraints.ConstraintVisitor<ConstraintBuilder> {
 
     private final String keyPrefix;
     private BasicDBObject constraints;
@@ -78,8 +81,7 @@ public final class RepositorySupport {
 
     private void addContraint(String name, Object constraint) {
       String path = keyPrefix.concat(name);
-      @Nullable
-      Object existingConstraint = constraints.get(path);
+      @Nullable Object existingConstraint = constraints.get(path);
       if (existingConstraint != null) {
         constraints.put(path, mergeConstraints(path, constraint, existingConstraint));
       } else {
@@ -141,8 +143,8 @@ public final class RepositorySupport {
     }
 
     private static final String[][] comparisonOperators = {
-        { QueryOperators.LT, QueryOperators.LTE },
-        { QueryOperators.GT, QueryOperators.GTE }
+        {QueryOperators.LT, QueryOperators.LTE},
+        {QueryOperators.GT, QueryOperators.GTE}
     };
 
     private Object negateConstraint(boolean negate, Object constraint) {
@@ -175,7 +177,7 @@ public final class RepositorySupport {
     }
 
     @Override
-    public ConstraintBuilder nested(String name, ConstraintSupport.ConstraintHost nestedConstraints) {
+    public ConstraintBuilder nested(String name, Constraints.ConstraintHost nestedConstraints) {
       constraints.putAll((BSONObject) nestedConstraints.accept(newBuilderForKey(name)).asDbObject());
       return this;
     }
@@ -183,7 +185,7 @@ public final class RepositorySupport {
     @Override
     public ConstraintBuilder disjunction() {
       if (disjunction == null) {
-        disjunction = new ArrayList<BasicDBObject>(4);
+        disjunction = new ArrayList<>(4);
         disjunction.add(constraints);
       }
       constraints = new BasicDBObject();
@@ -201,8 +203,41 @@ public final class RepositorySupport {
     }
   }
 
-  public static Object wrapString(String query, Object... parameters) {
-    return new UnmarshalableWrapper(query, parameters);
+  public static Constraints.ConstraintHost jsonQuery(String query) {
+    return new JsonQuery(query);
+  }
+
+  public static <T> Object writable(TypeAdapter<T> adapter, T value) {
+    return new Adapted<>(adapter, value);
+  }
+
+  public static Object writable(Object value) {
+    return value;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends Comparable<T>> Range<Comparable<Object>> writable(TypeAdapter<T> adapter, Range<T> range) {
+    if (range.hasLowerBound() && range.hasUpperBound()) {
+      return Range.range(
+          (Comparable<Object>) writable(adapter, range.lowerEndpoint()),
+          range.lowerBoundType(),
+          (Comparable<Object>) writable(adapter, range.upperEndpoint()),
+          range.upperBoundType());
+    } else if (range.hasLowerBound()) {
+      return Range.downTo(
+          (Comparable<Object>) writable(adapter, range.lowerEndpoint()),
+          range.lowerBoundType());
+    } else if (range.hasUpperBound()) {
+      return Range.upTo(
+          (Comparable<Object>) writable(adapter, range.upperEndpoint()),
+          range.upperBoundType());
+    }
+    throw new AssertionError();
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T extends Comparable<T>> Range<Comparable<Object>> writable(Range<T> range) {
+    return (Range<Comparable<Object>>) writable((Object) range);
   }
 
   public static Object unwrapBsonable(Object value) {
@@ -217,8 +252,8 @@ public final class RepositorySupport {
       return ImmutableList.copyOf(unwrapBsonableIterable((Iterable<?>) value));
     }
 
-    if (value instanceof ConstraintSupport.ConstraintHost) {
-      return extractDbObject((ConstraintSupport.ConstraintHost) value);
+    if (value instanceof Constraints.ConstraintHost) {
+      return extractDbObject((Constraints.ConstraintHost) value);
     }
 
     if (value == null
@@ -228,48 +263,49 @@ public final class RepositorySupport {
       return value;
     }
 
-    if (value instanceof MarshalableWrapper) {
-      return BsonEncoding.unwrapBsonable((MarshalableWrapper) value);
+    if (value instanceof Adapted<?>) {
+      return BsonEncoding.unwrapBsonable((Adapted<?>) value);
     }
 
     return String.valueOf(value);
   }
 
-  public static class UnmarshalableWrapper implements ConstraintSupport.ConstraintHost {
+  private static class JsonQuery implements Constraints.ConstraintHost {
     private final String value;
-    private final Object[] parameters;
 
-    public UnmarshalableWrapper(String value, Object[] parameters) {
+    JsonQuery(String value) {
       this.value = value;
-      this.parameters = parameters;
     }
 
     @Override
     public String toString() {
-      return parameters.length == 0
-          ? value
-          : String.format(value, parameters);
+      return value;
     }
 
     @Override
     public <V extends ConstraintVisitor<V>> V accept(V visitor) {
-      throw new UnsupportedOperationException();
+      throw new UnsupportedOperationException(
+          "Satisfied ConstraintSupport.ConstraintHost only for technical reasons and don't implements accept");
     }
   }
 
-  public static abstract class MarshalableWrapper implements Comparable<MarshalableWrapper> {
-    private final Object value;
+  static final class Adapted<T> implements Comparable<Adapted<T>> {
+    private final T value;
+    private final TypeAdapter<T> adapter;
 
-    protected MarshalableWrapper(Object value) {
+    Adapted(TypeAdapter<T> adapter, T value) {
+      this.adapter = adapter;
       this.value = value;
     }
 
-    protected abstract void marshalWrapped(JsonGenerator generator) throws IOException;
+    void write(JsonWriter writer) throws IOException {
+      adapter.write(writer, value);
+    }
 
     @SuppressWarnings("unchecked")
     @Override
-    public int compareTo(MarshalableWrapper o) {
-      return ((Comparable<Object>) value).compareTo(o.value);
+    public int compareTo(Adapted<T> o) {
+      return ((Comparable<T>) value).compareTo(o.value);
     }
 
     @Override

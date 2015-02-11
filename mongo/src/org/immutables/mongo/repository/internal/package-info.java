@@ -1,5 +1,5 @@
 /*
-    Copyright 2013-2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,4 +14,4 @@
    limitations under the License.
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package org.immutables.common.repository.internal;
+package org.immutables.mongo.repository.internal;
