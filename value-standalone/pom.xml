@@ -55,6 +55,10 @@
                   <shadedPattern>org.immutables.value.internal.$thirdparty$</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>org.immutables.value.ext</pattern>
+                  <shadedPattern>org.immutables.value.internal.$ext$</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.immutables.value.processor</pattern>
                   <shadedPattern>org.immutables.value.internal.$processor$</shadedPattern>
                 </relocation>

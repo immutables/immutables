@@ -64,6 +64,21 @@ public final class Output {
     }
   };
 
+  public final Templates.Invokable system = new Templates.Invokable() {
+    @Override
+    @Nullable
+    public Invokable invoke(Invokation invokation, Object... parameters) {
+      String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
+      System.out.println(message);
+      return null;
+    }
+
+    @Override
+    public int arity() {
+      return 1;
+    }
+  };
+
   public final Templates.Invokable trim = new Templates.Fragment(1) {
     @Override
     public void run(Invokation invokation) {
