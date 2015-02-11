@@ -7,7 +7,7 @@
     <groupId>org.immutables</groupId>
     <version>2.0-SNAPSHOT</version>
   </parent>
-  <artifactId>gson</artifactId>
+  <artifactId>immutables-gson</artifactId>
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Gson integration for Immutables. Also includes optional integration with Jackson to speed-up
@@ -42,6 +42,13 @@
       <!-- Jackson used to speedup Gson's streaming if performance absolutely matters -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
+      <version>2.5.0</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <!-- Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
       <version>2.5.0</version>
       <optional>true</optional>
     </dependency>

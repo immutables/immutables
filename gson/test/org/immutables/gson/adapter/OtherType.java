@@ -1,4 +1,4 @@
-package org.immutables.gson.adapters;
+package org.immutables.gson.adapter;
 
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
@@ -11,7 +11,7 @@ import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
 @Value.Nested
-@Gson.TypeAdapted
+@Gson.TypeAdapters
 public interface OtherType {
 
   @Value.Parameter

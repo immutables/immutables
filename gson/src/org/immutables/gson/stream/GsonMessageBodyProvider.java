@@ -15,14 +15,6 @@
  */
 package org.immutables.gson.stream;
 
-import org.immutables.value.Value.Style.ImplementationVisibility;
-import java.lang.reflect.Field;
-import org.immutables.value.Value;
-import java.util.List;
-import javax.ws.rs.core.Response;
-import com.google.common.base.Throwables;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -39,20 +31,26 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
 import javax.annotation.Nullable;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import org.immutables.metainf.Metainf;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Gson serialization provider for JAX-RS 1.0 and JAX-RS 2.0.

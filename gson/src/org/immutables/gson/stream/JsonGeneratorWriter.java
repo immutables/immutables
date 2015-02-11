@@ -15,11 +15,12 @@
  */
 package org.immutables.gson.stream;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.concurrent.Callable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * {@link JsonWriter} impementation backed by Jackson's {@link JsonGenerator}.
@@ -27,8 +28,7 @@ import java.io.Writer;
  * Error reporting is might differ, however.
  */
 @NotThreadSafe
-public class JsonGeneratorWriter extends JsonWriter {
-
+public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGenerator> {
   private static final Writer UNSUPPORTED_WRITER = new Writer() {
     @Override
     public void write(char[] cbuf, int off, int len) throws IOException {
@@ -51,6 +51,10 @@ public class JsonGeneratorWriter extends JsonWriter {
   public JsonGeneratorWriter(JsonGenerator generator) {
     super(UNSUPPORTED_WRITER);
     this.generator = generator;
+  }
+
+  public JsonGenerator getGenerator() {
+    return generator;
   }
 
   @Override
@@ -144,5 +148,15 @@ public class JsonGeneratorWriter extends JsonWriter {
   @Override
   public String toString() {
     return getClass().getSimpleName();
+  }
+
+  /**
+   * Implements {@link Callable} mostly as a marker interface.
+   * Better use {@link #getGenerator()} to get generator.
+   * @return unwrapped {@link JsonGenerator}
+   */
+  @Override
+  public JsonGenerator call() throws Exception {
+    return generator;
   }
 }

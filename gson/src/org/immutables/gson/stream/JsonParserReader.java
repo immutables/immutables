@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.stream;
 
+import java.util.concurrent.Callable;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -27,10 +28,10 @@ import static com.fasterxml.jackson.core.JsonToken.*;
 /**
  * {@link JsonReader} impementation backed by Jackson's {@link JsonParser}.
  * Provides measurable JSON parsing improvements over Gson's native implementation.
- * Error reporting is might differ, however.
+ * Error reporting might differ, however.
  */
 @NotThreadSafe
-public class JsonParserReader extends JsonReader {
+public class JsonParserReader extends JsonReader implements Callable<JsonParser> {
 
   private static final Reader UNSUPPORTED_READER = new Reader() {
     @Override
@@ -49,6 +50,10 @@ public class JsonParserReader extends JsonReader {
   public JsonParserReader(JsonParser parser) {
     super(UNSUPPORTED_READER);
     this.parser = parser;
+  }
+
+  public JsonParser getParser() {
+    return parser;
   }
 
   @Nullable
@@ -130,6 +135,7 @@ public class JsonParserReader extends JsonReader {
     clearPeek();
     return value;
   }
+
   @Override
   public boolean nextBoolean() throws IOException {
     requirePeek();
@@ -216,7 +222,17 @@ public class JsonParserReader extends JsonReader {
     case VALUE_STRING:
       return JsonToken.STRING;
     default: // Not semantically equivalent
-      return JsonToken.END_DOCUMENT;
+      return JsonToken.NULL;
     }
+  }
+
+  /**
+   * Implements {@link Callable} mostly as a marker interface.
+   * Better use {@link #getParser()} to get parser.
+   * @return unwrapped {@link JsonParser}
+   */
+  @Override
+  public JsonParser call() throws Exception {
+    return parser;
   }
 }

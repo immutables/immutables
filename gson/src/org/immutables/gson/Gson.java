@@ -1,5 +1,23 @@
+/*
+    Copyright 2015 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
 package org.immutables.gson;
 
+import java.util.Map;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.FieldNamingStrategy;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 import java.lang.annotation.Documented;
@@ -7,36 +25,83 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.immutables.gson.adapter.ExpectedSubtypesAdapter;
+import org.immutables.gson.adapter.FieldNamingTranslator;
 
+/**
+ * The Interface Gson.
+ */
 @Retention(RetentionPolicy.SOURCE)
 public @interface Gson {
   /**
-   * Use on a top level class to generate type adapted factory.
+   * Use on a top level class to generate type adapted factory supporting directly annotated and all
+   * nested immutable types.
    * <p>
-   * Type adapter factories are also registered statically as services
-   * {@code META-INF/services/com.google.gson.TypeAdapterFactory}. Easy way to configure
-   * {@link com.google.gson.Gson}.
+   * Type adapter factories are registered statically as services
+   * {@code META-INF/services/com.google.gson.TypeAdapterFactory}. The most easy way to register all
+   * such factories {@link com.google.gson.Gson}.
    * <p>
-   * Certain are gson options are supported for immutable objects in deliberate fashion:
+   * Certain Gson options are supported for immutable objects in deliberate fashion:
    * <ul>
    * <li>{@link GsonBuilder#serializeNulls()} - When enabled, {@code null} fields and empty array
    * fields will be included, otherwise omited</li>
+   * <li>{@link GsonBuilder#setFieldNamingStrategy(FieldNamingStrategy)} - Naming strategy could be
+   * used if {@code @TypeAdapters(fieldNamingStrategy=true)}. See {@link #fieldNamingStrategy()} for
+   * more information.</li>
    * </ul>
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
   @Target({ElementType.TYPE})
-  public @interface TypeAdapted {}
+  public @interface TypeAdapters {
+    /**
+     * When {@code namingStrategy=true}, somewhat more involved code is generated to apply naming
+     * strategies extracted from configured {@link com.google.gson.Gson} instance.
+     * <p>
+     * <em>This functionality uses runtime support class and requires that this Gson integration module
+     * jar will be available at runtime. Uses some Gson internals which could
+     * potentially break in later versions of Gson library. Uses oracle JVM internals.
+     * If you really want to discuss this functionality to be more portable,
+     * file a request at {@linkplain "https://github.com/immutables/immutables/issues"}.
+     * </em>
+     * @see FieldNamingStrategy
+     * @see FieldNamingPolicy
+     * @see GsonBuilder#setFieldNamingPolicy(FieldNamingPolicy)
+     * @see FieldNamingTranslator
+     * @return {@code true} if enabled, by default is {@code false}
+     */
+    boolean fieldNamingStrategy() default false;
+
+    /**
+     * When {@code emptyAsNulls=true}, empty arrays and objects will be omitted from output as
+     * if they where {@code null}, both field name and value will be omited.
+     * <p>
+     * Note that {@code null} skipping behaviour is controlled by
+     * {@link GsonBuilder#serializeNulls()}, which forces all nulls and empty arrays/objects to be
+     * serialized.
+     * @return {@code true} if enabled, by default is {@code false}
+     */
+    boolean emptyAsNulls() default false;
+  }
 
   /**
-   * Expected subclasses for marshaling could be specified on attribute level or an abstract
-   * supertype directly, however the former declaration site has precedence.
+   * Expected subtypes for serialization could be specified on attribute level or an abstract
+   * supertype directly, however the former declaration site has precedence. It enables polymorphic
+   * marshaling by structure. Subtype that matches JSON value will be returned, for the details
+   * please see {@link ExpectedSubtypesAdapter}.
+   * <p>
+   * Note: when this annotation is used with {@link Map} attribute, it refers to types of values,
+   * not keys.
+   * <p>
+   * <em>This functionality uses runtime support class and requires that this Gson integration module
+   * jar will be available at runtime.</em>
+   * @see ExpectedSubtypesAdapter
    * @see #value()
    * @see Named
    */
   @Retention(RetentionPolicy.SOURCE)
   @Target({ElementType.METHOD, ElementType.TYPE})
-  public @interface Subtypes {
+  public @interface ExpectedSubtypes {
 
     /**
      * Specifies expected subclasses of an abstract type that is matched during parsing by

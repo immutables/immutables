@@ -1,4 +1,4 @@
-package org.immutables.gson.adapters;
+package org.immutables.gson.adapter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
