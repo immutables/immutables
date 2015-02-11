@@ -92,7 +92,7 @@ package [type.package];
 @javax.annotation.concurrent.Immutable
 [/if]
 [type.typeImmutable.access][if not topLevel]static [/if]final class [type.typeImmutable.simple]
-    [type.inheritsKeyword] `[type.typeAbstract] {
+    [type.inheritsKeyword] [type.typeAbstract] {
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
@@ -275,7 +275,7 @@ package [type.package];
  * Uses accessors to get values to initialize immutable instance.
  * If an instance is already immutable, it is returned as is.
  */
-[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied](`[type.typeAbstract] instance) {
+[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }

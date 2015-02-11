@@ -270,10 +270,8 @@ public final class Output {
       return false;
     }
 
-    @SuppressWarnings("deprecation")
     private CharSequence extractSourceCode() {
-      return LegacyJavaPostprocessing.rewrite(consumer.asCharSequence());
-      // return PostprocessingMachine.rewrite(consumer.asCharSequence());
+      return PostprocessingMachine.rewrite(consumer.asCharSequence());
     }
   }
 
