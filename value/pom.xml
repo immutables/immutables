@@ -10,8 +10,8 @@
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Annotations to generate immutable and other support classes. This artifact declares required dependencies for the
-    generated classes to be compiled.
+    Compile time annotations and compile time annotation processor to generate consistent value object using
+    either abstract class, interface or annotation as a base.
   </description>
 
   <artifactId>value</artifactId>
