@@ -17,6 +17,7 @@ package org.immutables.fixture.style;
 
 import java.util.Set;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Feature combination
@@ -27,6 +28,7 @@ import org.immutables.value.Value;
  */
 @Value.Immutable(copy = true)
 @Value.Style(
+    visibility = ImplementationVisibility.PUBLIC,
     get = {"extract*", "collect*"},
     typeAbstract = "Abstract*",
     typeImmutable = "*",

@@ -15,20 +15,23 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ordinal.ImmutableOrdinalSet;
 import com.google.common.collect.ImmutableMap;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.value.ordinal.ImmutableOrdinalSet;
+import org.junit.Test;
+import simple.GetterAnnotation;
+
+import javax.ws.rs.POST;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.POST;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
-import org.junit.Test;
-import simple.GetterAnnotation;
-import static org.immutables.check.Checkers.*;
+
+import static org.immutables.check.Checkers.check;
+import static org.immutables.check.Checkers.checkAll;
 
 public class ValuesTest {
 
@@ -60,12 +63,6 @@ public class ValuesTest {
     check(value.reverse()).isOf("z", "y", "b", "a");
     check(value.navigableMap().keySet()).isOf(1, 2);
     check(value.reverseMap().keySet()).isOf("b", "a");
-  }
-
-  @Test
-  public void nonpublic() {
-    check(Modifier.isPublic(PrimitiveDefault.class.getModifiers()));
-    check(!Modifier.isPublic(ImmutablePrimitiveDefault.class.getModifiers()));
   }
 
   @Test

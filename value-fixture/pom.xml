@@ -16,11 +16,11 @@
   </description>
 
   <dependencies>
-    <dependency>
+<!--<dependency>
       <groupId>org.immutables</groupId>
       <artifactId>common</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>technology</artifactId>
@@ -48,12 +48,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
+<!--     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
       <version>1.4.182</version>
       <scope>test</scope>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>org.parboiled</groupId>
       <artifactId>parboiled-java</artifactId>
