@@ -12,11 +12,13 @@ public @interface Mongo {
   /**
    * Abstract immutable classes annotated with this annotation will have repository generated to
    * store and retrieve documents from MongoDB collection named by class name or explicitly named as
-   * specified by {@link #value()}.
+   * specified by {@link #value()}. Repository classes are generated in the same package and are
+   * named after annotated value type: {@code [name_of_annotated_type]Repository}.
    * <p>
-   * {@link Repository} requires that gson type adapter is registerd on {@link Gson} instance.
-   * However, care should be taken for all attribute types to be recursively marshalable by being
-   * either built-in types or have type adapters registered.
+   * {@code @Gson.Repository} should only be used with value types annotated with
+   * {@code @Value.Immutable}. It also requires that gson type adapter is registerd on {@link Gson}
+   * instance. However, care should be taken for all attribute types to be recursively marshalable
+   * by being either built-in types or have type adapters registered.
    * <p>
    */
   @Documented
