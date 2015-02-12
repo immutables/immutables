@@ -2,6 +2,7 @@
 package org.immutables.generator;
 
 import com.google.common.base.Joiner;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -136,6 +137,22 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  @Ignore
+  public void javaLangInOriginalImports() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import java.lang.String;",
+        "class X {",
+        "  java.lang.String method(String s);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "class X {",
+        "  String method(String s);",
+        "}"));
+
+  }
+
+  @Test
   public void currentPackageImport() {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
@@ -158,6 +175,25 @@ public class PostprocessingMachineTest {
             "class Throwable extends start.Utils {",
             "  private class Utils {}",
             "}"));
+  }
+
+  @Test
+  @Ignore
+  public void currentPackageInOriginalImports() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "package my.pack;",
+        "import my.pack.Y;",
+        "class X {",
+        "  my.pack.Y method(Y s);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "package my.pack;",
+        "",
+        "class X {",
+        "  Y method(Y s);",
+        "}"));
+
   }
 
   @Test
@@ -191,6 +227,23 @@ public class PostprocessingMachineTest {
         "class X {",
         "  Set same(Set set);",
         "}"));
+  }
+
+  @Test
+  @Ignore
+  public void noConflictInDifferentPackages() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import my.other.Set;",
+        "class X {",
+        "  my.Set same(Set set);",
+        "}"));
+
+    check(rewrited).hasToString(LINES.join(
+        "import my.other.Set;",
+        "class X {",
+        "  my.Set same(Set set);",
+        "}"));
+
   }
 
   @Test
