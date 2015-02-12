@@ -3,7 +3,7 @@
     packageName = adapters.definedBy.packageOf.name,
     simpleName = adapters.definedBy.simpleName,
     String capitalizedSimpleName = toUpper simpleName,
-    String typeAdaptersName = (capitalizedSimpleName 'TypeAdapters')]
+    String typeAdaptersName = ('GsonAdapters' capitalizedSimpleName)]
 
 [output.java packageName typeAdaptersName]
 [generateTypeAdapters packageName simpleName typeAdaptersName adapters.types]
@@ -30,7 +30,7 @@ import javax.annotation.*;
 import java.io.IOException;
 
 /**
- * Gson TypeAdapterFactory that handle all the immutable types generated under {@code [simpleName]}.
+ * Gson {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
  [for v in allValues]
  * @see [v.typeValue.relative]
  [/for]
