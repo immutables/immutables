@@ -41,7 +41,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 public class Proto {
   private Proto() {}
 
-  @Value.Immutable(intern = true, builder = false)
+  @Value.Immutable(builder = false)
   public static abstract class MetaAnnotated {
     @Value.Parameter
     public abstract String name();
@@ -120,8 +120,7 @@ public class Proto {
 
     public abstract DeclaringPackage packageOf();
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
     protected Optional<IncludeMirror> include() {
       return IncludeMirror.find(element());
     }
@@ -130,8 +129,7 @@ public class Proto {
       return include().isPresent();
     }
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
     public Optional<TypeAdaptersMirror> typeAdapters() {
       return TypeAdaptersMirror.find(element());
     }
@@ -161,8 +159,7 @@ public class Proto {
       return typeElements.toList();
     }
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
     public Optional<StyleMirror> style() {
       Optional<StyleMirror> style = StyleMirror.find(element());
 
@@ -182,7 +179,7 @@ public class Proto {
     }
   }
 
-  @Value.Immutable(intern = true)
+  @Value.Immutable
   public static abstract class DeclaringPackage extends AbstractDeclaring {
 
     @Override
@@ -216,7 +213,7 @@ public class Proto {
     }
   }
 
-  @Value.Immutable(intern = true)
+  @Value.Immutable
   public static abstract class DeclaringType extends AbstractDeclaring {
     @Override
     @Value.Auxiliary
@@ -361,7 +358,7 @@ public class Proto {
    * Prototypical model for generated derived classes. {@code Protoclass} could be used to projects
    * different kind of derived classes.
    */
-  @Value.Immutable(intern = true)
+  @Value.Immutable
   public static abstract class Protoclass extends Diagnosable {
 
     @Value.Derived
