@@ -15,12 +15,13 @@
  */
 package org.immutables.gson.stream;
 
-import java.util.concurrent.Callable;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import static com.fasterxml.jackson.core.JsonToken.*;
@@ -178,6 +179,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   @Override
   public void close() throws IOException {
+    clearPeek();
     parser.close();
   }
 
@@ -234,5 +236,22 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   @Override
   public JsonParser call() throws Exception {
     return parser;
+  }
+
+  /**
+   * Reads current value including objects and array as effiecient token buffer.
+   * this method handles. Use of Jackson's own mechanisms is important to preserve custom elements
+   * such as special embedded objects in BSON or other data formats.
+   * @return {@link TokenBuffer}
+   * @throws IOException if error occured
+   */
+  public TokenBuffer nextTokenBuffer() throws IOException {
+    TokenBuffer buffer = new TokenBuffer(parser);
+    // if token is consumed, but undelying parser is still sitting on this token, we move forward
+    requirePeek();
+    buffer.copyCurrentStructure(parser);
+    // when we will return to reading from reader, state will be cleared and nextToken after
+    clearPeek();
+    return buffer;
   }
 }
