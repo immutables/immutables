@@ -315,7 +315,11 @@ public @interface Value {
   /**
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
-   * directly or serve as meta annotation.
+   * directly or serve as meta annotation. When used as meta-annotation, then annotation could
+   * be placed on a class, surrounding {@link Nested} class or even a package (declared in
+   * {@code package-info.java}). This
+   * annotation more of example of how to define your own styles as meta-annotation rather than a
+   * useful annotation.
    * <p>
    * <em>
    * Be careful to not use keywords or inappropriate characters as parts of naming templates.
@@ -331,16 +335,25 @@ public @interface Value {
   public @interface Style {
     /**
      * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
-     * mimick style of bean getters.
+     * mimick style of bean getters. If none specified or if none matches, then raw accessor name
+     * will be taken literally.
+     * <p>
+     * By default only {@code get*} prefix is recognized, along with falling back to use accessor
+     * name literally. It is up to you if you want to use "get" prefixes or not. Original author is
+     * leaning towards not using noisy prefixes for attributes in immutable objects, drawing
+     * similarity with annotation attributes, however usage of "get" is neither recommended, nor
+     * discouraged.
+     * <p>
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not how to derive name</em>
      * @return naming template
      */
-    String[] get() default {};
+    String[] get() default "get*";
 
     /**
      * Builder initialization method. i.e. "setter" in builder.
      * @return naming template
      */
-    String init() default "";
+    String init() default "*";
 
     /**
      * Modify-by-copy "with" method.
@@ -412,9 +425,13 @@ public @interface Value {
 
     /**
      * Naming templates to detect base/raw type name from provided abstract value type name.
+     * If none specified or if none matches, then raw type name will be taken literally the same as
+     * abstract value type name.
+     * <p>
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not how to derive name</em>
      * @return naming templates
      */
-    String[] typeAbstract() default {};
+    String[] typeAbstract() default "Abstract*";
 
     /**
      * Name template to generate immutable implementation type by using base/raw type name.
