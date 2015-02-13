@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 public abstract class SillySub2 extends SillyAbstract {
   public abstract String b();
 }

@@ -15,18 +15,18 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ext.Mongo;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
+import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @Mongo.Repository
-@Json.Marshaled
+@Gson.TypeAdapters
 public interface SillyStructureWithId {
 
-  @Json.Named("_id")
+  @Gson.Named("_id")
   String id();
 
   String attr1();

@@ -21,6 +21,7 @@ import org.immutables.value.Value;
 public class Type {
   @Value.Immutable
   interface Nested {
+    int a();
     @Value.Immutable
     static class Deeper {
       @Value.Immutable

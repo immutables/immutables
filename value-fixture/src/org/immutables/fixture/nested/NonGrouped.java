@@ -15,23 +15,21 @@
  */
 package org.immutables.fixture.nested;
 
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
+@Gson.TypeAdapters
 public abstract class NonGrouped {
 
   @Value.Immutable
-  @Json.Marshaled
   abstract static class Abra {}
 
   @Value.Immutable(builder = false)
-  @Json.Marshaled
   public interface Cadabra {
 
   }
 
   @Value.Immutable(builder = false)
-  @Json.Marshaled
   abstract static class Dabra {
     @Value.Parameter
     abstract int dabra();

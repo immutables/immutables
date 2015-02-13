@@ -17,24 +17,22 @@ package org.immutables.fixture;
 
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 public abstract class SillyDumb {
 
-  @Json.Named("a")
-  @Json.ForceEmpty
+  @Gson.Named("a")
   public abstract Optional<Integer> a1();
 
-  @Json.Named("b")
-  @Json.ForceEmpty
+  @Gson.Named("b")
   public abstract List<String> b2();
 
-  @Json.Named("c")
+  @Gson.Named("c")
   public abstract Optional<Integer> c3();
 
-  @Json.Named("d")
+  @Gson.Named("d")
   public abstract List<String> d4();
 }

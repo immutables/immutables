@@ -16,11 +16,6 @@
   </description>
 
   <dependencies>
-<!--<dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>common</artifactId>
-      <version>${project.version}</version>
-    </dependency> -->
     <dependency>
       <groupId>org.immutables.dependency</groupId>
       <artifactId>technology</artifactId>
@@ -40,6 +35,16 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value-ordinal</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>immutables-gson</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>immutables-mongo</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

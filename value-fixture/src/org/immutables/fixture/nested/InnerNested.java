@@ -15,17 +15,16 @@
  */
 package org.immutables.fixture.nested;
 
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
+@Gson.TypeAdapters
 @Value.Nested
 @Value.Immutable
 public interface InnerNested {
   @Value.Immutable
-  @Json.Marshaled
   abstract static class Inner {}
 
   @Value.Immutable
-  @Json.Marshaled
   interface Nested {}
 }

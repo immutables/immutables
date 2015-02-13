@@ -16,15 +16,15 @@
 package org.immutables.fixture;
 
 import java.util.List;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
-import org.immutables.value.ext.Json;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 public interface JsonIgnore {
   @Value.Parameter
   int value();
 
-  @Json.Ignore
+  @Gson.Ignore
   List<Integer> values();
 }

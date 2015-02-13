@@ -15,16 +15,15 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 import javax.annotation.Nullable;
 
 @Value.Immutable(singleton = true)
-@Json.Marshaled
+@Gson.TypeAdapters
 public abstract class HasNullable {
   @Nullable
   @Value.Parameter
-  @Json.ForceEmpty
   public abstract Integer in();
 
   @Nullable

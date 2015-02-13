@@ -16,11 +16,11 @@
 package org.immutables.fixture;
 
 import java.util.List;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 public abstract class SillySub3 extends SillyAbstract {
   public abstract List<Double> b();
 }

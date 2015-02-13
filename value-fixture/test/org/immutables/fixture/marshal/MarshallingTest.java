@@ -15,43 +15,28 @@
  */
 package org.immutables.fixture.marshal;
 
+import org.immutables.fixture.SillyStructure;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.CharMatcher;
-import com.google.common.collect.ImmutableList;
+import com.google.gson.reflect.TypeToken;
 import de.undercouch.bson4jackson.BsonFactory;
-import de.undercouch.bson4jackson.BsonGenerator;
+import java.util.List;
 import org.immutables.fixture.ImmutableHasNullable;
 import org.immutables.fixture.ImmutableJsonIgnore;
-import org.immutables.fixture.ImmutableSillyDumb;
 import org.immutables.fixture.ImmutableSillySub1;
 import org.immutables.fixture.ImmutableSillySub2;
 import org.immutables.fixture.ImmutableSillySub3;
 import org.immutables.fixture.JsonIgnore;
-import org.immutables.fixture.SillyDumb;
-import org.immutables.fixture.SillyDumbMarshaler;
-import org.immutables.fixture.SillyIntWrap;
-import org.immutables.fixture.SillyIntWrapMarshaler;
-import org.immutables.fixture.SillyMapHolder;
-import org.immutables.fixture.SillyMapHolderMarshaler;
-import org.immutables.fixture.SillyMapTup;
-import org.immutables.fixture.SillyMapTupMarshaler;
 import org.immutables.fixture.SillyPolyHost;
 import org.immutables.fixture.SillyPolyHost2;
-import org.immutables.fixture.SillyPolyHost2Marshaler;
-import org.immutables.fixture.SillyPolyHostMarshaler;
-import org.immutables.fixture.SillyStructure;
-import org.immutables.fixture.SillyStructureMarshaler;
 import org.immutables.fixture.SillySubstructure;
-import org.immutables.fixture.SillySubstructureMarshaler;
 import org.immutables.fixture.SillyTuplie;
-import org.immutables.fixture.SillyTuplieMarshaler;
 import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
-import org.immutables.fixture.routine.SillyRoutineImport;
-import org.immutables.fixture.routine.SillyRoutineImportMarshaler;
 import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 @SuppressWarnings("resource")
 public class MarshallingTest {
@@ -71,7 +56,6 @@ public class MarshallingTest {
   public void discoveredMarhaler() {
     SillySubstructure substructure =
         Marshaling.fromJson("{\"e1\":\"SOURCE\"}", SillySubstructure.class);
-
     check(substructure).not().isNull();
   }
 
@@ -85,7 +69,7 @@ public class MarshallingTest {
   @Test
   public void nullableMarshaling() {
     check(CharMatcher.WHITESPACE.removeFrom(Marshaling.toJson(ImmutableHasNullable.of())))
-        .is("{\"in\":null}");
+        .is("{}");
     check(Marshaling.fromJson("{}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of());
     check(Marshaling.fromJson("{\"in\":1}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of(1));
     check(Marshaling.fromJson("{\"def\":\"1\"}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of().withDef("1"));
@@ -100,54 +84,59 @@ public class MarshallingTest {
   }
 
   @Test
-  public void marshalingIterableMethods() throws IOException {
-    Marshaler<SillySubstructure> m = SillySubstructureMarshaler.instance();
-    ImmutableList<SillySubstructure> it =
-        fromJsonIterable("[{e1:'SOURCE'},{e1:'CLASS'},{e1:'RUNTIME'}]", m);
-
-    check(fromJsonIterable(toJsonIterable(it, m), m)).is(it);
-    check(fromBsonIterable(toBsonIterable(it, m), m)).is(it);
-
-    Marshaler<SillyTuplie> m2 = SillyTuplieMarshaler.instance();
-
-    ImmutableList<SillyTuplie> tuplies =
-        fromJsonIterable("[[1,null,[]],[2,null,[]]]", m2);
-
-    check(fromJsonIterable(toJsonIterable(tuplies, m2), m2)).is(tuplies);
-    check(fromBsonIterable(toBsonIterable(tuplies, m2), m2)).is(tuplies);
-  }
-
-  @Test
-  public void unmarshalingPolymorphicTypesList() throws IOException {
-    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
-
-    SillyPolyHost host = fromJsonIterable("[{ s:[{a:1},{b:'b'},{a:14}] }]", m).get(0);
-
+  public void unmarshalingPolymorphicTypes() {
+    SillyPolyHost host = Marshaling.fromJson("{ s:[{a:1},{b:'b'},{a:14}] }", SillyPolyHost.class);
     check(host.s()).isOf(
         ImmutableSillySub1.builder().a(1).build(),
         ImmutableSillySub2.builder().b("b").build(),
         ImmutableSillySub1.builder().a(14).build());
+
+    SillyPolyHost2 s1 = Marshaling.fromJson("{s:{b:[1,2]}}", SillyPolyHost2.class);
+    check(s1.s()).is(ImmutableSillySub3.builder().addB(1).addB(2).build());
+
+    SillyPolyHost2 s2 = Marshaling.fromJson("{s:{b:'b'}}", SillyPolyHost2.class);
+    check(s2.s()).is(ImmutableSillySub2.builder().b("b").build());
   }
 
   @Test
-  public void unmarshalingPolymorphicTypes() throws IOException {
-    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
-
-    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]}},{s:{b:'b'}}]", m);
-
-    check(list.get(0).s()).is(
-        ImmutableSillySub3.builder().addB(1).addB(2).build());
-
-    check(list.get(1).s()).is(
-        ImmutableSillySub2.builder().b("b").build());
+  public void marshalingPolymorphicTypesList() {
+    SillyPolyHost h = Marshaling.fromJson("{s:[{a:1},{b:'b'},{a:14}]}", SillyPolyHost.class);
+    check(Marshaling.fromJson(Marshaling.toJson(h), SillyPolyHost.class)).is(h);
   }
 
   @Test
-  public void marshalingPolymorphicTypesList() throws IOException {
-    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
-    ImmutableList<SillyPolyHost> list = fromJsonIterable("[{s:[{a:1},{b:'b'},{a:14}]}]", m);
+  public void marshalingIterableMethods() {
+    TypeToken<List<SillySubstructure>> m1 = new TypeToken<List<SillySubstructure>>() {};
+
+    List<SillySubstructure> it = fromJsonIterable("[{e1:'SOURCE'},{e1:'CLASS'},{e1:'RUNTIME'}]", m1);
+
+    check(fromJsonIterable(toJsonIterable(it, m1), m1)).is(it);
+    TypeToken<List<SillyTuplie>> m2 = new TypeToken<List<SillyTuplie>>() {};
+
+    List<SillyTuplie> tuplies = fromJsonIterable("[[1,null,[]],[2,null,[]]]", m2);
+    check(fromJsonIterable(toJsonIterable(tuplies, m2), m2)).is(tuplies);
+  }
+
+  @Test
+  public void marshalingPolymorphicOptionalTypes() {
+    TypeToken<List<SillyPolyHost2>> m = new TypeToken<List<SillyPolyHost2>>() {};
+    List<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]},o:{b:'b'}}]", m);
     check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
+    check(list.get(0).o()).isOf(ImmutableSillySub2.builder().b("b").build());
   }
+
+  @Test
+  public void marshalAndUnmarshalGeneratedType() {
+    SillyStructure structure =
+        Marshaling.fromJson("{attr1:'x', flag2:false,opt3:1, very4:33, wet5:555.55, subs6:null,"
+            + " nest7:{ set2:'METHOD', set3: [1,2,4],floats4:[333.11] },"
+            + "int9:0, tup3: [1212.441, null, [true,true,false]]}", SillyStructure.class);
+
+    check(Marshaling.fromJson(Marshaling.toJson(structure), SillyStructure.class)).is(structure);
+  }
+
+/*
+
 
   @Test
   public void marshalingPolymorphicTypes() throws IOException {
@@ -300,5 +289,13 @@ public class MarshallingTest {
     SillyStructureMarshaler.marshal(bsonGen, structure);
     bsonGen.close();
     return baos.toByteArray();
+  }*/
+
+  private <T> List<T> fromJsonIterable(String json, TypeToken<List<T>> typeToken) {
+    return Marshaling.getGson().fromJson(json, typeToken.getType());
+  }
+
+  private <T> String toJsonIterable(List<? extends T> list, TypeToken<List<T>> typeToken) {
+    return Marshaling.getGson().toJson(list, typeToken.getType());
   }
 }

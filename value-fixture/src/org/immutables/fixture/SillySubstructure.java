@@ -15,21 +15,21 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ext.Mongo;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
+import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 @Mongo.Repository
 public abstract class SillySubstructure {
 
   @Value.Default
-  @Json.Named("e1")
+  @Gson.Named("e1")
   public RetentionPolicy enum1() {
     return RetentionPolicy.SOURCE;
   }
