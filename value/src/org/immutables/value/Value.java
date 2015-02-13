@@ -270,8 +270,15 @@ public @interface Value {
   /**
    * Annotates method that should be invoked internally to validate invariants
    * after instance had been created, but before returned to a client.
-   * Annotated method must be protected parameter-less method and have a {@code void} return type,
+   * Annotated method must be parameter-less (non-private) method and have a {@code void} return
+   * type,
    * which also should not throw a checked exceptions.
+   * <p>
+   * Precondition checking should not be used to validate against context dependent business rules,
+   * but to preserve consistency and guarantee that instances will be usable. Precondition check
+   * methods runs when immutable object <em>instantiated and all attributes are initialized</em>,
+   * but <em>before returned to caller</em>. Any instance that failed precondition check is
+   * unreachable to caller due to runtime exception.
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
