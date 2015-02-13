@@ -90,8 +90,6 @@ public class Proto {
 
   @Value.Immutable
   abstract static class Environment {
-    private static final String STYLE_ANNOTATION = "org.immutables.value.Value.Style";
-
     @Value.Parameter
     abstract ProcessingEnvironment processing();
 
@@ -100,7 +98,20 @@ public class Proto {
 
     @Value.Derived
     StyleMirror defaultStyles() {
-      return StyleMirror.from(processing().getElementUtils().getTypeElement(STYLE_ANNOTATION));
+      TypeElement typeElement = processing()
+          .getElementUtils()
+          .getTypeElement(StyleMirror.qualifiedName());
+
+      return StyleMirror.from(typeElement);
+    }
+
+    @Value.Derived
+    TypeAdaptersMirror defaultTypeAdapters() {
+      TypeElement typeElement = processing()
+          .getElementUtils()
+          .getTypeElement(TypeAdaptersMirror.qualifiedName());
+
+      return TypeAdaptersMirror.from(typeElement);
     }
 
     ValueType composeValue(Protoclass protoclass) {
@@ -388,6 +399,39 @@ public class Proto {
      * @return declaring type
      */
     public abstract Optional<DeclaringType> declaringType();
+
+    @Value.Lazy
+    public Optional<RepositoryMirror> repository() {
+      Optional<RepositoryMirror> repositoryMirror =
+          kind().isDefinedValue() && declaringType().isPresent()
+              ? declaringType().get().repository()
+              : Optional.<RepositoryMirror>absent();
+
+      if (repositoryMirror.isPresent()
+          && !typeAdaptersProvider().isPresent()
+          && kind().isNested()) {
+        report().annotationNamed(RepositoryMirror.simpleName())
+            .error("@Mongo.%s should also have associated @Gson.%s on a top level type. For top level immutable adapters would be auto-added",
+                RepositoryMirror.simpleName(),
+                TypeAdaptersMirror.simpleName());
+      }
+
+      return repositoryMirror;
+    }
+
+    @Value.Lazy
+    public Optional<TypeAdaptersMirror> gsonTypeAdapters() {
+      Optional<AbstractDeclaring> typeAdaptersProvider = typeAdaptersProvider();
+      if (typeAdaptersProvider.isPresent()) {
+        return typeAdaptersProvider.get().typeAdapters();
+      }
+      if (kind().isDefinedValue()
+          && !kind().isNested()
+          && repository().isPresent()) {
+        return Optional.of(environment().defaultTypeAdapters());
+      }
+      return Optional.absent();
+    }
 
     @Value.Lazy
     public Optional<AbstractDeclaring> typeAdaptersProvider() {

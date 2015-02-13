@@ -26,18 +26,18 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
-import java.util.List;
-import java.util.concurrent.Callable;
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.BsonEncoding;
 import org.immutables.mongo.repository.internal.Constraints;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
+import java.util.concurrent.Callable;
 import static com.google.common.base.Preconditions.*;
-import static org.immutables.mongo.repository.internal.Support.*;
+import static org.immutables.mongo.repository.internal.Support.extractDbObject;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that

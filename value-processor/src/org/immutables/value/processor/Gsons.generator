@@ -66,7 +66,7 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 
 private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
   private static final TypeToken<[t]> [toConstant type.name]_ABSTRACT = TypeToken.get([t].class);
-  private static final TypeToken<[im]> [toConstant type.name]_IMMUTABLE =  TypeToken.get([im].class);
+  private static final TypeToken<[im]> [toConstant type.name]_IMMUTABLE = TypeToken.get([im].class);
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
   private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElemementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
@@ -173,7 +173,7 @@ private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
 if ([a.name]Value != null) {
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
-  out.writeNull();
+  out.nullValue();
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
@@ -181,7 +181,7 @@ if ([a.name]Optional.isPresent()) {
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.get();
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
-  out.writeNull();
+  out.nullValue();
 }
   [else if a.mapType]
 [a.type] [a.name]Mapping = instance.[a.names.get]();
@@ -201,7 +201,8 @@ out.endArray();
 out.beginObject();
   [if a.typeKind.multimapKind]
 for (java.util.Map.Entry<[a.wrappedElementType], java.util.Collection<[a.wrappedSecondaryElementType]>> e : [a.name]Mapping.asMap().entrySet()) {
-  out.name(e.getKey().toString());
+  [generateMarshalKey a]e.getKey()[/generateMarshalKey]
+  out.name(key);
   out.beginArray();
   for ([a.unwrappedSecondaryElementType] value : e.getValue()) {
     [generateWriteAttributeValue type a 'value' true]
@@ -211,13 +212,24 @@ for (java.util.Map.Entry<[a.wrappedElementType], java.util.Collection<[a.wrapped
   [else]
 for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> e : [a.name]Mapping.entrySet()) {
   [-- only use toString with objects and boxed primitives]
-  out.name(e.getKey().toString());
+  [generateMarshalKey a]e.getKey()[/generateMarshalKey]
+  out.name(key);
   [-- here we assign to a unwrapped variable so overload resolution will precise]
   [a.unwrappedSecondaryElementType] value = e.getValue();
   [generateWriteAttributeValue type a 'value' true]
 }
   [/if]
 out.endObject();
+[/template]
+
+[template generateMarshalKey Attribute a String expression]
+  [if a.unwrappedElementPrimitiveType]
+String key = String.valueOf([expression]);
+  [else if a.elementType eq 'java.lang.String']
+String key = [expression];
+  [else][if not a.requiresMarshalingAdapter][output.error]assertion: key write to string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
+String key = [a.name]TypeAdapter.toJsonTree([expression]).getAsString();
+  [/if]
 [/template]
 
 [template generateMarshalAttributeValue Type type Attribute a]
@@ -480,8 +492,8 @@ if (in.peek() == JsonToken.NULL) {
   [/if]
 [else if a.wrappedElementType eq 'java.lang.String']
     [a.wrappedElementType] key = rawKey;
-[else][if not a.requiresMarshalingSecondaryAdapter][output.error]assertion[/output.error][/if]
-    [a.wrappedElementType] key = [a.name]TypeAdapter.fromJson(rawKey);
+[else][if not a.requiresMarshalingAdapter][output.error]assertion: key read from string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
+    [a.wrappedElementType] key = [a.name]TypeAdapter.fromJsonTree(new JsonPrimitive(rawKey));
 [/if]
   [if a.typeKind.isMultimapKind]
     if (in.peek() == JsonToken.BEGIN_ARRAY) {
@@ -561,13 +573,13 @@ builder.[a.names.init](value);
   [if attribute.requiresMarshalingSecondaryAdapter]
 [genericType] value = [attribute.name]SecondaryTypeAdapter.read(in);
   [else]
-[genericType] value = [simpleTypeNext attribute.secondaryElementType];
+[attribute.unwrappedSecondaryElementType] value = [simpleTypeNext attribute.unwrappedSecondaryElementType];
   [/if]
 [else]
   [if attribute.requiresMarshalingAdapter]
 [genericType] value = [attribute.name]TypeAdapter.read(in);
   [else]
-[genericType] value = [simpleTypeNext attribute.elementType];
+[attribute.unwrappedElementType] value = [simpleTypeNext attribute.unwrappedElementType];
   [/if]
 [/if]
 [/template]
@@ -617,7 +629,7 @@ out.value([variableName]);
   requireChar(in.nextString())
 [else]
   requireChar("assertion")
-  [output.error]assertion[/output.error]
+  [output.error]assertion11[/output.error]
 [/if]
 [/output.trim][/template]
 

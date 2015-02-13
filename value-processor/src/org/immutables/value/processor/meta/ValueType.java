@@ -74,9 +74,7 @@ public final class ValueType extends TypeIntrospectionBase {
    * @return the type adapters annotation
    */
   public GsonMirrors.TypeAdapters gsonTypeAdapters() {
-    return constitution.protoclass()
-        .typeAdaptersProvider().get()
-        .typeAdapters().get();
+    return constitution.protoclass().gsonTypeAdapters().get();
   }
 
   public TypeNames names() {
@@ -161,9 +159,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateRepository() {
-    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
-    return declaringType.isPresent()
-        && declaringType.get().repository().isPresent();
+    return constitution.protoclass().repository().isPresent();
   }
 
   public boolean isAnnotationType() {

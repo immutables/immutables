@@ -22,16 +22,19 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
-
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import java.util.List;
-import java.util.Set;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -159,7 +162,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         return value;
       }
     }
-    if (isMarkedAdMongoId()) {
+    if (isMarkedAsMongoId()) {
       return ID_ATTRIBUTE_NAME;
     }
     return "";
@@ -636,12 +639,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return AuxiliaryMirror.isPresent(element);
   }
 
-  private boolean isMarkedAdMongoId() {
+  private boolean isMarkedAsMongoId() {
     return IdMirror.isPresent(element);
   }
 
   boolean isIdAttribute() {
-    return isMarkedAdMongoId() || ID_ATTRIBUTE_NAME.equals(getSerializedName());
+    return isMarkedAsMongoId()
+        || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
   /** Initialized Validates things that were not validated otherwise */

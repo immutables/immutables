@@ -16,11 +16,12 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
-import java.util.List;
+import org.immutables.value.processor.meta.Proto.Protoclass;
+
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.processor.meta.Proto.Protoclass;
+import java.util.List;
 
 final class FactoryMethodAttributesCollector {
   private final Protoclass protoclass;
@@ -37,10 +38,9 @@ final class FactoryMethodAttributesCollector {
   }
 
   void collect() {
-    ExecutableElement element = (ExecutableElement) protoclass.sourceElement();
-    List<? extends VariableElement> parameters = element.getParameters();
+    ExecutableElement factoryMethodElement = (ExecutableElement) protoclass.sourceElement();
 
-    for (VariableElement parameter : parameters) {
+    for (VariableElement parameter : factoryMethodElement.getParameters()) {
       TypeMirror returnType = parameter.asType();
 
       ValueAttribute attribute = new ValueAttribute();
@@ -49,8 +49,10 @@ final class FactoryMethodAttributesCollector {
       attribute.returnType = returnType;
       attribute.returnTypeName = returnType.toString();
 
-      attribute.element = element;
-      attribute.names = styles.forAccessor(attribute.element.getSimpleName().toString());
+      attribute.element = parameter;
+      String parameterName = parameter.getSimpleName().toString();
+      attribute.names = styles.forAccessorWithRaw(parameterName, parameterName);
+
       attribute.containingType = type;
       attributes.add(attribute);
     }
