@@ -63,6 +63,9 @@ final class PostprocessingMachine {
         break;
       case IMPORTS:
         nameMachine.nextChar(c, i, true);
+        if (!fullyNameMachine.isFinished()) {
+          fullyNameMachine.nextChar(c, i);
+        }
         if (nameMachine.isFound()) {
           classNameOccurrencesInImportBlock++;
           classNameFrom = nameMachine.classNameFrom;
@@ -74,7 +77,11 @@ final class PostprocessingMachine {
         }
         if (c == ';') {
           nextPartFrom = i + 2;
-          importsBuilder.addImport(content.subSequence(importFrom, i).toString());
+          importsBuilder.addOriginalImport(
+              content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
+              content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
+              content.subSequence(importFrom, i).toString());
+          fullyNameMachine.reset();
           state = State.UNDEFINED;
           importFrom = -1;
           importStarts = false;
@@ -233,6 +240,22 @@ final class PostprocessingMachine {
       importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName));
     }
 
+    void addImport(String importedPackage) {
+      imports.add(importedPackage);
+    }
+
+    void addOriginalImport(String name, String fullyName, String importedPackage) {
+      if ((JAVA_LANG + name).equals(fullyName)) {
+        return;
+      }
+
+      if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
+        return;
+      }
+
+      imports.add(importedPackage);
+    }
+
     void addToStopList(String name) {
       stopList.add(name);
     }
@@ -241,10 +264,6 @@ final class PostprocessingMachine {
       if (!stopList.contains(name)) {
         exceptions.add(name);
       }
-    }
-
-    void addImport(String importedPackage) {
-      imports.add(importedPackage);
     }
 
     void setCurrentPackage(String currentPackage) {

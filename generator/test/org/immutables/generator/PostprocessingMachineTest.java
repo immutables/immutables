@@ -137,7 +137,6 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  @Ignore
   public void javaLangInOriginalImports() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "import java.lang.String;",
@@ -178,7 +177,6 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  @Ignore
   public void currentPackageInOriginalImports() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "package my.pack;",
