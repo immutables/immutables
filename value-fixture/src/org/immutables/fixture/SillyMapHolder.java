@@ -18,16 +18,14 @@ package org.immutables.fixture;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.Set;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
-@Json.Import(SillyMarshalingRoutines.class)
+@Gson.TypeAdapters
 public abstract class SillyMapHolder {
 
   @Value.Parameter(order = 0)
-  @Json.ForceEmpty
   public abstract Map<SillyValue, Integer> holder1();
 
   @Value.Parameter(order = 1)

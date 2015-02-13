@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.Interners;
+import com.google.common.collect.Interner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
@@ -43,6 +45,21 @@ public abstract class Round {
   public abstract RoundEnvironment round();
 
   public abstract Set<TypeElement> annotations();
+
+  @Value.Derived
+  public Interner<Protoclass> protoclassInterner() {
+    return Interners.newStrongInterner();
+  }
+
+  @Value.Derived
+  public Interner<DeclaringPackage> packageInterner() {
+    return Interners.newStrongInterner();
+  }
+
+  @Value.Derived
+  public Interner<DeclaringType> typeInterner() {
+    return Interners.newStrongInterner();
+  }
 
   @Value.Derived
   ValueTypeComposer composer() {
@@ -144,45 +161,46 @@ public abstract class Round {
     }
 
     void collectDefinedBy(ExecutableElement element) {
-      DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
+      DeclaringType declaringType = typeInterner().intern(
+          ImmutableProto.DeclaringType.builder()
           .environment(environment())
           .element((TypeElement) element.getEnclosingElement())
-          .build();
+          .build());
 
       if (declaringType.verifiedFactory(element)) {
-        builder.add(ImmutableProto.Protoclass.builder()
+        builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
             .declaringType(declaringType)
             .kind(Kind.DEFINED_FACTORY)
-            .build());
+            .build()));
       }
     }
 
     void collectIncludedBy(PackageElement element) {
-      final DeclaringPackage declaringPackage = ImmutableProto.DeclaringPackage.builder()
+      final DeclaringPackage declaringPackage = packageInterner().intern(ImmutableProto.DeclaringPackage.builder()
           .environment(environment())
           .element(element)
-          .build();
+          .build());
 
       if (declaringPackage.hasInclude()) {
         for (TypeElement sourceElement : declaringPackage.includedTypes()) {
-          builder.add(ImmutableProto.Protoclass.builder()
+          builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
               .environment(environment())
               .packageOf(declaringPackage)
               .sourceElement(sourceElement)
               .kind(Kind.INCLUDED_IN_PACKAGE)
-              .build());
+              .build()));
         }
       }
     }
 
     void collectIncludedAndDefinedBy(TypeElement element) {
-      DeclaringType declaringType = ImmutableProto.DeclaringType.builder()
+      DeclaringType declaringType = typeInterner().intern(ImmutableProto.DeclaringType.builder()
           .environment(environment())
           .element(element)
-          .build();
+          .build());
 
       if (declaringType.hasInclude()) {
         Kind kind = declaringType.isEnclosing()
@@ -190,26 +208,26 @@ public abstract class Round {
             : Kind.INCLUDED_ON_TYPE;
 
         for (TypeElement sourceElement : declaringType.includedTypes()) {
-          builder.add(ImmutableProto.Protoclass.builder()
+          builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
               .environment(environment())
               .packageOf(declaringType.packageOf())
               .sourceElement(sourceElement)
               .declaringType(declaringType)
               .kind(kind)
-              .build());
+              .build()));
         }
       }
 
       if (declaringType.isImmutable() || declaringType.isEnclosing()) {
         Kind kind = kindOfDefinedBy(declaringType);
 
-        builder.add(ImmutableProto.Protoclass.builder()
+        builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
             .declaringType(declaringType)
             .kind(kind)
-            .build());
+            .build()));
       }
     }
 

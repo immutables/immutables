@@ -18,7 +18,7 @@ import [guava].base.Optional;
 import [guava].collect.ImmutableList;
 
 /**
- * [m.name]Mirror used to parse data of AnnotationMirror for annotation {@value #ANNOTATION_NAME}
+ * [m.name]Mirror used to parse data of AnnotationMirror for original annotation {@code [m.qualifiedName]}
  * during annotation processing. Interface is being described using {@link [m.element.qualifiedName]} annotation,
  * which should be structurally compatible to the annotation being modelled.
  * @see #find(Iterable)
@@ -26,7 +26,7 @@ import [guava].collect.ImmutableList;
  */
 @SuppressWarnings("all")
 public class [m.name]Mirror implements [m.element.qualifiedName] {
-  private static final String ANNOTATION_NAME = "[m.annotationTypeCommas]".replace(',', '.');
+  private static final String ANNOTATION_NAME = "[m.qualifiedName]";
 
   public static String qualifiedName() {
     return ANNOTATION_NAME;
@@ -145,7 +145,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
       if ("[a.name]".equals(name)) {
         AnnotationValue annotationValue = attributeElement.getDefaultValue();
         if (annotationValue == null) {
-          throw new IllegalStateException("All annotation attributes should have default value to create mirror of @" + ANNOTATION_NAME);
+          throw new IllegalStateException("All annotation attributes should have default value to create mirror of @[m.simpleName]");
         }
         [toUpper a.name]Extractor [a.name]Extractor = new [toUpper a.name]Extractor();
         annotationValue.accept([a.name]Extractor, null);
@@ -214,7 +214,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
           annotationValue = attributeElement.getDefaultValue();
         }
         if (annotationValue == null) {
-          throw new IllegalStateException("Annotation mirror contains no value (neither default) for '[a.name]' attribute of @" + ANNOTATION_NAME);
+          throw new IllegalStateException("Annotation mirror contains no value (neither default) for '[a.name]' attribute of @[m.simpleName]");
         }
         [toUpper a.name]Extractor [a.name]Extractor = new [toUpper a.name]Extractor();
         annotationValue.accept([a.name]Extractor, null);

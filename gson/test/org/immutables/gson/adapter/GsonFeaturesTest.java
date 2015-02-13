@@ -15,13 +15,13 @@ public class GsonFeaturesTest {
   final Gson gsonWithOptions = new GsonBuilder()
       .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
       .serializeNulls()
-      .registerTypeAdapterFactory(new SimpleTypeAdapters())
-      .registerTypeAdapterFactory(new UnsimpleTypeAdapters())
+      .registerTypeAdapterFactory(new GsonAdaptersSimple())
+      .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
       .create();
 
   final Gson gsonDefault = new GsonBuilder()
-      .registerTypeAdapterFactory(new SimpleTypeAdapters())
-      .registerTypeAdapterFactory(new UnsimpleTypeAdapters())
+      .registerTypeAdapterFactory(new GsonAdaptersSimple())
+      .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
       .create();
 
   @Test

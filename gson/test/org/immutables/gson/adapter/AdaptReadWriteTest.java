@@ -9,7 +9,7 @@ import static org.immutables.check.Checkers.*;
 public class AdaptReadWriteTest {
 
   private final Gson gson = new GsonBuilder()
-      .registerTypeAdapterFactory(new AdaptTypeAdapters())
+      .registerTypeAdapterFactory(new GsonAdaptersAdapt())
       .create();
 
   private final Adapt adapt =

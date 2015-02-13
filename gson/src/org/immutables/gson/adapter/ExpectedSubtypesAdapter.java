@@ -15,7 +15,6 @@
  */
 package org.immutables.gson.adapter;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -162,7 +161,7 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
   }
 
   /**
-   * Jackson buffer copy. Using Jackson's own mechanisms is important to preserve custom elements
+   * Jackson buffer copy. Use of Jackson's own mechanisms is important to preserve custom elements
    * such as special embedded objects in BSON or other data formats. Jackson classes should not leak
    * outside of this class, so when there's no Jackson available in classpath, it will still work
    * with default {@link JsonReaderSupplier}.
@@ -172,12 +171,7 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
 
     @SuppressWarnings("resource")
     JsonParserReaderSupplier(JsonReader in) throws IOException {
-      JsonParser parser = ((JsonParserReader) in).getParser();
-      buffer = new TokenBuffer(parser);
-      if (parser.getCurrentToken() == null) {
-        parser.nextToken();
-      }
-      buffer.copyCurrentStructure(parser);
+      buffer = ((JsonParserReader) in).nextTokenBuffer();
     }
 
     @Override

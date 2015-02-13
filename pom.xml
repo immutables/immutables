@@ -33,7 +33,7 @@
     <module>value-ordinal</module>
     <module>value-processor</module>
     <module>value-standalone</module>
-    <!-- <module>value-fixture</module> -->
+    <module>value-fixture</module>
     <module>gson</module>
     <module>mongo</module>
   </modules>

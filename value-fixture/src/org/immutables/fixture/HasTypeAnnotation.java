@@ -19,7 +19,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Target(ElementType.TYPE_USE)
@@ -28,8 +28,8 @@ import org.immutables.value.Value;
 @Target(ElementType.TYPE_USE)
 @interface TypeB {}
 
-@Value.Immutable
-@Json.Marshaled
+//FIXME @Value.Immutable
+//FIXME @Gson.TypeAdapters
 public abstract class HasTypeAnnotation {
   @Nullable
   public abstract @TypeA @TypeB String str();

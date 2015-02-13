@@ -77,6 +77,14 @@ public final class CachingElements {
     return new CachingAnnotationMirror(mirror);
   }
 
+  private static List<AnnotationMirror> asCaching(List<? extends AnnotationMirror> mirrors) {
+    List<AnnotationMirror> cachingMirrors = Lists.newArrayListWithCapacity(mirrors.size());
+    for (AnnotationMirror mirror : mirrors) {
+      cachingMirrors.add(new CachingAnnotationMirror(mirror));
+    }
+    return cachingMirrors;
+  }
+
   private interface Caching {
     Object delegate();
   }
@@ -245,7 +253,7 @@ public final class CachingElements {
     public List<? extends AnnotationMirror> getAnnotationMirrors() {
       List<? extends AnnotationMirror> ms = annotationMirrors;
       if (ms == null) {
-        ms = wrapCachingAnnotationMirrors(delegate.getAnnotationMirrors());
+        ms = asCaching(delegate.getAnnotationMirrors());
         annotationMirrors = ms;
       }
       return ms;
@@ -309,15 +317,6 @@ public final class CachingElements {
     @Override
     public <R, P> R accept(ElementVisitor<R, P> v, P p) {
       return delegate.accept(v, p);
-    }
-
-    private static List<? extends AnnotationMirror> wrapCachingAnnotationMirrors(
-        List<? extends AnnotationMirror> mirrors) {
-      List<AnnotationMirror> cachingMirrors = Lists.newArrayListWithCapacity(mirrors.size());
-      for (AnnotationMirror mirror : mirrors) {
-        cachingMirrors.add(new CachingAnnotationMirror(mirror));
-      }
-      return cachingMirrors;
     }
 
     @SuppressWarnings("unused")

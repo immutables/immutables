@@ -1,12 +1,12 @@
 package org.immutables.mirror.processor;
 
+import com.google.common.reflect.Reflection;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.mirror.Mirror;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
@@ -39,6 +39,7 @@ class Mirrors extends AbstractTemplate {
     final ImmutableList<AttributeModel> attributes;
     final String name;
     final String $$package;
+    final String qualifiedName;
 
     MirrorModel(TypeElement element) {
       this.element = element;
@@ -59,15 +60,11 @@ class Mirrors extends AbstractTemplate {
       }
 
       this.$$package = packageElement.getQualifiedName().toString();
-    }
-
-    String annotationTypeCommas() {
-      return element.getAnnotation(Mirror.Annotation.class).value().replace('.', ',');
+      this.qualifiedName = element.getAnnotation(Mirror.Annotation.class).value();
     }
 
     String simpleName() {
-      return Iterables.getLast(
-          Splitter.on('.').splitToList(element.getAnnotation(Mirror.Annotation.class).value()));
+      return Iterables.getLast(Splitter.on('.').splitToList(qualifiedName));
     }
 
     class AttributeModel {

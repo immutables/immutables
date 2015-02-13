@@ -20,8 +20,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapterFactory;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -30,6 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -175,6 +179,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       this.options = options;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void write(Gson gson, Type type, Object object, OutputStream stream) throws IOException {
       @Nullable JsonWriter writer = null;
@@ -183,8 +188,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
         writer = new JsonWriter(new BufferedWriter(new OutputStreamWriter(stream, CHARSET_NAME)));
         options.setWriterOptions(writer);
 
-        gson.toJson(object, type, writer);
-
+        gson.getAdapter((TypeToken<Object>) TypeToken.get(type)).write(writer, object);
       } catch (IOException ex) {
         wasOriginalException = true;
         throw ex;
@@ -205,20 +209,40 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object read(Gson gson, Type type, InputStream stream) throws IOException {
       @Nullable JsonReader reader = null;
       try {
-        reader = new JsonReader(new BufferedReader(new InputStreamReader(stream, CHARSET_NAME)));
+        reader = createJsonReader(new BufferedReader(new InputStreamReader(stream, CHARSET_NAME)));
         options.setReaderOptions(reader);
 
-        return gson.fromJson(reader, type);
-
+        return gson.getAdapter((TypeToken<Object>) TypeToken.get(type)).read(reader);
       } catch (IOException ex) {
         throw ex;
       } catch (Exception ex) {
         throw new IOException(ex);
       }
+    }
+
+    /** Forces creation of more strict in string reading if in !lenient mode */
+    private JsonReader createJsonReader(Reader reader) {
+      if (!options.lenient) {
+        return new JsonReader(reader) {
+          @Override
+          public String nextString() throws IOException {
+            JsonToken peeked = peek();
+            if (peeked == JsonToken.STRING) {
+              return super.nextString();
+            }
+            throw new JsonParseException(
+                String.format("In strict mode (!lenient) string read only from string literal, not %s. Path: %s",
+                    peeked,
+                    getPath()));
+          }
+        };
+      }
+      return new JsonReader(reader);
     }
   }
 
@@ -233,6 +257,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       this.options = options;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void write(Gson gson, Type type, Object object, OutputStream stream) throws IOException {
       @Nullable JsonGeneratorWriter writer = null;
@@ -245,8 +270,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
         writer = new JsonGeneratorWriter(generator);
         options.setWriterOptions(writer);
 
-        gson.toJson(object, type, writer);
-
+        gson.getAdapter((TypeToken<Object>) TypeToken.get(type)).write(writer, object);
       } catch (IOException ex) {
         wasOriginalException = true;
         throw ex;
@@ -267,15 +291,14 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Object read(Gson gson, Type type, InputStream stream) throws IOException {
       @Nullable JsonReader reader = null;
       try {
         reader = new JsonParserReader(JSON_FACTORY.createParser(stream));
         options.setReaderOptions(reader);
-
-        return gson.fromJson(reader, type);
-
+        return gson.getAdapter((TypeToken<Object>) TypeToken.get(type)).read(reader);
       } catch (IOException ex) {
         throw ex;
       } catch (Exception ex) {

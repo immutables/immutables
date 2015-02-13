@@ -16,20 +16,20 @@
 package org.immutables.fixture;
 
 import com.google.common.base.Optional;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Json.Marshaled
+@Gson.TypeAdapters
 public abstract class SillyPolyHost2 {
 
-  @Json.Subclasses({
+  @Gson.ExpectedSubtypes({
       SillySub2.class,
       SillySub3.class
   })
   public abstract SillyAbstract s();
 
-  @Json.Subclasses({
+  @Gson.ExpectedSubtypes({
       SillySub2.class,
       SillySub3.class
   })

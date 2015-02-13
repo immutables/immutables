@@ -17,6 +17,7 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 interface InDefaultPackage {
+  int attr();
   @Value.Immutable
   static class ButNested {}
 }

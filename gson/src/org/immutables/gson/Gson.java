@@ -37,7 +37,8 @@ public @interface Gson {
    * Use on a top level class to generate type adapted factory supporting directly annotated and all
    * nested immutable types.
    * <p>
-   * Type adapter factories are registered statically as services
+   * Type adapter factories are generated in the same package, named
+   * {@code GsonAdapters[name_of_annotated_type]} and registered statically as service providers in
    * {@code META-INF/services/com.google.gson.TypeAdapterFactory}. The most easy way to register all
    * such factories {@link com.google.gson.Gson}.
    * <p>

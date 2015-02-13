@@ -15,17 +15,16 @@
  */
 package org.immutables.fixture.nested;
 
-import org.immutables.value.ext.ExtValue;
 import com.google.common.base.Optional;
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Nested
-@ExtValue.Transformer
+@Gson.TypeAdapters(emptyAsNulls = true)
+//@ExtValue.Transformer
 class GroupedClasses {
   interface Other {}
 
-  @Json.Marshaled
   @Value.Immutable
   interface NestedOne extends Other {
     Optional<Other> other();

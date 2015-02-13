@@ -15,9 +15,9 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.ext.Json;
+import org.immutables.gson.Gson;
 
-@Json.Subclasses({
+@Gson.ExpectedSubtypes({
     SillySub1.class,
     SillySub2.class
 })
