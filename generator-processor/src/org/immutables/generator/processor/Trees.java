@@ -224,17 +224,26 @@ public class Trees {
     List<Expression> params();
   }
 
-  public interface GeneratorDeclaration {
+  public interface GeneratorDeclaration {}
+
+  public interface GeneratorValueDeclaration extends GeneratorDeclaration {
     ValueDeclaration declaration();
 
     Expression from();
   }
 
   @Value.Immutable
-  public interface AssignGenerator extends GeneratorDeclaration {}
+  public interface AssignGenerator extends GeneratorValueDeclaration {}
 
   @Value.Immutable
-  public interface IterationGenerator extends GeneratorDeclaration {
+  public interface IterationGenerator extends GeneratorValueDeclaration {
+    Optional<Expression> condition();
+  }
+
+  @Value.Immutable
+  public interface TransformGenerator extends GeneratorValueDeclaration {
+    Expression transform();
+
     Optional<Expression> condition();
   }
 
