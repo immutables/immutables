@@ -455,7 +455,7 @@ public static final class Modifier extends Repositories.Modifier<[type.typeAbstr
 [/if]
    * @return {@code this} [toLower tT] to complete update operation
    */
-  public [tT] clear[toUpper a.name]() {
+  public [tT] empty[toUpper a.name]() {
       [if a.forcedEmpty]
     setFields = setFields.equal(serialization.[a.name]Name, false, null);
       [else]

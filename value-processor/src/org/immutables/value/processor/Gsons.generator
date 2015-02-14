@@ -28,6 +28,7 @@ import com.google.gson.reflect.*;
 
 import javax.annotation.*;
 import java.io.IOException;
+import java.lang.String;
 
 /**
  * Gson {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
@@ -178,7 +179,7 @@ if ([a.name]Value != null) {
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
 if ([a.name]Optional.isPresent()) {
-  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.get();
+  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
   out.nullValue();
@@ -243,11 +244,11 @@ if ([a.name]Value != null) {
   out.nullValue();
 }
   [else if a.optionalType]
-[a.type] [a.name]Value = instance.[a.names.get]();
-if ([a.name]Value.isPresent()) {
+[a.type] [a.name]Optional = instance.[a.names.get]();
+if ([a.name]Optional.isPresent()) {
   out.name([serializedName a]);
-  [a.unwrappedElementType] unwrapped[a.name]Value = [a.name]Value.get();
-  [generateWriteAttributeValue type a ('unwrapped' a.name 'Value') false]
+  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
+  [generateWriteAttributeValue type a (a.name 'Value') false]
 } else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
   out.nullValue();
@@ -288,7 +289,7 @@ out.name([serializedName a]);
 
 [template generateUnmarshalingMethods Type type]
 
-private char requireChar(String string) {
+private static char charValueOf(String string) {
   if (string.length() == 1) {
     return string.charAt(0);
   }
@@ -399,9 +400,11 @@ return value;
 JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
   in.nextNull();
-  return [if a.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
+  return [if a.jdkOptional][a.rawType].empty()[else][guava].base.Optional.absent()[/if];
 }
-    [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+    [if a.jdkSpecializedOptional]
+return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
+    [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
@@ -486,7 +489,7 @@ if (in.peek() == JsonToken.NULL) {
     String rawKey = in.nextName();
 [if a.unwrappedElementPrimitiveType]
   [if a.unwrappedElementType eq 'char']
-    char key = requireChar(rawKey);
+    char key = charValueOf(rawKey);
   [else]
     [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
   [/if]
@@ -626,10 +629,10 @@ out.value([variableName]);
 [else if typeName eq 'java.lang.String']
   in.nextString()
 [else if typeName eq 'char']
-  requireChar(in.nextString())
+  charValueOf(in.nextString())
 [else]
-  requireChar("assertion")
-  [output.error]assertion11[/output.error]
+  null
+  [output.error]unexpected type [typeName], not a simple one[/output.error]
 [/if]
 [/output.trim][/template]
 
@@ -655,5 +658,7 @@ out.value([variableName]);
 [/template]
 
 [template serializedName Attribute a][if a.containingType.gsonTypeAdapters.fieldNamingStrategy][a.name]Name[else]"[a.marshaledName]"[/if][/template]
+
+[template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

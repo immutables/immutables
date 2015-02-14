@@ -111,7 +111,7 @@ public final class ValueMirrors {
      * Builder initialization method. i.e. "setter" in builder.
      * @return naming template
      */
-    String init() default "";
+    String init() default "*";
 
     /**
      * Modify-by-copy "with" method.
@@ -168,6 +168,12 @@ public final class ValueMirrors {
      * @return naming template
      */
     String builder() default "builder";
+
+    /**
+     * Method to initialize builder with values from instance.
+     * @return naming template
+     */
+    String from() default "from";
 
     /**
      * Instance creation method on builder.

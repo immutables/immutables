@@ -15,12 +15,11 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.value.Styles;
-import org.immutables.value.Value;
 import java.util.List;
+import org.immutables.value.Value;
 
 @Value.Immutable(copy = true)
-@Styles.BeanAccessors
+@BeanAccessors
 abstract class BeanStyleDetected {
   abstract int isIt();
 

@@ -240,7 +240,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   /**
    * Reads current value including objects and array as effiecient token buffer.
-   * this method handles. Use of Jackson's own mechanisms is important to preserve custom elements
+   * Use of Jackson's own mechanisms is important to preserve custom elements
    * such as special embedded objects in BSON or other data formats.
    * @return {@link TokenBuffer}
    * @throws IOException if error occured

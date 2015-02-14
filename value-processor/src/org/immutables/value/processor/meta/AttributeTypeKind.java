@@ -1,24 +1,63 @@
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableMap;
 
 public enum AttributeTypeKind {
   REGULAR(""),
   ARRAY(""),
-  LIST("List", java.util.List.class.getName()),
-  SET("Set", java.util.Set.class.getName()),
+  LIST("List",
+      java.util.List.class.getName(),
+      UnshadeGuava.typeString("collect.ImmutableList")),
+  SET("Set",
+      java.util.Set.class.getName(),
+      UnshadeGuava.typeString("collect.ImmutableSet")),
   ENUM_SET("Set"),
-  SORTED_SET("SortedSet", java.util.SortedSet.class.getName(), java.util.NavigableSet.class.getName()),
-  MAP("Map", java.util.Map.class.getName()),
+  SORTED_SET(
+      "SortedSet",
+      java.util.SortedSet.class.getName(),
+      java.util.NavigableSet.class.getName(),
+      UnshadeGuava.typeString("collect.ImmutableSortedSet")),
+  MAP("Map",
+      java.util.Map.class.getName(),
+      UnshadeGuava.typeString("collect.ImmutableMap")),
   ENUM_MAP("Map"),
-  SORTED_MAP("SortedMap", java.util.SortedMap.class.getName(), java.util.NavigableMap.class.getName()),
-  MULTISET("Multiset", UnshadeGuava.typeString("collect.Multiset")),
-  MULTIMAP("Multimap", UnshadeGuava.typeString("collect.Multimap")),
-  LIST_MULTIMAP("ListMultimap", UnshadeGuava.typeString("collect.ListMultimap")),
-  SET_MULTIMAP("SetMultimap", UnshadeGuava.typeString("collect.SetMultimap")),
-  OPTIONAL_JDK("Optional", "java.util.Optional"),
-  OPTIONAL_GUAVA("Optional", UnshadeGuava.typeString("base.Optional"));
+  SORTED_MAP(
+      "SortedMap",
+      java.util.SortedMap.class.getName(),
+      java.util.NavigableMap.class.getName(),
+      UnshadeGuava.typeString("collect.ImmutableSortedMap")),
+  MULTISET(
+      "Multiset",
+      UnshadeGuava.typeString("collect.Multiset"),
+      UnshadeGuava.typeString("collect.ImmutableMultiset")),
+  MULTIMAP(
+      "Multimap",
+      UnshadeGuava.typeString("collect.Multimap"),
+      UnshadeGuava.typeString("collect.ImmutableMultimap")),
+  LIST_MULTIMAP(
+      "ListMultimap",
+      UnshadeGuava.typeString("collect.ListMultimap"),
+      UnshadeGuava.typeString("collect.ImmutableListMultimap")),
+  SET_MULTIMAP(
+      "SetMultimap",
+      UnshadeGuava.typeString("collect.SetMultimap"),
+      UnshadeGuava.typeString("collect.ImmutableSetMultimap")),
+  OPTIONAL_JDK(
+      "Optional",
+      "java.util.Optional"),
+  OPTIONAL_INT_JDK(
+      "OptionalInt",
+      "java.util.OptionalInt"),
+  OPTIONAL_LONG_JDK(
+      "OptionalLong",
+      "java.util.OptionalLong"),
+  OPTIONAL_DOUBLE_JDK(
+      "OptionalDouble",
+      "java.util.OptionalDouble"),
+  OPTIONAL_GUAVA(
+      "Optional",
+      UnshadeGuava.typeString("base.Optional"));
 
   private final String[] rawTypes;
   private final String rawSimpleName;
@@ -38,7 +77,7 @@ public enum AttributeTypeKind {
         REGULAR);
   }
 
-  AttributeTypeKind withHasEnumFirstTypeParameter(boolean isEnum) {
+  AttributeTypeKind havingEnumFirstTypeParameter(boolean isEnum) {
     if (isEnum) {
       switch (this) {
       case SET:
@@ -131,6 +170,18 @@ public enum AttributeTypeKind {
     }
   }
 
+  public boolean isJdkOnlyContainerKind() {
+    switch (this) {
+    case OPTIONAL_JDK:
+    case OPTIONAL_INT_JDK:
+    case OPTIONAL_LONG_JDK:
+    case OPTIONAL_DOUBLE_JDK:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   public boolean isGuavaContainerKind() {
     switch (this) {
     case MULTISET:
@@ -147,6 +198,17 @@ public enum AttributeTypeKind {
     return this == OPTIONAL_JDK;
   }
 
+  public boolean isOptionalSpecializedJdk() {
+    switch (this) {
+    case OPTIONAL_INT_JDK:
+    case OPTIONAL_LONG_JDK:
+    case OPTIONAL_DOUBLE_JDK:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   public boolean isOptionalGuava() {
     return this == OPTIONAL_GUAVA;
   }
@@ -155,6 +217,9 @@ public enum AttributeTypeKind {
     switch (this) {
     case OPTIONAL_GUAVA:
     case OPTIONAL_JDK:
+    case OPTIONAL_INT_JDK:
+    case OPTIONAL_LONG_JDK:
+    case OPTIONAL_DOUBLE_JDK:
       return true;
     default:
       return false;

@@ -16,19 +16,20 @@
 package org.immutables.fixture;
 
 import com.google.common.collect.ImmutableMap;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.value.ordinal.ImmutableOrdinalSet;
+import org.junit.Test;
+import simple.GetterAnnotation;
+import javax.ws.rs.POST;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.POST;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
-import org.immutables.value.ordinal.ImmutableOrdinalSet;
-import org.junit.Test;
-import simple.GetterAnnotation;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
+import static org.immutables.check.Checkers.checkAll;
 
 public class ValuesTest {
 
@@ -41,8 +42,33 @@ public class ValuesTest {
   }
 
   @Test
+  public void builderFrom() {
+    SampleValue sv1 = ImmutableSampleValue.builder()
+        .addC(1, 2)
+        .a(3)
+        .oi(1)
+        .build();
+
+    SampleValue sv2 = ImmutableSampleValue.builder()
+        .a(1)
+        .addC(3, 4)
+        .os("")
+        .build();
+
+    SampleValue svAll = ImmutableSampleValue.builder()
+        .from(sv1)
+        .from(sv2)
+        .build();
+
+    check(svAll.a()).is(1);
+    check(svAll.c()).isOf(1, 2, 3, 4);
+    check(svAll.oi().orElse(-1)).is(1);
+    check(svAll.os()).isOf("");
+  }
+
+  @Test
   public void ifaceValue() {
-    check(ImmutableIfaceValue.builder().getNumber(1).build()).is(ImmutableIfaceValue.of(1));
+    check(ImmutableIfaceValue.builder().number(1).build()).is(ImmutableIfaceValue.of(1));
   }
 
   @Test
@@ -87,13 +113,13 @@ public class ValuesTest {
       ImmutableIfaceValue.builder().build();
       check(false);
     } catch (Exception ex) {
-      check(ex.getMessage()).contains("getNumber");
+      check(ex.getMessage()).contains("number");
     }
   }
 
   @Test
   public void auxiliary() {
-    ImmutableIfaceValue includesAuxiliary = ImmutableIfaceValue.builder().getNumber(1).addAuxiliary("x").build();
+    ImmutableIfaceValue includesAuxiliary = ImmutableIfaceValue.builder().number(1).addAuxiliary("x").build();
     ImmutableIfaceValue excludesAuxiliary = ImmutableIfaceValue.of(1);
     check(includesAuxiliary).is(excludesAuxiliary);
     check(includesAuxiliary.hashCode()).is(excludesAuxiliary.hashCode());

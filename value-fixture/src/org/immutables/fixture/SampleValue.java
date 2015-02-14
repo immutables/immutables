@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture;
 
+import java.util.OptionalInt;
+import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.value.Value;
 
@@ -23,4 +25,8 @@ public interface SampleValue {
   int a();
 
   List<Integer> c();
+
+  OptionalInt oi();
+
+  Optional<String> os();
 }

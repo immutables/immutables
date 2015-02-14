@@ -1,20 +1,25 @@
 package org.immutables.mirror.processor;
 
-import com.google.common.reflect.Reflection;
+import javax.lang.model.element.Name;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.immutables.generator.AbstractTemplate;
-import org.immutables.generator.Generator;
-import org.immutables.mirror.Mirror;
 import javax.annotation.Nullable;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
+import org.immutables.generator.AbstractTemplate;
+import org.immutables.generator.Generator;
+import org.immutables.mirror.Mirror;
 
 @Generator.Template
 @Generator.Import({Mirrors.MirrorModel.class, Mirrors.MirrorModel.AttributeModel.class})
@@ -148,10 +153,11 @@ class Mirrors extends AbstractTemplate {
         if (typeElement.getKind() == ElementKind.ANNOTATION_TYPE) {
           return ANNOTATION;
         }
-        if (typeElement.getQualifiedName().contentEquals(Class.class.getName())) {
+        Name qualifiedName = typeElement.getQualifiedName();
+        if (qualifiedName.contentEquals(Class.class.getName())) {
           return TYPE;
         }
-        if (typeElement.getQualifiedName().contentEquals(String.class.getName())) {
+        if (qualifiedName.contentEquals(String.class.getName())) {
           return STRING;
         }
       } else if (type.getKind().isPrimitive()) {

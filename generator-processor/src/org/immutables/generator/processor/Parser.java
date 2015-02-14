@@ -40,6 +40,7 @@ import org.immutables.generator.processor.ParboiledTrees.StringLiteral;
 import org.immutables.generator.processor.ParboiledTrees.Template;
 import org.immutables.generator.processor.ParboiledTrees.TextBlock;
 import org.immutables.generator.processor.ParboiledTrees.TextFragment;
+import org.immutables.generator.processor.ParboiledTrees.TransformGenerator;
 import org.immutables.generator.processor.ParboiledTrees.TypeDeclaration;
 import org.immutables.generator.processor.ParboiledTrees.TypeIdentifier;
 import org.immutables.generator.processor.ParboiledTrees.Unit;
@@ -178,6 +179,7 @@ public class Parser extends BaseParser<Object> {
 
   Rule GeneratorDeclaration() {
     return FirstOf(
+        TransformGenerator(),
         AssignGenerator(),
         IterationGenerator());
   }
@@ -197,6 +199,17 @@ public class Parser extends BaseParser<Object> {
         ASSIGN,
         Expression(), AssignGenerator.from(),
         AssignGenerator.build());
+  }
+
+  Rule TransformGenerator() {
+    return Sequence(TransformGenerator.builder(),
+        ValueDeclaration(), TransformGenerator.declaration(),
+        ASSIGN,
+        Expression(), TransformGenerator.transform(),
+        IN,
+        Expression(), TransformGenerator.from(),
+        Optional(IF, Expression(), TransformGenerator.condition()),
+        TransformGenerator.build());
   }
 
   @DontLabel
