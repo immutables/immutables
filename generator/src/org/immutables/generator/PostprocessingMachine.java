@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 final class PostprocessingMachine {
@@ -213,6 +214,7 @@ final class PostprocessingMachine {
     private static final String JAVA_LANG = "java.lang.";
 
     private TreeSet<String> imports = Sets.newTreeSet();
+    private HashMap<String, String> originalImports = Maps.newHashMap();
     private Optional<String> currentPackage = Optional.absent();
     private Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
     private HashMap<String, String> nameToFully = Maps.newHashMap();
@@ -228,16 +230,16 @@ final class PostprocessingMachine {
       nameToFully.put(name, fullyName);
 
       if ((JAVA_LANG + name).equals(fullyName)) {
-        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName, name));
         return;
       }
 
       if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
-        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName));
+        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName, name));
         return;
       }
 
-      importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName));
+      importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName, name));
     }
 
     void addImport(String importedPackage) {
@@ -245,6 +247,8 @@ final class PostprocessingMachine {
     }
 
     void addOriginalImport(String name, String fullyName, String importedPackage) {
+      originalImports.put(name, fullyName);
+
       if ((JAVA_LANG + name).equals(fullyName)) {
         return;
       }
@@ -273,6 +277,14 @@ final class PostprocessingMachine {
     void preBuild() {
       for (String exception : exceptions) {
         importCandidates.removeAll(nameToFully.get(exception));
+      }
+
+      for (Map.Entry<String, ImportCandidate> candidateEntry : importCandidates.entries()) {
+        ImportCandidate candidate = candidateEntry.getValue();
+        String originalFullyName = originalImports.get(candidate.simpleName);
+        if (originalFullyName != null && !originalFullyName.equals(candidate.preparedImport)) {
+          importCandidates.remove(candidateEntry.getKey(), candidateEntry.getValue());
+        }
       }
     }
 
@@ -493,12 +505,14 @@ final class PostprocessingMachine {
     final int importTo;
     final int packageTo;
     String preparedImport;
+    String simpleName;
 
-    private ImportCandidate(int importFrom, int importTo, int packageTo, String preparedImport) {
+    private ImportCandidate(int importFrom, int importTo, int packageTo, String preparedImport, String simpleName) {
       this.importFrom = importFrom;
       this.importTo = importTo;
       this.packageTo = packageTo;
       this.preparedImport = preparedImport;
+      this.simpleName = simpleName;
     }
 
     @Override

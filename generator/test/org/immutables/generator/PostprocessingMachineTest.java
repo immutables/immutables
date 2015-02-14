@@ -2,7 +2,6 @@
 package org.immutables.generator;
 
 import com.google.common.base.Joiner;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -228,7 +227,6 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  @Ignore
   public void noConflictInDifferentPackages() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "import my.other.Set;",
@@ -241,7 +239,6 @@ public class PostprocessingMachineTest {
         "class X {",
         "  my.Set same(Set set);",
         "}"));
-
   }
 
   @Test
