@@ -16,19 +16,22 @@
 package org.immutables.fixture;
 
 import com.google.common.collect.ImmutableMap;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.value.ordinal.ImmutableOrdinalSet;
+import org.junit.Test;
+import simple.GetterAnnotation;
+
+import javax.ws.rs.POST;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.POST;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
-import org.immutables.value.ordinal.ImmutableOrdinalSet;
-import org.junit.Test;
-import simple.GetterAnnotation;
-import static org.immutables.check.Checkers.*;
+
+import static org.immutables.check.Checkers.check;
+import static org.immutables.check.Checkers.checkAll;
 
 public class ValuesTest {
 
@@ -42,7 +45,7 @@ public class ValuesTest {
 
   @Test
   public void ifaceValue() {
-    check(ImmutableIfaceValue.builder().getNumber(1).build()).is(ImmutableIfaceValue.of(1));
+    check(ImmutableIfaceValue.builder().number(1).build()).is(ImmutableIfaceValue.of(1));
   }
 
   @Test
@@ -87,13 +90,13 @@ public class ValuesTest {
       ImmutableIfaceValue.builder().build();
       check(false);
     } catch (Exception ex) {
-      check(ex.getMessage()).contains("getNumber");
+      check(ex.getMessage()).contains("number");
     }
   }
 
   @Test
   public void auxiliary() {
-    ImmutableIfaceValue includesAuxiliary = ImmutableIfaceValue.builder().getNumber(1).addAuxiliary("x").build();
+    ImmutableIfaceValue includesAuxiliary = ImmutableIfaceValue.builder().number(1).addAuxiliary("x").build();
     ImmutableIfaceValue excludesAuxiliary = ImmutableIfaceValue.of(1);
     check(includesAuxiliary).is(excludesAuxiliary);
     check(includesAuxiliary.hashCode()).is(excludesAuxiliary.hashCode());
