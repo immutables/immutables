@@ -43,6 +43,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
 
+  private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
@@ -280,7 +281,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isJdkOptional() {
-    return typeKind.isOptionalJdk();
+    return typeKind.isOptionalKind() && typeKind.isJdkOnlyContainerKind();
+  }
+
+  public boolean isJdkSpecializedOptional() {
+    return typeKind.isOptionalSpecializedJdk();
   }
 
   public boolean isOptionalType() {
@@ -295,8 +300,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isEnumSet();
   }
 
-  public boolean isGuavaContainerKind() {
-    return typeKind.isGuavaContainerKind();
+  public boolean isGuavaImmutableDeclared() {
+    return typeKind.isContainerKind() && rawTypeName.startsWith(GUAVA_IMMUTABLE_PREFIX);
   }
 
   @Nullable
@@ -428,7 +433,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateJdkOnly() {
-    return containingType.isGenerateJdkOnly();
+    return containingType.isGenerateJdkOnly() && !isGuavaImmutableDeclared();
   }
 
   public boolean isGenerateOrdinalValueSet() {
@@ -453,6 +458,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   @Override
   protected void introspectType() {
     TypeMirror typeMirror = returnType;
+
+    // Special case for primitive Optional, may become a pattern for specialized types
+    if (typeKind.isOptionalSpecializedJdk()) {
+      typeParameters = ImmutableList.of(optionalSpecializedType());
+      // no delegation to introspect further
+      return;
+    }
 
     if (isContainerType()) {
       if (typeMirror.getKind() == TypeKind.DECLARED) {
@@ -517,6 +529,19 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     intospectTypeMirror(typeMirror);
   }
 
+  private String optionalSpecializedType() {
+    switch (typeKind) {
+    case OPTIONAL_INT_JDK:
+      return "int";
+    case OPTIONAL_LONG_JDK:
+      return "long";
+    case OPTIONAL_DOUBLE_JDK:
+      return "double";
+    default:
+      throw new AssertionError();
+    }
+  }
+
   public AttributeTypeKind typeKind() {
     return typeKind;
   }
@@ -547,10 +572,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawMapType() {
-    return typeKind.rawSimpleName();
-  }
-
-  public String simpleContainerName() {
     return typeKind.rawSimpleName();
   }
 
@@ -693,7 +714,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     } else {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
       ensureTypeIntrospected();
-      typeKind = typeKind.withHasEnumFirstTypeParameter(hasEnumFirstTypeParameter);
+      typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumFirstTypeParameter);
     }
   }
 

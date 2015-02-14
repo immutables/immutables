@@ -30,7 +30,7 @@
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if classpath.available 'javax.annotation.Generated']
-@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract]"})
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
 [/if]
 [/if]
 [/template]
@@ -38,6 +38,8 @@
 [template packageWhenTopLevel Type type Boolean is]
 [if is and type.package]
 package [type.package];
+
+import java.lang.String;
 [/if]
 [/template]
 
@@ -391,9 +393,9 @@ package [type.package];
 
   [for v in setters]
     [if v.containerType]
-      [if type.generateJdkOnly]
+      [if v.generateJdkOnly]
   [if v.optionalType]
-  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
+  private [v.type] [v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateEnumMap]
   private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
   [else if v.mapType]
@@ -409,7 +411,7 @@ package [type.package];
   [else if v.collectionType]
   private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
   [else if v.optionalType]
-  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
+  private [v.type] [v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
   [else if v.generateSortedMap]
   private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
   [else if v.mapType]
@@ -525,7 +527,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init]([v.rawType]<[v.wrappedElementType]> [v.name]) {
+  public final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     return this;
   }
@@ -540,7 +542,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV]... values) {
-    [v.name]Builder.putAll(key, values);
+    [v.name]Builder.putAll(key, [arrayAsListSecondary v 'values']);
     return this;
   }
 
@@ -715,7 +717,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.collectionType or v.mapType]
         .append("[if not for.first], [/if][v.name]=").append([v.name]Builder)
     [else if v.optionalType]
-        .append("[if not for.first], [/if][v.name]=").append([v.name].isPresent() ? [v.name].get() : "?")
+        .append("[if not for.first], [/if][v.name]=").append([v.name].isPresent() ? [v.name].[optionalGet v] : "?")
     [else if v.arrayType]
         .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
     [else if v.primitive]
@@ -734,7 +736,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.collectionType or v.mapType]
         .add("[v.name]", [v.name]Builder.build())
     [else if v.optionalType]
-        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "?")
+        .add("[v.name]", [v.name].isPresent() ? [v.name].[optionalGet v] : "?")
     [else if v.arrayType]
         .add("[v.name]", java.util.Arrays.toString([v.name]))
     [else if v.primitive]
@@ -771,9 +773,9 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
 
 [template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
 [if v.optionalType]
-  [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if]
+  [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if]
 [else if v.mapType]
-  [if type.generateJdkOnly]
+  [if v.generateJdkOnly]
     [if v.typeKind.isSortedMap]
       [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType], [v.secondaryElementType]>emptyMap()[/immutableCollectionCopyOfSafe]
     [else]
@@ -783,7 +785,7 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
     [guava].collect.Immutable[v.rawMapType].of()
   [/if]
 [else if v.collectionType]
-  [if type.generateJdkOnly]
+  [if v.generateJdkOnly]
     [if v.typeKind.isSortedSet]
       [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType]>emptyList()[/immutableCollectionCopyOfSafe]
     [else]
@@ -1242,7 +1244,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param optional value for [v.name], non-null
  * @return modified copy of {@code this} object
  */
-public final [type.typeImmutable.simple] [v.names.with]([v.rawType]<[v.wrappedElementType]> optional) {
+public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
   if (this.[v.name] == optional) {
     return this;
   }
@@ -1485,6 +1487,18 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
+[template arrayAsListSecondary Attribute a String expression][output.trim]
+[if a.unwrappedSecondaryElementPrimitiveType]
+  [if a.generateJdkOnly]
+    [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
+  [else]
+    [guava].primitives.[toUpper a.unwrappedSecondaryElementType]s.asList([expression])
+  [/if]
+[else]
+  java.util.Arrays.asList([expression])
+[/if]
+[/output.trim][/template]
+
 [template primitiveHashCode Attribute v][output.trim]
 [if v.int]
   [v.name]
@@ -1644,5 +1658,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
 [template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+
+[template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
