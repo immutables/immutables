@@ -19,8 +19,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.Map;
 import javax.annotation.Nullable;
-import org.immutables.gson.Gson;
-import org.immutables.value.Value;
 
 @Target(ElementType.TYPE_USE)
 @interface TypeA {}
@@ -33,6 +31,7 @@ import org.immutables.value.Value;
 public abstract class HasTypeAnnotation {
   @Nullable
   public abstract @TypeA @TypeB String str();
+
   @Nullable
   public abstract @TypeA @TypeB Map<@TypeA String, @TypeB String> map();
 }

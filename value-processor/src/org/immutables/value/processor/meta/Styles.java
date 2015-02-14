@@ -75,6 +75,7 @@ public final class Styles {
 
     Naming typeBuilder = Naming.from(style.typeBuilder());
     Naming builder = Naming.from(style.builder());
+    Naming from = Naming.from(style.from());
     Naming build = Naming.from(style.build());
 
 //    Naming typeModifiable = Naming.from(style.typeModifiable());
@@ -151,6 +152,7 @@ public final class Styles {
       // Builder template is being applied programatically in Constitution class
       // public final String typeBuilder = scheme.typeBuilder.apply(raw);
       public final String copyOf = scheme.copyOf.apply(raw);
+      public final String from = scheme.from.apply(raw);
       public final String build = scheme.build.apply(raw);
 
 //      public final String builder = scheme.builder.apply(raw);

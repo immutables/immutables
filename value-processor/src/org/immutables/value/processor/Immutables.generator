@@ -282,17 +282,8 @@ import java.lang.String;
     return ([type.typeImmutable.simple]) instance;
   }
 [if type.useBuilder]
-  [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
   return [type.factoryBuilder.relative]()
-  [for v in type.settableAttributes]
-    [if v.collectionType]
-      .[v.names.addAll](instance.[v.names.get]())
-    [else if v.mapType]
-      .[v.names.putAll](instance.[v.names.get]())
-    [else]
-      .[v.names.init](instance.[v.names.get]())
-    [/if]
-  [/for]
+      .[type.names.from](instance)
       .[type.names.build]();
 [else]
   return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
@@ -424,6 +415,9 @@ import java.lang.String;
   private [atNullable][v.type] [v.name];
     [/if]
   [/for]
+  [if type.generateOrdinalValue]
+  private Domain domain = Domain.get();
+  [/if]
 [if ((type.factoryBuilder.applied ne 'new') and (not type.kind.isFactory))]
   private [type.typeBuilder.simple]() {}
   [if type.constitution.isOutsideBuilder]
@@ -437,14 +431,46 @@ import java.lang.String;
   }
   [/if]
 [/if]
-  [if type.generateOrdinalValue]
-  private Domain domain = Domain.get();
+[if type.generateOrdinalValue]
 
+  /**
+   * Specify non-default {@link Domain} for ordinal value.
+   * @return {@code this} builder for chained invocation
+   */
   public [type.typeBuilder.simple] domain(Domain domain) {
     this.domain = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
     return this;
   }
+[/if]
+[if type.kind.isValue]
+
+  /**
+   * Adjust builder with values from provided {@link [type.typeAbstract.relative]} instance.
+   * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
+   * Instance's absent optional values will not be copied (will not override current).
+   * Collection elements and entries will be added, not replaced.
+   * @param fromInstance instance to copy values from
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [type.names.from]([type.typeAbstract] instance) {
+    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+[for v in setters]
+  [if v.collectionType]
+    [v.names.addAll](instance.[v.names.get]());
+  [else if v.mapType]
+    [v.names.putAll](instance.[v.names.get]());
+  [else if v.optionalType]
+    [v.type] [v.name]Optional = instance.[v.names.get]();
+    if ([v.name]Optional.isPresent()) {
+      [v.names.init]([v.name]Optional);
+    }
+  [else]
+    [v.names.init](instance.[v.names.get]());
   [/if]
+[/for]
+    return this;
+  }
+[/if]
 [-- Being called from builder initializer methods --]
 [let nondefaultSetInBuilder Attribute v]
 [if v.primitive and v.generateDefault][for BitPosition pos = defpos v]

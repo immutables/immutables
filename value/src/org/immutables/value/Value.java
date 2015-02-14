@@ -412,6 +412,12 @@ public @interface Value {
     String builder() default "builder";
 
     /**
+     * Method to initialize builder with values from instance.
+     * @return naming template
+     */
+    String from() default "from";
+
+    /**
      * Instance creation method on builder.
      * @return naming template
      */
