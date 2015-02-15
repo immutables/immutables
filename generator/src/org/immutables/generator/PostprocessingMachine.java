@@ -78,10 +78,14 @@ final class PostprocessingMachine {
         }
         if (c == ';') {
           nextPartFrom = i + 2;
-          importsBuilder.addOriginalImport(
-              content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
-              content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
-              content.subSequence(importFrom, i).toString());
+          if(fullyNameMachine.isFinished()) {
+            importsBuilder.addOriginalImport(
+                content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
+                content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
+                content.subSequence(importFrom, i).toString());
+          } else {
+            importsBuilder.addImport(content.subSequence(importFrom, i).toString());
+          }
           fullyNameMachine.reset();
           state = State.UNDEFINED;
           importFrom = -1;

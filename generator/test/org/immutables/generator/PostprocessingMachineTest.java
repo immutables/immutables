@@ -13,6 +13,7 @@ public class PostprocessingMachineTest {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         LINES.join("package start;",
             "import java.util.List;",
+            "import org.junit.*;",
             "import some.Some.Nested;",
             "final class My extends java.util.Set {",
             "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
@@ -25,6 +26,7 @@ public class PostprocessingMachineTest {
             "import java.util.List;",
             "import java.util.Map;",
             "import java.util.Set;",
+            "import org.junit.*;",
             "import some.Some.Nested;",
             "final class My extends Set {",
             "  private Map<String, Integer> map = Maps.newHashMap();",
