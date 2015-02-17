@@ -13,23 +13,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package simple;
+package nonimmutables;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import org.immutables.value.Value;
 
-// Placed here to not fall into org.immutables package
-// (our annotation are skipped during copying)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface GetterAnnotation {
-  RetentionPolicy policy();
-
-  Class<?> type();
-
-  String string();
-
-  InnerAnnotation[] value() default {};
-
-  @Retention(RetentionPolicy.RUNTIME)
-  public @interface InnerAnnotation {}
+@Value.Immutable
+public class Type {
+  @Value.Immutable
+  interface Nested {
+    int a();
+    @Value.Immutable
+    static class Deeper {
+      @Value.Immutable
+      interface Deepest {}
+    }
+  }
 }

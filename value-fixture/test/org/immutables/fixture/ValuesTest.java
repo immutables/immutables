@@ -15,12 +15,12 @@
  */
 package org.immutables.fixture;
 
+import nonimmutables.GetterAnnotation;
 import com.google.common.collect.ImmutableMap;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
 import org.immutables.value.ordinal.ImmutableOrdinalSet;
 import org.junit.Test;
-import simple.GetterAnnotation;
 import javax.ws.rs.POST;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;

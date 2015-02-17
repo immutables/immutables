@@ -19,9 +19,9 @@ import com.google.common.base.Optional;
 import java.lang.annotation.RetentionPolicy;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import nonimmutables.GetterAnnotation;
+import nonimmutables.GetterAnnotation.InnerAnnotation;
 import org.immutables.value.Value;
-import simple.GetterAnnotation;
-import simple.GetterAnnotation.InnerAnnotation;
 
 @SuppressWarnings("deprecation")
 @Value.Immutable

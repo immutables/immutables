@@ -449,7 +449,7 @@ import java.lang.String;
    * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
    * Instance's absent optional values will not be copied (will not override current).
    * Collection elements and entries will be added, not replaced.
-   * @param fromInstance instance to copy values from
+   * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [type.names.from]([type.typeAbstract] instance) {
@@ -463,6 +463,11 @@ import java.lang.String;
     [v.type] [v.name]Optional = instance.[v.names.get]();
     if ([v.name]Optional.isPresent()) {
       [v.names.init]([v.name]Optional);
+    }
+  [else if v.nullable]
+    [v.atNullability][v.type] [v.name]Value = instance.[v.names.get]();
+    if ([v.name]Value != null) {
+      [v.names.init]([v.name]Value);
     }
   [else]
     [v.names.init](instance.[v.names.get]());

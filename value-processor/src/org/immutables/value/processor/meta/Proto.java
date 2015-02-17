@@ -325,7 +325,7 @@ public class Proto {
     }
 
     public boolean verifiedFactory(ExecutableElement element) {
-      if (!BuilderMirror.isPresent(element)) {
+      if (!FactoryMirror.isPresent(element)) {
         return false;
       }
       if (!isTopLevel()
@@ -334,7 +334,7 @@ public class Proto {
           || !element.getThrownTypes().isEmpty()
           || !element.getTypeParameters().isEmpty()) {
         report().withElement(element)
-            .annotationNamed(BuilderMirror.simpleName())
+            .annotationNamed(FactoryMirror.simpleName())
             .error("@Value.Builder method '%s' should be static, non-private,"
                 + " with no type parameters or throws declaration, and enclosed in top level type",
                 element.getSimpleName());

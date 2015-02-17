@@ -141,36 +141,6 @@ public @interface Value {
   public @interface Nested {}
 
   /**
-   * Annotate static factory methods that produce some value (non-void, non-private) to create
-   * builder out of constructor parameters.
-   * 
-   * <pre>
-   * class Sum {
-   *   {@literal @}Value.Builder
-   *   static Integer from(int a, int b) {
-   *      return a + b;
-   *   }
-   * }
-   * ... // generates builder
-   * Integer result = new SumBuilder()
-   *    .a(111)
-   *    .b(222)
-   *    .build();
-   * </pre>
-   * <p>
-   * Class level and package level style annotations fully supported (see {@link Style}).
-   * <p>
-   * <em>
-   * This annotation is for static factory methods to generate arbitrary builders. It's not for
-   * immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
-   * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
-   */
-  @Documented
-  @Retention(RetentionPolicy.SOURCE)
-  @Target(ElementType.METHOD)
-  public @interface Builder {}
-
-  /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
    * attributes and stored in field. Should be applied to non-abstract method - attribute value
    * initializer.
@@ -244,13 +214,13 @@ public @interface Value {
    * <p>
    * Following rules applies:
    * <ul>
-   * <li>No constructor generated, if none of methods have {@link Value.Parameter} annotation</li>
+   * <li>No constructor generated if none of methods have {@link Value.Parameter} annotation</li>
    * <li>For object to be constructible with a constructor - all non-default and non-derived
    * attributes should be annotated with {@link Value.Parameter}.
    * </ul>
    */
   @Documented
-  @Target(ElementType.METHOD)
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
   @Retention(RetentionPolicy.SOURCE)
   public @interface Parameter {
     /**

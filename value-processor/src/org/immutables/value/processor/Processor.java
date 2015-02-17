@@ -26,7 +26,7 @@ import org.immutables.value.processor.meta.ValueType;
 
 @Metainf.Service
 @SupportedAnnotationTypes({
-    "org.immutables.value.Value.Builder",
+    "org.immutables.value.Builder.Factory",
     "org.immutables.value.Value.Immutable",
     "org.immutables.value.Value.Nested",
     "org.immutables.value.Value.Include"

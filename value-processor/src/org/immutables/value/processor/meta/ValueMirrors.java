@@ -67,9 +67,6 @@ public final class ValueMirrors {
   @Mirror.Annotation("org.immutables.value.Value.Nested")
   public @interface Nested {}
 
-  @Mirror.Annotation("org.immutables.value.Value.Builder")
-  public @interface Builder {}
-
   @Mirror.Annotation("org.immutables.value.Value.Derived")
   public @interface Derived {}
 

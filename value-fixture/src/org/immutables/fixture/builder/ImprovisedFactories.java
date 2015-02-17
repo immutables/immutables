@@ -16,32 +16,30 @@
 package org.immutables.fixture.builder;
 
 import com.google.common.collect.Iterables;
-import org.immutables.value.Value;
-import org.immutables.value.Value.Style.ImplementationVisibility;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.SortedSet;
+import javax.annotation.Nullable;
+import org.immutables.value.Builder;
+import org.immutables.value.Value;
 
 /**
  * Builders for simple attributes, collection, generic and primitive variations.
  * Builders are public as of style annotation.
  */
-@Value.Style(visibility = ImplementationVisibility.PUBLIC)
 class ImprovisedFactories {
 
-  @Value.Builder
-  static String superstring(int theory, String reality, @Nullable Void evidence) {
+  @Builder.Factory
+  public static String superstring(int theory, String reality, @Nullable Void evidence) {
     return theory + " != " + reality + ", " + evidence;
   }
 
-  @Value.Builder
-  static Iterable<Object> concat(List<String> strings, @Value.NaturalOrder SortedSet<Integer> numbers) {
+  @Builder.Factory
+  public static Iterable<Object> concat(List<String> strings, @Value.NaturalOrder SortedSet<Integer> numbers) {
     return Iterables.<Object>concat(strings, numbers);
   }
 
-  @Value.Builder
-  static int sum(int a, int b) {
+  @Builder.Factory
+  public static int sum(int a, int b) {
     return a + b;
   }
 
@@ -64,7 +62,6 @@ class ImprovisedFactories {
         .build();
 
     concat.toString();
-
 
     String.valueOf(sumOf1and2);
   }

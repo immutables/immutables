@@ -17,12 +17,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>technology</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value-standalone</artifactId>
       <version>${project.version}</version>
@@ -52,6 +46,12 @@
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>javax.ws.rs</groupId>
+      <artifactId>javax.ws.rs-api</artifactId>
+      <version>2.0</version>
+      <optional>true</optional>
     </dependency>
 <!--     <dependency>
       <groupId>com.h2database</groupId>

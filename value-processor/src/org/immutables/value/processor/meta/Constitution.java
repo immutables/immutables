@@ -247,7 +247,7 @@ public abstract class Constitution {
           .relative(protoclass().declaringType().get().name())
           .relativeAlreadyQualified(true)
           .packageOf(protoclass().packageOf().name())
-          .visibility(protoclass().visibility().min(protoclass().declaringVisibility()))
+          .visibility(protoclass().visibility())
           .build()
           .applied(protoclass().sourceElement().getSimpleName().toString());
     }
