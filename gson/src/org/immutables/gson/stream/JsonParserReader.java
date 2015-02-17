@@ -245,7 +245,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
    * @return {@link TokenBuffer}
    * @throws IOException if error occured
    */
-  public TokenBuffer nextTokenBuffer() throws IOException {
+  public final TokenBuffer nextTokenBuffer() throws IOException {
     TokenBuffer buffer = new TokenBuffer(parser);
     // if token is consumed, but undelying parser is still sitting on this token, we move forward
     requirePeek();
@@ -253,5 +253,9 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
     // when we will return to reading from reader, state will be cleared and nextToken after
     clearPeek();
     return buffer;
+  }
+
+  protected final void consumePeek() {
+    clearPeek();
   }
 }

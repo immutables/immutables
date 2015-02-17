@@ -95,7 +95,11 @@ public final class TypeAdapters implements TypeAdapterFactory {
   private static final TypeAdapter<TimeInstant> WRAPPED_TIME_INSTANT_ADAPTER = new TypeAdapter<TimeInstant>() {
     @Override
     public void write(JsonWriter out, TimeInstant value) throws IOException {
-      TIME_INSTANT_ADAPTER.write(out, value.value());
+      if (out instanceof BsonWriter) {
+        TIME_INSTANT_ADAPTER.write(out, value.value());
+      } else {
+        out.value(value.toString());
+      }
     }
 
     @Override
@@ -107,7 +111,11 @@ public final class TypeAdapters implements TypeAdapterFactory {
   private static final TypeAdapter<Id> WRAPPED_ID_ADAPTER = new TypeAdapter<Id>() {
     @Override
     public void write(JsonWriter out, Id value) throws IOException {
-      OBJECT_ID_ADAPTER.write(out, value.value());
+      if (out instanceof BsonWriter) {
+        OBJECT_ID_ADAPTER.write(out, value.value());
+      } else {
+        out.value(value.toString());
+      }
     }
 
     @Override
@@ -119,7 +127,11 @@ public final class TypeAdapters implements TypeAdapterFactory {
   private static final TypeAdapter<Binary> WRAPPED_BINARY_ADAPTER = new TypeAdapter<Binary>() {
     @Override
     public void write(JsonWriter out, Binary value) throws IOException {
-      BINARY_ADAPTER.write(out, value.value());
+      if (out instanceof BsonWriter) {
+        BINARY_ADAPTER.write(out, value.value());
+      } else {
+        out.value(value.toString());
+      }
     }
 
     @Override
@@ -131,7 +143,10 @@ public final class TypeAdapters implements TypeAdapterFactory {
   private static final TypeAdapter<Pattern> PATTERN_ADAPTER = new TypeAdapter<Pattern>() {
     @Override
     public void write(JsonWriter out, Pattern value) throws IOException {
-      checkArgument(out instanceof BsonWriter, "Should be BsonWriter, not some other JsonWriter");
+      if (out instanceof BsonWriter) {
+        out.value(value.toString());
+        return;
+      }
       checkNotNull(value, "Value could not be null, delegate to #nullSafe() adapter if needed");
       ((BsonWriter) out).value(value);
     }

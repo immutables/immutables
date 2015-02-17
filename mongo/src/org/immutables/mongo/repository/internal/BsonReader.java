@@ -45,6 +45,7 @@ public class BsonReader extends JsonParserReader {
 
   public long nextTimeInstant() throws IOException {
     if (peekedTimeInstant()) {
+      consumePeek();
       return ((Date) parser.getEmbeddedObject()).getTime();
     }
     throw unexpectedFor("UTCDate");
@@ -62,6 +63,7 @@ public class BsonReader extends JsonParserReader {
 
   public byte[] nextBinary() throws IOException {
     if (peekedBinary()) {
+      consumePeek();
       return (byte[]) parser.getEmbeddedObject();
     }
     throw unexpectedFor("Binary");
@@ -74,6 +76,7 @@ public class BsonReader extends JsonParserReader {
 
   public byte[] nextObjectId() throws IOException {
     if (peekedObjectId()) {
+      consumePeek();
       ObjectId id = (ObjectId) parser.getEmbeddedObject();
       byte[] bytes = new byte[12];
       ByteBuffer buffer = ByteBuffer.wrap(bytes);
@@ -92,6 +95,7 @@ public class BsonReader extends JsonParserReader {
 
   public Pattern nextPattern() throws IOException {
     if (peekedPattern()) {
+      consumePeek();
       return (Pattern) parser.getEmbeddedObject();
     }
     throw unexpectedFor("Regexp");
