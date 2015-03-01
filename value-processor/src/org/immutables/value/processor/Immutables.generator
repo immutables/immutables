@@ -714,69 +714,15 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }
-    [if type.generateJdkOnly]
 
   private String formatRequiredAttributesMessage() {
-    return new StringBuilder("Cannot build [type.name], some of required attributes are not set {")
-      [for m in mandatories]
-        .append(![m.name]IsSet() ? ", [m.name]" : "")
-      [/for]
-        .append('}').toString().replaceFirst("{, ", "{");
-  }
-    [else]
-
-  private String formatRequiredAttributesMessage() {
-    return [type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
-        .omitNullValues()
-      [for m in mandatories]
-        .addValue(![m.name]IsSet() ? "[m.name]" : null)
-      [/for]
-        .toString();
-  }
-    [/if]
-  [/if]
-
-  /**
-   * Prints currently set attributes.
-   * @return string representation of builder
-   */
-  [if type.generateJdkOnly]
-  @Override
-  public String toString() {
-    return new StringBuilder("[type.typeBuilder.relative]{")
-  [for v in setters]
-    [if v.collectionType or v.mapType]
-        .append("[if not for.first], [/if][v.name]=").append([v.name]Builder)
-    [else if v.optionalType]
-        .append("[if not for.first], [/if][v.name]=").append([v.name].isPresent() ? [v.name].[optionalGet v] : "?")
-    [else if v.arrayType]
-        .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
-    [else if v.primitive]
-        .append("[if not for.first], [/if][v.name]=" ).append([v.name]IsSet() ? [v.name] : "?")
-    [else]
-        .append("[if not for.first], [/if][v.name]=").append([v.name])
-    [/if]
-  [/for]
-        .append('}').toString();
-  }
-  [else]
-  @Override
-  public String toString() {
-    return [type.typeMoreObjects].toStringHelper("[type.typeBuilder.relative]")
-  [for v in setters]
-    [if v.collectionType or v.mapType]
-        .add("[v.name]", [v.name]Builder.build())
-    [else if v.optionalType]
-        .add("[v.name]", [v.name].isPresent() ? [v.name].[optionalGet v] : "?")
-    [else if v.arrayType]
-        .add("[v.name]", java.util.Arrays.toString([v.name]))
-    [else if v.primitive]
-        .add("[v.name]", [v.name]IsSet() ? [v.name] : "?")
-    [else]
-        .add("[v.name]", [v.name])
-    [/if]
-  [/for]
-        .toString();
+    java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
+    [for m in mandatories]
+    if (![m.name]IsSet()) {
+      attributes.add("[m.name]");
+    }
+    [/for]
+    return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
   [/if]
 [if type.constitution.hasImmutableInBuilder]
