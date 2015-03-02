@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.lang.model.util.Types;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
@@ -160,11 +161,14 @@ public final class SourceOrdering {
    * different supertypes(interfaces), just something that stable and reasonable wrt source ordering
    * without handling complex cases.
    * @param elements the elements utility
+   * @param types the types utility
    * @param type the type to traverse
    * @return all accessors in source order
    */
   public static ImmutableList<ExecutableElement> getAllAccessors(
-      final Elements elements, final TypeElement type) {
+      final Elements elements,
+      final Types types,
+      final TypeElement type) {
 
     class CollectedOrdering
         extends Ordering<Element> {

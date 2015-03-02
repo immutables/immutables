@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.DeclaredType;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +61,7 @@ final class AccessorAttributesCollector {
   }
 
   void collect() {
-    collectGeneratedCandidateMethods((TypeElement) type.element);
+    collectGeneratedCandidateMethods(getTypeElement());
 
     if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
       ArrayList<ValueAttribute> list = Lists.newArrayListWithCapacity(USEFUL_PARAMETER_COUNT_LIMIT);
@@ -79,6 +81,10 @@ final class AccessorAttributesCollector {
     }
 
     type.attributes.addAll(attributes);
+  }
+
+  private TypeElement getTypeElement() {
+    return (TypeElement) type.element;
   }
 
   private void collectGeneratedCandidateMethods(TypeElement type) {
@@ -103,7 +109,7 @@ final class AccessorAttributesCollector {
   private List<? extends Element> getAccessorsInSourceOrder(TypeElement type) {
     return type.getKind() == ElementKind.ANNOTATION_TYPE
         ? SourceOrdering.getEnclosedElements(type)
-        : SourceOrdering.getAllAccessors(processing.getElementUtils(), type);
+        : SourceOrdering.getAllAccessors(processing.getElementUtils(), processing.getTypeUtils(), type);
   }
 
   private boolean isElegibleAccessorMethod(Element element) {
@@ -171,7 +177,7 @@ final class AccessorAttributesCollector {
     }
 
     if (isDiscoveredAttribute(attributeMethodCandidate)) {
-      TypeMirror returnType = attributeMethodCandidate.getReturnType();
+      TypeMirror returnType = resolveReturnType(attributeMethodCandidate);
 
       ValueAttribute attribute = new ValueAttribute();
 
@@ -228,6 +234,22 @@ final class AccessorAttributesCollector {
       attribute.containingType = type;
       attributes.add(attribute);
     }
+  }
+
+  private TypeMirror resolveReturnType(ExecutableElement method) {
+    TypeMirror returnType = method.getReturnType();
+    // We do not support parametrized accessor methods,
+    // but we do support inheriting parametrized accessors, which
+    // we supposedly parametrized with actual type parameters as
+    // our target class could not define formal type parameters also.
+    if (returnType.getKind() == TypeKind.TYPEVAR) {
+      TypeElement typeElement = getTypeElement();
+      ExecutableType asMethodOfType =
+          (ExecutableType) processing.getTypeUtils()
+              .asMemberOf((DeclaredType) typeElement.asType(), method);
+      return asMethodOfType.getReturnType();
+    }
+    return returnType;
   }
 
   private String computeReturnTypeString(TypeMirror returnType) {
