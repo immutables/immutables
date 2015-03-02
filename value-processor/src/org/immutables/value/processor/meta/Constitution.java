@@ -205,38 +205,45 @@ public abstract class Constitution {
   }
 
   private String typeBuilderSimpleName() {
-    Naming builderNaming = names().namings.typeBuilder;
-    if (isImplementationHidden() || isFactory()) {
+    boolean isOutside = isImplementationHidden() || isFactory();
+    Naming typeBuilderNaming = names().namings.typeBuilder;
+    if (isOutside) {
       // For outer builder we can override with constant builder naming, but not the default.
-      boolean isConstantDefault = builderNaming.isConstant()
-          && builderNaming.apply("").equals(BUILDER_CLASS_NAME);
+      boolean isConstantAndDefault = isConstantNamingEquals(typeBuilderNaming, BUILDER_CLASS_NAME);
 
-      if (isConstantDefault) {
-        builderNaming = builderNaming.requireNonConstant(Preference.SUFFIX);
+      if (isConstantAndDefault) {
+        typeBuilderNaming = typeBuilderNaming.requireNonConstant(Preference.SUFFIX);
       }
     }
-    return Naming.Usage.CAPITALIZED.apply(builderNaming.apply(names().raw));
+
+    return Naming.Usage.CAPITALIZED.apply(typeBuilderNaming.apply(names().raw));
   }
 
   @Value.Lazy
   public NameForms factoryBuilder() {
     boolean isOutside = isImplementationHidden() || isFactory();
-
-    Naming builderNaming = names().namings.builder;
+    Naming methodBuilderNaming = names().namings.builder;
     if (isOutside) {
-      boolean isConstantDefault = builderNaming.isConstant()
-          && builderNaming.apply("").equals(BUILDER_METHOD_NAME);
+      boolean isConstantAndDefault = isConstantNamingEquals(methodBuilderNaming, BUILDER_METHOD_NAME);
 
-      if (isConstantDefault) {
-        builderNaming = Naming.from(NEW_KEYWORD);
+      if (isConstantAndDefault) {
+        methodBuilderNaming = Naming.from(NEW_KEYWORD);
       }
     }
 
-    NameForms nameForms = isOutside
+    boolean haveConstructorOnBuilder = isOutside || isConstantNamingEquals(methodBuilderNaming, NEW_KEYWORD);
+
+    NameForms typeNameForms = haveConstructorOnBuilder
         ? typeBuilder()
         : typeImmutable();
 
-    return nameForms.applied(builderNaming.apply(names().raw));
+    return typeNameForms.applied(methodBuilderNaming.apply(names().raw));
+  }
+
+  private boolean isConstantNamingEquals(Naming naming, String constantNaming) {
+    return naming.isConstant()
+        && naming.apply("").equals(constantNaming);
+
   }
 
   @Value.Lazy
