@@ -14,6 +14,11 @@ public class JdkOnlyTest {
     check(ImmutableJdkColl.of()).same(ImmutableJdkColl.builder().build());
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void checkingOfAttributesBeingSet() {
+    ImmutableJdkUtil.builder().build();
+  }
+
   @Test
   public void collections() {
     ImmutableJdkColl coll = ImmutableJdkColl.builder()

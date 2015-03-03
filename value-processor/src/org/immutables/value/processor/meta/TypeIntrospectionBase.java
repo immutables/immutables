@@ -111,9 +111,14 @@ public abstract class TypeIntrospectionBase {
   }
 
   protected void intospectTypeMirror(TypeMirror typeMirror) {
-    TypeHierarchyCollector collector = new TypeHierarchyCollector();
-    collector.collectFrom(typeMirror);
+    TypeHierarchyCollector collector = collectTypeHierarchy(typeMirror);
     this.extendedClassesNames = collector.extendedClassNames();
     this.implementedInterfacesNames = collector.implementedInterfaceNames();
+  }
+
+  protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
+    TypeHierarchyCollector collector = new TypeHierarchyCollector();
+    collector.collectFrom(typeMirror);
+    return collector;
   }
 }

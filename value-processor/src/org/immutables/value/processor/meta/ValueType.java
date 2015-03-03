@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.type.DeclaredType;
+import org.immutables.generator.TypeHierarchyCollector;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -324,14 +326,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return isUseSingleton() && !isUseConstructor() && !isUseBuilder();
   }
 
-  public List<ValueAttribute> getSettableAttributes() {
-    return attributes()
-        .filter(Predicates.or(
-            ValueAttributeFunctions.isGenerateAbstract(),
-            ValueAttributeFunctions.isGenerateDefault()))
-        .toList();
-  }
-
   public boolean isUseConstructor() {
     return !getConstructorArguments().isEmpty()
         || (!isUseBuilder() && !isUseSingleton() && getImplementedAttributes().isEmpty());
@@ -365,6 +359,14 @@ public final class ValueType extends TypeIntrospectionBase {
     public Integer apply(ValueAttribute input) {
       return input.getConstructorParameterOrder();
     }
+  }
+
+  public List<ValueAttribute> getSettableAttributes() {
+    return attributes()
+        .filter(Predicates.or(
+            ValueAttributeFunctions.isGenerateAbstract(),
+            ValueAttributeFunctions.isGenerateDefault()))
+        .toList();
   }
 
   public List<ValueAttribute> getExcludableAttributes() {
@@ -588,5 +590,26 @@ public final class ValueType extends TypeIntrospectionBase {
   @Override
   public String toString() {
     return "Value[" + name() + "]";
+  }
+
+  @Override
+  protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
+    TypeHierarchyCollector collector = super.collectTypeHierarchy(typeMirror);
+    scanAndReportInheritance(collector.extendedClasses());
+    scanAndReportInheritance(collector.implementedInterfaces());
+    return collector;
+  }
+
+  private void scanAndReportInheritance(Iterable<DeclaredType> supertypes) {
+    for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
+      if (!supertype.equals(element) && ImmutableMirror.isPresent(supertype)) {
+        constitution.protoclass()
+            .report()
+            .warning("Super types contains type annotated with @Value.Immutable."
+                + " Avoid extending from another abstract value type."
+                + " Better to share common abstract class or interface which"
+                + " are not carrying @Value.Immutable annotation", supertype);
+      }
+    }
   }
 }
