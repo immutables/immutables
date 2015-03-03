@@ -15,13 +15,12 @@
  */
 package org.immutables.generator;
 
+import java.util.Collection;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
-
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Iterator;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**

@@ -327,8 +327,6 @@ public final class Accessors extends Introspection {
           collectAlternatives(targetType));
     }
 
-    /** @deprecated To be removed after completion of migration of old templates */
-    @Deprecated
     @Nullable
     private BoundAccessor resolveAccessorWithBeanAccessor(TypeMirror targetType, String attribute) {
       @Nullable

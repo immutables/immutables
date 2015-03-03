@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import java.util.ArrayList;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -23,7 +24,6 @@ import com.google.common.primitives.Chars;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.immutables.generator.Templates.*;
-
 import java.util.Collection;
 
 public final class Intrinsics {
@@ -169,5 +169,9 @@ public final class Intrinsics {
 
   public static Iterable<Long> $in(long[] elements) {
     return Longs.asList(elements);
+  }
+
+  public static <E> Collection<E> $collect() {
+    return new ArrayList<>();
   }
 }

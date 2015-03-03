@@ -98,6 +98,12 @@ public class Trees {
   @Value.Immutable
   public interface ValueDeclaration extends Named {
     Optional<TypeReference> type();
+
+    Optional<TypeReference> containedType();
+
+    ValueDeclaration withType(TypeReference reference);
+
+    ValueDeclaration withContainedType(TypeReference reference);
   }
 
   public interface Typed {
@@ -244,6 +250,7 @@ public class Trees {
   public interface TransformGenerator extends GeneratorValueDeclaration {
     Expression transform();
 
+    ValueDeclaration varDeclaration();
     Optional<Expression> condition();
   }
 

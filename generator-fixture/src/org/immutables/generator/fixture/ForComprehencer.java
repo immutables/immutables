@@ -13,20 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package samplegenerators;
+package org.immutables.generator.fixture;
 
-import javax.annotation.processing.SupportedSourceVersion;
-import javax.lang.model.SourceVersion;
-import org.immutables.generator.AbstractGenerator;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
-import org.immutables.metainf.Metainf;
 
-@Metainf.Service
-@Generator.SupportedAnnotations(Doit.class)
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class DoitProcessor extends AbstractGenerator {
-  @Override
-  protected void process() {
-    invoke(new Generator_Doer().main());
-  }
+@Generator.Template
+public class ForComprehencer extends AbstractTemplate {
+  public final List<Integer> points = ImmutableList.of(1, 2, 3, 5, 8, 13);
 }

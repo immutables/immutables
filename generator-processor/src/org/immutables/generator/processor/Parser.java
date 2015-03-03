@@ -206,6 +206,8 @@ public class Parser extends BaseParser<Object> {
         ValueDeclaration(), TransformGenerator.declaration(),
         ASSIGN,
         Expression(), TransformGenerator.transform(),
+        FOR,
+        ValueDeclaration(), TransformGenerator.varDeclaration(),
         IN,
         Expression(), TransformGenerator.from(),
         Optional(IF, Expression(), TransformGenerator.condition()),

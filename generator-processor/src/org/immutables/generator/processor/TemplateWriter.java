@@ -16,6 +16,9 @@
 package org.immutables.generator.processor;
 
 import static org.immutables.generator.StringLiterals.*;
+import java.util.Collection;
+import com.google.common.collect.Lists;
+import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
@@ -279,6 +282,49 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     context.out(" = $cast(");
     transformAssignGeneratorFrom(context, generator, generator.from());
     context.out(");").ln();
+    return generator;
+  }
+
+  @Override
+  public TransformGenerator transform(Context context, TransformGenerator generator) {
+    int braces = context.getAndSetPendingBraces(0);
+    context.indent().ln();
+
+    context
+        .out(Collection.class)
+        .out("<")
+        .out(generator.declaration().containedType().get())
+        .out("> ")
+        .out(generator.declaration().name().value())
+        .out(" = ")
+        .out(Intrinsics.class)
+        .out(".$collect();")
+        .ln();
+
+    context.out("for (");
+    transformTransformGeneratorVarDeclaration(context, generator, generator.varDeclaration());
+    context.out(" : $in(");
+    transformTransformGeneratorFrom(context, generator, generator.from());
+    context.out(")) ").openBrace().indent().ln();
+
+    boolean outdent = false;
+    if (generator.condition().isPresent()) {
+      context.out("if ($if(");
+      transformTransformGeneratorOptionalCondition(context, generator, generator.condition());
+      context.out(")) ").openBrace().indent().ln();
+      outdent = true;
+    }
+    context.out(generator.declaration().name().value()).out(".add(");
+    transformTransformGeneratorTransform(context, generator, generator.transform());
+    context.out(");");
+
+    if (outdent) {
+      context.outdent().ln();
+    }
+
+    context.outdent().ln().closeBraces();
+
+    context.getAndSetPendingBraces(braces);
     return generator;
   }
 

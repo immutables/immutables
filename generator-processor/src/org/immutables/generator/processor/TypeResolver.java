@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import com.google.common.base.Verify;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
@@ -38,9 +39,9 @@ import org.immutables.generator.processor.ImmutableTrees.LetStatement;
 import org.immutables.generator.processor.ImmutableTrees.Parameter;
 import org.immutables.generator.processor.ImmutableTrees.ResolvedType;
 import org.immutables.generator.processor.ImmutableTrees.Template;
+import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import org.immutables.generator.processor.ImmutableTrees.TypeDeclaration;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
-import org.immutables.generator.processor.ImmutableTrees.ValueDeclaration;
 import org.immutables.generator.processor.Trees.Expression;
 import org.immutables.generator.processor.Trees.TemplatePart;
 import org.immutables.generator.processor.Trees.TypeDeclaration.Kind;
@@ -70,6 +71,15 @@ public final class TypeResolver {
                 .transform((Void) null, unit));
   }
 
+  private enum InferencePurpose {
+    /** T from T. */
+    ASSIGN,
+    /** T from T[]. */
+    ITERATE,
+    /** T[] from T. */
+    COLLECT;
+  }
+
   private class Scope {
     final Map<String, TypeMirror> locals = Maps.newLinkedHashMap();
 
@@ -79,7 +89,7 @@ public final class TypeResolver {
       return nested;
     }
 
-    ResolvedType declare(TypeDeclaration type, Trees.Identifier name) {
+    Trees.TypeReference declare(Trees.TypeDeclaration type, Trees.Identifier name) {
       if (isDeclared(name)) {
         throw new TypingException(String.format("Redeclaration of local %s", name));
       }
@@ -94,11 +104,11 @@ public final class TypeResolver {
      * @param name identifier
      * @return resolved type
      */
-    ResolvedType declareInvokable(Trees.Identifier name) {
+    Trees.TypeReference declareInvokable(Trees.Identifier name) {
       return declare(knife.accessors.invokableType, name);
     }
 
-    ResolvedType declareForIterationAccess(Trees.Identifier name) {
+    Trees.TypeReference declareForIterationAccess(Trees.Identifier name) {
       return declare(knife.accessors.iterationType, name);
     }
 
@@ -106,12 +116,12 @@ public final class TypeResolver {
       return locals.containsKey(name.value());
     }
 
-    ResolvedType declare(TypeMirror type, Trees.Identifier name) {
+    Trees.TypeReference declare(TypeMirror type, Trees.Identifier name) {
       locals.put(name.value(), type);
       return ResolvedType.of(type);
     }
 
-    TypeMirror resolve(TypeDeclaration type) {
+    TypeMirror resolve(Trees.TypeDeclaration type) {
       TypeMirror resolved = knife.imports.get(type.type().value());
       if (resolved == null) {
         throw new TypingException(String.format("Could not resolve %s simple type", type));
@@ -126,7 +136,11 @@ public final class TypeResolver {
       return knife.types.getDeclaredType(knife.accessors.iterableElement, resolved);
     }
 
-    BoundAccessExpression resolveAccess(AccessExpression expression) {
+    BoundAccessExpression resolveAccess(Trees.AccessExpression expression) {
+      if (expression instanceof BoundAccessExpression) {
+        return (BoundAccessExpression) expression;
+      }
+
       BoundAccessExpression.Builder builder =
           BoundAccessExpression.builder()
               .addAllPath(expression.path());
@@ -147,15 +161,15 @@ public final class TypeResolver {
     }
 
     Trees.ValueDeclaration inferType(
-        ValueDeclaration declaration,
+        Trees.ValueDeclaration declaration,
         Trees.Expression expression,
-        Trees.TypeDeclaration.Kind kind) {
+        InferencePurpose inferenceKind) {
 
       if (expression instanceof BoundAccessExpression) {
         BoundAccessExpression scopeBoundAccess = (BoundAccessExpression) expression;
         Accessors.BoundAccess lastAccess = Iterables.getLast(asBoundAccess(scopeBoundAccess.accessor()));
 
-        if (kind == Trees.TypeDeclaration.Kind.ITERABLE) {
+        if (inferenceKind == InferencePurpose.ITERATE) {
           if (!lastAccess.isContainer()) {
             throw new TypingException(String.format("Not iterable type '%s'%n\tin expression '%s'",
                 lastAccess.type,
@@ -164,18 +178,27 @@ public final class TypeResolver {
         }
 
         if (declaration.type().isPresent()) {
-          return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()));
+          return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()))
+              .withContainedType(ResolvedType.of(resolveType(declaration.type().get(), false)));
         }
 
-        TypeMirror resolved = (kind == Trees.TypeDeclaration.Kind.ITERABLE)
-            ? lastAccess.containedType
-            : lastAccess.type;
-
-        return declaration.withType(declare(resolved, declaration.name()));
+        if (inferenceKind == InferencePurpose.ITERATE) {
+          TypeMirror resolved = lastAccess.containedType;
+          return declaration.withType(declare(resolved, declaration.name()))
+              .withContainedType(ResolvedType.of(resolved));
+        } else if (inferenceKind == InferencePurpose.COLLECT) {
+          TypeMirror resolved = knife.accessors.wrapIterable(lastAccess.type);
+          return declaration.withType(declare(resolved, declaration.name()))
+              .withContainedType(ResolvedType.of(lastAccess.type));
+        } else {
+          return declaration.withType(declare(lastAccess.type, declaration.name()))
+              .withContainedType(ResolvedType.of(lastAccess.type));
+        }
       }
 
       if (declaration.type().isPresent()) {
-        return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()));
+        return declaration.withType(resolveDeclared(declaration.type().get(), declaration.name()))
+            .withContainedType(ResolvedType.of(resolveType(declaration.type().get(), false)));
       }
 
       throw new TypingException(String.format("Value should be typed %s%n\texpression '%s'",
@@ -183,21 +206,23 @@ public final class TypeResolver {
           expression));
     }
 
-    private ResolvedType resolveDeclared(TypeReference typeReference, Trees.Identifier name) {
-      // TBD check type here if it's present
+    private TypeReference resolveDeclared(TypeReference typeReference, Trees.Identifier name) {
+      return declare(resolveType(typeReference, true), name);
+    }
+
+    private TypeMirror resolveType(TypeReference typeReference, boolean wrapIterable) {
       Preconditions.checkState(typeReference instanceof TypeDeclaration);
       TypeDeclaration typeDeclaration = (TypeDeclaration) typeReference;
       TypeIdentifier type = typeDeclaration.type();
-      @Nullable
-      TypeMirror resolved = knife.imports.get(type.value());
+      @Nullable TypeMirror resolved = knife.imports.get(type.value());
       if (resolved == null) {
         throw new TypingException(String.format("Could not resolve declared type '%s'",
             typeDeclaration));
       }
-      if (typeDeclaration.kind() == Kind.ITERABLE) {
+      if (wrapIterable && typeDeclaration.kind() == Kind.ITERABLE) {
         resolved = knife.accessors.wrapIterable(resolved);
       }
-      return declare(resolved, name);
+      return resolved;
     }
   }
 
@@ -226,9 +251,9 @@ public final class TypeResolver {
       AssignGenerator generator = super.transform(scope, value);
       return generator.withDeclaration(
           scope.inferType(
-              (ImmutableTrees.ValueDeclaration) generator.declaration(),
+              generator.declaration(),
               generator.from(),
-              Trees.TypeDeclaration.Kind.SCALAR));
+              InferencePurpose.ASSIGN));
     }
 
     @Override
@@ -240,12 +265,35 @@ public final class TypeResolver {
     @Override
     public IterationGenerator transform(Scope scope, IterationGenerator value) {
       IterationGenerator generator = super.transform(scope, value);
-      return generator.withDeclaration(
-          scope.inferType(
-              (ImmutableTrees.ValueDeclaration) generator.declaration(),
+
+      return generator
+          .withDeclaration(scope.inferType(
+              generator.declaration(),
               generator.from(),
-              Trees.TypeDeclaration.Kind.ITERABLE))
+              InferencePurpose.ITERATE))
           .withCondition(transformIterationGeneratorConditionAfterDeclaration(scope, generator, generator.condition()));
+    }
+
+    @Override
+    public TransformGenerator transform(Scope scope, TransformGenerator value) {
+      TransformGenerator generator = super.transform(scope, value);
+
+      // first we resolve/inference type for intermetiate iteration var,
+      // then we resolve condition and transform expressions
+      generator = generator
+          .withVarDeclaration(scope.inferType(
+              generator.varDeclaration(),
+              generator.from(),
+              InferencePurpose.ITERATE))
+          .withCondition(transformTransformGeneratorConditionAfterDeclaration(scope, generator, generator.condition()))
+          .withTransform(transformTransformGeneratorTransformAfterDeclaration(scope, generator, generator.transform()));
+
+      // Only after transform expression is resolved, we could infer type for whole declaration
+      return generator
+          .withDeclaration(scope.inferType(
+              generator.declaration(),
+              generator.transform(),
+              InferencePurpose.COLLECT));
     }
 
     private Optional<Expression> transformIterationGeneratorConditionAfterDeclaration(
@@ -259,20 +307,56 @@ public final class TypeResolver {
       return Optional.absent();
     }
 
+    private Optional<Expression> transformTransformGeneratorConditionAfterDeclaration(
+        Scope scope,
+        TransformGenerator generator,
+        Optional<Expression> condition) {
+      if (condition.isPresent()) {
+        // Calling actual transformation
+        return Optional.of(super.transformTransformGeneratorCondition(scope, generator, condition.get()));
+      }
+      return Optional.absent();
+    }
+
+    private Expression transformTransformGeneratorTransformAfterDeclaration(
+        Scope scope,
+        TransformGenerator generator,
+        Expression condition) {
+      return super.transformTransformGeneratorTransform(scope, generator, condition);
+    }
+
     /** We prevent transformation here to manually do it after variable declaration is done. */
     @Override
     protected Expression transformIterationGeneratorCondition(
         Scope scope,
         IterationGenerator value,
         Expression element) {
-      return element;
+      return simplifyExpression(element);
+    }
+
+    /** We prevent transformation here to manually do it after variable declaration is done. */
+    @Override
+    protected Expression transformTransformGeneratorCondition(
+        Scope context,
+        TransformGenerator value,
+        Expression element) {
+      return simplifyExpression(element);
+    }
+
+    /** We prevent transformation here to manually do it after variable declaration is done. */
+    @Override
+    protected Expression transformTransformGeneratorTransform(
+        Scope context,
+        TransformGenerator value,
+        Expression element) {
+      return simplifyExpression(element);
     }
 
     @Override
     public Parameter transform(Scope scope, Parameter parameter) {
       return parameter.withType(
           scope.declare(
-              (TypeDeclaration) parameter.type(),
+              (Trees.TypeDeclaration) parameter.type(),
               parameter.name()));
     }
 
