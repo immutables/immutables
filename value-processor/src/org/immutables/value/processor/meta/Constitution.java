@@ -231,7 +231,8 @@ public abstract class Constitution {
       }
     }
 
-    boolean haveConstructorOnBuilder = isOutside || isConstantNamingEquals(methodBuilderNaming, NEW_KEYWORD);
+    boolean haveConstructorOnBuilder = isOutside
+        || isConstantNamingEquals(methodBuilderNaming, NEW_KEYWORD);
 
     NameForms typeNameForms = haveConstructorOnBuilder
         ? typeBuilder()
