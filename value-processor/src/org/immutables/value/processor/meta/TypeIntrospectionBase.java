@@ -29,7 +29,7 @@ import org.immutables.generator.TypeHierarchyCollector;
 
 public abstract class TypeIntrospectionBase {
   protected static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
-  protected static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.value.ordinal.OrdinalValue";
+  protected static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
 
   protected static final ImmutableBiMap<String, String> BOXED_TO_PRIMITIVE_TYPES;
 

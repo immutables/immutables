@@ -31,7 +31,7 @@ import java.util.SortedSet;
  * Use one of the nested annotation.
  * @see Value.Immutable
  * @see Value.Include
- * @see Value.Nested
+ * @see Value.Enclosing
  */
 // @Target({}) // may cause problems with auto completion
 @Retention(RetentionPolicy.SOURCE)
@@ -106,22 +106,23 @@ public @interface Value {
   }
 
   /**
-   * This annotation could be applied to top level class which contains nested abstract value types.
-   * Immutable implementation classes will be generated as classes nested into special "umbrella"
-   * top
-   * level class, essentialy named after annotated class with "Immutable" prefix. This could mix
+   * This annotation could be applied to top level class which contains nested abstract
+   * value types to provide namespacing for the generated implementation classes.
+   * Immutable implementation classes will be generated as classes enclosed into special "umbrella"
+   * top level class, essentialy named after annotated class with "Immutable" prefix (prefix could
+   * be customized using {@link Style#typeImmutableEnclosing()}). This could mix
    * with {@link Value.Immutable} annotation, so immutable implementation class will contains
    * nested immutable implementation classes.
    * <p>
    * Implementation classes nested under top level class with "Immutable" prefix
    * <ul>
    * <li>Have simple names without "Immutable" prefix
-   * <li>Could even be star-imported for easy clutter-free usage.
+   * <li>Could be star-imported for easy clutter-free usage.
    * </ul>
    * <p>
    * 
    * <pre>
-   * {@literal @}Value.Nested
+   * {@literal @}Value.Enclosing
    * class GraphPrimitives {
    *   {@literal @}Value.Immutable
    *   interace Vertex {}
@@ -138,7 +139,7 @@ public @interface Value {
   @Documented
   @Target(ElementType.TYPE)
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Nested {}
+  public @interface Enclosing {}
 
   /**
    * This kind of attribute cannot be set during building, but they are eagerly computed from other
@@ -286,7 +287,7 @@ public @interface Value {
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation. When used as meta-annotation, then annotation could
-   * be placed on a class, surrounding {@link Nested} class or even a package (declared in
+   * be placed on a class, surrounding {@link Enclosing} class or even a package (declared in
    * {@code package-info.java}). This
    * annotation more of example of how to define your own styles as meta-annotation rather than a
    * useful annotation.
@@ -296,7 +297,7 @@ public @interface Value {
    * Some sneaky collisions may only manifest as compilation errors in generated code.</em>
    * <p>
    * <em>Specific styles will be ignored for a immutable type enclosed with class which is annotated
-   * as {@literal @}{@link Value.Nested}. So define styles on the enclosing class.
+   * as {@literal @}{@link Value.Enclosing}. So define styles on the enclosing class.
    * In this way there will be no issues with the naming and structural conventions
    * mismatch on enclosing and nested types.</em>
    */
@@ -417,13 +418,13 @@ public @interface Value {
     String typeImmutable() default "Immutable*";
 
     /**
-     * Umbrella nesting class name generated using {@link Nested}.
+     * Umbrella nesting class name generated using {@link Enclosing}.
      * @return naming template
      */
     String typeImmutableEnclosing() default "Immutable*";
 
     /**
-     * Immutable class name when generated under umbrella class using {@link Nested} annotation.
+     * Immutable class name when generated under umbrella class using {@link Enclosing} annotation.
      * @see #typeImmutable()
      * @see #typeImmutableEnclosing()
      * @return naming template

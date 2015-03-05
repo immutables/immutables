@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.Sets;
+import java.util.Set;
 import javax.lang.model.type.DeclaredType;
 import org.immutables.generator.TypeHierarchyCollector;
 import com.google.common.base.CaseFormat;
@@ -331,7 +333,34 @@ public final class ValueType extends TypeIntrospectionBase {
         || (!isUseBuilder() && !isUseSingleton() && getImplementedAttributes().isEmpty());
   }
 
+  private List<ValueAttribute> constructorArguments;
+
   public List<ValueAttribute> getConstructorArguments() {
+    if (constructorArguments == null) {
+      constructorArguments = computeConstructorArguments();
+      validateConstructorParameters(constructorArguments);
+    }
+    return constructorArguments;
+  }
+
+  private void validateConstructorParameters(List<ValueAttribute> parameters) {
+    if (kind().isValue() && !parameters.isEmpty()) {
+      Set<Element> definingElements = Sets.newHashSet();
+      for (ValueAttribute attribute : parameters) {
+        definingElements.add(attribute.element.getEnclosingElement());
+      }
+      if (definingElements.size() != 1) {
+        constitution.protoclass()
+            .report()
+            .error("Constructor parameters could not be defined on a different level of inheritance hierarchy, "
+                + " generated constructor API would be unstable."
+                + " To resolve, you can redeclare (override) each inherited"
+                + " constuctor parameter in this abstract value type.");
+      }
+    }
+  }
+
+  public List<ValueAttribute> computeConstructorArguments() {
     return attributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
         .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
@@ -454,7 +483,8 @@ public final class ValueType extends TypeIntrospectionBase {
             if (existing == null) {
               byNames.put(name, attribute);
             } else if (existing != attribute) {
-              attribute.report().error("Attribute has duplicate marshaled name, check @Named annotation");
+              attribute.report()
+                  .error("Attribute has duplicate marshaled name, check @%s annotation", NamedMirror.simpleName());
             }
           }
         }
@@ -589,26 +619,26 @@ public final class ValueType extends TypeIntrospectionBase {
 
   @Override
   public String toString() {
-    return "Value[" + name() + "]";
+    return "Type[" + name() + "]";
   }
 
   @Override
   protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
     TypeHierarchyCollector collector = super.collectTypeHierarchy(typeMirror);
-    scanAndReportInheritance(collector.extendedClasses());
-    scanAndReportInheritance(collector.implementedInterfaces());
+    scanAndReportInvalidInheritance(collector.extendedClasses());
+    scanAndReportInvalidInheritance(collector.implementedInterfaces());
     return collector;
   }
 
-  private void scanAndReportInheritance(Iterable<DeclaredType> supertypes) {
+  private void scanAndReportInvalidInheritance(Iterable<DeclaredType> supertypes) {
     for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
       if (!supertype.equals(element) && ImmutableMirror.isPresent(supertype)) {
         constitution.protoclass()
             .report()
-            .warning("Super types contains type annotated with @Value.Immutable."
+            .error("Should not inherit %s which is a value type itself."
                 + " Avoid extending from another abstract value type."
                 + " Better to share common abstract class or interface which"
-                + " are not carrying @Value.Immutable annotation", supertype);
+                + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
       }
     }
   }

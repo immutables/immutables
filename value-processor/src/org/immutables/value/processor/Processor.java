@@ -15,6 +15,10 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.FactoryMirror;
+import org.immutables.value.processor.meta.ImmutableMirror;
+import org.immutables.value.processor.meta.EnclosingMirror;
+import org.immutables.value.processor.meta.IncludeMirror;
 import com.google.common.collect.Multimap;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
@@ -26,10 +30,10 @@ import org.immutables.value.processor.meta.ValueType;
 
 @Metainf.Service
 @SupportedAnnotationTypes({
-    "org.immutables.value.Builder.Factory",
-    "org.immutables.value.Value.Immutable",
-    "org.immutables.value.Value.Nested",
-    "org.immutables.value.Value.Include"
+    FactoryMirror.QUALIFIED_NAME,
+    ImmutableMirror.QUALIFIED_NAME,
+    EnclosingMirror.QUALIFIED_NAME,
+    IncludeMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
   @Override

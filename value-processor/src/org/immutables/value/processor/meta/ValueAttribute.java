@@ -16,6 +16,7 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -34,6 +35,9 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.generator.Naming;
+import org.immutables.generator.Naming.Preference;
+import org.immutables.generator.SourceOrdering;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
@@ -674,6 +678,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initRawTypeName();
     initTypeKind();
     initOrderKind();
+    initFactoryParamsIfApplicable();
 
     makeRegularAndNullableWithValidation();
     makeRegularIfContainsWildcards();
@@ -758,6 +763,29 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
+  private void initFactoryParamsIfApplicable() {
+    if (!containingType.kind().isFactory()) {
+      return;
+    }
+    isBuilderParameter = FParameterMirror.isPresent(element);
+    Optional<SwitchMirror> switcher = SwitchMirror.find(element);
+    if (switcher.isPresent()) {
+      if (isBuilderParameter) {
+        report().annotationNamed(FParameterMirror.simpleName())
+            .error("@%s and @%s annotations cannot be used on a same factory parameter",
+                FParameterMirror.simpleName(),
+                SwitchMirror.simpleName());
+        isBuilderParameter = false;
+      }
+      if (!isEnumType()) {
+        report().annotationNamed(SwitchMirror.simpleName())
+            .error("@%s annotation applicable only to enum parameters", SwitchMirror.simpleName());
+      } else {
+        builderSwitcherModel = new SwitcherModel(switcher.get());
+      }
+    }
+  }
+
   Reporter report() {
     return reporter.withElement(element);
   }
@@ -765,5 +793,63 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   @Override
   public String toString() {
     return "Attribute[" + name() + "]";
+  }
+
+  @Nullable
+  public SwitcherModel builderSwitcherModel;
+  public boolean isBuilderParameter;
+
+  public boolean isBuilderSwitcher() {
+    return builderSwitcherModel != null;
+  }
+
+  public final class SwitcherModel {
+    private final Naming switcherNaming =
+        Naming.from(name()).requireNonConstant(Preference.SUFFIX);
+
+    public final ImmutableList<SwitchOption> options;
+    private final int defaultOrdinal;
+
+    SwitcherModel(SwitchMirror mirror) {
+      this.defaultOrdinal = mirror.defaultOrdinal();
+      this.options = constructOptions();
+    }
+
+    private ImmutableList<SwitchOption> constructOptions() {
+      ImmutableList.Builder<SwitchOption> builder = ImmutableList.builder();
+
+      int ordinal = 0;
+      for (Element v : SourceOrdering.getEnclosedElements(containedTypeElement)) {
+        if (v.getKind() == ElementKind.ENUM_CONSTANT) {
+          builder.add(new SwitchOption(
+              v.getSimpleName().toString(),
+              defaultOrdinal == ordinal++));
+        }
+      }
+
+      return builder.build();
+    }
+
+    public boolean hasDefault() {
+      return defaultOrdinal >= 0;
+    }
+
+    public final class SwitchOption {
+      public final boolean isDefault;
+      public final String constantName;
+      public final String switcherName;
+
+      public SwitchOption(String constantName, boolean isDefault) {
+        this.constantName = constantName;
+        this.switcherName = deriveSwitcherName(constantName);
+        this.isDefault = isDefault;
+      }
+
+      private String deriveSwitcherName(String constantName) {
+        return switcherNaming.apply(
+            CaseFormat.UPPER_UNDERSCORE.to(
+                CaseFormat.LOWER_CAMEL, constantName));
+      }
+    }
   }
 }

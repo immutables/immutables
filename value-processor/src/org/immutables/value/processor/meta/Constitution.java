@@ -32,7 +32,7 @@ import static com.google.common.base.Verify.*;
 @Value.Nested
 @Value.Immutable
 public abstract class Constitution {
-  private static final String NA_ERROR = "!assertion_error!";
+  private static final String NA_ERROR = "!should_not_be_used_in_generated_code!";
   private static final String NEW_KEYWORD = "new";
   private static final String BUILDER_CLASS_NAME = "Builder";
   private static final String BUILDER_METHOD_NAME = "builder";
@@ -62,6 +62,7 @@ public abstract class Constitution {
   /**
    * Value is the canonical outside look of the value type. It should be either
    * {@link #typeAbstract()} or {@link #typeImmutable()}.
+   * For factory it is a special surrogate.
    * @return canonical value type name forms
    */
   @Value.Lazy
@@ -209,9 +210,9 @@ public abstract class Constitution {
     Naming typeBuilderNaming = names().namings.typeBuilder;
     if (isOutside) {
       // For outer builder we can override with constant builder naming, but not the default.
-      boolean isConstantAndDefault = isConstantNamingEquals(typeBuilderNaming, BUILDER_CLASS_NAME);
+      boolean isPlainDefault = isConstantNamingEquals(typeBuilderNaming, BUILDER_CLASS_NAME);
 
-      if (isConstantAndDefault) {
+      if (isPlainDefault) {
         typeBuilderNaming = typeBuilderNaming.requireNonConstant(Preference.SUFFIX);
       }
     }
@@ -224,9 +225,9 @@ public abstract class Constitution {
     boolean isOutside = isImplementationHidden() || isFactory();
     Naming methodBuilderNaming = names().namings.builder;
     if (isOutside) {
-      boolean isConstantAndDefault = isConstantNamingEquals(methodBuilderNaming, BUILDER_METHOD_NAME);
+      boolean isPlainDefault = isConstantNamingEquals(methodBuilderNaming, BUILDER_METHOD_NAME);
 
-      if (isConstantAndDefault) {
+      if (isPlainDefault) {
         methodBuilderNaming = Naming.from(NEW_KEYWORD);
       }
     }
@@ -241,9 +242,9 @@ public abstract class Constitution {
     return typeNameForms.applied(methodBuilderNaming.apply(names().raw));
   }
 
-  private boolean isConstantNamingEquals(Naming naming, String constantNaming) {
+  private boolean isConstantNamingEquals(Naming naming, String name) {
     return naming.isConstant()
-        && naming.apply("").equals(constantNaming);
+        && naming.apply("").equals(name);
 
   }
 

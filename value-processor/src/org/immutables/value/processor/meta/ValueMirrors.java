@@ -64,8 +64,8 @@ public final class ValueMirrors {
     Class<?>[] value();
   }
 
-  @Mirror.Annotation("org.immutables.value.Value.Nested")
-  public @interface Nested {}
+  @Mirror.Annotation("org.immutables.value.Value.Enclosing")
+  public @interface Enclosing {}
 
   @Mirror.Annotation("org.immutables.value.Value.Derived")
   public @interface Derived {}
@@ -197,13 +197,13 @@ public final class ValueMirrors {
     String typeImmutable() default "Immutable*";
 
     /**
-     * Umbrella nesting class name generated using {@link Nested}.
+     * Umbrella nesting class name generated using {@link Enclosing}.
      * @return naming template
      */
     String typeImmutableEnclosing() default "Immutable*";
 
     /**
-     * Immutable class name when generated under umbrella class using {@link Nested} annotation.
+     * Immutable class name when generated under umbrella class using {@link Enclosing} annotation.
      * @see #typeImmutable()
      * @see #typeImmutableEnclosing()
      * @return naming template

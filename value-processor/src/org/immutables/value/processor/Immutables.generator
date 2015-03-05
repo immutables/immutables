@@ -150,7 +150,7 @@ import java.lang.String;
 
   /**
    * Copy constructor used for interning of objects implementing
-   * {@link org.immutables.value.ordinal.OrdinalValue}
+   * {@link org.immutables.ordinal.OrdinalValue}
    */
   private [type.typeImmutable.simple]([type.typeImmutable.simple] instance, int ordinal) {
   [for v in type.implementedAttributes]
@@ -167,7 +167,7 @@ import java.lang.String;
    * Instances of {@code [type.name]} will be interned and registered with the domain.
    */
   public static final class Domain
-      extends org.immutables.value.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
+      extends org.immutables.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
 
     private static final Domain INSTANCE = new Domain();
 
@@ -199,7 +199,7 @@ import java.lang.String;
   }
 
   @Override
-  public org.immutables.value.ordinal.OrdinalDomain<[type.typeAbstract.relative]> domain() {
+  public org.immutables.ordinal.OrdinalDomain<[type.typeAbstract.relative]> domain() {
     return domain;
   }
 
@@ -418,7 +418,41 @@ import java.lang.String;
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
   [/if]
-[if ((type.factoryBuilder.applied ne 'new') and (not type.kind.isFactory))]
+[for Boolean useFactoryMethod = type.factoryBuilder.applied ne 'new']
+[if type.kind.isFactory]
+  [for parameters = p for p in setters if p.isBuilderParameter]
+
+  /** Constructor for [type.typeValue.simple] builder. */
+  [if useFactoryMethod]private [else][type.typeBuilder.access][/if][type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    [for v in setters]
+      [if v.builderSwitcher]
+        [for o in v.builderSwitcherModel.options if o.isDefault]
+    [o.switcherName]();
+        [/for]
+      [/if]
+      [if v.isBuilderParameter]
+        [if v.collectionType]
+    [v.names.addAll]([v.name]);
+        [else if v.mapType]
+    [v.names.putAll]([v.name]);
+        [else]
+    [v.names.init]([v.name]);
+        [/if]
+      [/if]
+    [/for]
+  }
+    [if useFactoryMethod]
+
+  /**
+   * Creates [type.typeValue.simple] builder.
+   * @return new [type.typeValue.simple] builder
+   */
+  [type.typeBuilder.access] static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    return new [type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
+  }
+    [/if]
+  [/for]
+[else if useFactoryMethod]
   private [type.typeBuilder.simple]() {}
   [if type.constitution.isOutsideBuilder]
 
@@ -431,6 +465,7 @@ import java.lang.String;
   }
   [/if]
 [/if]
+[/for]
 [if type.generateOrdinalValue]
 
   /**
@@ -489,7 +524,21 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
   [for v in setters]
-  [if v.collectionType]
+  [if v.builderSwitcher]
+    [for o in v.builderSwitcherModel.options]
+
+  /**
+   * Switches {@code [v.name]} to {@code [o.constantName]}.
+   * @return {@code this} builder for chained invocation
+   */
+  [if o.isDefault]private[else]public[/if] final [type.typeBuilder.simple] [o.switcherName]() {
+    this.[v.name] = [v.rawType].[o.constantName];
+    [mandatorySetInBuilder v]
+    return this;
+  }
+    [/for]
+  [else if v.collectionType]
+    [if not v.isBuilderParameter]
 
   /**
    * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
@@ -525,13 +574,14 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     return [v.names.addAll]([arrayAsList v 'elements']);
     [/if]
   }
+    [/if]
 
   /**
    * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if type.generateJdkOnly]
     for([v.unwrappedElementType] element : elements) {
       [v.name]Builder.add(java.util.Objects.requireNonNull(element));
@@ -542,6 +592,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     return this;
   }
   [else if v.optionalType]
+    [if not v.isBuilderParameter]
 
   /**
    * Initializes present value for optional [sourceDocRef type v].
@@ -552,19 +603,21 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     this.[v.name] = [v.rawType].of([v.name]);
     return this;
   }
+    [/if]
 
   /**
    * Initializes optional value for [sourceDocRef type v].
    * @param [v.name] value for [v.name], non-null
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     return this;
   }
   [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
       [if v.multimapType]
+        [if not v.isBuilderParameter]
 
   /**
    * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
@@ -587,7 +640,10 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [v.name]Builder.putAll(key, values);
     return this;
   }
+        [/if]
       [/if]
+        [if not v.isBuilderParameter]
+
   /**
    * Put one entry to [sourceDocRef type v] map.
    * @param key the key in [v.name] map
@@ -620,13 +676,14 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [/if]
     return this;
   }
+        [/if]
 
   /**
    * Put all mappings from specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if type.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
       [v.name]Builder.put(
@@ -651,7 +708,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final [type.typeBuilder.simple] [v.names.init]([v.elementType]... elements) {
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.elementType]... elements) {
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
     return this;
@@ -666,7 +723,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
@@ -1333,7 +1390,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [if v.generateJdkOnly][-- for now jdk only will be the same --]
   [v.type]
 [else if v.generateOrdinalValueSet]
-  org.immutables.value.ordinal.ImmutableOrdinalSet<[v.elementType]>
+  org.immutables.ordinal.ImmutableOrdinalSet<[v.elementType]>
 [else if v.generateSortedSet]
   [guava].collect.ImmutableSortedSet<[v.elementType]>
 [else if v.collectionType]
@@ -1411,7 +1468,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [else if a.generateEnumSet]
     [guava].collect.Sets.immutableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
-    org.immutables.value.ordinal.ImmutableOrdinalSet.copyOf([expression])
+    org.immutables.ordinal.ImmutableOrdinalSet.copyOf([expression])
   [else if a.collectionType]
     [guava].collect.Immutable[a.rawCollectionType].copyOf([expression])
   [else if a.generateSortedMap]
@@ -1631,6 +1688,8 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 }
 [/if]
 [/template]
+
+[template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
