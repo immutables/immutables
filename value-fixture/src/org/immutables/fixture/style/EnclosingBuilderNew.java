@@ -24,7 +24,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
  * <li>Nested Builder using constructor "new" invokation
  * </ul>
  */
-@Value.Nested
+@Value.Enclosing
 @Value.Style(
     builder = "new",
     visibility = ImplementationVisibility.PRIVATE)

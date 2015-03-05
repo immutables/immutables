@@ -7,7 +7,7 @@
     <groupId>org.immutables</groupId>
     <version>2.0-SNAPSHOT</version>
   </parent>
-  <artifactId>value-ordinal</artifactId>
+  <artifactId>ordinal</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <dependencies>
     <dependency>
@@ -19,6 +19,18 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-standalone</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

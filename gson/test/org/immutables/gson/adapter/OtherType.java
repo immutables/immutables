@@ -10,7 +10,7 @@ import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
-@Value.Nested
+@Value.Enclosing
 @Gson.TypeAdapters
 public interface OtherType {
 

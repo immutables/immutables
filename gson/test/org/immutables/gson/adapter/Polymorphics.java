@@ -7,7 +7,7 @@ import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Gson.TypeAdapters
-@Value.Nested
+@Value.Enclosing
 public interface Polymorphics {
 
   @Gson.ExpectedSubtypes(D.class)

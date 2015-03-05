@@ -13,9 +13,9 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture;
+package org.immutables.ordinal;
 
-import org.immutables.value.ordinal.OrdinalValue;
+import org.immutables.ordinal.OrdinalValue;
 import org.immutables.value.Value;
 
 @Value.Immutable

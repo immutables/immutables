@@ -20,6 +20,6 @@ import org.immutables.value.Value;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-@Value.Nested
+@Value.Enclosing
 @Value.Include({Target.class, Retention.class})
 public interface IncludeNestedTypes {}

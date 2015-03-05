@@ -22,7 +22,7 @@ import org.immutables.value.Value;
  */
 //@Parboil.Ast
 //@ExtValue.Transformer
-@Value.Nested
+@Value.Enclosing
 public class AstTree {
   interface Expression {}
 

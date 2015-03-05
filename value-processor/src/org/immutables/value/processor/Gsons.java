@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
@@ -27,7 +28,6 @@ import org.immutables.value.processor.meta.Proto.AbstractDeclaring;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
@@ -50,6 +50,10 @@ abstract class Gsons extends ValuesTemplate {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.typeAdaptersProvider();
         if (typeAdaptersProvider.isPresent()) {
           byDeclaring.put(typeAdaptersProvider.get(), value);
+        } else if (protoclass.gsonTypeAdapters().isPresent()
+            && protoclass.declaringType().isPresent()) {
+          DeclaringType topLevel = protoclass.declaringType().get().topLevel();
+          byDeclaring.put(topLevel, value);
         }
       }
     }

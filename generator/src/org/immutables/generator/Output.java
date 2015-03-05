@@ -15,6 +15,8 @@
  */
 package org.immutables.generator;
 
+import javax.tools.Diagnostic.Kind;
+import javax.annotation.processing.Messager;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
@@ -239,12 +241,20 @@ public final class Output {
 
     void complete() {
       CharSequence sourceCode = extractSourceCode();
-      try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
-        writer.append(sourceCode);
-      } catch (IOException ex) {
-        if (!identicalFileIsAlreadyGenerated(sourceCode)) {
-          throw Throwables.propagate(ex);
+      try {
+        try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
+          writer.append(sourceCode);
         }
+      } catch (FilerException ex) {
+        if (!identicalFileIsAlreadyGenerated(sourceCode)) {
+          getMessager().printMessage(Kind.ERROR,
+              "Generated source file name collission. Attempt to overwrite already generated file: " + key);
+        } else {
+          getMessager().printMessage(Kind.WARNING,
+              "Regenerated file with the same content: " + key);
+        }
+      } catch (IOException ex) {
+        throw Throwables.propagate(ex);
       }
     }
 
@@ -277,6 +287,10 @@ public final class Output {
 
   private static Filer getFiler() {
     return StaticEnvironment.processing().getFiler();
+  }
+
+  private static Messager getMessager() {
+    return StaticEnvironment.processing().getMessager();
   }
 
   private static Files getFiles() {

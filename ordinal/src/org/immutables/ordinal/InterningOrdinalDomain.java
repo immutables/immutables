@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.ordinal;
+package org.immutables.ordinal;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

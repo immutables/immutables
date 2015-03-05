@@ -37,7 +37,7 @@ import org.immutables.value.Value;
  * <li>Forwarding factory methods with names customization and auto-disambiguation
  * </ul>
  */
-@Value.Nested
+@Value.Enclosing
 @Priv
 public abstract class EnclosingHiddenImplementation {
   @Value.Immutable

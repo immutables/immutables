@@ -17,7 +17,7 @@ package org.immutables.fixture;
 
 import org.immutables.value.Value;
 
-@Value.Nested
+@Value.Enclosing
 public class SampleNesting {
   @Value.Immutable
   interface A {}

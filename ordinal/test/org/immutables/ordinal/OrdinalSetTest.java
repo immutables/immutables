@@ -13,13 +13,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.ordinal;
+package org.immutables.ordinal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.Arrays;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+
+import java.util.Arrays;
+
+import static org.immutables.check.Checkers.check;
 
 public class OrdinalSetTest {
 

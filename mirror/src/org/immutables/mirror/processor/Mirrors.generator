@@ -26,10 +26,10 @@ import [guava].collect.ImmutableList;
  */
 @SuppressWarnings("all")
 public class [m.name]Mirror implements [m.element.qualifiedName] {
-  private static final String ANNOTATION_NAME = "[m.qualifiedName]";
+  public static final String QUALIFIED_NAME = "[m.qualifiedName]";
 
   public static String qualifiedName() {
-    return ANNOTATION_NAME;
+    return QUALIFIED_NAME;
   }
 
   public static String simpleName() {
@@ -39,7 +39,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
   public static boolean isPresent(Element annotatedElement) {
     for (AnnotationMirror mirror : annotatedElement.getAnnotationMirrors()) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
-      if (element.getQualifiedName().contentEquals(ANNOTATION_NAME)) {
+      if (element.getQualifiedName().contentEquals(QUALIFIED_NAME)) {
         return true;
       }
     }
@@ -63,7 +63,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
   public static Optional<[m.name]Mirror> find(Iterable<? extends AnnotationMirror> mirrors) {
     for (AnnotationMirror mirror : mirrors) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
-      if (element.getQualifiedName().contentEquals(ANNOTATION_NAME)) {
+      if (element.getQualifiedName().contentEquals(QUALIFIED_NAME)) {
         return Optional.of(new [m.name]Mirror(mirror));
       }
     }
@@ -79,7 +79,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
     ImmutableList.Builder<[m.name]Mirror> builder = ImmutableList.builder();
     for (AnnotationMirror mirror : mirrors) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
-      Preconditions.checkState(element.getQualifiedName().contentEquals(ANNOTATION_NAME),
+      Preconditions.checkState(element.getQualifiedName().contentEquals(QUALIFIED_NAME),
           "Supplied mirrors should all be of this annotation type");
       builder.add(new [m.name]Mirror(mirror));
     }
@@ -116,7 +116,7 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
 [/for]
 
   private [m.name]Mirror(TypeElement defaultAnnotationElement) {
-    Preconditions.checkArgument(defaultAnnotationElement.getQualifiedName().contentEquals(ANNOTATION_NAME));
+    Preconditions.checkArgument(defaultAnnotationElement.getQualifiedName().contentEquals(QUALIFIED_NAME));
     this.annotationMirror = null;
 
     // TBD TODO BIG
@@ -478,7 +478,7 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
 
   @Override
   protected Void defaultAction(Object o, Void p) {
-    throw new IllegalStateException("Incompatible annotation content of attribute '[a.name]' in @" + ANNOTATION_NAME);
+    throw new IllegalStateException("Incompatible annotation content of attribute '[a.name]' in @" + QUALIFIED_NAME);
   }
 }
 [/template]

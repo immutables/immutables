@@ -19,7 +19,7 @@ import com.google.common.base.Optional;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
-@Value.Nested
+@Value.Enclosing
 @Gson.TypeAdapters(emptyAsNulls = true)
 //@ExtValue.Transformer
 class GroupedClasses {

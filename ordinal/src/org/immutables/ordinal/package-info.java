@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,12 +13,5 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture;
-
-import java.util.Set;
-import org.immutables.value.Value;
-
-@Value.Immutable
-public abstract class SillyOrdinalHolder {
-  public abstract Set<SillyOrdinal> set();
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package org.immutables.ordinal;

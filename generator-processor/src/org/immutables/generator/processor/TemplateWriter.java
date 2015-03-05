@@ -15,12 +15,9 @@
  */
 package org.immutables.generator.processor;
 
-import static org.immutables.generator.StringLiterals.*;
-import java.util.Collection;
-import com.google.common.collect.Lists;
-import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import java.util.Collection;
 import java.util.List;
 import javax.lang.model.element.TypeElement;
 import org.immutables.generator.Intrinsics;
@@ -43,9 +40,11 @@ import org.immutables.generator.processor.ImmutableTrees.ResolvedType;
 import org.immutables.generator.processor.ImmutableTrees.StringLiteral;
 import org.immutables.generator.processor.ImmutableTrees.Template;
 import org.immutables.generator.processor.ImmutableTrees.TextLine;
+import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.immutables.generator.processor.ImmutableTrees.ValueDeclaration;
 import org.immutables.generator.processor.Trees.Expression;
+import static org.immutables.generator.StringLiterals.*;
 
 /**
  * This part is written with simples possible writer in mind. It was decided not to use dependencies
@@ -287,9 +286,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
   @Override
   public TransformGenerator transform(Context context, TransformGenerator generator) {
-    int braces = context.getAndSetPendingBraces(0);
-    context.indent().ln();
-
     context
         .out(Collection.class)
         .out("<")
@@ -301,26 +297,23 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .out(".$collect();")
         .ln();
 
+    int braces = context.getAndSetPendingBraces(0);
+
     context.out("for (");
     transformTransformGeneratorVarDeclaration(context, generator, generator.varDeclaration());
     context.out(" : $in(");
     transformTransformGeneratorFrom(context, generator, generator.from());
     context.out(")) ").openBrace().indent().ln();
 
-    boolean outdent = false;
     if (generator.condition().isPresent()) {
       context.out("if ($if(");
       transformTransformGeneratorOptionalCondition(context, generator, generator.condition());
-      context.out(")) ").openBrace().indent().ln();
-      outdent = true;
+      context.out(")) ").openBrace().ln();
     }
+
     context.out(generator.declaration().name().value()).out(".add(");
     transformTransformGeneratorTransform(context, generator, generator.transform());
     context.out(");");
-
-    if (outdent) {
-      context.outdent().ln();
-    }
 
     context.outdent().ln().closeBraces();
 

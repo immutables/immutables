@@ -19,7 +19,7 @@ import org.immutables.value.Value;
 
 import java.util.List;
 
-@Value.Nested
+@Value.Enclosing
 public class SampleCopyOfTypes {
   @Value.Immutable(builder = false)
   public interface ByConstructorAndWithers {

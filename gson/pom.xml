@@ -7,7 +7,7 @@
     <groupId>org.immutables</groupId>
     <version>2.0-SNAPSHOT</version>
   </parent>
-  <artifactId>immutables-gson</artifactId>
+  <artifactId>gson</artifactId>
 
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Gson integration for Immutables. Also includes optional integration with Jackson to speed-up

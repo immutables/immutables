@@ -28,12 +28,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-ordinal</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>immutables-gson</artifactId>
+      <artifactId>gson</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -113,7 +113,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   private void expect(com.fasterxml.jackson.core.JsonToken expected) {
     if (peek != expected) {
-      throw new IllegalStateException("Expected " + toGsonToken(expected) + " but was " + toGsonToken(peek));
+      throw new IllegalStateException("Expected " + expected + " but was " + peek);
     }
   }
 

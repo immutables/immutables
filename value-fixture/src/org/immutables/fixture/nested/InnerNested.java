@@ -19,7 +19,7 @@ import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Gson.TypeAdapters
-@Value.Nested
+@Value.Enclosing
 @Value.Immutable
 public interface InnerNested {
   @Value.Immutable

@@ -91,11 +91,15 @@ public final class FieldNamingTranslator {
         }
       }
     }
+    complainOnce();
+    return FieldNamingPolicy.IDENTITY;
+  }
+
+  private static void complainOnce() {
     if (complained.compareAndSet(false, true)) {
       Logger.getLogger(FieldNamingTranslator.class.getName())
           .warning("Gson FieldNamingStrategy will not work for some serialized immutable objects: runtime incompatibility");
     }
-    return FieldNamingPolicy.IDENTITY;
   }
 
   private static Object readPrivateField(Object object, String name) {

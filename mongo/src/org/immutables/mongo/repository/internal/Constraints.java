@@ -232,7 +232,7 @@ public final class Constraints {
 
   public static Pattern prefixPatternOf(String prefix) {
     checkArgument(NON_LITERAL_REGEX_CHARACTERS.matchesNoneOf(prefix),
-        "Prefix [%s] should be literal, otherwise use regular constructed Regex Pattern",
+        "Prefix [%s] should be literal, otherwise use constructed regex Pattern",
         prefix);
     return Pattern.compile("^" + prefix);
   }

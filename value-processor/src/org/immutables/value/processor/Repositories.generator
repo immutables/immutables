@@ -77,7 +77,7 @@ import com.google.gson.reflect.TypeToken;
    */
   @javax.annotation.CheckReturnValue
   public Finder findAll() {
-    return find(where());
+    return find(criteria());
   }
   
  /**
@@ -91,7 +91,6 @@ import com.google.gson.reflect.TypeToken;
     return new Finder(this, Support.jsonQuery(jsonCriteria));
   }
 [for a = type.idAttribute]
-[-- It will rarely be otherwise --]
 [if a]
 
   /**
@@ -102,7 +101,7 @@ import com.google.gson.reflect.TypeToken;
    */
   @javax.annotation.CheckReturnValue
   public Finder findBy[toUpper a.name]([a.type] [a.name]) {
-    return find(where().[a.name]([a.name]));
+    return find(criteria().[a.name]([a.name]));
   }
   
   /**
@@ -111,19 +110,16 @@ import com.google.gson.reflect.TypeToken;
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
   public FluentFuture<Integer> upsert([type.typeAbstract] document) {
-    Criteria byId = where().[a.name](document.[a.names.get]());
+    Criteria byId = criteria().[a.name](document.[a.names.get]());
     return super.doUpsert(byId.constraint, document);
   }
 [/if]
 [/for]
-
   [generateFinder type]
   [generateUpdater type]
   [generateModifier type]
   [generateIndexer type]
-  [generateCriteriaApi type]
   [generateCriteria type]
-  [--generateMarshalWrappers type--]
   [generateSerializationHelpers type]
 }
 [/template]
@@ -169,7 +165,7 @@ public [tT] exclude[toUpper a.name]() {
 [template generateFinder Type type]
 
 /**
- * Find document by {@link [type.name]Repository#where() criteria}. Use returned {@link Finder} object to complete
+ * Find document by {@link [type.name]Repository#criteria() criteria}. Use returned {@link Finder} object to complete
  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
  * @param criteria search criteria
  * @return finder object to complete operation
@@ -515,6 +511,15 @@ public static final class Modifier extends Repositories.Modifier<[type.typeAbstr
 [template generateCriteria Type type]
 
 /**
+ * Search criteria.
+ * Returns initial object to create criteria by invoking methods that describe attribute specific constraints.
+ * @return empty immutable criteria
+ */
+public Criteria criteria() {
+  return anyCriteria;
+}
+
+/**
  * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
  * Call methods on criteria to add constraint for search query.
  */
@@ -684,19 +689,8 @@ public static final class Criteria extends Repositories.Criteria {
 
   @Override
   public String toString() {
-    return "[type.name]Repository.where(" + Support.stringify(constraint) + ")";
+    return "[type.name]Repository.criteria(" + Support.stringify(constraint) + ")";
   }
-}
-[/template]
-
-[template generateCriteriaApi Type type]
-/**
- * Specify search criteria.
- * Returns initial object to create criteria by invoking methods that describe attribute specific constraints.
- * @return empty immutable criteria
- */
-public Criteria where() {
-  return anyCriteria;
 }
 [/template]
 

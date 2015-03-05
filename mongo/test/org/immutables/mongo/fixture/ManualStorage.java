@@ -20,8 +20,7 @@ public class ManualStorage {
 
     ItemRepository items = new ItemRepository(setup);
 
-    ItemRepository.Criteria where = items.where();
-
+    ItemRepository.Criteria where = items.criteria();
     FluentFuture<Integer> inserted = items.insert(ImmutableItem.builder()
         .id("1")
         .binary(Binary.create(new byte[] {1, 2, 3}))

@@ -38,8 +38,27 @@ public class UnderwriteObjectMethods {
     }
   }
 
+  public abstract static class AbstractNoUnderwrite {
+    public abstract int value();
+
+    @Override
+    public int hashCode() {
+      return value() + 1;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return "N".equals(obj.toString());
+    }
+
+    @Override
+    public String toString() {
+      return "N";
+    }
+  }
+  
   @Value.Immutable
-  public abstract static class NoUnderwrite extends Underwrite {
+  public abstract static class NoUnderwrite extends AbstractNoUnderwrite {
     @Override
     public abstract int value();
   }
