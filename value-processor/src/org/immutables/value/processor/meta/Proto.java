@@ -17,11 +17,11 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.lang.annotation.ElementType;
 import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -105,11 +105,19 @@ public class Proto {
       return StyleMirror.from(typeElement);
     }
 
-    @Value.Derived
+    /**
+     * Default type adapters should only be called if {@code Gson.TypeAdapters} annotation is
+     * definitely in classpath. Currenlty, it is called by for mongo repository module,
+     * which have {@code gson} module as a transitive dependency.
+     * @return default type adapters
+     */
+    @Value.Lazy
     TypeAdaptersMirror defaultTypeAdapters() {
-      TypeElement typeElement = processing()
+      TypeElement typeElement = Preconditions.checkNotNull(processing()
           .getElementUtils()
-          .getTypeElement(TypeAdaptersMirror.qualifiedName());
+          .getTypeElement(TypeAdaptersMirror.qualifiedName()),
+          "Processor internal error, @%s is not know to be on the classpath",
+          TypeAdaptersMirror.qualifiedName());
 
       return TypeAdaptersMirror.from(typeElement);
     }
@@ -307,11 +315,10 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     public boolean isEnclosing() {
-      return NestedMirror.isPresent(element());
+      return EnclosingMirror.isPresent(element());
     }
 
     /**
-     * TODO Move to {@link DeclaringType}?.
      * @return true, if is top level
      */
     @Value.Derived
@@ -335,8 +342,9 @@ public class Proto {
           || !element.getTypeParameters().isEmpty()) {
         report().withElement(element)
             .annotationNamed(FactoryMirror.simpleName())
-            .error("@Value.Builder method '%s' should be static, non-private,"
+            .error("@%s method '%s' should be static, non-private,"
                 + " with no type parameters or throws declaration, and enclosed in top level type",
+                FactoryMirror.simpleName(),
                 element.getSimpleName());
         return false;
       }
@@ -345,22 +353,24 @@ public class Proto {
     }
 
     /**
-     * Logic honors {@link ElementType} declared on annotation types to avoid some
-     * useless checks. But otherwise it's not exhaustive.
-     * TODO Move to {@link DeclaringType}?
+     * Some validations, not exhaustive.
      */
     @Value.Check
     protected void validate() {
       if (hasInclude() && !isTopLevel()) {
-        report().annotationNamed(IncludeMirror.simpleName())
-            .error("@Include could not be used on nested types.");
+        report()
+            .annotationNamed(IncludeMirror.simpleName())
+            .error("@%s could not be used on nested types.", IncludeMirror.simpleName());
       }
       if (isEnclosing() && !isTopLevel()) {
-        report().annotationNamed(NestedMirror.simpleName())
-            .error("@Nested should only be used on a top-level types.");
+        report()
+            .annotationNamed(EnclosingMirror.simpleName())
+            .error("@%s should only be used on a top-level types.", EnclosingMirror.simpleName());
       }
-      if (element().getKind() == ElementKind.ENUM) {
-        report().error("@Value.* annotations are not supported on enums");
+      if (isImmutable() && element().getKind() == ElementKind.ENUM) {
+        report()
+            .annotationNamed(ImmutableMirror.simpleName())
+            .error("@%s is not supported on enums", ImmutableMirror.simpleName());
       }
     }
   }
@@ -380,7 +390,7 @@ public class Proto {
     /**
      * Source type elements stores type element which is used as a source of value type model.
      * It is the annotated class for {@code @Value.Immutable} or type referenced in
-     * {@code @Value.Immutable.Include}.
+     * {@code @Value.Include}.
      * @return source element
      */
     @Value.Auxiliary
@@ -394,8 +404,8 @@ public class Proto {
     public abstract DeclaringPackage packageOf();
 
     /**
-     * The class, which is annotated to be a {@code @Value.Immutable},
-     * {@code @Value.Immutable.Include} or {@code @Value.Nested}.
+     * The class, which is annotated to be a {@code @Value.Immutable}, {@code @Value.Include} or
+     * {@code @Value.Enclosing}.
      * @return declaring type
      */
     public abstract Optional<DeclaringType> declaringType();
@@ -411,7 +421,8 @@ public class Proto {
           && !typeAdaptersProvider().isPresent()
           && kind().isNested()) {
         report().annotationNamed(RepositoryMirror.simpleName())
-            .error("@Mongo.%s should also have associated @Gson.%s on a top level type. For top level immutable adapters would be auto-added",
+            .error("@Mongo.%s should also have associated @Gson.%s on a top level type."
+                + " For top level immutable adapters would be auto-added",
                 RepositoryMirror.simpleName(),
                 TypeAdaptersMirror.simpleName());
       }

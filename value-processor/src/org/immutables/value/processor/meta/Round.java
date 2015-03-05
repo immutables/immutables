@@ -145,6 +145,7 @@ public abstract class Round {
       case ANNOTATION_TYPE:
       case INTERFACE:
       case CLASS:
+      case ENUM:
         collectIncludedAndDefinedBy((TypeElement) element);
         break;
       case METHOD:
