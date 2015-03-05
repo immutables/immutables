@@ -22,7 +22,6 @@
 
   <modules>
     <module>dependency/utility</module>
-    <module>dependency/technology</module>
     <module>testing</module>
     <module>generator</module>
     <module>generator-processor</module>
