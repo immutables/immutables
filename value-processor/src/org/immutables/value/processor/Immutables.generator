@@ -381,39 +381,9 @@ import java.lang.String;
   [for l in positions.longs]
   private long initializedBitset[emptyIfZero l.index];
   [/for]
-
+//WTF
   [for v in setters]
-    [if v.containerType]
-      [if v.generateJdkOnly]
-  [if v.optionalType]
-  private [v.type] [v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
-  [else if v.generateEnumMap]
-  private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
-  [else if v.mapType]
-  private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
-  [else if v.generateEnumSet]
-  private final java.util.EnumSet<[v.elementType]> [v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
-  [else]
-  private final java.util.ArrayList<[v.elementType]> [v.name]Builder = new java.util.ArrayList<[v.elementType]>();
-  [/if]
-      [else]
-  [if v.generateSortedSet]
-  private final [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder = [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
-  [else if v.collectionType]
-  private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
-  [else if v.optionalType]
-  private [v.type] [v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
-  [else if v.generateSortedMap]
-  private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
-  [else if v.mapType]
-  private final [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.Immutable[v.rawMapType].builder();
-  [/if]
-      [/if]
-    [else if v.primitive]
-  private [v.type] [v.name];
-    [else]
-  private [atNullable][v.type] [v.name];
-    [/if]
+  [defineOrResetBuildingField v true]
   [/for]
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
@@ -574,6 +544,16 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     return [v.names.addAll]([arrayAsList v 'elements']);
     [/if]
   }
+
+  /**
+   * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements iterable of [v.name] elements
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [v.names.init](Iterable<[v.consumedElementType]> elements) {
+    [defineOrResetBuildingField v false]
+    return [v.names.addAll](elements);
+  }
     [/if]
 
   /**
@@ -675,6 +655,16 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [v.name]Builder.put(entry);
     [/if]
     return this;
+  }
+
+  /**
+   * Sets or replaces all mappings from specified map as entries for [sourceDocRef type v] map. Nulls are not permitted
+   * @param entries to be added to [v.name] map
+   * @return {@code this} builder for chained invocation
+   */
+  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+    [defineOrResetBuildingField v false]
+    return [v.names.putAll](entries);
   }
         [/if]
 
@@ -1687,6 +1677,40 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
   return java.util.Collections.unmodifiable[unmodifiableSortedMapInterface](sortedMap);
 }
 [/if]
+[/template]
+
+[template defineOrResetBuildingField Attribute v Boolean declare]
+  [if v.containerType]
+    [if v.generateJdkOnly]
+      [if v.optionalType]
+[if declare]private [v.type] [/if][v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+      [else if v.generateEnumMap]
+[if declare]private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+      [else if v.mapType]
+[if declare]private java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+      [else if v.generateEnumSet]
+[if declare]private java.util.EnumSet<[v.elementType]> [/if][v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
+      [else]
+[if declare]private java.util.ArrayList<[v.elementType]> [/if][v.name]Builder = new java.util.ArrayList<[v.elementType]>();
+      [/if]
+    [else]
+      [if v.generateSortedSet]
+[if declare]private [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [/if][v.name]Builder = [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+      [else if v.collectionType]
+[if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [/if][v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
+      [else if v.optionalType]
+[if declare]private [v.type] [/if][v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+      [else if v.generateSortedMap]
+[if declare]private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+      [else if v.mapType]
+[if declare]private [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = [guava].collect.Immutable[v.rawMapType].builder();
+      [/if]
+    [/if]
+  [else if v.primitive]
+[if declare]private [v.type] [v.name];[/if]
+  [else]
+[if declare]private [atNullable][v.type] [v.name];[/if]
+  [/if]
 [/template]
 
 [template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]

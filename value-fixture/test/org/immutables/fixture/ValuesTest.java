@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
@@ -62,6 +63,28 @@ public class ValuesTest {
     check(svAll.c()).isOf(1, 2, 3, 4);
     check(svAll.oi().orElse(-1)).is(1);
     check(svAll.os()).isOf("");
+  }
+
+  @Test
+  public void resetCollectionTest() {
+    OrderAttributeValue a = ImmutableOrderAttributeValue.builder()
+        .addNatural(0)
+        .natural(ImmutableList.of(3, 2, 4, 1))
+        .addReverse("")
+        .reverse(ImmutableList.of("a", "z", "b", "y"))
+        .putNavigableMap(1, "2")
+        .navigableMap(ImmutableMap.of(2, "2"))
+        .reverseMap(ImmutableMap.of("a", "a"))
+        .build();
+
+    OrderAttributeValue b = ImmutableOrderAttributeValue.builder()
+        .addNatural(3, 2, 4, 1)
+        .addReverse("a", "z", "b", "y")
+        .putNavigableMap(2, "2")
+        .putReverseMap("a", "a")
+        .build();
+
+    check(a).is(b);
   }
 
   @Test
