@@ -381,7 +381,7 @@ import java.lang.String;
   [for l in positions.longs]
   private long initializedBitset[emptyIfZero l.index];
   [/for]
-//WTF
+
   [for v in setters]
   [defineOrResetBuildingField v true]
   [/for]
