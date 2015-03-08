@@ -9,8 +9,15 @@
   </parent>
   <artifactId>ordinal</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
+  <description>
+    API and support runtime classes for implementing immutable objects as
+    set enum-like object values, accumulated in so called "domains". This
+    allows for special performance optiomization, like using bit-sets to
+    efficiently calculate inclusion in set or set differences.
+  </description>
   <dependencies>
     <dependency>
+      <!-- Guava is required dependency if using ordinal module -->
       <groupId>org.immutables.dependency</groupId>
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
@@ -19,12 +26,6 @@
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

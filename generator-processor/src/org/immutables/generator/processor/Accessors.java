@@ -18,15 +18,14 @@ package org.immutables.generator.processor;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -67,21 +66,19 @@ public final class Accessors extends Introspection {
     return types.getDeclaredType(iterableElement, typeMirror);
   }
 
-  private final LoadingCache<String, ImmutableMap<String, Accessor>> accessorsDefined =
-      CacheBuilder.newBuilder()
-          .concurrencyLevel(1)
-          .build(new CacheLoader<String, ImmutableMap<String, Accessor>>() {
-            @Override
-            public ImmutableMap<String, Accessor> load(String key) throws Exception {
-              return extractFrom(elements.getTypeElement(key));
-            }
-          });
+  private final Cache<String, ImmutableMap<String, Accessor>> accessorsDefined =
+      new Cache<String, ImmutableMap<String, Accessor>>() {
+        @Override
+        public ImmutableMap<String, Accessor> load(String key) throws Exception {
+          return extractFrom(elements.getTypeElement(key));
+        }
+      };
 
   ImmutableMap<String, Accessor> definedBy(TypeMirror type) {
     if (!(type instanceof DeclaredType)) {
       return ImmutableMap.of();
     }
-    return accessorsDefined.getUnchecked(toName(type));
+    return accessorsDefined.get(toName(type));
   }
 
   private ImmutableMap<String, Accessor> extractFrom(@Nullable TypeElement type) {
@@ -314,8 +311,7 @@ public final class Accessors extends Introspection {
     }
 
     public BoundAccessor bind(TypeMirror targetType, String attribute) {
-      @Nullable
-      BoundAccessor accessor = resolveAccessorWithBeanAccessor(targetType, attribute);
+      @Nullable BoundAccessor accessor = resolveAccessorWithBeanAccessor(targetType, attribute);
 
       if (accessor != null) {
         return accessor;
@@ -329,8 +325,7 @@ public final class Accessors extends Introspection {
 
     @Nullable
     private BoundAccessor resolveAccessorWithBeanAccessor(TypeMirror targetType, String attribute) {
-      @Nullable
-      BoundAccessor accessor = resolveAccessor(targetType, attribute);
+      @Nullable BoundAccessor accessor = resolveAccessor(targetType, attribute);
       if (accessor != null) {
         return accessor;
       }
@@ -357,8 +352,7 @@ public final class Accessors extends Introspection {
 
     @Nullable
     private BoundAccessor resolveAccessor(TypeMirror targetType, String attribute) {
-      @Nullable
-      Accessor accessor = definedBy(targetType).get(attribute);
+      @Nullable Accessor accessor = definedBy(targetType).get(attribute);
 
       if (accessor != null) {
         return accessor.bind(targetType);
@@ -412,6 +406,27 @@ public final class Accessors extends Introspection {
     @Override
     public String getMessage() {
       return "Unresolvable: " + targetType + "." + attribute + "\n\tAlternatives: " + alternatives;
+    }
+  }
+
+  // Do not use guava cache to slim down minimized jar
+  @NotThreadSafe
+  private static abstract class Cache<K, V> {
+    private final Map<K, V> map = Maps.newHashMap();
+
+    protected abstract V load(K key) throws Exception;
+
+    final V get(K key) {
+      @Nullable V value = map.get(key);
+      if (value == null) {
+        try {
+          value = load(key);
+        } catch (Exception ex) {
+          throw Throwables.propagate(ex);
+        }
+        map.put(key, value);
+      }
+      return value;
     }
   }
 }

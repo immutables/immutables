@@ -34,7 +34,6 @@
     <module>gson</module>
     <module>mongo</module>
     <module>value-processor</module>
-    <module>value-standalone</module>
     <module>value-fixture</module>
   </modules>
 

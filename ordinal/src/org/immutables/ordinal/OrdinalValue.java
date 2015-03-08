@@ -15,8 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import com.google.common.annotations.Beta;
-
 /**
  * Objects implementing this interface has stable ordinal attribute that could be
  * used to arrange these object among other elements of the same type. Instances of the same kind
@@ -30,7 +28,6 @@ import com.google.common.annotations.Beta;
  * @see ImmutableOrdinalSet
  * @param <E> element type
  */
-@Beta
 public interface OrdinalValue<E extends OrdinalValue<E>> {
   /**
    * Zero based ordinal value

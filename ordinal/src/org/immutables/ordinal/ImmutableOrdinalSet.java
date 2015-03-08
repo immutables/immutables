@@ -15,7 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import com.google.common.annotations.Beta;
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -36,7 +35,6 @@ import static com.google.common.base.Preconditions.*;
  * @see BitSet BitSet for similar internal implementation
  * @param <E> element type
  */
-@Beta
 public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
     extends ForwardingSet<E> {
 

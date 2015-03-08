@@ -15,8 +15,6 @@
  */
 package org.immutables.generator;
 
-import javax.tools.Diagnostic.Kind;
-import javax.annotation.processing.Messager;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
@@ -37,13 +35,18 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
+import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Templates.Invokable;
@@ -106,7 +109,7 @@ public final class Output {
       Invokable body = (Invokable) parameters[2];
 
       ResourceKey key = new ResourceKey(packageName, simpleName);
-      SourceFile javaFile = getFiles().sourceFiles.getUnchecked(key);
+      SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
       return null;
@@ -127,7 +130,7 @@ public final class Output {
       Invokable body = (Invokable) parameters[1];
 
       ResourceKey key = new ResourceKey("", META_INF_SERVICES + interfaceName);
-      AppendServiceFile servicesFile = getFiles().appendResourceFiles.getUnchecked(key);
+      AppendServiceFile servicesFile = getFiles().appendResourceFiles.get(key);
       body.invoke(new Invokation(servicesFile.consumer));
       return null;
     }
@@ -306,24 +309,45 @@ public final class Output {
     }
   }
 
-  private static class Files implements StaticEnvironment.Completable {
-    final LoadingCache<ResourceKey, SourceFile> sourceFiles = CacheBuilder.newBuilder()
-        .concurrencyLevel(1)
-        .build(new CacheLoader<ResourceKey, SourceFile>() {
-          @Override
-          public SourceFile load(ResourceKey key) throws Exception {
-            return new SourceFile(key);
-          }
-        });
+  // Do not use guava cache to slim down minimized jar
+  @NotThreadSafe
+  private static abstract class Cache<K, V> {
+    private final Map<K, V> map = new HashMap<>();
 
-    final LoadingCache<ResourceKey, AppendServiceFile> appendResourceFiles = CacheBuilder.newBuilder()
-        .concurrencyLevel(1)
-        .build(new CacheLoader<ResourceKey, AppendServiceFile>() {
-          @Override
-          public AppendServiceFile load(ResourceKey key) throws Exception {
-            return new AppendServiceFile(key);
-          }
-        });
+    protected abstract V load(K key) throws Exception;
+
+    final V get(K key) {
+      @Nullable V value = map.get(key);
+      if (value == null) {
+        try {
+          value = load(key);
+        } catch (Exception ex) {
+          throw Throwables.propagate(ex);
+        }
+        map.put(key, value);
+      }
+      return value;
+    }
+
+    public Map<K, V> asMap() {
+      return map;
+    }
+  }
+
+  private static class Files implements StaticEnvironment.Completable {
+    final Cache<ResourceKey, SourceFile> sourceFiles = new Cache<ResourceKey, SourceFile>() {
+      @Override
+      public SourceFile load(ResourceKey key) throws Exception {
+        return new SourceFile(key);
+      }
+    };
+
+    final Cache<ResourceKey, AppendServiceFile> appendResourceFiles = new Cache<ResourceKey, AppendServiceFile>() {
+      @Override
+      public AppendServiceFile load(ResourceKey key) throws Exception {
+        return new AppendServiceFile(key);
+      }
+    };
 
     @Override
     public void complete() {

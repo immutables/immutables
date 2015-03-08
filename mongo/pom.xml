@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
@@ -11,41 +11,19 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
     Annotation and runtime support to generate Mongodb repositories.
-    Mongo java driver, Gson, Jackson and bson4jackson and Guava are required runtime dependencies,
+    Mongo java driver, Gson, Jackson, Bson4jackson and Guava are required runtime dependencies,
     which included as transitive dependencies.
   </description>
 
   <dependencies>
     <dependency>
-      <!-- Compile only generate api -->
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <!-- Compile only generate sample adapters -->
-      <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
+      <!-- required gson dependency -->
       <groupId>org.immutables</groupId>
       <artifactId>gson</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>metainf</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <!-- Guava and jsr 305 annotations are used as required utility.-->
-    <dependency>
+      <!-- Guava and jsr 305 annotations are used as required utility.-->
       <groupId>org.immutables.dependency</groupId>
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
@@ -53,18 +31,37 @@
     </dependency>
 
     <dependency>
-      <!-- Needed for bson marshal -->
+      <!-- Compile only processor -->
+      <groupId>org.immutables</groupId>
+      <artifactId>value</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <!-- compile only meta-inf/services generator -->
+      <groupId>org.immutables</groupId>
+      <artifactId>metainf</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <!-- Required as base for BSON marshalling (bson4jackson) -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
       <version>2.5.0</version>
     </dependency>
     <dependency>
-      <!-- We are using some classes from there, but we don't use binding functionality -->
+      <!-- Required. We are using some classes from there, but we don't use binding functionality -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.5.0</version>
     </dependency>
     <dependency>
+      <!-- Required. -->
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
       <version>2.12.4</version>

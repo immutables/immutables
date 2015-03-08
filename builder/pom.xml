@@ -15,6 +15,7 @@
       <artifactId>utility</artifactId>
       <version>${project.version}</version>
       <type>pom</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
@@ -24,14 +25,9 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 </project>

@@ -18,11 +18,6 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
     </dependency>

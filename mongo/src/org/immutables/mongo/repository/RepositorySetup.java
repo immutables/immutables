@@ -41,11 +41,9 @@ import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.mongo.repository.Repositories.Repository;
 import static com.google.common.base.Preconditions.*;
 
-//TODO move into Repositories
-
 /**
- * {@link RepositorySetup} combines driver' database, thread-pool and serialization configuration (
- * {@link Gson}) to configure repositories extended from {@link Repositories.Repository}. Setup can
+ * {@link RepositorySetup} combines driver's database, thread-pool and serialization configuration
+ * ({@link Gson}) to configure repositories extended from {@link Repositories.Repository}. Setup can
  * and usually should be shared between repositories which accesses the same database and share
  * other resources.
  * @see Repository
@@ -102,7 +100,7 @@ public final class RepositorySetup {
     /**
      * Configures repository to lookup {@link DBCollection collection} from the specified
      * {@code database} handle. Repository will inherit {@link WriteConcern} and
-     * {@link ReadPreference} settings that was Fsconfigured on supplied instance.
+     * {@link ReadPreference} settings that was configured on supplied instance.
      * @param database database handle.
      * @return {@code this}
      * @see MongoClient#getDB(String)

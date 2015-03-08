@@ -15,7 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import com.google.common.annotations.Beta;
 import com.google.common.collect.AbstractIterator;
 import java.util.Iterator;
 import javax.annotation.concurrent.ThreadSafe;
@@ -31,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <E> type with ordinal values
  */
 @ThreadSafe
-@Beta
 public abstract class OrdinalDomain<E extends OrdinalValue<E>> implements Iterable<E> {
   /**
    * Gets element from domain by corresponding ordinal value. It is guaranteed that returned element

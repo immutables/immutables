@@ -16,6 +16,14 @@
 
   <artifactId>value</artifactId>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-processor</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -26,6 +34,66 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.immutables.tools</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <minimizeJar>true</minimizeJar>
+
+              <artifactSet>
+                <includes>
+                  <include>org.immutables:value</include>
+                  <include>org.immutables:value-processor</include>
+                  <include>org.immutables:generator</include>
+                  <include>com.google.guava:guava</include>
+                </includes>
+              </artifactSet>
+
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>org.immutables.value.internal.$guava$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>org.immutables.value.internal.$thirdparty$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.immutables.value.processor</pattern>
+                  <shadedPattern>org.immutables.value.internal.$processor$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.immutables.generator</pattern>
+                  <shadedPattern>org.immutables.value.internal.$generator$</shadedPattern>
+                </relocation>
+              </relocations>
+
+              <filters>
+                <filter>
+                  <artifact>org.immutables:value-processor</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
+              </filters>
+
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+
 </project>
