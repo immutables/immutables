@@ -67,7 +67,20 @@ public final class Repositories {
         Class<T> type) {
       this.configuration = checkNotNull(configuration);
       this.collectionName = checkNotNull(collectionName);
-      this.adapter = configuration.gson.getAdapter(type);
+      this.adapter = checkAdapter(configuration.gson.getAdapter(type), type);
+    }
+
+    private static <A> TypeAdapter<A> checkAdapter(TypeAdapter<A> adapter, Class<A> type) {
+      if (adapter instanceof com.google.gson.internal.bind.ReflectiveTypeAdapterFactory.Adapter) {
+        throw new IllegalStateException(
+            String.format("Generated type adapter for type '%s' is not available."
+                + " This may happen when using default RepositorySetup.forUri and"
+                + " META-INF/services/..TypeAdapterFactory files are not compiled or accessible."
+                + " Alternatively this may happen if creating custom RepositorySetup with Gson instance,"
+                + " which does not have type adapters registered.",
+                type));
+      }
+      return adapter;
     }
 
     protected final Gson getGson() {
