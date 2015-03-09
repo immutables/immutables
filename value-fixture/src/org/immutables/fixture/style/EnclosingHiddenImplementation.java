@@ -23,7 +23,7 @@ import org.immutables.value.Value;
     typeImmutableEnclosing = "EnclosingFactory",
     instance = "singletonInstance",
     of = "new*",
-    builder = "create",
+    newBuilder = "create",
     visibility = ImplementationVisibility.PRIVATE,
     defaults = @Value.Immutable(singleton = true))
 @interface Priv {}

@@ -64,8 +64,17 @@ public final class Intrinsics {
     return a.concat(b);
   }
 
+  public static String $(String a, String b, String c) {
+    return a.concat(b).concat(c);
+  }
+
   public static Product $(Object... parameters) {
     return new Product(parameters);
+  }
+  
+  @SafeVarargs
+  public static <T> Iterable<T> $(Iterable<? extends T>... iterables) {
+    return Iterables.concat(iterables);
   }
 
   public static <F> void $(Invokation invokation, Predicate<? super F> predicate, F value) {

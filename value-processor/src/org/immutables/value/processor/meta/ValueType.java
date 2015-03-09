@@ -15,10 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.Sets;
-import java.util.Set;
-import javax.lang.model.type.DeclaredType;
-import org.immutables.generator.TypeHierarchyCollector;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -30,20 +26,22 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.value.ext.ExtValue;
-import org.immutables.value.ext.Parboil;
+import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
@@ -169,16 +167,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
-  @Deprecated
-  public boolean isGenerateParboiled() {
-    return kind().isEnclosing() && element.getAnnotation(Parboil.Ast.class) != null;
-  }
-
-  @Deprecated
-  public boolean isGenerateTransformer() {
-    return kind().isValue() && element.getAnnotation(ExtValue.Transformer.class) != null;
-  }
-
   private CaseStructure caseStructure;
 
   public CaseStructure getCases() {
@@ -264,17 +252,6 @@ public final class ValueType extends TypeIntrospectionBase {
         || immutableFeatures.prehash();
   }
 
-/*
-  public boolean isGenerateTypeAdapted() {
-    // TODO propagate this from MetaAnnotated
-    return TypeAdaptersMirror.isPresent(element);
-  }
-
-  public boolean isGenerateModifiable() {
-    // TODO propagate this from somewhere?
-    return ModifiableMirror.isPresent(element);
-  }
-*/
   private Boolean hasAbstractBuilder;
 
   public boolean isHasAbstractBuilder() {
@@ -343,6 +320,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constructorArguments;
   }
 
+  public boolean isGenerateBuilderFrom() {
+    return !isUseStrictBuilder();
+  }
+
   private void validateConstructorParameters(List<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
@@ -408,7 +389,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return excludables;
   }
 
-  public List<ValueAttribute> mandatoryAttributes() {
+  public List<ValueAttribute> getMandatoryAttributes() {
     List<ValueAttribute> mandatory = Lists.newArrayList();
     for (ValueAttribute attribute : getSettableAttributes()) {
       if (attribute.isMandatory()) {
@@ -494,16 +475,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return allMarshalingAttributes;
   }
 
-  public List<ValueAttribute> getPrimitiveDefaultAttributes() {
-    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isPrimitive() && attribute.isGenerateDefault) {
-        builder.add(attribute);
-      }
-    }
-    return builder.build();
-  }
-
   public List<ValueAttribute> getDefaultAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getImplementedAttributes()) {
@@ -512,6 +483,23 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return builder.build();
+  }
+
+  public List<ValueAttribute> getRequiresTrackedIsSetNonMandatoryAttributes() {
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.requiresTrackIsSet()) {
+        builder.add(attribute);
+      }
+    }
+    return builder.build();
+  }
+
+  public boolean isUseStrictBuilder() {
+    return constitution.protoclass()
+        .styles()
+        .style()
+        .strictBuilder();
   }
 
   public List<ValueAttribute> getImplementedAttributes() {
@@ -609,19 +597,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return hasCollectionAttribute();
   }
 
-  /**
-   * Used for type content snapshoting
-   */
-  @Override
-  public int hashCode() {
-    return Objects.hash(constitution.protoclass().name());
-  }
-
-  @Override
-  public String toString() {
-    return "Type[" + name() + "]";
-  }
-
   @Override
   protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
     TypeHierarchyCollector collector = super.collectTypeHierarchy(typeMirror);
@@ -641,5 +616,18 @@ public final class ValueType extends TypeIntrospectionBase {
                 + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
       }
     }
+  }
+
+  /**
+   * Used for type snapshoting
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(constitution.protoclass().name());
+  }
+
+  @Override
+  public String toString() {
+    return "Type[" + name() + "]";
   }
 }

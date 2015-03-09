@@ -283,7 +283,19 @@ import java.lang.String;
   }
 [if type.useBuilder]
   return [type.factoryBuilder.relative]()
+    [if type.generateBuilderFrom]
       .[type.names.from](instance)
+    [else]
+      [for v in type.settableAttributes]
+        [if v.collectionType]
+      .[v.names.addAll](instance.[v.names.get]())
+        [else if v.mapType]
+      .[v.names.putAll](instance.[v.names.get]())
+        [else]
+      .[v.names.init](instance.[v.names.get]())
+        [/if]
+      [/for]
+    [/if]
       .[type.names.build]();
 [else]
   return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
@@ -344,9 +356,9 @@ import java.lang.String;
 [for setters = type.settableAttributes,
      getters = type.implementedAttributes,
      mandatories = type.mandatoryAttributes,
+     nondefaults = type.requiresTrackedIsSetNonMandatoryAttributes,
      LongPositions positions = longsFor mandatories,
-     primdefs = type.primitiveDefaultAttributes,
-     LongPositions defpos = longsFor primdefs]
+     LongPositions nondefaultsPositions = longsFor nondefaults]
 
 /**
 [if type.kind.isFactory]
@@ -367,19 +379,19 @@ import java.lang.String;
 [type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
     extends [type.typeAbstract].Builder {[else] {[/if]
   [for l in positions.longs]
-  private static final long INITIALIZED_BITSET_ALL_[emptyIfZero l.index] = [literal.hex l.occupation];
-  [/for]
-  [for p in primdefs, BitPosition pos = defpos p]
-  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
+  private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
-  [for l in defpos.longs]
-  private long nondefaultBitset[emptyIfZero l.index];
+  [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
+  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
   private long initializedBitset[emptyIfZero l.index];
+  [/for]
+  [for l in nondefaultsPositions.longs]
+  private long nondefaultBitset[emptyIfZero l.index];
   [/for]
 
   [for v in setters]
@@ -397,7 +409,7 @@ import java.lang.String;
     [for v in setters]
       [if v.builderSwitcher]
         [for o in v.builderSwitcherModel.options if o.isDefault]
-    [o.switcherName]();
+    this.[v.name] = [v.rawType].[o.constantName];
         [/for]
       [/if]
       [if v.isBuilderParameter]
@@ -448,6 +460,7 @@ import java.lang.String;
   }
 [/if]
 [if type.kind.isValue]
+  [if type.generateBuilderFrom]
 
   /**
    * Adjust builder with values from provided {@link [type.typeAbstract.relative]} instance.
@@ -480,10 +493,17 @@ import java.lang.String;
 [/for]
     return this;
   }
+  [/if]
 [/if]
 [-- Being called from builder initializer methods --]
+[let checkNotIsSet Attribute v]
+[if v.containingType.useStrictBuilder]
+checkNotIsSet([v.name]IsSet(), "[v.name]");
+[/if]
+[/let]
+[-- Being called from builder initializer methods --]
 [let nondefaultSetInBuilder Attribute v]
-[if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
+[if v.requiresTrackIsSet][for BitPosition pos = nondefaultsPositions v]
 nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
@@ -502,7 +522,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [if o.isDefault]private[else]public[/if] final [type.typeBuilder.simple] [o.switcherName]() {
+    [checkNotIsSet v]
     this.[v.name] = [v.rawType].[o.constantName];
+    [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
     return this;
   }
@@ -544,6 +566,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     return [v.names.addAll]([arrayAsList v 'elements']);
     [/if]
   }
+      [if not type.useStrictBuilder]
 
   /**
    * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
@@ -554,6 +577,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [defineOrResetBuildingField v false]
     return [v.names.addAll](elements);
   }
+      [/if]
     [/if]
 
   /**
@@ -580,7 +604,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
+    [checkNotIsSet v]
     this.[v.name] = [v.rawType].of([v.name]);
+    [nondefaultSetInBuilder v]
     return this;
   }
     [/if]
@@ -591,7 +617,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+    [checkNotIsSet v]
     this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    [nondefaultSetInBuilder v]
     return this;
   }
   [else if v.mapType]
@@ -656,6 +684,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [/if]
     return this;
   }
+          [if not type.useStrictBuilder]
 
   /**
    * Sets or replaces all mappings from specified map as entries for [sourceDocRef type v] map. Nulls are not permitted
@@ -666,6 +695,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [defineOrResetBuildingField v false]
     return [v.names.putAll](entries);
   }
+          [/if]
         [/if]
 
   /**
@@ -699,6 +729,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.elementType]... elements) {
+    [checkNotIsSet v]
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
     return this;
@@ -714,6 +745,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
+    [checkNotIsSet v]
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
@@ -741,7 +773,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
         new [type.typeImmutable.relative](this));
   [/if]
   }
-  [for p in primdefs, BitPosition pos = defpos p]
+  [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   private boolean [p.name]IsSet() {
     return (nondefaultBitset[emptyIfZero pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
@@ -753,11 +785,19 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     return (initializedBitset[emptyIfZero pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
   }
   [/for]
+  [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
+
+  private void checkNotIsSet(boolean isSet, String name) {
+    if (isSet) {
+      throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
+    }
+  }
+  [/if]
   [if positions.longs]
 
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
-        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL_[emptyIfZero l.index][/for]) {
+        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }

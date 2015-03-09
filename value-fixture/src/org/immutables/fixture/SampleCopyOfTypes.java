@@ -15,9 +15,8 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.Value;
-
 import java.util.List;
+import org.immutables.value.Value;
 
 @Value.Enclosing
 public class SampleCopyOfTypes {

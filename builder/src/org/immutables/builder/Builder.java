@@ -103,9 +103,9 @@ public @interface Builder {
    *    .build();
    * </pre>
    * <p>
-   * If proper {@link #defaultOrdinal()} value is specified, then one of the state will be
-   * considered the default. If no default is specified then it is mandatory to call switcher method
-   * once, otherwise switcher method may be omitted.
+   * If proper {@link #defaultName()} value is specified, then one of the state will be considered
+   * the default. If no default is specified then it is mandatory to call switcher method once. If
+   * default is specified then it switcher method call could be omitted.
    * 
    * <pre>
    * class BulbFactory {
@@ -127,6 +127,10 @@ public @interface Builder {
   @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.PARAMETER)
   public @interface Switch {
-    int defaultOrdinal() default -1;
+    /**
+     * Specify constant name of default enum value for this switch. The name should match constant
+     * identifier name. If empty of none specified, then switch will be mandatory to set on builder.
+     */
+    String defaultName() default "";
   }
 }

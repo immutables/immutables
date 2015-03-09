@@ -29,7 +29,13 @@ import org.immutables.gson.adapter.ExpectedSubtypesAdapter;
 import org.immutables.gson.adapter.FieldNamingTranslator;
 
 /**
- * The Interface Gson.
+ * Gson umbrella annotation used to group nested Gson-related annotations.
+ * This class named in a good hope it will not clash with the usages of {@link com.google.gson.Gson}
+ * .
+ * @see TypeAdapters
+ * @see Named
+ * @see Ignore
+ * @see ExpectedSubtypes
  */
 @Retention(RetentionPolicy.SOURCE)
 public @interface Gson {

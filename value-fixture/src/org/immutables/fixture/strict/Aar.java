@@ -13,22 +13,25 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.style;
+package org.immutables.fixture.strict;
 
-import java.lang.reflect.Modifier;
-import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import org.immutables.value.Value;
+import com.google.common.base.Optional;
+import java.util.Map;
+import java.util.List;
 
-public class StyleTest {
-  @Test
-  public void publicVisibility() {
-    check(!Modifier.isPublic(AbstractValueNamingDetected.class.getModifiers()));
-    check(Modifier.isPublic(ValueNamingDetected.class.getModifiers()));
-  }
+@Value.Immutable
+interface Aar {
+  boolean bl();
 
-  @Test
-  public void packageVisibility() {
-    check(Modifier.isPublic(LoweredVisibility.class.getModifiers()));
-    check(!Modifier.isPublic(ImmutableLoweredVisibility.class.getModifiers()));
-  }
+  Integer integer();
+}
+
+@Value.Immutable
+interface Bar {
+  List<Integer> nums();
+
+  Map<String, Integer> mps();
+
+  Optional<Integer> opt();
 }

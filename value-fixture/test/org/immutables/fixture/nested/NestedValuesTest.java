@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture.nested;
 
-import org.immutables.fixture.marshal.Marshaling;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.CharMatcher;
+import org.immutables.fixture.marshal.Marshaling;
 import org.immutables.fixture.nested.ImmutableGroupedClasses.NestedOne;
 import org.immutables.fixture.nested.ImmutableInnerNested.Inner;
 import org.immutables.fixture.nested.ImmutableInnerNested.Nested;

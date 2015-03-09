@@ -42,7 +42,7 @@ public class OutsideBuildable {
  * </ul>
  */
 @Value.Immutable
-@Value.Style(builder = "newBuilder", visibility = ImplementationVisibility.PRIVATE)
+@Value.Style(newBuilder = "newBuilder", visibility = ImplementationVisibility.PRIVATE)
 class OutsideBuildableNew {
 
   void use() {

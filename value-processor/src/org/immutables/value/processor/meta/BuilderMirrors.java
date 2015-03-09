@@ -13,6 +13,6 @@ public final class BuilderMirrors {
 
   @Mirror.Annotation("org.immutables.builder.Builder.Switch")
   public @interface Switch {
-    int defaultOrdinal() default -1;
+    String defaultName() default "";
   }
 }

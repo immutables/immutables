@@ -15,9 +15,9 @@
  */
 package org.immutables.fixture;
 
-import java.util.OptionalInt;
 import com.google.common.base.Optional;
 import java.util.List;
+import java.util.OptionalInt;
 import org.immutables.value.Value;
 
 @Value.Immutable

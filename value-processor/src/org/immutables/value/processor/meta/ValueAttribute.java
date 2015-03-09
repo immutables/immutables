@@ -114,7 +114,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isMandatory() {
-    return isGenerateAbstract && !isContainerType() && !isNullable();
+    return isGenerateAbstract
+        && !isContainerType()
+        && !isNullable()
+        && !hasBuilderSwitcherDefault();
   }
 
   public boolean isNullable() {
@@ -799,6 +802,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public SwitcherModel builderSwitcherModel;
   public boolean isBuilderParameter;
 
+  public boolean hasBuilderSwitcherDefault() {
+    return isBuilderSwitcher() && builderSwitcherModel.hasDefault();
+  }
+
   public boolean isBuilderSwitcher() {
     return builderSwitcherModel != null;
   }
@@ -808,22 +815,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         Naming.from(name()).requireNonConstant(Preference.SUFFIX);
 
     public final ImmutableList<SwitchOption> options;
-    private final int defaultOrdinal;
+    private final String defaultName;
 
     SwitcherModel(SwitchMirror mirror) {
-      this.defaultOrdinal = mirror.defaultOrdinal();
+      this.defaultName = mirror.defaultName();
       this.options = constructOptions();
     }
 
     private ImmutableList<SwitchOption> constructOptions() {
       ImmutableList.Builder<SwitchOption> builder = ImmutableList.builder();
 
-      int ordinal = 0;
       for (Element v : SourceOrdering.getEnclosedElements(containedTypeElement)) {
         if (v.getKind() == ElementKind.ENUM_CONSTANT) {
-          builder.add(new SwitchOption(
-              v.getSimpleName().toString(),
-              defaultOrdinal == ordinal++));
+          String name = v.getSimpleName().toString();
+          builder.add(new SwitchOption(name, defaultName.equals(name)));
         }
       }
 
@@ -831,7 +836,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
 
     public boolean hasDefault() {
-      return defaultOrdinal >= 0;
+      return !defaultName.isEmpty();
     }
 
     public final class SwitchOption {
@@ -851,5 +856,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
                 CaseFormat.LOWER_CAMEL, constantName));
       }
     }
+  }
+
+  public boolean hasForwardOnlyInitializer() {
+    return isCollectionType() || isMapLike();
+  }
+
+  public boolean requiresTrackIsSet() {
+    return (containingType.isUseStrictBuilder()
+        && !isMandatory()
+        && !hasForwardOnlyInitializer())
+        || (isPrimitive() && isGenerateDefault);
   }
 }

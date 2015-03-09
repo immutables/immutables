@@ -13,22 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.style;
+package org.immutables.fixture.strict;
 
-import java.lang.reflect.Modifier;
+import com.google.common.base.Optional;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
 
-public class StyleTest {
-  @Test
-  public void publicVisibility() {
-    check(!Modifier.isPublic(AbstractValueNamingDetected.class.getModifiers()));
-    check(Modifier.isPublic(ValueNamingDetected.class.getModifiers()));
+public class StrictBuilderTest {
+  @Test(expected = IllegalStateException.class)
+  public void noReassignment() {
+    ImmutableAar.builder()
+        .integer(1)
+        .integer(2)
+        .bl(true)
+        .build();
   }
 
-  @Test
-  public void packageVisibility() {
-    check(Modifier.isPublic(LoweredVisibility.class.getModifiers()));
-    check(!Modifier.isPublic(ImmutableLoweredVisibility.class.getModifiers()));
+  @Test(expected = IllegalStateException.class)
+  public void noReassignmentOptional() {
+    ImmutableBar.builder()
+        .opt(1)
+        .opt(Optional.absent())
+        .build();
   }
 }

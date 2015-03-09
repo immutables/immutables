@@ -15,9 +15,9 @@
  */
 package org.immutables.fixture;
 
+import javax.annotation.Nullable;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
-import javax.annotation.Nullable;
 
 @Value.Immutable(singleton = true)
 @Gson.TypeAdapters

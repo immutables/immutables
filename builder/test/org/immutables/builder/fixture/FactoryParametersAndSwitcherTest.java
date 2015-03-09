@@ -62,7 +62,33 @@ public class FactoryParametersAndSwitcherTest {
 
   @Test
   public void switcherDefaults() {
-    check(Factory5Builder.newBuilder().build()).is("" + RetentionPolicy.SOURCE.toString());
+    check(Factory5Builder.newBuilder().build()).is("" + RetentionPolicy.SOURCE);
     check(Factory5Builder.newBuilder().runtimePolicy().build()).is("" + RetentionPolicy.RUNTIME);
+  }
+
+  @Test
+  public void strictSwitches() {
+    // cannot init twice on switcher
+    try {
+      new Factory7Builder(22)
+          .runtimePolicy()
+          .sourcePolicy()
+          .build();
+      check(false);
+    } catch (IllegalStateException ex) {
+    }
+
+    // cannot init twice
+    try {
+      new Factory6Builder(22)
+          .reality("1")
+          .reality("2")
+          .build();
+      check(false);
+    } catch (IllegalStateException ex) {
+    }
+
+    // defaults still works
+    check(new Factory7Builder(1).build()).is(RetentionPolicy.CLASS + "1");
   }
 }

@@ -30,8 +30,7 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <!-- Used to document and statically verify code properties.
-      jsr305 annotations needed to compile generated classes. -->
+      <!-- Compile only annotations. Used to document and statically verify code properties. -->
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
       <version>1.3.9</version>
@@ -46,34 +45,21 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <!-- Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
+      <!-- Optional. Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>2.5.0</version>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <!-- Message body reader and writer provider implementation, optional dependency on JAX-RS -->
+      <!-- Optional. Message body reader and writer provider implementation, optional dependency on JAX-RS -->
       <groupId>javax.ws.rs</groupId>
       <artifactId>javax.ws.rs-api</artifactId>
       <version>2.0</version>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>testing</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- test only jersey dependency -->
-      <groupId>org.glassfish.jersey.containers</groupId>
-      <artifactId>jersey-container-grizzly2-http</artifactId>
-      <version>2.11</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <!-- Compile only generate api -->
+      <!-- Compile only immutablesp processor -->
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
@@ -81,12 +67,25 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-    <!-- test only jersey dependency -->
+      <!-- Test only utilities -->
+      <groupId>org.immutables</groupId>
+      <artifactId>testing</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- Test only jersey dependency -->
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
       <version>2.11</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <!-- Test only jersey dependency -->
+      <groupId>org.glassfish.jersey.containers</groupId>
+      <artifactId>jersey-container-grizzly2-http</artifactId>
+      <version>2.11</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
 </project>

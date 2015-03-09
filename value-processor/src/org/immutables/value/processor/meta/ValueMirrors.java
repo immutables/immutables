@@ -160,11 +160,21 @@ public final class ValueMirrors {
 
     /**
      * Builder creator method. This naming allow special keyword "new" value.
-     * This will customize builder to be created using parameterless constructor rather than
-     * factory methods.
+     * This will customize builder to be created using constructor rather than
+     * factory method.
      * @return naming template
      */
     String builder() default "builder";
+
+    /**
+     * Builder creator method, it differes from {@link #builder()} in that this naming is used for
+     * builders that are external to immutable objects, such as top level builders for values or
+     * factories. This naming allow special keyword "new" value, which is the default.
+     * "new" will customize builder to be created using constructor rather than
+     * factory method.
+     * @return naming template
+     */
+    String newBuilder() default "new";
 
     /**
      * Method to initialize builder with values from instance.
@@ -218,6 +228,16 @@ public final class ValueMirrors {
      * @return default configuration
      */
     Immutable defaults() default @Immutable;
+
+    /**
+     * When {@code true} &mdash; forces to generate strict builder code. Strict builders are forward
+     * only. For collections and maps, there's no set/reset methods are generated in
+     * favor of using additive only initializers. For regular attributes, initializers could be
+     * called only once, subsequent reinitialization with throw exception. Usage of strict builders
+     * may help to prevent initialization mistakes.
+     * @return if strict builder enabled
+     */
+    boolean strictBuilder() default false;
 
     /**
      * Specify the mode in which accibility visibility is derived from abstract value type.

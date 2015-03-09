@@ -35,7 +35,6 @@ public abstract class Constitution {
   private static final String NA_ERROR = "!should_not_be_used_in_generated_code!";
   private static final String NEW_KEYWORD = "new";
   private static final String BUILDER_CLASS_NAME = "Builder";
-  private static final String BUILDER_METHOD_NAME = "builder";
   private static final Joiner JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
@@ -223,14 +222,9 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms factoryBuilder() {
     boolean isOutside = isImplementationHidden() || isFactory();
-    Naming methodBuilderNaming = names().namings.builder;
-    if (isOutside) {
-      boolean isPlainDefault = isConstantNamingEquals(methodBuilderNaming, BUILDER_METHOD_NAME);
-
-      if (isPlainDefault) {
-        methodBuilderNaming = Naming.from(NEW_KEYWORD);
-      }
-    }
+    Naming methodBuilderNaming = isOutside
+        ? names().namings.newBuilder()
+        : names().namings.builder();
 
     boolean haveConstructorOnBuilder = isOutside
         || isConstantNamingEquals(methodBuilderNaming, NEW_KEYWORD);

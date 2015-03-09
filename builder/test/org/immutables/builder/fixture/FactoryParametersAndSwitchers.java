@@ -31,10 +31,9 @@ class FactoryParameters {
   public static String factory2(@Builder.Parameter int theory, @Builder.Parameter String reality) {
     return theory + " != " + reality;
   }
-
 }
 
-@Value.Style(builder = "newBuilder")
+@Value.Style(newBuilder = "newBuilder")
 class FactoryParametersAndSwitchers {
 
   @Builder.Factory
@@ -48,7 +47,22 @@ class FactoryParametersAndSwitchers {
   }
 
   @Builder.Factory
-  public static String factory5(@Builder.Switch(defaultOrdinal = 0) RetentionPolicy policy) {
+  public static String factory5(@Builder.Switch(defaultName = "SOURCE") RetentionPolicy policy) {
     return policy.toString();
+  }
+}
+
+@Value.Style(strictBuilder = true)
+class FactoryStrictSwitches {
+  @Builder.Factory
+  public static String factory6(@Builder.Parameter int theory, String reality) {
+    return theory + " != " + reality;
+  }
+
+  @Builder.Factory
+  public static String factory7(
+      @Builder.Parameter int value,
+      @Builder.Switch(defaultName = "CLASS") RetentionPolicy policy) {
+    return policy + "" + value;
   }
 }
