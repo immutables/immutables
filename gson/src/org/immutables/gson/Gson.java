@@ -66,10 +66,10 @@ public @interface Gson {
      * strategies extracted from configured {@link com.google.gson.Gson} instance.
      * <p>
      * <em>This functionality uses runtime support class and requires that this Gson integration module
-     * jar will be available at runtime. Uses some Gson internals which could
-     * potentially break in later versions of Gson library. Uses oracle JVM internals.
-     * If you really want to discuss this functionality to be more portable,
-     * file a request at {@linkplain "https://github.com/immutables/immutables/issues"}.
+     * jar will be available at runtime. It uses Gson internals which could
+     * potentially break in later versions of Gson library, in addition it uses Oracle JVM internals.
+     * If you want to discuss this functionality to be more portable,
+     * file a request at <a href="https://github.com/immutables/immutables/issues">https://github.com/immutables/immutables/issues</a>.
      * </em>
      * @see FieldNamingStrategy
      * @see FieldNamingPolicy

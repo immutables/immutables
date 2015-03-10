@@ -24,12 +24,11 @@ import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
 
 /**
- * <em>
- * This umbrella annotaion does nothing. Use nested annotations, such as {@literal @}{@code Builder.Factory}
- * to generate builders for arbitrary static factory methods.
+ * This umbrella annotaion does nothing. Use nested annotations, such as {@literal @}
+ * {@code Builder.Factory} to generate builders for arbitrary static factory methods.
  * and is used for static factory methods to generate arbitrary builders.
  * Immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
- * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}</em>
+ * turned off using {@literal @}{@link Immutable#builder() Value.Immutable(builder=false)}
  * @see Factory
  */
 @Target({})
@@ -65,7 +64,7 @@ public @interface Builder {
    * <pre>
    * class NodeFactory {
    *   {@literal @}Builder.Factory
-   *   static Node node({@literal @}Builder.Parameter Object value, Optional<Node> left, Optional<Node> right) {
+   *   static Node node({@literal @}Builder.Parameter Object value, Optional&lt;Node&gt; left, Optional&lt;Node&gt; right) {
    *      return ...
    *   }
    * }
@@ -130,6 +129,7 @@ public @interface Builder {
     /**
      * Specify constant name of default enum value for this switch. The name should match constant
      * identifier name. If empty of none specified, then switch will be mandatory to set on builder.
+     * @return name enum constant
      */
     String defaultName() default "";
   }

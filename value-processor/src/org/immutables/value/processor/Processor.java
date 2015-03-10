@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 import org.immutables.value.processor.meta.FactoryMirror;
 import org.immutables.value.processor.meta.ImmutableMirror;
 import org.immutables.value.processor.meta.EnclosingMirror;
@@ -33,7 +34,8 @@ import org.immutables.value.processor.meta.ValueType;
     FactoryMirror.QUALIFIED_NAME,
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
-    IncludeMirror.QUALIFIED_NAME
+    IncludeMirror.QUALIFIED_NAME,
+    ValueUmbrellaMirror.QUALIFIED_NAME,
 })
 public final class Processor extends AbstractGenerator {
   @Override

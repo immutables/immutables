@@ -27,7 +27,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 
 /**
- * This annotation provides namespace for annotations that models generated value objects.
+ * This annotation provides namespace for annotations for immutable value object generation.
  * Use one of the nested annotation.
  * @see Value.Immutable
  * @see Value.Include
@@ -39,14 +39,23 @@ public @interface Value {
   /**
    * Instruct processor to generate immutable implementation of abstract value type.
    * Classes, Interface and Annotation types are supported including top level and non-private
-   * static inner declaration.
+   * static inner types.
    * <p>
-   * <em>Be warned that such immutable object may contain attributes that are not recursively immutable, thus
-   * not every object will be completely immutable. While this may be useful for some workarounds,
-   * one should generally avoid creating immutable object with attribute values that could be mutated</em>
+   * Annotation has attributes to configure generation of immutable implementation classes, which
+   * are usually configured per-type: should the builder ({@link #builder()}) be generated or
+   * instances interned ({@link #intern()}). You can use {@link Style} or custom style annotation to
+   * tune naming conventions and other settings of code-generation, along with default value for
+   * per-type attributes ({@link Style#defaults()})
    * <p>
    * Generated accessor methods have annotation copied from original accessor method. However
-   * {@code org.immutables.*} and {@code java.lang.*} are not copied.
+   * {@code org.immutables.*} and {@code java.lang.*} are not copied. *
+   * <em>Be warned that such immutable object may contain attributes with types that are not
+   * guaranteed to be immutable, thus not every object will be recursively immutable.
+   * While this may be useful in some cases,
+   * one should generally avoid creating immutable object with attribute values that could be mutated.</em>
+   * <p>
+   * @see Style
+   * @see Include
    */
   @Documented
   @Target(ElementType.TYPE)
@@ -55,17 +64,24 @@ public @interface Value {
 
     /**
      * If {@code singleton=true}, generates internal singleton object constructed without any
-     * specified parameters. Default is {@literal false}.
+     * specified parameters. Default is {@literal false}. To access singleton instance use
+     * {@code .of()} static accessor method.
+     * <p>
+     * This requires that all attributes have default value (includind collections which can be left
+     * empty). If some required attributes exist it will result in compilation error. Note that in
+     * case object do not have attributes, singleton instance will be generated automatically.
      * <p>
      * Note that {@code singleton=true} does not imply that only one instance of given abstract
      * type. But it does mean that only one "default" instance of the immutable implementation type
      * exist.
+     * @return if generate singleton default instance
      */
     boolean singleton() default false;
 
     /**
      * If {@code intern=true} then instances will be strong interned on construction.
      * Default is {@literal false}.
+     * @return if generate strongly interned instances
      */
     boolean intern() default false;
 
@@ -74,6 +90,7 @@ public @interface Value {
      * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods
      * which returns modified copy using structural sharing where possible.
      * Default value is {@literal true}, i.e generate copy methods.
+     * @return if generate copy methods
      */
     boolean copy() default true;
 
@@ -82,12 +99,14 @@ public @interface Value {
      * This could speed up collection lookups for objects with lots of attributes and nested
      * objects.
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
+     * @return if generate hash code precomputing
      */
     boolean prehash() default false;
 
     /**
      * If {@code builder=false}, disables generation of {@code builder()}. Default is
      * {@literal true}.
+     * @return if generate builder
      */
     boolean builder() default true;
   }
@@ -228,11 +247,13 @@ public @interface Value {
      * Used to specify order of constructor argument. It's defaults to zero and allows for
      * non-contiguous order values (arguments are sorted ascending by this order value).
      * <p>
-     * <em>This attribute was introduced as JDT annotation processor internally tracks alphabetical order
-     * of members (non-standard as of Java 6), this differs from Javac, which uses order of declaration appearance
-     * in a source file. Thus, in order to support portable constructor argument definitions,
-     * developer should supply argument order explicitly. As of version 1.0, we implemented workaround for
-     * the Eclipse compiler, but it's still might be needed if you wish to reorder arguments</em>
+     * <em>This attribute was introduced as potentially not all annotation processors could use source
+     * order of elements, i.e. order of declaration appearance in a source file.
+     * To support portable constructor argument definitions,
+     * developer should supply argument order explicitly.
+     * As of version 1.0, we implemented workaround for
+     * the Eclipse compiler, so it is not strictly needed to specify order,
+     * but it's still might be needed if you wish to reorder arguments</em>
      * @return order
      */
     int order() default 0;

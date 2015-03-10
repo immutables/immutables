@@ -132,9 +132,22 @@ public abstract class Round {
   private Set<Element> allAnnotatedElements() {
     Set<Element> elements = Sets.newHashSetWithExpectedSize(100);
     for (TypeElement annotation : annotations()) {
-      elements.addAll(round().getElementsAnnotatedWith(annotation));
+      Set<? extends Element> annotatedElements = round().getElementsAnnotatedWith(annotation);
+      checkAnnotation(annotation, annotatedElements);
+      elements.addAll(annotatedElements);
     }
     return elements;
+  }
+
+  private void checkAnnotation(TypeElement annotation, Set<? extends Element> annotatedElements) {
+    if (annotation.getQualifiedName().contentEquals(ValueUmbrellaMirror.qualifiedName())) {
+      for (Element element : annotatedElements) {
+        Reporter.from(processing())
+            .withElement(element)
+            .annotationNamed(ValueUmbrellaMirror.simpleName())
+            .warning("@Value annotation have no effect, use nested annotations instead, like @Value.Immutable");
+      }
+    }
   }
 
   private class ProtoclassCollecter {
@@ -164,9 +177,9 @@ public abstract class Round {
     void collectDefinedBy(ExecutableElement element) {
       DeclaringType declaringType = typeInterner().intern(
           ImmutableProto.DeclaringType.builder()
-          .environment(environment())
-          .element((TypeElement) element.getEnclosingElement())
-          .build());
+              .environment(environment())
+              .element((TypeElement) element.getEnclosingElement())
+              .build());
 
       if (declaringType.verifiedFactory(element)) {
         builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
