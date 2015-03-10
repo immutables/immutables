@@ -223,6 +223,34 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  public void annotationImportInsideClass() {
+    CharSequence rewrited = PostprocessingMachine.rewrite(
+        "class Set { @javax.annotation.Generated int x; }");
+
+    check(rewrited).hasToString(LINES.join(
+        "import javax.annotation.Generated;",
+        "class Set { @Generated int x; }"));
+  }
+
+  @Test
+  public void annotationTypeImport() {
+    check(PostprocessingMachine.rewrite(
+        "@interface Set { @javax.annotation.Generated int x; }"))
+        .hasToString(LINES.join(
+            "import javax.annotation.Generated;",
+            "@interface Set { @Generated int x; }"));
+  }
+
+  @Test
+  public void annotationBeforeClass() {
+    check(PostprocessingMachine.rewrite(
+        "@javax.annotation.Generated class Set {}"))
+        .hasToString(LINES.join(
+            "import javax.annotation.Generated;",
+            "@Generated class Set {}"));
+  }
+
+  @Test
   public void conflictResolution() {
     CharSequence rewrited = PostprocessingMachine.rewrite(
         "class Set extends java.util.Set {}");

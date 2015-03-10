@@ -33,8 +33,7 @@ import java.util.TreeSet;
 final class PostprocessingMachine {
   private static final Joiner JOINER = Joiner.on("");
 
-  private PostprocessingMachine() {
-  }
+  private PostprocessingMachine() {}
 
   static CharSequence rewrite(CharSequence content) {
     String currentPackage = "";
@@ -93,7 +92,7 @@ final class PostprocessingMachine {
         }
         if (c == ';') {
           nextPartFrom = i + 2;
-          if(fullyNameMachine.isFinished()) {
+          if (fullyNameMachine.isFinished()) {
             importsBuilder.addOriginalImport(
                 content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
                 content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
@@ -112,6 +111,11 @@ final class PostprocessingMachine {
           }
         }
         break;
+      case ANNOTATION:
+        c = content.charAt(--i); // FIXME? Step back for annotation
+        // move to state CLASS
+        state = State.CLASS;
+        //$FALL-THROUGH$
       case CLASS:
         nameMachine.nextChar(c, i);
         fullyNameMachine.nextChar(c, i);
@@ -152,7 +156,7 @@ final class PostprocessingMachine {
     stringBuilder
         // last part
         .append(content.subSequence(nextPartFrom, content.length()))
-            // imports
+        // imports
         .insert(0, imports);
 
     // package
@@ -167,78 +171,104 @@ final class PostprocessingMachine {
     UNDEFINED,
     PACKAGE,
     IMPORTS,
-    CLASS
+    CLASS,
+    ANNOTATION;
+    State or(State state) {
+      return this == UNDEFINED ? state : this;
+    }
   }
 
   static final class FiniteStateMachine {
+    private static final int NO_POSITION = -1;// FIXME? correct name?
+    private static final int AT_POSSIBLE_WORD = -1; // FIXME? correct name?
+    private static final int UNTRACKED_WORD = -2; // FIXME? correct name?
+
     private static final char[][] vocabulary = new char[][] {
-        {'p', 'a', 'c', 'k', 'a', 'g', 'e'},
-        {'i', 'm', 'p', 'o', 'r', 't'},
-        {'c', 'l', 'a', 's', 's'}
+        "package".toCharArray(),
+        "import".toCharArray(),
+        "class".toCharArray(),
+        "interface".toCharArray(),
+        "enum".toCharArray(),
+        // "@interface".toCharArray(),
+        "@".toCharArray() // counts for annotations before class and annotation type
     };
 
     private static final State[] finalState = new State[] {
         State.PACKAGE,
         State.IMPORTS,
-        State.CLASS
+        State.CLASS,
+        State.CLASS,
+        State.CLASS,
+        // State.CLASS,
+        State.ANNOTATION
     };
 
-    int wordIndex = -1;
-    int charIndex = -1;
+    int wordIndex;
+    int charIndex;
 
-    Optional<State> nextChar(char c) {
-      Optional<State> state = Optional.absent();
+    {
+      resetWord();
+    }
 
-      if (wordIndex == -2) {
+    State nextChar(char c) {
+      State newState = State.UNDEFINED;
 
-        if (!isAlphabetic(c) && !isDigit(c)) {
-          wordIndex = -1;
+      if (wordIndex == UNTRACKED_WORD) {
+        if (!isWordChar(c)) {
+          resetWord();
         }
+      } else if (wordIndex == AT_POSSIBLE_WORD) {
+        if (isWordChar(c)) {
+          for (int i = 0; i < vocabulary.length; i++) {
+            if (c == vocabulary[i][0]) {
+              wordIndex = i;
+              charIndex = 0;
+              break;
+            }
+          }
 
-      } else if (wordIndex == -1) {
-
-        for (int i = 0; i < vocabulary.length; i++) {
-          if (c == vocabulary[i][0]) {
-            wordIndex = i;
-            charIndex = 0;
-            break;
+          if (wordIndex == AT_POSSIBLE_WORD) {
+            wordIndex = UNTRACKED_WORD;
           }
         }
-
-        if (wordIndex == -1 && (isAlphabetic(c) || isDigit(c))) {
-          wordIndex = -2;
-        }
-
       } else {
-
-        if (vocabulary[wordIndex][charIndex + 1] == c) {
+        if (vocabulary[wordIndex].length == 1) {
+          newState = finalState[wordIndex];
+          resetWord();
+        } else if (vocabulary[wordIndex][charIndex + 1] == c) {
           charIndex++;
           if (vocabulary[wordIndex].length == charIndex + 1) {
-            state = Optional.of(finalState[wordIndex]);
-            wordIndex = -1;
-            charIndex = -1;
+            newState = finalState[wordIndex];
+            resetWord();
           }
         } else {
-          wordIndex = -1;
-          charIndex = -1;
+          resetWord();
         }
-
       }
 
-      return state;
+      return newState;
+    }
+
+    private void resetWord() {
+      wordIndex = AT_POSSIBLE_WORD;
+      charIndex = NO_POSITION;
+    }
+
+    private boolean isWordChar(char c) {
+      return isAlphabetic(c) || c == '@';
     }
   }
 
   static final class ImportsBuilder {
     private static final String JAVA_LANG = "java.lang.";
 
-    private TreeSet<String> imports = Sets.newTreeSet();
-    private HashMap<String, String> originalImports = Maps.newHashMap();
+    private final TreeSet<String> imports = Sets.newTreeSet();
+    private final HashMap<String, String> originalImports = Maps.newHashMap();
     private Optional<String> currentPackage = Optional.absent();
-    private Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
-    private HashMap<String, String> nameToFully = Maps.newHashMap();
-    private HashSet<String> exceptions = Sets.newHashSet();
-    private HashSet<String> stopList = Sets.newHashSet();
+    private final Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
+    private final HashMap<String, String> nameToFully = Maps.newHashMap();
+    private final HashSet<String> exceptions = Sets.newHashSet();
+    private final HashSet<String> stopList = Sets.newHashSet();
 
     void addImportCandidate(String name, String fullyName, int importFrom, int importTo, int packageTo) {
       String foundFully = nameToFully.get(name);
