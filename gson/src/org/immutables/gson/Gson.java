@@ -59,7 +59,7 @@ public @interface Gson {
    */
   @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @Target({ElementType.TYPE})
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
   public @interface TypeAdapters {
     /**
      * When {@code namingStrategy=true}, somewhat more involved code is generated to apply naming
