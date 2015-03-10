@@ -26,19 +26,22 @@ import com.google.gson.*;
 import com.google.gson.stream.*;
 import com.google.gson.reflect.*;
 
-import javax.annotation.*;
 import java.io.IOException;
 import java.lang.String;
 
 /**
- * Gson {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
+ * {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
  [for v in allValues]
  * @see [v.typeValue.relative]
  [/for]
  */
 @SuppressWarnings("all")
-@Generated({"Gsons.generator", "[packageName].[simpleName]"})
-@ParametersAreNonnullByDefault
+[if classpath.available 'javax.annotation.Generated']
+@javax.annotation.Generated({"Gsons.generator", "[packageName].[simpleName]"})
+[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
+[/if]
 public final class [typeAdaptersName] implements TypeAdapterFactory {
   @SuppressWarnings("unchecked") // safe unchecked, type is verified by type token equality
   @Override
@@ -90,7 +93,7 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
   [/for]
 [/if]
 
-  [type.name]TypeAdapter(Gson gson) {
+  [type.name]TypeAdapter(Gson gson) {[if not allAttributes]}[/if]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
     [getAdapterFromGson a false]
@@ -100,12 +103,14 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
     [/if]
   [/for]
 [if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
+  [if allAttributes]
     org.immutables.gson.adapter.FieldNamingTranslator fieldNaming = new org.immutables.gson.adapter.FieldNamingTranslator(gson);
+  [/if]
   [for a in allAttributes]
     this.[a.name]Name = fieldNaming.translateName([type.typeAbstract].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
   [/for]
 [/if]
-  }
+  [if allAttributes]} [/if]
 
   static boolean adapts(TypeToken<?> type) {
     return [toConstant type.name]_ABSTRACT.equals(type)
@@ -288,6 +293,10 @@ out.name([serializedName a]);
 [/template]
 
 [template generateUnmarshalingMethods Type type]
+[for charAttributes = a for
+    a in type.unmarshaledAttributes
+    if a.unwrappedElementType eq 'char']
+[if charAttributes]
 
 private static char charValueOf(String string) {
   if (string.length() == 1) {
@@ -296,6 +305,8 @@ private static char charValueOf(String string) {
   throw new IllegalArgumentException(
       String.format("Expected string with a single character but was: '%s'", string));
 }
+[/if]
+[/for]
 [if type.useSingletonOnly]
 
 private [type.typeAbstract] read[type.name](JsonReader in)

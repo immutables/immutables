@@ -136,11 +136,13 @@ import java.lang.String;
       this.instance = instance;
     }
 
+    @Override
     public boolean equals([atNullable]Object another) {
       assert another instanceof InternProxy;
       return instance.equalTo(((InternProxy) another).instance);
     }
 
+    @Override
     public int hashCode() {
       return instance.computeHashCode();
     }
@@ -235,11 +237,11 @@ import java.lang.String;
    * @return immutable [type.name] instance
    */
   public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
-    return checkPreconditions(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
+    return precondition(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
   }
 [/if]
 
-  private static [type.typeImmutable.simple] checkPreconditions([type.typeImmutable.simple] instance) {
+  private static [type.typeImmutable.simple] precondition([type.typeImmutable.simple] instance) {
 [if type.validationMethodName]
     instance.[type.validationMethodName]();
 [/if]
@@ -257,7 +259,7 @@ import java.lang.String;
 [template generateSingletonInstance Type type]
 [if type.useSingleton]
 
-  private static final [type.typeImmutable.simple] INSTANCE = checkPreconditions(new [type.typeImmutable.simple]());
+  private static final [type.typeImmutable.simple] INSTANCE = precondition(new [type.typeImmutable.simple]());
 
   /**
    * Returns default immutable singleton value of {@code [type.name]}
@@ -362,7 +364,8 @@ import java.lang.String;
 
 /**
 [if type.kind.isFactory]
- * [type.typeBuilder.simple] collects parameters and invokes static factory method {@code [type.factoryOf](..)}.
+ * [type.typeBuilder.simple] collects parameters and invokes static factory method:
+ * {@code [type.factoryOf](..)}.
  * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue]}.
 [else]
  * Builds instances of {@link [type.typeValue]}.
@@ -377,7 +380,7 @@ import java.lang.String;
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
 [type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
-    extends [type.typeAbstract].Builder {[else] {[/if]
+    extends [type.typeAbstract].Builder {[else]{[/if]
   [for l in positions.longs]
   private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
@@ -404,7 +407,14 @@ import java.lang.String;
 [if type.kind.isFactory]
   [for parameters = p for p in setters if p.isBuilderParameter]
 
-  /** Constructor for [type.typeValue.simple] builder. */
+  [if not useFactoryMethod]
+  /**
+   * Constructs {@code [type.typeBuilder.simple]} factory builder.
+[for p in parameters]
+   * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
+[/for]
+   */
+  [/if]
   [if useFactoryMethod]private [else][type.typeBuilder.access][/if][type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     [for v in setters]
       [if v.builderSwitcher]
@@ -426,10 +436,13 @@ import java.lang.String;
     [if useFactoryMethod]
 
   /**
-   * Creates [type.typeValue.simple] builder.
-   * @return new [type.typeValue.simple] builder
+   * Creates {@code [type.typeBuilder.simple]} factory builder.
+[for p in parameters]
+   * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
+[/for]
+   * @return new builder
    */
-  [type.typeBuilder.access] static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  [type.typeBuilder.access]static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
     [/if]
@@ -563,7 +576,12 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     }
     return this;
     [else]
-    return [v.names.addAll]([arrayAsList v 'elements']);
+      [if v.wrapArrayToIterable]
+    [v.name]Builder.addAll([arrayAsList v 'elements']);
+      [else]
+    [v.name]Builder.add(elements);
+      [/if]
+    return this;
     [/if]
   }
       [if not type.useStrictBuilder]
@@ -600,7 +618,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   /**
    * Initializes present value for optional [sourceDocRef type v].
-   * @param [v.name] value for [v.name], non-null
+   * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
@@ -613,7 +631,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   /**
    * Initializes optional value for [sourceDocRef type v].
-   * @param [v.name] value for [v.name], non-null
+   * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
@@ -715,7 +733,6 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [/if]
     return this;
   }
-
     [/for]
   [else if v.arrayType]
 
@@ -724,7 +741,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [if v.generateDefault]
    * <p><em>If not set, this attribute will have default value as defined by [sourceDocRef type v].</em>
   [/if]
-   * @param elements elements for [v.name], non-null
+   * @param elements elements for [v.name]
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
@@ -741,7 +758,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [if v.generateDefault]
    * <p><em>If not set, this attribute will have default value returned by initializer of [sourceDocRef type v].</em>
   [/if]
-   * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
+   * @param [v.name] value for [v.name][if v.nullable], can be {@code null}[/if]
    * @return {@code this} builder for chained invocation
    */
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
@@ -769,8 +786,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [if type.kind.isFactory]
     [returnFactoryBuild type]
   [else]
-    return [type.typeImmutable.relative].checkPreconditions(
-        new [type.typeImmutable.relative](this));
+    return [type.typeImmutable.relative].precondition(new [type.typeImmutable.relative](this));
   [/if]
   }
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
@@ -827,10 +843,8 @@ return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/i
     [output.trim]
   [if v.collectionType or v.mapType]
     [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
-  [else if v.primitive or v.nullable]
-    [v.name]
   [else]
-    [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name], "[v.name] is null")
+    [v.name]
   [/if]
 [/output.trim][/for]);
 [/template]
@@ -974,9 +988,9 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
   [/for]
     [generateAfterConstruction type false]
   }
-  [generateCopyMethods type]
 [/if]
   [generateAccessorMethods type]
+  [generateCopyMethods type]
   [generateObjectUtilityMethods type]
   [generateJacksonMapped type]
 [/for]
@@ -1236,12 +1250,13 @@ this.domain = Domain.get();
 [/template]
 
 [template generateReturnCopyContextual Type type Attribute modified]
-return checkPreconditions(new [type.typeImmutable.simple](
+return precondition(new [type.typeImmutable.simple](
     this[for a in type.implementedAttributes],
     [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for]));
 [/template]
 
 [template generateCopyMethods Type type]
+[if type.useCopyMethods]
   [for v in type.settableAttributes]
     [if v.arrayType]
 
@@ -1272,7 +1287,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
   }
   [immutableImplementationType v] newValue = [immutableCollectionCopyOfSafe v false]wrappedList[/immutableCollectionCopyOfSafe];
   [else]
-  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v][arrayAsList v 'elements'][/immutableCollectionCopyOf];
+  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v][if v.wrapArrayToIterable][arrayAsList v 'elements'][else]elements[/if][/immutableCollectionCopyOf];
   [/if]
   [generateReturnCopyContextual type v]
 }
@@ -1294,7 +1309,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
 
 /**
  * Copy current immutable object by setting present value for optional [sourceDocRef type v].
- * @param value value for [v.name], non-null
+ * @param value value for [v.name]
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
@@ -1305,7 +1320,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
 /**
  * Copy current immutable object by setting optional value for [sourceDocRef type v].
  * Shallow reference equality check on optional value is used to prevent copying of the same value by returning {@code this}.
- * @param optional value for [v.name], non-null
+ * @param optional value for [v.name]
  * @return modified copy of {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
@@ -1342,7 +1357,7 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
  [else if not v.primitive]
  * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
- * @param value new value for [v.name][if not v.nullable], non-null[/if]
+ * @param value new value for [v.name][if v.nullable], can be {@code null}[/if]
  * @return modified copy of the {@code this} object
  */
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
@@ -1360,6 +1375,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
 }
     [/if]
   [/for]
+[/if]
 [/template]
 
 [template defaultAnnotationValues Type type]

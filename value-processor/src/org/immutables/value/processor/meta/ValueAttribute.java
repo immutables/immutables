@@ -566,6 +566,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return isMapLike() && !isRegularMarshalableType(getSecondaryElementType(), true);
   }
 
+  public boolean wrapArrayToIterable() {
+    return containingType.isGenerateJdkOnly()
+        || isUnwrappedElementPrimitiveType()
+        || !(typeKind.isList() || typeKind.isSet() || typeKind.isMultiset());
+  }
+
   /**
    * Suitable for JavaDocs, intemediate name mangling and for Guava intergration.
    * @return the raw collection type
