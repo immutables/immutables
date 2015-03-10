@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.Iterables;
+import javax.lang.model.type.DeclaredType;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
@@ -81,6 +83,7 @@ public final class ValueTypeComposer {
       // This check is legacy, most such checks should have been done on a higher level?
       if (isAbstractValueType(type.element)) {
         checkForMutableFields(protoclass, (TypeElement) type.element);
+        checkForTypeHierarchy(protoclass, type);
 
         new AccessorAttributesCollector(protoclass, type).collect();
       } else {
@@ -94,6 +97,26 @@ public final class ValueTypeComposer {
 
     checkAttributeNamesForDuplicates(type, protoclass);
     return type;
+  }
+
+  private void checkForTypeHierarchy(Protoclass protoclass, ValueType type) {
+    scanAndReportInvalidInheritance(protoclass, type.element, type.extendedClasses());
+    scanAndReportInvalidInheritance(protoclass, type.element, type.implementedInterfaces());
+  }
+
+  private static void scanAndReportInvalidInheritance(
+      Protoclass protoclass,
+      Element element,
+      Iterable<DeclaredType> supertypes) {
+    for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
+      if (!supertype.equals(element) && ImmutableMirror.isPresent(supertype)) {
+        protoclass.report()
+            .error("Should not inherit %s which is a value type itself."
+                + " Avoid extending from another abstract value type."
+                + " Better to share common abstract class or interface which"
+                + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
+      }
+    }
   }
 
   private void checkForMutableFields(Protoclass protoclass, TypeElement element) {

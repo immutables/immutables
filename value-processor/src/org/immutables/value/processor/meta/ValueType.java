@@ -445,6 +445,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   @Nullable
   private ImmutableList<ValueAttribute> allMarshalingAttributes;
+  private TypeHierarchyCollector hierarchiCollector;
 
   public List<ValueAttribute> allMarshalingAttributes() {
     if (allMarshalingAttributes == null) {
@@ -599,23 +600,18 @@ public final class ValueType extends TypeIntrospectionBase {
 
   @Override
   protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
-    TypeHierarchyCollector collector = super.collectTypeHierarchy(typeMirror);
-    scanAndReportInvalidInheritance(collector.extendedClasses());
-    scanAndReportInvalidInheritance(collector.implementedInterfaces());
-    return collector;
+    this.hierarchiCollector = super.collectTypeHierarchy(typeMirror);
+    return hierarchiCollector;
   }
 
-  private void scanAndReportInvalidInheritance(Iterable<DeclaredType> supertypes) {
-    for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
-      if (!supertype.equals(element) && ImmutableMirror.isPresent(supertype)) {
-        constitution.protoclass()
-            .report()
-            .error("Should not inherit %s which is a value type itself."
-                + " Avoid extending from another abstract value type."
-                + " Better to share common abstract class or interface which"
-                + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
-      }
-    }
+  ImmutableList<DeclaredType> extendedClasses() {
+    ensureTypeIntrospected();
+    return hierarchiCollector.extendedClasses();
+  }
+
+  ImmutableSet<DeclaredType> implementedInterfaces() {
+    ensureTypeIntrospected();
+    return hierarchiCollector.implementedInterfaces();
   }
 
   /**
