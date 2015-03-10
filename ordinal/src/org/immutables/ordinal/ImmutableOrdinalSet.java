@@ -81,15 +81,34 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * All elements expected to have same {@link OrdinalValue#domain()} as the first element,
    * otherwise exception will be thrown.
    * @param <E> the element type
-   * @param elements the elements
+   * @param elements the elements, no nulls allowed
    * @return the immutable ordinal set
    */
   @SuppressWarnings("unchecked")
+  // Safe unchecked, elements are defined to be of E or subtypes of E
+  // which is allowed for immutable collection
   public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(Iterable<? extends E> elements) {
     if (elements instanceof ImmutableOrdinalSet) {
       return (ImmutableOrdinalSet<E>) elements;
     }
-    OrdinalValue<?>[] array = Iterables.toArray(elements, OrdinalValue.class);
+    return constructFromArray(Iterables.toArray(elements, OrdinalValue.class));
+  }
+
+  /**
+   * Creates immutable ordinal set from array of elements.
+   * All elements expected to have same {@link OrdinalValue#domain()} as the first element,
+   * otherwise exception will be thrown.
+   * @param <E> the element type
+   * @param elements the elements, no nulls allowed
+   * @return the immutable ordinal set
+   */
+  public static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> copyOf(E[] elements) {
+    return constructFromArray(elements);
+  }
+
+  @SuppressWarnings("unchecked")
+  // Safe unchecked as element is known to be of type E
+  private static <E extends OrdinalValue<E>> ImmutableOrdinalSet<E> constructFromArray(OrdinalValue<?>[] array) {
     switch (array.length) {
     case 0:
       return of();
