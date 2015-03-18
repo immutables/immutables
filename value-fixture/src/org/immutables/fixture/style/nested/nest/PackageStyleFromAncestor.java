@@ -13,18 +13,22 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.processor.meta;
+package org.immutables.fixture.style.nested.nest;
 
-import org.immutables.mirror.Mirror;
+import org.immutables.value.Value;
 
-public final class MongoMirrors {
-  private MongoMirrors() {}
+/**
+ * This compilation test checks application of parent package's style.
+ */
+interface PackageStyleFromAncestor {
 
-  @Mirror.Annotation("org.immutables.mongo.Mongo.Repository")
-  public @interface Repository {
-    String value() default "";
+  @Value.Immutable
+  interface Baj {
+    int a();
   }
 
-  @Mirror.Annotation("org.immutables.mongo.Mongo.Id")
-  public @interface Id {}
+  /** Generated API dictated by parent package's style. */
+  static void use() {
+    ImBaj.builder().a(1).build().copyWithA(2);
+  }
 }

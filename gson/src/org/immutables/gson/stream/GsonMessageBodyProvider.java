@@ -318,7 +318,6 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
 
   @Value.Immutable(singleton = true)
   @Value.Style(
-      // typeBuilder = "GsonProviderOptionsBuilder",
       jdkOnly = true,
       visibility = ImplementationVisibility.PRIVATE)
   public static abstract class GsonProviderOptions {

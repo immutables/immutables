@@ -250,7 +250,7 @@ public final class Output {
           getMessager().printMessage(Kind.ERROR,
               "Generated source file name collission. Attempt to overwrite already generated file: " + key);
         } else {
-          getMessager().printMessage(Kind.WARNING,
+          getMessager().printMessage(Kind.MANDATORY_WARNING,
               "Regenerated file with the same content: " + key);
         }
       } catch (IOException ex) {

@@ -15,11 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.Interners;
-import com.google.common.collect.Interner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -46,19 +46,25 @@ public abstract class Round {
 
   public abstract Set<TypeElement> annotations();
 
-  @Value.Derived
-  public Interner<Protoclass> protoclassInterner() {
-    return Interners.newStrongInterner();
-  }
+  private final Interning interners = new Interning();
 
-  @Value.Derived
-  public Interner<DeclaringPackage> packageInterner() {
-    return Interners.newStrongInterner();
-  }
+  final static class Interning {
+    private final Interner<DeclaringPackage> packageInterner = Interners.newStrongInterner();
+    private final Interner<DeclaringType> typeInterner = Interners.newStrongInterner();
+    private final Interner<Protoclass> protoclassInterner = Interners.newStrongInterner();
 
-  @Value.Derived
-  public Interner<DeclaringType> typeInterner() {
-    return Interners.newStrongInterner();
+    DeclaringPackage forPackage(DeclaringPackage declaringPackage) {
+      return packageInterner.intern(declaringPackage);
+
+    }
+
+    DeclaringType forType(DeclaringType declaringType) {
+      return typeInterner.intern(declaringType);
+    }
+
+    Protoclass forProto(Protoclass protoclass) {
+      return protoclassInterner.intern(protoclass);
+    }
   }
 
   @Value.Derived
@@ -175,14 +181,15 @@ public abstract class Round {
     }
 
     void collectDefinedBy(ExecutableElement element) {
-      DeclaringType declaringType = typeInterner().intern(
+      DeclaringType declaringType = interners.forType(
           ImmutableProto.DeclaringType.builder()
               .environment(environment())
+              .interner(interners)
               .element((TypeElement) element.getEnclosingElement())
               .build());
 
       if (declaringType.verifiedFactory(element)) {
-        builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
+        builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)
@@ -193,28 +200,32 @@ public abstract class Round {
     }
 
     void collectIncludedBy(PackageElement element) {
-      final DeclaringPackage declaringPackage = packageInterner().intern(ImmutableProto.DeclaringPackage.builder()
+      final DeclaringPackage declaringPackage = interners.forPackage(ImmutableProto.DeclaringPackage.builder()
           .environment(environment())
+          .interner(interners)
           .element(element)
           .build());
 
       if (declaringPackage.hasInclude()) {
         for (TypeElement sourceElement : declaringPackage.includedTypes()) {
-          builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
-              .environment(environment())
-              .packageOf(declaringPackage)
-              .sourceElement(sourceElement)
-              .kind(Kind.INCLUDED_IN_PACKAGE)
-              .build()));
+          builder.add(interners.forProto(
+              ImmutableProto.Protoclass.builder()
+                  .environment(environment())
+                  .packageOf(declaringPackage)
+                  .sourceElement(sourceElement)
+                  .kind(Kind.INCLUDED_IN_PACKAGE)
+                  .build()));
         }
       }
     }
 
     void collectIncludedAndDefinedBy(TypeElement element) {
-      DeclaringType declaringType = typeInterner().intern(ImmutableProto.DeclaringType.builder()
-          .environment(environment())
-          .element(element)
-          .build());
+      DeclaringType declaringType = interners.forType(
+          ImmutableProto.DeclaringType.builder()
+              .environment(environment())
+              .interner(interners)
+              .element(element)
+              .build());
 
       if (declaringType.hasInclude()) {
         Kind kind = declaringType.isEnclosing()
@@ -222,7 +233,7 @@ public abstract class Round {
             : Kind.INCLUDED_ON_TYPE;
 
         for (TypeElement sourceElement : declaringType.includedTypes()) {
-          builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
+          builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
               .environment(environment())
               .packageOf(declaringType.packageOf())
               .sourceElement(sourceElement)
@@ -235,7 +246,7 @@ public abstract class Round {
       if (declaringType.isImmutable() || declaringType.isEnclosing()) {
         Kind kind = kindOfDefinedBy(declaringType);
 
-        builder.add(protoclassInterner().intern(ImmutableProto.Protoclass.builder()
+        builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
             .sourceElement(element)

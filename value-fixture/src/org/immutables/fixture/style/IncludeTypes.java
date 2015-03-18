@@ -33,12 +33,12 @@ import org.immutables.value.Value;
 public class IncludeTypes {
 
   void use() {
-    // this immutable type
-    ImmutableIncludeTypes.of();
-    // included on this type
-    ImmutableSerializable.of();
-    // included on package
-    ImmutableTicker.builder().read(1).build();
+    // this immutable type (package style used)
+    ImIncludeTypes.of();
+    // included on this type (package style used)
+    ImSerializable.of();
+    // included on package (package style used)
+    ImTicker.builder().read(1).build();
 
     // included in IncludeNestedTypes
     ImmutableIncludeNestedTypes.Retention retention =

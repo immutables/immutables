@@ -23,6 +23,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 @Target(ElementType.PACKAGE)
-@Retention(RetentionPolicy.SOURCE)
-@Value.Style(with = "copyWith*", defaults = @Immutable(copy = true))
+@Retention(RetentionPolicy.CLASS)
+@Value.Style(with = "copyWith*", typeImmutable = "Im*", defaults = @Immutable(copy = true))
 public @interface PackageStyle {}

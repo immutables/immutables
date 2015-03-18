@@ -52,7 +52,7 @@ abstract class Gsons extends ValuesTemplate {
           byDeclaring.put(typeAdaptersProvider.get(), value);
         } else if (protoclass.gsonTypeAdapters().isPresent()
             && protoclass.declaringType().isPresent()) {
-          DeclaringType topLevel = protoclass.declaringType().get().topLevel();
+          DeclaringType topLevel = protoclass.declaringType().get().associatedTopLevel();
           byDeclaring.put(topLevel, value);
         }
       }

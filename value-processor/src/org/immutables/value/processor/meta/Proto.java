@@ -23,6 +23,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -148,6 +149,10 @@ public class Proto {
       return include().isPresent();
     }
 
+    /** used to intern packaged created internally */
+    @Value.Auxiliary
+    abstract Round.Interning interner();
+
     @Value.Lazy
     public Optional<TypeAdaptersMirror> typeAdapters() {
       return TypeAdaptersMirror.find(element());
@@ -194,6 +199,31 @@ public class Proto {
         }
       }
 
+      if (name().equals("org.immutables.fixture.style")) {
+        TypeElement typeElement = environment().processing()
+            .getElementUtils().getTypeElement("org.immutables.fixture.style.OutsideBuildable");
+        List<? extends AnnotationMirror> annotationMirrors = null;
+
+        if (typeElement != null) {
+          environment().processing()
+              .getMessager()
+              .printMessage(javax.tools.Diagnostic.Kind.MANDATORY_WARNING,
+                  "&&& TYPEEL " + typeElement.getAnnotationMirrors());
+
+          annotationMirrors = typeElement.getEnclosingElement().getAnnotationMirrors();
+        }
+
+        environment().processing()
+            .getMessager()
+            .printMessage(javax.tools.Diagnostic.Kind.MANDATORY_WARNING,
+                "! NNNOOISH !!! "
+                    + name()
+                    + "   ANNMIRRORS   "
+                    + element().getAnnotationMirrors()
+                    + "  /ALT/"
+                    + annotationMirrors);
+      }
+
       return Optional.absent();
     }
   }
@@ -230,6 +260,41 @@ public class Proto {
     public String asPrefix() {
       return element().isUnnamed() ? "" : (name() + ".");
     }
+
+    @Value.Lazy
+    Optional<DeclaringPackage> namedParentPackage() {
+      String parentPackageName = SourceNames.parentPackageName(element());
+      if (!parentPackageName.isEmpty()) {
+        @Nullable PackageElement parentPackage =
+            environment().processing()
+                .getElementUtils()
+                .getPackageElement(parentPackageName);
+
+        if (parentPackage != null) {
+          return Optional.of(interner().forPackage(
+              ImmutableProto.DeclaringPackage.builder()
+                  .environment(environment())
+                  .interner(interner())
+                  .element(parentPackage)
+                  .build()));
+        }
+      }
+      return Optional.absent();
+    }
+
+    @Override
+    @Value.Lazy
+    public Optional<StyleMirror> style() {
+      Optional<StyleMirror> style = super.style();
+      if (style.isPresent()) {
+        return style;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().style();
+      }
+      return Optional.absent();
+    }
   }
 
   @Value.Immutable
@@ -248,38 +313,37 @@ public class Proto {
      * returns this class if it's top level or enclosing top level type.
      * @return accossiated top level type.
      */
-    @Value.Derived
-    @Value.Auxiliary
-    public DeclaringType topLevel() {
-      return getTopLevelType();
+    public DeclaringType associatedTopLevel() {
+      return enclosingTopLevel().or(this);
     }
 
-    @Value.Derived
-    @Value.Auxiliary
-    public Optional<RepositoryMirror> repository() {
-      return RepositoryMirror.find(element());
-    }
-
-    private DeclaringType getTopLevelType() {
+    @Value.Lazy
+    public Optional<DeclaringType> enclosingTopLevel() {
       TypeElement top = element();
       for (Element e = top; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
         top = (TypeElement) e;
       }
       if (top == element()) {
-        return this;
+        return Optional.absent();
       }
-      return ImmutableProto.DeclaringType.builder()
-          .environment(environment())
-          .element(top)
-          .build();
+      return Optional.of(interner().forType(
+          ImmutableProto.DeclaringType.builder()
+              .environment(environment())
+              .interner(interner())
+              .element(top)
+              .build()));
     }
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
+    public Optional<RepositoryMirror> repository() {
+      return RepositoryMirror.find(element());
+    }
+
+    @Value.Lazy
     public Optional<DeclaringType> enclosingOf() {
-      DeclaringType topLevel = getTopLevelType();
-      if (topLevel != this && topLevel.isEnclosing()) {
-        return Optional.of(topLevel);
+      Optional<DeclaringType> topLevel = enclosingTopLevel();
+      if (topLevel.isPresent() && topLevel.get().isEnclosing()) {
+        return topLevel;
       }
       return Optional.absent();
     }
@@ -291,14 +355,15 @@ public class Proto {
       Element e = element();
       for (; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
       }
-      return ImmutableProto.DeclaringPackage.builder()
-          .environment(environment())
-          .element((PackageElement) e)
-          .build();
+      return interner().forPackage(
+          ImmutableProto.DeclaringPackage.builder()
+              .environment(environment())
+              .interner(interner())
+              .element((PackageElement) e)
+              .build());
     }
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
     public Optional<ImmutableMirror> features() {
       return ImmutableMirror.find(element());
     }
@@ -312,8 +377,7 @@ public class Proto {
       return true;
     }
 
-    @Value.Derived
-    @Value.Auxiliary
+    @Value.Lazy
     public boolean isEnclosing() {
       return EnclosingMirror.isPresent(element());
     }
@@ -448,7 +512,7 @@ public class Proto {
     public Optional<AbstractDeclaring> typeAdaptersProvider() {
       Optional<DeclaringType> typeDefining =
           declaringType().isPresent()
-              ? Optional.of(declaringType().get().topLevel())
+              ? Optional.of(declaringType().get().associatedTopLevel())
               : Optional.<DeclaringType>absent();
 
       Optional<TypeAdaptersMirror> typeDefined =
@@ -523,39 +587,45 @@ public class Proto {
 
     @Value.Lazy
     public Styles styles() {
-      return Styles.using(inferStyle().or(environment().defaultStyles()));
+      return Styles.using(determineStyle().or(environment().defaultStyles()));
     }
 
-    private Optional<StyleMirror> inferStyle() {
+    private Optional<StyleMirror> determineStyle() {
       if (declaringType().isPresent()) {
-        Optional<DeclaringType> enclosing = enclosingOf();
+        DeclaringType type = declaringType().get();
+
+        Optional<DeclaringType> enclosing = type.enclosingOf();
         if (enclosing.isPresent()) {
-          if (enclosing.get() != declaringType().get()) {
-            warnIfNestedStylePresent();
+          if (enclosing.get() != type) {
+            Optional<StyleMirror> style = type.style();
+            if (style.isPresent()) {
+              warnAboutIncompatibleStyles();
+            }
           }
           Optional<StyleMirror> enclosingStyle = enclosing.get().style();
           if (enclosingStyle.isPresent()) {
             return enclosingStyle;
           }
         } else {
-          Optional<StyleMirror> style = declaringType().get().style();
+          Optional<StyleMirror> style = type.style();
           if (style.isPresent()) {
             return style;
+          }
+          Optional<DeclaringType> topLevel = type.enclosingTopLevel();
+          if (topLevel.isPresent() && topLevel.get().style().isPresent()) {
+            return topLevel.get().style();
           }
         }
       }
       return packageOf().style();
     }
 
-    private void warnIfNestedStylePresent() {
-      Optional<StyleMirror> style = declaringType().get().style();
-      if (style.isPresent()) {
-        report().annotationNamed(StyleMirror.simpleName())
-            .warning("Use styles only on enclosing types."
-                + " All nested styles will inherit it."
-                + " Nested immutables cannot deviate in style from enclosing type,"
-                + " so generated stucture will be consistent");
-      }
+    private void warnAboutIncompatibleStyles() {
+      report().annotationNamed(StyleMirror.simpleName())
+          .warning("Use styles only on enclosing types."
+              + " All nested styles will inherit it."
+              + " Nested immutables cannot deviate in style from enclosing type,"
+              + " so generated stucture will be consistent");
     }
 
     @Value.Derived

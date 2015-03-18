@@ -48,7 +48,7 @@ public @interface Value {
    * per-type attributes ({@link Style#defaults()})
    * <p>
    * Generated accessor methods have annotation copied from original accessor method. However
-   * {@code org.immutables.*} and {@code java.lang.*} are not copied. *
+   * {@code org.immutables.*} and {@code java.lang.*} are not copied.
    * <em>Be warned that such immutable object may contain attributes with types that are not
    * guaranteed to be immutable, thus not every object will be recursively immutable.
    * While this may be useful in some cases,
@@ -308,10 +308,10 @@ public @interface Value {
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation. When used as meta-annotation, then annotation could
-   * be placed on a class, surrounding {@link Enclosing} class or even a package (declared in
+   * be placed on a class, surrounding top level class or even a package (declared in
    * {@code package-info.java}). This
    * annotation more of example of how to define your own styles as meta-annotation rather than a
-   * useful annotation.
+   * useful annotation. When using meta-annotation
    * <p>
    * <em>
    * Be careful to not use keywords or inappropriate characters as parts of naming templates.
@@ -323,7 +323,7 @@ public @interface Value {
    * mismatch on enclosing and nested types.</em>
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Style {
     /**
      * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will

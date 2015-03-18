@@ -215,7 +215,7 @@ import java.lang.String;
       new java.util.concurrent.ConcurrentHashMap<>();
 
   private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    [type.typeImmutable.simple] canonical = INTERNER.putIfAbsent(new InternProxy(instance), instance);
+    [atNullable][type.typeImmutable.simple] canonical = INTERNER.putIfAbsent(new InternProxy(instance), instance);
     return canonical != null ? canonical : instance;
   }
   [else]

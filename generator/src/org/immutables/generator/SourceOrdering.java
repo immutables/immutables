@@ -60,7 +60,7 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 public final class SourceOrdering {
   private SourceOrdering() {}
 
-  interface OrderingProvider {
+  private interface OrderingProvider {
     Ordering<Element> enclosedBy(Element element);
   }
 

@@ -112,7 +112,7 @@ public @interface Builder {
    *     OFF, ON
    *   }
    *   {@literal @}Builder.Factory
-   *   static Bulb bulb({@literal @}Builder.Switch(defaultOrdinal = 0) Switcher light) {
+   *   static Bulb bulb({@literal @}Builder.Switch(defaultName = "OFF") Switcher light) {
    *      return ...
    *   }
    * }
