@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.io.Serializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -94,6 +95,11 @@ public abstract class TypeIntrospectionBase {
   public boolean isEnumType() {
     ensureTypeIntrospected();
     return extendedClassesNames.contains(Enum.class.getName());
+  }
+
+  public boolean isSerializable() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(Serializable.class.getName());
   }
 
   public boolean isUndefinable() {

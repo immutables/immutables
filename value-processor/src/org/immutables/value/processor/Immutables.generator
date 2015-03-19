@@ -101,6 +101,7 @@ import java.lang.String;
 [generateImmutableMembers type]
 [generateLazyValues type]
 [generateSingletonInstance type]
+  [generateSerialization type]
 [generateConstructionAndInterning type]
   [generateImmutableCopyOf type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
@@ -124,6 +125,19 @@ import java.lang.String;
 [/if]
 }
 [/for]
+[/template]
+
+[template generateSerialization Type type]
+[if type.serialVersionUID]
+
+private static final long serialVersionUID = [literal type.serialVersionUID];
+[/if]
+[if type.useReadResolve]
+
+private Object readResolve() throws java.io.ObjectStreamException {
+  return precondition(this);
+}
+[/if]
 [/template]
 
 [template generateConstructionAndInterning Type type]
@@ -311,10 +325,12 @@ import java.lang.String;
 [template generateLazyValues Type type]
 [for lz = type.lazyAttributes,
   Boolean atGuarded = classpath.available 'javax.annotation.concurrent.GuardedBy']
-  [if lz][for LongPositions positions = longsFor lz]
+  [if lz]
+
+  [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private volatile long lazyInitBitmap[emptyIfZero l.index];
+  private [if type.serializable]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
@@ -323,7 +339,7 @@ import java.lang.String;
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private [l.type] [l.name];
+  private [if type.serializable]transient [/if][l.type] [l.name];
 
   /**
    * {@inheritDoc}

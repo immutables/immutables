@@ -15,19 +15,19 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.ValueUmbrellaMirror;
-import org.immutables.value.processor.meta.FactoryMirror;
-import org.immutables.value.processor.meta.ImmutableMirror;
-import org.immutables.value.processor.meta.EnclosingMirror;
-import org.immutables.value.processor.meta.IncludeMirror;
 import com.google.common.collect.Multimap;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
+import org.immutables.value.processor.meta.EnclosingMirror;
+import org.immutables.value.processor.meta.FactoryMirror;
+import org.immutables.value.processor.meta.ImmutableMirror;
 import org.immutables.value.processor.meta.ImmutableRound;
+import org.immutables.value.processor.meta.IncludeMirror;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Round;
 import org.immutables.value.processor.meta.ValueType;
+import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
 @Metainf.Service
 @SupportedAnnotationTypes({
@@ -55,6 +55,5 @@ public final class Processor extends AbstractGenerator {
 //  invoke(new Generator_Modifiables().usingValues(values).generate());
 //  invoke(new Generator_Parboileds().usingValues(values).generate());
 //  invoke(new Generator_Transformers().usingValues(values).generate());
-
   }
 }

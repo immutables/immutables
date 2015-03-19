@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Joiner;
+import java.util.Collection;
 import com.google.common.collect.Iterables;
 import javax.lang.model.type.DeclaredType;
 import com.google.common.collect.HashMultiset;
@@ -80,17 +82,18 @@ public final class ValueTypeComposer {
     if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(protoclass, type).collect();
     } else if (protoclass.kind().isValue()) {
+      Collection<String> violations = Lists.newArrayList();
       // This check is legacy, most such checks should have been done on a higher level?
-      if (isAbstractValueType(type.element)) {
+      if (checkAbstractValueType(type.element, violations)) {
         checkForMutableFields(protoclass, (TypeElement) type.element);
         checkForTypeHierarchy(protoclass, type);
 
         new AccessorAttributesCollector(protoclass, type).collect();
       } else {
         protoclass.report()
-            .error(
-                "Type '%s' annotated or included as value must be non-final class, interface or annotation type (and without type parameters) including static inner types",
-                protoclass.sourceElement().getSimpleName());
+            .error("Value type '%s' %s",
+                protoclass.sourceElement().getSimpleName(),
+                Joiner.on(", ").join(violations));
         // Do nothing now. kind of way to less blow things up when it happens.
       }
     }
@@ -156,7 +159,7 @@ public final class ValueTypeComposer {
     }
   }
 
-  static boolean isAbstractValueType(Element element) {
+  static boolean checkAbstractValueType(Element element, Collection<String> violations) {
     boolean ofSupportedKind = false
         || element.getKind() == ElementKind.INTERFACE
         || element.getKind() == ElementKind.ANNOTATION_TYPE
@@ -167,8 +170,32 @@ public final class ValueTypeComposer {
         || element.getModifiers().contains(Modifier.STATIC);
 
     boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
+    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
 
-    boolean hasNoTypeParameters = ofSupportedKind && ((TypeElement) element).getTypeParameters().isEmpty();
-    return ofSupportedKind && staticOrTopLevel && nonFinal && hasNoTypeParameters;
+    boolean publicOrPackageVisible =
+        !element.getModifiers().contains(Modifier.PRIVATE)
+            && !element.getModifiers().contains(Modifier.PROTECTED);
+
+    if (!ofSupportedKind) {
+      violations.add("must be class or interface or annotation type");
+    }
+
+    if (!nonFinal) {
+      violations.add("must be non-final");
+    }
+
+    if (!hasNoTypeParameters) {
+      violations.add("should have no type parameters");
+    }
+
+    if (!publicOrPackageVisible) {
+      violations.add("should be public or package-visible");
+    }
+
+    if (!staticOrTopLevel) {
+      violations.add("should be top-level or static inner class");
+    }
+
+    return violations.isEmpty();
   }
 }

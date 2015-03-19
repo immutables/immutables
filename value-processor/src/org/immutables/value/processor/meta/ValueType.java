@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.ElementFilter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -52,6 +55,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueType extends TypeIntrospectionBase {
+  private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
   private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
       ImmutableSet.of(
@@ -132,6 +136,28 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateJdkOnly() {
     return typeMoreObjects == null || constitution.style().jdkOnly();
+  }
+
+  public boolean isUseReadResolve() {
+    return isSerializable()
+        && (isUseInterned()
+            || isUseSingleton()
+            || isGenerateOrdinalValue());
+  }
+
+  @Nullable
+  public Object serialVersionUID() {
+    return isSerializable() ? findSerialVersionUID() : null;
+  }
+
+  private Object findSerialVersionUID() {
+    for (VariableElement field : ElementFilter.fieldsIn(element.getEnclosedElements())) {
+      if (field.getSimpleName().contentEquals(SERIAL_VERSION_FIELD_NAME)
+          && field.asType().getKind() == TypeKind.LONG) {
+        return field.getConstantValue();
+      }
+    }
+    return null;
   }
 
   @Nullable
