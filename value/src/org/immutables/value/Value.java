@@ -59,7 +59,7 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.SOURCE)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Immutable {
 
     /**

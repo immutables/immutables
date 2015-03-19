@@ -89,7 +89,7 @@ public final class ValueTypeComposer {
       } else {
         protoclass.report()
             .error(
-                "Type '%s' annotated or included as value must be non-final class, interface or annotation type (and without type parameters)",
+                "Type '%s' annotated or included as value must be non-final class, interface or annotation type (and without type parameters) including static inner types",
                 protoclass.sourceElement().getSimpleName());
         // Do nothing now. kind of way to less blow things up when it happens.
       }
@@ -109,7 +109,7 @@ public final class ValueTypeComposer {
       Element element,
       Iterable<DeclaredType> supertypes) {
     for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
-      if (!supertype.equals(element) && ImmutableMirror.isPresent(supertype)) {
+      if (!CachingElements.equals(element, supertype) && ImmutableMirror.isPresent(supertype)) {
         protoclass.report()
             .error("Should not inherit %s which is a value type itself."
                 + " Avoid extending from another abstract value type."
@@ -124,7 +124,7 @@ public final class ValueTypeComposer {
         processing.getElementUtils().getAllMembers(CachingElements.getDelegate(element)))) {
       if (!field.getModifiers().contains(Modifier.FINAL)) {
         Reporter report = protoclass.report();
-        boolean ownField = field.getEnclosingElement().equals(element);
+        boolean ownField = CachingElements.equals(element, field.getEnclosingElement());
         if (ownField) {
           report.withElement(field).warning("Avoid introduction of fields (except constants) in abstract value types");
         } else {

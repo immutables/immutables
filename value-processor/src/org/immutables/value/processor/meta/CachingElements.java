@@ -38,13 +38,11 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
 
-//TBD to reimplement it where all the tests will be included
-
 /**
  * Some annotation processors have {@code javax.lang.model} being implemented using relatively
- * expensive conversions from internal model. When some properties being queried again and again,
- * annotation mirrors or enclosed elements are worth to store. Implementations wrappers cache some
- * properties eagerly and some lazily.
+ * expensive conversions from internal model. When some properties are being queried again and
+ * again, annotation mirrors or enclosed elements are worth to store. Implementations wrappers cache
+ * some properties eagerly and some lazily.
  */
 public final class CachingElements {
   private CachingElements() {}
@@ -71,6 +69,14 @@ public final class CachingElements {
     return element;
   }
 
+  @SuppressWarnings("unchecked")
+  public static <E extends AnnotationMirror> E getDelegate(E element) {
+    if (element instanceof Caching) {
+      return (E) ((Caching) element).delegate();
+    }
+    return element;
+  }
+
   public static PackageElement asCaching(PackageElement element) {
     if (element instanceof Caching) {
       return element;
@@ -90,6 +96,10 @@ public final class CachingElements {
       return mirror;
     }
     return new CachingAnnotationMirror(mirror);
+  }
+
+  public static boolean equals(Element left, Element right) {
+    return getDelegate(left).equals(getDelegate(right));
   }
 
   private static List<AnnotationMirror> asCaching(List<? extends AnnotationMirror> mirrors) {

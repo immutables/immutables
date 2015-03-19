@@ -68,11 +68,19 @@ abstract class Reporter {
   private void reportMessage(Diagnostic.Kind messageKind, String message, Object... parameters) {
     String formattedMessage = String.format(message, parameters);
     if (element().isPresent() && annotation().isPresent()) {
-      messager().printMessage(messageKind, formattedMessage, element().get(), annotation().get());
+      messager().printMessage(messageKind, formattedMessage, getElement(), getAnnotation());
     } else if (element().isPresent()) {
-      messager().printMessage(messageKind, formattedMessage, element().get());
+      messager().printMessage(messageKind, formattedMessage, getElement());
     } else {
       messager().printMessage(messageKind, formattedMessage);
     }
+  }
+
+  private AnnotationMirror getAnnotation() {
+    return CachingElements.getDelegate(annotation().get());
+  }
+
+  private Element getElement() {
+    return CachingElements.getDelegate(element().get());
   }
 }

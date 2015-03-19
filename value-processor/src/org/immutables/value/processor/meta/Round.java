@@ -185,14 +185,14 @@ public abstract class Round {
           ImmutableProto.DeclaringType.builder()
               .environment(environment())
               .interner(interners)
-              .element((TypeElement) element.getEnclosingElement())
+              .element(wrapElement((TypeElement) element.getEnclosingElement()))
               .build());
 
       if (declaringType.verifiedFactory(element)) {
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
-            .sourceElement(element)
+            .sourceElement(wrapElement(element))
             .declaringType(declaringType)
             .kind(Kind.DEFINED_FACTORY)
             .build()));
@@ -203,7 +203,7 @@ public abstract class Round {
       final DeclaringPackage declaringPackage = interners.forPackage(ImmutableProto.DeclaringPackage.builder()
           .environment(environment())
           .interner(interners)
-          .element(element)
+          .element(wrapElement(element))
           .build());
 
       if (declaringPackage.hasInclude()) {
@@ -212,7 +212,7 @@ public abstract class Round {
               ImmutableProto.Protoclass.builder()
                   .environment(environment())
                   .packageOf(declaringPackage)
-                  .sourceElement(sourceElement)
+                  .sourceElement(wrapElement(sourceElement))
                   .kind(Kind.INCLUDED_IN_PACKAGE)
                   .build()));
         }
@@ -224,7 +224,7 @@ public abstract class Round {
           ImmutableProto.DeclaringType.builder()
               .environment(environment())
               .interner(interners)
-              .element(element)
+              .element(wrapElement(element))
               .build());
 
       if (declaringType.hasInclude()) {
@@ -236,7 +236,7 @@ public abstract class Round {
           builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
               .environment(environment())
               .packageOf(declaringType.packageOf())
-              .sourceElement(sourceElement)
+              .sourceElement(wrapElement(sourceElement))
               .declaringType(declaringType)
               .kind(kind)
               .build()));
@@ -249,7 +249,7 @@ public abstract class Round {
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
-            .sourceElement(element)
+            .sourceElement(wrapElement(element))
             .declaringType(declaringType)
             .kind(kind)
             .build()));
@@ -269,5 +269,19 @@ public abstract class Round {
       assert declaringType.isEnclosing();
       return Kind.DEFINED_ENCLOSING_TYPE;
     }
+  }
+
+  public TypeElement wrapElement(TypeElement element) {
+    return CachingElements.asCaching(element);
+  }
+
+  public ExecutableElement wrapElement(ExecutableElement element) {
+    return element;
+    // return CachingElements.asCaching(element);
+  }
+
+  public PackageElement wrapElement(PackageElement element) {
+    return element;
+    // return CachingElements.asCaching(element);
   }
 }
