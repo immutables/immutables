@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.DeclaredType;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +26,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
@@ -147,16 +147,18 @@ final class AccessorAttributesCollector {
     }
 
     if (name.contentEquals(HASH_CODE_METHOD)
-        && parameters.isEmpty()
-        && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isHashCodeDefined = true;
+        && parameters.isEmpty()) {
+      if (!attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+        type.isHashCodeDefined = true;
+      }
       return;
     }
 
     if (name.contentEquals(TO_STRING_METHOD)
-        && parameters.isEmpty()
-        && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isToStringDefined = true;
+        && parameters.isEmpty()) {
+      if (!attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+        type.isToStringDefined = true;
+      }
       return;
     }
 
