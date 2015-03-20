@@ -15,12 +15,13 @@
  */
 package org.immutables.ordinal;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
@@ -28,20 +29,19 @@ public abstract class InterningOrdinalDomain<S, E extends OrdinalValue<E>> exten
 
   private final List<E> values = new CopyOnWriteArrayList<>();
 
-  private final LoadingCache<S, E> cache =
-      CacheBuilder.newBuilder()
-          .concurrencyLevel(1)
-          .build(new CacheLoader<S, E>() {
-            @Override
-            public E load(S key) throws Exception {
-              E value = extractValue(key, values.size());
-              values.add(value);
-              return value;
-            }
-          });
+  @GuardedBy("internedInstances")
+  private final Map<S, E> internedInstances = new HashMap<>();
 
   public final E internOrdinal(S valueSample) {
-    return cache.getUnchecked(valueSample);
+    synchronized (internedInstances) {
+      @Nullable E value = internedInstances.get(valueSample);
+      if (value == null) {
+        value = extractValue(valueSample, internedInstances.size());
+        internedInstances.put(valueSample, value);
+        values.add(value);
+      }
+      return value;
+    }
   }
 
   protected abstract E extractValue(S valueSample, int ordinal);

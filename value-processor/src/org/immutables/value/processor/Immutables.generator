@@ -188,14 +188,14 @@ private Object readResolve() throws java.io.ObjectStreamException {
    * Instances of {@code [type.name]} will be interned and registered with the domain.
    */
   public static final class Domain
-      extends org.immutables.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract.relative]> {
+      extends org.immutables.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract]> {
 
     private static final Domain INSTANCE = new Domain();
 
     /** Construct ordinal domain of [type.name] values. */
     public Domain() {}
 
-    protected [type.name] extractValue(InternProxy proxy, int ordinal) {
+    protected [type.typeAbstract] extractValue(InternProxy proxy, int ordinal) {
       return new [type.typeImmutable.simple](proxy.instance, ordinal);
     }
 
@@ -220,7 +220,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
   }
 
   @Override
-  public org.immutables.ordinal.OrdinalDomain<[type.typeAbstract.relative]> domain() {
+  public org.immutables.ordinal.OrdinalDomain<[type.typeAbstract]> domain() {
     return domain;
   }
 [else if type.useSingletonOnly][-- deliberately left empty --]
