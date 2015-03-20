@@ -167,20 +167,17 @@ public abstract class Constitution {
    */
   @Value.Lazy
   public NameForms typeImmutable() {
-    boolean nested = protoclass().kind().isNested();
-    boolean inside = hasImmutableInBuilder();
+    String simple, relative;
 
-    String simple = names().typeImmutable;
-
-    String relative;
-
-    if (nested) {
+    if (protoclass().kind().isNested()) {
       String enclosingSimpleName = typeImmutableEnclosingSimpleName();
       simple = names().typeImmutableNested;
       relative = inPackage(enclosingSimpleName, simple);
-    } else if (inside) {
+    } else if (hasImmutableInBuilder()) {
+      simple = names().typeImmutable;
       relative = inPackage(typeBuilderSimpleName(), simple);
     } else {
+      simple = names().typeImmutable;
       relative = inPackage(simple);
     }
 
@@ -268,17 +265,33 @@ public abstract class Constitution {
   }
 
   private NameForms applyFactoryNaming(Naming naming) {
-    if (isImplementationHidden()) {
+    String raw = names().raw;
+
+    boolean hasForwardingFactoryMethods = isImplementationHidden()
+        && protoclass().kind().isNested();
+
+    NameForms nameForms = hasForwardingFactoryMethods
+        ? typeEnclosingFactory()
+        : typeImmutable();
+
+    if (hasForwardingFactoryMethods) {
       naming = naming.requireNonConstant(Preference.PREFIX);
     }
 
-    NameForms nameForms = isImplementationHidden() && protoclass().kind().isNested()
-        ? typeEnclosing()
-        : typeImmutable();
-
-    String applyName = Naming.Usage.LOWERIZED.apply(naming.apply(names().raw));
+    String applyName = Naming.Usage.LOWERIZED.apply(naming.apply(raw));
 
     return nameForms.applied(applyName);
+  }
+
+  @Value.Lazy
+  public NameForms typeEnclosingFactory() {
+    String enclosingSimpleName = typeImmutableEnclosingSimpleName();
+    return ImmutableConstitution.NameForms.builder()
+        .simple(enclosingSimpleName)
+        .relative(enclosingSimpleName)
+        .packageOf(protoclass().packageOf().name())
+        .visibility(protoclass().declaringVisibility())
+        .build();
   }
 
   @Value.Lazy

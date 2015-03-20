@@ -139,10 +139,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseReadResolve() {
-    return isSerializable()
-        && (isUseInterned()
-            || isUseSingleton()
-            || isGenerateOrdinalValue());
+    return isSerializable() && (isUseValidation() || isUseSingletonOnly());
   }
 
   @Nullable
@@ -158,6 +155,19 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return null;
+  }
+
+  public boolean isUseValidation() {
+    if (isGenerateOrdinalValue() || validationMethodName != null) {
+      return true;
+    }
+    if (isUseSingletonOnly()) {
+      // We don't use validation method just to intern singleton-only.
+      // but only if we are not validated by method or generating ordinal value.
+      return false;
+    }
+    return isUseInterned()
+        || isUseSingleton();
   }
 
   @Nullable
@@ -273,9 +283,9 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUsePrehashed() {
-    return isUseInterned()
-        || isGenerateOrdinalValue()
-        || immutableFeatures.prehash();
+    return immutableFeatures.prehash();
+    // || isUseInterned()
+    // || isGenerateOrdinalValue()
   }
 
   private Boolean hasAbstractBuilder;
@@ -327,13 +337,23 @@ public final class ValueType extends TypeIntrospectionBase {
     return isUseInterned() || isGenerateOrdinalValue() || isUseSingletonOnly();
   }
 
+  public boolean isUseEqualTo() {
+    if (isGenerateOrdinalValue()) {
+      return true;
+    }
+    if (isUseSingletonOnly()) {
+      return false;
+    }
+    return true;
+  }
+
   public boolean isUseSingletonOnly() {
-    return isUseSingleton() && !isUseConstructor() && !isUseBuilder();
+    return isUseSingleton()
+        && getImplementedAttributes().isEmpty();
   }
 
   public boolean isUseConstructor() {
-    return !getConstructorArguments().isEmpty()
-        || (!isUseBuilder() && !isUseSingleton() && getImplementedAttributes().isEmpty());
+    return !getConstructorArguments().isEmpty();
   }
 
   private List<ValueAttribute> constructorArguments;

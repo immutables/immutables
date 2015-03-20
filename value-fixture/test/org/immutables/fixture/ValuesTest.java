@@ -41,6 +41,21 @@ public class ValuesTest {
   }
 
   @Test
+  public void internCustomHashCode() {
+    ImmutableInternCustomHashCode i1 = ImmutableInternCustomHashCode.builder()
+        .a(1)
+        .build();
+
+    // customized hash code
+    check(i1.hashCode()).is(0);
+    
+    // due to overriden equals
+    check(i1).same(ImmutableInternCustomHashCode.builder()
+        .a(2)
+        .build());
+  }
+
+  @Test
   public void builderFrom() {
     SampleValue sv1 = ImmutableSampleValue.builder()
         .addC(1, 2)

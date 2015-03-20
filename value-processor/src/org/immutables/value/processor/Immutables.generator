@@ -93,8 +93,8 @@ import java.lang.String;
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
-[type.typeImmutable.access][if not topLevel]static [/if]final class [type.typeImmutable.simple]
-    [type.inheritsKeyword] [type.typeAbstract] {
+[type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple]
+    [type.inheritsKeyword] [type.typeAbstract][/output.linesShortable] {
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
@@ -135,13 +135,18 @@ private static final long serialVersionUID = [literal type.serialVersionUID];
 [if type.useReadResolve]
 
 private Object readResolve() throws java.io.ObjectStreamException {
-  return precondition(this);
+[if type.useSingletonOnly][-- don't care about validation here, just substitute --]
+  return INSTANCE;
+[else]
+  return [validated type false]this[/validated];
+[/if]
 }
 [/if]
 [/template]
 
 [template generateConstructionAndInterning Type type]
 [if type.useInterned or type.generateOrdinalValue]
+  [if not type.useSingletonOnly]
 
   private static class InternProxy {
     final [type.typeImmutable.simple] instance;
@@ -152,15 +157,15 @@ private Object readResolve() throws java.io.ObjectStreamException {
 
     @Override
     public boolean equals([atNullable]Object another) {
-      assert another instanceof InternProxy;
       return instance.equalTo(((InternProxy) another).instance);
     }
 
     @Override
     public int hashCode() {
-      return instance.computeHashCode();
+      return instance.hashCode();
     }
   }
+  [/if]
 [/if]
 [if type.generateOrdinalValue]
 
@@ -218,27 +223,14 @@ private Object readResolve() throws java.io.ObjectStreamException {
   public org.immutables.ordinal.OrdinalDomain<[type.typeAbstract.relative]> domain() {
     return domain;
   }
-
-  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
-  }
+[else if type.useSingletonOnly][-- deliberately left empty --]
 [else if type.useInterned]
-  [if type.generateJdkOnly]
 
+  [if type.generateJdkOnly]
   private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
       new java.util.concurrent.ConcurrentHashMap<>();
-
-  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    [atNullable][type.typeImmutable.simple] canonical = INTERNER.putIfAbsent(new InternProxy(instance), instance);
-    return canonical != null ? canonical : instance;
-  }
   [else]
-
   private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
-
-  private static [type.typeImmutable.simple] intern([type.typeImmutable.simple] instance) {
-    return INTERNER.intern(new InternProxy(instance)).instance;
-  }
   [/if]
 [/if]
 [if type.useConstructor]
@@ -251,29 +243,39 @@ private Object readResolve() throws java.io.ObjectStreamException {
    * @return immutable [type.name] instance
    */
   public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
-    return precondition(new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]));
+    return [validated type false]new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
+[if type.useValidation]
 
-  private static [type.typeImmutable.simple] precondition([type.typeImmutable.simple] instance) {
+  private static [type.typeImmutable.simple] validate([type.typeImmutable.simple] instance) {
 [if type.validationMethodName]
     instance.[type.validationMethodName]();
 [/if]
-[if type.useInterned or type.generateOrdinalValue]
-    instance = intern(instance);[-- singletons will be interned as every object --]
+[if type.useSingletonOnly]
+    return INSTANCE != null ? INSTANCE : instance;[-- may be null during initialization --]
+[else if type.generateOrdinalValue]
+    return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
+[else if type.useInterned]
+  [if type.generateJdkOnly]
+    [atNullable][type.typeImmutable.simple] interned = INTERNER.putIfAbsent(new InternProxy(instance), instance);
+    return interned != null ? interned : instance;
+  [else]
+    return INTERNER.intern(new InternProxy(instance)).instance;
+  [/if]
 [else if type.useSingleton]
-    if (INSTANCE != null && INSTANCE.equals(instance)) {[-- may be null during initialization --]
-      return INSTANCE;
-    }
-[/if]
+    return INSTANCE != null && INSTANCE.equalTo(instance) ? INSTANCE : instance;[-- may be null during initialization --]
+[else]
     return instance;
+[/if]
   }
+[/if]
 [/template]
 
 [template generateSingletonInstance Type type]
 [if type.useSingleton]
 
-  private static final [type.typeImmutable.simple] INSTANCE = precondition(new [type.typeImmutable.simple]());
+  private static final [type.typeImmutable.simple] INSTANCE = [validated type false]new [type.typeImmutable.simple]()[/validated];
 
   /**
    * Returns default immutable singleton value of {@code [type.name]}
@@ -583,7 +585,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [if v.nonRawElemementType]@SafeVarargs[/if]
   public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
     [if type.generateJdkOnly]
-    for([v.unwrappedElementType] element : elements) {
+    for ([v.unwrappedElementType] element : elements) {
       [if v.primitiveElement]
       [v.name]Builder.add(element);
       [else]
@@ -621,7 +623,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    */
   [builderInitAccess v] final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if type.generateJdkOnly]
-    for([v.unwrappedElementType] element : elements) {
+    for ([v.unwrappedElementType] element : elements) {
       [v.name]Builder.add(java.util.Objects.requireNonNull(element));
     }
     [else]
@@ -801,8 +803,10 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if type.kind.isFactory]
     [returnFactoryBuild type]
+  [else if type.useSingletonOnly]
+    return [type.factoryInstance.relative]();
   [else]
-    return [type.typeImmutable.relative].precondition(new [type.typeImmutable.relative](this));
+    return [validated type true]new [type.typeImmutable.relative](this)[/validated];
   [/if]
   }
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
@@ -855,14 +859,13 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 [/template]
 
 [template returnFactoryBuild Type type]
-return [type.factoryOf]([for v in type.settableAttributes][if not for.first],[/if]
-    [output.trim]
+return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes][if not for.first],
+    [/if][output.trim]
   [if v.collectionType or v.mapType]
     [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
   [else]
     [v.name]
-  [/if]
-[/output.trim][/for]);
+  [/if][/output.trim][/for][/output.linesShortable]);
 [/template]
 
 [template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
@@ -929,15 +932,15 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 [/if]
 [if type.useSingleton]
 
-  private [type.typeImmutable.simple]() {
+  private [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorDefaultAttributes type type.implementedAttributes]
     [generateAfterConstruction type false]
-  }
+  [/output.collapsible]}
 [/if]
 [if type.useConstructor]
 
-  private [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first],[/if]
-      [v.atNullability][constructorAcceptType v] [v.name][/for]) {
+  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
 [for v in type.constructorArguments, n = v.name]
   [if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionCopyOf v n];
@@ -951,7 +954,7 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
     [generateAfterConstruction type false]
   }
 [/if]
-[if type.useBuilder]
+[if type.useBuilder and (not type.useSingletonOnly)]
 
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
@@ -996,9 +999,9 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 [/if]
 [if type.useCopyMethods]
 
-  private [type.typeImmutable.simple](
+  private [type.typeImmutable.simple]([output.linesShortable]
       [type.typeImmutable.simple] original[for v in getters],
-      [v.atNullability][immutableImplementationType v] [v.name][/for]) {
+      [v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [for v in getters]
     this.[v.name] = [v.name];
   [/for]
@@ -1117,7 +1120,7 @@ public int ordinal() {
 [template generateObjectUtilityMethods Type type]
 [let equalToType][if type.annotationType][type.typeAbstract.relative][else][type.typeImmutable.simple][/if][/let]
 [for getters = type.equivalenceAttributes]
-[if not type.equalToDefined]
+[if type.useReferenceEquality or (not type.equalToDefined)]
 
 /**
 [if type.annotationType]
@@ -1141,14 +1144,19 @@ public boolean equals([atNullable]Object another) {
   [/if]
 }
 [/if]
+[if type.useEqualTo]
 
 private boolean equalTo([equalToType] another) {
+  [if type.equalToDefined]
+  return super.equals(another);
+  [else]
   return [if not getters]true[/if][for v in getters][if not for.first]
       && [/if][equalsAttribute v type.annotationType][/for];
+  [/if]
 }
+[/if]
+[let computeHashCodeBody]
 [if type.annotationType]
-
-private int computeHashCode() {
   int h = 0;
 [for v in getters]
 [if v.arrayType]
@@ -1160,15 +1168,9 @@ private int computeHashCode() {
 [/if]
 [/for]
   return h;
-}
 [else if getters.isEmpty]
-
-private int computeHashCode() {
   return [type.hashCode];
-}
 [else]
-
-private int computeHashCode() {
   int h = 31;
 [for v in getters]
 [if v.nullable]
@@ -1182,9 +1184,21 @@ private int computeHashCode() {
 [/if]
 [/for]
   return h;
-}
 [/if]
-[if not type.hashCodeDefined]
+[/let]
+[if type.hashCodeDefined]
+  [if type.usePrehashed]
+
+/**
+ * Returns precomputed on construction hash code from super implementation {@code super.hashCode()}.
+ * @return hashCode value
+ */
+@Override
+public int hashCode() {
+  return hashCode;
+}
+  [/if]
+[else]
 
 /**
 [if type.usePrehashed]
@@ -1199,9 +1213,15 @@ public int hashCode() {
   [if type.usePrehashed]
   return hashCode;
   [else]
-  return computeHashCode();
+[computeHashCodeBody]
   [/if]
 }
+  [if type.usePrehashed]
+
+private int computeHashCode[for v in type.implementedAttributes if v.name eq 'computeHashCode']$$[/for]() {
+[computeHashCodeBody]
+}
+  [/if]
 [/if]
 [/for]
 [generateToString type]
@@ -1215,9 +1235,9 @@ public int hashCode() {
  * excluding any non-generated and auxiliary attributes.
  * @return string representation of value
  */
-  [if type.generateJdkOnly]
 @Override
 public String toString() {
+[if type.generateJdkOnly]
   [-- I first tried with concatenation, but StringBuilder looks prettier. Bytecode is the same though --]
   [if type.annotationType]
   return new StringBuilder("@[type.name](")
@@ -1232,10 +1252,7 @@ public String toString() {
   [/if]
   [/for]
       .append([if type.annotationType]')'[else]'}'[/if]).toString();
-}
-  [else]
-@Override
-public String toString() {
+[else]
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
   [for v in type.equivalenceAttributes]
   [if v.arrayType]
@@ -1245,14 +1262,14 @@ public String toString() {
   [/if]
   [/for]
       .toString();
-}
   [/if]
+}
 [/if]
 [/template]
 
 [template generateAfterConstruction Type type Boolean usingBuilder]
   [if type.usePrehashed]
-this.hashCode = this.computeHashCode();
+this.hashCode = [if type.hashCodeDefined]super.hashCode()[else]this.computeHashCode[for v in type.implementedAttributes if v.name eq 'computeHashCode']$$[/for]()[/if];
   [/if]
   [if type.generateOrdinalValue][-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
@@ -1266,9 +1283,9 @@ this.domain = Domain.get();
 [/template]
 
 [template generateReturnCopyContextual Type type Attribute modified]
-return precondition(new [type.typeImmutable.simple](
-    this[for a in type.implementedAttributes],
-    [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for]));
+return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
+        this[for a in type.implementedAttributes],
+        [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateCopyMethods Type type]
@@ -1784,6 +1801,8 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [if declare]private [atNullable][v.type] [v.name];[/if]
   [/if]
 [/template]
+
+[template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
 
 [template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]
 

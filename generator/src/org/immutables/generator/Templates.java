@@ -206,6 +206,10 @@ public final class Templates {
     public Invokation pos(int pos) {
       throw new UnsupportedOperationException();
     }
+
+    public CharSequence getCurrentIndentation() {
+      return consumer != null ? consumer.getCurrentIndentation() : "";
+    }
   }
 
   /**

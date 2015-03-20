@@ -81,11 +81,21 @@ public final class Output {
     }
   };
 
-  public final Templates.Invokable trim = new Templates.Fragment(1) {
+  private static abstract class OutputFilter extends Templates.Fragment {
+    public OutputFilter() {
+      super(1);
+    }
+
+    abstract void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original);
+
     @Override
-    public void run(Invokation invokation) {
-      invokation.out(CharMatcher.WHITESPACE.trimFrom(
-          toCharSequence(invokation.param(0))));
+    public final void run(Invokation invokation) {
+      Object param = invokation.param(0);
+      Invokable original = param instanceof Templates.Invokable
+          ? (Templates.Invokable) param
+          : null;
+
+      apply(invokation, toCharSequence(param), original);
     }
 
     private CharSequence toCharSequence(Object param) {
@@ -95,6 +105,47 @@ public final class Output {
         return ((Templates.Fragment) param).toCharSequence();
       }
       return param.toString();
+    }
+  }
+
+  public final Templates.Invokable trim = new OutputFilter() {
+    @Override
+    void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
+      invokation.out(CharMatcher.WHITESPACE.trimFrom(content));
+    }
+  };
+
+  public final Templates.Invokable linesShortable = new OutputFilter() {
+    private static final int LIMIT = 100;
+
+    @Override
+    void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
+      String collapsed = CharMatcher.WHITESPACE.trimAndCollapseFrom(content, ' ');
+      int estimatedLimitOnThisLine = LIMIT - invokation.getCurrentIndentation().length();
+
+      if (collapsed.length() < estimatedLimitOnThisLine) {
+        invokation.out(collapsed);
+      } else {
+        if (original != null) {
+          original.invoke(invokation);
+        } else {
+          invokation.out(content);
+        }
+      }
+    }
+  };
+
+  public final Templates.Invokable collapsible = new OutputFilter() {
+    @Override
+    void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
+      boolean hasNonWhitespace = !CharMatcher.WHITESPACE.matchesAllOf(content);
+      if (hasNonWhitespace) {
+        if (original != null) {
+          original.invoke(invokation);
+        } else {
+          invokation.out(content);
+        }
+      }
     }
   };
 
