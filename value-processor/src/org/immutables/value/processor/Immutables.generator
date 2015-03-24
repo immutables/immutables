@@ -205,8 +205,8 @@ private Object readResolve() throws java.io.ObjectStreamException {
         return "[type.typeImmutable.simple].Domain.get()";
       }
       return [type.typeMoreObjects].toStringHelper("[type.typeImmutable.simple].Domain")
-        .add("length", length())
-        .toString();
+          .add("length", length())
+          .toString();
     }
 
     /**
@@ -1040,7 +1040,9 @@ this.[n] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava
 public static [type.typeValue.relative] fromAllAttributes(
     [for v in type.settableAttributes][if not for.first],
     [/if]@com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
-[if type.useBuilder]
+[if type.useSingletonOnly]
+  return [type.factoryInstance.relative]();
+[else if type.useBuilder]
   [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
   [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]

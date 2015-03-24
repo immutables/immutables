@@ -15,16 +15,12 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import java.util.Arrays;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multiset;
+import com.google.common.collect.*;
 import org.immutables.value.Value;
 
-@Value.Immutable(singleton = true)
+import java.util.Arrays;
+
+@Value.Immutable(singleton = true, prehash = true)
 public interface ExtraCollection {
   @Value.Parameter
   Multiset<String> bag();

@@ -2,20 +2,18 @@
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
 public interface ValueObject {
-  String name();
-  List<Integer> counts();
-  Optional<String> description();
+  String getName();
+  List<Integer> getCounts();
+  Optional<String> getDescription();
 }
 // Use generated immutable implementation and builder
-ImmutableValueObject valueObject =
+ValueObject valueObject =
     ImmutableValueObject.builder()
         .name("Nameless")
         .description("present")
         .addCounts(1)
         .addCounts(2)
         .build();
-// Modify by copy with structural sharing
-valueObject = valueObject.withName("Named");
 ```
 
 Read full documentation at http://immutables.org
@@ -24,8 +22,47 @@ Read full documentation at http://immutables.org
 
 Changelog
 ---------
+### 2.0 (2015-03-2X)
+Many thanks to all contributors who helped to make it happen.
+Thanks to the community for making feature requests, bug reports, questions and suggestions.
+_Note versions 1.1.x are still supported, there's no rush to switch to 2.0 if you are not ready._
 
-### 1.1 (2014-27)
++ Thanks to @augustotravillio for implementing JDK-only code generation. Useful on Android or when Guava is not available.
++ Thanks to @ivysharev for a lot more precise imports post-processor.
+
+#### Features
++ Support for java 8, including new `Optional*` classes, default methods. But type annotation support is rudimentary (works only in some cases). Java 7 is still required for compilation
++ `Multiset`, `Multimap`, `SetMultimap`, `ListMultimap` are now supported.
++ Full-featured Gson support with generated `TypeAdapter`s which use no reflection during serialization/deserialization.
++ Builder now can be generated as "strict" (Style#strictBuilder). Strict builders prevents initialization errors: addition only collection initializer and regular initializers could be called only once.
++ Now, there's no required dependencies, plain JDK will suffice. Guava still has first class support.
++ Processor now enjoy improved repackaging (using forked and patched `maven-shade-plugin`)
++ Added `@Builder.Switch` annotation
++ Numerous API and behavior refinements, resulting in lot less WTF.
+
+#### Changes
++ Main annotation and processor artifact changed to be `org.immutables:value`. There's no confusing `value-standalone` or whatsoever.
++ `common` artifact was removed, all compile and runtime dependencies have been modularized. While annotation processor itself is pretty monolithic, now compile and optional runtime dependencies are externalized to dedicated artifacts. Some notable modules:
+  * `gson` Gson support module
+  * `mongo` MongoDB support module
+  * `builder` Module with annotations for generating builder from static factory methods
+  * `ordinal` Module to generate more exotic enum-like values and efficiently handle them, etc
++ JSON infrastructure underwent overhaul. See guide at http://immutable.org/json.html
++ JAX-RS support switched to Gson, for _Jackson_ integration there's no need to integrate anything, it's own provider will fully work.
++ MongoDB repository generation was refined and adjusted following JSON changes. See guide at http://immutable.org/mongo.html
++ Temporarily removed JDBI integration. It may be resurrected later.
++ Direct inheritance of `@Value.Immutable` from another `@Value.Immutable` is discouraged.
++ Limited (and constrained to same level) inheritance of `@Value.Parameter` attributes.
++ Builder now has method to set/reset collection content (in non-strict mode)
++ Package style now also applies to all classes in sub-packages unless overridden
++ Constructor parameters for collections now accept more liberal input. `List<T>` parameter accepts `Iterable<? extends T>` etc.
++ Removed sample style annotation like `@BeanStyle.Accessors` in favor of documentation and samples
++ `@Value.Nested` was renamed to `@Value.Enclosing`
++ `@Value.Immutable#visibility` was moved to style `@Value.Style#visibility`
++ `@Value.Immutable.Include` was moved to `@Value.Include`
++ Moved `@Value.Builder` to `builder` module where it is called `@Builder.Factory`. Added `@Builder.Parameter` and `@Builder.Switch` to fine-tune generation of builders for factory methods.
+
+### 1.1 (2014-12-27)
 
 #### Features
 + [#53](https://github.com/immutables/immutables/issues/53) Implemented `SortedSet`/`NavigableSet`/`SortedMap`/`NavigableMap` attributes specifying `@Value.NaturalOrder` or `@Value.ReverseOrder` annotation. Idea contributed by Facebook Buck team. Thanks!
