@@ -15,7 +15,6 @@
  */
 package org.immutables.gson;
 
-import java.util.Map;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.GsonBuilder;
@@ -25,6 +24,8 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Map;
+import java.util.ServiceLoader;
 import org.immutables.gson.adapter.ExpectedSubtypesAdapter;
 import org.immutables.gson.adapter.FieldNamingTranslator;
 
@@ -46,7 +47,19 @@ public @interface Gson {
    * Type adapter factories are generated in the same package, named
    * {@code GsonAdapters[name_of_annotated_type]} and registered statically as service providers in
    * {@code META-INF/services/com.google.gson.TypeAdapterFactory}. The most easy way to register all
-   * such factories {@link com.google.gson.Gson}.
+   * such factories using {@link ServiceLoader}.
+   * 
+   * <pre>
+   * com.google.gson.GsonBuilder gsonBuilder = new com.google.gson.GsonBuilder();
+   * for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
+   *   gsonBuilder.registerTypeAdapterFactory(factory);
+   * }
+   * 
+   * // Manual registration is also an option
+   * gsonBuilder.registerTypeAdapterFactory(new GsonAdaptersMyDocument());
+   * 
+   * com.google.gson.Gson gson = gsonBuilder.create();
+   * </pre>
    * <p>
    * Certain Gson options are supported for immutable objects in deliberate fashion:
    * <ul>
