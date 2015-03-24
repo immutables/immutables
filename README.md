@@ -22,9 +22,10 @@ Read full documentation at http://immutables.org
 
 Changelog
 ---------
-### 2.0 (2015-03-2X)
+### 2.0 (2015-03-24)
 Many thanks to all contributors who helped to make it happen.
 Thanks to the community for making feature requests, bug reports, questions and suggestions.
+
 _Note versions 1.1.x are still supported, there's no rush to switch to 2.0 if you are not ready._
 
 + Thanks to @augustotravillio for implementing JDK-only code generation. Useful on Android or when Guava is not available.
