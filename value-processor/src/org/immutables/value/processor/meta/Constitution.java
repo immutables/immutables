@@ -25,6 +25,7 @@ import javax.lang.model.element.PackageElement;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.*;
@@ -35,7 +36,7 @@ public abstract class Constitution {
   private static final String NA_ERROR = "!should_not_be_used_in_generated_code!";
   private static final String NEW_KEYWORD = "new";
   private static final String BUILDER_CLASS_NAME = "Builder";
-  private static final Joiner JOINER = Joiner.on('.').skipNulls();
+  private static final Joiner DOT_JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
 
@@ -130,11 +131,11 @@ public abstract class Constitution {
     verify(e instanceof PackageElement);
 
     String packageOf = ((PackageElement) e).getQualifiedName().toString();
-    String relative = JOINER.join(classSegments);
+    String relative = DOT_JOINER.join(classSegments);
     boolean relativeAlreadyQualified = false;
 
     if (!protoclass().packageOf().name().equals(packageOf)) {
-      relative = JOINER.join(packageOf, relative);
+      relative = DOT_JOINER.join(packageOf, relative);
       relativeAlreadyQualified = true;
     }
 
@@ -158,7 +159,7 @@ public abstract class Constitution {
    * @return
    */
   private String inPackage(String topLevel, String... nested) {
-    return JOINER.join(null, topLevel, (Object[]) nested);
+    return DOT_JOINER.join(null, topLevel, (Object[]) nested);
   }
 
   /**
@@ -196,9 +197,16 @@ public abstract class Constitution {
    */
   @Value.Lazy
   String typeImmutableEnclosingSimpleName() {
-    String enclosingSimpleName = protoclass().enclosingOf().get().element().getSimpleName().toString();
+    DeclaringType declaringType = protoclass().enclosingOf().get();
+    String enclosingSimpleName = declaringType.element().getSimpleName().toString();
     String enclosingRawName = names().rawFromAbstract(enclosingSimpleName);
-    return names().namings.typeImmutableEnclosing.apply(enclosingRawName);
+    // Here we checking for having both enclosing and value
+    // if we had protoclass it would be kind().isEnclosing() && kind().isValue()
+    Naming naming = declaringType.isImmutable()
+        ? names().namings.typeImmutable
+        : names().namings.typeImmutableEnclosing;
+
+    return naming.apply(enclosingRawName);
   }
 
   private String typeBuilderSimpleName() {
@@ -217,7 +225,7 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
-  public NameForms factoryBuilder() {
+  public AppliedNameForms factoryBuilder() {
     boolean isOutside = isImplementationHidden() || isFactory();
     Naming methodBuilderNaming = isOutside
         ? names().namings.newBuilder()
@@ -240,7 +248,7 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
-  public NameForms factoryOf() {
+  public AppliedNameForms factoryOf() {
     if (isFactory()) {
       return ImmutableConstitution.NameForms.builder()
           .simple(protoclass().declaringType().get().element().getSimpleName().toString())
@@ -255,16 +263,16 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
-  public NameForms factoryInstance() {
+  public AppliedNameForms factoryInstance() {
     return applyFactoryNaming(names().namings.instance);
   }
 
   @Value.Lazy
-  public NameForms factoryCopyOf() {
+  public AppliedNameForms factoryCopyOf() {
     return applyFactoryNaming(names().namings.copyOf);
   }
 
-  private NameForms applyFactoryNaming(Naming naming) {
+  private AppliedNameForms applyFactoryNaming(Naming naming) {
     String raw = names().raw;
 
     boolean hasForwardingFactoryMethods = isImplementationHidden()
@@ -296,9 +304,13 @@ public abstract class Constitution {
 
   @Value.Lazy
   public NameForms typeEnclosing() {
+    String name = protoclass().kind().isDefinedValue()
+        ? names().typeImmutable
+        : names().typeImmutableEnclosing;
+
     return ImmutableConstitution.NameForms.builder()
-        .simple(names().typeImmutableEnclosing)
-        .relative(names().typeImmutableEnclosing)
+        .simple(name)
+        .relative(name)
         .packageOf(protoclass().packageOf().name())
         .visibility(protoclass().declaringVisibility())
         .build();
@@ -333,6 +345,58 @@ public abstract class Constitution {
   }
 
   @Value.Immutable
+  public static abstract class AppliedNameForms extends NameForms {
+    public abstract NameForms forms();
+
+    public abstract String applied();
+
+    @Override
+    @Value.Derived
+    public String simple() {
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + forms().simple())
+          : applied();
+    }
+
+    @Override
+    public String relative() {
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + forms().relative())
+          : (forms().relative() + '.' + applied());
+    }
+
+    @Value.Derived
+    public boolean isNew() {
+      return NEW_KEYWORD.equals(applied());
+    }
+
+    @Override
+    public String toString() {
+      if (relativeAlreadyQualified()) {
+        return relative();
+      }
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + qualifyWithPackage(forms().relative()))
+          : qualifyWithPackage(relative());
+    }
+
+    @Override
+    public String packageOf() {
+      return forms().packageOf();
+    }
+
+    @Override
+    public Visibility visibility() {
+      return forms().visibility();
+    }
+
+    @Override
+    public boolean relativeAlreadyQualified() {
+      return forms().relativeAlreadyQualified();
+    }
+  }
+
+  @Value.Immutable
   public static abstract class NameForms {
     private static final String PUBLIC_MODIFIER_PREFIX = "public ";
     private static final String PRIVATE_MODIFIER_PREFIX = "private ";
@@ -350,11 +414,6 @@ public abstract class Constitution {
       return false;
     }
 
-    @Value.Default
-    public String applied() {
-      return "";
-    }
-
     /**
      * Access prefix. Includes trailing space separator if not empty (package private).
      * @return access keyword text
@@ -370,21 +429,11 @@ public abstract class Constitution {
       }
     }
 
-    public NameForms applied(String input) {
-      return ImmutableConstitution.NameForms.builder()
-          .packageOf(packageOf())
+    public AppliedNameForms applied(String input) {
+      return ImmutableConstitution.AppliedNameForms.builder()
+          .forms(this)
           .applied(input)
-          .simple(applyTo(simple(), input, false))
-          .relative(applyTo(relative(), input, true))
-          .visibility(visibility())
-          .relativeAlreadyQualified(relativeAlreadyQualified())
           .build();
-    }
-
-    private String applyTo(String targetType, String input, boolean relative) {
-      return NEW_KEYWORD.equals(input)
-          ? (NEW_KEYWORD + ' ' + targetType)
-          : (relative ? targetType + '.' + input : input);
     }
 
     /**
@@ -392,14 +441,13 @@ public abstract class Constitution {
      */
     @Override
     public String toString() {
-      if (relativeAlreadyQualified()) {
-        return relative();
-      }
-      return qualifyWithPackage(relative());
+      return relativeAlreadyQualified()
+          ? relative()
+          : qualifyWithPackage(relative());
     }
 
-    private String qualifyWithPackage(String reference) {
-      return JOINER.join(Strings.emptyToNull(packageOf()), reference);
+    protected String qualifyWithPackage(String reference) {
+      return DOT_JOINER.join(Strings.emptyToNull(packageOf()), reference);
     }
   }
 }

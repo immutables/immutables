@@ -75,10 +75,10 @@ public final class Accessors extends Introspection {
       };
 
   ImmutableMap<String, Accessor> definedBy(TypeMirror type) {
-    if (!(type instanceof DeclaredType)) {
-      return ImmutableMap.of();
+    if (type.getKind() == TypeKind.DECLARED) {
+      return accessorsDefined.get(toName(type));
     }
-    return accessorsDefined.get(toName(type));
+    return ImmutableMap.of();
   }
 
   private ImmutableMap<String, Accessor> extractFrom(@Nullable TypeElement type) {
@@ -230,7 +230,7 @@ public final class Accessors extends Introspection {
 
     @Nullable
     private TypeMirror inferContainedType(TypeMirror type) {
-      if (type instanceof DeclaredType) {
+      if (type.getKind() == TypeKind.DECLARED) {
         DeclaredType declaredType = (DeclaredType) type;
         if (isIterableType(declaredType) || isOptionalType(declaredType)) {
           // TBD wrong logic to unpack, need to create super utility for introspecting type

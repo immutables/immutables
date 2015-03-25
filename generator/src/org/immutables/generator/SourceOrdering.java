@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
@@ -207,7 +208,7 @@ public final class SourceOrdering {
 
       @Nullable
       TypeElement asTypeElement(TypeMirror type) {
-        if (type instanceof DeclaredType) {
+        if (type.getKind() == TypeKind.DECLARED) {
           return (TypeElement) ((DeclaredType) type).asElement();
         }
         return null;

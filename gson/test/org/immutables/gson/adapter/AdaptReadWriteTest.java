@@ -25,6 +25,7 @@ public class AdaptReadWriteTest {
 
   private final Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new GsonAdaptersAdapt())
+      .registerTypeAdapterFactory(new GsonAdaptersIStylee())
       .create();
 
   private final Adapt adapt =
@@ -93,5 +94,12 @@ public class AdaptReadWriteTest {
     String json = gson.toJson(adapt);
     Adapt instance = gson.fromJson(json, Adapt.class);
     check(instance).is(adapt);
+  }
+
+  @Test
+  public void stylee() {
+    String json = gson.toJson(adapt);
+    Stylee instance = gson.fromJson(json, Stylee.class);
+    check(gson.fromJson(gson.toJson(instance), Stylee.class)).is(instance);
   }
 }

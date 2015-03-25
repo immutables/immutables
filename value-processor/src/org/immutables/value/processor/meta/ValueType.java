@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
@@ -86,19 +87,19 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.names();
   }
 
-  public NameForms factoryOf() {
+  public AppliedNameForms factoryOf() {
     return constitution.factoryOf();
   }
 
-  public NameForms factoryCopyOf() {
+  public AppliedNameForms factoryCopyOf() {
     return constitution.factoryCopyOf();
   }
 
-  public NameForms factoryInstance() {
+  public AppliedNameForms factoryInstance() {
     return constitution.factoryInstance();
   }
 
-  public NameForms factoryBuilder() {
+  public AppliedNameForms factoryBuilder() {
     return constitution.factoryBuilder();
   }
 

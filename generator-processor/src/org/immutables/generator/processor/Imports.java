@@ -100,7 +100,7 @@ public final class Imports extends Introspection {
   }
 
   private void collectIfSimpleType(TypeMirror type, Map<String, TypeMirror> collected) {
-    if (type instanceof DeclaredType) {
+    if (type.getKind() == TypeKind.DECLARED) {
       DeclaredType declared = (DeclaredType) type;
       if (declared.getTypeArguments().isEmpty()) {
         collected.put(declared.asElement().getSimpleName().toString(), declared);

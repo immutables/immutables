@@ -402,7 +402,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public List<String> getExpectedSubtypes() {
     if (expectedSubtypes == null) {
       ensureTypeIntrospected();
-      if (!isPrimitiveElement()) {
+      if (containedTypeElement != null || containedSecondaryTypeElement != null) {
         TypeElement supertypeElement = MoreObjects.firstNonNull(containedSecondaryTypeElement, containedTypeElement);
         Optional<ExpectedSubtypesMirror> annotationOnAttribute = ExpectedSubtypesMirror.find(element);
         if (annotationOnAttribute.isPresent()) {
@@ -484,7 +484,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         if (!typeArguments.isEmpty()) {
           if (typeArguments.size() == 1) {
             final TypeMirror typeArgument = typeArguments.get(0);
-            if (typeArgument instanceof DeclaredType) {
+            if (typeArgument.getKind() == TypeKind.DECLARED) {
               typeMirror = typeArgument;
             }
 
@@ -500,7 +500,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
           if (typeArguments.size() >= 1) {
             TypeMirror typeArgument = typeArguments.get(0);
-            if (typeArgument instanceof DeclaredType) {
+            if (typeArgument.getKind() == TypeKind.DECLARED) {
               TypeElement typeElement = (TypeElement) ((DeclaredType) typeArgument).asElement();
               hasEnumFirstTypeParameter = typeElement.getSuperclass().toString().startsWith(Enum.class.getName());
             }
@@ -508,7 +508,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             if (typeArguments.size() >= 2) {
               TypeMirror typeSecondArgument = typeArguments.get(1);
 
-              if (typeSecondArgument instanceof DeclaredType) {
+              if (typeSecondArgument.getKind() == TypeKind.DECLARED) {
                 TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
                 this.containedSecondaryTypeElement = typeElement;
               }

@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import javax.lang.model.type.TypeKind;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
@@ -76,7 +77,7 @@ public class Implicits extends Introspection {
   }
 
   private DeclaredType checkDeclaredType(TypeMirror type) {
-    checkState(type instanceof DeclaredType, "'%s' should have been a declared type", type);
+    checkState(type.getKind() == TypeKind.DECLARED, "'%s' should have been a declared type", type);
     return (DeclaredType) type;
   }
 }

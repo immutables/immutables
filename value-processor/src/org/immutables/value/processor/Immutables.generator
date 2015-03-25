@@ -105,7 +105,7 @@ import java.lang.String;
 [generateConstructionAndInterning type]
   [generateImmutableCopyOf type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
-  [if type.factoryBuilder.applied ne 'new']
+  [if not type.factoryBuilder.isNew]
 
   /**
    * Creates builder for {@link [type.typeValue]}.
@@ -421,7 +421,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
   [/if]
-[for Boolean useFactoryMethod = type.factoryBuilder.applied ne 'new']
+[for Boolean useFactoryMethod = not type.factoryBuilder.isNew]
 [if type.kind.isFactory]
   [for parameters = p for p in setters if p.isBuilderParameter]
 
