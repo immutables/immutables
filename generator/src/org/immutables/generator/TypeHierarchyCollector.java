@@ -85,7 +85,9 @@ public final class TypeHierarchyCollector {
     }
 
     for (TypeMirror typeMirror : e.getInterfaces()) {
-      collectInterfacesMirrors(toDeclaredType(typeMirror), implementedInterfaces);
+      if (typeMirror.getKind() == TypeKind.DECLARED) {
+        collectInterfacesMirrors(toDeclaredType(typeMirror), implementedInterfaces);
+      }
     }
   }
 
@@ -97,7 +99,9 @@ public final class TypeHierarchyCollector {
     if (e.getKind().isInterface()) {
       implementedInterfaces.add(topClass);
       for (TypeMirror typeMirror : e.getInterfaces()) {
-        collectInterfacesMirrors(toDeclaredType(typeMirror), implementedInterfaces);
+        if (typeMirror.getKind() == TypeKind.DECLARED) {
+          collectInterfacesMirrors(toDeclaredType(typeMirror), implementedInterfaces);
+        }
       }
     }
   }

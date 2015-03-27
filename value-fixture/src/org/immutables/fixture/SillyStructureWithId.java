@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import org.immutables.fixture.subpack.SillySubstructure;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.gson.Gson;

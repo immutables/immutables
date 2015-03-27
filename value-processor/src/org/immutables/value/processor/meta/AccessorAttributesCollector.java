@@ -35,6 +35,8 @@ import org.immutables.generator.SourceOrdering;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class AccessorAttributesCollector {
+  private static final String ORG_ECLIPSE = "org.eclipse";
+
   /**
    * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
    * and long parameters and reserved slots for technical parameters).
@@ -52,12 +54,15 @@ final class AccessorAttributesCollector {
   private final Styles styles;
   private final Reporter reporter;
 
+  private final boolean isEclipseImplementation;
+
   AccessorAttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
     this.processing = protoclass.processing();
     this.styles = protoclass.styles();
     this.type = type;
     this.reporter = protoclass.report();
+    this.isEclipseImplementation = isEclipseImplementation(type.element);
   }
 
   void collect() {
@@ -239,19 +244,36 @@ final class AccessorAttributesCollector {
   }
 
   private TypeMirror resolveReturnType(ExecutableElement method) {
+    method = CachingElements.getDelegate(method);
+
     TypeMirror returnType = method.getReturnType();
+
+    if (isEclipseImplementation) {
+      return returnType;
+    }
+
     // We do not support parametrized accessor methods,
     // but we do support inheriting parametrized accessors, which
     // we supposedly parametrized with actual type parameters as
     // our target class could not define formal type parameters also.
     if (returnType.getKind() == TypeKind.TYPEVAR) {
-      TypeElement typeElement = getTypeElement();
-      ExecutableType asMethodOfType =
-          (ExecutableType) processing.getTypeUtils()
-              .asMemberOf((DeclaredType) typeElement.asType(), method);
-      return asMethodOfType.getReturnType();
+      return asInheritedMemberReturnType(method);
+    } else if (returnType.getKind() == TypeKind.DECLARED) {
+      if (!((DeclaredType) returnType).getTypeArguments().isEmpty()) {
+        return asInheritedMemberReturnType(method);
+      }
     }
     return returnType;
+  }
+
+  private TypeMirror asInheritedMemberReturnType(ExecutableElement method) {
+    TypeElement typeElement = getTypeElement();
+
+    ExecutableType asMethodOfType =
+        (ExecutableType) processing.getTypeUtils()
+            .asMemberOf((DeclaredType) typeElement.asType(), method);
+
+    return asMethodOfType.getReturnType();
   }
 
   private String computeReturnTypeString(TypeMirror returnType) {
@@ -289,5 +311,9 @@ final class AccessorAttributesCollector {
 
   private Reporter report(Element type) {
     return Reporter.from(protoclass.processing()).withElement(type);
+  }
+
+  private static boolean isEclipseImplementation(Element element) {
+    return CachingElements.getDelegate(element).getClass().getCanonicalName().startsWith(ORG_ECLIPSE);
   }
 }

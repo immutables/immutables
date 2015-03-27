@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -128,7 +129,7 @@ final class PostprocessingMachine {
               fullyNameMachine.packageTo);
           fullyNameMachine.reset();
         }
-        if (fullyNameMachine.state.equals(FullyQualifiedNameState.CLASS)) {
+        if (fullyNameMachine.state == FullyQualifiedNameState.CLASS) {
           nameMachine.reset();
         }
         if (nameMachine.isFound()) {
@@ -266,43 +267,43 @@ final class PostprocessingMachine {
     private final HashMap<String, String> originalImports = Maps.newHashMap();
     private Optional<String> currentPackage = Optional.absent();
     private final Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
-    private final HashMap<String, String> nameToFully = Maps.newHashMap();
+    private final HashMap<String, String> nameToQualified = Maps.newHashMap();
     private final HashSet<String> exceptions = Sets.newHashSet();
     private final HashSet<String> stopList = Sets.newHashSet();
 
-    void addImportCandidate(String name, String fullyName, int importFrom, int importTo, int packageTo) {
-      String foundFully = nameToFully.get(name);
-      if (foundFully != null && !foundFully.equals(fullyName)) {
+    void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
+      @Nullable String foundQualified = nameToQualified.get(name);
+      if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
         return;
       }
 
-      nameToFully.put(name, fullyName);
+      nameToQualified.put(name, qualifiedName);
 
-      if ((JAVA_LANG + name).equals(fullyName)) {
-        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName, name));
+      if ((JAVA_LANG + name).equals(qualifiedName)) {
+        importCandidates.put(qualifiedName, new ImportCandidate(importFrom, -1, packageTo, qualifiedName, name));
         return;
       }
 
-      if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
-        importCandidates.put(fullyName, new ImportCandidate(importFrom, -1, packageTo, fullyName, name));
+      if (currentPackage.isPresent() && qualifiedName.equals(currentPackage.get() + '.' + name)) {
+        importCandidates.put(qualifiedName, new ImportCandidate(importFrom, -1, packageTo, qualifiedName, name));
         return;
       }
 
-      importCandidates.put(fullyName, new ImportCandidate(importFrom, importTo, packageTo, fullyName, name));
+      importCandidates.put(qualifiedName, new ImportCandidate(importFrom, importTo, packageTo, qualifiedName, name));
     }
 
     void addImport(String importedPackage) {
       imports.add(importedPackage);
     }
 
-    void addOriginalImport(String name, String fullyName, String importedPackage) {
-      originalImports.put(name, fullyName);
+    void addOriginalImport(String name, String qualifiedName, String importedPackage) {
+      originalImports.put(name, qualifiedName);
 
-      if ((JAVA_LANG + name).equals(fullyName)) {
+      if ((JAVA_LANG + name).equals(qualifiedName)) {
         return;
       }
 
-      if (currentPackage.isPresent() && fullyName.startsWith(currentPackage.get())) {
+      if (currentPackage.isPresent() && qualifiedName.equals(currentPackage.get() + '.' + name)) {
         return;
       }
 
@@ -325,7 +326,7 @@ final class PostprocessingMachine {
 
     void preBuild() {
       for (String exception : exceptions) {
-        importCandidates.removeAll(nameToFully.get(exception));
+        importCandidates.removeAll(nameToQualified.get(exception));
       }
 
       for (Map.Entry<String, ImportCandidate> candidateEntry : importCandidates.entries()) {
@@ -408,7 +409,7 @@ final class PostprocessingMachine {
     }
 
     boolean isFinished() {
-      return FullyQualifiedNameState.FINISH.equals(state);
+      return FullyQualifiedNameState.FINISH == state;
     }
 
     void reset() {
@@ -474,10 +475,10 @@ final class PostprocessingMachine {
     }
 
     boolean isInComment() {
-      return CommentState.LINE_COMMENT.equals(state)
-          || CommentState.BLOCK_COMMENT.equals(state)
-          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE.equals(state)
-          || CommentState.STRING_LITERAL.equals(state);
+      return CommentState.LINE_COMMENT == state
+          || CommentState.BLOCK_COMMENT == state
+          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE == state
+          || CommentState.STRING_LITERAL == state;
     }
 
   }
