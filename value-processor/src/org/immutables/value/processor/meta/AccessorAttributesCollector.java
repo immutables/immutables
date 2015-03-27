@@ -240,18 +240,33 @@ final class AccessorAttributesCollector {
 
   private TypeMirror resolveReturnType(ExecutableElement method) {
     TypeMirror returnType = method.getReturnType();
+
+    if (method.getEnclosingElement().equals(getTypeElement())) {
+      return returnType;
+    }
+
     // We do not support parametrized accessor methods,
     // but we do support inheriting parametrized accessors, which
     // we supposedly parametrized with actual type parameters as
     // our target class could not define formal type parameters also.
     if (returnType.getKind() == TypeKind.TYPEVAR) {
-      TypeElement typeElement = getTypeElement();
-      ExecutableType asMethodOfType =
-          (ExecutableType) processing.getTypeUtils()
-              .asMemberOf((DeclaredType) typeElement.asType(), method);
-      return asMethodOfType.getReturnType();
+      return asInheritedMemberReturnType(method);
+    } else if (returnType.getKind() == TypeKind.DECLARED) {
+      if (!((DeclaredType) returnType).getTypeArguments().isEmpty()) {
+        return asInheritedMemberReturnType(method);
+      }
     }
     return returnType;
+  }
+
+  private TypeMirror asInheritedMemberReturnType(ExecutableElement method) {
+    TypeElement typeElement = getTypeElement();
+
+    ExecutableType asMethodOfType =
+        (ExecutableType) processing.getTypeUtils()
+            .asMemberOf((DeclaredType) typeElement.asType(), method);
+
+    return asMethodOfType.getReturnType();
   }
 
   private String computeReturnTypeString(TypeMirror returnType) {
