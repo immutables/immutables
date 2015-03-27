@@ -245,7 +245,6 @@ final class AccessorAttributesCollector {
 
   private TypeMirror resolveReturnType(ExecutableElement method) {
     method = CachingElements.getDelegate(method);
-
     TypeMirror returnType = method.getReturnType();
 
     if (isEclipseImplementation) {
