@@ -25,7 +25,7 @@ import org.immutables.value.Value;
 
 @Mongo.Repository
 @Value.Immutable
-@Gson.TypeAdapters(emptyAsNulls = true)
+@Gson.TypeAdapters
 public interface Item {
 
   @Mongo.Id

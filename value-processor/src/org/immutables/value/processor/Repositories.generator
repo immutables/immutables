@@ -27,6 +27,9 @@ import org.immutables.mongo.repository.internal.Support;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
+[for starImport in type.requiredSourceStarImports]
+import [starImport];
+[/for]
 
 /**
  * {@code [type.name]Repository} provides type safe access for storing and retrieving documents

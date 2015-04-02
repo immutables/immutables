@@ -13,21 +13,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.gson.packg;
+package org.immutables.mongo.fixture.sub;
 
-import com.google.gson.reflect.TypeToken;
-import org.junit.Test;
-import static org.immutables.check.Checkers.*;
-import com.google.gson.Gson;
+import java.util.List;
+import java.util.Set;
+import org.immutables.mongo.Mongo;
+import org.immutables.mongo.types.Binary;
+import org.immutables.mongo.types.Id;
+import org.immutables.value.Value;
+import org.immutables.mongo.fixture.*;
+import org.immutables.gson.Gson;
 
-public class PackgTest {
-  final GsonAdaptersPackg adapterFactory = new GsonAdaptersPackg();
-  final Gson gson = new Gson();
+@Mongo.Repository
+@Value.Immutable
+//Yet to be generated ImmutableItem or ItemRepository
+@Gson.TypeAdapters
+public interface Item2 {
 
-  @Test
-  public void adaptersProvided() {
-    check(adapterFactory.create(gson, TypeToken.get(A.class))).notNull();
-    check(adapterFactory.create(gson, TypeToken.get(B.class))).notNull();
-    check(adapterFactory.create(gson, TypeToken.get(B.C.class))).notNull();
-  }
+  List<ImmutableItem> list();
+
+  ItemRepository repo();
 }

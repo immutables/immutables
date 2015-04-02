@@ -13,21 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.gson.packg;
+package org.immutables.gson.packg.sub;
 
-import com.google.gson.reflect.TypeToken;
-import org.junit.Test;
-import static org.immutables.check.Checkers.*;
-import com.google.gson.Gson;
+import org.immutables.gson.Gson;
+import java.util.List;
+import org.immutables.value.Value;
+import org.immutables.gson.packg.*;
 
-public class PackgTest {
-  final GsonAdaptersPackg adapterFactory = new GsonAdaptersPackg();
-  final Gson gson = new Gson();
+// Yet to be generated ImmutableA or ImmutableB
+@Gson.TypeAdapters
+@Value.Immutable
+interface C {
+  ImmutableA a();
 
-  @Test
-  public void adaptersProvided() {
-    check(adapterFactory.create(gson, TypeToken.get(A.class))).notNull();
-    check(adapterFactory.create(gson, TypeToken.get(B.class))).notNull();
-    check(adapterFactory.create(gson, TypeToken.get(B.C.class))).notNull();
-  }
+  List<ImmutableB> b();
 }

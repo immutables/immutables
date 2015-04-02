@@ -28,6 +28,11 @@ import com.google.gson.reflect.*;
 
 import java.io.IOException;
 import java.lang.String;
+[for t in allValues]
+  [for starImport in t.requiredSourceStarImports]
+import [starImport];
+  [/for]
+[/for]
 
 /**
  * {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
