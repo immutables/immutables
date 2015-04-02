@@ -47,7 +47,6 @@ final class FactoryMethodAttributesCollector {
       attribute.isGenerateAbstract = true;
       attribute.reporter = reporter;
       attribute.returnType = returnType;
-      attribute.returnTypeName = returnType.toString();
 
       attribute.element = parameter;
       String parameterName = parameter.getSimpleName().toString();

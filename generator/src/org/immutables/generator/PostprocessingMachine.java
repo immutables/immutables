@@ -15,7 +15,7 @@
  */
 package org.immutables.generator;
 
-import javax.annotation.Nullable;
+import org.immutables.generator.SourceExtraction.Imports;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
+import javax.annotation.Nullable;
 
 final class PostprocessingMachine {
   private static final Joiner JOINER = Joiner.on("");
@@ -37,8 +38,17 @@ final class PostprocessingMachine {
   private PostprocessingMachine() {}
 
   static CharSequence rewrite(CharSequence content) {
-    String currentPackage = "";
+    return rewrite(content, new ImportsBuilder(), false);
+  }
+
+  static Imports collectImports(CharSequence content) {
     ImportsBuilder importsBuilder = new ImportsBuilder();
+    rewrite(content, importsBuilder, true);
+    return Imports.of(importsBuilder.imports, importsBuilder.originalImports);
+  }
+
+  private static CharSequence rewrite(CharSequence content, ImportsBuilder importsBuilder, boolean onlyImports) {
+    String currentPackage = "";
 
     State state = State.UNDEFINED;
     int packageFrom = -1;
@@ -49,16 +59,25 @@ final class PostprocessingMachine {
     int classNameFrom = -1;
     int classNameTo = -1;
     FiniteStateMachine machine = new FiniteStateMachine();
-    FullyQualifiedNameMachine fullyNameMachine = new FullyQualifiedNameMachine();
+    QualifiedNameMachine qualifiedNameMachine = new QualifiedNameMachine();
+    QualifiedNameMachine importsQualifiedNameMachine = new QualifiedNameMachine().allowNestedTypes();
     CommentMachine commentMachine = new CommentMachine();
     ClassNameMachine nameMachine = new ClassNameMachine();
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
+      if (c == '\r') {
+        continue;
+      }
 
       commentMachine.nextChar(c);
       if (commentMachine.isInComment()) {
         continue;
+      }
+
+      if (onlyImports && state.atClassDefinition()) {
+        // Short circuit everything when only collecting imports
+        return "";
       }
 
       switch (state) {
@@ -79,8 +98,8 @@ final class PostprocessingMachine {
         break;
       case IMPORTS:
         nameMachine.nextChar(c, i, true);
-        if (!fullyNameMachine.isFinished()) {
-          fullyNameMachine.nextChar(c, i);
+        if (!importsQualifiedNameMachine.isFinished()) {
+          importsQualifiedNameMachine.nextChar(c, i);
         }
         if (nameMachine.isFound()) {
           classNameOccurrencesInImportBlock++;
@@ -93,15 +112,27 @@ final class PostprocessingMachine {
         }
         if (c == ';') {
           nextPartFrom = i + 2;
-          if (fullyNameMachine.isFinished()) {
+          if (importsQualifiedNameMachine.isFinished()) {
+            String simpleName = content.subSequence(
+                importsQualifiedNameMachine.packageTo,
+                importsQualifiedNameMachine.importTo).toString();
+
+            String qualifiedName =
+                content.subSequence(
+                    importsQualifiedNameMachine.importFrom,
+                    importsQualifiedNameMachine.importTo).toString();
+
+            String packageFromImport =
+                content.subSequence(importFrom, i).toString();
+
             importsBuilder.addOriginalImport(
-                content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
-                content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
-                content.subSequence(importFrom, i).toString());
+                simpleName,
+                qualifiedName,
+                packageFromImport);
           } else {
             importsBuilder.addImport(content.subSequence(importFrom, i).toString());
           }
-          fullyNameMachine.reset();
+          importsQualifiedNameMachine.reset();
           state = State.UNDEFINED;
           importFrom = -1;
           importStarts = false;
@@ -113,23 +144,24 @@ final class PostprocessingMachine {
         }
         break;
       case ANNOTATION:
-        c = content.charAt(--i); // FIXME? Step back for annotation
+        // Step back for annotation
+        c = content.charAt(--i);
         // move to state CLASS
         state = State.CLASS;
         //$FALL-THROUGH$
       case CLASS:
         nameMachine.nextChar(c, i);
-        fullyNameMachine.nextChar(c, i);
-        if (fullyNameMachine.isFinished()) {
+        qualifiedNameMachine.nextChar(c, i);
+        if (qualifiedNameMachine.isFinished()) {
           importsBuilder.addImportCandidate(
-              content.subSequence(fullyNameMachine.packageTo, fullyNameMachine.importTo).toString(),
-              content.subSequence(fullyNameMachine.importFrom, fullyNameMachine.importTo).toString(),
-              fullyNameMachine.importFrom,
-              fullyNameMachine.importTo,
-              fullyNameMachine.packageTo);
-          fullyNameMachine.reset();
+              content.subSequence(qualifiedNameMachine.packageTo, qualifiedNameMachine.importTo).toString(),
+              content.subSequence(qualifiedNameMachine.importFrom, qualifiedNameMachine.importTo).toString(),
+              qualifiedNameMachine.importFrom,
+              qualifiedNameMachine.importTo,
+              qualifiedNameMachine.packageTo);
+          qualifiedNameMachine.reset();
         }
-        if (fullyNameMachine.state == FullyQualifiedNameState.CLASS) {
+        if (qualifiedNameMachine.state == FullyQualifiedNameState.CLASS) {
           nameMachine.reset();
         }
         if (nameMachine.isFound()) {
@@ -177,12 +209,17 @@ final class PostprocessingMachine {
     State or(State state) {
       return this == UNDEFINED ? state : this;
     }
+
+    public boolean atClassDefinition() {
+      return this == ANNOTATION
+          || this == CLASS;
+    }
   }
 
   static final class FiniteStateMachine {
-    private static final int NO_POSITION = -1;// FIXME? correct name?
-    private static final int AT_POSSIBLE_WORD = -1; // FIXME? correct name?
-    private static final int UNTRACKED_WORD = -2; // FIXME? correct name?
+    private static final int NO_POSITION = -1;
+    private static final int AT_POSSIBLE_WORD = -1;
+    private static final int UNTRACKED_WORD = -2;
 
     private static final char[][] vocabulary = new char[][] {
         "package".toCharArray(),
@@ -261,6 +298,8 @@ final class PostprocessingMachine {
   }
 
   static final class ImportsBuilder {
+    private static final int NO_IMPORT = -1;
+
     private static final String JAVA_LANG = "java.lang.";
 
     private final TreeSet<String> imports = Sets.newTreeSet();
@@ -279,14 +318,8 @@ final class PostprocessingMachine {
 
       nameToQualified.put(name, qualifiedName);
 
-      if ((JAVA_LANG + name).equals(qualifiedName)) {
-        importCandidates.put(qualifiedName, new ImportCandidate(importFrom, -1, packageTo, qualifiedName, name));
-        return;
-      }
-
-      if (currentPackage.isPresent() && qualifiedName.equals(currentPackage.get() + '.' + name)) {
-        importCandidates.put(qualifiedName, new ImportCandidate(importFrom, -1, packageTo, qualifiedName, name));
-        return;
+      if (omittedImport(name, qualifiedName)) {
+        importTo = NO_IMPORT;
       }
 
       importCandidates.put(qualifiedName, new ImportCandidate(importFrom, importTo, packageTo, qualifiedName, name));
@@ -299,15 +332,19 @@ final class PostprocessingMachine {
     void addOriginalImport(String name, String qualifiedName, String importedPackage) {
       originalImports.put(name, qualifiedName);
 
+      if (!omittedImport(name, qualifiedName)) {
+        imports.add(importedPackage);
+      }
+    }
+
+    private boolean omittedImport(String name, String qualifiedName) {
       if ((JAVA_LANG + name).equals(qualifiedName)) {
-        return;
+        return true;
       }
-
       if (currentPackage.isPresent() && qualifiedName.equals(currentPackage.get() + '.' + name)) {
-        return;
+        return true;
       }
-
-      imports.add(importedPackage);
+      return false;
     }
 
     void addToStopList(String name) {
@@ -356,11 +393,12 @@ final class PostprocessingMachine {
     }
   }
 
-  static final class FullyQualifiedNameMachine {
+  static final class QualifiedNameMachine {
     FullyQualifiedNameState state = FullyQualifiedNameState.UNDEFINED;
     int importFrom = -1;
     int importTo = -1;
     int packageTo = -1;
+    boolean allowNestedTypes;
 
     void nextChar(char c, int i) {
       switch (state) {
@@ -397,7 +435,10 @@ final class PostprocessingMachine {
         if (packageTo == -1) {
           packageTo = i - 1;
         }
-        if (!isAlphabetic(c) && !isDigit(c)) {
+        if (c == '.' & allowNestedTypes) {
+          state = FullyQualifiedNameState.DOT;
+          packageTo = -1;
+        } else if (!isAlphabetic(c) && !isDigit(c)) {
           state = FullyQualifiedNameState.FINISH;
           importTo = i;
         }
@@ -410,6 +451,11 @@ final class PostprocessingMachine {
 
     boolean isFinished() {
       return FullyQualifiedNameState.FINISH == state;
+    }
+
+    QualifiedNameMachine allowNestedTypes() {
+      allowNestedTypes = true;
+      return this;
     }
 
     void reset() {

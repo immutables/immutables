@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.SourceExtraction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -437,6 +438,11 @@ public class Proto {
             .error("@%s is not supported on enums", ImmutableMirror.simpleName());
       }
     }
+
+    @Value.Lazy
+    public SourceExtraction.Imports sourceImports() {
+      return SourceExtraction.readImports(processing(), CachingElements.getDelegate(element()));
+    }
   }
 
   /**
@@ -729,6 +735,12 @@ public class Proto {
       return ImmutableConstitution.builder()
           .protoclass(this)
           .build();
+    }
+
+    SourceExtraction.Imports sourceImports() {
+      return declaringType().isPresent()
+          ? declaringType().get().associatedTopLevel().sourceImports()
+          : SourceExtraction.Imports.empty();
     }
   }
 

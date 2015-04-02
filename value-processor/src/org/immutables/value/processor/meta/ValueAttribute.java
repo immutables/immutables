@@ -17,10 +17,11 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Functions;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -35,6 +36,8 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.WildcardType;
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
 import org.immutables.generator.SourceOrdering;
@@ -331,10 +334,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return "";
   }
 
-  public boolean isMapLike() {
-    return typeKind.isMappingKind();
-  }
-
   public boolean isGenerateEnumMap() {
     return typeKind.isEnumMap();
   }
@@ -352,7 +351,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawType() {
-    return rawTypeName != null ? rawTypeName : extractRawType(returnTypeName);
+    return rawTypeName;// != null ? rawTypeName : extractRawType(returnTypeName);
   }
 
   public String getConsumedElementType() {
@@ -451,13 +450,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return generateOrdinalValueSet;
   }
 
-/*
-  public boolean isDocumentElement() {
-    ensureTypeIntrospected();
-    return containedTypeElement != null
-        && containedTypeElement.getAnnotation(Mongo.Repository.class) != null;
-  }
-*/
   public boolean isArrayType() {
     return typeKind.isArray();
   }
@@ -474,53 +466,39 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
 
     if (isContainerType()) {
-      if (typeMirror.getKind() == TypeKind.DECLARED) {
-        DeclaredType declaredType = (DeclaredType) typeMirror;
+      if (typeMirror.getKind() == TypeKind.DECLARED
+          || typeMirror.getKind() == TypeKind.ERROR) {
 
-        List<String> typeParameters = Lists.newArrayList();
+        DeclaredType declaredType = (DeclaredType) typeMirror;
 
         List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
 
         if (!typeArguments.isEmpty()) {
-          if (typeArguments.size() == 1) {
-            final TypeMirror typeArgument = typeArguments.get(0);
-            if (typeArgument.getKind() == TypeKind.DECLARED) {
-              typeMirror = typeArgument;
+          final TypeMirror typeArgument = typeArguments.get(0);
+          TypeIntrospectionBase firstTypeParameterIntrospection = new TypeIntrospectionBase() {
+            @Override
+            protected TypeMirror internalTypeMirror() {
+              return typeArgument;
             }
+          };
 
-            if (isSetType()) {
-              generateOrdinalValueSet = new TypeIntrospectionBase() {
-                @Override
-                protected TypeMirror internalTypeMirror() {
-                  return typeArgument;
-                }
-              }.isOrdinalValue();
+          if (isSetType()) {
+            this.generateOrdinalValueSet = firstTypeParameterIntrospection.isOrdinalValue();
+          }
+          if (isSetType() || isMapType()) {
+            this.hasEnumFirstTypeParameter = firstTypeParameterIntrospection.isEnumType();
+          }
+          if (isMapType()) {
+            TypeMirror typeSecondArgument = typeArguments.get(1);
+
+            if (typeSecondArgument.getKind() == TypeKind.DECLARED) {
+              TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
+              this.containedSecondaryTypeElement = typeElement;
             }
           }
 
-          if (typeArguments.size() >= 1) {
-            TypeMirror typeArgument = typeArguments.get(0);
-            if (typeArgument.getKind() == TypeKind.DECLARED) {
-              TypeElement typeElement = (TypeElement) ((DeclaredType) typeArgument).asElement();
-              hasEnumFirstTypeParameter = typeElement.getSuperclass().toString().startsWith(Enum.class.getName());
-            }
-
-            if (typeArguments.size() >= 2) {
-              TypeMirror typeSecondArgument = typeArguments.get(1);
-
-              if (typeSecondArgument.getKind() == TypeKind.DECLARED) {
-                TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
-                this.containedSecondaryTypeElement = typeElement;
-              }
-            }
-
-            typeMirror = typeArgument;
-          }
-
-          typeParameters.addAll(Lists.transform(typeArguments, Functions.toStringFunction()));
+          typeMirror = typeArgument;
         }
-
-        this.typeParameters = ImmutableList.copyOf(typeParameters);
       }
     } else if (isArrayType()) {
       arrayComponent = ((ArrayType) typeMirror).getComponentType();
@@ -529,7 +507,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
     if (typeMirror.getKind() == TypeKind.DECLARED) {
       TypeElement typeElement = (TypeElement) ((DeclaredType) typeMirror).asElement();
-
       this.containedTypeElement = typeElement;
     }
 
@@ -539,11 +516,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private String optionalSpecializedType() {
     switch (typeKind) {
     case OPTIONAL_INT_JDK:
-      return "int";
+      return int.class.getName();
     case OPTIONAL_LONG_JDK:
-      return "long";
+      return long.class.getName();
     case OPTIONAL_DOUBLE_JDK:
-      return "double";
+      return double.class.getName();
     default:
       throw new AssertionError();
     }
@@ -563,7 +540,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isRequiresMarshalingSecondaryAdapter() {
-    return isMapLike() && !isRegularMarshalableType(getSecondaryElementType(), true);
+    return isMapType() && !isRegularMarshalableType(getSecondaryElementType(), true);
   }
 
   public boolean wrapArrayToIterable() {
@@ -684,7 +661,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   /** Initialized Validates things that were not validated otherwise */
   void initAndValidate() {
-    initRawTypeName();
+    initTypeName();
     initTypeKind();
     initOrderKind();
     initFactoryParamsIfApplicable();
@@ -713,12 +690,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
-  private void initRawTypeName() {
-    if (returnType.getKind() == TypeKind.DECLARED) {
-      rawTypeName = ((TypeElement) ((DeclaredType) returnType).asElement()).getQualifiedName().toString();
-    } else if (returnType.getKind().isPrimitive()) {
-      rawTypeName = Ascii.toLowerCase(returnType.getKind().name());
-    }
+  private void initTypeName() {
+    new TypeStringCollector().processAndAssign();
   }
 
   private void initTypeKind() {
@@ -807,6 +780,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   @Nullable
   public SwitcherModel builderSwitcherModel;
   public boolean isBuilderParameter;
+  boolean hasSomeUnresolvedTypes;
 
   public boolean hasBuilderSwitcherDefault() {
     return isBuilderSwitcher() && builderSwitcherModel.hasDefault();
@@ -865,7 +839,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean hasForwardOnlyInitializer() {
-    return isCollectionType() || isMapLike();
+    return isCollectionType() || isMapType();
   }
 
   public boolean requiresTrackIsSet() {
@@ -873,5 +847,188 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isMandatory()
         && !hasForwardOnlyInitializer())
         || (isPrimitive() && isGenerateDefault);
+  }
+
+  private class TypeStringCollector {
+    StringBuilder buffer;
+    final List<String> typeParameterStrings = Lists.newArrayListWithCapacity(2);
+    boolean unresolvedTypeHasOccured;
+    boolean hasMaybeUnresolvedYetAfter;
+    private ImmutableMap<String, String> sourceClassesImports;
+    private final TypeMirror startType;
+    private String rawTypeName;
+
+    TypeStringCollector() {
+      this.startType = returnType;
+    }
+
+    void processAndAssign() {
+      if (startType.getKind().isPrimitive()) {
+        String typeName = Ascii.toLowerCase(startType.getKind().name());
+        ValueAttribute.this.rawTypeName = typeName;
+        ValueAttribute.this.returnTypeName = typeName;
+        List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(startType);
+        if (!annotations.isEmpty()) {
+          ValueAttribute.this.returnTypeName = typeAnnotationsToBuffer(annotations).append(typeName).toString();
+        }
+      } else {
+        buffer = new StringBuilder(100);
+        caseType(startType);
+
+        ValueAttribute.this.hasSomeUnresolvedTypes = hasMaybeUnresolvedYetAfter;
+        ValueAttribute.this.returnTypeName = buffer.toString();
+        ValueAttribute.this.rawTypeName = rawTypeName;
+        if (!typeParameterStrings.isEmpty()) {
+          ValueAttribute.this.typeParameters = ImmutableList.copyOf(typeParameterStrings);
+        }
+      }
+    }
+
+    private void appendResolved(DeclaredType type) {
+      int mark = buffer.length();
+      TypeElement typeElement = (TypeElement) type.asElement();
+      String typeName = typeElement.getQualifiedName().toString();
+      if (unresolvedTypeHasOccured) {
+        boolean assumedNotQualified = Ascii.isUpperCase(typeName.charAt(0));
+        if (assumedNotQualified) {
+          typeName = resolveIfPossible(typeName);
+        }
+      }
+      buffer.append(typeName);
+      if (isStartLevel(type)) {
+        rawTypeName = typeName;
+      }
+      // Currently type annotionas are not exposed in javac for nested type arguments,
+      // so we don't deal with them
+      if (isStartLevel(type)) {
+        insertTypeAnnotationsIfPresent(type, mark);
+      }
+    }
+
+    private String resolveIfPossible(String typeName) {
+      String resolvable = typeName;
+      int indexOfDot = resolvable.indexOf('.');
+      if (indexOfDot > 0) {
+        resolvable = resolvable.substring(0, indexOfDot);
+      }
+      @Nullable String resolved = getFromSourceImports(resolvable);
+      if (resolved != null) {
+        if (indexOfDot > 0) {
+          typeName = resolved + '.' + resolvable.substring(indexOfDot + 1);
+        } else {
+          typeName = resolved;
+        }
+      } else {
+        hasMaybeUnresolvedYetAfter = true;
+      }
+      return typeName;
+    }
+
+    @Nullable
+    private String getFromSourceImports(String resolvable) {
+      if (sourceClassesImports == null) {
+        sourceClassesImports = containingType.constitution.protoclass().sourceImports().classes;
+      }
+      return sourceClassesImports.get(resolvable);
+    }
+
+    private void insertTypeAnnotationsIfPresent(DeclaredType type, int mark) {
+      List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
+      if (!annotations.isEmpty()) {
+        StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations);
+        int insertionIndex = mark + buffer.substring(mark).lastIndexOf(".") + 1;
+        buffer.insert(insertionIndex, annotationBuffer);
+      }
+    }
+
+    private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations) {
+      StringBuilder annotationBuffer = new StringBuilder(100);
+      for (AnnotationMirror annotationMirror : annotations) {
+        annotationBuffer
+            .append(AnnotationMirrors.toCharSequence(annotationMirror))
+            .append(' ');
+      }
+      return annotationBuffer;
+    }
+
+    void caseType(TypeMirror type) {
+      switch (type.getKind()) {
+      case ERROR:
+        Verify.verify(type instanceof DeclaredType);
+        unresolvedTypeHasOccured = true;
+        //$FALL-THROUGH$
+      case DECLARED:
+        DeclaredType declaredType = (DeclaredType) type;
+        appendResolved(declaredType);
+        appendTypeArguments(type, declaredType);
+        break;
+      case ARRAY:
+        TypeMirror componentType = ((ArrayType) type).getComponentType();
+        int mark = buffer.length();
+        caseType(componentType);
+        cutTypeArgument(type, mark);
+        // It's seems that array type annotations are not exposed in javac
+        /*
+        List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
+        if (!annotations.isEmpty()) {
+          buffer.append(' ').append(typeAnnotationsToBuffer(annotations));
+        }
+        */
+        buffer.append("[]");
+        break;
+      case WILDCARD:
+        WildcardType wildcard = (WildcardType) type;
+        @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
+        @Nullable TypeMirror superBound = wildcard.getSuperBound();
+        if (extendsBound != null) {
+          buffer.append("? extends ");
+          caseType(extendsBound);
+        } else if (superBound != null) {
+          buffer.append("? super ");
+          caseType(superBound);
+        } else {
+          buffer.append("?");
+        }
+        break;
+      default:
+        if (type.getKind().isPrimitive()) {
+          List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
+          if (!annotations.isEmpty()) {
+            buffer.append(typeAnnotationsToBuffer(annotations)).append(' ');
+          }
+          buffer.append(type);
+        } else {
+          buffer.append(type);
+        }
+      }
+    }
+
+    private void appendTypeArguments(TypeMirror type, DeclaredType declaredType) {
+      List<? extends TypeMirror> arguments = declaredType.getTypeArguments();
+      if (!arguments.isEmpty()) {
+        buffer.append('<');
+        boolean notFirst = false;
+        for (TypeMirror argument : arguments) {
+          if (notFirst) {
+            buffer.append(", ");
+          }
+          notFirst = true;
+          int mark = buffer.length();
+          caseType(argument);
+          cutTypeArgument(type, mark);
+        }
+        buffer.append('>');
+      }
+    }
+
+    private void cutTypeArgument(TypeMirror type, int mark) {
+      if (isStartLevel(type)) {
+        typeParameterStrings.add(buffer.substring(mark));
+      }
+    }
+
+    boolean isStartLevel(TypeMirror type) {
+      return startType == type;
+    }
   }
 }

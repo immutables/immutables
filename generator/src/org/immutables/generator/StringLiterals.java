@@ -34,6 +34,7 @@ public final class StringLiterals {
       ImmutableMap.<Character, String>builder()
           .put('\b', "\\b")
           .put('\"', "\\\"")
+          .put('\'', "\\'")
           .put('\\', "\\\\")
           .put('\f', "\\f")
           .put('\n', "\\n")
@@ -58,6 +59,10 @@ public final class StringLiterals {
       return result;
     }
   };
+
+  public static String toLiteral(char character) {
+    return "'" + escaper().escape("" + character) + "'";
+  }
 
   public static String toLiteral(String string) {
     return "\"" + escaper().escape(string) + "\"";

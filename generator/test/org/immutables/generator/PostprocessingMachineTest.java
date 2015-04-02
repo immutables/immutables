@@ -399,4 +399,20 @@ public class PostprocessingMachineTest {
         "  ImmutableList.builder();",
         "}"));
   }
+
+  @Test
+  public void onlyCollectImports() {
+    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+        LINES.join("package start;",
+            "import java.util.List;",
+            "import org.junit.*;",
+            "import static org.junit.My.*;",
+            "import some.Some.Nested;",
+            "final class My extends java.util.Set {",
+            "  private java.util.Map<java.lang.String, Integer> map = com.google.common.collect.Maps.newHashMap();",
+            "}"));
+
+    check(imports.classes.keySet()).hasContentInAnyOrder("List", "Nested");
+    check(imports.classes.values()).hasContentInAnyOrder("java.util.List", "some.Some.Nested");
+  }
 }

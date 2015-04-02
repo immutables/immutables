@@ -1,27 +1,29 @@
 /*
     Copyright 2014 Immutables Authors and Contributors
 
-   Licensed under the Apache License, Version 2.0 (the "License");
+   Licensed under the Apache LicenseVersion 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
 
        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
+   Unless required by applicable law or agreed to in writingsoftware
    distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KINDeither express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
  */
 package org.immutables.generator;
 
-import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
@@ -33,6 +35,36 @@ import javax.lang.model.util.Types;
 
 public final class AnnotationMirrors {
   private AnnotationMirrors() {}
+
+  // safe unchecked: known return type list or empty immutable list
+  @SuppressWarnings("unchecked")
+  public static List<? extends AnnotationMirror> from(TypeMirror type) {
+    return (List<? extends AnnotationMirror>) GetTypeAnnotations.get(type);
+  }
+
+  private enum GetTypeAnnotations {
+    ;
+    @Nullable
+    private static final Method METHOD;
+    static {
+      @Nullable Method method = null;
+      try {
+        method = TypeMirror.class.getMethod("getAnnotationMirrors");
+      } catch (Exception ex) {
+      }
+      METHOD = method;
+    }
+
+    static Object get(Object input) {
+      if (METHOD != null) {
+        try {
+          return METHOD.invoke(input);
+        } catch (Exception ex) {
+        }
+      }
+      return ImmutableList.of();
+    }
+  }
 
   public static CharSequence toCharSequence(AnnotationMirror value) {
     PrintVisitor printer = new PrintVisitor();
@@ -123,6 +155,13 @@ public final class AnnotationMirrors {
   }
 
   private static final class PrintVisitor extends SimpleAnnotationValueVisitor7<Void, Void> {
+    private static final String ATTRIBUTE_VALUE = "value";
+    private static final String CONSTANT_MAX_VALUE = ".MAX_VALUE";
+    private static final String CONSTANT_MIN_VALUE = ".MIN_VALUE";
+    private static final String CONSTANT_NAN = ".NaN";
+    private static final String CONSTANT_NEGATIVE_INFINITY = ".NEGATIVE_INFINITY";
+    private static final String CONSTANT_POSITIVE_INFINITY = ".POSITIVE_INFINITY";
+
     final StringBuilder builder = new StringBuilder();
 
     void visitValue(AnnotationValue value) {
@@ -132,6 +171,48 @@ public final class AnnotationMirrors {
     @Override
     protected Void defaultAction(Object o, Void p) {
       builder.append(o);
+      return null;
+    }
+
+    @Override
+    public Void visitInt(int i, Void p) {
+      appendLiteral(i);
+      return null;
+    }
+
+    @Override
+    public Void visitDouble(double d, Void p) {
+      appendLiteral(d);
+      return null;
+    }
+
+    @Override
+    public Void visitFloat(float f, Void p) {
+      appendLiteral(f);
+      return null;
+    }
+
+    @Override
+    public Void visitLong(long l, Void p) {
+      appendLiteral(l);
+      return null;
+    }
+
+    @Override
+    public Void visitShort(short s, Void p) {
+      appendLiteral(s);
+      return null;
+    }
+
+    @Override
+    public Void visitByte(byte b, Void p) {
+      appendLiteral(b);
+      return null;
+    }
+
+    @Override
+    public Void visitChar(char c, Void p) {
+      builder.append(StringLiterals.toLiteral(c));
       return null;
     }
 
@@ -153,7 +234,7 @@ public final class AnnotationMirrors {
       boolean notFirst = false;
       for (AnnotationValue v : vals) {
         if (notFirst) {
-          builder.append(',');
+          builder.append(", ");
         }
         notFirst = true;
         visitValue(v);
@@ -170,30 +251,103 @@ public final class AnnotationMirrors {
 
     @Override
     public Void visitAnnotation(AnnotationMirror a, Void p) {
-      String annotationString = a.toString();
-
-      int startOfParameters = annotationString.indexOf('(');
-      if (startOfParameters > 0) {
-        annotationString = annotationString.substring(0, startOfParameters);
-      }
-
-      builder.append(annotationString);
+      builder.append('@').append(a.getAnnotationType());
 
       Map<? extends ExecutableElement, ? extends AnnotationValue> values = a.getElementValues();
       if (!values.isEmpty()) {
         builder.append('(');
-        boolean notFirst = false;
-        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : values.entrySet()) {
-          if (notFirst) {
-            builder.append(',');
+        if (Collections.singleton(ATTRIBUTE_VALUE).equals(values.keySet())) {
+          visitValue(values.get(ATTRIBUTE_VALUE));
+        } else {
+          boolean notFirst = false;
+          for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : values.entrySet()) {
+            if (notFirst) {
+              builder.append(", ");
+            }
+            notFirst = true;
+            builder.append(e.getKey().getSimpleName()).append(" = ");
+            visitValue(e.getValue());
           }
-          notFirst = true;
-          builder.append(e.getKey().getSimpleName()).append(" = ");
-          visitValue(e.getValue());
         }
         builder.append(')');
       }
       return null;
+    }
+
+    private void appendLiteral(float value) {
+      if (value == Float.NEGATIVE_INFINITY) {
+        appendConstant(Float.class, CONSTANT_NEGATIVE_INFINITY);
+      } else if (value == Float.POSITIVE_INFINITY) {
+        appendConstant(Float.class, CONSTANT_POSITIVE_INFINITY);
+      } else if (value == Float.MAX_VALUE) {
+        appendConstant(Float.class, CONSTANT_MAX_VALUE);
+      } else if (value == Float.MIN_VALUE) {
+        appendConstant(Float.class, CONSTANT_MIN_VALUE);
+      } else if (Float.isNaN(value)) {
+        appendConstant(Float.class, CONSTANT_NAN);
+      } else {
+        builder.append(Float.toString(value));
+      }
+    }
+
+    private void appendConstant(Class<?> type, String accessor) {
+      builder.append(type.getCanonicalName()).append(accessor);
+    }
+
+    private void appendLiteral(double value) {
+      if (value == Double.NEGATIVE_INFINITY) {
+        appendConstant(Double.class, CONSTANT_NEGATIVE_INFINITY);
+      } else if (value == Double.POSITIVE_INFINITY) {
+        appendConstant(Double.class, CONSTANT_POSITIVE_INFINITY);
+      } else if (value == Double.MAX_VALUE) {
+        appendConstant(Double.class, CONSTANT_MAX_VALUE);
+      } else if (value == Double.MIN_VALUE) {
+        appendConstant(Double.class, CONSTANT_MIN_VALUE);
+      } else if (Double.isNaN(value)) {
+        appendConstant(Double.class, CONSTANT_NAN);
+      } else {
+        builder.append(Double.toString(value));
+      }
+    }
+
+    private void appendLiteral(long value) {
+      if (value == Long.MAX_VALUE) {
+        appendConstant(Long.class, CONSTANT_MAX_VALUE);
+      } else if (value == Long.MIN_VALUE) {
+        appendConstant(Long.class, CONSTANT_MIN_VALUE);
+      } else {
+        builder.append(Long.toString(value));
+      }
+    }
+
+    private void appendLiteral(int value) {
+      if (value == Integer.MAX_VALUE) {
+        appendConstant(Integer.class, CONSTANT_MAX_VALUE);
+      } else if (value == Integer.MIN_VALUE) {
+        appendConstant(Integer.class, CONSTANT_MIN_VALUE);
+      } else {
+        builder.append(Integer.toString(value));
+      }
+    }
+
+    private void appendLiteral(short value) {
+      if (value == Short.MAX_VALUE) {
+        appendConstant(Short.class, CONSTANT_MAX_VALUE);
+      } else if (value == Integer.MIN_VALUE) {
+        appendConstant(Short.class, CONSTANT_MIN_VALUE);
+      } else {
+        builder.append(Short.toString(value));
+      }
+    }
+
+    private void appendLiteral(byte value) {
+      if (value == Byte.MAX_VALUE) {
+        appendConstant(Byte.class, CONSTANT_MAX_VALUE);
+      } else if (value == Byte.MIN_VALUE) {
+        appendConstant(Byte.class, CONSTANT_MIN_VALUE);
+      } else {
+        builder.append(Integer.toHexString(value));
+      }
     }
   }
 }

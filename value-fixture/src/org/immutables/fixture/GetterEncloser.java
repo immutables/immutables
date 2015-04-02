@@ -41,7 +41,12 @@ public interface GetterEncloser {
     @GetterAnnotation(policy = RetentionPolicy.CLASS,
         string = "\n\"",
         type = Object.class,
-        value = { @InnerAnnotation, @InnerAnnotation })
+        value = {@InnerAnnotation, @InnerAnnotation},
+        bval = Byte.MIN_VALUE, dval = Double.POSITIVE_INFINITY,
+        ival = Integer.MAX_VALUE,
+        fval = Float.NaN,
+        blval = true,
+        cval = 'j')
     @Path("/ef")
     @Value.Auxiliary
     boolean ef();

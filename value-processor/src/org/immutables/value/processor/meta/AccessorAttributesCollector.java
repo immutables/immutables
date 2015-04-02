@@ -234,7 +234,6 @@ final class AccessorAttributesCollector {
       }
 
       attribute.reporter = reporter;
-      attribute.returnTypeName = computeReturnTypeString(returnType);
       attribute.returnType = returnType;
       attribute.names = styles.forAccessor(name.toString());
       attribute.element = attributeMethodCandidate;
@@ -273,19 +272,6 @@ final class AccessorAttributesCollector {
             .asMemberOf((DeclaredType) typeElement.asType(), method);
 
     return asMethodOfType.getReturnType();
-  }
-
-  private String computeReturnTypeString(TypeMirror returnType) {
-    String returnTypeString = returnType.toString();
-    if (returnTypeString.startsWith("(")) {
-      // has type annotations, e.g.
-      // (@org.example.TypeA,@org.example.TypeB :: Map<java.lang.String,java.lang.String>)
-      int index = returnTypeString.indexOf(" :: ");
-      String typeAnnotations = returnTypeString.substring(1, index);
-      String type = returnTypeString.substring(index + 4, returnTypeString.length() - 1);
-      return typeAnnotations.replace(',', ' ') + ' ' + type;
-    }
-    return returnType.toString();
   }
 
   private static boolean isAbstract(Element element) {

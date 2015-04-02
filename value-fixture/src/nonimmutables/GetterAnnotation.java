@@ -28,6 +28,18 @@ public @interface GetterAnnotation {
 
   String string();
 
+  byte bval();
+
+  double dval();
+
+  int ival();
+
+  float fval();
+
+  char cval();
+
+  boolean blval();
+
   InnerAnnotation[] value() default {};
 
   @Retention(RetentionPolicy.RUNTIME)

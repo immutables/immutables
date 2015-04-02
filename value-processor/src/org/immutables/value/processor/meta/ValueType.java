@@ -15,10 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.SourceExtraction;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -43,9 +40,13 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.TypeHierarchyCollector;
+import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
@@ -238,13 +239,10 @@ public final class ValueType extends TypeIntrospectionBase {
   @Nullable
   public String validationMethodName;
 
-  public boolean isIface() {
-    return element.getKind() == ElementKind.INTERFACE
-        || element.getKind() == ElementKind.ANNOTATION_TYPE;
-  }
-
   public String getInheritsKeyword() {
-    return isIface() ? "implements" : "extends";
+    return element.getKind() == ElementKind.INTERFACE
+        || element.getKind() == ElementKind.ANNOTATION_TYPE
+        ? "implements" : "extends";
   }
 
   public String $$package() {
@@ -627,9 +625,39 @@ public final class ValueType extends TypeIntrospectionBase {
     return Iterables.any(getSettableAttributes(), predicate);
   }
 
+  public List<String> getRequiredSourceStarImports() {
+    if (!hasSomeUnresolvedTypes()) {
+      return Collections.emptyList();
+    }
+    SourceExtraction.Imports sourceImports = constitution.protoclass().sourceImports();
+    List<String> starImports = Lists.newArrayList();
+    for (String importStatement : sourceImports.all) {
+      if (importStatement.indexOf('*') > 0) {
+        starImports.add(importStatement);
+      }
+    }
+    return starImports;
+  }
+
+  private boolean hasSomeUnresolvedTypes() {
+    for (ValueType n : nested) {
+      for (ValueAttribute a : n.attributes) {
+        if (a.hasSomeUnresolvedTypes) {
+          return true;
+        }
+      }
+    }
+    for (ValueAttribute a : attributes) {
+      if (a.hasSomeUnresolvedTypes) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean hasCollectionAttribute() {
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (attribute.isCollectionType() || attribute.isMapLike()) {
+      if (attribute.isCollectionType() || attribute.isMapType()) {
         return true;
       }
     }
