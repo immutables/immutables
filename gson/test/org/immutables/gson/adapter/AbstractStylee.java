@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.adapter;
 
+import javax.annotation.Nullable;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import java.util.List;
@@ -40,11 +41,12 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
     putAll = "pushAll*",
     builder = "new",
     build = "create",
+    jdkOnly = true,
     visibility = ImplementationVisibility.PUBLIC)
 interface IStylee {
 
   @Value.Parameter
-  Set<org.immutables.gson.adapter.Stylee.Inr> getSet();
+  Set<Stylee.Inr> getSet();
 
   @Value.Parameter
   Multiset<org.immutables.gson.adapter.Stylee.Nst> getBag();
@@ -55,7 +57,7 @@ interface IStylee {
 
     List<Integer> getList();
 
-    Map<String, org.immutables.gson.adapter.Stylee.Nst> getMap();
+    Map<String, Stylee.Nst> getMap();
 
     ListMultimap<String, org.immutables.gson.adapter.Stylee.Nst> getListMultimap();
   }
@@ -65,5 +67,8 @@ interface IStylee {
     int getValue();
 
     String getString();
+
+    @Nullable
+    String getDesc();
   }
 }

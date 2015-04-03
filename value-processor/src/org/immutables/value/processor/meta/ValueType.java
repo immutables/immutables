@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import static com.google.common.base.MoreObjects.*;
+import com.google.common.base.MoreObjects;
 import org.immutables.generator.SourceExtraction;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
@@ -191,6 +193,16 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return false;
+  }
+
+  public String getTopSimple() {
+    if (enclosingValue != null) {
+      return enclosingValue.typeEnclosing().simple();
+    }
+    if (constitution.isOutsideBuilder() || kind().isFactory()) {
+      return typeBuilder().simple();
+    }
+    return typeImmutable().simple();
   }
 
   public boolean isTopLevel() {

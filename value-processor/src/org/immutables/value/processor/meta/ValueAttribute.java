@@ -439,7 +439,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateJdkOnly() {
-    return containingType.isGenerateJdkOnly() && !isGuavaImmutableDeclared();
+    return containingType.isGenerateJdkOnly()
+        && !typeKind.isGuavaContainerKind()
+        && !isGuavaImmutableDeclared();
   }
 
   public boolean isGenerateOrdinalValueSet() {

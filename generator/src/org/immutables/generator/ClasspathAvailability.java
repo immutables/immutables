@@ -16,6 +16,7 @@
 package org.immutables.generator;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,9 +38,10 @@ public final class ClasspathAvailability {
     public boolean apply(String input) {
       /*@Nullable*/Boolean available = availableClasses.get(input);
       if (available == null) {
-        TypeElement element = StaticEnvironment.processing()
-            .getElementUtils()
-            .getTypeElement(input);
+        TypeElement element =
+            StaticEnvironment.processing()
+                .getElementUtils()
+                .getTypeElement(input);
 
         available = element != null;
         availableClasses.put(input, available);
@@ -53,4 +55,6 @@ public final class ClasspathAvailability {
       return "classpath.available";
     }
   };
+
+  public final Predicate<String> unavailable = Predicates.not(available);
 }
