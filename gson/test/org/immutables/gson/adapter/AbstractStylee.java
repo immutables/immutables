@@ -15,7 +15,6 @@
  */
 package org.immutables.gson.adapter;
 
-import javax.annotation.Nullable;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import java.util.List;
@@ -67,8 +66,5 @@ interface IStylee {
     int getValue();
 
     String getString();
-
-    @Nullable
-    String getDesc();
   }
 }

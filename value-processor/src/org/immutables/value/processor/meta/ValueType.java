@@ -676,6 +676,22 @@ public final class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
+  public boolean isUseNullSafeUtilities() {
+    for (ValueType n : nested) {
+      for (ValueAttribute a : n.attributes) {
+        if (a.isNullable()) {
+          return true;
+        }
+      }
+    }
+    for (ValueAttribute a : attributes) {
+      if (a.isNullable()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean isUseCollectionUtility() {
     for (ValueType n : nested) {
       if (n.hasCollectionAttribute()) {

@@ -1665,19 +1665,22 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
      Boolean haveAndroid = classpath.available 'android.R']
   [if haveAndroid or (not haveObjects)]
 
-private static <T> T requireNonNull(T object, String message) {
-  if (object == null) {
-    throw new NullPointerException(message);
-  }
-  return object;
-}
-
 private static <T> T requireNonNull(T object) {
   if (object == null) {
     throw new NullPointerException();
   }
   return object;
 }
+    [if type.useCollectionUtility]
+
+private static <T> T requireNonNull(T object, String message) {
+  if (object == null) {
+    throw new NullPointerException(message);
+  }
+  return object;
+}
+    [/if]
+    [if type.useNullSafeUtilities]
 
 private static int hashCode(Object object) {
   return object != null ? object.hashCode() : 0;
@@ -1686,6 +1689,7 @@ private static int hashCode(Object object) {
 private static boolean equals(Object left, Object right) {
   return left == right || (left != null && left.equals(right));
 }
+    [/if]
   [/if]
 [/for]
 [/template]
