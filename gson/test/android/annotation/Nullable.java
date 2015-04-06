@@ -13,17 +13,14 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.gson.adapter.android;
+package android.annotation;
 
-import org.immutables.gson.Gson;
-import org.immutables.value.Value;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 
-@Gson.TypeAdapters
-@Value.Immutable
-@Value.Style(jdkOnly = true)
-public interface AndroidNoJdk7API {
-  String getNonnull();
-
-  @android.annotation.Nullable
-  String getNullable();
-}
+// Custom android-like nullable which does not support ElementType.LOCAL_VARIABLE
+/**
+ * The Interface Nullable.
+ */
+@Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER})
+public @interface Nullable {}

@@ -525,7 +525,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
       [v.names.init]([v.name]Optional);
     }
   [else if v.nullable]
-    [v.atNullability][v.type] [v.name]Value = instance.[v.names.get]();
+    [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
     if ([v.name]Value != null) {
       [v.names.init]([v.name]Value);
     }
@@ -1416,7 +1416,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
   }
     [/if]
     [if v.nullable or v.primitive]
-  [v.atNullability][immutableImplementationType v] newValue = value;
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
     [else]
   [immutableImplementationType v] newValue = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](value);
     [/if]

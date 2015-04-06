@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+import org.immutables.value.Value;
 import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
@@ -76,8 +79,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private boolean generateOrdinalValueSet;
   private TypeMirror arrayComponent;
-  private boolean nullable;
-  private String nullabilityPrefix;
+  @Nullable
+  private NullabilityAnnotationInfo nullability;
 
   @Nullable
   private String rawTypeName;
@@ -107,7 +110,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String atNullability() {
-    return isNullable() ? nullabilityPrefix : "";
+    return isNullable() ? nullability.asPrefix() : "";
+  }
+
+  public String atNullabilityLocal() {
+    return isNullable() ? nullability.asLocalPrefix() : "";
   }
 
   public boolean isSimpleLiteralType() {
@@ -124,7 +131,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isNullable() {
-    return nullable;
+    return nullability != null;
   }
 
   @Override
@@ -732,18 +739,60 @@ public final class ValueAttribute extends TypeIntrospectionBase {
               .annotationNamed(NULLABLE_SIMPLE_NAME)
               .error("@Nullable could not be used with primitive type attibutes");
         } else {
-          nullable = true;
-          nullabilityPrefix = "@" + annotationElement.getQualifiedName() + " ";
-          if (nullable) {
+          nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
+          nullability.eagerize();
+          if (isNullable()) {
             typeKind = AttributeTypeKind.REGULAR;
           }
         }
       }
     }
-    if (containingType.isAnnotationType() && nullable) {
+    if (containingType.isAnnotationType() && isNullable()) {
       report()
           .annotationNamed(NULLABLE_SIMPLE_NAME)
           .error("@Nullable could not be used with annotation attribute, use default value");
+    }
+  }
+
+  @Value.Immutable(intern = true, builder = false)
+  static abstract class NullabilityAnnotationInfo {
+    @Value.Parameter
+    @Value.Auxiliary
+    abstract TypeElement element();
+
+    @Value.Derived
+    String qualifiedName() {
+      return element().getQualifiedName().toString();
+    }
+
+    @Value.Lazy
+    String asPrefix() {
+      return "@" + qualifiedName() + " ";
+    }
+
+    @Value.Lazy
+    String asLocalPrefix() {
+      return localsSupported()
+          ? asPrefix()
+          : "";
+    }
+
+    void eagerize() {
+      asPrefix();
+      asLocalPrefix();
+    }
+
+    private boolean localsSupported() {
+      @Nullable Target target = element().getAnnotation(Target.class);
+      if (target == null) {
+        return true;
+      }
+      for (ElementType type : target.value()) {
+        if (type == ElementType.LOCAL_VARIABLE) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 

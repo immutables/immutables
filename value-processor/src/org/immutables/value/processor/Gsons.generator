@@ -180,7 +180,7 @@ private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
 
 [template generateMarshalConstructorValue Type type Attribute a]
   [if a.nullable]
-[a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value != null) {
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
@@ -245,7 +245,7 @@ String key = [a.name]TypeAdapter.toJsonTree([expression]).getAsString();
 
 [template generateMarshalAttributeValue Type type Attribute a]
   [if a.nullable]
-[a.atNullability][a.type] [a.name]Value = instance.[a.names.get]();
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
 if ([a.name]Value != null) {
   out.name([serializedName a]);
   [generateWriteAttributeValue type a (a.name 'Value') false]
