@@ -18,6 +18,11 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>value-annotations</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>value-processor</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -51,6 +56,7 @@
               <artifactSet>
                 <includes>
                   <include>org.immutables:value</include>
+                  <include>org.immutables:value-annotations</include>
                   <include>org.immutables:value-processor</include>
                   <include>org.immutables:generator</include>
                   <include>com.google.guava:guava</include>
@@ -77,6 +83,12 @@
               </relocations>
 
               <filters>
+                <filter>
+                  <artifact>org.immutables:value-annotations</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
                 <filter>
                   <artifact>org.immutables:value-processor</artifact>
                   <includes>
