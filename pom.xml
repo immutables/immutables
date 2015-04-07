@@ -32,6 +32,7 @@
     <module>builder</module>
     <module>gson</module>
     <module>mongo</module>
+    <module>value-annotations</module>
     <module>value-processor</module>
     <module>value-fixture</module>
   </modules>
