@@ -123,6 +123,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isEnumType();
   }
 
+  public boolean requiresAlternativeStrictConstructor() {
+    return typeKind.isCollectionKind()
+        || (typeKind.isMappingKind()
+            && !typeKind.isPlainMapKind()
+            && !typeKind.isMultimap());
+  }
+
   public boolean isMandatory() {
     return isGenerateAbstract
         && !isContainerType()
@@ -358,7 +365,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getRawType() {
-    return rawTypeName;// != null ? rawTypeName : extractRawType(returnTypeName);
+    return rawTypeName;
   }
 
   public String getConsumedElementType() {

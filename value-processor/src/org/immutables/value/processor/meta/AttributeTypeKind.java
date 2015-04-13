@@ -288,6 +288,11 @@ public enum AttributeTypeKind {
     return this == MAP;
   }
 
+  public boolean isPlainMapKind() {
+    return this == MAP
+        || this == ENUM_MAP;
+  }
+
   public boolean isBiMap() {
     return this == BI_MAP;
   }

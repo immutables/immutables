@@ -367,6 +367,15 @@ public final class ValueType extends TypeIntrospectionBase {
     return !getConstructorArguments().isEmpty();
   }
 
+  public boolean requiresAlternativeStrictConstructor() {
+    for (ValueAttribute constructor : getConstructorArguments()) {
+      if (constructor.requiresAlternativeStrictConstructor()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private List<ValueAttribute> constructorArguments;
 
   public List<ValueAttribute> getConstructorArguments() {

@@ -245,6 +245,19 @@ private Object readResolve() throws java.io.ObjectStreamException {
   [/if]
 [/if]
 [if type.useConstructor]
+  [if type.requiresAlternativeStrictConstructor]
+
+  /**
+   * Construct new immutable {@code [type.name]} instance.
+[for v in type.constructorArguments]
+   * @param [v.name] value for {@code [v.name]}
+[/for]
+   * @return immutable [type.name] instance
+   */
+  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+    return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
+  }
+  [/if]
 
   /**
    * Construct new immutable {@code [type.name]} instance.
@@ -1466,6 +1479,19 @@ public static [type.typeValue.relative] [type.factoryInstance.simple]() {
 }
     [/if]
     [if type.useConstructor]
+      [if type.requiresAlternativeStrictConstructor]
+
+/**
+ * Construct new immutable {@code [type.name]} instance.
+[for v in type.constructorArguments]
+ * @param [v.name] value for {@code [v.name]}
+[/for]
+ * @return immutable [type.name] instance
+ */
+public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
+}
+      [/if]
 
 /**
  * Construct new immutable {@code [type.name]} instance.
