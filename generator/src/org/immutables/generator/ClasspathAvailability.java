@@ -24,7 +24,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
 public final class ClasspathAvailability {
-  // static non-thread-safe cache? ok!
   private static final Map<String, Boolean> availableClasses =
       Collections.synchronizedMap(new HashMap<String, Boolean>());
 
@@ -38,16 +37,23 @@ public final class ClasspathAvailability {
     public boolean apply(String input) {
       /*@Nullable*/Boolean available = availableClasses.get(input);
       if (available == null) {
-        TypeElement element =
-            StaticEnvironment.processing()
-                .getElementUtils()
-                .getTypeElement(input);
-
+        TypeElement element = loadTypeElement(input);
         available = element != null;
         availableClasses.put(input, available);
       }
 
       return available;
+    }
+
+    private TypeElement loadTypeElement(String input) {
+      try {
+        return StaticEnvironment.processing()
+            .getElementUtils()
+            .getTypeElement(input);
+      } catch (Exception ex) {
+        // if type element cannot be loaded for some reason
+        return null;
+      }
     }
 
     @Override

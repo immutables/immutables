@@ -16,12 +16,11 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Joiner;
-import java.util.Collection;
-import com.google.common.collect.Iterables;
-import javax.lang.model.type.DeclaredType;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -30,6 +29,8 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
@@ -56,19 +57,24 @@ public final class ValueTypeComposer {
   String inferTypeMoreObjects() {
     String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
     String typeObjects = UnshadeGuava.typeString("base.Objects");
-    @Nullable TypeElement typeElement =
-        processing.getElementUtils().getTypeElement(typeMoreObjects);
-
-    if (typeElement != null) {
+    
+    if (isValidElementFound(typeMoreObjects)) {
       return typeMoreObjects;
     }
-
-    typeElement = processing.getElementUtils().getTypeElement(typeObjects);
-    if (typeElement != null) {
+    if (isValidElementFound(typeMoreObjects)) {
       return typeObjects;
     }
-
     return null;
+  }
+
+  private boolean isValidElementFound(String typeName) {
+    try {
+      @Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
+      return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
+    } catch (Exception e) {
+      // type loading problem
+      return false;
+    }
   }
 
   ValueType compose(Protoclass protoclass) {
