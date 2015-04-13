@@ -58,6 +58,9 @@ public enum AttributeTypeKind {
       "SetMultimap",
       UnshadeGuava.typeString("collect.SetMultimap"),
       UnshadeGuava.typeString("collect.ImmutableSetMultimap")),
+  BI_MAP("BiMap",
+      UnshadeGuava.typeString("collect.BiMap"),
+      UnshadeGuava.typeString("collect.ImmutableBiMap")),
   OPTIONAL_JDK(
       "Optional",
       "java.util.Optional"),
@@ -165,6 +168,7 @@ public enum AttributeTypeKind {
     case MAP:
     case ENUM_MAP:
     case SORTED_MAP:
+    case BI_MAP:
       return true;
     default:
       return false;
@@ -179,6 +183,7 @@ public enum AttributeTypeKind {
     case MULTIMAP:
     case LIST_MULTIMAP:
     case SET_MULTIMAP:
+    case BI_MAP:
       return true;
     default:
       return false;
@@ -203,6 +208,7 @@ public enum AttributeTypeKind {
     case MULTIMAP:
     case LIST_MULTIMAP:
     case SET_MULTIMAP:
+    case BI_MAP:
       return true;
     default:
       return false;
@@ -280,6 +286,10 @@ public enum AttributeTypeKind {
 
   public boolean isMap() {
     return this == MAP;
+  }
+
+  public boolean isBiMap() {
+    return this == BI_MAP;
   }
 
   public boolean isSortedMap() {

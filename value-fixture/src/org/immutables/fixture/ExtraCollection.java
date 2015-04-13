@@ -15,9 +15,9 @@
  */
 package org.immutables.fixture;
 
+import java.util.Collections;
 import com.google.common.collect.*;
 import org.immutables.value.Value;
-
 import java.util.Arrays;
 
 @Value.Immutable(singleton = true, prehash = true)
@@ -34,12 +34,16 @@ public interface ExtraCollection {
   @Value.Parameter
   SetMultimap<Integer, String> indexSet();
 
+  @Value.Parameter
+  BiMap<Integer, String> biMap();
+
   default void use() {
     ImmutableExtraCollection.of(
         ImmutableList.<String>of(),
         ImmutableMultimap.<Integer, String>of(),
         ImmutableMultimap.<Integer, String>of(),
-        ImmutableMultimap.<Integer, String>of());
+        ImmutableMultimap.<Integer, String>of(),
+        ImmutableBiMap.<Integer, String>of());
     ImmutableExtraCollection.of();
     ImmutableExtraCollection collection = ImmutableExtraCollection.builder()
         .addBag("2", "2")
@@ -49,6 +53,9 @@ public interface ExtraCollection {
         .putIndexList(1, "")
         .putIndexSet(2, "2")
         .putAllIndexSet(2, Arrays.asList("3", "4"))
+        .putBiMap(1, "a")
+        .putBiMap(2, "b")
+        .putAllBiMap(Collections.singletonMap(3, "c"))
         .build();
 
     collection.bag().count("2");
