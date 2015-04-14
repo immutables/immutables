@@ -55,6 +55,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
+  private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
   public AttributeNames names;
@@ -132,6 +133,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isMandatory() {
     return isGenerateAbstract
+        && !isGenerateDefault // is the case for defaulted abstract annotation attribute
         && !isContainerType()
         && !isNullable()
         && !hasBuilderSwitcherDefault();
@@ -650,8 +652,22 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       constructorOrder = parameter.isPresent()
           ? parameter.get().order()
           : -1;
+
+      if (containingType.isAnnotationType() && names.get.equals(VALUE_ATTRIBUTE_NAME)) {
+        constructorOrder = thereNoOtherMandatoryAttributes() ? 0 : -1;
+      }
     }
     return constructorOrder;
+  }
+
+  private boolean thereNoOtherMandatoryAttributes() {
+    List<ValueAttribute> mandatories = containingType.getMandatoryAttributes();
+    for (ValueAttribute m : mandatories) {
+      if (m != this) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public boolean isConstructorParameter() {
@@ -732,7 +748,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void makeRegularIfContainsWildcards() {
     // I hope this check isn't too simplistic
-    if (returnTypeName.indexOf('?') >= 0) {
+    if (returnTypeName.indexOf('?') >= 0 && typeKind != AttributeTypeKind.ARRAY) {
       typeKind = AttributeTypeKind.REGULAR;
     }
   }

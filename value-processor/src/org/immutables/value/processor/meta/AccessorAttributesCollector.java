@@ -195,23 +195,40 @@ final class AccessorAttributesCollector {
 
       if (isAbstract) {
         attribute.isGenerateAbstract = true;
+
         if (attributeMethodCandidate.getDefaultValue() != null) {
           attribute.isGenerateDefault = true;
-        } else if (defaultAnnotationPresent) {
-          report(attributeMethodCandidate)
-              .annotationNamed(DefaultMirror.simpleName())
-              .error("@Value.Default should have initializer body", name);
-        } else if (derivedAnnotationPresent) {
-          report(attributeMethodCandidate)
-              .annotationNamed(DerivedMirror.simpleName())
-              .error("@Value.Derived should have initializer body", name);
+        }
+
+        if (defaultAnnotationPresent || derivedAnnotationPresent) {
+          if (defaultAnnotationPresent) {
+            if (attribute.isGenerateDefault) {
+              report(attributeMethodCandidate)
+                  .annotationNamed(DefaultMirror.simpleName())
+                  .warning("@Value.Default annotation is superflous for default annotation attribute");
+            } else {
+              report(attributeMethodCandidate)
+                  .annotationNamed(DefaultMirror.simpleName())
+                  .error("@Value.Default attibute should have initializer body", name);
+            }
+          }
+          if (derivedAnnotationPresent) {
+            if (attribute.isGenerateDefault) {
+              report(attributeMethodCandidate)
+                  .annotationNamed(DerivedMirror.simpleName())
+                  .error("@Value.Derived cannot be used with default annotation attribute");
+            } else {
+              report(attributeMethodCandidate)
+                  .annotationNamed(DerivedMirror.simpleName())
+                  .error("@Value.Derived attibute should have initializer body", name);
+            }
+          }
         }
       } else if (defaultAnnotationPresent && derivedAnnotationPresent) {
         report(attributeMethodCandidate)
             .annotationNamed(DerivedMirror.simpleName())
             .error("Attribute '%s' cannot be both @Value.Default and @Value.Derived", name);
         attribute.isGenerateDefault = true;
-        attribute.isGenerateDerived = false;
       } else if ((defaultAnnotationPresent || derivedAnnotationPresent) && isFinal) {
         report(attributeMethodCandidate)
             .error("Annotated attribute '%s' will be overriden and cannot be final", name);

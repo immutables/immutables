@@ -22,8 +22,7 @@ import static org.immutables.check.Checkers.*;
 public class AnnotationTest {
 
   @Test
-  public void testName() {
-
+  public void ann() {
     An runtime = getClass().getAnnotation(An.class);
     An immutable = ImmutableAn.of(13);
 
@@ -33,5 +32,14 @@ public class AnnotationTest {
     check(immutable.hashCode()).is(runtime.hashCode());
 
     check(immutable.bees()).isOf(runtime.bees());
+  }
+
+  @Test
+  public void bee() {
+    ImmutableHasDefault.of(1).withOtherValue("w");
+
+    check(ImmutableBe.builder().build()).is(ImmutableBe.builder()
+        .cl(Integer.class, Double.class)
+        .build());
   }
 }

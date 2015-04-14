@@ -26,4 +26,10 @@ public interface IfaceValue {
 
   @Value.Auxiliary
   List<String> auxiliary();
+
+  @Value.Auxiliary
+  @Value.Derived
+  default int get() {
+    return getNumber() + auxiliary().size();
+  }
 }

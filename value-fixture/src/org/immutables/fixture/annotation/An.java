@@ -26,6 +26,13 @@ import org.immutables.value.Value;
   String otherValue();
 }
 
+@Value.Immutable
+@interface HasDefault {
+  int value();
+
+  String otherValue() default "";
+}
+
 @Retention(RetentionPolicy.RUNTIME)
 @Value.Immutable
 @interface An {
@@ -38,5 +45,5 @@ import org.immutables.value.Value;
 @Retention(RetentionPolicy.SOURCE)
 @Value.Immutable
 @interface Be {
-  Class<? extends Number>[] cl() default {Integer.class};
+  Class<? extends Number>[] cl() default {Integer.class, Double.class};
 }
