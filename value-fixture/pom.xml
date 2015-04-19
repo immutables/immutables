@@ -15,11 +15,21 @@
   </description>
 
   <dependencies>
+    <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
+    it exposes both relocated and not relocated classess, having processor to run twice -->
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
+      <artifactId>value-annotations</artifactId>
       <version>${project.version}</version>
+      <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-processor</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>gson</artifactId>

@@ -29,13 +29,20 @@
       <type>pom</type>
     </dependency>
 
+    <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
+    it exposes both relocated and not relocated classess, having processor to run twice -->
     <dependency>
-      <!-- Compile only processor -->
       <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
+      <artifactId>value-annotations</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-processor</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

@@ -16,39 +16,22 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.Maps;
-import java.util.Map;
-import javax.annotation.concurrent.GuardedBy;
 import org.immutables.generator.Naming;
 
 public final class Styles {
-  @GuardedBy("cache")
-  private static final Map<StyleMirror, Styles> cache = Maps.newHashMap();
-
-  public static Styles using(StyleMirror style) {
-    synchronized (cache) {
-      Styles namings = cache.get(style);
-      if (namings == null) {
-        namings = new Styles(style);
-        cache.put(style, namings);
-      }
-      return namings;
-    }
-  }
-
-  private final StyleMirror style;
+  private final StyleInfo style;
   private final Scheme scheme;
 
-  private Styles(StyleMirror style) {
+  Styles(StyleInfo style) {
     this.style = style;
     this.scheme = new Scheme();
   }
 
-  public ImmutableMirror defaults() {
+  public ValueImmutableInfo defaults() {
     return style.defaults();
   }
 
-  public StyleMirror style() {
+  public StyleInfo style() {
     return style;
   }
 

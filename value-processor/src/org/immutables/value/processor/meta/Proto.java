@@ -54,8 +54,8 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    public Optional<StyleMirror> style() {
-      return StyleMirror.find(element());
+    public Optional<StyleInfo> style() {
+      return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
@@ -99,12 +99,12 @@ public class Proto {
     abstract Round round();
 
     @Value.Derived
-    StyleMirror defaultStyles() {
+    StyleInfo defaultStyles() {
       TypeElement typeElement = processing()
           .getElementUtils()
           .getTypeElement(StyleMirror.qualifiedName());
 
-      return StyleMirror.from(typeElement);
+      return ToStyleInfo.FUNCTION.apply(StyleMirror.from(typeElement));
     }
 
     /**
@@ -185,8 +185,8 @@ public class Proto {
     }
 
     @Value.Lazy
-    public Optional<StyleMirror> style() {
-      Optional<StyleMirror> style = StyleMirror.find(element());
+    public Optional<StyleInfo> style() {
+      Optional<StyleInfo> style = StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
 
       if (style.isPresent()) {
         return style;
@@ -194,7 +194,7 @@ public class Proto {
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
         MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
-        Optional<StyleMirror> metaStyle = metaAnnotated.style();
+        Optional<StyleInfo> metaStyle = metaAnnotated.style();
         if (metaStyle.isPresent()) {
           return metaStyle;
         }
@@ -285,8 +285,8 @@ public class Proto {
 
     @Override
     @Value.Lazy
-    public Optional<StyleMirror> style() {
-      Optional<StyleMirror> style = super.style();
+    public Optional<StyleInfo> style() {
+      Optional<StyleInfo> style = super.style();
       if (style.isPresent()) {
         return style;
       }
@@ -365,15 +365,15 @@ public class Proto {
     }
 
     @Value.Lazy
-    public Optional<ImmutableMirror> features() {
-      return ImmutableMirror.find(element());
+    public Optional<ValueImmutableInfo> features() {
+      return ImmutableMirror.find(element()).transform(ToImmutableInfo.FUNCTION);
     }
 
     @Value.Lazy
     public boolean useImmutableDefaults() {
-      Optional<ImmutableMirror> immutables = features();
+      Optional<ValueImmutableInfo> immutables = features();
       if (immutables.isPresent()) {
-        return immutables.get().getAnnotationMirror().getElementValues().isEmpty();
+        return immutables.get().isDefault();
       }
       return true;
     }
@@ -580,10 +580,10 @@ public class Proto {
     }
 
     @Value.Lazy
-    public ImmutableMirror features() {
+    public ValueImmutableInfo features() {
       if (declaringType().isPresent()
           && !declaringType().get().useImmutableDefaults()) {
-        Optional<ImmutableMirror> features = declaringType().get().features();
+        Optional<ValueImmutableInfo> features = declaringType().get().features();
         if (features.isPresent()) {
           return features.get();
         }
@@ -593,27 +593,27 @@ public class Proto {
 
     @Value.Lazy
     public Styles styles() {
-      return Styles.using(determineStyle().or(environment().defaultStyles()));
+      return determineStyle().or(environment().defaultStyles()).getStyles();
     }
 
-    private Optional<StyleMirror> determineStyle() {
+    private Optional<StyleInfo> determineStyle() {
       if (declaringType().isPresent()) {
         DeclaringType type = declaringType().get();
 
         Optional<DeclaringType> enclosing = type.enclosingOf();
         if (enclosing.isPresent()) {
           if (enclosing.get() != type) {
-            Optional<StyleMirror> style = type.style();
+            Optional<StyleInfo> style = type.style();
             if (style.isPresent()) {
               warnAboutIncompatibleStyles();
             }
           }
-          Optional<StyleMirror> enclosingStyle = enclosing.get().style();
+          Optional<StyleInfo> enclosingStyle = enclosing.get().style();
           if (enclosingStyle.isPresent()) {
             return enclosingStyle;
           }
         } else {
-          Optional<StyleMirror> style = type.style();
+          Optional<StyleInfo> style = type.style();
           if (style.isPresent()) {
             return style;
           }
@@ -765,6 +765,50 @@ public class Proto {
     @Override
     public boolean apply(Element input) {
       return input.getModifiers().contains(Modifier.PUBLIC);
+    }
+  }
+
+  enum ToImmutableInfo implements Function<ImmutableMirror, ValueImmutableInfo> {
+    FUNCTION;
+    @Override
+    public ValueImmutableInfo apply(ImmutableMirror input) {
+      return ImmutableValueImmutableInfo.theOf(
+          input.builder(),
+          input.copy(),
+          input.intern(),
+          input.prehash(),
+          input.singleton())
+          .withIsDefault(input.getAnnotationMirror().getElementValues().isEmpty());
+    }
+  }
+
+  enum ToStyleInfo implements Function<StyleMirror, StyleInfo> {
+    FUNCTION;
+    @Override
+    public StyleInfo apply(StyleMirror input) {
+      return ImmutableStyleInfo.of(input.get(),
+          input.init(),
+          input.with(),
+          input.add(),
+          input.addAll(),
+          input.put(),
+          input.putAll(),
+          input.copyOf(),
+          input.of(),
+          input.instance(),
+          input.builder(),
+          input.newBuilder(),
+          input.from(),
+          input.build(),
+          input.typeBuilder(),
+          input.typeAbstract(),
+          input.typeImmutable(),
+          input.typeImmutableEnclosing(),
+          input.typeImmutableNested(),
+          ToImmutableInfo.FUNCTION.apply(input.defaults()),
+          input.strictBuilder(),
+          input.visibility(),
+          input.jdkOnly());
     }
   }
 }

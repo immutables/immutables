@@ -20,7 +20,7 @@ import org.immutables.mirror.Mirror;
 
 public final class ValueMirrors {
   private ValueMirrors() {}
-  
+
   @Mirror.Annotation("org.immutables.value.Value")
   public @interface ValueUmbrella {}
 

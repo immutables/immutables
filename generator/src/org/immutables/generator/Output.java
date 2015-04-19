@@ -297,12 +297,12 @@ public final class Output {
           writer.append(sourceCode);
         }
       } catch (FilerException ex) {
-        if (!identicalFileIsAlreadyGenerated(sourceCode)) {
-          getMessager().printMessage(Kind.ERROR,
-              "Generated source file name collission. Attempt to overwrite already generated file: " + key);
+        if (identicalFileIsAlreadyGenerated(sourceCode)) {
+          getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
         } else {
-          getMessager().printMessage(Kind.MANDATORY_WARNING,
-              "Regenerated file with the same content: " + key);
+          getMessager().printMessage(Kind.ERROR, String.format(
+                  "Generated source file name collission. Attempt to overwrite already generated file: %s, %s",
+                  key, ex));
         }
       } catch (IOException ex) {
         throw Throwables.propagate(ex);
@@ -312,10 +312,14 @@ public final class Output {
     private boolean identicalFileIsAlreadyGenerated(CharSequence sourceCode) {
       try {
         String existingContent = new CharSource() {
+          final String packagePath = !key.packageName.isEmpty() ? (key.packageName.replace('.', '/') + '/') : "";
+          final String filename = key.relativeName + ".java";
+
           @Override
           public Reader openStream() throws IOException {
             return getFiler()
-                .getResource(StandardLocation.SOURCE_OUTPUT, key.packageName, key.relativeName)
+                .getResource(StandardLocation.SOURCE_OUTPUT,
+                    "", packagePath + filename)
                 .openReader(true);
           }
         }.read();

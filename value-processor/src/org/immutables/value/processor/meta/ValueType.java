@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import static com.google.common.base.MoreObjects.*;
-import com.google.common.base.MoreObjects;
-import org.immutables.generator.SourceExtraction;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -47,6 +44,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.NameForms;
@@ -273,7 +271,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return isUseConstructor() && !isUseBuilder();
   }
 
-  public ImmutableMirror immutableFeatures;
+  public ValueImmutableInfo immutableFeatures;
 
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()

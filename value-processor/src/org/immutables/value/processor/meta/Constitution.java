@@ -148,7 +148,7 @@ public abstract class Constitution {
         .build();
   }
 
-  public StyleMirror style() {
+  public StyleInfo style() {
     return protoclass().styles().style();
   }
 
