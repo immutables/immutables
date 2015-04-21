@@ -318,6 +318,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
  * Creates immutable copy of {@link [type.typeAbstract.relative]}.
  * Uses accessors to get values to initialize immutable instance.
  * If an instance is already immutable, it is returned as is.
+ * @return copyind immutable [type.name] instance
  */
 [type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
