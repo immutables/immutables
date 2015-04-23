@@ -59,6 +59,25 @@ public abstract class Constitution {
     return protoclass().createTypeNames();
   }
 
+  @Value.Lazy
+  public NameForms typeDocument() {
+    if (protoclass().kind().isValue()) {
+      if (!returnsAbstractValueType()
+          && protoclass().visibility().isMoreRestrictiveThan(implementationVisibility())) {
+        return typeImmutable();
+      }
+      return typeAbstract();
+    }
+    return typeValue();
+  }
+
+  public boolean isSimple() {
+    return protoclass().kind().isValue()
+        && !protoclass().kind().isNested()
+        && implementationVisibility().isPublic()
+        && !returnsAbstractValueType();
+  }
+
   /**
    * Value is the canonical outside look of the value type. It should be either
    * {@link #typeAbstract()} or {@link #typeImmutable()}.

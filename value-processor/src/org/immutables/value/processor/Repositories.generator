@@ -39,7 +39,7 @@ import [starImport];
 @javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe
-[type.typeAbstract.access]final class [type.name]Repository extends Repositories.Repository<[type.typeAbstract]> {
+[type.typeDocument.access]final class [type.name]Repository extends Repositories.Repository<[type.typeDocument]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
   private final Serialization serialization;
@@ -50,7 +50,7 @@ import [starImport];
    * @param configuration the repository configuration
    */
   public [type.name]Repository(RepositorySetup configuration) {
-    super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeAbstract].class);
+    super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeDocument].class);
     this.serialization = new Serialization(getGson());
     this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
@@ -60,7 +60,7 @@ import [starImport];
    * @param document [toLower type.name] to insert
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
-  public FluentFuture<Integer> insert([type.typeAbstract] document) {
+  public FluentFuture<Integer> insert([type.typeDocument] document) {
     return super.doInsert(com.google.common.collect.ImmutableList.of(document));
   }
 
@@ -69,7 +69,7 @@ import [starImport];
    * @param documents documents to insert
    * @return future of number of inserted documents if WriteConcern allows.
    */
-  public FluentFuture<Integer> insert(Iterable<? extends [type.typeAbstract]> documents) {
+  public FluentFuture<Integer> insert(Iterable<? extends [type.typeDocument]> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
 
@@ -112,7 +112,7 @@ import [starImport];
    * @param document [toLower type.name] to upsert
    * @return future of number of inserted documents (1) if WriteConcern allows.
    */
-  public FluentFuture<Integer> upsert([type.typeAbstract] document) {
+  public FluentFuture<Integer> upsert([type.typeDocument] document) {
     Criteria byId = criteria().[a.name](document.[a.names.get]());
     return super.doUpsert(byId.constraint, document);
   }
@@ -185,7 +185,7 @@ public Finder find(Criteria criteria) {
  * @see [type.name]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Finder extends Repositories.Finder<[type.typeAbstract], Finder> {
+public static final class Finder extends Repositories.Finder<[type.typeDocument], Finder> {
   private final Serialization serialization;
 
   private Finder([type.name]Repository repository, Constraints.ConstraintHost criteria) {
@@ -233,7 +233,7 @@ public Indexer index() {
  * @see DBCollection#ensureIndex(DBObject, DBObject)
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Indexer extends Repositories.Indexer<[type.typeAbstract], Indexer> {
+public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
   private final Serialization serialization;
 
   private Indexer([type.name]Repository repository) {
@@ -280,7 +280,7 @@ public Updater update(Criteria criteria) {
  * update operation on a set of documents.
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Updater extends Repositories.Updater<[type.typeAbstract]> {
+public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
   private final Serialization serialization;
 
   private Updater([type.name]Repository repository, Criteria criteria) {
@@ -295,7 +295,7 @@ public static final class Updater extends Repositories.Updater<[type.typeAbstrac
 [template generateModifier Type type]
 
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Modifier extends Repositories.Modifier<[type.typeAbstract], Modifier> {
+public static final class Modifier extends Repositories.Modifier<[type.typeDocument], Modifier> {
   private final Serialization serialization;
 
   private Modifier(
@@ -734,7 +734,7 @@ private static class Serialization {
   [/for]
     org.immutables.gson.adapter.FieldNamingTranslator fieldNaming = new org.immutables.gson.adapter.FieldNamingTranslator(gson);
   [for a in allAttributes]
-    this.[a.name]Name = fieldNaming.translateName([type.typeAbstract].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
+    this.[a.name]Name = fieldNaming.translateName([type.typeDocument].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
   [/for]
   }
 }

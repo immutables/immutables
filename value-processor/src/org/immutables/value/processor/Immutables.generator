@@ -318,7 +318,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
  * Creates immutable copy of {@link [type.typeAbstract.relative]}.
  * Uses accessors to get values to initialize immutable instance.
  * If an instance is already immutable, it is returned as is.
- * @return copyind immutable [type.name] instance
+ * @return copied immutable [type.name] instance
  */
 [type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
@@ -822,7 +822,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * Builds new {@link [type.typeValue]}.
    * @return immutable instance of [type.name]
    */
-  public [type.typeValue] [type.names.build]() {
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]() {
   [if positions.longs]
     checkRequiredAttributes();
   [/if]
@@ -1231,7 +1231,9 @@ public int hashCode() {
 [else]
 
 /**
-[if type.usePrehashed]
+[if not getters]
+ * Returns constant hash code value.
+[else if type.usePrehashed]
  * Returns precomputed on construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
  * Computes hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].

@@ -120,6 +120,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeValue();
   }
 
+  public NameForms typeDocument() {
+    return constitution.typeDocument();
+  }
+
   public NameForms typeImmutable() {
     return constitution.typeImmutable();
   }
