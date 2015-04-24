@@ -287,11 +287,13 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   private String getLocationString() {
     JsonLocation l = parser.getCurrentLocation();
-    return new StringBuilder("[")
-        .append("byte: ").append(l.getByteOffset())
-        .append("line: ").append(l.getLineNr())
-        .append("column: ").append(l.getColumnNr())
-        .append("]").toString();
+    List<String> parts = new ArrayList<>();
+    parts.add("line: " + l.getLineNr());
+    parts.add("column: " + l.getColumnNr());
+    if (l.getByteOffset() >= 0) {
+      parts.add("byte offset: " + l.getByteOffset());
+    }
+    return parts.toString();
   }
 
   static String toJsonPath(JsonStreamContext context) {
@@ -302,11 +304,9 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
       } else if (c.inObject()) {
         builder.insert(0, "." + c.getCurrentName());
       } else if (c.inRoot()) {
-        if (builder.length() > 0 && builder.charAt(0) == '.') {
-          builder.deleteCharAt(0);
-        }
+        builder.insert(0, "$");
       }
     }
-    return builder.insert(0, "$").toString();
+    return builder.toString();
   }
 }
