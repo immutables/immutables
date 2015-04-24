@@ -1,6 +1,5 @@
 package org.immutables.generator;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.CharStreams;
@@ -30,14 +29,17 @@ public final class SourceExtraction {
     public final ImmutableMap<String, String> classes;
 
     private Imports(Set<String> all, Map<String, String> classes) {
-      Preconditions.checkState(all.size() >= classes.size());
       this.all = ImmutableSet.copyOf(all);
       this.classes = ImmutableMap.copyOf(classes);
     }
 
     public static Imports of(Set<String> all, Map<String, String> classes) {
-      if (all.isEmpty()) {
+      if (all.isEmpty() && classes.isEmpty()) {
         return EMPTY;
+      }
+      if (!all.containsAll(classes.values())) {
+        // This check initially appeared as some imports might be skipped,
+        // but classes imported are tracked, but it should be not a problem
       }
       return new Imports(all, classes);
     }

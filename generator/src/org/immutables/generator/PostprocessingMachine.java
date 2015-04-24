@@ -331,7 +331,6 @@ final class PostprocessingMachine {
 
     void addOriginalImport(String name, String qualifiedName, String importedPackage) {
       originalImports.put(name, qualifiedName);
-
       if (!omittedImport(name, qualifiedName)) {
         imports.add(importedPackage);
       }
