@@ -15,7 +15,14 @@
  */
 package org.immutables.gson.stream;
 
+import com.google.common.base.Throwables;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -33,7 +40,6 @@ import static com.fasterxml.jackson.core.JsonToken.*;
  */
 @NotThreadSafe
 public class JsonParserReader extends JsonReader implements Callable<JsonParser> {
-
   private static final Reader UNSUPPORTED_READER = new Reader() {
     @Override
     public int read(char[] buffer, int offset, int count) {
@@ -190,11 +196,6 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
     clearPeek();
   }
 
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(" + parser.getCurrentLocation() + ")";
-  }
-
   public void promoteNameToValue() {
     throw new UnsupportedOperationException();
   }
@@ -257,5 +258,55 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   protected final void consumePeek() {
     clearPeek();
+  }
+
+  @Override
+  public String getPath() {
+    return toJsonPath(parser.getParsingContext());
+  }
+
+  @Override
+  public String toString() {
+    String nt = "\n\t";
+    return getClass().getSimpleName() + "()"
+        + nt + "path " + getPath()
+        + nt + "token " + getTokenString()
+        + nt + "at " + getLocationString();
+  }
+
+  private String getTokenString() {
+    if (parser.getCurrentToken() != null) {
+      try {
+        return "'" + parser.getText() + "'";
+      } catch (Exception ex) {
+        return "?";
+      }
+    }
+    return "";
+  }
+
+  private String getLocationString() {
+    JsonLocation l = parser.getCurrentLocation();
+    return new StringBuilder("[")
+        .append("byte: ").append(l.getByteOffset())
+        .append("line: ").append(l.getLineNr())
+        .append("column: ").append(l.getColumnNr())
+        .append("]").toString();
+  }
+
+  static String toJsonPath(JsonStreamContext context) {
+    StringBuilder builder = new StringBuilder();
+    for (JsonStreamContext c = context; c != null; c = c.getParent()) {
+      if (c.inArray()) {
+        builder.insert(0, "[" + c.getCurrentIndex() + "]");
+      } else if (c.inObject()) {
+        builder.insert(0, "." + c.getCurrentName());
+      } else if (c.inRoot()) {
+        if (builder.length() > 0 && builder.charAt(0) == '.') {
+          builder.deleteCharAt(0);
+        }
+      }
+    }
+    return builder.insert(0, "$").toString();
   }
 }
