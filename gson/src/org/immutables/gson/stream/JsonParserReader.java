@@ -15,11 +15,6 @@
  */
 package org.immutables.gson.stream;
 
-import com.google.common.base.Throwables;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
 import com.fasterxml.jackson.core.JsonLocation;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -28,6 +23,8 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -267,11 +264,15 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   @Override
   public String toString() {
-    String nt = "\n\t";
-    return getClass().getSimpleName() + "()"
-        + nt + "path " + getPath()
-        + nt + "token " + getTokenString()
-        + nt + "at " + getLocationString();
+    return getClass().getSimpleName() + "(" + parser + ")";
+  }
+
+  public String[] getLocationInfo() {
+    return new String[] {
+        "path " + getPath(),
+        "token " + getTokenString(),
+        "at " + getLocationString()
+    };
   }
 
   private String getTokenString() {
@@ -287,7 +288,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
 
   private String getLocationString() {
     JsonLocation l = parser.getCurrentLocation();
-    List<String> parts = new ArrayList<>();
+    List<String> parts = new ArrayList<>(4);
     parts.add("line: " + l.getLineNr());
     parts.add("column: " + l.getColumnNr());
     if (l.getByteOffset() >= 0) {
@@ -302,11 +303,33 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
       if (c.inArray()) {
         builder.insert(0, "[" + c.getCurrentIndex() + "]");
       } else if (c.inObject()) {
-        builder.insert(0, "." + c.getCurrentName());
+        String name = c.getCurrentName();
+        if (isAsciiIdentifierPath(name)) {
+          builder.insert(0, "." + name);
+        } else {
+          builder.insert(0, "['" + name + "']");
+        }
       } else if (c.inRoot()) {
         builder.insert(0, "$");
       }
     }
     return builder.toString();
+  }
+
+  private static boolean isAsciiIdentifierPath(String name) {
+    char[] cs = name.toCharArray();
+    if (cs.length == 0) {
+      return false;
+    }
+    for (int i = 0; i < cs.length; i++) {
+      char c = cs[i];
+      if ((c != '_')
+          && (c < 'A' || c > 'Z')
+          && (c < 'a' || c > 'z')
+          && (c < '0' || c > '9' || i == 0)) {
+        return false;
+      }
+    }
+    return true;
   }
 }

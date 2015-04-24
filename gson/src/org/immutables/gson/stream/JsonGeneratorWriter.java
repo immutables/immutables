@@ -147,9 +147,11 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
 
   @Override
   public String toString() {
-    String nt = "\n\t";
-    return getClass().getSimpleName() + "()"
-        + nt + "path " + getPath();
+    return getClass().getSimpleName() + "(" + generator + ")";
+  }
+
+  public String[] getLocationInfo() {
+    return new String[] {"path " + getPath()};
   }
 
   /**

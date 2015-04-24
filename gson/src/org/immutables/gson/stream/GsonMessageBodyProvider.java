@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.stream;
 
+import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -144,11 +145,10 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     try {
       return streamer.read(gson, genericType, entityStream);
     } catch (IOException ex) {
-      // Experimental
       if (ex.getCause() instanceof RuntimeException) {
         String json = gson.toJson(new Error(ex.getCause().getMessage()));
         throw new WebApplicationException(
-            Response.status(400)
+            Response.status(Status.BAD_REQUEST)
                 .type(mediaType)
                 .entity(json)
                 .build());
@@ -160,8 +160,11 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
   static class Error {
     final String error;
 
-    Error(String error) {
+//    final String[] location;
+
+    Error(String error) {// , String[] location) {
       this.error = error;
+//      this.location = location;
     }
   }
 
