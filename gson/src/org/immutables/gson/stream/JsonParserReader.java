@@ -303,8 +303,10 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
       if (c.inArray()) {
         builder.insert(0, "[" + c.getCurrentIndex() + "]");
       } else if (c.inObject()) {
-        String name = c.getCurrentName();
-        if (isAsciiIdentifierPath(name)) {
+        @Nullable String name = c.getCurrentName();
+        if (name == null || name.isEmpty()) {
+          builder.insert(0, "[]");
+        } else if (isAsciiIdentifierPath(name)) {
           builder.insert(0, "." + name);
         } else {
           builder.insert(0, "['" + name + "']");
@@ -317,12 +319,8 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   }
 
   private static boolean isAsciiIdentifierPath(String name) {
-    char[] cs = name.toCharArray();
-    if (cs.length == 0) {
-      return false;
-    }
-    for (int i = 0; i < cs.length; i++) {
-      char c = cs[i];
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
       if ((c != '_')
           && (c < 'A' || c > 'Z')
           && (c < 'a' || c > 'z')
