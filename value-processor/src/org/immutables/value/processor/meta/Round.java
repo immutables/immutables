@@ -55,7 +55,6 @@ public abstract class Round {
 
     DeclaringPackage forPackage(DeclaringPackage declaringPackage) {
       return packageInterner.intern(declaringPackage);
-
     }
 
     DeclaringType forType(DeclaringType declaringType) {
