@@ -94,7 +94,7 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
    *         or the original input's failure (if not)
    * @see Futures#transform(ListenableFuture, AsyncFunction)
    */
-  <T> FluentFuture<T> transform(AsyncFunction<? super V, ? extends T> function);
+  <T> FluentFuture<T> asyncTransform(AsyncFunction<? super V, ? extends T> function);
 
   /**
    * Lazily transformed future value.

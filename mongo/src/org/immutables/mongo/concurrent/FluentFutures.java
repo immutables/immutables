@@ -78,7 +78,7 @@ public final class FluentFutures {
     }
 
     @Override
-    public <T> FluentFuture<T> transform(AsyncFunction<? super V, ? extends T> function) {
+    public <T> FluentFuture<T> asyncTransform(AsyncFunction<? super V, ? extends T> function) {
       return from(Futures.transform(this, function, executor));
     }
 
