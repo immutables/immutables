@@ -1014,25 +1014,21 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
         : [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
       [/if]
   [/if]
-[else if v.generateDerived]
-  [if v.primitive or v.nullable]
-    this.[n] = [invokeSuper v].[v.names.get]();
-  [else]
-    this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
-  [/if]
 [/if]
 [/for]
+    [generateDerivedConstruction type]
     [generateAfterConstruction type true]
   }
 [/if]
 [if type.useCopyMethods]
 
   private [type.typeImmutable.simple]([output.linesShortable]
-      [type.typeImmutable.simple] original[for v in getters],
+      [type.typeImmutable.simple] original[for v in getters if not v.generateDerived],
       [v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
-  [for v in getters]
+  [for v in getters if not v.generateDerived]
     this.[v.name] = [v.name];
   [/for]
+    [generateDerivedConstruction type]
     [generateAfterConstruction type false]
   }
 [/if]
@@ -1047,6 +1043,16 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
 [if a.containingType.generateJacksonMapped]
 @com.fasterxml.jackson.annotation.JsonProperty("[a.marshaledName]")
 [/if]
+[/template]
+
+[template generateDerivedConstruction Type type]
+[for v in type.implementedAttributes if v.generateDerived]
+  [if v.primitive or v.nullable]
+this.[v.name] = [invokeSuper v].[v.names.get]();
+   [else]
+this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+  [/if]
+[/for]
 [/template]
 
 [template constructorAcceptType Attribute a][output.trim]
@@ -1316,7 +1322,7 @@ this.domain = Domain.get();
 
 [template generateReturnCopyContextual Type type Attribute modified]
 return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
-        this[for a in type.implementedAttributes],
+        this[for a in type.implementedAttributes if not a.generateDerived],
         [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
 [/template]
 

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import static org.immutables.check.Checkers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
@@ -48,7 +49,7 @@ public class ValuesTest {
 
     // customized hash code
     check(i1.hashCode()).is(0);
-    
+
     // due to overriden equals
     check(i1).same(ImmutableInternCustomHashCode.builder()
         .a(2)
@@ -310,6 +311,17 @@ public class ValuesTest {
     check(v.hashCode()).not(2);
     check(v.toString()).not("N");
     check(!v.equals("N"));
+  }
+
+  @Test
+  public void recalculateDerivedOnCopy() {
+    ImmutableWitherDerived value = ImmutableWitherDerived.builder()
+        .set(1)
+        .build();
+
+    check(value.derived()).is(value.set() + 1);
+    value = value.withSet(2);
+    check(value.derived()).is(value.set() + 1);
   }
 
   @Test
