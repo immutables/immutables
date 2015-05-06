@@ -22,6 +22,9 @@ Read full documentation at http://immutables.org
 
 Changelog
 ---------
+### 2.0.10 (2015-04-28)
+Bugfix release along with other 2.0.X. [Bugs](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.10)
+
 ### 2.0 (2015-03-24)
 Many thanks to all contributors who helped to make it happen.
 Thanks to the community for making feature requests, bug reports, questions and suggestions.

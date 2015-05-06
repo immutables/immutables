@@ -201,31 +201,6 @@ public class Proto {
         }
       }
 
-      if (name().equals("org.immutables.fixture.style")) {
-        TypeElement typeElement = environment().processing()
-            .getElementUtils().getTypeElement("org.immutables.fixture.style.OutsideBuildable");
-        List<? extends AnnotationMirror> annotationMirrors = null;
-
-        if (typeElement != null) {
-          environment().processing()
-              .getMessager()
-              .printMessage(javax.tools.Diagnostic.Kind.MANDATORY_WARNING,
-                  "&&& TYPEEL " + typeElement.getAnnotationMirrors());
-
-          annotationMirrors = typeElement.getEnclosingElement().getAnnotationMirrors();
-        }
-
-        environment().processing()
-            .getMessager()
-            .printMessage(javax.tools.Diagnostic.Kind.MANDATORY_WARNING,
-                "! NNNOOISH !!! "
-                    + name()
-                    + "   ANNMIRRORS   "
-                    + element().getAnnotationMirrors()
-                    + "  /ALT/"
-                    + annotationMirrors);
-      }
-
       return Optional.absent();
     }
   }
