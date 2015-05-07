@@ -422,7 +422,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
 [if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
-[type.typeBuilder.access][if not topLevel]static [/if]final class [type.typeBuilder.simple] [if type.hasAbstractBuilder]
+[type.typeBuilder.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilder.simple] [if type.innerBuilder.isSuper]
     extends [type.typeAbstract].Builder {[else]{[/if]
   [for l in positions.longs]
   private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
@@ -491,7 +491,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
     [/if]
   [/for]
 [else if useFactoryMethod]
-  private [type.typeBuilder.simple]() {}
+  [if not type.innerBuilder.isExtending]private [/if][type.typeBuilder.simple]() {}
   [if type.constitution.isOutsideBuilder]
 
   /**

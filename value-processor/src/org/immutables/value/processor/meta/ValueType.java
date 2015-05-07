@@ -301,25 +301,50 @@ public final class ValueType extends TypeIntrospectionBase {
     // || isGenerateOrdinalValue()
   }
 
-  private Boolean hasAbstractBuilder;
+  @Nullable
+  private InnerBuilderDefinition innerBuilder;
 
-  public boolean isHasAbstractBuilder() {
-    if (hasAbstractBuilder == null) {
-      boolean abstractBuilderDeclared = false;
+  public InnerBuilderDefinition getInnerBuilder() {
+    if (innerBuilder == null) {
+      innerBuilder = new InnerBuilderDefinition();
+    }
+    return innerBuilder;
+  }
+
+  public final class InnerBuilderDefinition {
+    public final boolean isPresent;
+    public final boolean isExtending;
+    public final boolean isSuper;
+
+    InnerBuilderDefinition() {
+      @Nullable TypeElement builderElement = findBuilderElement();
+      boolean extending = false;
+      if (builderElement != null) {
+        // We do not handle here if builder class is abstract static and not private
+        // It's all to discretion compilation checking
+        TypeMirror superclass = builderElement.getSuperclass();
+        if (superclass.toString().equals(typeBuilder().relative())) {
+          // If we are extending yet to be generated builder, we detect it by having the same name
+          // as relative name of builder type
+          extending = true;
+        }
+      }
+      this.isPresent = builderElement != null;
+      this.isExtending = extending;
+      this.isSuper = this.isPresent && !extending;
+    }
+
+    @Nullable
+    TypeElement findBuilderElement() {
       for (Element t : element.getEnclosedElements()) {
         if (t.getKind() == ElementKind.CLASS) {
           if (t.getSimpleName().contentEquals(SUPER_BUILDER_TYPE_NAME)) {
-            // We do not handle here if builder class is abstract static and not private
-            // It's all to discretion compilation checking
-            abstractBuilderDeclared = true;
-            break;
+            return (TypeElement) t;
           }
         }
       }
-
-      hasAbstractBuilder = abstractBuilderDeclared;
+      return null;
     }
-    return hasAbstractBuilder;
   }
 
   public String getDocumentName() {
