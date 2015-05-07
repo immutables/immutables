@@ -1,16 +1,18 @@
 package org.immutables.generator;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.CharStreams;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.CharBuffer;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
@@ -39,7 +41,7 @@ public final class SourceExtraction {
       }
       if (!all.containsAll(classes.values())) {
         // This check initially appeared as some imports might be skipped,
-        // but classes imported are tracked, but it should be not a problem
+        // but all classes imported are tracked, but it should be not a problem
       }
       return new Imports(all, classes);
     }
@@ -51,13 +53,26 @@ public final class SourceExtraction {
     public boolean isEmpty() {
       return this == EMPTY;
     }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("all", all)
+          .add("classes", classes)
+          .toString();
+    }
   }
 
   public static Imports readImports(ProcessingEnvironment environment, TypeElement element) {
     try {
-      Imports imports = PostprocessingMachine.collectImports(SourceExtraction.extract(environment, element));
-      return imports;
-    } catch (IOException ex) {
+      return PostprocessingMachine.collectImports(
+          SourceExtraction.extract(environment, element));
+
+    } catch (IOException cannotReadSourceFile) {
+      environment.getMessager().printMessage(
+          Diagnostic.Kind.MANDATORY_WARNING,
+          String.format("Could not read source files to collect imports for %s: %s", element, cannotReadSourceFile));
+
       return Imports.empty();
     }
   }
@@ -76,9 +91,7 @@ public final class SourceExtraction {
       FileObject resource = environment.getFiler().getResource(
           StandardLocation.SOURCE_PATH, "", toFilename(element));
 
-      try (Reader reader = resource.openReader(true)) {
-        return CharStreams.toString(reader);
-      }
+      return resource.getCharContent(true);
     }
 
     private String toFilename(TypeElement element) {
@@ -87,6 +100,22 @@ public final class SourceExtraction {
   };
 
   private static final SourceExtractor EXTRACTOR = createExtractor();
+
+  private static final class JavacSourceExtractor implements SourceExtractor {
+    // Triggers loading of class that may be absent in classpath
+    static {
+      ClassSymbol.class.getCanonicalName();
+    }
+
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
+      if (typeElement instanceof ClassSymbol) {
+        JavaFileObject sourceFile = ((ClassSymbol) typeElement).sourcefile;
+        return sourceFile.getCharContent(true);
+      }
+      return DEFAULT_EXTRACTOR.extract(environment, typeElement);
+    }
+  }
 
   private static final class EclipseSourceExtractor implements SourceExtractor {
     // Triggers loading of class that may be absent in classpath
@@ -111,7 +140,11 @@ public final class SourceExtraction {
   private static SourceExtractor createExtractor() {
     try {
       return new EclipseSourceExtractor();
-    } catch (Throwable ex) {
+    } catch (Throwable eclipseClassesNotAwailable) {
+    }
+    try {
+      return new JavacSourceExtractor();
+    } catch (Throwable javacClassesNotAwailable) {
     }
     return DEFAULT_EXTRACTOR;
   }
