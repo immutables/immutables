@@ -3,9 +3,11 @@ package org.immutables.generator;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -71,7 +73,10 @@ public final class SourceExtraction {
     } catch (IOException cannotReadSourceFile) {
       environment.getMessager().printMessage(
           Diagnostic.Kind.MANDATORY_WARNING,
-          String.format("Could not read source files to collect imports for %s: %s", element, cannotReadSourceFile));
+          String.format("Could not read source files to collect imports for %s[%s.class]: %s",
+              element,
+              element.getClass().getName(),
+              cannotReadSourceFile));
 
       return Imports.empty();
     }
@@ -82,6 +87,8 @@ public final class SourceExtraction {
   }
 
   interface SourceExtractor {
+    CharSequence UNABLE_TO_EXTRACT = "";
+
     CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException;
   }
 
@@ -99,8 +106,6 @@ public final class SourceExtraction {
     }
   };
 
-  private static final SourceExtractor EXTRACTOR = createExtractor();
-
   private static final class JavacSourceExtractor implements SourceExtractor {
     // Triggers loading of class that may be absent in classpath
     static {
@@ -113,7 +118,7 @@ public final class SourceExtraction {
         JavaFileObject sourceFile = ((ClassSymbol) typeElement).sourcefile;
         return sourceFile.getCharContent(true);
       }
-      return DEFAULT_EXTRACTOR.extract(environment, typeElement);
+      return UNABLE_TO_EXTRACT;
     }
   }
 
@@ -133,19 +138,41 @@ public final class SourceExtraction {
           return CharBuffer.wrap(contents);
         }
       }
+      return UNABLE_TO_EXTRACT;
+    }
+  }
+
+  private static final class CompositeExtractor implements SourceExtractor {
+    private final SourceExtractor[] extractors;
+
+    CompositeExtractor(List<SourceExtractor> extractors) {
+      this.extractors = extractors.toArray(new SourceExtractor[extractors.size()]);
+    }
+
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
+      for (SourceExtractor extractor : extractors) {
+        CharSequence source = extractor.extract(environment, typeElement);
+        if (!source.equals(UNABLE_TO_EXTRACT)) {
+          return source;
+        }
+      }
       return DEFAULT_EXTRACTOR.extract(environment, typeElement);
     }
   }
 
   private static SourceExtractor createExtractor() {
+    List<SourceExtractor> extractors = Lists.newArrayListWithCapacity(2);
     try {
-      return new EclipseSourceExtractor();
-    } catch (Throwable eclipseClassesNotAwailable) {
-    }
-    try {
-      return new JavacSourceExtractor();
+      extractors.add(new JavacSourceExtractor());
     } catch (Throwable javacClassesNotAwailable) {
     }
-    return DEFAULT_EXTRACTOR;
+    try {
+      extractors.add(new EclipseSourceExtractor());
+    } catch (Throwable eclipseClassesNotAwailable) {
+    }
+    return new CompositeExtractor(extractors);
   }
+
+  private static final SourceExtractor EXTRACTOR = createExtractor();
 }
