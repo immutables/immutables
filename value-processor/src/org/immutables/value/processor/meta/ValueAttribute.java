@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
-import org.immutables.value.Value;
 import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
@@ -27,12 +24,17 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
@@ -43,7 +45,10 @@ import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
+import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceOrdering;
+import org.immutables.generator.SourceTypes;
+import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
@@ -931,6 +936,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     private ImmutableMap<String, String> sourceClassesImports;
     private final TypeMirror startType;
     private String rawTypeName;
+    private boolean ended;
+    @Nullable
+    private List<String> workaroundTypeParameters;
+    @Nullable
+    private String workaroundTypeString;
 
     TypeStringCollector() {
       this.startType = returnType;
@@ -950,10 +960,18 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         caseType(startType);
 
         ValueAttribute.this.hasSomeUnresolvedTypes = hasMaybeUnresolvedYetAfter;
-        ValueAttribute.this.returnTypeName = buffer.toString();
         ValueAttribute.this.rawTypeName = rawTypeName;
-        if (!typeParameterStrings.isEmpty()) {
-          ValueAttribute.this.typeParameters = ImmutableList.copyOf(typeParameterStrings);
+
+        if (workaroundTypeString != null && workaroundTypeString != null) {
+          ValueAttribute.this.returnTypeName = workaroundTypeString;
+          if (!typeParameterStrings.isEmpty()) {
+            ValueAttribute.this.typeParameters = ImmutableList.copyOf(workaroundTypeParameters);
+          }
+        } else {
+          ValueAttribute.this.returnTypeName = buffer.toString();
+          if (!typeParameterStrings.isEmpty()) {
+            ValueAttribute.this.typeParameters = ImmutableList.copyOf(typeParameterStrings);
+          }
         }
       }
     }
@@ -972,7 +990,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       if (isStartLevel(type)) {
         rawTypeName = typeName;
       }
-      // Currently type annotionas are not exposed in javac for nested type arguments,
+      // Currently type annotions are not exposed in javac for nested type arguments,
       // so we don't deal with them
       if (isStartLevel(type)) {
         insertTypeAnnotationsIfPresent(type, mark);
@@ -1025,7 +1043,42 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return annotationBuffer;
     }
 
+    private CharSequence readSourceReturnTypeString() {
+      if (element instanceof ExecutableElement) {
+        return SourceExtraction.getReturnTypeString((ExecutableElement) element);
+      }
+      return "";
+    }
+
+    private void tryToUseSourceInformationAsAWorkaround(CharSequence returnTypeString) {
+      workaroundTypeParameters = Lists.newArrayListWithExpectedSize(2);
+
+      Entry<String, List<String>> resolvedTypes = resolveTypes(SourceTypes.extract(returnTypeString));
+
+      rawTypeName = resolvedTypes.getKey();
+      workaroundTypeParameters.addAll(resolvedTypes.getValue());
+      workaroundTypeString = SourceTypes.stringify(resolvedTypes);
+    }
+
+    private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
+      String typeName = sourceTypes.getKey();
+      boolean assumedNotQualified = Ascii.isUpperCase(typeName.charAt(0));
+      if (assumedNotQualified) {
+        typeName = resolveIfPossible(typeName);
+      }
+      List<String> typeArguments = Lists.newArrayListWithCapacity(sourceTypes.getValue().size());
+      for (String typeArgument : sourceTypes.getValue()) {
+        String resolvedTypeArgument = SourceTypes.stringify(resolveTypes(SourceTypes.extract(typeArgument)));
+        typeArguments.add(resolvedTypeArgument);
+      }
+      return Maps.immutableEntry(typeName, typeArguments);
+    }
+
     void caseType(TypeMirror type) {
+      if (ended) {
+        // to prevent any recursive effects when using workaround
+        return;
+      }
       switch (type.getKind()) {
       case ERROR:
         Verify.verify(type instanceof DeclaredType);
@@ -1064,6 +1117,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           buffer.append("?");
         }
         break;
+      case TYPEVAR:
+        unresolvedTypeHasOccured = true;
+        CharSequence returnTypeString = readSourceReturnTypeString();
+        if (returnTypeString.length() > 0) {
+          tryToUseSourceInformationAsAWorkaround(returnTypeString);
+          ended = true;
+          break;
+        }
+        //$FALL-THROUGH$
       default:
         if (type.getKind().isPrimitive()) {
           List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);

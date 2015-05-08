@@ -273,7 +273,8 @@ final class AccessorAttributesCollector {
     // our target class could not define formal type parameters also.
     if (returnType.getKind() == TypeKind.TYPEVAR) {
       return asInheritedMemberReturnType(method);
-    } else if (returnType.getKind() == TypeKind.DECLARED) {
+    } else if (returnType.getKind() == TypeKind.DECLARED
+        || returnType.getKind() == TypeKind.ERROR) {
       if (!((DeclaredType) returnType).getTypeArguments().isEmpty()) {
         return asInheritedMemberReturnType(method);
       }

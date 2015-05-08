@@ -1,5 +1,6 @@
 package org.immutables.generator;
 
+import com.google.common.collect.Maps;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -7,19 +8,27 @@ import com.google.common.collect.Lists;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.io.IOException;
 import java.nio.CharBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
+import org.eclipse.jdt.internal.compiler.apt.model.ExecutableElementImpl;
+import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
+import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public final class SourceExtraction {
   private SourceExtraction() {}
@@ -90,6 +99,8 @@ public final class SourceExtraction {
     CharSequence UNABLE_TO_EXTRACT = "";
 
     CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException;
+
+    CharSequence extractReturnType(ExecutableElement executableElement);
   }
 
   private static final SourceExtractor DEFAULT_EXTRACTOR = new SourceExtractor() {
@@ -103,6 +114,11 @@ public final class SourceExtraction {
 
     private String toFilename(TypeElement element) {
       return element.getQualifiedName().toString().replace('.', '/') + ".java";
+    }
+
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      return UNABLE_TO_EXTRACT;
     }
   };
 
@@ -118,6 +134,11 @@ public final class SourceExtraction {
         JavaFileObject sourceFile = ((ClassSymbol) typeElement).sourcefile;
         return sourceFile.getCharContent(true);
       }
+      return UNABLE_TO_EXTRACT;
+    }
+
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
       return UNABLE_TO_EXTRACT;
     }
   }
@@ -140,6 +161,55 @@ public final class SourceExtraction {
       }
       return UNABLE_TO_EXTRACT;
     }
+
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      if (executableElement instanceof ExecutableElementImpl) {
+        Binding binding = ((ExecutableElementImpl) executableElement)._binding;
+        if (binding instanceof MethodBinding) {
+          MethodBinding methodBinding = (MethodBinding) binding;
+
+          @Nullable AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
+          if (sourceMethod != null) {
+            CharSequence rawType = getRawType(methodBinding);
+            char[] content = sourceMethod.compilationResult.compilationUnit.getContents();
+
+            int sourceEnd = methodBinding.sourceStart();// intentionaly
+            int sourceStart = scanForTheSourceStart(content, sourceEnd);
+
+            char[] methodTest = Arrays.copyOfRange(content, sourceStart, sourceEnd);
+
+            Entry<String, List<String>> extracted =
+                SourceTypes.extract(String.valueOf(methodTest));
+
+            return SourceTypes.stringify(
+                Maps.immutableEntry(rawType.toString(), extracted.getValue()));
+          }
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
+
+    private int scanForTheSourceStart(char[] content, int sourceEnd) {
+      int i = sourceEnd;
+      for (; i >= 0; i--) {
+        char c = content[i];
+        // FIXME how else I can scan?
+        if (c == '\n') {
+          return i;
+        }
+      }
+      return i;
+    }
+
+    private CharSequence getRawType(MethodBinding methodBinding) {
+      TypeBinding returnType = methodBinding.returnType;
+      char[] sourceName = returnType.sourceName();
+      if (sourceName == null) {
+        sourceName = new char[] {};
+      }
+      return CharBuffer.wrap(sourceName);
+    }
   }
 
   private static final class CompositeExtractor implements SourceExtractor {
@@ -159,6 +229,17 @@ public final class SourceExtraction {
       }
       return DEFAULT_EXTRACTOR.extract(environment, typeElement);
     }
+
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      for (SourceExtractor extractor : extractors) {
+        CharSequence source = extractor.extractReturnType(executableElement);
+        if (!source.equals(UNABLE_TO_EXTRACT)) {
+          return source;
+        }
+      }
+      return DEFAULT_EXTRACTOR.extractReturnType(executableElement);
+    }
   }
 
   private static SourceExtractor createExtractor() {
@@ -175,4 +256,8 @@ public final class SourceExtraction {
   }
 
   private static final SourceExtractor EXTRACTOR = createExtractor();
+
+  public static CharSequence getReturnTypeString(ExecutableElement method) {
+    return EXTRACTOR.extractReturnType(method);
+  }
 }

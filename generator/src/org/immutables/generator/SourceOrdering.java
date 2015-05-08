@@ -239,6 +239,10 @@ public final class SourceOrdering {
         String rightKey = ToSimpleName.FUNCTION.apply(right);
         Intratype leftIntratype = accessorOrderings.get(leftKey);
         Intratype rightIntratype = accessorOrderings.get(rightKey);
+        if (leftIntratype == null || rightIntratype == null) {
+          // FIXME figure out why it happens (null)
+          return Boolean.compare(leftIntratype == null, rightIntratype == null);
+        }
         return leftIntratype == rightIntratype
             ? leftIntratype.ordering.compare(leftKey, rightKey)
             : Integer.compare(leftIntratype.rank, rightIntratype.rank);
