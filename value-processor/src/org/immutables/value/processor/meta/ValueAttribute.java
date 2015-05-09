@@ -962,9 +962,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         ValueAttribute.this.hasSomeUnresolvedTypes = hasMaybeUnresolvedYetAfter;
         ValueAttribute.this.rawTypeName = rawTypeName;
 
-        if (workaroundTypeString != null && workaroundTypeString != null) {
+        if (workaroundTypeParameters != null && workaroundTypeString != null) {
           ValueAttribute.this.returnTypeName = workaroundTypeString;
-          if (!typeParameterStrings.isEmpty()) {
+          if (!workaroundTypeParameters.isEmpty()) {
             ValueAttribute.this.typeParameters = ImmutableList.copyOf(workaroundTypeParameters);
           }
         } else {
