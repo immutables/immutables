@@ -15,39 +15,24 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Ascii;
-import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.WildcardType;
-import org.immutables.generator.AnnotationMirrors;
-import org.immutables.generator.Naming;
-import org.immutables.generator.Naming.Preference;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.generator.SourceOrdering;
-import org.immutables.generator.SourceTypes;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
@@ -728,7 +713,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeName() {
-    new TypeStringCollector().processAndAssign();
+    TypeStringProvider provider = new TypeStringProvider(
+        returnType,
+        containingType.constitution.protoclass(),
+        element);
+
+    provider.process();
+
+    this.hasSomeUnresolvedTypes = provider.hasSomeUnresovedTypes();
+    this.rawTypeName = provider.rawTypeName();
+    this.returnTypeName = provider.returnTypeName();
+    this.typeParameters = provider.typeParameters();
   }
 
   private void initTypeKind() {
@@ -842,18 +837,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         report().annotationNamed(SwitchMirror.simpleName())
             .error("@%s annotation applicable only to enum parameters", SwitchMirror.simpleName());
       } else {
-        builderSwitcherModel = new SwitcherModel(switcher.get());
+        builderSwitcherModel = new SwitcherModel(switcher.get(), name(), containedTypeElement);
       }
     }
   }
 
   Reporter report() {
     return reporter.withElement(element);
-  }
-
-  @Override
-  public String toString() {
-    return "Attribute[" + name() + "]";
   }
 
   @Nullable
@@ -869,54 +859,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return builderSwitcherModel != null;
   }
 
-  public final class SwitcherModel {
-    private final Naming switcherNaming =
-        Naming.from(name()).requireNonConstant(Preference.SUFFIX);
-
-    public final ImmutableList<SwitchOption> options;
-    private final String defaultName;
-
-    SwitcherModel(SwitchMirror mirror) {
-      this.defaultName = mirror.defaultName();
-      this.options = constructOptions();
-    }
-
-    private ImmutableList<SwitchOption> constructOptions() {
-      ImmutableList.Builder<SwitchOption> builder = ImmutableList.builder();
-
-      for (Element v : SourceOrdering.getEnclosedElements(containedTypeElement)) {
-        if (v.getKind() == ElementKind.ENUM_CONSTANT) {
-          String name = v.getSimpleName().toString();
-          builder.add(new SwitchOption(name, defaultName.equals(name)));
-        }
-      }
-
-      return builder.build();
-    }
-
-    public boolean hasDefault() {
-      return !defaultName.isEmpty();
-    }
-
-    public final class SwitchOption {
-      public final boolean isDefault;
-      public final String constantName;
-      public final String switcherName;
-
-      public SwitchOption(String constantName, boolean isDefault) {
-        this.constantName = constantName;
-        this.switcherName = deriveSwitcherName(constantName);
-        this.isDefault = isDefault;
-      }
-
-      private String deriveSwitcherName(String constantName) {
-        return switcherNaming.apply(
-            CaseFormat.UPPER_UNDERSCORE.to(
-                CaseFormat.LOWER_CAMEL, constantName));
-      }
-    }
-  }
-
   public boolean hasForwardOnlyInitializer() {
     return isCollectionType() || isMapType();
   }
@@ -928,243 +870,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || (isPrimitive() && isGenerateDefault);
   }
 
-  private class TypeStringCollector {
-    StringBuilder buffer;
-    final List<String> typeParameterStrings = Lists.newArrayListWithCapacity(2);
-    boolean unresolvedTypeHasOccured;
-    boolean hasMaybeUnresolvedYetAfter;
-    private ImmutableMap<String, String> sourceClassesImports;
-    private final TypeMirror startType;
-    private String rawTypeName;
-    private boolean ended;
-    @Nullable
-    private List<String> workaroundTypeParameters;
-    @Nullable
-    private String workaroundTypeString;
-
-    TypeStringCollector() {
-      this.startType = returnType;
-    }
-
-    void processAndAssign() {
-      if (startType.getKind().isPrimitive()) {
-        String typeName = Ascii.toLowerCase(startType.getKind().name());
-        ValueAttribute.this.rawTypeName = typeName;
-        ValueAttribute.this.returnTypeName = typeName;
-        List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(startType);
-        if (!annotations.isEmpty()) {
-          ValueAttribute.this.returnTypeName = typeAnnotationsToBuffer(annotations).append(typeName).toString();
-        }
-      } else {
-        buffer = new StringBuilder(100);
-        caseType(startType);
-
-        ValueAttribute.this.hasSomeUnresolvedTypes = hasMaybeUnresolvedYetAfter;
-        ValueAttribute.this.rawTypeName = rawTypeName;
-
-        if (workaroundTypeParameters != null && workaroundTypeString != null) {
-          ValueAttribute.this.returnTypeName = workaroundTypeString;
-          if (!workaroundTypeParameters.isEmpty()) {
-            ValueAttribute.this.typeParameters = ImmutableList.copyOf(workaroundTypeParameters);
-          }
-        } else {
-          ValueAttribute.this.returnTypeName = buffer.toString();
-          if (!typeParameterStrings.isEmpty()) {
-            ValueAttribute.this.typeParameters = ImmutableList.copyOf(typeParameterStrings);
-          }
-        }
-      }
-    }
-
-    private void appendResolved(DeclaredType type) {
-      int mark = buffer.length();
-      TypeElement typeElement = (TypeElement) type.asElement();
-      String typeName = typeElement.getQualifiedName().toString();
-      if (unresolvedTypeHasOccured) {
-        boolean assumedNotQualified = Ascii.isUpperCase(typeName.charAt(0));
-        if (assumedNotQualified) {
-          typeName = resolveIfPossible(typeName);
-        }
-      }
-      buffer.append(typeName);
-      if (isStartLevel(type)) {
-        rawTypeName = typeName;
-      }
-      // Currently type annotions are not exposed in javac for nested type arguments,
-      // so we don't deal with them
-      if (isStartLevel(type)) {
-        insertTypeAnnotationsIfPresent(type, mark);
-      }
-    }
-
-    private String resolveIfPossible(String typeName) {
-      String resolvable = typeName;
-      int indexOfDot = resolvable.indexOf('.');
-      if (indexOfDot > 0) {
-        resolvable = resolvable.substring(0, indexOfDot);
-      }
-      @Nullable String resolved = getFromSourceImports(resolvable);
-      if (resolved != null) {
-        if (indexOfDot > 0) {
-          typeName = resolved + '.' + resolvable.substring(indexOfDot + 1);
-        } else {
-          typeName = resolved;
-        }
-      } else {
-        hasMaybeUnresolvedYetAfter = true;
-      }
-      return typeName;
-    }
-
-    @Nullable
-    private String getFromSourceImports(String resolvable) {
-      if (sourceClassesImports == null) {
-        sourceClassesImports = containingType.constitution.protoclass().sourceImports().classes;
-      }
-      return sourceClassesImports.get(resolvable);
-    }
-
-    private void insertTypeAnnotationsIfPresent(DeclaredType type, int mark) {
-      List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
-      if (!annotations.isEmpty()) {
-        StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations);
-        int insertionIndex = mark + buffer.substring(mark).lastIndexOf(".") + 1;
-        buffer.insert(insertionIndex, annotationBuffer);
-      }
-    }
-
-    private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations) {
-      StringBuilder annotationBuffer = new StringBuilder(100);
-      for (AnnotationMirror annotationMirror : annotations) {
-        annotationBuffer
-            .append(AnnotationMirrors.toCharSequence(annotationMirror))
-            .append(' ');
-      }
-      return annotationBuffer;
-    }
-
-    private CharSequence readSourceReturnTypeString() {
-      if (element instanceof ExecutableElement) {
-        return SourceExtraction.getReturnTypeString((ExecutableElement) element);
-      }
-      return "";
-    }
-
-    private void tryToUseSourceInformationAsAWorkaround(CharSequence returnTypeString) {
-      workaroundTypeParameters = Lists.newArrayListWithExpectedSize(2);
-
-      Entry<String, List<String>> resolvedTypes = resolveTypes(SourceTypes.extract(returnTypeString));
-
-      rawTypeName = resolvedTypes.getKey();
-      workaroundTypeParameters.addAll(resolvedTypes.getValue());
-      workaroundTypeString = SourceTypes.stringify(resolvedTypes);
-    }
-
-    private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
-      String typeName = sourceTypes.getKey();
-      boolean assumedNotQualified = Ascii.isUpperCase(typeName.charAt(0));
-      if (assumedNotQualified) {
-        typeName = resolveIfPossible(typeName);
-      }
-      List<String> typeArguments = Lists.newArrayListWithCapacity(sourceTypes.getValue().size());
-      for (String typeArgument : sourceTypes.getValue()) {
-        String resolvedTypeArgument = SourceTypes.stringify(resolveTypes(SourceTypes.extract(typeArgument)));
-        typeArguments.add(resolvedTypeArgument);
-      }
-      return Maps.immutableEntry(typeName, typeArguments);
-    }
-
-    void caseType(TypeMirror type) {
-      if (ended) {
-        // to prevent any recursive effects when using workaround
-        return;
-      }
-      switch (type.getKind()) {
-      case ERROR:
-        Verify.verify(type instanceof DeclaredType);
-        unresolvedTypeHasOccured = true;
-        //$FALL-THROUGH$
-      case DECLARED:
-        DeclaredType declaredType = (DeclaredType) type;
-        appendResolved(declaredType);
-        appendTypeArguments(type, declaredType);
-        break;
-      case ARRAY:
-        TypeMirror componentType = ((ArrayType) type).getComponentType();
-        int mark = buffer.length();
-        caseType(componentType);
-        cutTypeArgument(type, mark);
-        // It's seems that array type annotations are not exposed in javac
-        /*
-        List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
-        if (!annotations.isEmpty()) {
-          buffer.append(' ').append(typeAnnotationsToBuffer(annotations));
-        }
-        */
-        buffer.append("[]");
-        break;
-      case WILDCARD:
-        WildcardType wildcard = (WildcardType) type;
-        @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
-        @Nullable TypeMirror superBound = wildcard.getSuperBound();
-        if (extendsBound != null) {
-          buffer.append("? extends ");
-          caseType(extendsBound);
-        } else if (superBound != null) {
-          buffer.append("? super ");
-          caseType(superBound);
-        } else {
-          buffer.append("?");
-        }
-        break;
-      case TYPEVAR:
-        unresolvedTypeHasOccured = true;
-        CharSequence returnTypeString = readSourceReturnTypeString();
-        if (returnTypeString.length() > 0) {
-          tryToUseSourceInformationAsAWorkaround(returnTypeString);
-          ended = true;
-          break;
-        }
-        //$FALL-THROUGH$
-      default:
-        if (type.getKind().isPrimitive()) {
-          List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
-          if (!annotations.isEmpty()) {
-            buffer.append(typeAnnotationsToBuffer(annotations)).append(' ');
-          }
-          buffer.append(type);
-        } else {
-          buffer.append(type);
-        }
-      }
-    }
-
-    private void appendTypeArguments(TypeMirror type, DeclaredType declaredType) {
-      List<? extends TypeMirror> arguments = declaredType.getTypeArguments();
-      if (!arguments.isEmpty()) {
-        buffer.append('<');
-        boolean notFirst = false;
-        for (TypeMirror argument : arguments) {
-          if (notFirst) {
-            buffer.append(", ");
-          }
-          notFirst = true;
-          int mark = buffer.length();
-          caseType(argument);
-          cutTypeArgument(type, mark);
-        }
-        buffer.append('>');
-      }
-    }
-
-    private void cutTypeArgument(TypeMirror type, int mark) {
-      if (isStartLevel(type)) {
-        typeParameterStrings.add(buffer.substring(mark));
-      }
-    }
-
-    boolean isStartLevel(TypeMirror type) {
-      return startType == type;
-    }
+  @Override
+  public String toString() {
+    return "Attribute[" + name() + "]";
   }
 }
