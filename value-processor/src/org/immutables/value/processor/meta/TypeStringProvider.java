@@ -1,7 +1,6 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
-import com.google.common.base.Verify;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -11,10 +10,12 @@ import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
@@ -55,9 +56,7 @@ class TypeStringProvider {
   }
 
   String returnTypeName() {
-    return workaroundTypeString != null
-        ? workaroundTypeString
-        : returnTypeName;
+    return returnTypeName;
   }
 
   boolean hasSomeUnresovedTypes() {
@@ -72,6 +71,7 @@ class TypeStringProvider {
 
   void process() {
     if (startType.getKind().isPrimitive()) {
+      // taking a shortcut for primitives
       String typeName = Ascii.toLowerCase(startType.getKind().name());
       this.rawTypeName = typeName;
       this.returnTypeName = typeName;
@@ -83,14 +83,25 @@ class TypeStringProvider {
       this.buffer = new StringBuilder(100);
       caseType(startType);
 
-      this.returnTypeName = workaroundTypeString != null
-          ? workaroundTypeString
-          : buffer.toString();
+      if (workaroundTypeString != null) {
+        // to not mix the mess, we just replace buffer with workaround produced type string
+        this.buffer = new StringBuilder(workaroundTypeString);
+      }
+
+      // It's seems that array type annotations are not exposed in javac
+      // Nested type argument's type annotations are not exposed as well (in javac)
+      // So currently we instert only for top level, declared type (here),
+      // and primitives (see above)
+      TypeKind k = startType.getKind();
+      if (k == TypeKind.DECLARED || k == TypeKind.ERROR) {
+        insertTypeAnnotationsIfPresent(startType, 0, rawTypeName.length());
+      }
+
+      this.returnTypeName = buffer.toString();
     }
   }
 
   private void appendResolved(DeclaredType type) {
-    int mark = buffer.length();
     TypeElement typeElement = (TypeElement) type.asElement();
     String typeName = typeElement.getQualifiedName().toString();
     if (unresolvedTypeHasOccured) {
@@ -100,13 +111,8 @@ class TypeStringProvider {
       }
     }
     buffer.append(typeName);
-    if (isStartLevel(type)) {
+    if (startType == type) {
       rawTypeName = typeName;
-    }
-    // Currently type annotions are not exposed in javac for nested type arguments,
-    // so we don't deal with them
-    if (isStartLevel(type)) {
-      insertTypeAnnotationsIfPresent(type, mark);
     }
   }
 
@@ -137,11 +143,11 @@ class TypeStringProvider {
     return sourceClassesImports.get(resolvable);
   }
 
-  private void insertTypeAnnotationsIfPresent(DeclaredType type, int mark) {
+  private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
     List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
     if (!annotations.isEmpty()) {
       StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations);
-      int insertionIndex = mark + buffer.substring(mark).lastIndexOf(".") + 1;
+      int insertionIndex = typeStart + buffer.substring(typeStart, typeEnd).lastIndexOf(".") + 1;
       buffer.insert(insertionIndex, annotationBuffer);
     }
   }
@@ -156,21 +162,31 @@ class TypeStringProvider {
     return annotationBuffer;
   }
 
-  private CharSequence readSourceReturnTypeString() {
-    if (element instanceof ExecutableElement) {
-      return SourceExtraction.getReturnTypeString((ExecutableElement) element);
+  private boolean tryToUseSourceAsAWorkaround() {
+    if (element.getKind() != ElementKind.METHOD) {
+      // we don't bother with non-method attributes
+      // (like factory builder, where attributes are parameters)
+      return false;
     }
-    return "";
-  }
 
-  private void tryToUseSourceInformationAsAWorkaround(CharSequence returnTypeString) {
-    workaroundTypeParameters = Lists.newArrayListWithExpectedSize(2);
+    CharSequence returnTypeString = SourceExtraction.getReturnTypeString((ExecutableElement) element);
+    if (returnTypeString.length() == 0) {
+      // no source could be extracted for some reason, workaround will not work
+      return false;
+    }
 
-    Entry<String, List<String>> resolvedTypes = resolveTypes(SourceTypes.extract(returnTypeString));
+    Entry<String, List<String>> extractedTypes = SourceTypes.extract(returnTypeString);
 
-    rawTypeName = resolvedTypes.getKey();
-    workaroundTypeParameters.addAll(resolvedTypes.getValue());
-    workaroundTypeString = SourceTypes.stringify(resolvedTypes);
+    // forces source imports based resolution,
+    // we should not rely that types would be fully qualified
+    Entry<String, List<String>> resolvedTypes = resolveTypes(extractedTypes);
+
+    this.rawTypeName = resolvedTypes.getKey();
+    this.workaroundTypeParameters = resolvedTypes.getValue();
+    this.workaroundTypeString = SourceTypes.stringify(resolvedTypes);
+
+    // workaround may have successed, need to continue with whatever we have
+    return true;
   }
 
   private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
@@ -194,7 +210,6 @@ class TypeStringProvider {
     }
     switch (type.getKind()) {
     case ERROR:
-      Verify.verify(type instanceof DeclaredType);
       unresolvedTypeHasOccured = true;
       //$FALL-THROUGH$
     case DECLARED:
@@ -207,14 +222,7 @@ class TypeStringProvider {
       int mark = buffer.length();
       caseType(componentType);
       cutTypeArgument(type, mark);
-      // It's seems that array type annotations are not exposed in javac
-      /*
-      List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
-      if (!annotations.isEmpty()) {
-        buffer.append(' ').append(typeAnnotationsToBuffer(annotations));
-      }
-      */
-      buffer.append("[]");
+      buffer.append('[').append(']');
       break;
     case WILDCARD:
       WildcardType wildcard = (WildcardType) type;
@@ -227,28 +235,30 @@ class TypeStringProvider {
         buffer.append("? super ");
         caseType(superBound);
       } else {
-        buffer.append("?");
+        buffer.append('?');
       }
       break;
     case TYPEVAR:
-      unresolvedTypeHasOccured = true;
-      CharSequence returnTypeString = readSourceReturnTypeString();
-      if (returnTypeString.length() > 0) {
-        tryToUseSourceInformationAsAWorkaround(returnTypeString);
+      // this workaround breaks this recursive flow, so we set up
+      // ended flag
+
+      if (tryToUseSourceAsAWorkaround()) {
         ended = true;
         break;
       }
-      //$FALL-THROUGH$
+
+      protoclass.report()
+          .withElement(element)
+          .error("It is a compiler/annotation processing bug to receive type variables '%s' here."
+              + " To avoid it — do not use not yet generated types in %s attribute",
+              type,
+              element.getSimpleName());
+
+      // just append as toString whatever we have
+      buffer.append(type);
+      break;
     default:
-      if (type.getKind().isPrimitive()) {
-        List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
-        if (!annotations.isEmpty()) {
-          buffer.append(typeAnnotationsToBuffer(annotations)).append(' ');
-        }
-        buffer.append(type);
-      } else {
-        buffer.append(type);
-      }
+      buffer.append(type);
     }
   }
 
@@ -259,7 +269,7 @@ class TypeStringProvider {
       boolean notFirst = false;
       for (TypeMirror argument : arguments) {
         if (notFirst) {
-          buffer.append(", ");
+          buffer.append(',').append(' ');
         }
         notFirst = true;
         int mark = buffer.length();
@@ -271,12 +281,8 @@ class TypeStringProvider {
   }
 
   private void cutTypeArgument(TypeMirror type, int mark) {
-    if (isStartLevel(type)) {
+    if (startType == type) {
       typeParameterStrings.add(buffer.substring(mark));
     }
-  }
-
-  boolean isStartLevel(TypeMirror type) {
-    return startType == type;
   }
 }
