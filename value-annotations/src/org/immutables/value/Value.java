@@ -501,6 +501,34 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
+     * When {@code true} &mdash; all attributes are considered as they are annotated with
+     * {@link Value.Parameter}. Explicit {@link Value.Parameter} could then be used to specify
+     * order, but otherwise will not make any difference, if order is not specified, source
+     * definition order is used as expected. This style could be used to create special
+     * tuple-style annotations:
+     * 
+     * <pre>
+     * {@literal @}Value.Style(
+     *     typeImmutable = "*Tuple",
+     *     allParameters = true,
+     *     defaults = {@literal @}Value.Immutable(builder = false))
+     * public @interface Tuple {}
+     * 
+     * {@literal @}Tuple
+     * {@literal @}Value.Immutable
+     * interface Color {
+     *   int red();
+     *   int green();
+     *   int blue();
+     * }
+     * 
+     * ColorTuple.of(0xFF, 0x00, 0xFE);
+     * </pre>
+     * @return if all attributes will be considered parameters
+     */
+    boolean allParameters() default false;
+
+    /**
      * Specify the mode in which accibility visibility is derived from abstract value type.
      * It is a good idea to not specify such attributea inline with immutable values, but rather
      * create style annotation (@see Style).
