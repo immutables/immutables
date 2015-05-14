@@ -18,7 +18,7 @@ ValueObject valueObject =
 
 Read full documentation at http://immutables.org
 
-[![Build Status](https://travis-ci.org/immutables/immutables.png?branch=master)](https://travis-ci.org/immutables/immutables)
+[![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
 
 Changelog
 ---------
