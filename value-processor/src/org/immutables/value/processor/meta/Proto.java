@@ -791,8 +791,9 @@ public class Proto {
           input.typeImmutableNested(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
-          input.visibility(),
-          input.jdkOnly());
+          input.allParameters(),
+          input.jdkOnly(),
+          input.visibility());
     }
   }
 }

@@ -42,7 +42,8 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
-
+  private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
+  private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
   private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String VALUE_ATTRIBUTE_NAME = "value";
@@ -633,24 +634,35 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind().isPrimitive();
   }
 
-  private int constructorOrder = Integer.MIN_VALUE;
+  private int parameterOrder = Integer.MIN_VALUE;
   private AttributeTypeKind typeKind;
 
   int getConstructorParameterOrder() {
-    if (constructorOrder < -1) {
-      Optional<ParameterMirror> parameter = ParameterMirror.find(element);
-      constructorOrder = parameter.isPresent()
-          ? parameter.get().order()
-          : -1;
+    boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
 
-      if (containingType.isAnnotationType() && names.get.equals(VALUE_ATTRIBUTE_NAME)) {
-        constructorOrder = thereNoOtherMandatoryAttributes() ? 0 : -1;
+    if (parameterOrderIsNotDefined) {
+      Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
+
+      parameterOrder = parameterAnnotation.isPresent()
+          ? parameterAnnotation.get().order()
+          : CONSTRUCTOR_NOT_A_PARAMETER;
+
+      if (containingType.constitution.style().allParameters()) {
+        parameterOrder = CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+      }
+
+      if (parameterOrder == CONSTRUCTOR_NOT_A_PARAMETER
+          && containingType.isAnnotationType()
+          && names.get.equals(VALUE_ATTRIBUTE_NAME)) {
+        parameterOrder = thereAreNoOtherMandatoryAttributes()
+            ? CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
+            : CONSTRUCTOR_NOT_A_PARAMETER;
       }
     }
-    return constructorOrder;
+    return parameterOrder;
   }
 
-  private boolean thereNoOtherMandatoryAttributes() {
+  private boolean thereAreNoOtherMandatoryAttributes() {
     List<ValueAttribute> mandatories = containingType.getMandatoryAttributes();
     for (ValueAttribute m : mandatories) {
       if (m != this) {
@@ -661,7 +673,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isConstructorParameter() {
-    return getConstructorParameterOrder() >= 0;
+    return getConstructorParameterOrder() >= CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
   }
 
   public boolean isPrimitiveElement() {
