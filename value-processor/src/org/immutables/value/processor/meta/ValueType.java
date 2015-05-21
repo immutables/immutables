@@ -59,10 +59,6 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 public final class ValueType extends TypeIntrospectionBase {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
   private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
-  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
-      ImmutableSet.of(
-          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
-          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
 
   // TBD Should we change this field to usage of [classpath.available] templating directive???
   @Nullable
@@ -176,25 +172,8 @@ public final class ValueType extends TypeIntrospectionBase {
         || isUseSingleton();
   }
 
-  @Nullable
-  private Boolean generateJacksonMapped;
-
   public boolean isGenerateJacksonMapped() {
-    if (generateJacksonMapped == null) {
-      generateJacksonMapped = inferJacksonMapped();
-    }
-    return generateJacksonMapped;
-  }
-
-  private boolean inferJacksonMapped() {
-    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-    for (AnnotationMirror annotation : annotationMirrors) {
-      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
-        return true;
-      }
-    }
-    return false;
+    return constitution.protoclass().isJacksonSerialized();
   }
 
   public String getTopSimple() {

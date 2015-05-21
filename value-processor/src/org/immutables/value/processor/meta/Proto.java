@@ -59,6 +59,12 @@ public class Proto {
       return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
     }
 
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJacksonSerialized() {
+      return isJacksonSerializedAnnotated(element());
+    }
+
     public static MetaAnnotated from(AnnotationMirror mirror) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
 
@@ -202,6 +208,23 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Value.Lazy
+    public boolean isJacksonSerialized() {
+      if (isJacksonSerializedAnnotated(element())) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        if (metaAnnotated.isJacksonSerialized()) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 
@@ -715,6 +738,20 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJacksonSerialized() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonSerialized()) {
+          return true;
+        }
+      }
+      if (packageOf().isJacksonSerialized()) {
+        return true;
+      }
+      return false;
+    }
+
+    @Value.Lazy
     public Constitution constitution() {
       return ImmutableConstitution.builder()
           .protoclass(this)
@@ -795,5 +832,21 @@ public class Proto {
           input.jdkOnly(),
           input.visibility());
     }
+  }
+
+  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
+      ImmutableSet.of(
+          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+
+  private static boolean isJacksonSerializedAnnotated(Element element) {
+    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+    for (AnnotationMirror annotation : annotationMirrors) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 }
