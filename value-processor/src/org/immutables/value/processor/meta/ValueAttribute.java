@@ -647,10 +647,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           ? parameterAnnotation.get().order()
           : CONSTRUCTOR_NOT_A_PARAMETER;
 
-      if (containingType.constitution.style().allParameters()) {
-        parameterOrder = CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
-      }
-
       if (parameterOrder == CONSTRUCTOR_NOT_A_PARAMETER
           && containingType.isAnnotationType()
           && names.get.equals(VALUE_ATTRIBUTE_NAME)) {
@@ -672,10 +668,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return true;
   }
 
-  public boolean isConstructorParameter() {
-    return getConstructorParameterOrder() >= CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
-  }
-
+//  boolean isConstructorParameter() {
+//    return getConstructorParameterOrder() >= CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+//  }
+//
   public boolean isPrimitiveElement() {
     return isPrimitiveType(getUnwrappedElementType());
   }

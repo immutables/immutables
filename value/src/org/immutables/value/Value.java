@@ -501,11 +501,12 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
-     * When {@code true} &mdash; all attributes are considered as they are annotated with
-     * {@link Value.Parameter}. Explicit {@link Value.Parameter} could then be used to specify
-     * order, but otherwise will not make any difference, if order is not specified, source
-     * definition order is used as expected. This style could be used to create special
-     * tuple-style annotations:
+     * When {@code true} &mdash; all settable attributes are considered as they are annotated with
+     * {@link Value.Parameter}. When explicit {@link Value.Parameter} are specified,
+     * {@code allParameter} feature will be disabled. This allows to use default all parameters if
+     * enabled, or override this if needed by specifying explicit parameters.
+     * <p>
+     * This style could be used to create special tuple-style annotations:
      * 
      * <pre>
      * {@literal @}Value.Style(
@@ -529,9 +530,9 @@ public @interface Value {
     boolean allParameters() default false;
 
     /**
-     * Specify the mode in which accibility visibility is derived from abstract value type.
-     * It is a good idea to not specify such attributea inline with immutable values, but rather
-     * create style annotation (@see Style).
+     * Specify the mode in which visibility of generated value type is derived from abstract value
+     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * rather create style annotation (@see Style).
      * @return implementation visibility
      */
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;

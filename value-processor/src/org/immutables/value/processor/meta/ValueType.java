@@ -382,12 +382,16 @@ public final class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
+  @Nullable
   private List<ValueAttribute> constructorArguments;
 
   public List<ValueAttribute> getConstructorArguments() {
     if (constructorArguments == null) {
       constructorArguments = computeConstructorArguments();
       validateConstructorParameters(constructorArguments);
+      if (constructorArguments.isEmpty() && constitution.style().allParameters()) {
+        constructorArguments = getSettableAttributes();
+      }
     }
     return constructorArguments;
   }
@@ -419,10 +423,17 @@ public final class ValueType extends TypeIntrospectionBase {
         .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
   }
 
+  @Nullable
+  private List<ValueAttribute> constructorOmmited;
+
   public List<ValueAttribute> getConstructorOmited() {
-    return FluentIterable.from(getImplementedAttributes())
-        .filter(Predicates.compose(Predicates.equalTo(-1), ToConstructorArgumentOrder.FUNCTION))
-        .toList();
+    if (constructorOmmited == null) {
+      Set<ValueAttribute> constructorArgumentsSet = Sets.newHashSet(getConstructorArguments());
+      constructorOmmited = FluentIterable.from(getImplementedAttributes())
+          .filter(Predicates.not(Predicates.in(constructorArgumentsSet)))
+          .toList();
+    }
+    return constructorOmmited;
   }
 
   private enum NonAuxiliary implements Predicate<ValueAttribute> {
