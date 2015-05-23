@@ -15,6 +15,12 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ExecutableElement;
+import java.util.Collection;
+import java.util.Map.Entry;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -413,10 +419,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return constructorArguments;
   }
 
-  public boolean isGenerateBuilderFrom() {
-    return !isUseStrictBuilder();
-  }
-
   private void validateConstructorParameters(List<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
@@ -751,6 +753,61 @@ public final class ValueType extends TypeIntrospectionBase {
   ImmutableSet<DeclaredType> implementedInterfaces() {
     ensureTypeIntrospected();
     return hierarchiCollector.implementedInterfaces();
+  }
+
+  public boolean isGenerateBuilderFrom() {
+    return !isUseStrictBuilder();
+  }
+
+  @Nullable
+  private FromSupertypesModel buildFromTypes;
+
+  @Nullable
+  public FromSupertypesModel getBuildFromTypes() {
+    if (buildFromTypes == null && !isUseStrictBuilder()) {
+      buildFromTypes = new FromSupertypesModel(getSettableAttributes());
+    }
+    return buildFromTypes;
+  }
+
+  public final static class FromSupertypesModel {
+    public final ImmutableList<FromSupertype> supertypes;
+
+    public FromSupertypesModel(Iterable<ValueAttribute> attributes) {
+      Multimap<String, ValueAttribute> byDefinedBy = ArrayListMultimap.create();
+
+      for (ValueAttribute a : attributes) {
+        byDefinedBy.put(typeNameFor(a.element.getEnclosingElement()), a);
+      }
+
+      ImmutableList.Builder<FromSupertype> builder = ImmutableList.builder();
+      for (Entry<String, Collection<ValueAttribute>> e : byDefinedBy.asMap().entrySet()) {
+        builder.add(new FromSupertype(e.getKey(), e.getValue()));
+      }
+
+      this.supertypes = builder.build();
+    }
+
+    public boolean hasManySupertypes() {
+      return supertypes.size() > 1;
+    }
+
+    private String typeNameFor(Element element) {
+      ElementKind kind = element.getKind();
+      return kind.isClass() || kind.isInterface()
+          ? ((TypeElement) element).getQualifiedName().toString()
+          : element.toString();
+    }
+
+    public final static class FromSupertype {
+      public final String type;
+      public final ImmutableList<ValueAttribute> attributes;
+
+      public FromSupertype(String type, Iterable<ValueAttribute> attribute) {
+        this.type = type;
+        this.attributes = ImmutableList.copyOf(attribute);
+      }
+    }
   }
 
   /**

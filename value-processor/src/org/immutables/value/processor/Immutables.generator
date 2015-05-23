@@ -517,6 +517,30 @@ private Object readResolve() throws java.io.ObjectStreamException {
 [/if]
 [if type.kind.isValue]
   [if type.generateBuilderFrom]
+    [if type.buildFromTypes and type.buildFromTypes.hasManySupertypes]
+      [for s in type.buildFromTypes.supertypes]
+
+  /**
+   * Adjust builder with values from provided {@link [s.type]} instance.
+   * @param instance instance to copy values from
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.typeBuilder.simple] [type.names.from]([s.type] instance) {
+    [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+    return buildFromSupertype(instance);
+  }
+      [/for]
+
+  private [type.typeBuilder.simple] buildFromSupertype(Object object) {
+      [for s in type.buildFromTypes.supertypes]
+    if (object instanceof [s.type]) {
+      [s.type] instance = ([s.type]) object;
+      [buildFromAttributes s.attributes]
+    }
+      [/for]
+    return this;
+  }
+    [else]
 
   /**
    * Adjust builder with values from provided {@link [type.typeAbstract.relative]} instance.
@@ -528,27 +552,10 @@ private Object readResolve() throws java.io.ObjectStreamException {
    */
   public final [type.typeBuilder.simple] [type.names.from]([type.typeAbstract] instance) {
     [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
-[for v in setters]
-  [if v.collectionType]
-    [v.names.addAll](instance.[v.names.get]());
-  [else if v.mapType]
-    [v.names.putAll](instance.[v.names.get]());
-  [else if v.optionalType]
-    [v.type] [v.name]Optional = instance.[v.names.get]();
-    if ([v.name]Optional.isPresent()) {
-      [v.names.init]([v.name]Optional);
-    }
-  [else if v.nullable]
-    [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
-    if ([v.name]Value != null) {
-      [v.names.init]([v.name]Value);
-    }
-  [else]
-    [v.names.init](instance.[v.names.get]());
-  [/if]
-[/for]
+    [buildFromAttributes setters]
     return this;
   }
+    [/if]
   [/if]
 [/if]
 [-- Being called from builder initializer methods --]
@@ -883,6 +890,28 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [collectionUtility type]
 [/if]
 }
+[/for]
+[/template]
+
+[template buildFromAttributes Attribute... setters]
+[for v in setters]
+  [if v.collectionType]
+[v.names.addAll](instance.[v.names.get]());
+  [else if v.mapType]
+[v.names.putAll](instance.[v.names.get]());
+  [else if v.optionalType]
+[v.type] [v.name]Optional = instance.[v.names.get]();
+if ([v.name]Optional.isPresent()) {
+  [v.names.init]([v.name]Optional);
+}
+  [else if v.nullable]
+[v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.init]([v.name]Value);
+}
+  [else]
+[v.names.init](instance.[v.names.get]());
+  [/if]
 [/for]
 [/template]
 
