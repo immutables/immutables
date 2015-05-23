@@ -118,9 +118,11 @@ public final class ValueMirrors {
 
     boolean strictBuilder() default false;
 
-    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
+    boolean allParameters() default false;
 
     boolean jdkOnly() default false;
+
+    ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     public enum ImplementationVisibility {
       PUBLIC,

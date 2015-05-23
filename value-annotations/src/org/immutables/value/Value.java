@@ -501,9 +501,38 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
-     * Specify the mode in which accibility visibility is derived from abstract value type.
-     * It is a good idea to not specify such attributea inline with immutable values, but rather
-     * create style annotation (@see Style).
+     * When {@code true} &mdash; all settable attributes are considered as they are annotated with
+     * {@link Value.Parameter}. When explicit {@link Value.Parameter} are specified,
+     * {@code allParameter} feature will be disabled. This allows to use default all parameters if
+     * enabled, or override this if needed by specifying explicit parameters.
+     * <p>
+     * This style could be used to create special tuple-style annotations:
+     * 
+     * <pre>
+     * {@literal @}Value.Style(
+     *     typeImmutable = "*Tuple",
+     *     allParameters = true,
+     *     defaults = {@literal @}Value.Immutable(builder = false))
+     * public @interface Tuple {}
+     * 
+     * {@literal @}Tuple
+     * {@literal @}Value.Immutable
+     * interface Color {
+     *   int red();
+     *   int green();
+     *   int blue();
+     * }
+     * 
+     * ColorTuple.of(0xFF, 0x00, 0xFE);
+     * </pre>
+     * @return if all attributes will be considered parameters
+     */
+    boolean allParameters() default false;
+
+    /**
+     * Specify the mode in which visibility of generated value type is derived from abstract value
+     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * rather create style annotation (@see Style).
      * @return implementation visibility
      */
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;

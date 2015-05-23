@@ -59,6 +59,12 @@ public class Proto {
       return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
     }
 
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJacksonSerialized() {
+      return isJacksonSerializedAnnotated(element());
+    }
+
     public static MetaAnnotated from(AnnotationMirror mirror) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
 
@@ -202,6 +208,23 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Value.Lazy
+    public boolean isJacksonSerialized() {
+      if (isJacksonSerializedAnnotated(element())) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        if (metaAnnotated.isJacksonSerialized()) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 
@@ -464,14 +487,21 @@ public class Proto {
               ? declaringType().get().repository()
               : Optional.<RepositoryMirror>absent();
 
-      if (repositoryMirror.isPresent()
-          && !typeAdaptersProvider().isPresent()
-          && kind().isNested()) {
-        report().annotationNamed(RepositoryMirror.simpleName())
-            .error("@Mongo.%s should also have associated @Gson.%s on a top level type."
-                + " For top level immutable adapters would be auto-added",
-                RepositoryMirror.simpleName(),
-                TypeAdaptersMirror.simpleName());
+      if (repositoryMirror.isPresent() && !typeAdaptersProvider().isPresent()) {
+        if (kind().isNested()) {
+          report().annotationNamed(RepositoryMirror.simpleName())
+              .error("@Mongo.%s should also have associated @Gson.%s on a top level type.",
+                  RepositoryMirror.simpleName(),
+                  TypeAdaptersMirror.simpleName());
+        } else {
+          report().annotationNamed(RepositoryMirror.simpleName())
+              .warning("@Mongo.%s types better have explicit @Gson.%s annotation"
+                  + " be placed on the class or enclosing package."
+                  + " It is also common to forget to generate type adapters"
+                  + " for nested document classes, which will fallback to reflective Gson adapter otherwise.",
+                  RepositoryMirror.simpleName(),
+                  TypeAdaptersMirror.simpleName());
+        }
       }
 
       return repositoryMirror;
@@ -708,6 +738,20 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJacksonSerialized() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonSerialized()) {
+          return true;
+        }
+      }
+      if (packageOf().isJacksonSerialized()) {
+        return true;
+      }
+      return false;
+    }
+
+    @Value.Lazy
     public Constitution constitution() {
       return ImmutableConstitution.builder()
           .protoclass(this)
@@ -784,8 +828,25 @@ public class Proto {
           input.typeImmutableNested(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
-          input.visibility(),
-          input.jdkOnly());
+          input.allParameters(),
+          input.jdkOnly(),
+          input.visibility());
     }
+  }
+
+  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
+      ImmutableSet.of(
+          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
+          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
+
+  private static boolean isJacksonSerializedAnnotated(Element element) {
+    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+    for (AnnotationMirror annotation : annotationMirrors) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
+        return true;
+      }
+    }
+    return false;
   }
 }
