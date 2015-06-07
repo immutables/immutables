@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.type.TypeKind;
-import org.immutables.generator.SourceExtraction;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -25,6 +23,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
@@ -36,7 +36,9 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
@@ -46,8 +48,7 @@ public class Proto {
 
   @Value.Immutable(builder = false)
   public static abstract class MetaAnnotated {
-    @Value.Parameter
-    public abstract String name();
+    private static final ConcurrentMap<String, MetaAnnotated> cache = new ConcurrentHashMap<>(16, 0.7f, 1);
 
     @Value.Parameter
     @Value.Auxiliary
@@ -61,16 +62,39 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
+    public Optional<Long> serialVersion() {
+      Optional<VersionMirror> version = VersionMirror.find(element());
+      return version.isPresent()
+          ? Optional.of(version.get().value())
+          : Optional.<Long>absent();
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isSerialStructural() {
+      return StructuralMirror.isPresent(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
     public boolean isJacksonSerialized() {
       return isJacksonSerializedAnnotated(element());
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
+      String name = element.getQualifiedName().toString();
 
-      return ImmutableProto.MetaAnnotated.of(
-          element.getQualifiedName().toString(),
-          element);
+      @Nullable MetaAnnotated metaAnnotated = cache.get(element);
+      if (metaAnnotated == null) {
+        metaAnnotated = ImmutableProto.MetaAnnotated.of(element);
+        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
+        if (existing != null) {
+          metaAnnotated = existing;
+        }
+      }
+
+      return metaAnnotated;
     }
   }
 
@@ -208,6 +232,29 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Value.Lazy
+    public Optional<Long> serialVersion() {
+      Optional<VersionMirror> version = VersionMirror.find(element());
+      if (version.isPresent()) {
+        return Optional.of(version.get().value());
+      }
+
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        Optional<Long> serialVersion = metaAnnotated.serialVersion();
+        if (serialVersion.isPresent()) {
+          return serialVersion;
+        }
+      }
+
+      return Optional.<Long>absent();
+    }
+
+    @Value.Lazy
+    public boolean isSerialStructural() {
+      return StructuralMirror.isPresent(element());
     }
 
     @Value.Lazy
@@ -587,6 +634,38 @@ public class Proto {
     }
 
     @Value.Lazy
+    public Optional<Long> serialVersion() {
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.serialVersion().isPresent()) {
+          return t.serialVersion();
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().serialVersion().isPresent()) {
+            return t.enclosingTopLevel().get().serialVersion();
+          }
+        }
+      }
+      return packageOf().serialVersion();
+    }
+
+    @Value.Lazy
+    public boolean isSerialStructural() {
+      if (declaringType().isPresent()) {
+        DeclaringType t = declaringType().get();
+        if (t.isSerialStructural()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isSerialStructural()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isSerialStructural();
+    }
+
+    @Value.Lazy
     public ValueImmutableInfo features() {
       if (declaringType().isPresent()
           && !declaringType().get().useImmutableDefaults()) {
@@ -745,10 +824,7 @@ public class Proto {
           return true;
         }
       }
-      if (packageOf().isJacksonSerialized()) {
-        return true;
-      }
-      return false;
+      return packageOf().isJacksonSerialized();
     }
 
     @Value.Lazy

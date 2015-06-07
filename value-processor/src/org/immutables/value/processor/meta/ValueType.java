@@ -143,20 +143,43 @@ public final class ValueType extends TypeIntrospectionBase {
     return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
-  public boolean isUseReadResolve() {
-    return isSerializable() && (isUseValidation() || isUseSingletonOnly());
+  public boolean generateImplementSerializable() {
+    Protoclass p = constitution.protoclass();
+    return (p.isSerialStructural()
+        || p.serialVersion().isPresent())
+        && !isSerializable();
+  }
+
+  public boolean isSerialSimple() {
+    Protoclass p = constitution.protoclass();
+    return !p.isSerialStructural()
+        && (isSerializable() || p.serialVersion().isPresent());
+  }
+
+  public boolean isSerialStructural() {
+    return constitution.protoclass().isSerialStructural();
+  }
+
+  public boolean isUseSimpleReadResolve() {
+    return isSerialSimple() && (isUseValidation() || isUseSingletonOnly());
   }
 
   @Nullable
-  public Object serialVersionUID() {
-    return isSerializable() ? findSerialVersionUID() : null;
+  public Long serialVersionUID() {
+    Protoclass p = constitution.protoclass();
+    if (p.serialVersion().isPresent()) {
+      return p.serialVersion().get();
+    }
+    return isSerialStructural() || isSerializable()
+        ? findSerialVersionUID()
+        : null;
   }
 
-  private Object findSerialVersionUID() {
+  private Long findSerialVersionUID() {
     for (VariableElement field : ElementFilter.fieldsIn(element.getEnclosedElements())) {
       if (field.getSimpleName().contentEquals(SERIAL_VERSION_FIELD_NAME)
           && field.asType().getKind() == TypeKind.LONG) {
-        return field.getConstantValue();
+        return (Long) field.getConstantValue();
       }
     }
     return null;
@@ -235,10 +258,9 @@ public final class ValueType extends TypeIntrospectionBase {
   @Nullable
   public String validationMethodName;
 
-  public String getInheritsKeyword() {
+  public boolean isImplementing() {
     return element.getKind() == ElementKind.INTERFACE
-        || element.getKind() == ElementKind.ANNOTATION_TYPE
-        ? "implements" : "extends";
+        || element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String $$package() {
@@ -299,7 +321,8 @@ public final class ValueType extends TypeIntrospectionBase {
     public final boolean isSuper;
 
     InnerBuilderDefinition() {
-      @Nullable TypeElement builderElement = findBuilderElement();
+      @Nullable
+      TypeElement builderElement = findBuilderElement();
       boolean extending = false;
       if (builderElement != null) {
         // We do not handle here if builder class is abstract static and not private
@@ -399,6 +422,20 @@ public final class ValueType extends TypeIntrospectionBase {
     return constructorArguments;
   }
 
+  public List<ValueAttribute> getConstructableAttributes() {
+    if (!isUseCopyMethods()) {
+      return getConstructorArguments();
+    }
+    List<ValueAttribute> attributes = Lists.newArrayList(getConstructorArguments());
+    for (ValueAttribute v : getConstructorOmited()) {
+      if (v.isGenerateDefault || v.isGenerateAbstract) {
+        attributes.add(v);
+      }
+    }
+    return attributes;
+
+  }
+
   private void validateConstructorParameters(List<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
@@ -453,12 +490,18 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
+  @Nullable
+  private List<ValueAttribute> settableAttributes;
+
   public List<ValueAttribute> getSettableAttributes() {
-    return attributes()
-        .filter(Predicates.or(
-            ValueAttributeFunctions.isGenerateAbstract(),
-            ValueAttributeFunctions.isGenerateDefault()))
-        .toList();
+    if (settableAttributes == null) {
+      settableAttributes = attributes()
+          .filter(Predicates.or(
+              ValueAttributeFunctions.isGenerateAbstract(),
+              ValueAttributeFunctions.isGenerateDefault()))
+          .toList();
+    }
+    return settableAttributes;
   }
 
   public List<ValueAttribute> getExcludableAttributes() {
@@ -743,7 +786,38 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateBuilderFrom() {
-    return !isUseStrictBuilder();
+    return !isUseStrictBuilder() && noAttributeInitializerIsNamedAsFrom();
+  }
+
+  private boolean noAttributeInitializerIsNamedAsFrom() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.names.init.equals(names().from)) {
+        a.report().warning(
+            "Attribute initializer named '%s' clashes with special builder method, "
+                + "which will not be generated to not have ambiguous overload or conflict",
+            names().from);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean hasSettableCollection() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isCollectionType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasSettableMapping() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isMapType()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Nullable
