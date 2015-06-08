@@ -20,7 +20,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -45,7 +44,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
-  private static final String NULLABLE_SIMPLE_NAME = "Nullable";
   private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
 
@@ -200,7 +198,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getAnnotations() {
-    return AnnotationPrinting.getAnnotationLines(element);
+    return Annotations.getAnnotationLines(element, ElementType.METHOD);
+  }
+
+  public List<CharSequence> getParameterAnnotations() {
+    return Annotations.getAnnotationLines(element, ElementType.LOCAL_VARIABLE);
   }
 
   public boolean isGsonIgnore() {
@@ -764,10 +766,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void makeRegularAndNullableWithValidation() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+      if (annotationElement.getSimpleName().contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
         if (isPrimitive()) {
           report()
-              .annotationNamed(NULLABLE_SIMPLE_NAME)
+              .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
               .error("@Nullable could not be used with primitive type attibutes");
         } else {
           nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
@@ -780,7 +782,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
     if (containingType.isAnnotationType() && isNullable()) {
       report()
-          .annotationNamed(NULLABLE_SIMPLE_NAME)
+          .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
           .error("@Nullable could not be used with annotation attribute, use default value");
     }
   }
@@ -803,7 +805,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
     @Value.Lazy
     String asLocalPrefix() {
-      return localsSupported()
+      boolean applicableToLocal = Annotations.annotationMatchesTarget(
+          element(),
+          ElementType.LOCAL_VARIABLE);
+
+      return applicableToLocal
           ? asPrefix()
           : "";
     }
@@ -811,19 +817,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     void eagerize() {
       asPrefix();
       asLocalPrefix();
-    }
-
-    private boolean localsSupported() {
-      @Nullable Target target = element().getAnnotation(Target.class);
-      if (target == null) {
-        return true;
-      }
-      for (ElementType type : target.value()) {
-        if (type == ElementType.LOCAL_VARIABLE) {
-          return true;
-        }
-      }
-      return false;
     }
   }
 

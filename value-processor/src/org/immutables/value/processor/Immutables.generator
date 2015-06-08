@@ -223,6 +223,7 @@ private static class SerialForm implements java.io.Serializable {
   Object readResolve() {
 [if type.useBuilder]
     [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+
     for (int i = 0; i < names.length; i++) {
       switch (names['[i]']) {
     [for v in type.settableAttributes]
@@ -232,7 +233,7 @@ private static class SerialForm implements java.io.Serializable {
           builder.[v.names.add](([v.wrappedElementType]) e);
         }
       [else if v.mapType]
-        Object[arr] pairs = (Object[arr]) values[arri];
+        [atNullable]Object[arr] pairs = (Object[arr]) values[arri];
         if (pairs != null) {
           for (int j = 0; j < pairs.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
@@ -270,6 +271,7 @@ private static class SerialForm implements java.io.Serializable {
     [atNullable][v.wrapperType] [v.name]Value = null;
       [/if]
     [/for]
+
     for (int i = 0; i < names.length; i++) {
       switch (names['[i]']) {
     [for v in constructables]
@@ -301,20 +303,20 @@ private static class SerialForm implements java.io.Serializable {
       default:
       }
     }
-    [type.typeValue.relative] constructedInstance = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][if v.collectionType or v.mapType
-    ][createBuiltCollection type v][v.name]Builder[/createBuiltCollection][else][v.name]Value[/if][/for]);
+    [type.typeValue.relative] instance = [type.factoryOf.relative]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+        [if v.collectionType or v.mapType][createBuiltCollection type v][v.name]Builder[/createBuiltCollection][else][v.name]Value[/if][/for]);[/output.linesShortable]
     [if type.useCopyMethods]
       [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
         [if o.collectionType or o.mapType]
-    constructedInstance = constructedInstance.[o.names.with]([createBuiltCollection type o][o.name]Builder[/createBuiltCollection]);
+    instance = instance.[o.names.with]([createBuiltCollection type o][o.name]Builder[/createBuiltCollection]);
         [else]
     if ([o.name]Value != null) {
-      constructedInstance = constructedInstance.[o.names.with]([o.name]Value);
+      instance = instance.[o.names.with]([o.name]Value);
     }
         [/if]
       [/for]
     [/if]
-    return constructedInstance;
+    return instance;
   [/for]
 [/if]
   }
@@ -345,13 +347,13 @@ private static class SerialForm implements java.io.Serializable {
   [if type.hasSettableMapping]
 
   private static Object['[]'] toArray(java.util.Collection<? extends java.util.Map.Entry<?, ?>> entries) {
-      Object['[]'] data = new Object['[']entries.size() * 2[']'];
-      int p = 0;
-      for (java.util.Map.Entry<?, ?> e : entries) {
-        data['[']p++[']'] = e.getKey();
-        data['[']p++[']'] = e.getValue();
-      }
-      return data;
+    Object['[]'] data = new Object['[']entries.size() * 2[']'];
+    int p = 0;
+    for (java.util.Map.Entry<?, ?> e : entries) {
+      data['[']p++[']'] = e.getKey();
+      data['[']p++[']'] = e.getValue();
+    }
+    return data;
   }
   [/if]
 [/if]
@@ -1311,7 +1313,11 @@ this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[els
 @com.fasterxml.jackson.annotation.JsonCreator
 public static [type.typeValue.relative] fromAllAttributes(
     [for v in type.settableAttributes][if not for.first],
-    [/if]@com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
+    [/if]
+    [for a in v.parameterAnnotations]
+    [a]
+    [/for]
+    @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
 [if type.useSingletonOnly]
   return [type.factoryInstance.relative]();
 [else if type.useBuilder]
