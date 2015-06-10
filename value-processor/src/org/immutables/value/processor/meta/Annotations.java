@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Optional;
+import java.util.Set;
 import javax.lang.model.element.TypeElement;
 import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
@@ -33,36 +35,46 @@ final class Annotations {
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
-  /**
-   * The gymnastics that exists only to workaround annotation processors that do not fully print
-   * annotation values (like Eclipse compiler)
-   */
-  static List<CharSequence> getAnnotationLines(Element element, ElementType elementType) {
+  static List<CharSequence> getAnnotationLines(
+      Element element,
+      Optional<Set<String>> includeAnnotations,
+      ElementType elementType) {
     List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      String string = annotationElement.getQualifiedName().toString();
-      if (string.startsWith(PREFIX_ORG_IMMUTABLES)
-          || string.startsWith(PREFIX_JAVA_LANG)
-          || string.equals(JsonPropertyMirror.QUALIFIED_NAME)) {
-        // skip immutables and core java annotations (like Override etc)
-        // Also skip JsonProperty annotation as we will add it separately
-        continue;
+      if (annotationMatchesName(annotationElement, includeAnnotations)
+          && annotationMatchesTarget(annotationElement, elementType)) {
+        lines.add(AnnotationMirrors.toCharSequence(annotation));
       }
-      if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
-        // we expect to propagate nullability separately
-        continue;
-      }
-      if (!annotationMatchesTarget(
-          annotationElement,
-          elementType)) {
-        continue;
-      }
-      lines.add(AnnotationMirrors.toCharSequence(annotation));
     }
     return lines;
+  }
+
+  private static boolean annotationMatchesName(
+      TypeElement annotationElement,
+      Optional<Set<String>> includeAnnotations) {
+    String qualifiedName = annotationElement.getQualifiedName().toString();
+
+    if (includeAnnotations.isPresent()) {
+      return includeAnnotations.get().contains(qualifiedName);
+    }
+
+    if (qualifiedName.startsWith(PREFIX_ORG_IMMUTABLES)
+        || qualifiedName.startsWith(PREFIX_JAVA_LANG)
+        || qualifiedName.equals(JsonPropertyMirror.QUALIFIED_NAME)) {
+      // skip immutables and core java annotations (like Override etc)
+      // Also skip JsonProperty annotation as we will add it separately
+      return false;
+    }
+
+    if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+      // we expect to propagate nullability separately
+      return false;
+    }
+
+    return true;
   }
 
   static boolean annotationMatchesTarget(Element annotationElement, ElementType elementType) {

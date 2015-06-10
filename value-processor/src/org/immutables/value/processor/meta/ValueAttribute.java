@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.Collections;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -198,11 +200,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getAnnotations() {
-    return Annotations.getAnnotationLines(element, ElementType.METHOD);
+    return Annotations.getAnnotationLines(element, Optional.<Set<String>>absent(), ElementType.METHOD);
   }
 
   public List<CharSequence> getParameterAnnotations() {
-    return Annotations.getAnnotationLines(element, ElementType.LOCAL_VARIABLE);
+    return Annotations.getAnnotationLines(element, Optional.<Set<String>>absent(), ElementType.PARAMETER);
   }
 
   public boolean isGsonIgnore() {

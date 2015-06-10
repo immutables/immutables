@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.lang.annotation.ElementType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -231,6 +232,12 @@ public final class ValueType extends TypeIntrospectionBase {
       caseStructure = new CaseStructure(this);
     }
     return caseStructure;
+  }
+
+  public List<CharSequence> passedAnnotations() {
+    return Annotations.getAnnotationLines(element,
+        Optional.<Set<String>>of(constitution.protoclass().styles().style().passAnnotationsNames()),
+        ElementType.TYPE);
   }
 
   public Iterable<ValueType> allValues() {

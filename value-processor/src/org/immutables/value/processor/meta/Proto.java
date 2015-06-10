@@ -906,6 +906,7 @@ public class Proto {
           input.strictBuilder(),
           input.allParameters(),
           input.jdkOnly(),
+          ImmutableSet.copyOf(input.passAnnotationsName()),
           input.visibility());
     }
   }

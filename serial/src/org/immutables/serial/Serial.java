@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 
 /**
  * Use nested annotations to control serialization of value objects.
+ * This serialization module currently is in experimental state.
  * <p>
  * This umbrella annotaion does nothing.
  * @see Version

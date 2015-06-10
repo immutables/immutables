@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.lang.annotation.Annotation;
 import org.immutables.mirror.Mirror;
 
 public final class ValueMirrors {
@@ -121,6 +122,8 @@ public final class ValueMirrors {
     boolean allParameters() default false;
 
     boolean jdkOnly() default false;
+
+    Class<? extends Annotation>[] passAnnotations() default {};
 
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 

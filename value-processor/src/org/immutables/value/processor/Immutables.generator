@@ -101,6 +101,9 @@ import [starImport];
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
+[for a in type.passedAnnotations]
+[a]
+[/for]
 [type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple]
     [extendsImplements type][/output.linesShortable]
 [if type.annotationType]
@@ -1341,7 +1344,7 @@ public static [type.typeValue.relative] fromAllAttributes(
   [if type.useCopyMethods]
     [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
   if ([o.name] != null) {
-    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]());
+    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]);
   }
     [/for]
   [/if]
