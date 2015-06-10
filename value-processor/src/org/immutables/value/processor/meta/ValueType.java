@@ -299,7 +299,9 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseSingleton() {
-    return immutableFeatures.singleton() || getImplementedAttributes().isEmpty();
+    return immutableFeatures.singleton()
+        || useSingletonNoOtherWay()
+        || useSingletonForConvenience();
   }
 
   public boolean isUseInterned() {
@@ -399,7 +401,19 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseSingletonOnly() {
     return isUseSingleton()
-        && getImplementedAttributes().isEmpty();
+        && !isUseBuilder()
+        && !isUseConstructor()
+        && getWithSettableAfterConstruction().isEmpty();
+  }
+
+  private boolean useSingletonForConvenience() {
+    return getSettableAttributes().isEmpty();
+  }
+
+  private boolean useSingletonNoOtherWay() {
+    return !isUseBuilder()
+        && !isUseConstructor()
+        && getMandatoryAttributes().isEmpty();
   }
 
   public boolean isUseConstructor() {
@@ -416,34 +430,45 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private List<ValueAttribute> constructorArguments;
+  private Set<ValueAttribute> constructorArguments;
 
-  public List<ValueAttribute> getConstructorArguments() {
+  public Set<ValueAttribute> getConstructorArguments() {
     if (constructorArguments == null) {
       constructorArguments = computeConstructorArguments();
-      validateConstructorParameters(constructorArguments);
       if (constructorArguments.isEmpty() && constitution.style().allParameters()) {
-        constructorArguments = getSettableAttributes();
+        constructorArguments = ImmutableSet.copyOf(getSettableAttributes());
       }
+      validateConstructorParameters(constructorArguments);
     }
     return constructorArguments;
   }
 
-  public List<ValueAttribute> getConstructableAttributes() {
-    if (!isUseCopyMethods()) {
-      return getConstructorArguments();
+  public List<ValueAttribute> getWithSettableAfterConstruction() {
+    if (isUseCopyMethods()) {
+      return getConstructorExcluded();
     }
-    List<ValueAttribute> attributes = Lists.newArrayList(getConstructorArguments());
-    for (ValueAttribute v : getConstructorOmited()) {
-      if (v.isGenerateDefault || v.isGenerateAbstract) {
-        attributes.add(v);
-      }
-    }
-    return attributes;
-
+    return ImmutableList.of();
   }
 
-  private void validateConstructorParameters(List<ValueAttribute> parameters) {
+  @Nullable
+  private List<ValueAttribute> constructorExcluded;
+
+  public List<ValueAttribute> getConstructorExcluded() {
+    if (constructorExcluded == null) {
+      constructorExcluded = FluentIterable.from(getSettableAttributes())
+          .filter(Predicates.not(Predicates.in(getConstructorArguments())))
+          .toList();
+    }
+    return constructorExcluded;
+  }
+
+  public List<ValueAttribute> getConstructableAttributes() {
+    List<ValueAttribute> attributes = Lists.newArrayList(getConstructorArguments());
+    attributes.addAll(getWithSettableAfterConstruction());
+    return attributes;
+  }
+
+  private void validateConstructorParameters(Set<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
       for (ValueAttribute attribute : parameters) {
@@ -460,23 +485,16 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
-  public List<ValueAttribute> computeConstructorArguments() {
-    return attributes()
+  public Set<ValueAttribute> computeConstructorArguments() {
+    return ImmutableSet.copyOf(attributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
-        .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
+        .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION)));
   }
 
-  @Nullable
-  private List<ValueAttribute> constructorOmmited;
-
   public List<ValueAttribute> getConstructorOmited() {
-    if (constructorOmmited == null) {
-      Set<ValueAttribute> constructorArgumentsSet = Sets.newHashSet(getConstructorArguments());
-      constructorOmmited = FluentIterable.from(getImplementedAttributes())
-          .filter(Predicates.not(Predicates.in(constructorArgumentsSet)))
-          .toList();
-    }
-    return constructorOmmited;
+    return FluentIterable.from(getImplementedAttributes())
+        .filter(Predicates.not(Predicates.in(getConstructorArguments())))
+        .toList();
   }
 
   private enum NonAuxiliary implements Predicate<ValueAttribute> {
@@ -792,8 +810,14 @@ public final class ValueType extends TypeIntrospectionBase {
     return hierarchiCollector.implementedInterfaces();
   }
 
+  @Nullable
+  private Boolean generateBuilderFrom;
+
   public boolean isGenerateBuilderFrom() {
-    return !isUseStrictBuilder() && noAttributeInitializerIsNamedAsFrom();
+    if (generateBuilderFrom == null) {
+      generateBuilderFrom = !isUseStrictBuilder() && noAttributeInitializerIsNamedAsFrom();
+    }
+    return generateBuilderFrom;
   }
 
   private boolean noAttributeInitializerIsNamedAsFrom() {

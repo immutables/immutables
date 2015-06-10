@@ -236,11 +236,11 @@ private static class SerialForm implements java.io.Serializable {
           builder.[v.names.add](([v.wrappedElementType]) e);
         }
       [else if v.mapType]
-        [atNullable]Object[arr] pairs = (Object[arr]) values[arri];
-        if (pairs != null) {
-          for (int j = 0; j < pairs.length; j += 2) {
+        [atNullable]Object[arr] entries = (Object[arr]) values[arri];
+        if (entries != null) {
+          for (int j = 0; j < entries.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
-            builder.[v.names.put](([v.wrappedElementType]) pairs[j], ([v.wrappedSecondaryElementType]) pairs[j1]);
+            builder.[v.names.put](([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
           [/for]
           }
         }
@@ -284,11 +284,11 @@ private static class SerialForm implements java.io.Serializable {
           [v.name]Builder.add(([v.wrappedElementType]) e);
         }
       [else if v.mapType]
-        Object[arr] pairs = (Object[arr]) values[arri];
-        if (pairs != null) {
-          for (int j = 0; j < pairs.length; j += 2) {
+        Object[arr] entries = (Object[arr]) values[arri];
+        if (entries != null) {
+          for (int j = 0; j < entries.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
-            [v.name]Builder.put(([v.wrappedElementType]) pairs[j], ([v.wrappedSecondaryElementType]) pairs[j1]);
+            [v.name]Builder.put(([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
           [/for]
           }
         }
@@ -306,19 +306,23 @@ private static class SerialForm implements java.io.Serializable {
       default:
       }
     }
+  [if type.useConstructor]
     [type.typeValue.relative] instance = [type.factoryOf.relative]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
         [if v.collectionType or v.mapType][createBuiltCollection type v][v.name]Builder[/createBuiltCollection][else][v.name]Value[/if][/for]);[/output.linesShortable]
-    [if type.useCopyMethods]
-      [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
-        [if o.collectionType or o.mapType]
+  [else if type.useSingleton]
+    [type.typeValue.relative] instance = [type.factoryInstance.relative]();
+  [else]
+    [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+  [/if]
+    [for o in type.withSettableAfterConstruction]
+      [if o.collectionType or o.mapType]
     instance = instance.[o.names.with]([createBuiltCollection type o][o.name]Builder[/createBuiltCollection]);
-        [else]
+      [else]
     if ([o.name]Value != null) {
       instance = instance.[o.names.with]([o.name]Value);
     }
-        [/if]
-      [/for]
-    [/if]
+      [/if]
+    [/for]
     return instance;
   [/for]
 [/if]
@@ -555,9 +559,9 @@ private Object writeReplace() {
     [/if]
       .[type.names.build]();
 [else]
-  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
-          o in type.constructorOmited if o.generateDefault or o.generateAbstract]
-      .[o.names.with](instance.[o.names.get]())[/for][/if];
+  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[for
+          o in type.withSettableAfterConstruction]
+      .[o.names.with](instance.[o.names.get]())[/for];
 [/if]
 }
 [/if]
@@ -1049,7 +1053,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if type.kind.isFactory]
     [returnFactoryBuild type]
-  [else if type.useSingletonOnly]
+  [else if type.useSingleton and (not type.settableAttributes)]
     return [type.factoryInstance.relative]();
   [else]
     return [validated type true]new [type.typeImmutable.relative](this)[/validated];
@@ -1225,7 +1229,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
     [generateAfterConstruction type false]
   }
 [/if]
-[if type.useBuilder and (not type.useSingletonOnly)]
+[if type.useBuilder and (not (type.useSingleton and (not type.settableAttributes)))]
 
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
@@ -1321,9 +1325,7 @@ public static [type.typeValue.relative] fromAllAttributes(
     [a]
     [/for]
     @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
-[if type.useSingletonOnly]
-  return [type.factoryInstance.relative]();
-[else if type.useBuilder]
+[if type.useBuilder]
   [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
   [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
@@ -1338,16 +1340,22 @@ public static [type.typeValue.relative] fromAllAttributes(
   }
   [/for]
   return [builderIdentifier].[type.names.build]();
+[else if type.useSingletonOnly]
+  return [type.factoryInstance.relative]();
 [else]
   [let instanceIdentifier]instance[for v in type.settableAttributes if v.name eq 'instance']$$[/for][/let]
+    [if type.useConstructor]
   [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
-  [if type.useCopyMethods]
-    [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
+    [else if type.useSingleton]
+  [type.typeValue.relative] [instanceIdentifier] = [type.factoryInstance.relative]();
+    [else]
+  [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+    [/if]
+  [for o in type.withSettableAfterConstruction]
   if ([o.name] != null) {
     [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]);
   }
-    [/for]
-  [/if]
+  [/for]
   return [instanceIdentifier];
 [/if]
 }
