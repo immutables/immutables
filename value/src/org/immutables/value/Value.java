@@ -15,12 +15,14 @@
  */
 package org.immutables.value;
 
-import java.util.Collections;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.SortedMap;
@@ -528,6 +530,23 @@ public @interface Value {
      * @return if all attributes will be considered parameters
      */
     boolean allParameters() default false;
+
+    /**
+     * List type of annotations to copy over from abstract value type to immutable implementation
+     * class. Very often this functionality is not needed when annoatations are declared as
+     * {@link Inherited}, but there are cases where you need to pass specific non-inherited
+     * annotations to the implementation class. In general, copying all type-level annotations is
+     * not very safe for annotation processing and some other annotation consumers. By default, no
+     * type-level annotations are copied unless you specify non-empty annotation type list as value
+     * for {@code passAnnotations} attibute.
+     * <p>
+     * This style attribute has nothing to do with attribute-level annotations, which are copied by
+     * default excluding {@code java.lang.*} and {@code org.immutables.**} annotations.
+     * <p>
+     * This style parameter is experimental and may change in future.
+     * @return types of annotations to pass to immutable value type
+     */
+    Class<? extends Annotation>[] passAnnotations() default {};
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value

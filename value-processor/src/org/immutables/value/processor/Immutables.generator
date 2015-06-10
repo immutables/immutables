@@ -101,17 +101,20 @@ import [starImport];
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
+[for a in type.passedAnnotations]
+[a]
+[/for]
 [type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple]
-    [type.inheritsKeyword] [type.typeAbstract][/output.linesShortable] {
+    [extendsImplements type][/output.linesShortable]
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
 [generateImmutableMembers type]
 [generateLazyValues type]
 [generateSingletonInstance type]
-  [generateSerialization type]
 [generateConstructionAndInterning type]
   [generateImmutableCopyOf type]
+  [generateSerialization type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
   [if not type.factoryBuilder.isNew]
 
@@ -138,12 +141,24 @@ import [starImport];
 [/for]
 [/template]
 
-[template generateSerialization Type type]
-[if type.serialVersionUID]
-
-private static final long serialVersionUID = [literal type.serialVersionUID];
+[template extendsImplements Type type]
+[if type.implementing]
+implements [type.typeAbstract][if type.generateImplementSerializable], java.io.Serializable[/if] {
+[else]
+extends [type.typeAbstract][if not type.generateImplementSerializable] {[else]
+implements java.io.Serializable {[/if]
 [/if]
-[if type.useReadResolve]
+[/template]
+
+[template generateSerialization Type type]
+[if type.serialSimple]
+  [for serialVersion = type.serialVersionUID]
+    [if serialVersion]
+
+private static final long serialVersionUID = [literal serialVersion];
+    [/if]
+  [/for]
+  [if type.useSimpleReadResolve]
 
 private Object readResolve() throws java.io.ObjectStreamException {
 [if type.useSingletonOnly][-- don't care about validation here, just substitute --]
@@ -151,6 +166,209 @@ private Object readResolve() throws java.io.ObjectStreamException {
 [else]
   return [validated type false]this[/validated];
 [/if]
+}
+  [/if]
+[/if]
+[if type.serialStructural]
+
+/**
+ * Serialized form captures structural content of the value object.
+ * To be able to reconstruct with a data migration capability. Using optional, nullable
+ * and flexible handling of collection attributes.
+ */
+private static class SerialForm implements java.io.Serializable {
+[for serialVersion = type.serialVersionUID, String arr = '[]', String arri = '[i]']
+  private static final long serialVersionUID = [if serialVersion][literal serialVersion][else]0L[/if];
+  private final String['[]'] names;
+  private final Object['[]'] values;
+  SerialForm([type.typeImmutable] instance) {
+[if type.useSingletonOnly]
+    this.names = new String['[]']{};
+    this.values = new Object['[]']{};
+  }
+
+  Object readResolve() {
+    return INSTANCE;
+  }
+[else]
+    java.util.List<String> names = new java.util.ArrayList<String>([size type.settableAttributes]);
+    java.util.List<Object> values = new java.util.ArrayList<Object>([size type.settableAttributes]);
+  [for v in type.settableAttributes]
+    [if v.collectionType]
+    if (!instance.[v.names.get]().isEmpty()) {
+      names.add("[v.name]");
+      values.add(instance.[v.names.get]().toArray());
+    }
+    [else if v.mapType]
+    if (!instance.[v.names.get]().isEmpty()) {
+      names.add("[v.name]");
+      values.add(toArray(instance.[v.names.get]().[if v.multimapType]entries[else]entrySet[/if]()));
+    }
+    [else if v.optionalType]
+    if (instance.[v.names.get]().isPresent()) {
+      names.add("[v.name]");
+      values.add(instance.[v.names.get]().[optionalGet v]);
+    }
+    [else if v.nullable]
+    if (instance.[v.names.get]() != null) {
+      names.add("[v.name]");
+      values.add(instance.[v.names.get]());
+    }
+    [else]
+    names.add("[v.name]");
+    values.add(instance.[v.names.get]());
+    [/if]
+  [/for]
+    this.names = names.toArray(new String['[']names.size()[']']);
+    this.values = values.toArray();
+  }
+
+  Object readResolve() {
+[if type.useBuilder]
+    [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+
+    for (int i = 0; i < names.length; i++) {
+      switch (names['[i]']) {
+    [for v in type.settableAttributes]
+      case "[v.name]": {
+      [if v.collectionType]
+        for (Object e : toArray(values[arri])) {
+          builder.[v.names.add](([v.wrappedElementType]) e);
+        }
+      [else if v.mapType]
+        [atNullable]Object[arr] entries = (Object[arr]) values[arri];
+        if (entries != null) {
+          for (int j = 0; j < entries.length; j += 2) {
+          [for String j = '[j]', String j1 = '[j + 1]']
+            builder.[v.names.put](([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
+          [/for]
+          }
+        }
+      [else if v.optionalType]
+        if (values[arri] != null) {
+          builder.[v.names.init](([v.wrappedElementType]) values[arri]);
+        }
+      [else if v.nullable]
+        if (values[arri] != null) {
+          builder.[v.names.init](([v.type]) values[arri]);
+        }
+      [else if v.arrayType]
+        builder.[v.names.init](([v.type]) values[arri]);
+      [else]
+        builder.[v.names.init](([v.wrapperType]) toSingle("[v.name]", values[arri]));
+      [/if]
+      } break;
+    [/for]
+      default:
+      }
+    }
+    return builder.[type.names.build]();
+[else]
+  [for constructables = type.constructableAttributes]
+    [for v in constructables]
+      [if v.collectionType or v.mapType]
+    [createBuilderForCollection type v][v.name]Builder[/createBuilderForCollection]
+      [else if v.optionalType]
+    [v.type] [v.name]Value = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+      [else]
+    [atNullable][v.wrapperType] [v.name]Value = null;
+      [/if]
+    [/for]
+
+    for (int i = 0; i < names.length; i++) {
+      switch (names['[i]']) {
+    [for v in constructables]
+      case "[v.name]": {
+      [if v.collectionType]
+        for (Object e : toArray(values[arri])) {
+          [v.name]Builder.add(([v.wrappedElementType]) e);
+        }
+      [else if v.mapType]
+        Object[arr] entries = (Object[arr]) values[arri];
+        if (entries != null) {
+          for (int j = 0; j < entries.length; j += 2) {
+          [for String j = '[j]', String j1 = '[j + 1]']
+            [v.name]Builder.put(([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
+          [/for]
+          }
+        }
+      [else if v.optionalType]
+        if (values[arri] != null) {
+          [v.name]Value = [v.rawType].of(([v.wrappedElementType]) values[arri]);
+        }
+      [else if v.nullable or v.arrayType]
+        [v.name]Value = ([v.wrapperType]) values[arri];
+      [else]
+        [v.name]Value = ([v.wrapperType]) toSingle("[v.name]", values[arri]);
+      [/if]
+      } break;
+    [/for]
+      default:
+      }
+    }
+  [if type.useConstructor]
+    [type.typeValue.relative] instance = [type.factoryOf.relative]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+        [if v.collectionType or v.mapType][createBuiltCollection type v][v.name]Builder[/createBuiltCollection][else][v.name]Value[/if][/for]);[/output.linesShortable]
+  [else if type.useSingleton]
+    [type.typeValue.relative] instance = [type.factoryInstance.relative]();
+  [else]
+    [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+  [/if]
+    [for o in type.withSettableAfterConstruction]
+      [if o.collectionType or o.mapType]
+    instance = instance.[o.names.with]([createBuiltCollection type o][o.name]Builder[/createBuiltCollection]);
+      [else]
+    if ([o.name]Value != null) {
+      instance = instance.[o.names.with]([o.name]Value);
+    }
+      [/if]
+    [/for]
+    return instance;
+  [/for]
+[/if]
+  }
+
+  private static Object toSingle(String attribute, Object value) {
+    if (value instanceof Object[arr]) {
+      Object[arr] elements = (Object[arr]) value;
+      if (elements.length == 1) {
+        return elements['[0]'];
+      }
+      throw new IllegalStateException("Cannot decide scalar value for attribute '"
+          + attribute + "' from array of length " + elements.length);
+    }
+    return value;
+  }
+  [if type.hasSettableCollection]
+
+  private static Object[arr] toArray([atNullable] Object value) {
+    if (value == null) {
+      return new Object[arr]{};
+    }
+    if (value instanceof Object[arr]) {
+      return (Object[arr]) value;
+    }
+    return new Object[arr]{ value };
+  }
+  [/if]
+  [if type.hasSettableMapping]
+
+  private static Object['[]'] toArray(java.util.Collection<? extends java.util.Map.Entry<?, ?>> entries) {
+    Object['[]'] data = new Object['[']entries.size() * 2[']'];
+    int p = 0;
+    for (java.util.Map.Entry<?, ?> e : entries) {
+      data['[']p++[']'] = e.getKey();
+      data['[']p++[']'] = e.getValue();
+    }
+    return data;
+  }
+  [/if]
+[/if]
+[/for]
+}
+
+private Object writeReplace() {
+  return new SerialForm(this);
 }
 [/if]
 [/template]
@@ -341,9 +559,9 @@ private Object readResolve() throws java.io.ObjectStreamException {
     [/if]
       .[type.names.build]();
 [else]
-  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[if type.useCopyMethods][for
-          o in type.constructorOmited if o.generateDefault or o.generateAbstract]
-      .[o.names.with](instance.[o.names.get]())[/for][/if];
+  return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]instance.[v.names.get]()[/for])[for
+          o in type.withSettableAfterConstruction]
+      .[o.names.with](instance.[o.names.get]())[/for];
 [/if]
 }
 [/if]
@@ -357,7 +575,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private [if type.serializable]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
+  private [if type.serialSimple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
@@ -366,7 +584,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private [if type.serializable]transient [/if][l.type] [l.name];
+  private [if type.serialSimple]transient [/if][l.type] [l.name];
 
   /**
    * {@inheritDoc}
@@ -521,29 +739,29 @@ private Object readResolve() throws java.io.ObjectStreamException {
       [for s in type.buildFromTypes.supertypes]
 
   /**
-   * Adjust builder with values from provided {@link [s.type]} instance.
+   * Fill builder with attribute values from provided {@link [s.type]} instance.
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
   public final [type.typeBuilder.simple] [type.names.from]([s.type] instance) {
     [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
-    return buildFromSupertype(instance);
+    from(instance);
+    return this;
   }
       [/for]
 
-  private [type.typeBuilder.simple] buildFromSupertype(Object object) {
+  private void from(Object object) {
       [for s in type.buildFromTypes.supertypes]
     if (object instanceof [s.type]) {
       [s.type] instance = ([s.type]) object;
       [buildFromAttributes s.attributes]
     }
       [/for]
-    return this;
   }
     [else]
 
   /**
-   * Adjust builder with values from provided {@link [type.typeAbstract.relative]} instance.
+   * Fill builder with attribute values from provided {@link [type.typeAbstract.relative]} instance.
    * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
    * Instance's absent optional values will not be copied (will not override current).
    * Collection elements and entries will be added, not replaced.
@@ -835,7 +1053,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if type.kind.isFactory]
     [returnFactoryBuild type]
-  [else if type.useSingletonOnly]
+  [else if type.useSingleton and (not type.settableAttributes)]
     return [type.factoryInstance.relative]();
   [else]
     return [validated type true]new [type.typeImmutable.relative](this)[/validated];
@@ -1011,7 +1229,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
     [generateAfterConstruction type false]
   }
 [/if]
-[if type.useBuilder and (not type.useSingletonOnly)]
+[if type.useBuilder and (not (type.useSingleton and (not type.settableAttributes)))]
 
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
@@ -1102,10 +1320,12 @@ this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[els
 @com.fasterxml.jackson.annotation.JsonCreator
 public static [type.typeValue.relative] fromAllAttributes(
     [for v in type.settableAttributes][if not for.first],
-    [/if]@com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
-[if type.useSingletonOnly]
-  return [type.factoryInstance.relative]();
-[else if type.useBuilder]
+    [/if]
+    [for a in v.parameterAnnotations]
+    [a]
+    [/for]
+    @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
+[if type.useBuilder]
   [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
   [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
@@ -1120,16 +1340,22 @@ public static [type.typeValue.relative] fromAllAttributes(
   }
   [/for]
   return [builderIdentifier].[type.names.build]();
+[else if type.useSingletonOnly]
+  return [type.factoryInstance.relative]();
 [else]
   [let instanceIdentifier]instance[for v in type.settableAttributes if v.name eq 'instance']$$[/for][/let]
+    [if type.useConstructor]
   [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
-  [if type.useCopyMethods]
-    [for o in type.constructorOmited if o.generateDefault or o.generateAbstract]
+    [else if type.useSingleton]
+  [type.typeValue.relative] [instanceIdentifier] = [type.factoryInstance.relative]();
+    [else]
+  [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+    [/if]
+  [for o in type.withSettableAfterConstruction]
   if ([o.name] != null) {
-    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]());
+    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]);
   }
-    [/for]
-  [/if]
+  [/for]
   return [instanceIdentifier];
 [/if]
 }
@@ -1925,6 +2151,35 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [if declare]private [atNullable][v.type] [v.name];[/if]
   [/if]
 [/template]
+
+[template createBuilderForCollection Type type Attribute a String variableName]
+[if a.mapType]
+[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.Map[mapParams] [variableName] = new java.util.LinkedHashMap[mapParams]();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder[mapParams] [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
+[else if a.collectionType]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elementType]>();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder<[a.elementType]> [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
+[/if]
+[/template]
+
+[template createBuiltCollection Type type Attribute a String variableName][output.trim]
+[if a.mapType or a.collectionType]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+    [variableName]
+  [else]
+    [variableName].build()
+  [/if]
+[else]
+  [variableName]
+[/if]
+[/output.trim][/template]
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
 

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.lang.annotation.ElementType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -143,20 +144,43 @@ public final class ValueType extends TypeIntrospectionBase {
     return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
-  public boolean isUseReadResolve() {
-    return isSerializable() && (isUseValidation() || isUseSingletonOnly());
+  public boolean generateImplementSerializable() {
+    Protoclass p = constitution.protoclass();
+    return (p.isSerialStructural()
+        || p.serialVersion().isPresent())
+        && !isSerializable();
+  }
+
+  public boolean isSerialSimple() {
+    Protoclass p = constitution.protoclass();
+    return !p.isSerialStructural()
+        && (isSerializable() || p.serialVersion().isPresent());
+  }
+
+  public boolean isSerialStructural() {
+    return constitution.protoclass().isSerialStructural();
+  }
+
+  public boolean isUseSimpleReadResolve() {
+    return isSerialSimple() && (isUseValidation() || isUseSingletonOnly());
   }
 
   @Nullable
-  public Object serialVersionUID() {
-    return isSerializable() ? findSerialVersionUID() : null;
+  public Long serialVersionUID() {
+    Protoclass p = constitution.protoclass();
+    if (p.serialVersion().isPresent()) {
+      return p.serialVersion().get();
+    }
+    return isSerialStructural() || isSerializable()
+        ? findSerialVersionUID()
+        : null;
   }
 
-  private Object findSerialVersionUID() {
+  private Long findSerialVersionUID() {
     for (VariableElement field : ElementFilter.fieldsIn(element.getEnclosedElements())) {
       if (field.getSimpleName().contentEquals(SERIAL_VERSION_FIELD_NAME)
           && field.asType().getKind() == TypeKind.LONG) {
-        return field.getConstantValue();
+        return (Long) field.getConstantValue();
       }
     }
     return null;
@@ -210,6 +234,12 @@ public final class ValueType extends TypeIntrospectionBase {
     return caseStructure;
   }
 
+  public List<CharSequence> passedAnnotations() {
+    return Annotations.getAnnotationLines(element,
+        Optional.<Set<String>>of(constitution.protoclass().styles().style().passAnnotationsNames()),
+        ElementType.TYPE);
+  }
+
   public Iterable<ValueType> allValues() {
     List<ValueType> values = Lists.newArrayList();
     if (kind().isValue()) {
@@ -235,10 +265,9 @@ public final class ValueType extends TypeIntrospectionBase {
   @Nullable
   public String validationMethodName;
 
-  public String getInheritsKeyword() {
+  public boolean isImplementing() {
     return element.getKind() == ElementKind.INTERFACE
-        || element.getKind() == ElementKind.ANNOTATION_TYPE
-        ? "implements" : "extends";
+        || element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
 
   public String $$package() {
@@ -270,7 +299,9 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseSingleton() {
-    return immutableFeatures.singleton() || getImplementedAttributes().isEmpty();
+    return immutableFeatures.singleton()
+        || useSingletonNoOtherWay()
+        || useSingletonForConvenience();
   }
 
   public boolean isUseInterned() {
@@ -299,7 +330,8 @@ public final class ValueType extends TypeIntrospectionBase {
     public final boolean isSuper;
 
     InnerBuilderDefinition() {
-      @Nullable TypeElement builderElement = findBuilderElement();
+      @Nullable
+      TypeElement builderElement = findBuilderElement();
       boolean extending = false;
       if (builderElement != null) {
         // We do not handle here if builder class is abstract static and not private
@@ -369,7 +401,19 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseSingletonOnly() {
     return isUseSingleton()
-        && getImplementedAttributes().isEmpty();
+        && !isUseBuilder()
+        && !isUseConstructor()
+        && getWithSettableAfterConstruction().isEmpty();
+  }
+
+  private boolean useSingletonForConvenience() {
+    return getSettableAttributes().isEmpty();
+  }
+
+  private boolean useSingletonNoOtherWay() {
+    return !isUseBuilder()
+        && !isUseConstructor()
+        && getMandatoryAttributes().isEmpty();
   }
 
   public boolean isUseConstructor() {
@@ -386,20 +430,45 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private List<ValueAttribute> constructorArguments;
+  private Set<ValueAttribute> constructorArguments;
 
-  public List<ValueAttribute> getConstructorArguments() {
+  public Set<ValueAttribute> getConstructorArguments() {
     if (constructorArguments == null) {
       constructorArguments = computeConstructorArguments();
-      validateConstructorParameters(constructorArguments);
       if (constructorArguments.isEmpty() && constitution.style().allParameters()) {
-        constructorArguments = getSettableAttributes();
+        constructorArguments = ImmutableSet.copyOf(getSettableAttributes());
       }
+      validateConstructorParameters(constructorArguments);
     }
     return constructorArguments;
   }
 
-  private void validateConstructorParameters(List<ValueAttribute> parameters) {
+  public List<ValueAttribute> getWithSettableAfterConstruction() {
+    if (isUseCopyMethods()) {
+      return getConstructorExcluded();
+    }
+    return ImmutableList.of();
+  }
+
+  @Nullable
+  private List<ValueAttribute> constructorExcluded;
+
+  public List<ValueAttribute> getConstructorExcluded() {
+    if (constructorExcluded == null) {
+      constructorExcluded = FluentIterable.from(getSettableAttributes())
+          .filter(Predicates.not(Predicates.in(getConstructorArguments())))
+          .toList();
+    }
+    return constructorExcluded;
+  }
+
+  public List<ValueAttribute> getConstructableAttributes() {
+    List<ValueAttribute> attributes = Lists.newArrayList(getConstructorArguments());
+    attributes.addAll(getWithSettableAfterConstruction());
+    return attributes;
+  }
+
+  private void validateConstructorParameters(Set<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
       for (ValueAttribute attribute : parameters) {
@@ -416,23 +485,16 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
-  public List<ValueAttribute> computeConstructorArguments() {
-    return attributes()
+  public Set<ValueAttribute> computeConstructorArguments() {
+    return ImmutableSet.copyOf(attributes()
         .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
-        .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION));
+        .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION)));
   }
 
-  @Nullable
-  private List<ValueAttribute> constructorOmmited;
-
   public List<ValueAttribute> getConstructorOmited() {
-    if (constructorOmmited == null) {
-      Set<ValueAttribute> constructorArgumentsSet = Sets.newHashSet(getConstructorArguments());
-      constructorOmmited = FluentIterable.from(getImplementedAttributes())
-          .filter(Predicates.not(Predicates.in(constructorArgumentsSet)))
-          .toList();
-    }
-    return constructorOmmited;
+    return FluentIterable.from(getImplementedAttributes())
+        .filter(Predicates.not(Predicates.in(getConstructorArguments())))
+        .toList();
   }
 
   private enum NonAuxiliary implements Predicate<ValueAttribute> {
@@ -453,12 +515,18 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
+  @Nullable
+  private List<ValueAttribute> settableAttributes;
+
   public List<ValueAttribute> getSettableAttributes() {
-    return attributes()
-        .filter(Predicates.or(
-            ValueAttributeFunctions.isGenerateAbstract(),
-            ValueAttributeFunctions.isGenerateDefault()))
-        .toList();
+    if (settableAttributes == null) {
+      settableAttributes = attributes()
+          .filter(Predicates.or(
+              ValueAttributeFunctions.isGenerateAbstract(),
+              ValueAttributeFunctions.isGenerateDefault()))
+          .toList();
+    }
+    return settableAttributes;
   }
 
   public List<ValueAttribute> getExcludableAttributes() {
@@ -742,8 +810,45 @@ public final class ValueType extends TypeIntrospectionBase {
     return hierarchiCollector.implementedInterfaces();
   }
 
+  @Nullable
+  private Boolean generateBuilderFrom;
+
   public boolean isGenerateBuilderFrom() {
-    return !isUseStrictBuilder();
+    if (generateBuilderFrom == null) {
+      generateBuilderFrom = !isUseStrictBuilder() && noAttributeInitializerIsNamedAsFrom();
+    }
+    return generateBuilderFrom;
+  }
+
+  private boolean noAttributeInitializerIsNamedAsFrom() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.names.init.equals(names().from)) {
+        a.report().warning(
+            "Attribute initializer named '%s' clashes with special builder method, "
+                + "which will not be generated to not have ambiguous overload or conflict",
+            names().from);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean hasSettableCollection() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isCollectionType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasSettableMapping() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isMapType()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Nullable
