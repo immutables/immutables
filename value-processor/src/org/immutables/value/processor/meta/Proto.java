@@ -85,10 +85,12 @@ public class Proto {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
 
-      @Nullable MetaAnnotated metaAnnotated = cache.get(element);
+      @Nullable
+      MetaAnnotated metaAnnotated = cache.get(element);
       if (metaAnnotated == null) {
         metaAnnotated = ImmutableProto.MetaAnnotated.of(element);
-        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
+        @Nullable
+        MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
         if (existing != null) {
           metaAnnotated = existing;
         }
@@ -312,7 +314,8 @@ public class Proto {
     Optional<DeclaringPackage> namedParentPackage() {
       String parentPackageName = SourceNames.parentPackageName(element());
       if (!parentPackageName.isEmpty()) {
-        @Nullable PackageElement parentPackage =
+        @Nullable
+        PackageElement parentPackage =
             environment().processing()
                 .getElementUtils()
                 .getPackageElement(parentPackageName);
@@ -325,6 +328,48 @@ public class Proto {
                   .element(parentPackage)
                   .build()));
         }
+      }
+      return Optional.absent();
+    }
+
+    @Override
+    @Value.Lazy
+    public boolean isJacksonSerialized() {
+      boolean isJacksonSerialized = super.isJacksonSerialized();
+      if (isJacksonSerialized) {
+        return isJacksonSerialized;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isJacksonSerialized();
+      }
+      return false;
+    }
+
+    @Override
+    @Value.Lazy
+    public boolean isSerialStructural() {
+      boolean isSerialStructural = super.isSerialStructural();
+      if (isSerialStructural) {
+        return isSerialStructural;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isSerialStructural();
+      }
+      return false;
+    }
+
+    @Override
+    @Value.Lazy
+    public Optional<Long> serialVersion() {
+      Optional<Long> serialVersion = super.serialVersion();
+      if (serialVersion.isPresent()) {
+        return serialVersion;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().serialVersion();
       }
       return Optional.absent();
     }
