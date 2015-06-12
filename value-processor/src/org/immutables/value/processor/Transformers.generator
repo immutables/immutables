@@ -6,7 +6,7 @@
 [/output.java]
     [else]
 [output.error]
-Use @Value.Transformer to annotate umbrella class with @Value.Nested, but with @Value.Immutable
+Use @Trees.Transform to annotate umbrella class with @Value.Enclosing, but with @Value.Immutable
 [/output.error]
     [/if]
   [/for]

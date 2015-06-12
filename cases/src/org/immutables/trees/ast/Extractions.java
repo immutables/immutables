@@ -45,7 +45,7 @@ public final class Extractions {
     return PositionExtractor.INSTANCE;
   }
 
-  // unchecked: will always work with any kind of object
+  // safe unchecked: will always work with any kind of object
   @SuppressWarnings("unchecked")
   public static <T> Extractor<T> popped() {
     return (Extractor<T>) PopExtractor.INSTANCE;

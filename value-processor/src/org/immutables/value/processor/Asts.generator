@@ -8,7 +8,7 @@
 [/for]
     [else]
 [output.error]
-Use @Parboil.Ast to annotate umbrella class with @Value.Nested, but not @Value.Immutable
+Use @Trees.Ast to annotate umbrella class with @Value.Enclosing, but not @Value.Immutable
 [/output.error]
     [/if]
   [/for]
@@ -36,7 +36,7 @@ import java.lang.String;
 
 [template generateParboiledType Type type]
 
-@javax.annotation.Generated({"Parboileds.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
 public static class [type.name] {
   private [type.name]() {}
 [if type.useSingleton]
