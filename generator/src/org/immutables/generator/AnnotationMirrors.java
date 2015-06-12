@@ -169,8 +169,8 @@ public final class AnnotationMirrors {
     }
 
     @Override
-    protected Void defaultAction(Object o, Void p) {
-      builder.append(o);
+    public Void visitBoolean(boolean b, Void p) {
+      builder.append(b);
       return null;
     }
 
@@ -218,6 +218,9 @@ public final class AnnotationMirrors {
 
     @Override
     public Void visitString(String s, Void p) {
+      // Known issue in javac is that unresolved class literal is being
+      // passes as "<error>" string literal here
+      // Current decision - do nothing, avoid annotation with unresolved classes
       builder.append(StringLiterals.toLiteral(s));
       return null;
     }

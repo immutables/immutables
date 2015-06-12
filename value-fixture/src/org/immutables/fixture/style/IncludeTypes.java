@@ -34,9 +34,9 @@ public class IncludeTypes {
 
   void use() {
     // this immutable type (package style used)
-    ImIncludeTypes.of();
+    ImIncludeTypes.builder().build();
     // included on this type (package style used)
-    ImSerializable.of();
+    ImSerializable.builder().build();
     // included on package (package style used)
     ImTicker.builder().read(1).build();
 

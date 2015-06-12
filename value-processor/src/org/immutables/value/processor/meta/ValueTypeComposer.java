@@ -57,7 +57,7 @@ public final class ValueTypeComposer {
   String inferTypeMoreObjects() {
     String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
     String typeObjects = UnshadeGuava.typeString("base.Objects");
-    
+
     if (isValidElementFound(typeMoreObjects)) {
       return typeMoreObjects;
     }
@@ -69,7 +69,8 @@ public final class ValueTypeComposer {
 
   private boolean isValidElementFound(String typeName) {
     try {
-      @Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
+      @Nullable
+      TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
       return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
     } catch (Exception e) {
       // type loading problem
@@ -105,7 +106,43 @@ public final class ValueTypeComposer {
     }
 
     checkAttributeNamesForDuplicates(type, protoclass);
+    checkConstructability(type);
     return type;
+  }
+
+  private void checkConstructability(ValueType type) {
+    if (!type.isUseBuilder() || type.isUseConstructor()) {
+      for (ValueAttribute a : type.getConstructorExcluded()) {
+        if (a.isMandatory()) {
+          a.report()
+              .error("Attribute '%s' is mandatory and should be a constructor"
+                  + " @Value.Parameter when builder is disabled or"
+                  + " there are other constructor parameters",
+                  a.name());
+        }
+      }
+    }
+    if (!type.isUseBuilder() && !type.isUseCopyMethods()) {
+      for (ValueAttribute a : type.getConstructorExcluded()) {
+        if (!a.isMandatory()) {
+          a.report()
+              .warning("There is no way to initialize '%s' attribute to non-default value."
+                  + " Enable builder=true or copy=true or add it as a constructor @Value.Parameter",
+                  a.name());
+        }
+      }
+    }
+    if (type.isUseSingleton() && !type.getMandatoryAttributes().isEmpty()) {
+      for (ValueAttribute a : type.getMandatoryAttributes()) {
+        if (a.isMandatory()) {
+          a.report()
+              .error("Attribute '%s' is mandatory and cannot be used with singleton enabled."
+                  + " Singleton instance require all attributes to have default value, otherwise"
+                  + " default instance could not be created",
+                  a.name());
+        }
+      }
+    }
   }
 
   private void checkForTypeHierarchy(Protoclass protoclass, ValueType type) {

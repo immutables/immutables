@@ -6,34 +6,34 @@
     <groupId>org.immutables</groupId>
     <version>2.0.13-SNAPSHOT</version>
   </parent>
-
-  <artifactId>metainf</artifactId>
+  <artifactId>serial</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Simple, but superior to others, META-INF/service file generator</description>
-
   <dependencies>
     <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>generator</artifactId>
+      <groupId>org.immutables.dependency</groupId>
+      <artifactId>utility</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>generator-processor</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.google.auto.service</groupId>
-      <artifactId>auto-service</artifactId>
-      <version>1.0-rc2</version>
-      <optional>true</optional>
-      <scope>provided</scope>
+      <type>pom</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
+    it exposes both relocated and not relocated classess, having processor to run twice -->
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-annotations</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>value-processor</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
