@@ -71,7 +71,7 @@ public @interface Gson {
    * </ul>
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
+  @Retention(RetentionPolicy.CLASS)
   @Target({ElementType.TYPE, ElementType.PACKAGE})
   public @interface TypeAdapters {
     /**

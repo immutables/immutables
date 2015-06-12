@@ -140,11 +140,19 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.isImplementationHidden();
   }
 
+  public boolean isGenerateTransformer() {
+    return constitution.protoclass().isTransformer();
+  }
+
+  public boolean isGenerateAst() {
+    return constitution.protoclass().isAst();
+  }
+
   public boolean isGenerateJdkOnly() {
     return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
-  public boolean generateImplementSerializable() {
+  public boolean isGenerateImplementSerializable() {
     Protoclass p = constitution.protoclass();
     return (p.isSerialStructural()
         || p.serialVersion().isPresent())

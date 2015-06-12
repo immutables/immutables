@@ -15,9 +15,10 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.generator.Generator;
 import com.google.common.base.Function;
 
-//@Generator.Template
+@Generator.Template
 abstract class Transformers extends ValuesTemplate {
 
   public final Function<String, String> simplifyName = new Function<String, String>() {

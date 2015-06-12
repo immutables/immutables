@@ -1,9 +1,11 @@
 [template generate]
-  [for type in values.values if type.generateParboiled]
+  [for type in values.values if type.generateAst]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[output.java type.package ('Parboiled' type.name)]
-[generateParboiled type]
+[for String astTypeName = (type.name 'Ast')]
+[output.java type.package astTypeName]
+[generateParboiled type astTypeName]
 [/output.java]
+[/for]
     [else]
 [output.error]
 Use @Parboil.Ast to annotate umbrella class with @Value.Nested, but not @Value.Immutable
@@ -12,19 +14,20 @@ Use @Parboil.Ast to annotate umbrella class with @Value.Nested, but not @Value.I
   [/for]
 [/template]
 
-[template generateParboiled Type type]
+[template generateParboiled Type type String astTypeName]
 [if type.package]
 package [type.package];
 [/if]
 
-import org.immutables.common.ast.Extractions;
+import org.immutables.trees.ast.Extractions;
+import java.lang.String;
 // Generated imports
 
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Parboileds.generator", "[type.typeAbstract.relative]"})
-[type.typeAbstract.access]final class Parboiled[type.name] {
-  private Parboiled[type.name]() {}
+@javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[type.typeAbstract.access]final class [astTypeName] {
+  private [astTypeName]() {}
 [for v in type.nested]
   [generateParboiledType v]
 [/for]
@@ -38,15 +41,15 @@ public static class [type.name] {
   private [type.name]() {}
 [if type.useSingleton]
 
-  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
-    return new Extractions.Instance<[type.typeAbstract.relative]>() {
+  public static Extractions.Extractor<[type.typeAbstract]> [type.names.instance]() {
+    return new Extractions.Instance<[type.typeAbstract]>() {
       @Override
-      public [type.typeAbstract.relative] get() {
+      public [type.typeAbstract] get() {
         return [type.factoryInstance]();
       }
       @Override
       public String toString() {
-        return "[type.name].of()";
+        return "[type.name].[type.names.instance]()";
       }
     };
   }
@@ -55,25 +58,25 @@ public static class [type.name] {
   [for c in type.constructorArguments]
   [if c.stringType]
 
-  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
+  public static Extractions.Extractor<[type.typeAbstract]> [type.names.of]() {
     return of(Extractions.matched());
   }
   [else]
 
-  public static Extractions.Extractor<[type.typeAbstract.relative]> of() {
+  public static Extractions.Extractor<[type.typeAbstract]> [type.names.of]() {
     return of(Extractions.<[c.wrapperType]>popped());
   }
   [/if]
 
-  public static Extractions.Extractor<[type.typeAbstract.relative]> of(Extractions.Extractor<[c.wrapperType]> [c.name]) {
-    return new Extractions.Construct<[type.typeAbstract.relative], [c.wrapperType]>([c.name]) {
+  public static Extractions.Extractor<[type.typeAbstract]> [type.names.of](Extractions.Extractor<[c.wrapperType]> [c.name]) {
+    return new Extractions.Construct<[type.typeAbstract], [c.wrapperType]>([c.name]) {
       @Override
-      public [type.typeAbstract.relative] get([c.wrapperType] value) {
+      public [type.typeAbstract] get([c.wrapperType] value) {
         return [type.factoryOf](value);
       }
       @Override
       public String toString() {
-        return "[type.name].of()";
+        return "[type.name].[type.names.of]()";
       }
     };
   }
@@ -81,7 +84,7 @@ public static class [type.name] {
 [/if]
 [if type.useBuilder]
 
-  public static Extractions.Applicator builder() {
+  public static Extractions.Applicator [type.names.builder]() {
     return new Extractions.Builder<[type.typeBuilder]>() {
       @Override
       public [type.typeBuilder] builder() {
@@ -89,31 +92,31 @@ public static class [type.name] {
       }
       @Override
       public String toString() {
-        return "[type.name].builder()";
+        return "[type.name].[type.names.builder]()";
       }
     };
   }
 
-  public static Extractions.Extractor<[type.typeAbstract]> build() {
-    return new Extractions.Build<[type.typeBuilder], [type.typeAbstract.relative]>() {
+  public static Extractions.Extractor<[type.typeAbstract]> [type.names.build]() {
+    return new Extractions.Build<[type.typeBuilder], [type.typeAbstract]>() {
       @Override
-      public [type.typeAbstract.relative] build([type.typeBuilder] builder) {
+      public [type.typeAbstract] build([type.typeBuilder] builder) {
         return builder.[type.names.build]();
       }
       @Override
       public String toString() {
-        return "[type.name].build()";
+        return "[type.name].[type.names.build]()";
       }
     };
   }
   [for a in type.implementedAttributes]
   [if a.collectionType]
 
-  public static Extractions.Applicator add[toUpper a.name]() {
-    return add[toUpper a.name](Extractions.<[a.wrappedElementType]>popped());
+  public static Extractions.Applicator [a.names.add]() {
+    return [a.names.add](Extractions.<[a.wrappedElementType]>popped());
   }
 
-  public static Extractions.Applicator add[toUpper a.name](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]Element) {
+  public static Extractions.Applicator [a.names.add](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]Element) {
     return new Extractions.Specify<[type.typeBuilder], [a.wrappedElementType]>([a.name]Element) {
       @Override
       public void specify([type.typeBuilder] builder, [a.wrappedElementType] value) {
@@ -121,18 +124,18 @@ public static class [type.name] {
       }
       @Override
       public String toString() {
-        return "[type.name].add[toUpper a.name]()";
+        return "[type.name].[a.names.add]()";
       }
     };
   }
   [else if a.mapType]
   [else if a.optionalType]
 
-  public static Extractions.Applicator [a.name]() {
+  public static Extractions.Applicator [a.names.init]() {
     return [a.name](Extractions.<[a.wrappedElementType]>popped());
   }
 
-  public static Extractions.Applicator [a.name](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]) {
+  public static Extractions.Applicator [a.names.init](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]) {
     return new Extractions.Specify<[type.typeBuilder], [a.wrappedElementType]>([a.name]) {
       @Override
       public void specify([type.typeBuilder] builder, [a.wrappedElementType] value) {
@@ -140,23 +143,23 @@ public static class [type.name] {
       }
       @Override
       public String toString() {
-        return "[type.name].[a.name]()";
+        return "[type.name].[a.names.init]()";
       }
     };
   }
   [else]
     [if a.simpleLiteralType]
 
-  public static Extractions.Applicator [a.name]([a.type] value) {
+  public static Extractions.Applicator [a.names.init]([a.type] value) {
     return [a.name](Extractions.<[a.wrapperType]>value(value));
   }
     [/if]
 
-  public static Extractions.Applicator [a.name]() {
+  public static Extractions.Applicator [a.names.init]() {
     return [a.name](Extractions.<[a.wrapperType]>popped());
   }
 
-  public static Extractions.Applicator [a.name](Extractions.Extractor<[a.wrapperType]> [a.name]) {
+  public static Extractions.Applicator [a.names.init](Extractions.Extractor<[a.wrapperType]> [a.name]) {
     return new Extractions.Specify<[type.typeBuilder], [a.wrapperType]>([a.name]) {
       @Override
       public void specify([type.typeBuilder] builder, [a.wrapperType] value) {
@@ -164,7 +167,7 @@ public static class [type.name] {
       }
       @Override
       public String toString() {
-        return "[type.name].[a.name]()";
+        return "[type.name].[a.names.init]()";
       }
     };
   }

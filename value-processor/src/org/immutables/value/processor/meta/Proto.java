@@ -140,6 +140,16 @@ public class Proto {
       return ToStyleInfo.FUNCTION.apply(StyleMirror.from(typeElement));
     }
 
+    @Value.Lazy
+    public boolean hasTreesModule() {
+      @Nullable
+      TypeElement annotationTypeElement = processing()
+          .getElementUtils()
+          .getTypeElement(TransformMirror.qualifiedName());
+
+      return annotationTypeElement != null;
+    }
+
     /**
      * Default type adapters should only be called if {@code Gson.TypeAdapters} annotation is
      * definitely in classpath. Currenlty, it is called by for mongo repository module,
@@ -487,7 +497,7 @@ public class Proto {
       return features().isPresent();
     }
 
-    public boolean verifiedFactory(ExecutableElement element) {
+    boolean verifiedFactory(ExecutableElement element) {
       if (!FactoryMirror.isPresent(element)) {
         return false;
       }
@@ -534,6 +544,19 @@ public class Proto {
     @Value.Lazy
     public SourceExtraction.Imports sourceImports() {
       return SourceExtraction.readImports(processing(), CachingElements.getDelegate(element()));
+    }
+
+    @Value.Lazy
+    public boolean isTransformer() {
+      return environment().hasTreesModule()
+          && TransformMirror.isPresent(element());
+    }
+
+    @Value.Lazy
+    public boolean isAst() {
+      // considering ast is still in tree module
+      return environment().hasTreesModule()
+          && AstMirror.isPresent(element());
     }
   }
 
@@ -870,6 +893,16 @@ public class Proto {
         }
       }
       return packageOf().isJacksonSerialized();
+    }
+
+    public boolean isAst() {
+      return declaringType().isPresent()
+          && declaringType().get().isAst();
+    }
+
+    public boolean isTransformer() {
+      return declaringType().isPresent()
+          && declaringType().get().isTransformer();
     }
 
     @Value.Lazy

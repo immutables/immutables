@@ -22,17 +22,15 @@ package [transformerType.package];
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
 [transformerType.typeAbstract.access]abstract class [transformerType.name]Transformer<C> {
   protected [transformerType.name]Transformer() {}
-
   [for cases = transformerType.cases,
-       type in cases.implementationTypes,
+       type in cases.implementedTypes,
        t = type.typeValue,
        s = type.name,
-       Boolean useCopy = useCopyConstructor and type.useCopyMethods]
-
+       Boolean useCopy = type.useCopyConstructor and type.useCopyMethods]
   [if useCopy]
 
   public [t] transform(C context, [t] value) {
-    return [t.factoryCopyOf](value)[for a in type.settableAttributes]
+    return [type.factoryCopyOf](value)[for a in type.settableAttributes]
         .[a.names.with](transform[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
   }
   [else]
@@ -71,7 +69,7 @@ package [transformerType.package];
   [for et = a.unwrappedElementType]
 
   protected [et] transform[type.name][toUpper a.name](C context, [t] value, [et] element) {
-    [if cases.isImplementationType et]
+    [if cases.isImplementedType et]
     return transform(context, element);
     [else][for Type subtype in cases.knownSubtypes et]
     if (element instanceof [subtype.typeValue]) {

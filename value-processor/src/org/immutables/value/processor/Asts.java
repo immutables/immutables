@@ -15,5 +15,7 @@
  */
 package org.immutables.value.processor;
 
-//@Generator.Template
-abstract class Parboileds extends ValuesTemplate {}
+import org.immutables.generator.Generator;
+
+@Generator.Template
+abstract class Asts extends ValuesTemplate {}

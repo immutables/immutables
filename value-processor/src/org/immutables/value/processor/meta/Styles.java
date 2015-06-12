@@ -145,7 +145,9 @@ public final class Styles {
       public final String from = scheme.from.apply(raw);
       public final String build = scheme.build.apply(raw);
 
-//      public final String builder = scheme.builder.apply(raw);
+      public final String builder() {
+        return scheme.builder().apply(raw);
+      }
 
 //      public final String typeModifiable = scheme.typeModifiable.apply(raw);
 //      public final String create = scheme.create.apply(raw);
