@@ -36,6 +36,7 @@
     <module>value-processor</module>
     <module>value-fixture</module>
     <module>serial</module>
+    <module>cases</module>
   </modules>
 
   <organization>
