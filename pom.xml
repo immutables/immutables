@@ -30,7 +30,6 @@
     <module>value</module>
     <module>ordinal</module>
     <module>builder</module>
-    <module>cases</module>
     <module>gson</module>
     <module>mongo</module>
     <module>value-annotations</module>
