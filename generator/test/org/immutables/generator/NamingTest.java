@@ -88,6 +88,19 @@ public class NamingTest {
   }
 
   @Test
+  public void underscoreCharacter() {
+    Naming oneOf = Naming.from("Builder_*");
+
+    check(oneOf.apply("x")).is("Builder_X");
+    check(oneOf.apply("X")).is("Builder_X");
+    check(oneOf.apply("__")).is("Builder___");
+
+    check(oneOf.detect("Builder_X")).is("x");
+    check(oneOf.detect("Builder__X")).isEmpty();
+    check(oneOf.detect("BuilderX")).isEmpty();
+  }
+
+  @Test
   public void sameNaming() {
     Naming star = Naming.from("*");
     check(star.apply("x")).is("x");

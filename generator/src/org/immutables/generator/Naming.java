@@ -34,7 +34,9 @@ public abstract class Naming implements Function<String, String> {
   private static final String NAME_PLACEHOLDER = "*";
   private static final Splitter TEMPLATE_SPLITTER = Splitter.on(NAME_PLACEHOLDER);
   private static final CharMatcher TEMPLATE_CHAR_MATCHER =
-      CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0))).precomputed();
+      CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0)))
+          .or(CharMatcher.is('_'))
+          .precomputed();
 
   /**
    * Applies naming to input identifier, converting it to desired naming.
@@ -114,10 +116,13 @@ public abstract class Naming implements Function<String, String> {
     if (template.isEmpty() || template.equals(NAME_PLACEHOLDER)) {
       return IDENTITY_NAMING;
     }
+    checkArgument(TEMPLATE_CHAR_MATCHER.matchesAllOf(template),
+        "Naming template [%s] contains unsupported characters, only java identifier chars and '*' placeholder are allowed (ASCII only)",
+        template);
+
     List<String> parts = TEMPLATE_SPLITTER.splitToList(template);
-    checkArgument(parts.size() <= 2 && TEMPLATE_CHAR_MATCHER.matchesAllOf(template),
-        "Wrong naming template: %s.\n"
-            + "Shoud be {prefix?}*{suffix?} where prefix and suffix are optional identifier parts",
+    checkArgument(parts.size() <= 2,
+        "Naming template [%s] contains more than one '*' placeholder, which is unsupported",
         template);
 
     return parts.size() == 1
