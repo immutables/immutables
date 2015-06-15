@@ -22,13 +22,11 @@ Read full documentation at http://immutables.org
 
 Changelog
 ---------
-### 2.0.13 (2015-04-28)
+### 2.0.13 (2015-06-14)
 
 + Added new experimental (Serial module)[http://immutables.github.io/immutable.html#serialization] with advanced structural binary serialization, which is based on the standard java binary serialization that allows for object evolution to some degree.
 + Bugfixes along with minor refinements of annotation handling. [Bugs](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.12)
 
-Changelog
----------
 ### 2.0.10 (2015-04-28)
 Bugfix release along with other 2.0.X. [Bugs](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.10)
 
