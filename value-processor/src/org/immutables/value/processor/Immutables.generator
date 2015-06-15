@@ -269,7 +269,7 @@ private static class SerialForm implements java.io.Serializable {
       [if v.collectionType or v.mapType]
     [createBuilderForCollection type v][v.name]Builder[/createBuilderForCollection]
       [else if v.optionalType]
-    [v.type] [v.name]Value = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+    [v.type] [v.name]Value = [v.rawType].[optionalEmpty v];
       [else]
     [atNullable][v.wrapperType] [v.name]Value = null;
       [/if]
@@ -1145,7 +1145,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 
 [template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
 [if v.optionalType]
-  [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if]
+  [v.rawType].[optionalEmpty v]
 [else if v.mapType]
   [if v.generateJdkOnly]
     [if v.typeKind.isSortedMap]
@@ -2122,7 +2122,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
   [if v.containerType]
     [if v.generateJdkOnly]
       [if v.optionalType]
-[if declare]private [v.type] [/if][v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+[if declare]private [v.type] [/if][v.name] = [v.rawType].[optionalEmpty v];
       [else if v.generateEnumMap]
 [if declare]private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
       [else if v.mapType]
@@ -2138,7 +2138,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
       [else if v.collectionType]
 [if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [/if][v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
       [else if v.optionalType]
-[if declare]private [v.type] [/if][v.name] = [if v.jdkOptional][v.rawType].empty()[else][guava].base.Optional.absent()[/if];
+[if declare]private [v.type] [/if][v.name] = [v.rawType].[optionalEmpty v];
       [else if v.generateSortedMap]
 [if declare]private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
       [else if v.mapType]
@@ -2190,5 +2190,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
+
+[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

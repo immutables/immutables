@@ -129,10 +129,11 @@ public static class [type.name] {
     };
   }
   [else if a.mapType]
+  [-- we skip map types, we assume ast might get along without having maps, or could derive maps from list of some entries --]
   [else if a.optionalType]
 
   public static Extractions.Applicator [a.names.init]() {
-    return [a.name](Extractions.<[a.wrappedElementType]>popped());
+    return [a.names.init](Extractions.<[a.wrappedElementType]>popped());
   }
 
   public static Extractions.Applicator [a.names.init](Extractions.Extractor<? extends [a.wrappedElementType]> [a.name]) {
@@ -151,12 +152,12 @@ public static class [type.name] {
     [if a.simpleLiteralType]
 
   public static Extractions.Applicator [a.names.init]([a.type] value) {
-    return [a.name](Extractions.<[a.wrapperType]>value(value));
+    return [a.names.init](Extractions.<[a.wrapperType]>value(value));
   }
     [/if]
 
   public static Extractions.Applicator [a.names.init]() {
-    return [a.name](Extractions.<[a.wrapperType]>popped());
+    return [a.names.init](Extractions.<[a.wrapperType]>popped());
   }
 
   public static Extractions.Applicator [a.names.init](Extractions.Extractor<[a.wrapperType]> [a.name]) {

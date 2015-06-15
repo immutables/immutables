@@ -1,9 +1,11 @@
 [template generate]
   [for type in values.values if type.generateTransformer]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
+[for ]
 [output.java type.package (type.name 'Transformer')]
 [generateTransformer type]
 [/output.java]
+[/for]
     [else]
 [output.error]
 Use @Trees.Transform to annotate umbrella class with @Value.Enclosing, but with @Value.Immutable
@@ -20,7 +22,7 @@ package [transformerType.package];
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeAbstract.access]abstract class [transformerType.name]Transformer<C> {
+[transformerType.typeValue.access]abstract class [transformerType.name]Transformer<C> {
   protected [transformerType.name]Transformer() {}
   [for cases = transformerType.cases,
        type in cases.implementedTypes,
@@ -42,7 +44,7 @@ package [transformerType.package];
   [for a in type.settableAttributes if useCopy]
     [if a.nullable]
 
-  protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
+  protected [a.rawType]<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
     if (nullable != null) {
       return transform[s][toUpper a.name](context, value, nullable);
     }
@@ -50,11 +52,11 @@ package [transformerType.package];
   }
     [else if a.optionalType]
 
-  protected com.google.common.base.Optional<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
+  protected [a.rawType]<[a.wrappedElementType]> transform[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
     if (optional.isPresent()) {
-      return com.google.common.base.Optional.of(transform[s][toUpper a.name](context, value, optional.get()));
+      return [a.rawType].of(transform[s][toUpper a.name](context, value, optional.[optionalGet a]));
     }
-    return com.google.common.base.Optional.absent();
+    return [a.rawType].[optionalEmpty a];
   }
     [else if a.collectionType]
 
@@ -107,3 +109,6 @@ package [transformerType.package];
   [/if]
 [/output.trim][/template]
 
+[template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
+
+[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
