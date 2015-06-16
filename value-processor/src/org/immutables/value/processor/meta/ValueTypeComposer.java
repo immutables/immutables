@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Iterables;
@@ -39,6 +40,12 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
  * just a glue between new "protoclass" model and old discovery routines.
  */
 public final class ValueTypeComposer {
+  private static final CharMatcher ATTRIBUTE_NAME_CHARS =
+      CharMatcher.is('_')
+          .or(CharMatcher.inRange('a', 'z'))
+          .or(CharMatcher.inRange('A', 'Z'))
+          .or(CharMatcher.inRange('0', '9')).precomputed();
+
   private final ProcessingEnvironment processing;
   private final Round round;
   @Nullable
@@ -105,9 +112,20 @@ public final class ValueTypeComposer {
       }
     }
 
+    checkAttributeNamesIllegalCharacters(type);
     checkAttributeNamesForDuplicates(type, protoclass);
     checkConstructability(type);
     return type;
+  }
+
+  private void checkAttributeNamesIllegalCharacters(ValueType type) {
+    for (ValueAttribute a : type.attributes) {
+      if (!ATTRIBUTE_NAME_CHARS.matchesAllOf(a.name())) {
+        a.report()
+            .error("Name '%s' contains some unsupported or reserved characters, please use only A-Z, a-z, 0-9 and _ chars",
+                a.name());
+      }
+    }
   }
 
   private void checkConstructability(ValueType type) {

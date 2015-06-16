@@ -751,7 +751,7 @@ private Object writeReplace() {
       [/for]
 
   private void from(Object object) {
-      [for s in type.buildFromTypes.supertypes]
+      [for s in type.buildFromTypes.supertypes if s.attributes]
     if (object instanceof [s.type]) {
       [s.type] instance = ([s.type]) object;
       [buildFromAttributes s.attributes]
@@ -1326,7 +1326,7 @@ public static [type.typeValue.relative] fromAllAttributes(
     [/for]
     @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
 [if type.useBuilder]
-  [let builderIdentifier]builder[for v in type.settableAttributes if v.name eq 'builder']$$[/for][/let]
+  [let builderIdentifier][disambiguateIdentifier type 'builder'][/let]
   [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
   if ([v.name] != null) {
@@ -1343,7 +1343,7 @@ public static [type.typeValue.relative] fromAllAttributes(
 [else if type.useSingletonOnly]
   return [type.factoryInstance.relative]();
 [else]
-  [let instanceIdentifier]instance[for v in type.settableAttributes if v.name eq 'instance']$$[/for][/let]
+  [let instanceIdentifier][disambiguateIdentifier type 'instance'][/let]
     [if type.useConstructor]
   [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
     [else if type.useSingleton]
@@ -1447,34 +1447,35 @@ private boolean equalTo([equalToType] another) {
 }
 [/if]
 [let computeHashCodeBody]
+[let h][disambiguateIdentifier type 'h'][/let]
 [if type.annotationType]
-  int h = 0;
+  int [h] = 0;
 [for v in getters]
 [if v.arrayType]
-  h += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
+  [h] += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
-  h += 127 * "[v.name]".hashCode() ^ [primitiveHashCode v];
+  [h] += 127 * "[v.name]".hashCode() ^ [primitiveHashCode v];
 [else]
-  h += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
+  [h] += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
 [/if]
 [/for]
-  return h;
+  return [h];
 [else if getters.isEmpty]
   return [type.hashCode];
 [else]
-  int h = 31;
+  int [h] = 31;
 [for v in getters]
 [if v.nullable]
-  h = h * 17 + [if type.generateJdkOnly][objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
+  [h] = [h] * 17 + [if type.generateJdkOnly][objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
 [else if v.arrayType]
-  h = h * 17 + java.util.Arrays.hashCode([v.name]);
+  [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
-  h = h * 17 + [primitiveHashCode v];
+  [h] = [h] * 17 + [primitiveHashCode v];
 [else]
-  h = h * 17 + [v.name].hashCode();
+  [h] = [h] * 17 + [v.name].hashCode();
 [/if]
 [/for]
-  return h;
+  return [h];
 [/if]
 [/let]
 [if type.hashCodeDefined]
@@ -1511,7 +1512,7 @@ public int hashCode() {
 }
   [if type.usePrehashed]
 
-private int computeHashCode[for v in type.implementedAttributes if v.name eq 'computeHashCode']$$[/for]() {
+private int [disambiguateIdentifier type 'computeHashCode']() {
 [computeHashCodeBody]
 }
   [/if]
@@ -1562,7 +1563,7 @@ public String toString() {
 
 [template generateAfterConstruction Type type Boolean usingBuilder]
   [if type.usePrehashed]
-this.hashCode = [if type.hashCodeDefined]super.hashCode()[else]this.computeHashCode[for v in type.implementedAttributes if v.name eq 'computeHashCode']$$[/for]()[/if];
+this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateIdentifier type 'computeHashCode']()[/if];
   [/if]
   [if type.generateOrdinalValue][-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
@@ -2194,3 +2195,5 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
+
+[template disambiguateIdentifier Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,10 @@ import org.immutables.generator.SourceOrdering;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class AccessorAttributesCollector {
+  private static final String ORDINAL_VALUE_INTERFACE_TYPE = TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE;
+  private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
+  private static final String ORDINAL_DOMAIN_ATTRIBUTE_NAME = "domain";
+
   private static final String ORG_ECLIPSE = "org.eclipse";
 
   /**
@@ -134,7 +139,7 @@ final class AccessorAttributesCollector {
     if (definitionType.equals(Object.class.getName())) {
       return false;
     }
-    if (definitionType.startsWith(TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE)) {
+    if (definitionType.startsWith(ORDINAL_VALUE_INTERFACE_TYPE)) {
       return false;
     }
     return true;
@@ -252,11 +257,34 @@ final class AccessorAttributesCollector {
 
       attribute.reporter = reporter;
       attribute.returnType = returnType;
-      attribute.names = styles.forAccessor(name.toString());
+      attribute.names = deriveNames(name.toString());
       attribute.element = attributeMethodCandidate;
       attribute.containingType = type;
       attributes.add(attribute);
     }
+  }
+
+  private AttributeNames deriveNames(String accessorName) {
+    AttributeNames names = styles.forAccessor(accessorName);
+    if (names.raw.equals(HASH_CODE_METHOD)
+        || names.raw.equals(TO_STRING_METHOD)) {
+      // name could equal reserved method name if template is used
+      // like "getToString" accessor -> "toString" attribute
+      // then we force literal accessor name as raw name
+      return styles.forAccessorWithRaw(accessorName, accessorName);
+    }
+    if (names.raw.equals(ORDINAL_ORDINAL_ATTRIBUTE_NAME)
+        || names.raw.equals(ORDINAL_DOMAIN_ATTRIBUTE_NAME)) {
+      if (type.isOrdinalValue()) {
+        // name could equal reserved method name if template is used
+        // like "getOrdinal" accessor -> "ordinal" attribute
+        // then we force literal accessor name as raw name.
+        // Here we have assumption that actual "ordinal" and "domain" accessors
+        // defined in OrdinalValue interface were filtered out beforehand
+        return styles.forAccessorWithRaw(accessorName, accessorName);
+      }
+    }
+    return names;
   }
 
   private TypeMirror resolveReturnType(ExecutableElement method) {

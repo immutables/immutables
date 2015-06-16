@@ -34,8 +34,11 @@ public abstract class Naming implements Function<String, String> {
   private static final String NAME_PLACEHOLDER = "*";
   private static final Splitter TEMPLATE_SPLITTER = Splitter.on(NAME_PLACEHOLDER);
   private static final CharMatcher TEMPLATE_CHAR_MATCHER =
-      CharMatcher.JAVA_LETTER_OR_DIGIT.or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0)))
-          .or(CharMatcher.is('_'))
+      CharMatcher.is('_')
+          .or(CharMatcher.is(NAME_PLACEHOLDER.charAt(0)))
+          .or(CharMatcher.inRange('a', 'z'))
+          .or(CharMatcher.inRange('A', 'Z'))
+          .or(CharMatcher.inRange('0', '9'))
           .precomputed();
 
   /**

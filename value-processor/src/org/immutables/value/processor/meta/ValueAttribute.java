@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.ImmutableSet;
-import java.util.Collections;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -672,10 +670,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return true;
   }
 
-//  boolean isConstructorParameter() {
-//    return getConstructorParameterOrder() >= CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
-//  }
-//
   public boolean isPrimitiveElement() {
     return isPrimitiveType(getUnwrappedElementType());
   }
