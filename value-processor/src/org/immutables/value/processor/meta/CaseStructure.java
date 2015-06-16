@@ -40,7 +40,7 @@ public class CaseStructure {
   private static Set<String> buildImplementedTypesSet(List<ValueType> implementationTypes) {
     ImmutableSet.Builder<String> builder = ImmutableSet.builder();
     for (ValueType discoveredValue : implementationTypes) {
-      builder.add(discoveredValue.typeAbstract().toString());
+      builder.add(discoveredValue.typeValue().toString());
     }
     return builder.build();
   }

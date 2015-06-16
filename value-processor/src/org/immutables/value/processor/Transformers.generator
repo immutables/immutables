@@ -68,7 +68,7 @@ package [transformerType.package];
     return list;
   }
     [/if]
-  [for et = a.unwrappedElementType]
+  [for et = a.wrappedElementType]
 
   protected [et] transform[type.name][toUpper a.name](C context, [t] value, [et] element) {
     [if cases.isImplementedType et]
