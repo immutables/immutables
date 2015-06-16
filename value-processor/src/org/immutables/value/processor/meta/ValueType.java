@@ -74,7 +74,9 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isHashCodeDefined;
   public boolean isEqualToDefined;
   public boolean isToStringDefined;
+  public boolean hasDefaultAttributes;
   public Constitution constitution;
+
   Round round;
 
   /**
@@ -636,6 +638,9 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getDefaultAttributes() {
+    if (!hasDefaultAttributes) {
+      return ImmutableList.of();
+    }
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getImplementedAttributes()) {
       if (attribute.isGenerateDefault) {
@@ -801,6 +806,32 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return hasCollectionAttribute();
+  }
+
+  public boolean isGenerateConstructorUseCopyConstructor() {
+    return isUseCopyMethods()
+        && !hasDefaultAttributes
+        && !hasCollectionAttribute()
+        && getConstructorExcluded().isEmpty();
+  }
+
+  public boolean isSynthCopyConstructor() {
+    return isUseConstructor()
+        && !isGenerateConstructorUseCopyConstructor()
+        && getConstructorExcluded().isEmpty();
+  }
+
+  public boolean isGenerateBuilderUseCopyConstructor() {
+    return isUseBuilder()
+        && isUseCopyMethods()
+        && !isOrdinalValue()
+        && getDefaultAttributes().isEmpty();
+  }
+
+  public boolean isGenerateBuilderConstructor() {
+    return isUseBuilder()
+        && !(isUseSingleton() && settableAttributes.isEmpty())
+        && !isGenerateBuilderUseCopyConstructor();
   }
 
   @Override

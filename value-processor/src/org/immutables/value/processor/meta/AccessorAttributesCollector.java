@@ -261,6 +261,11 @@ final class AccessorAttributesCollector {
       attribute.element = attributeMethodCandidate;
       attribute.containingType = type;
       attributes.add(attribute);
+
+      // Compute this eagerly here, for no strong reason
+      if (attribute.isGenerateDefault) {
+        type.hasDefaultAttributes = true;
+      }
     }
   }
 

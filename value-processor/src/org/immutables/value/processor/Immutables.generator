@@ -472,7 +472,7 @@ private Object writeReplace() {
 [/for]
    * @return immutable [type.name] instance
    */
-  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
   }
   [/if]
@@ -484,7 +484,7 @@ private Object writeReplace() {
 [/for]
    * @return immutable [type.name] instance
    */
-  public static [type.typeValue.relative] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+  public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
@@ -1055,6 +1055,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [returnFactoryBuild type]
   [else if type.useSingleton and (not type.settableAttributes)]
     return [type.factoryInstance.relative]();
+  [else if type.generateBuilderUseCopyConstructor]
+    [generateReturnBuilderConstructed type]
   [else]
     return [validated type true]new [type.typeImmutable.relative](this)[/validated];
   [/if]
@@ -1212,7 +1214,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
     [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
-[if type.useConstructor]
+[if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
 
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
@@ -1229,7 +1231,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
     [generateAfterConstruction type false]
   }
 [/if]
-[if type.useBuilder and (not (type.useSingleton and (not type.settableAttributes)))]
+[if type.generateBuilderConstructor]
 
   private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
@@ -1270,8 +1272,9 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
 [if type.useCopyMethods]
 
   private [type.typeImmutable.simple]([output.linesShortable]
-      [type.typeImmutable.simple] original[for v in getters if not v.generateDerived],
-      [v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
+      [if type.synthCopyConstructor][type.typeImmutable.simple] original,
+      [/if][for v in getters if not v.generateDerived][if not for.first],
+      [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [for v in getters if not v.generateDerived]
     this.[v.name] = [v.name];
   [/for]
@@ -1326,7 +1329,7 @@ public static [type.typeValue.relative] fromAllAttributes(
     [/for]
     @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
 [if type.useBuilder]
-  [let builderIdentifier][disambiguateIdentifier type 'builder'][/let]
+  [let builderIdentifier][disambiguateField type 'builder'][/let]
   [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
   if ([v.name] != null) {
@@ -1343,7 +1346,7 @@ public static [type.typeValue.relative] fromAllAttributes(
 [else if type.useSingletonOnly]
   return [type.factoryInstance.relative]();
 [else]
-  [let instanceIdentifier][disambiguateIdentifier type 'instance'][/let]
+  [let instanceIdentifier][disambiguateField type 'instance'][/let]
     [if type.useConstructor]
   [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
     [else if type.useSingleton]
@@ -1447,7 +1450,7 @@ private boolean equalTo([equalToType] another) {
 }
 [/if]
 [let computeHashCodeBody]
-[let h][disambiguateIdentifier type 'h'][/let]
+[let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
   int [h] = 0;
 [for v in getters]
@@ -1512,7 +1515,7 @@ public int hashCode() {
 }
   [if type.usePrehashed]
 
-private int [disambiguateIdentifier type 'computeHashCode']() {
+private int [disambiguateAccessor type 'computeHashCode']() {
 [computeHashCodeBody]
 }
   [/if]
@@ -1563,7 +1566,7 @@ public String toString() {
 
 [template generateAfterConstruction Type type Boolean usingBuilder]
   [if type.usePrehashed]
-this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateIdentifier type 'computeHashCode']()[/if];
+this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateAccessor type 'computeHashCode']()[/if];
   [/if]
   [if type.generateOrdinalValue][-- Assigning dummy ordinal value to be changed on interning --]
 this.ordinal = 0;
@@ -1578,8 +1581,22 @@ this.domain = Domain.get();
 
 [template generateReturnCopyContextual Type type Attribute modified]
 return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
-        this[for a in type.implementedAttributes if not a.generateDerived],
-        [if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+        [if type.synthCopyConstructor]this,
+        [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
+        [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+[/template]
+
+[template generateReturnBuilderConstructed Type type]
+return [validated type true]new [type.typeImmutable.relative]([output.linesShortable]
+        [if type.synthCopyConstructor]null,
+        [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
+        [/if][output.trim]
+    [if v.collectionType or v.mapType]
+      [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
+    [else]
+      [v.name]
+    [/if]
+        [/output.trim][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateCopyMethods Type type]
@@ -2196,4 +2213,6 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
 
-[template disambiguateIdentifier Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
+[template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
+
+[template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
