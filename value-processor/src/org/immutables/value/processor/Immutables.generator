@@ -536,6 +536,7 @@ private Object writeReplace() {
  * Creates immutable copy of {@link [type.typeAbstract.relative]}.
  * Uses accessors to get values to initialize immutable instance.
  * If an instance is already immutable, it is returned as is.
+ * @param instance instance to copy
  * @return copied immutable [type.name] instance
  */
 [type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract] instance) {
