@@ -862,7 +862,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   private boolean noAttributeInitializerIsNamedAsFrom() {
     for (ValueAttribute a : getSettableAttributes()) {
-      if (a.names.init.equals(names().from)) {
+      if (a.names.init.equals(names().from) && !a.isPrimitive()) {
         a.report().warning(
             "Attribute initializer named '%s' clashes with special builder method, "
                 + "which will not be generated to not have ambiguous overload or conflict",
