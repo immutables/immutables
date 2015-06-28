@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture;
 
-import static org.immutables.check.Checkers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
@@ -101,6 +100,17 @@ public class ValuesTest {
         .build();
 
     check(a).is(b);
+  }
+
+  @Test
+  public void extendsBuilderIfaceValue() {
+    ExtendedBuilderInterface ifc = ExtendedBuilderInterface.builder()
+        .a(1)
+        .b(2)
+        .build();
+
+    check(ifc.a()).is(1);
+    check(ifc.b()).is(2);
   }
 
   @Test

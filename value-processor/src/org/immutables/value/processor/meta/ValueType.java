@@ -339,12 +339,13 @@ public final class ValueType extends TypeIntrospectionBase {
     public final boolean isPresent;
     public final boolean isExtending;
     public final boolean isSuper;
+    public final boolean isInterface;
 
     InnerBuilderDefinition() {
       @Nullable
       TypeElement builderElement = findBuilderElement();
       boolean extending = false;
-      if (builderElement != null) {
+      if (builderElement != null && builderElement.getKind() == ElementKind.CLASS) {
         // We do not handle here if builder class is abstract static and not private
         // It's all to discretion compilation checking
         TypeMirror superclass = builderElement.getSuperclass();
@@ -356,13 +357,15 @@ public final class ValueType extends TypeIntrospectionBase {
       }
       this.isPresent = builderElement != null;
       this.isExtending = extending;
+      this.isInterface = builderElement != null && builderElement.getKind() == ElementKind.INTERFACE;
       this.isSuper = this.isPresent && !extending;
     }
 
     @Nullable
     TypeElement findBuilderElement() {
       for (Element t : element.getEnclosedElements()) {
-        if (t.getKind() == ElementKind.CLASS) {
+        if (t.getKind() == ElementKind.CLASS
+            || t.getKind() == ElementKind.INTERFACE) {
           if (t.getSimpleName().contentEquals(SUPER_BUILDER_TYPE_NAME)) {
             return (TypeElement) t;
           }

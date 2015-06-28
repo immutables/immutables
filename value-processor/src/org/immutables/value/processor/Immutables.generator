@@ -642,7 +642,7 @@ private Object writeReplace() {
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
 [type.typeBuilder.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilder.simple] [if type.innerBuilder.isSuper]
-    extends [type.typeAbstract].Builder {[else]{[/if]
+    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].Builder {[else]{[/if]
   [for l in positions.longs]
   private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
