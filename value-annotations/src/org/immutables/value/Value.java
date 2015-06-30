@@ -532,6 +532,15 @@ public @interface Value {
     boolean allParameters() default false;
 
     /**
+     * This funny-named named attribute, when enabled makes default accessor methods defined in
+     * interfaces/traits to behave as if they annotated as {@literal @}{@link Value.Default}.
+     * This is not a default behaviour to preserve compatibility and also to have an choice to not
+     * opt-in for this new functionality when not needed.
+     * @return if consider default method accessors as {@literal @}{@code Value.Default}
+     */
+    boolean defaultAsDefault() default false;
+
+    /**
      * List type of annotations to copy over from abstract value type to immutable implementation
      * class. Very often this functionality is not needed when annoatations are declared as
      * {@link Inherited}, but there are cases where you need to pass specific non-inherited

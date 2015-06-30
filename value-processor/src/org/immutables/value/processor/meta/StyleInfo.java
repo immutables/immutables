@@ -120,6 +120,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean defaultAsDefault();
+
+  @Value.Parameter
+  @Override
   public abstract boolean jdkOnly();
 
   @Value.Parameter

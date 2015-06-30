@@ -188,10 +188,17 @@ final class AccessorAttributesCollector {
       }
     }
 
-    if (isDiscoveredAttribute(attributeMethodCandidate)) {
+    boolean useDefaultAsDefault = type.constitution.style().defaultAsDefault();
+
+    if (isDiscoveredAttribute(attributeMethodCandidate, useDefaultAsDefault)) {
       TypeMirror returnType = resolveReturnType(attributeMethodCandidate);
 
       ValueAttribute attribute = new ValueAttribute();
+      attribute.reporter = reporter;
+      attribute.returnType = returnType;
+      attribute.names = deriveNames(name.toString());
+      attribute.element = attributeMethodCandidate;
+      attribute.containingType = type;
 
       boolean isFinal = isFinal(attributeMethodCandidate);
       boolean isAbstract = isAbstract(attributeMethodCandidate);
@@ -239,8 +246,17 @@ final class AccessorAttributesCollector {
             .error("Annotated attribute '%s' will be overriden and cannot be final", name);
       } else if (defaultAnnotationPresent) {
         attribute.isGenerateDefault = true;
+
+        if (useDefaultAsDefault && attribute.isInterfaceDefaultMethod()) {
+          report(attributeMethodCandidate)
+              .annotationNamed(DefaultMirror.simpleName())
+              .warning("@Value.Default annotation is superflous for default annotation attribute"
+                  + " when 'defaultAsDefault' style is enabled");
+        }
       } else if (derivedAnnotationPresent) {
         attribute.isGenerateDerived = true;
+      } else if (useDefaultAsDefault) {
+        attribute.isGenerateDefault = attribute.isInterfaceDefaultMethod();
       }
 
       if (LazyMirror.isPresent(attributeMethodCandidate)) {
@@ -252,14 +268,10 @@ final class AccessorAttributesCollector {
               .error("@Value.Lazy attribute '%s' cannot be @Value.Derived or @Value.Default", name);
         } else {
           attribute.isGenerateLazy = true;
+          attribute.isGenerateDefault = false;
         }
       }
 
-      attribute.reporter = reporter;
-      attribute.returnType = returnType;
-      attribute.names = deriveNames(name.toString());
-      attribute.element = attributeMethodCandidate;
-      attribute.containingType = type;
       attributes.add(attribute);
 
       // Compute this eagerly here, for no strong reason
@@ -333,10 +345,12 @@ final class AccessorAttributesCollector {
     return element.getModifiers().contains(Modifier.FINAL);
   }
 
-  private static boolean isDiscoveredAttribute(ExecutableElement attributeMethodCandidate) {
+  private static boolean isDiscoveredAttribute(ExecutableElement attributeMethodCandidate, boolean isDefaultAsDefault) {
     return attributeMethodCandidate.getParameters().isEmpty()
         && attributeMethodCandidate.getReturnType().getKind() != TypeKind.VOID
-        && (isAbstract(attributeMethodCandidate) || hasGenerateAnnotation(attributeMethodCandidate));
+        && (isAbstract(attributeMethodCandidate)
+            || hasGenerateAnnotation(attributeMethodCandidate)
+            || isDefaultAsDefault);
   }
 
   private static boolean hasGenerateAnnotation(ExecutableElement attributeMethodCandidate) {

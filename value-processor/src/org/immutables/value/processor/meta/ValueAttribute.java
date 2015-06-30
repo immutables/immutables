@@ -324,23 +324,27 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private CharSequence defaultInterface;
+  private String defaultInterface;
 
-  public CharSequence defaultInterface() {
+  public String defaultInterface() {
     if (defaultInterface == null) {
       defaultInterface = inferDefaultInterface();
     }
     return defaultInterface;
   }
 
-  private CharSequence inferDefaultInterface() {
-    if (element.getEnclosingElement().getKind() == ElementKind.INTERFACE
-        && !element.getModifiers().contains(Modifier.ABSTRACT)) {
+  private String inferDefaultInterface() {
+    if (isInterfaceDefaultMethod()) {
       if (containingType.element.getKind() == ElementKind.INTERFACE) {
         return containingType.typeAbstract().relative();
       }
     }
     return "";
+  }
+
+  public boolean isInterfaceDefaultMethod() {
+    return element.getEnclosingElement().getKind() == ElementKind.INTERFACE
+        && !element.getModifiers().contains(Modifier.ABSTRACT);
   }
 
   public boolean isGenerateEnumMap() {

@@ -103,6 +103,16 @@ public class ValuesTest {
   }
 
   @Test
+  public void defaultAsDefault() {
+    DefaultAsDefault d = ImmutableDefaultAsDefault.builder()
+        .b(1)
+        .build();
+
+    check(d.a()).is(1);
+    check(d.b()).is(1);
+  }
+
+  @Test
   public void extendsBuilderIfaceValue() {
     ExtendedBuilderInterface ifc = ExtendedBuilderInterface.builder()
         .a(1)

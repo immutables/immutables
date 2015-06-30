@@ -983,6 +983,7 @@ public class Proto {
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
           input.allParameters(),
+          input.defaultAsDefault(),
           input.jdkOnly(),
           ImmutableSet.copyOf(input.passAnnotationsName()),
           input.visibility());

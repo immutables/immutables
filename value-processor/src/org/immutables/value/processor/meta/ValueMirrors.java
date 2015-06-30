@@ -121,6 +121,8 @@ public final class ValueMirrors {
 
     boolean allParameters() default false;
 
+    boolean defaultAsDefault() default false;
+
     boolean jdkOnly() default false;
 
     Class<? extends Annotation>[] passAnnotations() default {};
