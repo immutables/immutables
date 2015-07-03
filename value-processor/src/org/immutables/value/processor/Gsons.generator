@@ -124,11 +124,19 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
 
   @Override
   public void write(JsonWriter out, [t] value) throws IOException {
-    write[type.name](out, value);
+    if (value == null) {
+      out.nullValue();
+    } else {
+      write[type.name](out, value);
+    }
   }
 
   @Override
   public [t] read(JsonReader in) throws IOException {
+    if (in.peek() == JsonToken.NULL) {
+      in.nextNull();
+      return null;
+    }
     return read[type.name](in);
   }
   [generateMarshalingMethods type]

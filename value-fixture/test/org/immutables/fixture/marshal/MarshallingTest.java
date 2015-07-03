@@ -63,7 +63,7 @@ public class MarshallingTest {
   public void unmarshalSingleton() {
     check(Marshaling.fromJson("[11]", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
     check(Marshaling.fromJson("{\"x\": true}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
-    check(Marshaling.fromJson("null", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+    check(Marshaling.fromJson("{}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
   }
 
   @Test
