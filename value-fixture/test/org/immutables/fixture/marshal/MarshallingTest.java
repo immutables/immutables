@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.marshal;
 
+import com.google.gson.JsonNull;
 import org.immutables.fixture.subpack.SillySubstructure;
 import org.immutables.fixture.SillyStructure;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -64,6 +65,12 @@ public class MarshallingTest {
     check(Marshaling.fromJson("[11]", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
     check(Marshaling.fromJson("{\"x\": true}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
     check(Marshaling.fromJson("{}", NonGrouped.Cadabra.class)).same(ImmutableCadabra.of());
+  }
+
+  @Test
+  public void unmarshalNull() {
+    check(Marshaling.fromJson("null", NonGrouped.Cadabra.class)).isNull();
+    check(Marshaling.getGson().getAdapter(NonGrouped.Cadabra.class).toJsonTree(null)).isA(JsonNull.class);
   }
 
   @Test
@@ -134,162 +141,6 @@ public class MarshallingTest {
 
     check(Marshaling.fromJson(Marshaling.toJson(structure), SillyStructure.class)).is(structure);
   }
-
-/*
-
-
-  @Test
-  public void marshalingPolymorphicTypes() throws IOException {
-    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
-    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]}},{s:{b:'b'}}]", m);
-    check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
-  }
-
-  @Test
-  public void marshalingPolymorphicOptionalTypes() throws IOException {
-    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
-    ImmutableList<SillyPolyHost2> list = fromJsonIterable("[{s:{b:[1,2]},o:{b:'b'}}]", m);
-    check(fromJsonIterable(toJsonIterable(list, m), m)).is(list);
-    check(list.get(0).o()).isOf(ImmutableSillySub2.builder().b("b").build());
-  }
-
-  @Test(expected = IOException.class)
-  public void marshalingPolymorphicTypesFailedOnUnexpectedValues() throws IOException {
-    Marshaler<SillyPolyHost2> m = SillyPolyHost2Marshaler.instance();
-    fromJsonIterable("[{s:{b:['a']}}}]", m);
-  }
-
-  @Test(expected = IOException.class)
-  public void marshalingPolymorphicTypesFailedOnMismatchedAttributes() throws IOException {
-    Marshaler<SillyPolyHost> m = SillyPolyHostMarshaler.instance();
-    fromJsonIterable("[{s:{c:1}}]", m);
-  }
-
-  @Test
-  public void marshalingWrapperSingleArgumentTypes() throws IOException {
-    Marshaler<SillyIntWrap> m = SillyIntWrapMarshaler.instance();
-    ImmutableList<SillyIntWrap> it =
-        fromJsonIterable("[123,345,567]", m);
-
-    check(fromJsonIterable(toJsonIterable(it, m), m)).is(it);
-    check(fromBsonIterable(toBsonIterable(it, m), m)).is(it);
-  }
-
-  @Test
-  public void unknownAttributesIgnored() throws IOException {
-    Marshaler<SillyMapHolder> m1 = SillyMapHolderMarshaler.instance();
-
-    check(fromJsonIterable("[{ unmolder2:{two:2}, sober:1}]", m1)).hasSize(1);
-  }
-
-  @Test
-  public void nestedMaps() throws IOException {
-    Marshaler<SillyMapTup> m = SillyMapTupMarshaler.instance();
-
-    ImmutableList<SillyMapTup> it =
-        fromJsonIterable("[[{'SOURCE':1, 'RUNTIME':2},1]]", m);
-
-    check(fromJsonIterable(toJsonIterable(it, m), m)).is(it);
-    check(fromBsonIterable(toBsonIterable(it, m), m)).is(it);
-
-    Marshaler<SillyMapHolder> m1 = SillyMapHolderMarshaler.instance();
-
-    ImmutableList<SillyMapHolder> it1 =
-        fromJsonIterable("[{ holder1:{ONE:1,TWO:2}, holder2:{'1':'a','3':'b'}, holder3:{'ss':[{'SOURCE':1},1]}}]", m1);
-
-    check(fromJsonIterable(toJsonIterable(it1, m1), m1)).is(it1);
-    check(fromBsonIterable(toBsonIterable(it1, m1), m1)).is(it1);
-  }
-
-  @Test
-  public void marshalAndUnmarshalGeneratedType() throws IOException {
-    SillyStructure structure =
-        fromJson("{attr1:'x', flag2:false,opt3:1, very4:33, wet5:555.55, subs6:null,"
-            + " nest7:{ set2:'METHOD', set3: [1,2,4],floats4:[333.11] },"
-            + "int9:0, tup3: [1212.441, null, [true,true,false]]}");
-
-    check(fromJson(toJson(structure))).is(structure);
-    check(fromBson(toBson(structure))).is(structure);
-  }
-
-  @Test
-  public void importRoutinesFromPackageAnnotation() throws IOException {
-    ImmutableList<SillyRoutineImport> imports =
-        fromJsonIterable("['127.0.0.1:8080']", SillyRoutineImportMarshaler.instance());
-
-    check(imports.get(0).hostAndPort().getHostText()).is("127.0.0.1");
-  }
-
-  @Test
-  public void forceAndSkipEmpty() throws IOException {
-    check(marshalDumb(ImmutableSillyDumb.builder().build())).is("{a:null,b:[]}");
-    check(marshalDumb(ImmutableSillyDumb.builder().c3(3).addD4("X").build())).is("{a:null,b:[],c:3,d:[\"X\"]}");
-  }
-
-  private String marshalDumb(SillyDumb emptyDumb) throws IOException {
-    StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGen = jsonFactory.createGenerator(stringWriter);
-    SillyDumbMarshaler.marshal(jsonGen, emptyDumb);
-    jsonGen.close();
-    return stringWriter.toString();
-  }
-
-  private <T> ImmutableList<T> fromJsonIterable(String string, Marshaler<T> marshaler) throws IOException {
-    JsonParser jsonParser = jsonFactory.createParser(string);
-    jsonParser.nextToken();
-    return ImmutableList.copyOf(marshaler.unmarshalIterable(jsonParser));
-  }
-
-  private <T> String toJsonIterable(Iterable<T> it, Marshaler<T> m) throws IOException {
-    StringWriter writer = new StringWriter();
-    JsonGenerator jsonGen = strictierJsonFactory.createGenerator(writer);
-    m.marshalIterable(jsonGen, it);
-    jsonGen.close();
-    return writer.toString();
-  }
-
-  private <T> ImmutableList<T> fromBsonIterable(byte[] bytes, Marshaler<T> marshaler)
-      throws IOException {
-    JsonParser bsonParser = bsonFactory.createParser(bytes);
-    bsonParser.nextToken();
-    return ImmutableList.copyOf(marshaler.unmarshalIterable(bsonParser));
-  }
-
-  private <T> byte[] toBsonIterable(Iterable<T> it, Marshaler<T> marshaler) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    BsonGenerator bsonGen = bsonFactory.createJsonGenerator(baos);
-    marshaler.marshalIterable(bsonGen, it);
-    bsonGen.close();
-    return baos.toByteArray();
-  }
-
-  private SillyStructure fromJson(String string) throws IOException {
-    JsonParser jsonParser = jsonFactory.createParser(string);
-    jsonParser.nextToken();
-    return SillyStructureMarshaler.instance().unmarshalInstance(jsonParser);
-  }
-
-  private SillyStructure fromBson(byte[] bytes) throws IOException {
-    JsonParser bsonParser = bsonFactory.createParser(bytes);
-    bsonParser.nextToken();
-    return SillyStructureMarshaler.instance().unmarshalInstance(bsonParser);
-  }
-
-  private String toJson(SillyStructure structure) throws IOException {
-    StringWriter stringWriter = new StringWriter();
-    JsonGenerator jsonGen = jsonFactory.createGenerator(stringWriter);
-    SillyStructureMarshaler.marshal(jsonGen, structure);
-    jsonGen.close();
-    return stringWriter.toString();
-  }
-
-  private byte[] toBson(SillyStructure structure) throws IOException {
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    BsonGenerator bsonGen = bsonFactory.createJsonGenerator(baos);
-    SillyStructureMarshaler.marshal(bsonGen, structure);
-    bsonGen.close();
-    return baos.toByteArray();
-  }*/
 
   private <T> List<T> fromJsonIterable(String json, TypeToken<List<T>> typeToken) {
     return Marshaling.getGson().fromJson(json, typeToken.getType());

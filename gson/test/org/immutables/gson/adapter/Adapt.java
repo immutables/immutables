@@ -15,9 +15,9 @@
  */
 package org.immutables.gson.adapter;
 
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.ListMultimap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
