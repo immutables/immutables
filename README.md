@@ -23,8 +23,11 @@ Read full documentation at http://immutables.org
 Changelog
 ---------
 
+### 2.0.15 (2015-07-02)
++ Bugfixes and minor improvements [Issues](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.15)
+
 ### 2.0.14 (2015-06-18)
-+ Bugfixes and  minor improvements [Issues](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.14)
++ Bugfixes and minor improvements [Issues](https://github.com/immutables/immutables/issues?q=is%3Aissue+is%3Aclosed+milestone%3A2.0.14)
 
 ### 2.0.13 (2015-06-14)
 
