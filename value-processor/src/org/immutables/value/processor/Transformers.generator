@@ -33,7 +33,7 @@ package [transformerType.package];
 
   public [t] to[s](C context, [t] value) {
     return [type.factoryCopyOf](value)[for a in type.settableAttributes]
-        .[a.names.with](to[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
+        .[a.names.with](as[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
   }
   [else]
 
@@ -44,33 +44,33 @@ package [transformerType.package];
   [for a in type.settableAttributes if useCopy]
     [if a.nullable]
 
-  protected [a.rawType]<[a.wrappedElementType]> to[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
     if (nullable != null) {
-      return to[s][toUpper a.name](context, value, nullable);
+      return as[s][toUpper a.name](context, value, nullable);
     }
     return null;
   }
     [else if a.optionalType]
 
-  protected [a.rawType]<[a.wrappedElementType]> to[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
     if (optional.isPresent()) {
-      return [a.rawType].of(to[s][toUpper a.name](context, value, optional.[optionalGet a]));
+      return [a.rawType].of(as[s][toUpper a.name](context, value, optional.[optionalGet a]));
     }
     return [a.rawType].[optionalEmpty a];
   }
     [else if a.collectionType]
 
-  protected Iterable<[a.wrappedElementType]> to[s][transformAttributeSuffix a](C context, [t] value, [a.type] collection) {
+  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.type] collection) {
     java.util.List<[a.wrappedElementType]> list = new java.util.ArrayList<>();
     for ([a.wrappedElementType] element : collection) {
-      list.add(to[s][toUpper a.name](context, value, element));
+      list.add(as[s][toUpper a.name](context, value, element));
     }
     return list;
   }
     [/if]
   [for et = a.wrappedElementType]
 
-  protected [et] to[s][toUpper a.name](C context, [t] value, [et] element) {
+  protected [et] as[s][toUpper a.name](C context, [t] value, [et] element) {
     [if cases.isImplementedType et]
     return to[s](context, element);
     [else][for Type subtype in cases.knownSubtypes et]
