@@ -27,9 +27,9 @@ import javax.annotation.Nullable;
 
 public class CaseStructure {
   public final List<ValueType> implementedTypes;
+  public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
   private final Set<String> implementedTypeNames;
   private final SetMultimap<String, ValueType> subtyping;
-  public final SetMultimap<String, ValueType> subtypeUsages = HashMultimap.create();
 
   CaseStructure(ValueType discoveredValue) {
     this.implementedTypes = discoveredValue.nested;
@@ -84,9 +84,10 @@ public class CaseStructure {
         public Iterable<ValueType> apply(@Nullable String typeName) {
           Set<ValueType> subtypes = subtyping.get(typeName);
           subtypeUsages.putAll(typeName, subtypes);
+          /*
           for (ValueType subtype : subtypes) {
             subtypeUsages.put(subtype.typeAbstract().toString(), subtype);
-          }
+          }*/
           return subtypes;
         }
       };

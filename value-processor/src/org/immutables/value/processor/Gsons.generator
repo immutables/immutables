@@ -147,8 +147,8 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
 
 [template getAdapterFromGson Attribute a Boolean secondary]
 [for subs = a.expectedSubtypes,
-    Boolean suppotedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind))]
-  [if subs and suppotedSubs]
+    Boolean supportedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind))]
+  [if subs and supportedSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
     [toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN[for s in subs],
     TypeToken.get([s].class)[/for]);

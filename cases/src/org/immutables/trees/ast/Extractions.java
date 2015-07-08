@@ -17,10 +17,6 @@ public final class Extractions {
     T get(Context<Object> context);
   }
 
-  public interface AutoPositioned {
-    Object withPosition(Position position);
-  }
-
   public interface Applicator extends Action<Object> {}
 
   public static <T> Extractor<T> value(final T value) {
@@ -129,7 +125,6 @@ public final class Extractions {
     @Override
     public final boolean run(Context<Object> context) {
       Object value = get(context);
-      value = autoPosition(context, value);
       context.getValueStack().push(value);
       return true;
     }
@@ -143,7 +138,6 @@ public final class Extractions {
 
     public abstract T get();
   }
-
 
   public static abstract class Construct<T, V> extends ExtractorApplicator<T> {
     private final Extractor<? extends V> extractor;
@@ -201,13 +195,6 @@ public final class Extractions {
     }
 
     public abstract B builder();
-  }
-
-  private static Object autoPosition(Context<Object> context, Object value) {
-    if (value instanceof AutoPositioned) {
-      return ((AutoPositioned) value).withPosition(context.getPosition());
-    }
-    return value;
   }
 
   private static void printContext(Object caller, Context<Object> context) {
