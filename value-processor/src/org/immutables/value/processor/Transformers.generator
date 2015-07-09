@@ -22,7 +22,7 @@ package [transformerType.package];
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeValue.access]abstract class [transformersClassname]<C> {
+[transformerType.typeValue.access]abstract class [transformersClassname] {
   protected [transformersClassname]() {}
   [for cases = transformerType.cases,
        type in cases.implementedTypes,
@@ -31,51 +31,51 @@ package [transformerType.package];
        Boolean useCopy = type.useCopyConstructor and type.useCopyMethods]
   [if useCopy]
 
-  public [t] to[s](C context, [t] value) {
+  public [t] to[s]([t] value) {
     return [type.factoryCopyOf](value)[for a in type.settableAttributes]
-        .[a.names.with](as[s][transformAttributeSuffix a](context, value, value.[a.names.get]()))[/for];
+        .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
   }
   [else]
 
-  public [t] to[s](C context, [t] value) {
+  public [t] to[s]([t] value) {
     return value;
   }
   [/if]
   [for a in type.settableAttributes if useCopy]
     [if a.nullable]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.atNullability][a.type] nullable) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.atNullability][a.type] nullable) {
     if (nullable != null) {
-      return as[s][toUpper a.name](context, value, nullable);
+      return as[s][toUpper a.name](value, nullable);
     }
     return null;
   }
     [else if a.optionalType]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.type] optional) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] optional) {
     if (optional.isPresent()) {
-      return [a.rawType].of(as[s][toUpper a.name](context, value, optional.[optionalGet a]));
+      return [a.rawType].of(as[s][toUpper a.name](value, optional.[optionalGet a]));
     }
     return [a.rawType].[optionalEmpty a];
   }
     [else if a.collectionType]
 
-  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a](C context, [t] value, [a.type] collection) {
+  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] collection) {
     java.util.List<[a.wrappedElementType]> list = new java.util.ArrayList<>();
     for ([a.wrappedElementType] element : collection) {
-      list.add(as[s][toUpper a.name](context, value, element));
+      list.add(as[s][toUpper a.name](value, element));
     }
     return list;
   }
     [/if]
   [for et = a.wrappedElementType]
 
-  protected [et] as[s][toUpper a.name](C context, [t] value, [et] element) {
+  protected [et] as[s][toUpper a.name]([t] value, [et] element) {
     [if cases.isImplementedType et]
-    return to[s](context, element);
+    return to[s](element);
     [else][for Type subtype in cases.knownSubtypes et]
     if (element instanceof [subtype.typeValue]) {
-      return as[simplifyName et](context, ([subtype.typeValue]) element);
+      return as[simplifyName et](([subtype.typeValue]) element);
     }
     [/for]
     return element;
@@ -90,9 +90,9 @@ package [transformerType.package];
        v = e.value,
        t = v.typeValue]
 
-  protected [k] as[simplifyName e.key](C context, [t] value) {
+  protected [k] as[simplifyName e.key]([t] value) {
   [if cases.isImplementedType t]
-    return to[v.name](context, value);
+    return to[v.name](value);
   [else]
     return value;
   [/if]
