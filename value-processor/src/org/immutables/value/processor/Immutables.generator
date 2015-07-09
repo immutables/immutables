@@ -746,7 +746,7 @@ private Object writeReplace() {
    */
   public final [type.typeBuilder.simple] [type.names.from]([s.type] instance) {
     [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
-    from(instance);
+    from((Object) instance);
     return this;
   }
       [/for]
