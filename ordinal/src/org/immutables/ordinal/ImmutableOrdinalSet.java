@@ -467,9 +467,11 @@ public abstract class ImmutableOrdinalSet<E extends OrdinalValue<E>>
    * Build instances of {@link ImmutableOrdinalSet}.
    * @param <E> element type
    */
-  public static class Builder<E extends OrdinalValue<E>> {
+  public static final class Builder<E extends OrdinalValue<E>> {
     private final List<E> builder = Lists.newArrayListWithExpectedSize(4);
 
+    Builder() {}
+    
     /**
      * Adds add elements from the iterable.
      * @param elements the elements
