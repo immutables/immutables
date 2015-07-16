@@ -101,6 +101,14 @@ public class NamingTest {
   }
 
   @Test
+  public void underscoreNaming() {
+    Naming underscoreStar = Naming.from("_*");
+    String detect = underscoreStar.detect("_Abacus");
+    check(detect).is("abacus");
+
+  }
+
+  @Test
   public void sameNaming() {
     Naming star = Naming.from("*");
     check(star.apply("x")).is("x");

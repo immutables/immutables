@@ -976,6 +976,7 @@ public class Proto {
           input.from(),
           input.build(),
           input.typeBuilder(),
+          input.typeInnerBuilder(),
           input.typeAbstract(),
           input.typeImmutable(),
           input.typeImmutableEnclosing(),

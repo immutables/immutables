@@ -1,10 +1,11 @@
 package org.immutables.generator;
 
-import com.google.common.collect.Maps;
+import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.io.IOException;
 import java.nio.CharBuffer;
@@ -21,12 +22,15 @@ import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
 import org.eclipse.jdt.internal.compiler.apt.model.ExecutableElementImpl;
+import org.eclipse.jdt.internal.compiler.apt.model.TypeElementImpl;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
+import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
@@ -123,10 +127,6 @@ public final class SourceExtraction {
   };
 
   private static final class JavacSourceExtractor implements SourceExtractor {
-    // Triggers loading of class that may be absent in classpath
-    static {
-      ClassSymbol.class.getCanonicalName();
-    }
 
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
@@ -144,11 +144,6 @@ public final class SourceExtraction {
   }
 
   private static final class EclipseSourceExtractor implements SourceExtractor {
-    // Triggers loading of class that may be absent in classpath
-    static {
-      ElementImpl.class.getCanonicalName();
-    }
-
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
       if (typeElement instanceof ElementImpl) {
@@ -169,7 +164,8 @@ public final class SourceExtraction {
         if (binding instanceof MethodBinding) {
           MethodBinding methodBinding = (MethodBinding) binding;
 
-          @Nullable AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
+          @Nullable
+          AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
           if (sourceMethod != null) {
             CharSequence rawType = getRawType(methodBinding);
             char[] content = sourceMethod.compilationResult.compilationUnit.getContents();
@@ -243,21 +239,37 @@ public final class SourceExtraction {
   }
 
   private static SourceExtractor createExtractor() {
-    List<SourceExtractor> extractors = Lists.newArrayListWithCapacity(2);
-    try {
-      extractors.add(new JavacSourceExtractor());
-    } catch (Throwable javacClassesNotAwailable) {
+    if (Compiler.ECJ.isPresent() || Compiler.JAVAC.isPresent()) {
+      List<SourceExtractor> extractors = Lists.newArrayListWithCapacity(2);
+      if (Compiler.ECJ.isPresent()) {
+        extractors.add(new EclipseSourceExtractor());
+      }
+      if (Compiler.JAVAC.isPresent()) {
+        extractors.add(new JavacSourceExtractor());
+      }
+      return new CompositeExtractor(extractors);
     }
-    try {
-      extractors.add(new EclipseSourceExtractor());
-    } catch (Throwable eclipseClassesNotAwailable) {
-    }
-    return new CompositeExtractor(extractors);
+    return DEFAULT_EXTRACTOR;
   }
 
   private static final SourceExtractor EXTRACTOR = createExtractor();
 
   public static CharSequence getReturnTypeString(ExecutableElement method) {
     return EXTRACTOR.extractReturnType(method);
+  }
+
+  public static String getSuperclassString(TypeElement element) {
+    if (Compiler.ECJ.isPresent()) {
+      if (element instanceof TypeElementImpl) {
+        TypeElementImpl elementImpl = ((TypeElementImpl) element);
+        if (elementImpl._binding instanceof MemberTypeBinding) {
+          SourceTypeBinding sourceBinding = (SourceTypeBinding) elementImpl._binding;
+          ReferenceBinding superclassBinding = sourceBinding.superclass;
+          return CharOperation.toString(superclassBinding.compoundName).replace('$', '.');
+        }
+      }
+    }
+
+    return element.getSuperclass().toString();
   }
 }

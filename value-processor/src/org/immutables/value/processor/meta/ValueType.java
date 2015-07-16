@@ -51,6 +51,7 @@ import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
+import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
@@ -63,7 +64,6 @@ import static com.google.common.base.MoreObjects.*;
  */
 public final class ValueType extends TypeIntrospectionBase {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
-  private static final String SUPER_BUILDER_TYPE_NAME = "Builder";
 
   // TBD Should we change this field to usage of [classpath.available] templating directive???
   @Nullable
@@ -115,6 +115,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeBuilder();
   }
 
+  public NameForms typeBuilderImpl() {
+    return constitution.typeImplementationBuilder();
+  }
+
   public NameForms typeAbstract() {
     return constitution.typeAbstract();
   }
@@ -155,25 +159,8 @@ public final class ValueType extends TypeIntrospectionBase {
     return typeMoreObjects == null || constitution.style().jdkOnly();
   }
 
-  public boolean isGenerateImplementSerializable() {
-    Protoclass p = constitution.protoclass();
-    return (p.isSerialStructural()
-        || p.serialVersion().isPresent())
-        && !isSerializable();
-  }
-
-  public boolean isSerialSimple() {
-    Protoclass p = constitution.protoclass();
-    return !p.isSerialStructural()
-        && (isSerializable() || p.serialVersion().isPresent());
-  }
-
-  public boolean isSerialStructural() {
-    return constitution.protoclass().isSerialStructural();
-  }
-
   public boolean isUseSimpleReadResolve() {
-    return isSerialSimple() && (isUseValidation() || isUseSingletonOnly());
+    return serial.isSimple() && (isUseValidation() || isUseSingletonOnly());
   }
 
   @Nullable
@@ -182,7 +169,7 @@ public final class ValueType extends TypeIntrospectionBase {
     if (p.serialVersion().isPresent()) {
       return p.serialVersion().get();
     }
-    return isSerialStructural() || isSerializable()
+    return serial.isEnabled()
         ? findSerialVersionUID()
         : null;
   }
@@ -206,8 +193,11 @@ public final class ValueType extends TypeIntrospectionBase {
       // but only if we are not validated by method or generating ordinal value.
       return false;
     }
-    return isUseInterned()
-        || isUseSingleton();
+    if (isUseSingleton()) {
+      return serial.isEnabled()
+          || !useSingletonForConvenience();
+    }
+    return isUseInterned();
   }
 
   public boolean isGenerateJacksonMapped() {
@@ -325,54 +315,8 @@ public final class ValueType extends TypeIntrospectionBase {
     // || isGenerateOrdinalValue()
   }
 
-  @Nullable
-  private InnerBuilderDefinition innerBuilder;
-
   public InnerBuilderDefinition getInnerBuilder() {
-    if (innerBuilder == null) {
-      innerBuilder = new InnerBuilderDefinition();
-    }
-    return innerBuilder;
-  }
-
-  public final class InnerBuilderDefinition {
-    public final boolean isPresent;
-    public final boolean isExtending;
-    public final boolean isSuper;
-    public final boolean isInterface;
-
-    InnerBuilderDefinition() {
-      @Nullable
-      TypeElement builderElement = findBuilderElement();
-      boolean extending = false;
-      if (builderElement != null && builderElement.getKind() == ElementKind.CLASS) {
-        // We do not handle here if builder class is abstract static and not private
-        // It's all to discretion compilation checking
-        TypeMirror superclass = builderElement.getSuperclass();
-        if (superclass.toString().equals(typeBuilder().relative())) {
-          // If we are extending yet to be generated builder, we detect it by having the same name
-          // as relative name of builder type
-          extending = true;
-        }
-      }
-      this.isPresent = builderElement != null;
-      this.isExtending = extending;
-      this.isInterface = builderElement != null && builderElement.getKind() == ElementKind.INTERFACE;
-      this.isSuper = this.isPresent && !extending;
-    }
-
-    @Nullable
-    TypeElement findBuilderElement() {
-      for (Element t : element.getEnclosedElements()) {
-        if (t.getKind() == ElementKind.CLASS
-            || t.getKind() == ElementKind.INTERFACE) {
-          if (t.getSimpleName().contentEquals(SUPER_BUILDER_TYPE_NAME)) {
-            return (TypeElement) t;
-          }
-        }
-      }
-      return null;
-    }
+    return constitution.innerBuilder();
   }
 
   public String getDocumentName() {
@@ -697,45 +641,46 @@ public final class ValueType extends TypeIntrospectionBase {
     return element.asType();
   }
 
-  private static class KindPredicate implements Predicate<ValueAttribute> {
+  private static class HasJdkKind implements Predicate<ValueAttribute> {
     private final AttributeTypeKind kind;
 
-    KindPredicate(AttributeTypeKind kind) {
+    HasJdkKind(AttributeTypeKind kind) {
       this.kind = kind;
     }
 
     @Override
     public boolean apply(ValueAttribute attribute) {
-      return attribute.typeKind() == kind;
+      return attribute.typeKind() == kind
+          && !attribute.isGuavaImmutableDeclared();
     }
   }
 
   public boolean isUseListUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.LIST));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.LIST));
   }
 
   public boolean isUseSetUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SET));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.SET));
   }
 
   public boolean isUseEnumSetUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.ENUM_SET));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.ENUM_SET));
   }
 
   public boolean isUseSortedSetUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SORTED_SET));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.SORTED_SET));
   }
 
   public boolean isUseMapUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.MAP));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.MAP));
   }
 
   public boolean isUseEnumMapUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.ENUM_MAP));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.ENUM_MAP));
   }
 
   public boolean isUseSortedMapUtility() {
-    return useCollectionUtility(new KindPredicate(AttributeTypeKind.SORTED_MAP));
+    return useCollectionUtility(new HasJdkKind(AttributeTypeKind.SORTED_MAP));
   }
 
   private boolean useCollectionUtility(Predicate<ValueAttribute> predicate) {
@@ -955,6 +900,45 @@ public final class ValueType extends TypeIntrospectionBase {
         this.type = type;
         this.attributes = ImmutableList.copyOf(attribute);
       }
+    }
+  }
+
+  public Serialization serial = Serialization.NONE;
+
+  public enum Serialization {
+    NONE, STRUCTURAL, STRUCTURAL_IMPLEMENTS, IMPLEMENTS, SERIAL_VERSION;
+
+    public boolean isEnabled() {
+      return this != NONE;
+    }
+
+    public boolean isStructural() {
+      return this == STRUCTURAL
+          || this == STRUCTURAL_IMPLEMENTS;
+    }
+
+    public boolean isSimple() {
+      return this == IMPLEMENTS
+          || this == SERIAL_VERSION;
+    }
+
+    public boolean shouldImplement() {
+      return this == STRUCTURAL
+          || this == SERIAL_VERSION;
+    }
+  }
+
+  void detectSerialization() {
+    Protoclass p = constitution.protoclass();
+    boolean isSerializable = isSerializable();
+    if (p.isSerialStructural()) {
+      serial = isSerializable
+          ? Serialization.STRUCTURAL_IMPLEMENTS
+          : Serialization.STRUCTURAL;
+    } else if (isSerializable) {
+      serial = Serialization.IMPLEMENTS;
+    } else if (p.serialVersion().isPresent()) {
+      serial = Serialization.SERIAL_VERSION;
     }
   }
 

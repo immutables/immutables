@@ -110,6 +110,8 @@ public final class ValueTypeComposer {
                 Joiner.on(", ").join(violations));
         // Do nothing now. kind of way to less blow things up when it happens.
       }
+
+      type.detectSerialization();
     }
 
     checkAttributeNamesIllegalCharacters(type);

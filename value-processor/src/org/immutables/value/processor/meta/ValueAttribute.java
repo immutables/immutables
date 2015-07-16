@@ -79,6 +79,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return names.raw;
   }
 
+  public boolean isPublic() {
+    return element.getModifiers().contains(Modifier.PUBLIC)
+        || containingType.constitution.implementationVisibility().isPublic();
+  }
+
   public boolean isBoolean() {
     return returnType.getKind() == TypeKind.BOOLEAN;
   }

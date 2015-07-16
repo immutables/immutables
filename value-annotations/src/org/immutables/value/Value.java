@@ -431,10 +431,16 @@ public @interface Value {
     String build() default "build";
 
     /**
-     * Builder class name.
+     * Generated builder class name.
      * @return naming template
      */
     String typeBuilder() default "Builder";
+
+    /**
+     * Inner builder class name which will be matched to be extend/super for generated builder.
+     * @return naming template
+     */
+    String typeInnerBuilder() default "Builder";
 
     /**
      * Naming templates to detect base/raw type name from provided abstract value type name.
