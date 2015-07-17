@@ -15,8 +15,8 @@
  */
 package org.immutables.fixture.serial;
 
-import org.immutables.value.Value;
 import java.io.Serializable;
+import org.immutables.value.Value;
 
 @Value.Immutable(intern = true)
 public abstract class SomeSer implements Serializable {

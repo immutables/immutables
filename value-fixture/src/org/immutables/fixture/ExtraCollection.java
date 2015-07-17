@@ -15,10 +15,17 @@
  */
 package org.immutables.fixture;
 
-import java.util.Collections;
-import com.google.common.collect.*;
-import org.immutables.value.Value;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.SetMultimap;
 import java.util.Arrays;
+import java.util.Collections;
+import org.immutables.value.Value;
 
 @Value.Immutable(singleton = true, prehash = true)
 public interface ExtraCollection {

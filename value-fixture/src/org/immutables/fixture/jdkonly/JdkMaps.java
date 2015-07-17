@@ -15,12 +15,12 @@
  */
 package org.immutables.fixture.jdkonly;
 
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.SortedMap;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Value.Immutable(singleton = true)
 @Value.Style(visibility = ImplementationVisibility.PRIVATE, jdkOnly = true)

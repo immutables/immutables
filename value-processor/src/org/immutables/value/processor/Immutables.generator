@@ -710,14 +710,14 @@ private Object writeReplace() {
   [/for]
 [else if useFactoryMethod]
 
-  private [type.typeBuilder.simple]() {}
+  private [type.typeBuilderImpl.simple]() {}
   [if type.constitution.isOutsideBuilder]
 
   /**
    * Creates builder for {@link [type.typeValue]}.
    * @return new [type.typeValue.simple] builder
    */
-  public static [type.typeBuilder.simple] [type.factoryBuilder.applied]() {
+  public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.simple]();
   }
   [/if]

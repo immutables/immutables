@@ -15,10 +15,9 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.value.Value;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+import org.immutables.value.Value;
 
 @Value.Enclosing
 @Value.Include({Target.class, Retention.class})

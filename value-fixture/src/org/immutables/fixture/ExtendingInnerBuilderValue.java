@@ -1,9 +1,8 @@
 package org.immutables.fixture;
 
-import java.security.KeyStore.Entry.Attribute;
 import java.util.List;
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Value.Immutable
 class SuperInnerBuildeValue {

@@ -16,8 +16,8 @@
 package org.immutables.fixture.style;
 
 import com.google.common.base.Optional;
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Value.Style(
     typeImmutableEnclosing = "EnclosingFactory",

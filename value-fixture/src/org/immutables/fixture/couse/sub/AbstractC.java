@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture.couse.sub;
 
-import java.util.List;
 import com.google.common.base.Optional;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.List;
 import java.util.Map;
 import org.immutables.fixture.couse.A;
 import org.immutables.fixture.couse.B;

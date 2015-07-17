@@ -15,10 +15,10 @@
  */
 package org.immutables.fixture.strict;
 
-import org.immutables.value.Value;
 import com.google.common.base.Optional;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import org.immutables.value.Value;
 
 @Value.Immutable
 interface Aar {

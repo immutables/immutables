@@ -5,3 +5,4 @@
 package org.immutables.fixture.strict;
 
 import org.immutables.value.Value;
+
