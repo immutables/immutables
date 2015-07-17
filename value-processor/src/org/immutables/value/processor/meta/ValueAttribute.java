@@ -43,12 +43,12 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
-  private static final Splitter LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
   private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
+  private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
 
   public AttributeNames names;
   public boolean isGenerateDefault;
@@ -846,7 +846,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       @Nullable
       String docComment = elements.getDocComment(element);
       if (docComment != null) {
-        this.docComment = ImmutableList.copyOf(LINE_SPLITTER.split(docComment));
+        this.docComment = ImmutableList.copyOf(DOC_COMMENT_LINE_SPLITTER.split(docComment));
       }
     }
   }

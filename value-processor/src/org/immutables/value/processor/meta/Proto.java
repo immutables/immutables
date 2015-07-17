@@ -193,6 +193,12 @@ public class Proto {
       return include().isPresent();
     }
 
+    public Optional<DeclaringType> asType() {
+      return this instanceof DeclaringType
+          ? Optional.of((DeclaringType) this)
+          : Optional.<DeclaringType>absent();
+    }
+
     /** used to intern packaged created internally */
     @Value.Auxiliary
     abstract Round.Interning interner();
@@ -539,6 +545,11 @@ public class Proto {
             .annotationNamed(ImmutableMirror.simpleName())
             .error("@%s is not supported on enums", ImmutableMirror.simpleName());
       }
+    }
+
+    @Value.Lazy
+    public String headerComments() {
+      return SourceExtraction.extractSourceHeader(processing(), CachingElements.getDelegate(element()));
     }
 
     @Value.Lazy
@@ -985,6 +996,7 @@ public class Proto {
           input.strictBuilder(),
           input.allParameters(),
           input.defaultAsDefault(),
+          input.headerComments(),
           input.jdkOnly(),
           ImmutableSet.copyOf(input.passAnnotationsName()),
           input.visibility());

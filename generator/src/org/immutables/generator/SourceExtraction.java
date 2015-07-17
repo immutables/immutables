@@ -1,6 +1,5 @@
 package org.immutables.generator;
 
-import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -20,7 +19,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
-import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
@@ -29,6 +27,7 @@ import org.eclipse.jdt.internal.compiler.apt.model.TypeElementImpl;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
+import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
 import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
@@ -78,13 +77,27 @@ public final class SourceExtraction {
     }
   }
 
-  public static Imports readImports(ProcessingEnvironment environment, TypeElement element) {
+  public static String extractSourceHeader(ProcessingEnvironment processing, TypeElement element) {
+    try {
+      return PostprocessingMachine.collectHeader(
+          SourceExtraction.extract(processing, element)).toString();
+    } catch (UnsupportedOperationException cannotReadSourceFile) {
+      cannotReadSourceFile.printStackTrace();
+      return "";
+    } catch (IOException cannotReadSourceFile) {
+      cannotReadSourceFile.printStackTrace();
+      return "";
+    }
+  }
+
+  public static Imports readImports(ProcessingEnvironment processing, TypeElement element) {
     try {
       return PostprocessingMachine.collectImports(
-          SourceExtraction.extract(environment, element));
-
+          extract(processing, element));
+    } catch (UnsupportedOperationException cannotReadSourceFile) {
+      return Imports.empty();
     } catch (IOException cannotReadSourceFile) {
-      environment.getMessager().printMessage(
+      processing.getMessager().printMessage(
           Diagnostic.Kind.MANDATORY_WARNING,
           String.format("Could not read source files to collect imports for %s[%s.class]: %s",
               element,
@@ -131,8 +144,10 @@ public final class SourceExtraction {
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
       if (typeElement instanceof ClassSymbol) {
-        JavaFileObject sourceFile = ((ClassSymbol) typeElement).sourcefile;
-        return sourceFile.getCharContent(true);
+        ClassSymbol classSymbol = (ClassSymbol) typeElement;
+        if (classSymbol.sourcefile != null) {
+          return classSymbol.sourcefile.getCharContent(true);
+        }
       }
       return UNABLE_TO_EXTRACT;
     }

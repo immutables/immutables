@@ -6,6 +6,11 @@
     String typeAdaptersName = ('GsonAdapters' capitalizedSimpleName)]
 
 [output.java packageName typeAdaptersName]
+[for d = adapters.definedBy,
+     s in d.style if s.headerComments,
+     t in d.asType]
+[t.associatedTopLevel.headerComments]
+[/for]
 [generateTypeAdapters packageName simpleName typeAdaptersName adapters.types]
 [/output.java]
 

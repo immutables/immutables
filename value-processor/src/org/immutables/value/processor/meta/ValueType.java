@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -85,6 +86,16 @@ public final class ValueType extends TypeIntrospectionBase {
    */
   public GsonMirrors.TypeAdapters gsonTypeAdapters() {
     return constitution.protoclass().gsonTypeAdapters().get();
+  }
+
+  public String sourceHeader() {
+    if (constitution.style().headerComments()) {
+      Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+      if (declaringType.isPresent()) {
+        return declaringType.get().associatedTopLevel().headerComments();
+      }
+    }
+    return "";
   }
 
   public TypeNames names() {

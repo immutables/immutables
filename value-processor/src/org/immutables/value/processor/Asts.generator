@@ -3,6 +3,7 @@
     [if type.kind.isEnclosing and (not type.kind.isValue)]
 [for String astTypeName = (type.name 'Ast')]
 [output.java type.package astTypeName]
+[type.sourceHeader]
 [generateParboiled type astTypeName]
 [/output.java]
 [/for]

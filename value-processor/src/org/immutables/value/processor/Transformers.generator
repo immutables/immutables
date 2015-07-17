@@ -3,6 +3,7 @@
     [if type.kind.isEnclosing and (not type.kind.isValue)]
 [for String transformersClassname = (type.name 'Transformer')]
 [output.java type.package transformersClassname]
+[type.sourceHeader]
 [generateTransformer type transformersClassname]
 [/output.java]
 [/for]

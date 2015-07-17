@@ -15,12 +15,12 @@
  */
 package org.immutables.generator;
 
-import org.immutables.generator.SourceExtraction.Imports;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
+import org.immutables.generator.SourceExtraction.Imports;
 
 final class PostprocessingMachine {
   private static final Joiner JOINER = Joiner.on("");
@@ -38,16 +39,26 @@ final class PostprocessingMachine {
   private PostprocessingMachine() {}
 
   static CharSequence rewrite(CharSequence content) {
-    return rewrite(content, new ImportsBuilder(), false);
+    return rewrite(content, new ImportsBuilder(), ScanAtMost.ALL);
+  }
+
+  static CharSequence collectHeader(CharSequence content) {
+    return rewrite(content, new ImportsBuilder(), ScanAtMost.HEADER);
   }
 
   static Imports collectImports(CharSequence content) {
     ImportsBuilder importsBuilder = new ImportsBuilder();
-    rewrite(content, importsBuilder, true);
+    rewrite(content, importsBuilder, ScanAtMost.IMPORTS);
     return Imports.of(importsBuilder.imports, importsBuilder.originalImports);
   }
 
-  private static CharSequence rewrite(CharSequence content, ImportsBuilder importsBuilder, boolean onlyImports) {
+  private enum ScanAtMost {
+    HEADER,
+    IMPORTS,
+    ALL
+  }
+
+  private static CharSequence rewrite(CharSequence content, ImportsBuilder importsBuilder, ScanAtMost scanAtMost) {
     String currentPackage = "";
 
     State state = State.UNDEFINED;
@@ -63,6 +74,8 @@ final class PostprocessingMachine {
     QualifiedNameMachine importsQualifiedNameMachine = new QualifiedNameMachine().allowNestedTypes();
     CommentMachine commentMachine = new CommentMachine();
     ClassNameMachine nameMachine = new ClassNameMachine();
+    @Nullable
+    CharSequence header = null;
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
@@ -71,11 +84,32 @@ final class PostprocessingMachine {
       }
 
       commentMachine.nextChar(c);
+
       if (commentMachine.isInComment()) {
         continue;
       }
 
-      if (onlyImports && state.atClassDefinition()) {
+      if (header == null && state.pastHeader()) {
+        int lastLineIndex = i;
+        // find last line break index before package declaration
+        while (--lastLineIndex > 0) {
+          if (content.charAt(lastLineIndex) == '\n') {
+            break;
+          }
+        }
+
+        // so we will cut all from file start
+        // up to the package (or first package annotation) declaration
+        // not including newline character
+        header = content.subSequence(0, Math.max(0, lastLineIndex));
+
+        if (scanAtMost == ScanAtMost.HEADER) {
+          // Short circuit everything when only collecting header
+          return header;
+        }
+      }
+
+      if (scanAtMost == ScanAtMost.IMPORTS && state.atClassDefinition()) {
         // Short circuit everything when only collecting imports
         return "";
       }
@@ -174,30 +208,45 @@ final class PostprocessingMachine {
 
     importsBuilder.preBuild();
 
-    StringBuilder stringBuilder = new StringBuilder(content.length() << 1);
+    List<ImportCandidate> candidates = importsBuilder.candidates();
+    List<CharSequence> contentParts = Lists.newArrayListWithExpectedSize(candidates.size());
 
-    for (ImportCandidate importCandidate : importsBuilder.candidates()) {
+    for (ImportCandidate importCandidate : candidates) {
       if (importCandidate.importTo != -1) {
         importsBuilder.addImport(importCandidate.preparedImport);
       }
-      stringBuilder.append(content.subSequence(nextPartFrom, importCandidate.importFrom));
+      contentParts.add(content.subSequence(nextPartFrom, importCandidate.importFrom));
       nextPartFrom = importCandidate.packageTo;
     }
 
     String imports = importsBuilder.build();
 
-    stringBuilder
-        // last part
-        .append(content.subSequence(nextPartFrom, content.length()))
-        // imports
-        .insert(0, imports);
+    // last part
+    contentParts.add(content.subSequence(nextPartFrom, content.length()));
+
+    List<CharSequence> headerParts = Lists.newArrayListWithExpectedSize(8);
+
+    // header
+    if (header != null) {
+      headerParts.add(header);
+      // compensate line break that we cut off
+      // from header
+      if (header.length() > 0) {
+        headerParts.add("\n");
+      }
+    }
 
     // package
     if (!currentPackage.isEmpty()) {
-      stringBuilder.insert(0, ";\n\n").insert(0, currentPackage).insert(0, "package ");
+      headerParts.add("package ");
+      headerParts.add(currentPackage);
+      headerParts.add(";\n\n");
     }
 
-    return stringBuilder.toString();
+    // imports
+    headerParts.add(imports);
+
+    return JOINER.join(Iterables.concat(headerParts, contentParts));
   }
 
   enum State {
@@ -214,6 +263,10 @@ final class PostprocessingMachine {
       return this == ANNOTATION
           || this == CLASS;
     }
+
+    public boolean pastHeader() {
+      return this != UNDEFINED;
+    }
   }
 
   static final class FiniteStateMachine {
@@ -227,7 +280,6 @@ final class PostprocessingMachine {
         "class".toCharArray(),
         "interface".toCharArray(),
         "enum".toCharArray(),
-        // "@interface".toCharArray(),
         "@".toCharArray() // counts for annotations before class and annotation type
     };
 
@@ -237,7 +289,6 @@ final class PostprocessingMachine {
         State.CLASS,
         State.CLASS,
         State.CLASS,
-        // State.CLASS,
         State.ANNOTATION
     };
 
@@ -311,7 +362,8 @@ final class PostprocessingMachine {
     private final HashSet<String> stopList = Sets.newHashSet();
 
     void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
-      @Nullable String foundQualified = nameToQualified.get(name);
+      @Nullable
+      String foundQualified = nameToQualified.get(name);
       if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
         return;
       }
@@ -516,14 +568,21 @@ final class PostprocessingMachine {
           state = CommentState.BLOCK_COMMENT;
         }
         break;
+      default:
+        break;
       }
     }
 
     boolean isInComment() {
-      return CommentState.LINE_COMMENT == state
-          || CommentState.BLOCK_COMMENT == state
-          || CommentState.BLOCK_COMMENT_OUT_CANDIDATE == state
-          || CommentState.STRING_LITERAL == state;
+      switch (state) {
+      case LINE_COMMENT:
+      case BLOCK_COMMENT:
+      case BLOCK_COMMENT_OUT_CANDIDATE:
+      case STRING_LITERAL:
+        return true;
+      default:
+        return false;
+      }
     }
 
   }

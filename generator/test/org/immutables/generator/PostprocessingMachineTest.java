@@ -401,6 +401,26 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  public void onlyCollectHeader() {
+    String header = PostprocessingMachine.collectHeader(
+        LINES.join("// sdsd",
+            "/* sdsd",
+            " * * * */",
+            "//!",
+            "/** */",
+            "package start;",
+            "import java.util.List;",
+            "import org.junit.*;",
+            "import static org.junit.My.*;",
+            "import some.Some.Nested;",
+            "final class My extends java.util.Set {",
+            "}")).toString();
+
+    check(header).startsWith("// sdsd");
+    check(header).endsWith("/** */");
+  }
+
+  @Test
   public void onlyCollectImports() {
     SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
         LINES.join("package start;",

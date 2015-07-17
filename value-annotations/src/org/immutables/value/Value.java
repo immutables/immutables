@@ -547,6 +547,15 @@ public @interface Value {
     boolean defaultAsDefault() default false;
 
     /**
+     * Enable if you needed to copy header comments from an originating source file with abstract
+     * types to generated (derived) implementation classes. It is off by default because not often
+     * needed (as generated files are transient and not stored in version control), but adds up to
+     * the processing time.
+     * @return if copy header comments to generated classes.
+     */
+    boolean headerComments() default false;
+
+    /**
      * List type of annotations to copy over from abstract value type to immutable implementation
      * class. Very often this functionality is not needed when annoatations are declared as
      * {@link Inherited}, but there are cases where you need to pass specific non-inherited
