@@ -810,6 +810,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * Switches {@code [v.name]} to {@code [o.constantName]}.
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [if o.isDefault]private[else]public[/if] final [builderReturnType type] [o.switcherName]() {
     [checkNotIsSet v]
     this.[v.name] = [v.rawType].[o.constantName];
@@ -826,6 +827,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param element [v.name] element
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.generateJdkOnly and (not v.primitiveElement)]
     [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
@@ -840,6 +842,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements array of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [if v.nonRawElemementType]@SafeVarargs[/if]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
     [if v.generateJdkOnly]
@@ -866,6 +869,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.init](Iterable<[v.consumedElementType]> elements) {
     [defineOrResetBuildingField v false]
     return [v.names.addAll](elements);
@@ -878,6 +882,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
@@ -896,6 +901,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.init]([v.unwrappedElementType] [v.name]) {
     [checkNotIsSet v]
     this.[v.name] = [v.rawType].of([v.name]);
@@ -909,6 +915,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
     this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
@@ -926,6 +933,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param values the values for [v.name]
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
     [v.name]Builder.putAll(key, [arrayAsListSecondary v 'values']);
     [builderReturnThis type]
@@ -937,6 +945,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param values the values for [v.name]
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [v.name]Builder.putAll(key, values);
     [builderReturnThis type]
@@ -951,6 +960,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param value the associated value in [v.name] map
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
@@ -967,6 +977,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entry the key and value entry
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
@@ -984,6 +995,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [defineOrResetBuildingField v false]
     return [v.names.putAll](entries);
@@ -996,6 +1008,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
@@ -1020,6 +1033,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
     [checkNotIsSet v]
     this.[v.name] = elements.clone();
@@ -1036,6 +1050,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name][if v.nullable], can be {@code null}[/if]
    * @return {@code this} builder for chained invocation
    */
+  [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
     [if v.primitive or v.nullable]
@@ -1375,10 +1390,7 @@ public static [type.typeValue.relative] fromAllAttributes(
 [template generateAccessorMethods Type type]
 [if type.annotationType]
 
-/**
- * {@inheritDoc}
- * @return value of {@code [type.typeAbstract].class} literal
- */
+/** {@inheritDoc} */
 @Override
 public Class<? extends java.lang.annotation.Annotation> annotationType() {
   return [type.typeAbstract].class;
@@ -1387,7 +1399,11 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
   [for v in type.implementedAttributes]
 
 /**
- * {@inheritDoc}
+  [if v.docComment]
+[for d in v.docComment]
+ *[d][-- no space before doc line!]
+[/for]
+  [else]
 [if v.arrayType]
  * @return cloned {@code [v.name]} array
 [else if v.generateDerived]
@@ -1395,11 +1411,13 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [else]
  * @return value of {@code [v.name]} attribute
 [/if]
+  [/if]
  */
 [for a in v.annotations]
 [a]
 [/for]
 [jacksonPropertyAnnotation v]
+[deprecation v]
 @Override
 [if v.public]public [/if][immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
@@ -1411,6 +1429,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
   [/for]
   [if type.generateOrdinalValue]
 
+/** {@inheritDoc} */
 @Override
 public int ordinal() {
   return ordinal;
@@ -2230,3 +2249,8 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
 
+[template deprecation Attribute a]
+[if a.deprecated]
+@Deprecated
+[/if]
+[/template]

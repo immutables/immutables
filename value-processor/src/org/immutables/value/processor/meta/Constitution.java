@@ -69,13 +69,16 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms typeDocument() {
     if (protoclass().kind().isValue()) {
-      if (!returnsAbstractValueType()
-          && protoclass().visibility().isMoreRestrictiveThan(implementationVisibility())) {
-        return typeImmutable();
-      }
-      return typeAbstract();
+      return isAbstractPrimary()
+          ? typeAbstract()
+          : typeImmutable();
     }
     return typeValue();
+  }
+
+  private boolean isAbstractPrimary() {
+    return returnsAbstractValueType()
+        || !protoclass().visibility().isMoreRestrictiveThan(implementationVisibility());
   }
 
   public boolean isSimple() {

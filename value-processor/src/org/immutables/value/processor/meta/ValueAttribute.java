@@ -17,6 +17,7 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import java.lang.annotation.ElementType;
@@ -32,6 +33,7 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
@@ -41,6 +43,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
+  private static final Splitter LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
@@ -137,9 +140,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return nullability != null;
   }
 
+  public ImmutableList<String> docComment = ImmutableList.of();
+
+  public boolean deprecated;
+
   @Override
   public boolean isComparable() {
-    return isNumberType() || isStringType() || super.isComparable();
+    return isNumberType()
+        || isStringType()
+        || super.isComparable();
   }
 
   @Nullable
@@ -702,6 +711,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initTypeKind();
     initOrderKind();
     initFactoryParamsIfApplicable();
+    initMiscellaneous();
 
     makeRegularAndNullableWithValidation();
     makeRegularIfContainsWildcards();
@@ -822,6 +832,22 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     void eagerize() {
       asPrefix();
       asLocalPrefix();
+    }
+  }
+
+  private void initMiscellaneous() {
+    Elements elements = containingType.constitution.protoclass()
+        .processing()
+        .getElementUtils();
+
+    this.deprecated = elements.isDeprecated(element);
+
+    if (containingType.constitution.implementationVisibility().isPublic()) {
+      @Nullable
+      String docComment = elements.getDocComment(element);
+      if (docComment != null) {
+        this.docComment = ImmutableList.copyOf(LINE_SPLITTER.split(docComment));
+      }
     }
   }
 
