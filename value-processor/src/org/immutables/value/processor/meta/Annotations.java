@@ -30,7 +30,7 @@ import org.immutables.generator.AnnotationMirrors;
 final class Annotations {
   private Annotations() {}
 
-  private static final String PREFIX_JAVA_LANG = "java.lang.";
+  private static final String PREFIX_JAVA_LANG_OVERRIDE = "java.lang.Override";
   private static final String PREFIX_ORG_IMMUTABLES = "org.immutables.";
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
@@ -62,7 +62,7 @@ final class Annotations {
     }
 
     if (qualifiedName.startsWith(PREFIX_ORG_IMMUTABLES)
-        || qualifiedName.startsWith(PREFIX_JAVA_LANG)
+        || qualifiedName.equals(PREFIX_JAVA_LANG_OVERRIDE)
         || qualifiedName.equals(JsonPropertyMirror.QUALIFIED_NAME)) {
       // skip immutables and core java annotations (like Override etc)
       // Also skip JsonProperty annotation as we will add it separately

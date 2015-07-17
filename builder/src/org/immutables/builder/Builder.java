@@ -116,9 +116,9 @@ public @interface Builder {
    *      return ...
    *   }
    * }
-   * ... // notice no 'onLight' generated
+   * ... // notice no 'offLight' generated
    * Bulb b = new BulbBuilder() // default is Switcher.OFF
-   *    .onLight() // set to Switcher.ON
+   *    .onLight() // but we can switch to Switcher.ON
    *    .build();
    * </pre>
    */

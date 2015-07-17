@@ -1,6 +1,7 @@
 language: java
 install: true
 script: if [[ "$TRAVIS_REPO_SLUG" == "immutables/immutables" && "$TRAVIS_BRANCH" == "master" ]]; then mvn deploy -DdeployAtEnd=true --settings settings.xml; else mvn package; fi
+sudo: false
 cache:
   directories:
   - $HOME/.m2
