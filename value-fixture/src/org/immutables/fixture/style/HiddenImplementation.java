@@ -15,8 +15,8 @@
  */
 package org.immutables.fixture.style;
 
-import org.immutables.value.Value.Style.ImplementationVisibility;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 /**
  * Feature combination

@@ -57,16 +57,12 @@ public final class Styles {
     Naming instance = Naming.from(style.instance());
 
     Naming typeBuilder = Naming.from(style.typeBuilder());
+    Naming typeInnerBuilder = Naming.from(style.typeInnerBuilder());
     Naming from = Naming.from(style.from());
     Naming build = Naming.from(style.build());
 
-    Naming builder() {
-      return Naming.from(style.builder());
-    }
-
-    Naming newBuilder() {
-      return Naming.from(style.newBuilder());
-    }
+    Naming builder = Naming.from(style.builder());
+    Naming newBuilder = Naming.from(style.newBuilder());
 
 //    Naming typeModifiable = Naming.from(style.typeModifiable());
 //    Naming create = Naming.from(style.create());
@@ -146,7 +142,7 @@ public final class Styles {
       public final String build = scheme.build.apply(raw);
 
       public final String builder() {
-        return scheme.builder().apply(raw);
+        return scheme.builder.apply(raw);
       }
 
 //      public final String typeModifiable = scheme.typeModifiable.apply(raw);

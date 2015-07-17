@@ -431,10 +431,16 @@ public @interface Value {
     String build() default "build";
 
     /**
-     * Builder class name.
+     * Generated builder class name.
      * @return naming template
      */
     String typeBuilder() default "Builder";
+
+    /**
+     * Inner builder class name which will be matched to be extend/super for generated builder.
+     * @return naming template
+     */
+    String typeInnerBuilder() default "Builder";
 
     /**
      * Naming templates to detect base/raw type name from provided abstract value type name.
@@ -553,7 +559,7 @@ public @interface Value {
      * default excluding {@code java.lang.*} and {@code org.immutables.**} annotations.
      * <p>
      * This style parameter is experimental and may change in future.
-     * @return types of annotations to pass to immutable value type
+     * @return types of annotations to pass to an immutable implementation class.
      */
     Class<? extends Annotation>[] passAnnotations() default {};
 

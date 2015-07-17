@@ -15,13 +15,11 @@
  */
 package org.immutables.fixture.marshal;
 
-import com.google.gson.JsonNull;
-import org.immutables.fixture.subpack.SillySubstructure;
-import org.immutables.fixture.SillyStructure;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.CharMatcher;
+import com.google.gson.JsonNull;
 import com.google.gson.reflect.TypeToken;
 import de.undercouch.bson4jackson.BsonFactory;
 import java.util.List;
@@ -33,9 +31,11 @@ import org.immutables.fixture.ImmutableSillySub3;
 import org.immutables.fixture.JsonIgnore;
 import org.immutables.fixture.SillyPolyHost;
 import org.immutables.fixture.SillyPolyHost2;
+import org.immutables.fixture.SillyStructure;
 import org.immutables.fixture.SillyTuplie;
 import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
+import org.immutables.fixture.subpack.SillySubstructure;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 

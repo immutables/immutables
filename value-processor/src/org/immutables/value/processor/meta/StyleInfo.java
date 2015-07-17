@@ -92,6 +92,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String typeInnerBuilder();
+
+  @Value.Parameter
+  @Override
   public abstract String[] typeAbstract();
 
   @Value.Parameter

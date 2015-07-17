@@ -1,8 +1,7 @@
 package org.immutables.fixture;
-import org.immutables.value.Value;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.immutables.value.Value;
 
 @Value.Immutable
 public abstract class AlternativeConstructor {

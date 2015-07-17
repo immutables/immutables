@@ -1,7 +1,7 @@
 package org.immutables.fixture.nested;
 
-import static org.immutables.check.Checkers.*;
 import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 public class BaseFromTest {
   @Test

@@ -1,7 +1,8 @@
 package org.immutables.fixture;
 
-import org.immutables.value.Value.Style.ImplementationVisibility;
+import java.util.List;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Value.Immutable
 class SuperInnerBuildeValue {
@@ -15,13 +16,40 @@ class SuperInnerBuildeValue {
   }
 }
 
-@Value.Style(typeBuilder = "*_Builder", visibility = ImplementationVisibility.PRIVATE)
 @Value.Immutable
-class ExtendingInnerBuilderValue {
+@Value.Style(
+    typeBuilder = "*_Builder",
+    visibility = ImplementationVisibility.PRIVATE)
+abstract class ExtendingInnerBuilderValue {
 
-  static class Builder extends ExtendingInnerBuilderValue_Builder {}
+  abstract int attribute();
 
-  static void use() {
-    new ExtendingInnerBuilderValue.Builder().build();
+  abstract List<String> list();
+
+  static class Builder extends ExtendingInnerBuilderValue_Builder {
+    Builder() {
+      attribute(1);
+    }
+  }
+}
+
+@Value.Immutable
+@Value.Style(
+    typeInnerBuilder = "Creator",
+    typeBuilder = "Creator",
+    build = "create",
+    visibility = ImplementationVisibility.SAME_NON_RETURNED)
+interface ExtendingInnerCreatorValue {
+
+  static class Creator extends ImmutableExtendingInnerCreatorValue.Creator {
+    @Override
+    public ExtendingInnerCreatorValue create() {
+      return super.create();
+    }
+  }
+
+  default void use() {
+    ImmutableExtendingInnerCreatorValue.Creator c = new ImmutableExtendingInnerCreatorValue.Creator();
+    c.create();
   }
 }

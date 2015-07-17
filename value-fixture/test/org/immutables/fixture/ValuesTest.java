@@ -103,6 +103,14 @@ public class ValuesTest {
   }
 
   @Test
+  public void extendingBuilder() {
+    ExtendingInnerBuilderValue.Builder builder = new ExtendingInnerBuilderValue.Builder();
+    ExtendingInnerBuilderValue value = builder.addList("").build();
+    check(value.attribute()).is(1);
+    check(value.list()).isOf("");
+  }
+
+  @Test
   public void defaultAsDefault() {
     DefaultAsDefault d = ImmutableDefaultAsDefault.builder()
         .b(1)

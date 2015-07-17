@@ -1,9 +1,9 @@
 package org.immutables.fixture.jackson;
 
-import org.immutables.value.Value;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import org.immutables.value.Value;
 
 @JsonSerialize
 @Retention(RetentionPolicy.CLASS)

@@ -107,6 +107,8 @@ public final class ValueMirrors {
 
     String typeBuilder() default "Builder";
 
+    String typeInnerBuilder() default "Builder";
+
     String[] typeAbstract() default {};
 
     String typeImmutable() default "Immutable*";

@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2014-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,6 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.util.ElementFilter;
+import java.util.Set;
+import javax.annotation.Nullable;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import org.immutables.generator.SourceExtraction;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -245,10 +252,18 @@ public abstract class Constitution {
 
   @Value.Lazy
   public AppliedNameForms factoryBuilder() {
+    InnerBuilderDefinition innerBuilder = innerBuilder();
+    if (innerBuilder.isExtending) {
+      return typeBuilder().applied(NEW_KEYWORD);
+    }
+    return factoryImplementationBuilder();
+  }
+
+  private AppliedNameForms factoryImplementationBuilder() {
     boolean isOutside = isImplementationHidden() || isFactory();
     Naming methodBuilderNaming = isOutside
-        ? names().namings.newBuilder()
-        : names().namings.builder();
+        ? names().namings.newBuilder
+        : names().namings.builder;
 
     boolean haveConstructorOnBuilder = isOutside
         || isConstantNamingEquals(methodBuilderNaming, NEW_KEYWORD);
@@ -263,7 +278,6 @@ public abstract class Constitution {
   private boolean isConstantNamingEquals(Naming naming, String name) {
     return naming.isConstant()
         && naming.apply("").equals(name);
-
   }
 
   @Value.Lazy
@@ -337,6 +351,18 @@ public abstract class Constitution {
 
   @Value.Lazy
   public NameForms typeBuilder() {
+    InnerBuilderDefinition innerBuilder = innerBuilder();
+    if (innerBuilder.isExtending) {
+      NameForms typeAbstract = typeAbstract();
+      return ImmutableConstitution.NameForms.copyOf(typeAbstract)
+          .withRelative(DOT_JOINER.join(typeAbstract.relative(), innerBuilder.simpleName))
+          .withSimple(innerBuilder.simpleName);
+    }
+    return typeImplementationBuilder();
+  }
+
+  @Value.Lazy
+  public NameForms typeImplementationBuilder() {
     TypeNames names = names();
 
     boolean outside = isOutsideBuilder() || isFactory();
@@ -467,6 +493,127 @@ public abstract class Constitution {
 
     protected String qualifyWithPackage(String reference) {
       return DOT_JOINER.join(Strings.emptyToNull(packageOf()), reference);
+    }
+  }
+
+  @Value.Lazy
+  public InnerBuilderDefinition innerBuilder() {
+    return new InnerBuilderDefinition();
+  }
+
+  public final class InnerBuilderDefinition {
+    public final boolean isPresent;
+    public final boolean isExtending;
+    public final boolean isSuper;
+    public final boolean isInterface;
+    public final Visibility visibility;
+    public final @Nullable String simpleName;
+
+    InnerBuilderDefinition() {
+      @Nullable
+      TypeElement builderElement = findBuilderElement();
+      if (builderElement != null) {
+        this.isPresent = true;
+        this.isInterface = builderElement.getKind() == ElementKind.INTERFACE;
+        this.isExtending = isExtending(builderElement);
+        this.isSuper = !isExtending;
+        this.simpleName = builderElement.getSimpleName().toString();
+        this.visibility = Visibility.of(builderElement);
+      } else {
+        this.isPresent = false;
+        this.isInterface = false;
+        this.isExtending = false;
+        this.isSuper = false;
+        this.simpleName = null;
+        this.visibility = Visibility.PRIVATE;
+      }
+    }
+
+    private boolean isExtending(TypeElement element) {
+      if (element.getKind() == ElementKind.CLASS) {
+        String superclassString = SourceExtraction.getSuperclassString(element);
+        // If we are extending yet to be generated builder, we detect it by having the same name
+        // as relative name of builder type
+        if (superclassString.endsWith(typeImplementationBuilder().relative())) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Nullable
+    private TypeElement findBuilderElement() {
+      Protoclass protoclass = protoclass();
+      if (!protoclass.kind().isValue()) {
+        return null;
+      }
+      for (Element t : protoclass.sourceElement().getEnclosedElements()) {
+        ElementKind kind = t.getKind();
+        if (kind.isClass() || kind.isInterface()) {
+          String simpleName = t.getSimpleName().toString();
+          Naming typeInnerBuilderNaming = names().namings.typeInnerBuilder;
+
+          if (!typeInnerBuilderNaming.detect(simpleName).isEmpty()) {
+
+            if (kind != ElementKind.CLASS
+                && kind != ElementKind.INTERFACE) {
+              protoclass
+                  .report()
+                  .withElement(t)
+                  .warning("Inner type %s is %s - not supported as Builder extend/super type",
+                      t.getSimpleName(),
+                      kind.name().toLowerCase());
+
+              return null;
+            }
+
+            Set<Modifier> modifiers = t.getModifiers();
+
+            if (!modifiers.contains(Modifier.STATIC)
+                || modifiers.contains(Modifier.PRIVATE)) {
+              protoclass
+                  .report()
+                  .withElement(t)
+                  .warning("Inner type %s should be static non-private to be supported as Builder extend/super type",
+                      t.getSimpleName());
+
+              return null;
+            }
+
+            if (kind == ElementKind.CLASS
+                && !hasAccessibleConstructor(t)) {
+              protoclass()
+                  .report()
+                  .withElement(t)
+                  .warning("%s should have non-private no-argument constructor to be supported as Builder extend/super type",
+                      t.getSimpleName());
+
+              return null;
+            }
+
+            return (TypeElement) t;
+          }
+        }
+      }
+      return null;
+    }
+
+    private boolean hasAccessibleConstructor(Element type) {
+      List<ExecutableElement> constructors = ElementFilter.constructorsIn(type.getEnclosedElements());
+
+      if (constructors.isEmpty()) {
+        // It is unclear (not checked) if we will have syntethic no-arg constructor
+        // included, so we will assume no constructor to equate having a single constructors.
+        return true;
+      }
+
+      for (ExecutableElement c : constructors) {
+        if (c.getParameters().isEmpty()) {
+          return !Visibility.of(c).isPrivate();
+        }
+      }
+
+      return false;
     }
   }
 }

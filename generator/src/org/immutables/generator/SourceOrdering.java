@@ -87,11 +87,10 @@ public final class SourceOrdering {
   }
 
   private static OrderingProvider createProvider() {
-    try {
+    if (Compiler.ECJ.isPresent()) {
       return new EclipseCompilerOrderingProvider();
-    } catch (Throwable ex) {
-      return DEFAULT_PROVIDER;
     }
+    return DEFAULT_PROVIDER;
   }
 
   /**
@@ -102,11 +101,6 @@ public final class SourceOrdering {
    */
   private static class EclipseCompilerOrderingProvider
       implements OrderingProvider, Function<Element, Object> {
-
-    // Triggers loading of class that may be absent in classpath
-    static {
-      ElementImpl.class.getCanonicalName();
-    }
 
     @Override
     public Object apply(Element input) {

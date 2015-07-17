@@ -8,7 +8,7 @@
     [/if]
     [if type.constitution.hasTopLevelBuilder]
 [-- Top level builder --]
-[output.java type.package type.typeBuilder.simple]
+[output.java type.package type.typeBuilderImpl.simple]
 [generateBuilder type true]
 [/output.java]
     [/if]
@@ -122,8 +122,8 @@ import [starImport];
    * Creates builder for {@link [type.typeValue]}.
    * @return new [type.typeValue.simple] builder
    */
-  [type.typeImmutable.access]static [type.typeBuilder.relative] [type.factoryBuilder.applied]() {
-    return new [type.typeBuilder.relative]();
+  [type.typeBuilderImpl.access]static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
+    return new [type.typeBuilderImpl.relative]();
   }
   [/if]
   [generateBuilder type false]
@@ -143,15 +143,15 @@ import [starImport];
 
 [template extendsImplements Type type]
 [if type.implementing]
-implements [type.typeAbstract][if type.generateImplementSerializable], java.io.Serializable[/if] {
+implements [type.typeAbstract][if type.serial.shouldImplement], java.io.Serializable[/if] {
 [else]
-extends [type.typeAbstract][if not type.generateImplementSerializable] {[else]
+extends [type.typeAbstract][if not type.serial.shouldImplement] {[else]
 implements java.io.Serializable {[/if]
 [/if]
 [/template]
 
 [template generateSerialization Type type]
-[if type.serialSimple]
+[if type.serial.simple]
   [for serialVersion = type.serialVersionUID]
     [if serialVersion]
 
@@ -169,7 +169,7 @@ private Object readResolve() throws java.io.ObjectStreamException {
 }
   [/if]
 [/if]
-[if type.serialStructural]
+[if type.serial.structural]
 
 /**
  * Serialized form captures structural content of the value object.
@@ -225,7 +225,7 @@ private static class SerialForm implements java.io.Serializable {
 
   Object readResolve() {
 [if type.useBuilder]
-    [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+    [type.typeBuilder] builder = [type.factoryBuilder.relative]();
 
     for (int i = 0; i < names.length; i++) {
       switch (names['[i]']) {
@@ -576,7 +576,7 @@ private Object writeReplace() {
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private [if type.serialSimple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
+  private [if type.serial.simple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
@@ -585,7 +585,7 @@ private Object writeReplace() {
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
   [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
-  private [if type.serialSimple]transient [/if][l.type] [l.name];
+  private [if type.serial.simple]transient [/if][l.type] [l.name];
 
   /**
    * {@inheritDoc}
@@ -634,15 +634,15 @@ private Object writeReplace() {
  * Initialized attributes and then invoke {@link #[type.names.build]()} method to create
  * immutable instance.
 [/if]
- * <p><em>[type.typeBuilder.simple] is not thread safe and generally should not be stored in field or collection,
+ * <p><em>[type.typeBuilderImpl.simple] is not thread safe and generally should not be stored in field or collection,
  * but used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
 [if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
-[type.typeBuilder.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilder.simple] [if type.innerBuilder.isSuper]
-    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].Builder {[else]{[/if]
+[type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple] [if type.innerBuilder.isSuper]
+    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].[type.innerBuilder.simpleName] {[else]{[/if]
   [for l in positions.longs]
   private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
@@ -658,7 +658,6 @@ private Object writeReplace() {
   [for l in nondefaultsPositions.longs]
   private long nondefaultBitset[emptyIfZero l.index];
   [/for]
-
   [for v in setters]
   [defineOrResetBuildingField v true]
   [/for]
@@ -710,17 +709,25 @@ private Object writeReplace() {
     [/if]
   [/for]
 [else if useFactoryMethod]
-  [if not type.innerBuilder.isExtending]private [/if][type.typeBuilder.simple]() {}
+
+  private [type.typeBuilderImpl.simple]() {}
   [if type.constitution.isOutsideBuilder]
 
   /**
    * Creates builder for {@link [type.typeValue]}.
    * @return new [type.typeValue.simple] builder
    */
-  public static [type.typeBuilder.simple] [type.factoryBuilder.applied]() {
-    return new [type.typeBuilder.simple]();
+  public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
+    return new [type.typeBuilderImpl.simple]();
   }
   [/if]
+[else if type.innerBuilder.isExtending]
+
+  [type.typeBuilderImpl.simple]() {
+    if (!(this instanceof [type.typeBuilder])) {
+      throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
+    }
+  }
 [/if]
 [/for]
 [if type.generateOrdinalValue]
@@ -729,9 +736,9 @@ private Object writeReplace() {
    * Specify non-default {@link Domain} for ordinal value.
    * @return {@code this} builder for chained invocation
    */
-  public [type.typeBuilder.simple] domain(Domain domain) {
+  public final [builderReturnType type] domain(Domain domain) {
     this.domain = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
-    return this;
+    [builderReturnThis type]
   }
 [/if]
 [if type.kind.isValue]
@@ -744,10 +751,10 @@ private Object writeReplace() {
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [type.names.from]([s.type] instance) {
+  public final [builderReturnType type] [type.names.from]([s.type] instance) {
     [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
     from((Object) instance);
-    return this;
+    [builderReturnThis type]
   }
       [/for]
 
@@ -769,10 +776,10 @@ private Object writeReplace() {
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [type.names.from]([type.typeAbstract] instance) {
+  public final [builderReturnType type] [type.names.from]([type.typeAbstract] instance) {
     [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
     [buildFromAttributes setters]
-    return this;
+    [builderReturnThis type]
   }
     [/if]
   [/if]
@@ -803,12 +810,12 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * Switches {@code [v.name]} to {@code [o.constantName]}.
    * @return {@code this} builder for chained invocation
    */
-  [if o.isDefault]private[else]public[/if] final [type.typeBuilder.simple] [o.switcherName]() {
+  [if o.isDefault]private[else]public[/if] final [builderReturnType type] [o.switcherName]() {
     [checkNotIsSet v]
     this.[v.name] = [v.rawType].[o.constantName];
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
-    return this;
+    [builderReturnThis type]
   }
     [/for]
   [else if v.collectionType]
@@ -819,13 +826,13 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param element [v.name] element
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType] element) {
+  public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.generateJdkOnly and (not v.primitiveElement)]
     [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
     [else]
     [v.name]Builder.add(element);
     [/if]
-    return this;
+    [builderReturnThis type]
   }
 
   /**
@@ -834,7 +841,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  public final [type.typeBuilder.simple] [v.names.add]([v.unwrappedElementType]... elements) {
+  public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
       [if v.primitiveElement]
@@ -843,15 +850,14 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
       [/if]
     }
-    return this;
     [else]
       [if v.wrapArrayToIterable]
     [v.name]Builder.addAll([arrayAsList v 'elements']);
       [else]
     [v.name]Builder.add(elements);
       [/if]
-    return this;
     [/if]
+    [builderReturnThis type]
   }
       [if not type.useStrictBuilder]
 
@@ -860,7 +866,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init](Iterable<[v.consumedElementType]> elements) {
+  public final [builderReturnType type] [v.names.init](Iterable<[v.consumedElementType]> elements) {
     [defineOrResetBuildingField v false]
     return [v.names.addAll](elements);
   }
@@ -872,7 +878,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements iterable of [v.name] elements
    * @return {@code this} builder for chained invocation
    */
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
       [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
@@ -880,7 +886,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [else]
     [v.name]Builder.addAll(elements);
     [/if]
-    return this;
+    [builderReturnThis type]
   }
   [else if v.optionalType]
     [if not v.isBuilderParameter]
@@ -890,11 +896,11 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.init]([v.unwrappedElementType] [v.name]) {
+  public final [builderReturnType type] [v.names.init]([v.unwrappedElementType] [v.name]) {
     [checkNotIsSet v]
     this.[v.name] = [v.rawType].of([v.name]);
     [nondefaultSetInBuilder v]
-    return this;
+    [builderReturnThis type]
   }
     [/if]
 
@@ -903,11 +909,11 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
     this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
     [nondefaultSetInBuilder v]
-    return this;
+    [builderReturnThis type]
   }
   [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
@@ -920,9 +926,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param values the values for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV]... values) {
+  public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
     [v.name]Builder.putAll(key, [arrayAsListSecondary v 'values']);
-    return this;
+    [builderReturnThis type]
   }
 
   /**
@@ -931,9 +937,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param values the values for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+  public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [v.name]Builder.putAll(key, values);
-    return this;
+    [builderReturnThis type]
   }
         [/if]
       [/if]
@@ -945,7 +951,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param value the associated value in [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.put]([uK] key, [uV] value) {
+  public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
         [objectsUtilRef type]requireNonNull(key, "Key cannot be null"),
@@ -953,7 +959,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [else]
     [v.name]Builder.put(key, value);
     [/if]
-    return this;
+    [builderReturnThis type]
   }
 
   /**
@@ -961,7 +967,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entry the key and value entry
    * @return {@code this} builder for chained invocation
    */
-  public final [type.typeBuilder.simple] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+  public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
         [objectsUtilRef type]requireNonNull(entry.getKey(), "Key cannot be null"),
@@ -969,7 +975,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [else]
     [v.name]Builder.put(entry);
     [/if]
-    return this;
+    [builderReturnThis type]
   }
           [if not type.useStrictBuilder]
 
@@ -978,7 +984,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [defineOrResetBuildingField v false]
     return [v.names.putAll](entries);
   }
@@ -990,7 +996,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param entries to be added to [v.name] map
    * @return {@code this} builder for chained invocation
    */
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
       [v.name]Builder.put(
@@ -1000,7 +1006,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [else]
     [v.name]Builder.putAll(entries);
     [/if]
-    return this;
+    [builderReturnThis type]
   }
     [/for]
   [else if v.arrayType]
@@ -1014,11 +1020,11 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [if v.nonRawElemementType]@SafeVarargs[/if]
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.elementType]... elements) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
     [checkNotIsSet v]
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
-    return this;
+    [builderReturnThis type]
   }
   [else]
 
@@ -1030,7 +1036,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param [v.name] value for [v.name][if v.nullable], can be {@code null}[/if]
    * @return {@code this} builder for chained invocation
    */
-  [builderInitAccess v] final [type.typeBuilder.simple] [v.names.init]([v.atNullability][v.type] [v.name]) {
+  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
@@ -1039,7 +1045,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
-    return this;
+    [builderReturnThis type]
   }
   [/if]
   [/for]
@@ -1234,7 +1240,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
 [/if]
 [if type.generateBuilderConstructor]
 
-  private [type.typeImmutable.simple]([type.typeBuilder.relative] builder) {
+  private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
   [if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionBuild v]builder.[n]Builder[/immutableCollectionBuild];
@@ -1390,12 +1396,12 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
  * @return value of {@code [v.name]} attribute
 [/if]
  */
-[for line in v.annotations]
-[line]
+[for a in v.annotations]
+[a]
 [/for]
 [jacksonPropertyAnnotation v]
 @Override
-public [immutableImplementationType v] [v.names.get]() {
+[if v.public]public [/if][immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]
@@ -2200,6 +2206,12 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/if]
 [/output.trim][/template]
 
+[template builderReturnThis Type type]
+return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
+[/template]
+
+[template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
+
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
 
 [template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]
@@ -2217,3 +2229,4 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
+
