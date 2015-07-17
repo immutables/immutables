@@ -13,27 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.mongo.fixture;
+package org.immutables.fixture;
 
-import java.util.List;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Set;
-import org.immutables.gson.Gson;
-import org.immutables.mongo.Mongo;
-import org.immutables.mongo.types.Binary;
-import org.immutables.mongo.types.Id;
 import org.immutables.value.Value;
 
-@Mongo.Repository
+/**
+ * Compilation test for javadoc and deprecation propagation
+ */
 @Value.Immutable
-@Gson.TypeAdapters
-public interface Item {
+public interface JavadocDeprecation {
+  @Deprecated
+  String attr();
 
-  @Mongo.Id
-  String id();
-
-  List<String> list();
-
-  Set<Id> ids();
-
-  Binary binary();
+  /**
+   * Since
+   * @since 1.1
+   * @deprecated why
+   * @return result
+   */
+  @Deprecated
+  Set<RetentionPolicy> pols();
 }

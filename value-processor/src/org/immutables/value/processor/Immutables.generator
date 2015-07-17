@@ -843,7 +843,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [deprecation v]
-  [if v.nonRawElemementType]@SafeVarargs[/if]
+  [varargsSafety v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
@@ -1032,7 +1032,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @param elements elements for [v.name]
    * @return {@code this} builder for chained invocation
    */
-  [if v.nonRawElemementType]@SafeVarargs[/if]
+  [varargsSafety v]
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
     [checkNotIsSet v]
@@ -1636,7 +1636,8 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
  * @param elements elements for [v.name], not null
  * @return modified copy of {@code this} object
  */
-[if v.nonRawElemementType]@SafeVarargs[/if]
+[varargsSafety v]
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... elements) {
   [immutableImplementationType v] newValue = elements.clone();
   [generateReturnCopyContextual type v]
@@ -1648,7 +1649,8 @@ public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... eleme
  * @param elements elements to set
  * @return modified copy of {@code this} object
  */
-[if v.nonRawElemementType]@SafeVarargs[/if]
+[varargsSafety v]
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]... elements) {
   [if v.generateJdkOnly and v.primitiveElement]
   java.util.ArrayList<[v.wrappedElementType]> wrappedList = new java.util.ArrayList<[v.wrappedElementType]>(elements.length);
@@ -1668,6 +1670,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param elements iterable of [v.name] elements to set
  * @return modified copy of {@code this} object
  */
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) {
     return this;
@@ -1682,6 +1685,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @param value value for [v.name]
  * @return modified copy of {@code this} object
  */
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
   [immutableImplementationType v] newValue = [v.rawType].of(value);
   [generateReturnCopyContextual type v]
@@ -1693,6 +1697,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  * @param optional value for [v.name]
  * @return modified copy of {@code this} object
  */
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
   if (this.[v.name] == optional) {
     return this;
@@ -1710,6 +1715,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
  * @param entries to be added to [v.name] map
  * @return modified copy of {@code this} object
  */
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   if (this.[v.name] == entries) {
     return this;
@@ -1730,6 +1736,7 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
  * @param value new value for [v.name][if v.nullable], can be {@code null}[/if]
  * @return modified copy of the {@code this} object
  */
+[deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
     [if not v.floatType]
   if (this.[v.name] == value) {
@@ -2249,8 +2256,6 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
 
-[template deprecation Attribute a]
-[if a.deprecated]
-@Deprecated
-[/if]
-[/template]
+[template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
+
+[template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]

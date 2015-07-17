@@ -127,7 +127,7 @@ public final class Intrinsics {
   }
 
   public static boolean $if(Collection<?> value) {
-    return !value.isEmpty();
+    return value != null && !value.isEmpty();
   }
 
   public static boolean $if(Object value) {
@@ -163,10 +163,6 @@ public final class Intrinsics {
   public static <T> T[] $in(T[] elements) {
     return elements;
   }
-
-//  public static <T> Iterable<T> $in(T[] elements) {
-//    return Arrays.asList(elements);
-//  }
 
   public static Iterable<Character> $in(char[] elements) {
     return Chars.asList(elements);
