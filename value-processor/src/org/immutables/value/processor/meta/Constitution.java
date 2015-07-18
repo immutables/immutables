@@ -42,7 +42,6 @@ import static com.google.common.base.Verify.*;
 public abstract class Constitution {
   private static final String NA_ERROR = "!should_not_be_used_in_generated_code!";
   private static final String NEW_KEYWORD = "new";
-  private static final String BUILDER_CLASS_NAME = "Builder";
   private static final Joiner DOT_JOINER = Joiner.on('.').skipNulls();
 
   public abstract Protoclass protoclass();
@@ -243,7 +242,8 @@ public abstract class Constitution {
     Naming typeBuilderNaming = names().namings.typeBuilder;
     if (isOutside) {
       // For outer builder we can override with constant builder naming, but not the default.
-      boolean isPlainDefault = isConstantNamingEquals(typeBuilderNaming, BUILDER_CLASS_NAME);
+      boolean isPlainDefault =
+          isConstantNamingEquals(typeBuilderNaming, protoclass().environment().defaultStyles().typeBuilder());
 
       if (isPlainDefault) {
         typeBuilderNaming = typeBuilderNaming.requireNonConstant(Preference.SUFFIX);
@@ -522,6 +522,9 @@ public abstract class Constitution {
         this.isSuper = !isExtending;
         this.simpleName = builderElement.getSimpleName().toString();
         this.visibility = Visibility.of(builderElement);
+        if (isExtending) {
+          lateValidateExtending(builderElement);
+        }
       } else {
         this.isPresent = false;
         this.isInterface = false;
@@ -532,12 +535,23 @@ public abstract class Constitution {
       }
     }
 
+    private void lateValidateExtending(TypeElement t) {
+      if (t.getModifiers().contains(Modifier.ABSTRACT)) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .error("Extending %s shouldn't be abstract, it need to be instantiable",
+                t.getSimpleName());
+      }
+    }
+
     private boolean isExtending(TypeElement element) {
       if (element.getKind() == ElementKind.CLASS) {
         String superclassString = SourceExtraction.getSuperclassString(element);
         // If we are extending yet to be generated builder, we detect it by having the same name
         // as relative name of builder type
         if (superclassString.endsWith(typeImplementationBuilder().relative())) {
+
           return true;
         }
       }
