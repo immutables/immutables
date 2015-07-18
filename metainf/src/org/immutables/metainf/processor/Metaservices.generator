@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for e in allMetaservices.entries]
 [output.service e.value]
 [e.key]

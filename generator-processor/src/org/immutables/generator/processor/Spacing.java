@@ -17,7 +17,6 @@ package org.immutables.generator.processor;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.Nullable;
 import org.immutables.generator.processor.ImmutableTrees.Newline;
 import org.immutables.generator.processor.ImmutableTrees.Template;
@@ -25,75 +24,79 @@ import org.immutables.generator.processor.ImmutableTrees.TextBlock;
 import org.immutables.generator.processor.ImmutableTrees.TextFragment;
 import org.immutables.generator.processor.ImmutableTrees.TextLine;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
+import org.immutables.generator.processor.Trees.TextPart;
 
 /**
  * Spacing trimming and redistribution should be run before balancing
  */
-public final class Spacing {
+final class Spacing extends TreesTransformer<Void> {
   private Spacing() {}
 
-  public static Unit normalize(Unit unit) {
-    return TRANSFORMER.transform((Void) null, unit);
+  static Unit normalize(Unit unit) {
+    return new Spacing().transform((Void) null, unit);
   }
 
-  private static final TreesTransformer<Void> TRANSFORMER = new TreesTransformer<Void>() {
-    @Override
-    protected Iterable<Trees.TemplatePart> transformTemplateListParts(
-        Void context,
-        Template value,
-        final List<Trees.TemplatePart> parts) {
+  @Override
+  public Template transform(Void context, final Template template) {
+    final ArrayList<Trees.TemplatePart> results = Lists.newArrayList();
+    class Normalizer {
+      private @Nullable TextFragment fragment;
 
-      final ArrayList<Trees.TemplatePart> results = Lists.newArrayList();
+      void collect() {
+        for (Trees.TemplatePart part : template.parts()) {
+          if (part instanceof TextBlock) {
+            collectTextParts(((TextBlock) part).parts());
+          } else {
+            flushFragment();
+            results.add(part);
+          }
+        }
 
-      class Normalizer {
-        @Nullable
-        TextFragment fragment;
+        flushFragment();
+      }
 
-        void collect() {
-          for (Trees.TemplatePart part : parts) {
-            if (part instanceof TextBlock) {
-              TextBlock block = (TextBlock) part;
-              for (Trees.TextPart text : block.parts()) {
-                if (text instanceof TextFragment) {
-                  flushFragment();
-                  fragment = (TextFragment) text;
-                }
-                if (text instanceof Newline) {
-                  flushNewline();
-                }
-              }
+      void collectTextParts(Iterable<TextPart> parts) {
+        for (Trees.TextPart text : parts) {
+          if (text instanceof TextFragment) {
+            if (fragment != null) {
+              fragment = joinFraments(fragment, (TextFragment) text);
             } else {
               flushFragment();
-              results.add(part);
+              fragment = (TextFragment) text;
             }
           }
-
-          flushFragment();
-        }
-
-        void flushFragment() {
-          if (fragment != null && !fragment.value().isEmpty()) {
-            results.add(TextLine.builder()
-                .fragment(fragment)
-                .build());
+          if (text instanceof Newline) {
+            flushNewline();
           }
-
-          fragment = null;
-        }
-
-        void flushNewline() {
-          results.add(TextLine.builder()
-              .fragment(fragment != null ? fragment : TextFragment.of(""))
-              .newline(true)
-              .build());
-
-          fragment = null;
         }
       }
 
-      new Normalizer().collect();
+      void flushFragment() {
+        if (fragment != null && !fragment.value().isEmpty()) {
+          results.add(TextLine.builder()
+              .fragment(fragment)
+              .build());
+        }
 
-      return results;
+        fragment = null;
+      }
+
+      void flushNewline() {
+        results.add(TextLine.builder()
+            .fragment(fragment != null ? fragment : TextFragment.of(""))
+            .newline(true)
+            .build());
+
+        fragment = null;
+      }
+
+      TextFragment joinFraments(TextFragment left, TextFragment right) {
+        return TextFragment.of(left.value().concat(right.value()));
+      }
     }
-  };
+
+    new Normalizer().collect();
+
+    return template.withParts(results);
+  }
 }

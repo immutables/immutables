@@ -15,10 +15,10 @@
  */
 package org.immutables.generator.processor;
 
-import org.immutables.generator.StringLiterals;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
+import org.immutables.generator.StringLiterals;
 import org.immutables.value.Parboil;
 import org.immutables.value.Value;
 
@@ -29,6 +29,7 @@ import org.immutables.value.Value;
 @Value.Transformer
 @Parboil.Ast
 public class Trees {
+  private Trees() {}
 
   @Value.Immutable(builder = false)
   public static abstract class Identifier {
@@ -142,8 +143,18 @@ public class Trees {
   }
 
   @Value.Immutable
-  public interface ForStatement extends Block, Synthetic {
-    List<GeneratorDeclaration> declaration();
+  public abstract static class ForStatement implements Block, Synthetic {
+    @Value.Default
+    public boolean useForAccess() {
+      return true;
+    }
+
+    @Value.Default
+    public boolean useDelimit() {
+      return true;
+    }
+
+    public abstract List<GeneratorDeclaration> declaration();
   }
 
   @Value.Immutable(builder = false)
@@ -216,7 +227,12 @@ public class Trees {
   public interface Synthetic {}
 
   @Value.Immutable
-  public interface Template extends Directive, Block, UnitPart, InvokableStatement {}
+  public static abstract class Template implements Directive, Block, UnitPart, InvokableStatement {
+    @Value.Default
+    public boolean isPublic() {
+      return false;
+    }
+  }
 
   public interface Expression {}
 
@@ -251,6 +267,7 @@ public class Trees {
     Expression transform();
 
     ValueDeclaration varDeclaration();
+
     Optional<Expression> condition();
   }
 

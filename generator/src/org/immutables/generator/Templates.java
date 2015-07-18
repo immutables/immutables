@@ -241,15 +241,10 @@ public final class Templates {
 
     /**
      * @param arity number of fragment parameters
-     * @param capturedInvokation surrounding invokation when fragment is defined, not when invoked
      */
-    protected Fragment(int arity, @Nullable Invokation capturedInvokation) {
+    protected Fragment(int arity) {
       assert arity >= 0;
       this.arity = arity;
-    }
-
-    protected Fragment(int arity) {
-      this(arity, null);
     }
 
     @Override

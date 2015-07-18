@@ -312,6 +312,7 @@ public class Parser extends BaseParser<Object> {
   Rule Template() {
     return Sequence(
         TEMPLATE,
+        Optional(PUBLIC, Template.isPublic(true)),
         InvokableDeclaration(), Template.declaration());
   }
 
@@ -337,6 +338,7 @@ public class Parser extends BaseParser<Object> {
   Rule IF = Literal(KEYWORD_IF);
   Rule ELSE = Literal(KEYWORD_ELSE);
   Rule TEMPLATE = Literal(KEYWORD_TEMPLATE);
+  Rule PUBLIC = Literal(KEYWORD_PUBLIC);
 
   private static final String KEYWORD_IN = "in";
   private static final String KEYWORD_FOR = "for";
@@ -344,12 +346,13 @@ public class Parser extends BaseParser<Object> {
   private static final String KEYWORD_IF = "if";
   private static final String KEYWORD_ELSE = "else";
   private static final String KEYWORD_TEMPLATE = "template";
+  private static final String KEYWORD_PUBLIC = "public";
 
   @MemoMismatches
   @SuppressNode
   Rule Keyword() {
     return Sequence(
-        FirstOf(KEYWORD_IN, KEYWORD_FOR, KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_TEMPLATE),
+        FirstOf(KEYWORD_IN, KEYWORD_FOR, KEYWORD_LET, KEYWORD_IF, KEYWORD_ELSE, KEYWORD_TEMPLATE, KEYWORD_PUBLIC),
         TestNot(LetterOrDigit()));
   }
 

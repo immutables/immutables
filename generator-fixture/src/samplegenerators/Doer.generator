@@ -1,4 +1,4 @@
-[template main]
+[template public main]
 [for e in elements, TypeElement t = e, PackageElement p = t.enclosingElement]
 [let x]Es[e.getSimpleName][/let]
 [output.java p.qualifiedName x]

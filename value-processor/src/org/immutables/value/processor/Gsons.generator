@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for adapters in typeAdapters,
     packageName = adapters.definedBy.packageOf.name,
     simpleName = adapters.definedBy.simpleName,
@@ -369,6 +369,7 @@ private [type.typeAbstract] read[type.name](JsonReader in)
     [/if]
   return builder.[type.names.build]();
 }
+[if type.unmarshaledAttributes]
 
 private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
     throws IOException {
@@ -398,6 +399,7 @@ private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
 [/if]
   in.skipValue();
 }
+[/if]
 [for s in type.unmarshaledAttributes]  
 [generateUnmarshalAttribute type s]
 [/for]

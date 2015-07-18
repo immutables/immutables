@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for type in values.values if type.generateTransformer]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
 [for String transformersClassname = (type.name 'Transformer')]

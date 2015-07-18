@@ -40,7 +40,7 @@ import org.immutables.generator.processor.ImmutableTrees.Template;
 import org.immutables.generator.processor.ImmutableTrees.TemplateEnd;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
 
-public final class Balancing {
+final class Balancing {
   private Balancing() {}
 
   public static Unit balance(Unit unit) {

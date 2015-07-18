@@ -167,7 +167,11 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateJdkOnly() {
-    return typeMoreObjects == null || constitution.style().jdkOnly();
+    return constitution.style().jdkOnly() || noGuavaInClasspath();
+  }
+
+  private boolean noGuavaInClasspath() {
+    return typeMoreObjects == null;
   }
 
   public boolean isUseSimpleReadResolve() {
@@ -291,7 +295,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateOrdinalValue() {
-    return !isGenerateJdkOnly() && isOrdinalValue();
+    return isOrdinalValue();
   }
 
   public boolean isUseConstructorOnly() {
@@ -317,7 +321,8 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseInterned() {
-    return immutableFeatures.intern();
+    return immutableFeatures.intern()
+        && !isUseSingletonOnly();
   }
 
   public boolean isUsePrehashed() {
@@ -355,7 +360,10 @@ public final class ValueType extends TypeIntrospectionBase {
     if (isAnnotationType()) {
       return false;
     }
-    return isUseInterned() || isGenerateOrdinalValue() || isUseSingletonOnly();
+    return isUseInterned()
+        || isUseSingletonOnly()
+        || useSingletonForConvenience()
+        || isGenerateOrdinalValue();
   }
 
   public boolean isUseEqualTo() {
@@ -363,6 +371,9 @@ public final class ValueType extends TypeIntrospectionBase {
       return true;
     }
     if (isUseSingletonOnly()) {
+      return false;
+    }
+    if (useSingletonForConvenience() && !isUseValidation()) {
       return false;
     }
     return true;

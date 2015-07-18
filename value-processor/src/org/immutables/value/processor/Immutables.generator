@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for type in values.values]
     [if type.constitution.hasTopLevelImmutable]
 [-- Top level immutable type --]
@@ -1422,7 +1422,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [jacksonPropertyAnnotation v]
 [deprecation v]
 @Override
-[if v.public]public [/if][immutableImplementationType v] [v.names.get]() {
+[if v.isPublic]public [/if][immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]

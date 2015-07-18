@@ -17,6 +17,7 @@ package org.immutables.generator.processor;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.Collection;
 import java.util.List;
 import javax.lang.model.element.TypeElement;
@@ -76,20 +77,46 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
         .ln().ln();
 
     context
-        .out("@", SuppressWarnings.class, "({", toLiteral("all"), "})")
+        .out("@", SuppressWarnings.class, "(", toLiteral("all"), ")")
         .ln()
         .out("public class ", simpleName, " extends ", sourceElement.getQualifiedName())
-        .out(" {")
-        .ln();
+        .out(" ").openBrace();
 
+    int braces = context.getAndSetPendingBraces(0);
     Unit unit = super.transform(context, value);
 
-    context
-        .ln()
-        .out('}')
-        .ln();
+    writeTemplateDispatch(context);
+
+    context.getAndSetPendingBraces(braces);
+    context.ln().closeBraces().ln();
 
     return unit;
+  }
+
+  private void writeTemplateDispatch(Context context) {
+    int initialBraces = context.getAndSetPendingBraces(0);
+
+    context.out("private class FragmentDispatch extends ", Templates.Fragment.class, "")
+        .openBrace().ln()
+        .out("private final int index;").ln()
+        .out("FragmentDispatch(int arity, int index)")
+        .openBrace().ln()
+        .out("super(arity);").ln()
+        .out("this.index = index;").ln()
+        .closeBrace().ln()
+        .out("@Override public void run(", Templates.Invokation.class, " invokation)")
+        .openBrace().indent().ln()
+        .out("switch (index)").openBrace().ln();
+
+    for (int i = 0; i < context.templateIndex.size(); i++) {
+      String templateName = context.templateIndex.get(i);
+      context.out("case ", i, ": _t", i, "__", templateName, "(invokation); break;").ln();
+    }
+    context.out("default: break;");
+
+    context.outdent().ln()
+        .closeBraces().ln()
+        .getAndSetPendingBraces(initialBraces);
   }
 
   @Override
@@ -97,7 +124,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     String name = template.declaration().name().value();
 
     context.ln()
-        .out("public ")
+        .out(template.isPublic() ? "public " : "")
         .out(Templates.Invokable.class)
         .out(" ")
         .out(name)
@@ -107,7 +134,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
     context.out("private ");
 
-    new TemplateLike() {
+    new DispatchedTemplateLike() {
       {
         declaration = template.declaration();
         variable = true;
@@ -125,9 +152,47 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     return template;
   }
 
+  abstract class DispatchedTemplateLike {
+    boolean variable;
+    Trees.InvokableDeclaration declaration;
+
+    final void generate(Context context) {
+      if (variable) {
+        context.out("final ")
+            .out(Templates.Invokable.class)
+            .out(" ")
+            .out(declaration.name().value())
+            .out(" = ");
+      }
+
+      String templateName = declaration.name().value();
+      int templateIndex = context.indexTemplate(templateName);
+
+      context.out("new FragmentDispatch(", declaration.parameters().size(), ", ", templateIndex, ");").ln();
+
+      context.out("void _t", templateIndex, "__", templateName, "(")
+          .out(Templates.Invokation.class)
+          .out(" __) ")
+          .openBrace()
+          .indent()
+          .ln();
+
+      int braces = context.getAndSetPendingBraces(0);
+      context.delimit();
+
+      body();
+
+      context.delimit();
+
+      context.getAndSetPendingBraces(braces);
+      context.outdent().ln().closeBraces();
+    }
+
+    abstract void body();
+  }
+
   abstract class TemplateLike {
     boolean variable;
-    boolean capture;
     Trees.InvokableDeclaration declaration;
 
     final void generate(Context context) {
@@ -140,9 +205,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       }
 
       context.out("new ").out(Templates.Fragment.class)
-          .out("(", declaration.parameters().size())
-          .out(capture ? ", __" : "")
-          .out(") ")
+          .out("(", declaration.parameters().size(), ") ")
           .openBrace()
           .ln()
           .out("@Override public void run(").out(Templates.Invokation.class).out(" __) ")
@@ -170,7 +233,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       {
         declaration = statement.declaration();
         variable = true;
-        capture = true;
       }
 
       @Override
@@ -195,31 +257,44 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   @Override
   public ForStatement transform(Context context, ForStatement statement) {
     context.openBrace();
-    context.infor()
-        .out("final ")
-        .out(Templates.Iteration.class)
-        .out(" ")
-        .out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE))
-        .out(" = new ")
-        .out(Templates.Iteration.class)
-        .out("();")
-        .ln();
 
+    if (statement.useForAccess()) {
+      context.infor()
+          .out("final ")
+          .out(Templates.Iteration.class)
+          .out(" ")
+          .out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE))
+          .out(" = new ")
+          .out(Templates.Iteration.class)
+          .out("();")
+          .ln();
+    }
     transformForStatementListDeclaration(context, statement, statement.declaration());
 
     int braces = context.getAndSetPendingBraces(0);
     context.indent();
 
-    context.delimit();
+    if (statement.useDelimit()) {
+      context.delimit();
+    }
     transformForStatementListParts(context, statement, statement.parts());
-    context.delimit();
+    if (statement.useDelimit()) {
+      context.delimit();
+    }
 
-    context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".index++;").ln();
-    context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".first = false;");
+    if (statement.useForAccess()) {
+      context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".index++;").ln();
+      context.out(context.accessMapper(TypeResolver.ITERATION_ACCESS_VARIABLE)).out(".first = false;");
+      context.outfor();
+    }
 
     context.getAndSetPendingBraces(braces);
-    context.outfor().outdent().ln()
-        .closeBraces().ln().delimit();
+    context.outdent().ln()
+        .closeBraces().ln();
+
+    if (statement.useDelimit()) {
+      context.delimit();
+    }
 
     return statement;
   }
@@ -244,8 +319,6 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
           declaration = InvokableDeclaration.builder()
               .name(Identifier.of(""))
               .build();
-
-          capture = true;
         }
 
         @Override
@@ -352,9 +425,15 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
   @Override
   public TextLine transform(Context context, TextLine line) {
-    context.out("__.out(")
-        .out(line.fragment())
-        .out(line.newline() ? ").ln();" : ");").ln();
+    if (line.fragment().value().isEmpty()) {
+      if (line.newline()) {
+        context.out("__.ln();").ln();
+      }
+    } else {
+      context.out("__.out(")
+          .out(line.fragment())
+          .out(line.newline() ? ").ln();" : ");").ln();
+    }
     return line;
   }
 
@@ -496,6 +575,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
   }
 
   static class Context {
+    final List<String> templateIndex = Lists.newArrayListWithExpectedSize(100);
     final StringBuilder builder = new StringBuilder();
     private int indentLevel;
     private int bracesToClose;
@@ -536,6 +616,12 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
       return this;
     }
 
+    int indexTemplate(String template) {
+      int index = templateIndex.size();
+      templateIndex.add(template);
+      return index;
+    }
+
     public String accessMapper(String identifer) {
       if (TypeResolver.ITERATION_ACCESS_VARIABLE.equals(identifer)) {
         return "_it" + forLevels;
@@ -560,6 +646,12 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     Context openBrace() {
       builder.append('{');
       bracesToClose++;
+      return this;
+    }
+
+    Context closeBrace() {
+      builder.append('}');
+      bracesToClose--;
       return this;
     }
 

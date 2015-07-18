@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for model in allMirrors]
 [output.java model.package (model.name 'Mirror')]
 [generateMirror model]

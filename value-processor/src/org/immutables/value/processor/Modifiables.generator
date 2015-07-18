@@ -1,4 +1,4 @@
-[template generate]
+[template public generate]
   [for type in values.values if type.generateModifiable]
     [if type.generateOrdinalValue]
 [output.error]

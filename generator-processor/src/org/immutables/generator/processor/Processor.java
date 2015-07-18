@@ -125,7 +125,8 @@ public final class Processor extends AbstractProcessor {
   private Unit transformUnit(SwissArmyKnife knife, Unit unit) {
     Unit trimmed = Spacing.normalize(unit);
     Unit balanced = Balancing.balance(trimmed);
-    Unit resolved = new TypeResolver(knife).resolve(balanced);
+    Unit optimized = Inliner.optimize(balanced);
+    Unit resolved = new TypeResolver(knife).resolve(optimized);
     return resolved;
   }
 }
