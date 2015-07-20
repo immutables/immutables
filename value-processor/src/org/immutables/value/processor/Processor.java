@@ -50,6 +50,7 @@ public final class Processor extends AbstractGenerator {
 
     invoke(new Generator_Immutables().usingValues(values).generate());
     invoke(new Generator_Gsons().usingValues(values).generate());
+    invoke(new Generator_OkJsons().usingValues(values).generate());
     invoke(new Generator_Repositories().usingValues(values).generate());
     invoke(new Generator_Transformers().usingValues(values).generate());
     invoke(new Generator_Asts().usingValues(values).generate());

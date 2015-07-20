@@ -1,0 +1,672 @@
+[template public generate]
+  [for adapters in typeAdapters,
+    packageName = adapters.definedBy.packageOf.name,
+    simpleName = adapters.definedBy.simpleName,
+    String capitalizedSimpleName = toUpper simpleName,
+    String typeAdaptersName = ('JsonAdapters' capitalizedSimpleName)]
+
+[output.java packageName typeAdaptersName]
+[for d = adapters.definedBy,
+     s in d.style if s.headerComments,
+     t in d.asType]
+[t.associatedTopLevel.headerComments]
+[/for]
+[generateAdapters packageName simpleName typeAdaptersName adapters.types]
+[/output.java]
+
+[output.service 'com.squareup.moshi.JsonAdapter.Factory']
+[if packageName][packageName].[/if][typeAdaptersName]
+[/output.service]
+
+  [/for]
+[/template]
+
+[template generateAdapters String packageName String simpleName String typeAdaptersName Type... allValues]
+[if packageName]
+package [packageName];
+[/if]
+
+[-- replace with fully qualified names where needed --]
+import com.squareup.moshi.*;
+
+import java.io.IOException;
+import java.lang.String;
+[for t in allValues]
+  [for starImport in t.requiredSourceStarImports]
+import [starImport];
+  [/for]
+[/for]
+
+/**
+ * {@code JsonAdapter.Factory} that handle all the immutable types generated under {@code [simpleName]}.
+ [for v in allValues]
+ * @see [v.typeValue.relative]
+ [/for]
+ */
+@SuppressWarnings("all")
+[if classpath.available 'javax.annotation.Generated']
+@javax.annotation.Generated({"OkJsons.generator", "[packageName].[simpleName]"})
+[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
+[/if]
+public final class [typeAdaptersName] implements JsonAdapter.Factory {
+
+  @Override
+  public JsonAdapter<?> create(java.lang.reflect.Type type, java.util.Set<? extends java.lang.annotation.Annotation> annotations, Moshi moshi) {
+    [if allValues]
+    try {
+      [for v in allValues, t = v.typeAbstract, im = v.typeImmutable]
+      if (type == [t].class || type == [im].class) {
+        return new [v.name]Adapter(moshi);
+      }
+      [/for]
+    } catch (Exception reflectionException) {
+      // probably not the best idea ), to be revised
+      reflectionException.printStackTrace();
+    }
+    [/if]
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return "[typeAdaptersName]([for v in allValues][if not for.first], [/if][v.name][/for])";
+  }
+  [for v in allValues]
+  [generateAdapter v]
+  [/for]
+}
+[/template]
+
+[template generateAdapter Type type]
+[checkAttributes type]
+[for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
+
+private static class [type.name]Adapter extends JsonAdapter<[t]> {
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+      [if a.nonRawElemementType]
+  public static final [a.elementType] [toConstant a.name]_TYPE_OF = null;
+      [/if]
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+      [if a.nonRawElemementType]
+  public static final [a.secondaryElementType] [toConstant a.name]_SECONDARY_TYPE_OF = null;
+      [/if]
+    [/if]
+  [/for]
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+  private final JsonAdapter<[a.elementType]> [a.name]Adapter;
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+  private final JsonAdapter<[a.secondaryElementType]> [a.name]SecondaryAdapter;
+    [/if]
+  [/for]
+
+  [type.name]Adapter(Moshi moshi) throws Exception {[if not allAttributes]}[/if]
+  [for a in allAttributes]
+    [if a.requiresMarshalingAdapter]
+    [getAdapterFromMoshi a false]
+    [/if]
+    [if a.requiresMarshalingSecondaryAdapter]
+    [getAdapterFromMoshi a true]
+    [/if]
+  [/for]
+  [if allAttributes]} [/if]
+
+  @Override
+  public void toJson(JsonWriter out, [t] value) throws IOException {
+    if (value == null) {
+      out.nullValue();
+    } else {
+      write[type.name](out, value);
+    }
+  }
+
+  @Override
+  public [t] fromJson(JsonReader in) throws IOException {
+    if (in.peek() == JsonReader.Token.NULL) {
+      in.nextNull();
+      return null;
+    }
+    return read[type.name](in);
+  }
+  [generateMarshalingMethods type]
+  [generateUnmarshalingMethods type]
+}
+[/for]
+[/template]
+
+[template getAdapterFromMoshi Attribute a Boolean secondary]
+[if a.nonRawElemementType]
+this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter(getClass().getField("[toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_OF").getGenericType());
+[else]
+this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter([if secondary][a.secondaryElementType][else][a.elementType][/if].class);
+[/if]
+[/template]
+
+[template generateMarshalingMethods Type type]
+
+private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
+    throws IOException {
+[if type.useConstructorOnly]
+  [for ca = type.constructorArguments]
+  [if singular ca]
+  [for a in ca]
+  [generateMarshalConstructorValue type a]
+  [/for]
+  [else]
+  out.beginArray();
+  [for a in ca]
+  [generateMarshalConstructorValue type a]
+  [/for]
+  out.endArray();
+  [/if]
+  [/for]
+[else]
+  out.beginObject();
+  [for a in type.marshaledAttributes]
+  [generateMarshalAttributeValue type a]
+  [/for]
+  out.endObject();
+[/if]
+}
+[/template]
+
+[template generateMarshalConstructorValue Type type Attribute a]
+  [if a.nullable]
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else {
+  out.nullValue();
+}
+  [else if a.optionalType]
+[a.type] [a.name]Optional = instance.[a.names.get]();
+if ([a.name]Optional.isPresent()) {
+  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else {
+  out.nullValue();
+}
+  [else if a.mapType]
+[a.type] [a.name]Mapping = instance.[a.names.get]();
+[generateMarshalMapping type a]
+  [else if a.collectionType or a.arrayType]
+out.beginArray();
+for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
+  [generateWriteAttributeValue type a 'e' false]
+}
+out.endArray();
+  [else]
+[generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
+  [/if]
+[/template]
+
+[template generateMarshalMapping Type type Attribute a]
+out.beginObject();
+  [if a.typeKind.multimapKind]
+for (java.util.Map.Entry<[a.wrappedElementType], java.util.Collection<[a.wrappedSecondaryElementType]>> e : [a.name]Mapping.asMap().entrySet()) {
+  [generateMarshalKey a]e.getKey()[/generateMarshalKey]
+  out.name(key);
+  out.beginArray();
+  for ([a.unwrappedSecondaryElementType] value : e.getValue()) {
+    [generateWriteAttributeValue type a 'value' true]
+  }
+  out.endArray();
+}
+  [else]
+for (java.util.Map.Entry<[a.wrappedElementType], [a.wrappedSecondaryElementType]> e : [a.name]Mapping.entrySet()) {
+  [-- only use toString with objects and boxed primitives]
+  [generateMarshalKey a]e.getKey()[/generateMarshalKey]
+  out.name(key);
+  [-- here we assign to a unwrapped variable so overload resolution will precise]
+  [a.unwrappedSecondaryElementType] value = e.getValue();
+  [generateWriteAttributeValue type a 'value' true]
+}
+  [/if]
+out.endObject();
+[/template]
+
+[template generateMarshalKey Attribute a String expression]
+  [if a.unwrappedElementPrimitiveType]
+String key = String.valueOf([expression]);
+  [else if a.elementType eq 'java.lang.String']
+String key = [expression];
+  [else][if not a.requiresMarshalingAdapter][output.error]assertion: key write to string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
+String key = [a.name]Adapter.toJsonTree([expression]).getAsString();
+  [/if]
+[/template]
+
+[template generateMarshalAttributeValue Type type Attribute a]
+  [if a.nullable]
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  out.name([serializedName a]);
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else if (out.getSerializeNulls()) {
+  out.name([serializedName a]);
+  out.nullValue();
+}
+  [else if a.optionalType]
+[a.type] [a.name]Optional = instance.[a.names.get]();
+if ([a.name]Optional.isPresent()) {
+  out.name([serializedName a]);
+  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else if (out.getSerializeNulls()) {
+  out.name([serializedName a]);
+  out.nullValue();
+}
+  [else if a.mapType]
+[a.type] [a.name]Mapping = instance.[a.names.get]();
+if (![a.name]Mapping.isEmpty()) {
+  out.name([serializedName a]);
+  [generateMarshalMapping type a]
+} else[if type.okTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
+  out.name([serializedName a]);
+  out.beginObject();
+  out.endObject();
+}
+  [else if a.collectionType or a.arrayType]
+[a.type] [a.name]Elements = instance.[a.names.get]();
+[if a.arrayType]
+if ([a.name]Elements.length != 0) {
+[else]
+if (![a.name]Elements.isEmpty()) {
+[/if]
+  out.name([serializedName a]);
+  out.beginArray();
+  for ([a.unwrappedElementType] e : [a.name]Elements) {
+    [generateWriteAttributeValue type a 'e' false]
+  }
+  out.endArray();
+} else[if type.okTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
+  out.name([serializedName a]);
+  out.beginArray();
+  out.endArray();
+}
+  [else]
+out.name([serializedName a]);
+[generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
+  [/if]
+[/template]
+
+[template generateUnmarshalingMethods Type type]
+[for charAttributes = a for
+    a in type.unmarshaledAttributes
+    if a.unwrappedElementType eq 'char']
+[if charAttributes]
+
+private static char charValueOf(String string) {
+  if (string.length() == 1) {
+    return string.charAt(0);
+  }
+  throw new IllegalArgumentException(
+      String.format("Expected string with a single character but was: '%s'", string));
+}
+[/if]
+[/for]
+[if type.useSingletonOnly]
+
+private [type.typeAbstract] read[type.name](JsonReader in)
+    throws IOException {
+  in.skipValue();
+  return [type.factoryInstance]();
+}
+[else if type.useConstructorOnly]
+
+[for ca = type.constructorArguments]
+private [type.typeAbstract] read[type.name](JsonReader in)
+    throws IOException {
+[if singular ca]
+  [for a in ca]
+  return [type.factoryOf](readParameter[toUpper a.name](in));
+  [/for]
+[else]
+  in.beginArray();
+  [type.typeAbstract] instance = [type.factoryOf]([for a in ca][if not for.first],[/if]
+    readParameter[toUpper a.name](in)[/for]);
+  in.endArray();
+  return instance;
+[/if]
+}
+[for a in ca]
+[generateConstructorArgumentUnmarshal type a]
+[/for]
+[/for]
+[else]    
+
+private [type.typeAbstract] read[type.name](JsonReader in)
+    throws IOException {
+  [type.typeBuilder] builder = [type.factoryBuilder]();
+    [if type.unmarshaledAttributes]
+  in.beginObject();
+  while (in.hasNext()) {
+    eachAttribute(in, builder);
+  }
+  in.endObject();
+    [else]
+  in.skipValue();
+    [/if]
+  return builder.[type.names.build]();
+}
+[if type.unmarshaledAttributes]
+
+private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
+    throws IOException {
+  String attributeName = in.nextName();
+  switch (attributeName.charAt(0)) {
+  [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
+     e in mm.asMap.entrySet]
+  case '[e.key]':
+    [for a in e.value]
+    if ("[a.marshaledName]".equals(attributeName)) {
+      readIn[toUpper a.name](in, builder);
+      return;
+    }
+    [/for]
+    break;
+  [/for]
+  default:
+  }
+  in.skipValue();
+}
+[/if]
+[for s in type.unmarshaledAttributes]  
+[generateUnmarshalAttribute type s]
+[/for]
+[/if]
+[/template]
+
+[template generateConstructorArgumentUnmarshal Type type Attribute a]
+
+private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name](JsonReader in)
+    throws IOException {
+  [if a.primitive]
+  return [simpleTypeNext a.type];
+  [else]
+  [generateConstructorArgumentComplexUnmarshal type a]
+  [/if]
+}
+[/template]
+
+[template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
+  [if a.nullable]
+JsonReader.Token t = in.peek();
+if (t == JsonReader.Token.NULL) {
+  in.nextNull();
+  return null;
+}
+[generateReadAttributeValue type a a.type a.rawType false]
+return value;
+  [else if a.optionalType]
+JsonReader.Token t = in.peek();
+if (t == JsonReader.Token.NULL) {
+  in.nextNull();
+  return [a.rawType].[optionalEmpty a];
+}
+    [if a.jdkSpecializedOptional]
+return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
+    [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
+    [else]
+[generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+return [a.rawType].of(value);
+    [/if]
+  [else if a.mapType]
+[createBuilderForCollection type a 'mappings']
+[generateMappingUnmarshalCode type a 'mappings.put']
+[returnBuiltCollection type a 'mappings']
+  [else if a.collectionType]
+[createBuilderForCollection type a 'elements']
+[generateCollectionUnmarshalCode type a 'elements.add']
+[returnBuiltCollection type a 'elements']
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+return elements.toArray(new [a.elementType]['[']elements.size()[']']);
+  [else]
+[generateReadAttributeValue type a a.type a.rawType false]
+return value;
+  [/if]
+[/template]
+
+[template generateUnmarshalAttribute Type type Attribute a]
+
+private void readIn[toUpper a.name](JsonReader in, [type.typeBuilder] builder)
+    throws IOException {
+  [if a.primitive]
+  builder.[a.names.init]([simpleTypeNext a.type]);
+  [else]
+  [generateComplexTypeUnmarshalAttribute type a]
+  [/if]
+}
+[/template]
+
+[template createBuilderForCollection Type type Attribute a String variableName]
+[if a.mapType]
+[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.Map[mapParams] [variableName] = new java.util.LinkedHashMap[mapParams]();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder[mapParams] [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
+[else if a.collectionType]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elementType]>();
+  [else]
+[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder<[a.elementType]> [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+  [/if]
+[/if]
+[/template]
+
+[template returnBuiltCollection Type type Attribute a String variableName]
+  [if type.generateJdkOnly or a.typeKind.isSortedKind]
+return [variableName];
+  [else]
+return [variableName].build();
+  [/if]
+[/template]
+
+[template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
+JsonReader.Token t = in.peek();
+if (t == JsonReader.Token.BEGIN_ARRAY) {
+  in.beginArray();
+  while(in.hasNext()) {
+    [unmarshalCollectionElement]
+  }
+  in.endArray();
+} else if (t == JsonReader.Token.NULL) {
+  in.nextNull();
+} else {
+  [unmarshalCollectionElement]
+}
+[/template]
+
+[template generateMappingUnmarshalCode Type type Attribute a String collectorExpression]
+if (in.peek() == JsonReader.Token.NULL) {
+  in.nextNull();
+} else {
+  in.beginObject();
+  while(in.hasNext()) {
+    String rawKey = in.nextName();
+[if a.unwrappedElementPrimitiveType]
+  [if a.unwrappedElementType eq 'char']
+    char key = charValueOf(rawKey);
+  [else]
+    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
+  [/if]
+[else if a.wrappedElementType eq 'java.lang.String']
+    [a.wrappedElementType] key = rawKey;
+[else][if not a.requiresMarshalingAdapter][output.error]assertion: key read from string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
+    [a.wrappedElementType] key = [a.name]Adapter.fromJsonTree(new JsonPrimitive(rawKey));
+[/if]
+  [if a.typeKind.isMultimapKind]
+    if (in.peek() == JsonReader.Token.BEGIN_ARRAY) {
+      in.beginArray();
+      while(in.hasNext()) {
+        [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+        [collectorExpression](key, value);
+      }
+      in.endArray();
+    } else {
+      [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+      [collectorExpression](key, value);
+    }
+  [else]
+    [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+    [collectorExpression](key, value);
+  [/if]
+  }
+  in.endObject();
+}
+[/template]
+
+[template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression]
+[collectionUnmarshalCaseNullSingleArray]
+  [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+[collectorExpression]([simpleTypeNext a.unwrappedElementType]);
+  [else]
+[generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+[collectorExpression](value);
+  [/if]
+[/collectionUnmarshalCaseNullSingleArray]
+[/template]
+
+[template generateComplexTypeUnmarshalAttribute Type type Attribute a]
+  [if a.nullable]
+JsonReader.Token t = in.peek();
+if (t == JsonReader.Token.NULL) {
+  in.nextNull();
+} else {
+    [if a.stringType]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else]
+  [generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
+  builder.[a.names.init](value);
+    [/if]
+}
+  [else if a.stringType]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+  [else if a.optionalType]
+JsonReader.Token t = in.peek();
+if (t == JsonReader.Token.NULL) {
+  in.nextNull();
+} else {
+    [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else]
+  [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+  builder.[a.names.init](value);
+    [/if]
+}
+  [else if a.mapType]
+[generateMappingUnmarshalCode type a ('builder.' a.names.put)]
+  [else if a.collectionType]
+[generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+  [else if a.arrayType]
+java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+[generateCollectionUnmarshalCode type a ('elements.add')]
+builder.[a.names.init](elements.toArray(new [a.elementType]['[']elements.size()[']']));
+  [else]
+[generateReadAttributeValue type a a.type a.rawType false]
+builder.[a.names.init](value);
+  [/if]
+[/template]
+
+[template generateReadAttributeValue Type type Attribute attribute String genericType String rawType Boolean secondary]
+[if secondary]
+  [if attribute.requiresMarshalingSecondaryAdapter]
+[genericType] value = [attribute.name]SecondaryAdapter.fromJson(in);
+  [else]
+[attribute.unwrappedSecondaryElementType] value = [simpleTypeNext attribute.unwrappedSecondaryElementType];
+  [/if]
+[else]
+  [if attribute.requiresMarshalingAdapter]
+[genericType] value = [attribute.name]Adapter.fromJson(in);
+  [else]
+[attribute.unwrappedElementType] value = [simpleTypeNext attribute.unwrappedElementType];
+  [/if]
+[/if]
+[/template]
+
+[template generateWriteAttributeValue Type type Attribute attribute String variableName Boolean secondary]
+[if secondary]
+  [if attribute.requiresMarshalingSecondaryAdapter]
+[attribute.name]SecondaryAdapter.toJson(out, [variableName]);
+  [else]
+[simpleTypeWrite attribute.secondaryElementType variableName]
+  [/if]
+[else]
+  [if attribute.requiresMarshalingAdapter]
+[attribute.name]Adapter.toJson(out, [variableName]);
+  [else]
+[simpleTypeWrite attribute.unwrappedElementType variableName]
+  [/if]
+[/if]
+[/template]
+
+[template simpleTypeWrite String typeName String variableName]
+[if typeName eq 'char']
+out.value(String.valueOf([variableName]));
+[else]
+out.value([variableName]);
+[/if]
+[/template]
+
+[template simpleTypeNext String typeName][output.trim]
+[if typeName eq 'boolean']
+  in.nextBoolean()
+[else if typeName eq 'byte']
+  (byte) in.nextInt()
+[else if typeName eq 'short']
+  (short) in.nextInt()
+[else if typeName eq 'int']
+  in.nextInt()
+[else if typeName eq 'long']
+  in.nextLong()
+[else if typeName eq 'float']
+  (float) in.nextDouble()
+[else if typeName eq 'double']
+  in.nextDouble()
+[else if typeName eq 'java.lang.String']
+  in.nextString()
+[else if typeName eq 'char']
+  charValueOf(in.nextString())
+[else]
+  null
+  [output.error]unexpected type [typeName], not a simple one[/output.error]
+[/if]
+[/output.trim][/template]
+
+[template constructorAcceptType Attribute a][output.trim]
+[if a.typeKind.isMultimapKind]
+  [guava].collect.Multimap<[a.elementType], [a.secondaryElementType]>
+[else if a.typeKind.isMapKind]
+  java.util.Map<[a.elementType], [a.secondaryElementType]>
+[else if a.typeKind.isCollectionKind]
+  Iterable<[a.elementType]>
+[else]
+  [a.type]
+[/if]
+[/output.trim][/template]
+
+[template checkAttributes Type type]
+[for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
+[-- mandatory constructor arguments are not checked, should they? --]
+[output.error]
+@Json.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
+[/output.error]
+[/for]
+[/template]
+
+[template serializedName Attribute a]"[a.marshaledName]"[/template]
+
+[template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
+
+[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

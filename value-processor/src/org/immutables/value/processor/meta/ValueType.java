@@ -88,6 +88,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().gsonTypeAdapters().get();
   }
 
+  public OkJsonMirrors.OkTypeAdapters okTypeAdapters() {
+    return constitution.protoclass().okJsonTypeAdapters().get();
+  }
+
   public String sourceHeader() {
     if (constitution.style().headerComments()) {
       Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();

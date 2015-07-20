@@ -158,9 +158,12 @@ public class Proto {
      */
     @Value.Lazy
     TypeAdaptersMirror defaultTypeAdapters() {
-      TypeElement typeElement = Preconditions.checkNotNull(processing()
+      @Nullable
+      TypeElement typeElement = processing()
           .getElementUtils()
-          .getTypeElement(TypeAdaptersMirror.qualifiedName()),
+          .getTypeElement(TypeAdaptersMirror.qualifiedName());
+
+      Preconditions.checkState(typeElement != null,
           "Processor internal error, @%s is not know to be on the classpath",
           TypeAdaptersMirror.qualifiedName());
 
@@ -206,6 +209,11 @@ public class Proto {
     @Value.Lazy
     public Optional<TypeAdaptersMirror> typeAdapters() {
       return TypeAdaptersMirror.find(element());
+    }
+
+    @Value.Lazy
+    public Optional<OkTypeAdaptersMirror> okTypeAdapters() {
+      return OkTypeAdaptersMirror.find(element());
     }
 
     @Value.Lazy
@@ -668,6 +676,45 @@ public class Proto {
               .annotationNamed(TypeAdaptersMirror.simpleName())
               .warning("@%s is also used on the package, this type level annotation is ignored",
                   TypeAdaptersMirror.simpleName());
+        }
+        return Optional.<AbstractDeclaring>of(packageOf());
+      }
+
+      return typeDefined.isPresent()
+          ? Optional.<AbstractDeclaring>of(typeDefining.get())
+          : Optional.<AbstractDeclaring>absent();
+    }
+
+    @Value.Lazy
+    public Optional<OkTypeAdaptersMirror> okJsonTypeAdapters() {
+      Optional<AbstractDeclaring> typeAdaptersProvider = okTypeAdaptersProvider();
+      if (typeAdaptersProvider.isPresent()) {
+        return typeAdaptersProvider.get().okTypeAdapters();
+      }
+      return Optional.absent();
+    }
+
+    @Value.Lazy
+    public Optional<AbstractDeclaring> okTypeAdaptersProvider() {
+      Optional<DeclaringType> typeDefining =
+          declaringType().isPresent()
+              ? Optional.of(declaringType().get().associatedTopLevel())
+              : Optional.<DeclaringType>absent();
+
+      Optional<OkTypeAdaptersMirror> typeDefined =
+          typeDefining.isPresent()
+              ? typeDefining.get().okTypeAdapters()
+              : Optional.<OkTypeAdaptersMirror>absent();
+
+      Optional<OkTypeAdaptersMirror> packageDefined = packageOf().okTypeAdapters();
+
+      if (packageDefined.isPresent()) {
+        if (typeDefined.isPresent()) {
+          report()
+              .withElement(typeDefining.get().element())
+              .annotationNamed(OkTypeAdaptersMirror.simpleName())
+              .warning("@%s is also used on the package, this type level annotation is ignored",
+                  OkTypeAdaptersMirror.simpleName());
         }
         return Optional.<AbstractDeclaring>of(packageOf());
       }

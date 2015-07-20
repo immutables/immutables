@@ -185,6 +185,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         return value;
       }
     }
+    Optional<OkNamedMirror> okNamedAnnotation = OkNamedMirror.find(element);
+    if (okNamedAnnotation.isPresent()) {
+      String value = okNamedAnnotation.get().value();
+      if (!value.isEmpty()) {
+        return value;
+      }
+    }
     Optional<JsonPropertyMirror> jsonProperty = JsonPropertyMirror.find(element);
     if (jsonProperty.isPresent()) {
       String value = jsonProperty.get().value();
@@ -222,6 +229,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGsonIgnore() {
     // TBD need to optimize
     return IgnoreMirror.isPresent(element);
+  }
+
+  public boolean isJsonIgnore() {
+    // TBD need to optimize
+    return OkIgnoreMirror.isPresent(element);
   }
 
   public List<String> typeParameters() {
