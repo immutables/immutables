@@ -122,7 +122,7 @@ import [starImport];
   [if not type.factoryBuilder.isNew]
 
   /**
-   * Creates builder for {@link [type.typeValue]}.
+   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
    * @return new [type.typeValue.simple] builder
    */
   [type.typeBuilderImpl.access]static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
@@ -631,10 +631,10 @@ private Object writeReplace() {
 [if type.kind.isFactory]
  * [type.typeBuilder.simple] collects parameters and invokes static factory method:
  * {@code [type.factoryOf](..)}.
- * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue]}.
+ * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue.simple]}.
 [else]
- * Builds instances of {@link [type.typeValue]}.
- * Initialized attributes and then invoke {@link #[type.names.build]()} method to create
+ * Builds instances of {@link [type.typeValue] [type.typeValue.simple]}.
+ * Initialize attributes and then invoke {@link #[type.names.build]()} method to create
  * immutable instance.
 [/if]
  * <p><em>[type.typeBuilderImpl.simple] is not thread safe and generally should not be stored in field or collection,
@@ -717,7 +717,7 @@ private Object writeReplace() {
   [if type.constitution.isOutsideBuilder]
 
   /**
-   * Creates builder for {@link [type.typeValue]}.
+   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
    * @return new [type.typeValue.simple] builder
    */
   public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
@@ -1069,7 +1069,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/for]
 
   /**
-   * Builds new {@link [type.typeValue]}.
+   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
    */
   public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]() {

@@ -29,7 +29,7 @@ package [type.package];
      LongPositions defpos = longsFor primdefs]
 
 /**
- * Modifiable implementation of {@link [type.typeValue]}.
+ * Modifiable implementation of {@link [type.typeValue] [type.typeValue.simple]}.
  * <p>Use {@code [type.names.create]()} static factory methods to create new instances.
  * Use {@code [type.names.toImmutable]()} method to convert to canonical immutable instance.
  * <p><em>[type.names.typeModifiable] is not thread safe</em>
@@ -102,7 +102,7 @@ package [type.package];
   [if type.constitution.isOutsideBuilder]
 
   /**
-   * Creates builder for {@link [type.typeValue]}.
+   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
    * @return new [type.typeValue.simple] builder
    */
   public static [type.names.typeModifiable] [type.names.builder]() {
@@ -308,7 +308,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/for]
 
   /**
-   * Builds new {@link [type.typeValue]}.
+   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
    */
   public [type.typeValue] [type.names.toImmutable]() {
