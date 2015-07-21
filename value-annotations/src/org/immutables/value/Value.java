@@ -61,7 +61,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Immutable {
 
     /**
@@ -121,7 +120,6 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.TYPE, ElementType.PACKAGE})
-  @Retention(RetentionPolicy.SOURCE)
   public @interface Include {
     Class<?>[] value();
   }
@@ -159,7 +157,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.SOURCE)
   public @interface Enclosing {}
 
   /**
@@ -168,7 +165,6 @@ public @interface Value {
    * initializer.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Derived {}
 
@@ -178,8 +174,8 @@ public @interface Value {
    * supplied, this value will be obtained by calling method annotated this annotation.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Default {}
 
   /**
@@ -191,8 +187,8 @@ public @interface Value {
    * @see Value.Default
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Auxiliary {}
 
   /**
@@ -226,8 +222,8 @@ public @interface Value {
    * well as to other lazy attributes. Though lazy attributes act as {@link Auxiliary}.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Lazy {}
 
   /**
@@ -243,7 +239,7 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
-  @Retention(RetentionPolicy.SOURCE)
+  @Retention(RetentionPolicy.CLASS)
   public @interface Parameter {
     /**
      * Used to specify order of constructor argument. It's defaults to zero and allows for
@@ -275,7 +271,6 @@ public @interface Value {
    * unreachable to caller due to runtime exception.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Check {}
 
@@ -289,7 +284,6 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
-  @Retention(RetentionPolicy.SOURCE)
   public @interface NaturalOrder {}
 
   /**
@@ -303,7 +297,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
   public @interface ReverseOrder {}
 
   /**
@@ -325,7 +318,6 @@ public @interface Value {
    * mismatch on enclosing and nested types.</em>
    */
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
-  @Retention(RetentionPolicy.CLASS)
   public @interface Style {
     /**
      * Patterns to recognize accessors. For example <code>get = {"is*", "get*"}</code> will
