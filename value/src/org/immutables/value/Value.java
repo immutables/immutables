@@ -555,7 +555,7 @@ public @interface Value {
      * not very safe for annotation processing and some other annotation consumers. By default, no
      * annotations are copied unless you specify non-empty annotation type list as value
      * for {@code passAnnotations} attribute. Howerver there are some special annotations which are
-     * copied using special logic, such as `Nullable` annotations (and Jackson annotations)
+     * copied using special logic, such as {@code Nullable} annotations (and Jackson annotations)
      * <p>
      * This style parameter is experimental and may change in future.
      * @return types of annotations to pass to an immutable implementation class and it's
