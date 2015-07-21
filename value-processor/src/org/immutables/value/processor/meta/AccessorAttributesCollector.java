@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +33,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 final class AccessorAttributesCollector {
   private static final String ORDINAL_VALUE_INTERFACE_TYPE = TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE;
@@ -60,6 +60,7 @@ final class AccessorAttributesCollector {
   private final Reporter reporter;
 
   private final boolean isEclipseImplementation;
+  private boolean hasNonInheritedAttributes;
 
   AccessorAttributesCollector(Protoclass protoclass, ValueType type) {
     this.protoclass = protoclass;
@@ -98,20 +99,25 @@ final class AccessorAttributesCollector {
   }
 
   private void collectGeneratedCandidateMethods(TypeElement type) {
-    for (Element element : getAccessorsInSourceOrder(CachingElements.getDelegate(type))) {
+    TypeElement originalType = CachingElements.getDelegate(type);
+    for (ExecutableElement element : ElementFilter.methodsIn(getAccessorsInSourceOrder(originalType))) {
       if (isElegibleAccessorMethod(element)) {
-        processGenerationCandidateMethod((ExecutableElement) element);
+        processGenerationCandidateMethod(element, originalType);
       }
     }
-    // Now we pass only explicitly defined equals, hashCode, toString
-    for (ExecutableElement element : ElementFilter.methodsIn(type.getEnclosedElements())) {
-      switch (element.getSimpleName().toString()) {
-      case EQUALS_METHOD:
-      case HASH_CODE_METHOD:
-      case TO_STRING_METHOD:
-        processGenerationCandidateMethod(element);
-        break;
-      default:
+
+    // We do this afterwards to observe field flag that can
+    // inform use during checking for warnings.
+    for (Element element : processing.getElementUtils().getAllMembers(originalType)) {
+      if (element.getKind() == ElementKind.METHOD) {
+        switch (element.getSimpleName().toString()) {
+        case HASH_CODE_METHOD:
+        case TO_STRING_METHOD:
+        case EQUALS_METHOD:
+          processUtilityCandidateMethod((ExecutableElement) element, originalType);
+          break;
+        default:
+        }
       }
     }
   }
@@ -145,32 +151,71 @@ final class AccessorAttributesCollector {
     return true;
   }
 
-  private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate) {
-    Name name = attributeMethodCandidate.getSimpleName();
-    List<? extends VariableElement> parameters = attributeMethodCandidate.getParameters();
+  private void processUtilityCandidateMethod(ExecutableElement utilityMethodCandidate, TypeElement originalType) {
+    Name name = utilityMethodCandidate.getSimpleName();
+    List<? extends VariableElement> parameters = utilityMethodCandidate.getParameters();
+
+    TypeElement definingType = (TypeElement) utilityMethodCandidate.getEnclosingElement();
+
+    if (definingType.getQualifiedName().contentEquals(Object.class.getName())) {
+      // We ignore methods of java.lang.Object
+      return;
+    }
+
     if (name.contentEquals(EQUALS_METHOD)
         && parameters.size() == 1
-        && parameters.get(0).asType().toString().equals(Object.class.getName())
-        && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
-      type.isEqualToDefined = true;
+        && parameters.get(0).asType().toString().equals(Object.class.getName())) {
+
+      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+        type.isEqualToDefined = true;
+
+        // inherited non-abstract implementation
+        // the flag have to be set already
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+          report(originalType)
+              .warning("Type inherits non-default 'equals' method but have some non-inherited attributes."
+                  + " Please override 'equals' with abstract method to have generate it. Otherwise override"
+                  + " with calling super implemtation to use custom implementation");
+        }
+      }
       return;
     }
 
     if (name.contentEquals(HASH_CODE_METHOD)
         && parameters.isEmpty()) {
-      if (!attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
         type.isHashCodeDefined = true;
+
+        // inherited non-abstract implementation
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+          report(originalType)
+              .warning("Type inherits non-default 'hashCode' method but have some non-inherited attributes."
+                  + " Please override 'hashCode' with abstract method to have generated it. Otherwise override"
+                  + " with calling super implemtation to use custom implementation");
+        }
       }
       return;
     }
 
     if (name.contentEquals(TO_STRING_METHOD)
         && parameters.isEmpty()) {
-      if (!attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
         type.isToStringDefined = true;
+
+        // inherited non-abstract implementation
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+          report(originalType)
+              .warning("Type inherits non-default 'toString' method but have some non-inherited attributes."
+                  + " Please override 'toString' with abstract method to have generate it. Otherwise override"
+                  + " with calling super implemtation to use custom implementation");
+        }
       }
       return;
     }
+  }
+
+  private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
+    Name name = attributeMethodCandidate.getSimpleName();
 
     if (CheckMirror.isPresent(attributeMethodCandidate)) {
       if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
@@ -277,6 +322,10 @@ final class AccessorAttributesCollector {
       // Compute this eagerly here, for no strong reason
       if (attribute.isGenerateDefault) {
         type.hasDefaultAttributes = true;
+      }
+
+      if (attributeMethodCandidate.getEnclosingElement().equals(originalType)) {
+        hasNonInheritedAttributes = true;
       }
     }
   }

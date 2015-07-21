@@ -56,10 +56,19 @@ public class UnderwriteObjectMethods {
       return "N";
     }
   }
-  
+
   @Value.Immutable
   public abstract static class NoUnderwrite extends AbstractNoUnderwrite {
     @Override
     public abstract int value();
+
+    @Override
+    public abstract int hashCode();
+
+    @Override
+    public abstract String toString();
+
+    @Override
+    public abstract boolean equals(Object obj);
   }
 }

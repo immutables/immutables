@@ -49,7 +49,7 @@ public class ValuesTest {
     // customized hash code
     check(i1.hashCode()).is(0);
 
-    // due to overriden equals
+    // due to overriden equals and interning
     check(i1).same(ImmutableInternCustomHashCode.builder()
         .a(2)
         .build());
