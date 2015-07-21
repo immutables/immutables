@@ -54,7 +54,6 @@ public @interface Builder {
    * Class level and package level style annotations fully supported (see {@link Style}).
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Factory {}
 
@@ -76,7 +75,6 @@ public @interface Builder {
    * </pre>
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.PARAMETER)
   public @interface Parameter {}
 
@@ -123,7 +121,6 @@ public @interface Builder {
    * </pre>
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.PARAMETER)
   public @interface Switch {
     /**

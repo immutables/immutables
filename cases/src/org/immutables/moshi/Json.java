@@ -6,9 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Target({})
+@Retention(RetentionPolicy.SOURCE)
 public @interface Json {
   @Documented
-  @Retention(RetentionPolicy.CLASS)
   @Target({ElementType.TYPE, ElementType.PACKAGE})
   public @interface Adapters {
     /**
@@ -30,7 +31,6 @@ public @interface Json {
    * </pre>.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Named {
     /**
@@ -44,7 +44,6 @@ public @interface Json {
    * Applies only to non-mandatory attributes.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Ignore {}
 }

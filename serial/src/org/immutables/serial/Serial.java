@@ -38,7 +38,6 @@ public @interface Serial {
    * serializable if they don't already. May be used in combination with {@link Structural}, but it
    * is not strictly needed if structural is present.
    */
-  @Retention(RetentionPolicy.CLASS)
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   public @interface Version {
     long value();
@@ -59,7 +58,6 @@ public @interface Serial {
    * If {@link Structural} serialization is used and no {@code serialVersionUID} is declared, i.e.
    * {@link Version} annotation is missing, serialized form will have serial version 0L assigned.
    */
-  @Retention(RetentionPolicy.CLASS)
   @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
   public @interface Structural {}
 }

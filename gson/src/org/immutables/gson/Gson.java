@@ -71,7 +71,6 @@ public @interface Gson {
    * </ul>
    */
   @Documented
-  @Retention(RetentionPolicy.CLASS)
   @Target({ElementType.TYPE, ElementType.PACKAGE})
   public @interface TypeAdapters {
     /**
@@ -119,7 +118,6 @@ public @interface Gson {
    * @see #value()
    * @see Named
    */
-  @Retention(RetentionPolicy.SOURCE)
   @Target({ElementType.METHOD, ElementType.TYPE})
   public @interface ExpectedSubtypes {
 
@@ -148,7 +146,6 @@ public @interface Gson {
    * @see SerializedName
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Named {
     /**
