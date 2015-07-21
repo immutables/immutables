@@ -553,14 +553,13 @@ public @interface Value {
      * {@link Inherited}, but there are cases where you need to pass specific non-inherited
      * annotations to the implementation class. In general, copying all type-level annotations is
      * not very safe for annotation processing and some other annotation consumers. By default, no
-     * type-level annotations are copied unless you specify non-empty annotation type list as value
-     * for {@code passAnnotations} attibute.
-     * <p>
-     * This style attribute has nothing to do with attribute-level annotations, which are copied by
-     * default excluding {@code java.lang.*} and {@code org.immutables.**} annotations.
+     * annotations are copied unless you specify non-empty annotation type list as value
+     * for {@code passAnnotations} attribute. Howerver there are some special annotations which are
+     * copied using special logic, such as `Nullable` annotations (and Jackson annotations)
      * <p>
      * This style parameter is experimental and may change in future.
-     * @return types of annotations to pass to an immutable implementation class.
+     * @return types of annotations to pass to an immutable implementation class and it's
+     *         attributes.
      */
     Class<? extends Annotation>[] passAnnotations() default {};
 

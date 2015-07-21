@@ -219,11 +219,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getAnnotations() {
-    return Annotations.getAnnotationLines(element, Optional.<Set<String>>absent(), ElementType.METHOD);
+    return Annotations.getAnnotationLines(element,
+        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        ElementType.METHOD);
   }
 
   public List<CharSequence> getParameterAnnotations() {
-    return Annotations.getAnnotationLines(element, Optional.<Set<String>>absent(), ElementType.PARAMETER);
+    return Annotations.getAnnotationLines(element,
+        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        ElementType.PARAMETER);
   }
 
   public boolean isGsonIgnore() {

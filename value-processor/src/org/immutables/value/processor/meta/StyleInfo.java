@@ -18,8 +18,6 @@ package org.immutables.value.processor.meta;
 import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.processor.meta.ValueMirrors.Enclosing;
 
 @SuppressWarnings("all")
 @Value.Immutable(intern = true, copy = false, builder = false)
@@ -136,11 +134,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   public abstract ImmutableSet<String> passAnnotationsNames();
-  
+
   @Value.Parameter
   @Override
   public abstract ImplementationVisibility visibility();
-  
+
   @Override
   public Class<? extends Annotation>[] passAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");

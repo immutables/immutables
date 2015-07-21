@@ -23,7 +23,7 @@ import nonimmutables.GetterAnnotation;
 import nonimmutables.GetterAnnotation.InnerAnnotation;
 import org.immutables.value.Value;
 
-@SuppressWarnings("deprecation")
+@Value.Style(passAnnotations = {GetterAnnotation.class, Path.class, POST.class})
 @Value.Immutable
 public interface GetterEncloser {
   Optional<Integer> optional();

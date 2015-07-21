@@ -15,36 +15,36 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Optional;
-import java.util.Set;
-import javax.lang.model.element.TypeElement;
 import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import org.immutables.generator.AnnotationMirrors;
 
 final class Annotations {
   private Annotations() {}
 
   private static final String PREFIX_JAVA_LANG = "java.lang.";
-  private static final String PREFIX_ORG_IMMUTABLES = "org.immutables.";
+  private static final String PREFIX_IMMUTABLES = "org.immutables.";
+  private static final String PREFIX_JACKSON = "com.fasterxml.jackson.annotation.";
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
   static List<CharSequence> getAnnotationLines(
       Element element,
-      Optional<Set<String>> includeAnnotations,
+      Set<String> includeAnnotations,
       ElementType elementType) {
     List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationMatchesName(annotationElement, includeAnnotations)
+      if (annotationTypeMatches(annotationElement, includeAnnotations, elementType)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation));
       }
@@ -52,16 +52,13 @@ final class Annotations {
     return lines;
   }
 
-  private static boolean annotationMatchesName(
+  private static boolean annotationTypeMatches(
       TypeElement annotationElement,
-      Optional<Set<String>> includeAnnotations) {
+      Set<String> includeAnnotations,
+      ElementType elementType) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
 
-    if (includeAnnotations.isPresent()) {
-      return includeAnnotations.get().contains(qualifiedName);
-    }
-
-    if (qualifiedName.startsWith(PREFIX_ORG_IMMUTABLES)
+    if (qualifiedName.startsWith(PREFIX_IMMUTABLES)
         || qualifiedName.startsWith(PREFIX_JAVA_LANG)
         || qualifiedName.equals(JsonPropertyMirror.QUALIFIED_NAME)) {
       // skip immutables and core java annotations (like Override etc)
@@ -74,7 +71,15 @@ final class Annotations {
       return false;
     }
 
-    return true;
+    if (includeAnnotations.isEmpty()
+        && elementType == ElementType.METHOD
+        && qualifiedName.startsWith(PREFIX_JACKSON)) {
+      // for compatibility we copy jackson annotations on methods
+      // when no explicit passAnnotations specified
+      return true;
+    }
+
+    return includeAnnotations.contains(qualifiedName);
   }
 
   static boolean annotationMatchesTarget(Element annotationElement, ElementType elementType) {
