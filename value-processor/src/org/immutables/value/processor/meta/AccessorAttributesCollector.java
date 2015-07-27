@@ -324,6 +324,10 @@ final class AccessorAttributesCollector {
         type.hasDefaultAttributes = true;
       }
 
+      if (attribute.isGenerateDerived) {
+        type.hasDerivedAttributes = true;
+      }
+
       if (attributeMethodCandidate.getEnclosingElement().equals(originalType)) {
         hasNonInheritedAttributes = true;
       }

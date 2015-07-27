@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.HashMultimap;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -31,8 +33,8 @@ public class CaseStructure {
   private final Set<String> implementedTypeNames;
   private final SetMultimap<String, ValueType> subtyping;
 
-  CaseStructure(ValueType discoveredValue) {
-    this.implementedTypes = discoveredValue.nested;
+  CaseStructure(Iterable<ValueType> types) {
+    this.implementedTypes = ImmutableList.copyOf(types);
     this.implementedTypeNames = buildImplementedTypesSet(implementedTypes);
     this.subtyping = buildSubtyping(implementedTypes);
   }

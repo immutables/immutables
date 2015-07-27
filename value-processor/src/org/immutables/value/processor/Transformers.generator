@@ -55,21 +55,51 @@ package [transformerType.package];
 
   protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] optional) {
     if (optional.isPresent()) {
-      return [a.rawType].of(as[s][toUpper a.name](value, optional.[optionalGet a]));
+      [a.unwrappedElementType] original = optional.[optionalGet a];
+      [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
+      return changed != original ? [a.rawType].of(changed) : optional;
     }
     return [a.rawType].[optionalEmpty a];
   }
     [else if a.collectionType]
 
-  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] collection) {
-    java.util.List<[a.wrappedElementType]> list = new java.util.ArrayList<>();
-    for ([a.wrappedElementType] element : collection) {
-      list.add(as[s][toUpper a.name](value, element));
+  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] elements) {
+    java.util.Collection<[a.wrappedElementType]> changedElements = new java.util.ArrayList<>(elements.size());
+    boolean haveChanged = false;
+    for ([a.unwrappedElementType] original : elements) {
+      [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
+      if (changed != original) {
+        haveChanged = true;
+      }
+      changedElements.add(changed);
     }
-    return list;
+    return haveChanged ? changedElements : elements;
   }
+    [else if a.mapType]
+      [for gE = a.consumedElementType,
+          uK = a.unwrappedElementType,
+          wK = a.wrappedElementType,
+          uV = a.unwrappedSecondaryElementType,
+          wV = a.wrappedSecondaryElementType]
+  [let mappingType][if a.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[wK], [wV]>[/let]
+  [let mappingConstruct][if a.multimapType][guava].collect.ArrayListMultimap.create(entries.size(), 3)[else]new java.util.LinkedHashMap<[wK], [wV]>(entries.size())[/if][/let]
+
+  protected [mappingType] as[s][transformAttributeSuffix a]([t] value, [a.type] entries) {
+    [mappingType] changedEntries = [mappingConstruct];
+    boolean haveChanged = false;
+    for (java.util.Map.Entry<[wK], [wV]> entry : entries.[if a.multimapType]entries()[else]entrySet()[/if]) {
+      [uV] original = entry.getValue();
+      [uV] changed = as[s][toUpper a.name](value, original);
+      if (changed != original) {
+        haveChanged = true;
+      }
+      changedEntries.put(entry.getKey(), changed);
+    }
+    return haveChanged ? changedEntries : entries;
+  }
+      [/for]
     [/if]
-  [for et = a.wrappedElementType]
+  [for et = a.unwrappedValueElementType]
 
   protected [et] as[s][toUpper a.name]([t] value, [et] element) {
     [if cases.isImplementedType et]
@@ -102,18 +132,16 @@ package [transformerType.package];
 }
 [/template]
 
-[template transformAttributeSuffix Attribute a][output.trim]
-  [if a.nullable]
-    Nullable[toUpper a.name]
-  [else if a.optionalType]
-    Optional[toUpper a.name]
-  [else if a.collectionType]
-    [a.rawCollectionType][toUpper a.name]
-  [else]
-    [toUpper a.name]
-  [/if]
+[template transformAttributeSuffix Attribute a][toUpper a.name][output.trim]
+[if a.nullable]Nullable
+[else if a.optionalType]Optional
+[else if a.mapType]Entries
+[else if a.collectionType]Elements
+[/if]
 [/output.trim][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
 [template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

@@ -384,6 +384,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String getUnwrappedElementType() {
     return isContainerType() ? unwrapType(containmentTypeName()) : getElementType();
   }
+  
+  public String getUnwrappedValueElementType() {
+    return isMapType()
+        ? getUnwrappedSecondaryElementType()
+        : getUnwrappedElementType();
+  }
 
   public String getWrappedElementType() {
     return wrapType(containmentTypeName());

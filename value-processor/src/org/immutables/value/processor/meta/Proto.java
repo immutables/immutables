@@ -174,8 +174,8 @@ public class Proto {
       return round().composer().compose(protoclass);
     }
 
-    Optional<Protoclass> definedValueProtoclassFor(TypeElement typeElement) {
-      return round().definedValueProtoclassFor(typeElement);
+    ImmutableList<Protoclass> protoclassesFrom(Iterable<? extends Element> elements) {
+      return round().protoclassesFrom(elements);
     }
   }
 
@@ -565,10 +565,15 @@ public class Proto {
       return SourceExtraction.readImports(processing(), CachingElements.getDelegate(element()));
     }
 
-    @Value.Lazy
     public boolean isTransformer() {
+      return getTransform().isPresent();
+    }
+
+    @Value.Lazy
+    public Optional<TransformMirror> getTransform() {
       return environment().hasTreesModule()
-          && TransformMirror.isPresent(element());
+          ? TransformMirror.find(element())
+          : Optional.<TransformMirror>absent();
     }
 
     @Value.Lazy
@@ -961,6 +966,12 @@ public class Proto {
     public boolean isTransformer() {
       return declaringType().isPresent()
           && declaringType().get().isTransformer();
+    }
+
+    public Optional<TransformMirror> getTransform() {
+      return declaringType().isPresent()
+          ? declaringType().get().getTransform()
+          : Optional.<TransformMirror>absent();
     }
 
     @Value.Lazy

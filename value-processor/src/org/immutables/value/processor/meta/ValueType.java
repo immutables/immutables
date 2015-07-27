@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.Environment;
+import java.util.ArrayList;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
@@ -76,6 +78,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isEqualToDefined;
   public boolean isToStringDefined;
   public boolean hasDefaultAttributes;
+  public boolean hasDerivedAttributes;
   public Constitution constitution;
 
   Round round;
@@ -249,13 +252,39 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public CaseStructure getCases() {
     if (caseStructure == null) {
-      caseStructure = new CaseStructure(this);
+      caseStructure = new CaseStructure(allKnownValuesInContext());
     }
     return caseStructure;
   }
 
+  private Iterable<ValueType> allKnownValuesInContext() {
+    List<ValueType> values = Lists.newArrayList(nested);
+
+    Environment environment = constitution.protoclass().environment();
+    Optional<TransformMirror> transform = constitution.protoclass().getTransform();
+    if (transform.isPresent()) {
+      for (Protoclass p : environment.protoclassesFrom(includedElements(transform.get()))) {
+        values.add(environment.composeValue(p));
+      }
+    }
+
+    return values;
+  }
+
+  private List<Element> includedElements(TransformMirror transform) {
+    List<Element> includedElements = Lists.newArrayList();
+    TypeMirror[] includeMirror = transform.includeMirror();
+    for (TypeMirror mirror : includeMirror) {
+      if (mirror.getKind() == TypeKind.DECLARED) {
+        includedElements.add(((DeclaredType) mirror).asElement());
+      }
+    }
+    return includedElements;
+  }
+
   public List<CharSequence> passedAnnotations() {
-    return Annotations.getAnnotationLines(element,
+    return Annotations.getAnnotationLines(
+        element,
         constitution.protoclass().styles().style().passAnnotationsNames(),
         ElementType.TYPE);
   }

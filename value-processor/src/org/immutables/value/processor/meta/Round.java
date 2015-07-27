@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.util.ElementFilter;
+import java.util.List;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
@@ -91,9 +93,11 @@ public abstract class Round {
     }
     // Collect remaining and attach if nested
     for (Protoclass protoclass : protoclasses) {
-      @Nullable ValueType current = null;
+      @Nullable
+      ValueType current = null;
       if (protoclass.kind().isNested()) {
-        @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
+        @Nullable
+        ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
         if (enclosing != null) {
           current = composer().compose(protoclass);
           // Attach nested to enclosing
@@ -115,22 +119,15 @@ public abstract class Round {
     return builder.build();
   }
 
-  public Optional<Protoclass> definedValueProtoclassFor(TypeElement element) {
+  public ImmutableList<Protoclass> protoclassesFrom(Iterable<? extends Element> elements) {
     ProtoclassCollecter collecter = new ProtoclassCollecter();
-    collecter.collect(element);
-    for (Protoclass protoclass : collecter.builder.build()) {
-      if (protoclass.kind().isDefinedValue()) {
-        return Optional.of(protoclass);
-      }
-    }
-    return Optional.absent();
+    collecter.collect(elements);
+    return collecter.builder.build();
   }
 
   public ImmutableList<Protoclass> collectProtoclasses() {
     ProtoclassCollecter collecter = new ProtoclassCollecter();
-    for (final Element element : allAnnotatedElements()) {
-      collecter.collect(element);
-    }
+    collecter.collect(allAnnotatedElements());
     return collecter.builder.build();
   }
 
@@ -157,6 +154,12 @@ public abstract class Round {
 
   private class ProtoclassCollecter {
     final ImmutableList.Builder<Protoclass> builder = ImmutableList.builder();
+
+    void collect(Iterable<? extends Element> elements) {
+      for (Element e : elements) {
+        collect(e);
+      }
+    }
 
     void collect(Element element) {
       switch (element.getKind()) {
@@ -253,6 +256,14 @@ public abstract class Round {
             .kind(kind)
             .build()));
       }
+
+      if (declaringType.isTopLevel()
+          && !declaringType.isEnclosing()
+          && !declaringType.isImmutable()) {
+        for (TypeElement nested : ElementFilter.typesIn(declaringType.element().getEnclosedElements())) {
+          collectIncludedAndDefinedBy(nested);
+        }
+      }
     }
 
     private Kind kindOfDefinedBy(DeclaringType declaringType) {
@@ -275,12 +286,10 @@ public abstract class Round {
   }
 
   public ExecutableElement wrapElement(ExecutableElement element) {
-    return element;
-    // return CachingElements.asCaching(element);
+    return CachingElements.asCaching(element);
   }
 
   public PackageElement wrapElement(PackageElement element) {
-    return element;
-    // return CachingElements.asCaching(element);
+    return CachingElements.asCaching(element);
   }
 }

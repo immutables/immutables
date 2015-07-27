@@ -9,7 +9,7 @@ import org.immutables.value.Value;
  * Compilation test for Ast Tree generation.
  */
 @Trees.Ast
-@Trees.Transform
+@Trees.Transform(include = IncludedTree.class)
 @Value.Enclosing
 public class SampleTree {
   interface Expression {}

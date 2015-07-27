@@ -9,5 +9,7 @@ public final class TreesMirrors {
   public @interface Ast {}
 
   @Mirror.Annotation("org.immutables.trees.Trees.Transform")
-  public @interface Transform {}
+  public @interface Transform {
+    Class<?>[] include() default {};
+  }
 }
