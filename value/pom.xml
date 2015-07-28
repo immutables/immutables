@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
@@ -16,13 +17,6 @@
   <artifactId>value</artifactId>
 
   <dependencies>
-<!--
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value-annotations</artifactId>
-      <version>${project.version}</version>
-    </dependency>
- -->
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value-processor</artifactId>
@@ -58,9 +52,6 @@
               <artifactSet>
                 <includes>
                   <include>org.immutables:value</include>
-<!--              
-                  <include>org.immutables:value-annotations</include>
- -->
                   <include>org.immutables:value-processor</include>
                   <include>org.immutables:generator</include>
                   <include>com.google.guava:guava</include>
@@ -87,25 +78,49 @@
               </relocations>
 
               <filters>
-<!--
-                <filter>
-                  <artifact>org.immutables:value-annotations</artifact>
-                  <includes>
-                    <include>**</include>
-                  </includes>
-                </filter>
- -->
                 <filter>
                   <artifact>org.immutables:value-processor</artifact>
                   <includes>
                     <include>**</include>
                   </includes>
+                  <excludes>
+                    <excludes>**/*.generator</excludes>
+                  </excludes>
                 </filter>
               </filters>
 
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
+            </configuration>
+          </execution>
+          <execution>
+            <id>annotations</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <minimizeJar>false</minimizeJar>
+              <createSourcesJar>true</createSourcesJar>
+              <shadedClassifierName>annotations</shadedClassifierName>
+
+              <artifactSet>
+                <includes>
+                  <include>org.immutables:value</include>
+                </includes>
+              </artifactSet>
+
+              <filters>
+                <filter>
+                  <artifact>org.immutables:value</artifact>
+                  <includes>
+                    <include>org/immutables/value/*</include>
+                  </includes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
