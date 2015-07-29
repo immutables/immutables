@@ -1,7 +1,7 @@
 [template public generate]
   [for type in values.values if type.generateTransformer]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[for String transformersClassname = (type.name 'Transformer')]
+[for String transformersClassname = ((toUpper type.name) 'Transformer')]
 [output.java type.package transformersClassname]
 [type.sourceHeader]
 [generateTransformer type transformersClassname]
@@ -28,12 +28,13 @@ package [transformerType.package];
   [for cases = transformerType.cases,
        type in cases.implementedTypes,
        t = type.typeValue,
+       im = type.typeImmutable,
        s = type.name,
        Boolean useCopy = type.useCopyConstructor and type.useCopyMethods]
   [if useCopy]
 
   public [t] to[s]([t] value) {
-    return [type.factoryCopyOf](value)[for a in type.settableAttributes]
+    return [if t eq im]value[else][type.factoryCopyOf](value)[/if][for a in type.settableAttributes]
         .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
   }
   [else]

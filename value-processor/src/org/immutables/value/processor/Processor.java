@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.TransformMirror;
 import com.google.common.collect.Multimap;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
@@ -36,8 +35,7 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
     IncludeMirror.QUALIFIED_NAME,
-    ValueUmbrellaMirror.QUALIFIED_NAME,
-    TransformMirror.QUALIFIED_NAME,
+    ValueUmbrellaMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
   @Override

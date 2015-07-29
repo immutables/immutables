@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Proto.Environment;
-import java.util.ArrayList;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -56,6 +53,8 @@ import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.MoreObjects.*;

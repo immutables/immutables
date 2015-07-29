@@ -1,7 +1,7 @@
 [template public generate]
   [for type in values.values if type.generateAst]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[for String astTypeName = (type.name 'Ast')]
+[for String astTypeName = ((toUpper type.name) 'Ast')]
 [output.java type.package astTypeName]
 [type.sourceHeader]
 [generateParboiled type astTypeName]
@@ -27,7 +27,7 @@ import java.lang.String;
 @SuppressWarnings("all")
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
-[type.typeAbstract.access]final class [astTypeName] {
+[type.typeValue.access]final class [astTypeName] {
   private [astTypeName]() {}
 [for v in type.nested]
   [generateParboiledType v]

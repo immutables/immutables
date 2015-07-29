@@ -348,8 +348,12 @@ public abstract class Constitution {
         .simple(name)
         .relative(name)
         .packageOf(protoclass().packageOf().name())
-        .visibility(protoclass().declaringVisibility())
+        .visibility(implementationEnclosingVisibility())
         .build();
+  }
+
+  private Visibility implementationEnclosingVisibility() {
+    return implementationVisibility().max(Visibility.PACKAGE);
   }
 
   @Value.Lazy

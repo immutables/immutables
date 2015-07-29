@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.util.ElementFilter;
-import java.util.List;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
@@ -34,6 +31,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.ElementFilter;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
