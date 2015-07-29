@@ -159,7 +159,6 @@ public @interface Gson {
    * Applies only to non-mandatory attributes.
    */
   @Documented
-  @Retention(RetentionPolicy.SOURCE)
   @Target(ElementType.METHOD)
   public @interface Ignore {}
 }
