@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.NoSuchElementException;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -384,7 +386,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String getUnwrappedElementType() {
     return isContainerType() ? unwrapType(containmentTypeName()) : getElementType();
   }
-  
+
   public String getUnwrappedValueElementType() {
     return isMapType()
         ? getUnwrappedSecondaryElementType()
@@ -760,10 +762,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeName() {
-    TypeStringProvider provider = new TypeStringProvider(
-        returnType,
-        containingType.constitution.protoclass(),
-        element);
+    TypeStringProvider provider = new TypeStringProvider(this);
 
     provider.process();
 
@@ -782,6 +781,22 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       ensureTypeIntrospected();
       typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumFirstTypeParameter);
     }
+  }
+
+  DeclaringType getDeclaringType() {
+    @Nullable
+    TypeElement declaringType = null;
+    for (Element e = element; e != null;) {
+      e = e.getEnclosingElement();
+      if (e instanceof TypeElement) {
+        declaringType = (TypeElement) e;
+        break;
+      }
+    }
+    if (declaringType == null) {
+      throw new NoSuchElementException();
+    }
+    return containingType.round.declaringTypeFrom(declaringType);
   }
 
   private void makeRegularIfDefaultWithValidation() {

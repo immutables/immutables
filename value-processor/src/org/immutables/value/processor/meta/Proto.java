@@ -980,12 +980,6 @@ public class Proto {
           .protoclass(this)
           .build();
     }
-
-    SourceExtraction.Imports sourceImports() {
-      return declaringType().isPresent()
-          ? declaringType().get().associatedTopLevel().sourceImports()
-          : SourceExtraction.Imports.empty();
-    }
   }
 
   enum ElementToName implements Function<TypeElement, String> {

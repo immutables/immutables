@@ -746,15 +746,34 @@ public final class ValueType extends TypeIntrospectionBase {
     return Iterables.any(getSettableAttributes(), predicate);
   }
 
-  public List<String> getRequiredSourceStarImports() {
+  public Set<String> getRequiredSourceStarImports() {
     if (!hasSomeUnresolvedTypes()) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
-    SourceExtraction.Imports sourceImports = constitution.protoclass().sourceImports();
-    List<String> starImports = Lists.newArrayList();
-    for (String importStatement : sourceImports.all) {
-      if (importStatement.indexOf('*') > 0) {
-        starImports.add(importStatement);
+    Set<String> starImports = Sets.newLinkedHashSet();
+
+    for (ValueType n : FluentIterable.from(nested).append(this)) {
+      for (ValueAttribute a : n.attributes) {
+        if (a.hasSomeUnresolvedTypes) {
+          DeclaringType topLevel = a.getDeclaringType().associatedTopLevel();
+
+          SourceExtraction.Imports sourceImports =
+              topLevel.sourceImports();
+
+          for (String importStatement : sourceImports.all) {
+            if (importStatement.indexOf('*') > 0) {
+              starImports.add(importStatement);
+            }
+          }
+
+          if (!topLevel.packageOf().equals(constitution.protoclass().packageOf())) {
+            String prefix = topLevel.packageOf().asPrefix();
+            // guard against unnamed packages
+            if (!prefix.isEmpty()) {
+              starImports.add(prefix + '*');
+            }
+          }
+        }
       }
     }
     return starImports;

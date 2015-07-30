@@ -150,6 +150,27 @@ public abstract class Round {
     }
   }
 
+  TypeElement wrapElement(TypeElement element) {
+    return CachingElements.asCaching(element);
+  }
+
+  ExecutableElement wrapElement(ExecutableElement element) {
+    return CachingElements.asCaching(element);
+  }
+
+  PackageElement wrapElement(PackageElement element) {
+    return CachingElements.asCaching(element);
+  }
+
+  DeclaringType declaringTypeFrom(TypeElement element) {
+    return interners.forType(
+        ImmutableProto.DeclaringType.builder()
+            .environment(environment())
+            .interner(interners)
+            .element(wrapElement(element))
+            .build());
+  }
+
   private class ProtoclassCollecter {
     final ImmutableList.Builder<Protoclass> builder = ImmutableList.builder();
 
@@ -181,12 +202,7 @@ public abstract class Round {
     }
 
     void collectDefinedBy(ExecutableElement element) {
-      DeclaringType declaringType = interners.forType(
-          ImmutableProto.DeclaringType.builder()
-              .environment(environment())
-              .interner(interners)
-              .element(wrapElement((TypeElement) element.getEnclosingElement()))
-              .build());
+      DeclaringType declaringType = declaringTypeFrom((TypeElement) element.getEnclosingElement());
 
       if (declaringType.verifiedFactory(element)) {
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
@@ -220,12 +236,7 @@ public abstract class Round {
     }
 
     void collectIncludedAndDefinedBy(TypeElement element) {
-      DeclaringType declaringType = interners.forType(
-          ImmutableProto.DeclaringType.builder()
-              .environment(environment())
-              .interner(interners)
-              .element(wrapElement(element))
-              .build());
+      DeclaringType declaringType = declaringTypeFrom(element);
 
       if (declaringType.hasInclude()) {
         Kind kind = declaringType.isEnclosing()
@@ -277,17 +288,5 @@ public abstract class Round {
       assert declaringType.isEnclosing();
       return Kind.DEFINED_ENCLOSING_TYPE;
     }
-  }
-
-  public TypeElement wrapElement(TypeElement element) {
-    return CachingElements.asCaching(element);
-  }
-
-  public ExecutableElement wrapElement(ExecutableElement element) {
-    return CachingElements.asCaching(element);
-  }
-
-  public PackageElement wrapElement(PackageElement element) {
-    return CachingElements.asCaching(element);
   }
 }

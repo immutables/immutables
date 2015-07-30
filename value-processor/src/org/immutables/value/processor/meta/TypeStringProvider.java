@@ -21,14 +21,13 @@ import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
-import org.immutables.value.processor.meta.Proto.Protoclass;
 
 /**
  * Encapsulates routines for get relevant strings for the raw types and type parameters,
  * while attempting to resolve unresolved types using source imports.
  */
 class TypeStringProvider {
-  private final Protoclass protoclass;
+  private final ValueAttribute attribute;
   private final TypeMirror startType;
   private final Element element;
   private final List<String> typeParameterStrings = Lists.newArrayListWithCapacity(2);
@@ -45,10 +44,10 @@ class TypeStringProvider {
   @Nullable
   private String workaroundTypeString;
 
-  TypeStringProvider(TypeMirror returnType, Protoclass protoclass, Element element) {
-    this.startType = returnType;
-    this.protoclass = protoclass;
-    this.element = element;
+  TypeStringProvider(ValueAttribute attribute) {
+    this.attribute = attribute;
+    this.startType = attribute.returnType;
+    this.element = attribute.element;
   }
 
   String rawTypeName() {
@@ -122,7 +121,8 @@ class TypeStringProvider {
     if (indexOfDot > 0) {
       resolvable = resolvable.substring(0, indexOfDot);
     }
-    @Nullable String resolved = getFromSourceImports(resolvable);
+    @Nullable
+    String resolved = getFromSourceImports(resolvable);
     if (resolved != null) {
       if (indexOfDot > 0) {
         typeName = resolved + '.' + resolvable.substring(indexOfDot + 1);
@@ -138,7 +138,9 @@ class TypeStringProvider {
   @Nullable
   private String getFromSourceImports(String resolvable) {
     if (sourceClassesImports == null) {
-      sourceClassesImports = protoclass.sourceImports().classes;
+      sourceClassesImports = attribute.getDeclaringType()
+          .associatedTopLevel()
+          .sourceImports().classes;
     }
     return sourceClassesImports.get(resolvable);
   }
@@ -226,8 +228,10 @@ class TypeStringProvider {
       break;
     case WILDCARD:
       WildcardType wildcard = (WildcardType) type;
-      @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
-      @Nullable TypeMirror superBound = wildcard.getSuperBound();
+      @Nullable
+      TypeMirror extendsBound = wildcard.getExtendsBound();
+      @Nullable
+      TypeMirror superBound = wildcard.getSuperBound();
       if (extendsBound != null) {
         buffer.append("? extends ");
         caseType(extendsBound);
@@ -247,8 +251,7 @@ class TypeStringProvider {
         break;
       }
 
-      protoclass.report()
-          .withElement(element)
+      attribute.report()
           .error("It is a compiler/annotation processing bug to receive type variables '%s' here."
               + " To avoid it — do not use not yet generated types in %s attribute",
               type,
