@@ -339,7 +339,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()
         && !constitution.returnsAbstractValueType()
-        && !getImplementedAttributes().isEmpty();
+        && !getSettableAttributes().isEmpty();
   }
 
   public boolean isUseCopyConstructor() {
