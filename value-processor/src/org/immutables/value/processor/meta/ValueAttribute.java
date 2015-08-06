@@ -942,4 +942,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String toString() {
     return "Attribute[" + name() + "]";
   }
+
+  boolean hasConstructorParameterCustomOrder() {
+    return getConstructorParameterOrder() > ValueAttribute.CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+  }
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import static org.immutables.check.Checkers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
@@ -53,6 +54,11 @@ public class ValuesTest {
     check(i1).same(ImmutableInternCustomHashCode.builder()
         .a(2)
         .build());
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void orderAndNullCheckForConstructor() {
+    ImmutableHostWithPort.of(1, null);
   }
 
   @Test

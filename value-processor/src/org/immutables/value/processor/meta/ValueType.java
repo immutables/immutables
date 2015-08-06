@@ -832,8 +832,20 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isGenerateConstructorUseCopyConstructor() {
     return isUseCopyMethods()
         && !hasDefaultAttributes
-        && !hasCollectionAttribute()
+        && hasNonNullCheckableParametersInDefaultOrder()
         && getConstructorExcluded().isEmpty();
+  }
+
+  private boolean hasNonNullCheckableParametersInDefaultOrder() {
+    for (ValueAttribute c : getConstructorArguments()) {
+      if (c.hasConstructorParameterCustomOrder()) {
+        return false;
+      }
+      if (!c.isPrimitive() && !c.isNullable()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public boolean isSynthCopyConstructor() {
