@@ -63,6 +63,5 @@ interface Sing5 {
 interface Sing6 {
   default void use() {
     ImmutableSing6.builder();
-    ImmutableSing6.of();
   }
 }
