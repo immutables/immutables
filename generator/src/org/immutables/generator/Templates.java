@@ -155,7 +155,7 @@ public final class Templates {
       return params[ordinal];
     }
 
-    public Invokation delimit() {
+    public Invokation dl() {
       if (consumer != null) {
         consumer.delimit();
       }

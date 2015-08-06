@@ -38,13 +38,14 @@ final class Annotations {
   static List<CharSequence> getAnnotationLines(
       Element element,
       Set<String> includeAnnotations,
+      boolean includeJacksonAnnotations,
       ElementType elementType) {
     List<CharSequence> lines = Lists.newArrayList();
 
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationTypeMatches(annotationElement, includeAnnotations, elementType)
+      if (annotationTypeMatches(annotationElement, includeAnnotations, includeJacksonAnnotations)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation));
       }
@@ -55,12 +56,11 @@ final class Annotations {
   private static boolean annotationTypeMatches(
       TypeElement annotationElement,
       Set<String> includeAnnotations,
-      ElementType elementType) {
+      boolean includeJacksonAnnotations) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
 
     if (qualifiedName.startsWith(PREFIX_IMMUTABLES)
-        || qualifiedName.startsWith(PREFIX_JAVA_LANG)
-        || qualifiedName.equals(JsonPropertyMirror.QUALIFIED_NAME)) {
+        || qualifiedName.startsWith(PREFIX_JAVA_LANG)) {
       // skip immutables and core java annotations (like Override etc)
       // Also skip JsonProperty annotation as we will add it separately
       return false;
@@ -71,11 +71,8 @@ final class Annotations {
       return false;
     }
 
-    if (includeAnnotations.isEmpty()
-        && elementType == ElementType.METHOD
+    if (includeJacksonAnnotations
         && qualifiedName.startsWith(PREFIX_JACKSON)) {
-      // for compatibility we copy jackson annotations on methods
-      // when no explicit passAnnotations specified
       return true;
     }
 

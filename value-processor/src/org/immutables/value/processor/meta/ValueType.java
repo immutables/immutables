@@ -285,6 +285,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return Annotations.getAnnotationLines(
         element,
         constitution.protoclass().styles().style().passAnnotationsNames(),
+        false,
         ElementType.TYPE);
   }
 

@@ -1314,12 +1314,6 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
 [/for]
 [/template]
 
-[template jacksonPropertyAnnotation Attribute a]
-[if a.containingType.generateJacksonMapped]
-@com.fasterxml.jackson.annotation.JsonProperty("[a.marshaledName]")
-[/if]
-[/template]
-
 [template generateDerivedConstruction Type type]
 [for v in type.implementedAttributes if v.generateDerived]
   [if v.primitive or v.nullable]
@@ -1344,47 +1338,74 @@ this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[els
 
 [template generateJacksonMapped Type type]
 [if type.generateJacksonMapped]
+[if type.implementedAttributes]
 
+/**
+ * Simple representation of this value type suitable Jackson binding
+ * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
+ */
+static final class Json {
+[for v in type.implementedAttributes]
+  [for a in v.jacksonFieldsAnnotations]
+  [a]
+  [/for]
+  [atNullable][v.wrapperType] [v.name];
+[/for]
+}
+
+/**
+ * @return JSON-bindable data structure
+ * @deprecated Do not use this method directly, it exists only for <em>Jackson</em>-binding infrastructure
+ */
+@Deprecated
+@com.fasterxml.jackson.annotation.JsonValue
+Json [disambiguateAccessor type 'toJson']() {
+  Json json = new Json();
+  [for v in type.implementedAttributes]
+  json.[v.name] = this.[v.name];
+  [/for]
+  return json;
+}
+[/if]
+
+/**
+ * @param json JSON-bindable data structure
+ * @return immutable value type
+ * @deprecated Do not use this method directly, it exists only for <em>Jackson</em>-binding infrastructure
+ */
+@Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-public static [type.typeValue.relative] fromAllAttributes(
-    [for v in type.settableAttributes][if not for.first],
-    [/if]
-    [for a in v.parameterAnnotations]
-    [a]
-    [/for]
-    @com.fasterxml.jackson.annotation.JsonProperty("[v.marshaledName]") [atNullable][v.wrapperType] [v.name][/for]) {
+static [type.typeValue.relative] fromJson([if type.implementedAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
 [if type.useBuilder]
-  [let builderIdentifier][disambiguateField type 'builder'][/let]
-  [type.typeBuilder.relative] [builderIdentifier] = [type.factoryBuilder.relative]();
+  [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
-  if ([v.name] != null) {
+  if (json.[v.name] != null) {
       [if v.collectionType]
-    [builderIdentifier].[v.names.addAll]([v.name]);
+    builder.[v.names.addAll](json.[v.name]);
       [else if v.mapType]
-    [builderIdentifier].[v.names.putAll]([v.name]);
+    builder.[v.names.putAll](json.[v.name]);
       [else]
-    [builderIdentifier].[v.names.init]([v.name]);
+    builder.[v.names.init](json.[v.name]);
       [/if]
   }
   [/for]
-  return [builderIdentifier].[type.names.build]();
+  return builder.[type.names.build]();
 [else if type.useSingletonOnly]
   return [type.factoryInstance.relative]();
 [else]
-  [let instanceIdentifier][disambiguateField type 'instance'][/let]
     [if type.useConstructor]
-  [type.typeValue.relative] [instanceIdentifier] = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
+  [type.typeValue.relative] instance = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
     [else if type.useSingleton]
-  [type.typeValue.relative] [instanceIdentifier] = [type.factoryInstance.relative]();
+  [type.typeValue.relative] instance = [type.factoryInstance.relative]();
     [else]
   [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
     [/if]
   [for o in type.withSettableAfterConstruction]
-  if ([o.name] != null) {
-    [instanceIdentifier] = [instanceIdentifier].[o.names.with]([o.name]);
+  if (json.[o.name] != null) {
+    instance = instance.[o.names.with](json.[o.name]);
   }
   [/for]
-  return [instanceIdentifier];
+  return instance;
 [/if]
 }
 [/if]
@@ -1419,7 +1440,6 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [for a in v.annotations]
 [a]
 [/for]
-[jacksonPropertyAnnotation v]
 [deprecation v]
 @Override
 [if v.isPublic]public [/if][immutableImplementationType v] [v.names.get]() {

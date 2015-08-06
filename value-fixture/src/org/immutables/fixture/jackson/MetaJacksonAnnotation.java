@@ -1,9 +1,10 @@
 package org.immutables.fixture.jackson;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.immutables.value.Value;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import org.immutables.value.Value;
 
 @JsonSerialize
 @Retention(RetentionPolicy.CLASS)
@@ -16,6 +17,6 @@ interface Val {
   // the Jackson specific creator method
   // triggered by meta annotation
   default void use() {
-    ImmutableVal.fromAllAttributes();
+    ImmutableVal.fromJson(null);
   }
 }

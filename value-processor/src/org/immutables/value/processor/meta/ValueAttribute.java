@@ -18,22 +18,29 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import com.google.common.collect.Lists;
+import java.lang.annotation.ElementType;
+import java.util.Collections;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Set;
 import javax.annotation.Nullable;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
-import java.lang.annotation.ElementType;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
  * It's pointless to refactor this mess until
@@ -190,13 +197,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         return value;
       }
     }
-    Optional<JsonPropertyMirror> jsonProperty = JsonPropertyMirror.find(element);
-    if (jsonProperty.isPresent()) {
-      String value = jsonProperty.get().value();
-      if (!value.isEmpty()) {
-        return value;
-      }
-    }
     if (isMarkedAsMongoId()) {
       return ID_ATTRIBUTE_NAME;
     }
@@ -219,13 +219,37 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public List<CharSequence> getAnnotations() {
     return Annotations.getAnnotationLines(element,
         containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        false,
         ElementType.METHOD);
   }
 
   public List<CharSequence> getParameterAnnotations() {
     return Annotations.getAnnotationLines(element,
         containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        false,
         ElementType.PARAMETER);
+  }
+
+  public List<CharSequence> getJacksonFieldsAnnotations() {
+    List<CharSequence> jsonPropertyAnnotation = Annotations.getAnnotationLines(element,
+        Collections.singleton(JsonPropertyMirror.QUALIFIED_NAME),
+        false,
+        ElementType.FIELD);
+
+    List<CharSequence> appendedJsonPropertyAnnotation = Lists.newArrayListWithCapacity(1);
+
+    if (jsonPropertyAnnotation.isEmpty()) {
+      appendedJsonPropertyAnnotation.add("@" + JsonPropertyMirror.qualifiedName());
+    }
+
+    List<CharSequence> allJacksonAnnotations = Annotations.getAnnotationLines(element,
+        Collections.<String>emptySet(),
+        true,
+        ElementType.FIELD);
+
+    return FluentIterable.from(allJacksonAnnotations)
+        .append(appendedJsonPropertyAnnotation)
+        .toList();
   }
 
   public boolean isGsonIgnore() {

@@ -517,7 +517,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
 
   @Override
   public IfStatement transform(Context context, IfStatement statement) {
-    context.delimit();
+    context.delimit().ln();
     writeConditionPart(context, (ConditionalBlock) statement.then());
 
     for (Trees.ConditionalBlock block : statement.otherwiseIf()) {
@@ -589,7 +589,7 @@ public final class TemplateWriter extends TreesTransformer<TemplateWriter.Contex
     Context delimit() {
       // Avoid delimits on a top level when there's not surrounding template
       if (indentLevel > 0) {
-        out("__.delimit();");
+        out("__.dl();");
       }
       return this;
     }
