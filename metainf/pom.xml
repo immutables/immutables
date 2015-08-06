@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>immutables</artifactId>
@@ -38,4 +39,105 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.immutables.tools</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3</version>
+        <executions>
+          <execution>
+            <id>retrofit</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <createSourcesJar>true</createSourcesJar>
+              <minimizeJar>true</minimizeJar>
+              <shadedClassifierName>retrofit</shadedClassifierName>
+
+              <artifactSet>
+                <includes>
+                  <include>org.immutables:metainf</include>
+                  <include>org.immutables:generator</include>
+                  <include>com.google.guava:guava</include>
+                </includes>
+              </artifactSet>
+
+              <relocations>
+                <relocation>
+                  <pattern>com.google.common</pattern>
+                  <shadedPattern>org.immutables.metainf.retrofit.$guava$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>com.google.thirdparty</pattern>
+                  <shadedPattern>org.immutables.metainf.retrofit.$thirdparty$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.immutables.metainf</pattern>
+                  <shadedPattern>org.immutables.metainf.retrofit</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.immutables.metainf.processor</pattern>
+                  <shadedPattern>org.immutables.metainf.retrofit.$processor$</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>org.immutables.generator</pattern>
+                  <shadedPattern>org.immutables.metainf.retrofit.$generator$</shadedPattern>
+                </relocation>
+              </relocations>
+
+              <filters>
+                <filter>
+                  <artifact>org.immutables:metainf</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                  <excludes>
+                    <excludes>**/*.generator</excludes>
+                  </excludes>
+                </filter>
+              </filters>
+
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
+            </configuration>
+          </execution>
+          <execution>
+            <id>annotations</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <createDependencyReducedPom>false</createDependencyReducedPom>
+              <minimizeJar>false</minimizeJar>
+              <shadedArtifactAttached>true</shadedArtifactAttached>
+              <createSourcesJar>true</createSourcesJar>
+              <shadedClassifierName>annotations</shadedClassifierName>
+
+              <artifactSet>
+                <includes>
+                  <include>org.immutables:metainf</include>
+                </includes>
+              </artifactSet>
+
+              <filters>
+                <filter>
+                  <artifact>org.immutables:metainf</artifact>
+                  <includes>
+                    <include>org/immutables/metainf/*</include>
+                  </includes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
