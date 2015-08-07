@@ -17,7 +17,6 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
-
 import org.immutables.value.Value;
 
 @SuppressWarnings("all")
