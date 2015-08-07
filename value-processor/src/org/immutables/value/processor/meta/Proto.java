@@ -1051,7 +1051,8 @@ public class Proto {
           input.headerComments(),
           input.jdkOnly(),
           ImmutableSet.copyOf(input.passAnnotationsName()),
-          input.visibility());
+          input.visibility(),
+          input.optionalAcceptNullable());
     }
   }
 

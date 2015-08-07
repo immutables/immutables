@@ -184,6 +184,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return serial.isSimple() && (isUseValidation() || isUseSingletonOnly());
   }
 
+  public boolean isOptionalAcceptNullable() {
+    return constitution.style().optionalAcceptNullable();
+  }
+
   @Nullable
   public Long serialVersionUID() {
     Protoclass p = constitution.protoclass();

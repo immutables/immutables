@@ -133,6 +133,8 @@ public final class ValueMirrors {
 
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
+    boolean optionalAcceptNullable() default false;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

@@ -297,7 +297,11 @@ private static class SerialForm implements java.io.Serializable {
         }
       [else if v.optionalType]
         if (values[arri] != null) {
+          [if v.optionalAcceptNullable]
+          [v.name]Value = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if](([v.wrappedElementType]) values[arri]);
+          [else]
           [v.name]Value = [v.rawType].of(([v.wrappedElementType]) values[arri]);
+          [/if]
         }
       [else if v.nullable or v.arrayType]
         [v.name]Value = ([v.wrapperType]) values[arri];
@@ -907,7 +911,11 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([v.unwrappedElementType] [v.name]) {
     [checkNotIsSet v]
+    [if v.optionalAcceptNullable]
+    this.[v.name] = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if]([v.name]);
+    [else]
     this.[v.name] = [v.rawType].of([v.name]);
+    [/if]
     [nondefaultSetInBuilder v]
     [builderReturnThis type]
   }
@@ -1710,7 +1718,11 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
+  [if v.optionalAcceptNullable]
+  [immutableImplementationType v] newValue = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if](value);
+  [else]
   [immutableImplementationType v] newValue = [v.rawType].of(value);
+  [/if]
   [generateReturnCopyContextual type v]
 }
 

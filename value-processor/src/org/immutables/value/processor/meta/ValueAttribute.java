@@ -527,6 +527,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isArray();
   }
 
+  public boolean isOptionalAcceptNullable() {
+    return containingType.isOptionalAcceptNullable()
+        && (typeKind.isOptionalJdk() || typeKind.isOptionalGuava());
+  }
+
   @Override
   protected void introspectType() {
     TypeMirror typeMirror = returnType;

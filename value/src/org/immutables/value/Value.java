@@ -139,7 +139,7 @@ public @interface Value {
    * <li>Could be star-imported for easy clutter-free usage.
    * </ul>
    * <p>
-   * 
+   *
    * <pre>
    * {@literal @}Value.Enclosing
    * class GraphPrimitives {
@@ -194,20 +194,20 @@ public @interface Value {
   /**
    * Lazy attributes cannot be set, defined as method that computes value, which is invoke lazily
    * once and only once in a thread safe manner.
-   * 
+   *
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   * 
+   *
    *   public abstract List&lt;Item&gt; items();
-   * 
+   *
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   * 
+   *
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   * 
+   *
    *     return cost;
    *   }
    * }
@@ -507,14 +507,14 @@ public @interface Value {
      * enabled, or override this if needed by specifying explicit parameters.
      * <p>
      * This style could be used to create special tuple-style annotations:
-     * 
+     *
      * <pre>
      * {@literal @}Value.Style(
      *     typeImmutable = "*Tuple",
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     * 
+     *
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -522,7 +522,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     * 
+     *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -572,6 +572,12 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
+     * Specify whether the withX and and setX fields for an Optional<X> should handle null values
+     * @return optional elements accept nullables
+     */
+    boolean optionalAcceptNullable() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.
@@ -592,7 +598,7 @@ public @interface Value {
        */
       SAME_NON_RETURNED,
       /**
-       * 
+       *
        */
       PACKAGE,
       /**
