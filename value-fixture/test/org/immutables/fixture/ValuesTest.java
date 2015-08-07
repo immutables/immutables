@@ -29,7 +29,6 @@ import nonimmutables.GetterAnnotation;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
 
 public class ValuesTest {
 

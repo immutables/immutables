@@ -15,8 +15,6 @@
  */
 package org.immutables.builder.fixture;
 
-import org.immutables.builder.fixture.ConcatBuilder;
-import org.immutables.builder.fixture.SumBuilder;
 import java.lang.reflect.Modifier;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;

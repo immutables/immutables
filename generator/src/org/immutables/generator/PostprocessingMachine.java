@@ -680,7 +680,13 @@ final class PostprocessingMachine {
   }
 
   private static boolean isAlphabetic(char c) {
-    return isLowerCaseAlphabetic(c) || isUpperCaseAlphabetic(c);
+    return isLowerCaseAlphabetic(c)
+        || isUpperCaseAlphabetic(c)
+        || isUnderscore(c);
+  }
+
+  private static boolean isUnderscore(char c) {
+    return c == '_';
   }
 
   private static boolean isLowerCaseAlphabetic(char c) {
