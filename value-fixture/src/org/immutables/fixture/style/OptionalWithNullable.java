@@ -2,7 +2,6 @@ package org.immutables.fixture.style;
 
 import java.util.Optional;
 import java.util.OptionalInt;
-
 import org.immutables.value.Value;
 
 @Value.Immutable

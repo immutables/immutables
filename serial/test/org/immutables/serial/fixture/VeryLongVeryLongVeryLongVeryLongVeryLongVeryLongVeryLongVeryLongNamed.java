@@ -15,8 +15,8 @@
  */
 package org.immutables.serial.fixture;
 
-import org.immutables.value.Value;
 import org.immutables.serial.Serial;
+import org.immutables.value.Value;
 
 @Serial.Version(2L)
 @Value.Immutable

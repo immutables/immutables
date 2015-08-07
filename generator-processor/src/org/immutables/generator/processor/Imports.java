@@ -15,7 +15,6 @@
  */
 package org.immutables.generator.processor;
 
-import org.immutables.generator.AnnotationMirrors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -30,6 +29,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 

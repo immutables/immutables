@@ -15,12 +15,12 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.LongBits;
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
 

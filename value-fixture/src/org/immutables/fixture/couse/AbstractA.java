@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.couse;
 
-import org.immutables.fixture.couse.sub.*;
+import org.immutables.fixture.couse.sub.C;
 import org.immutables.value.Value;
 
 @Value.Immutable

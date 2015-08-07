@@ -15,11 +15,11 @@
  */
 package org.immutables.gson.adapter;
 
-import static org.immutables.check.Checkers.*;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 public class FieldNameTranslaterTest {
   final Gson gson = new GsonBuilder()

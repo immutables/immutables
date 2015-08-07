@@ -15,10 +15,10 @@
  */
 package org.immutables.gson.packg;
 
+import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
-import com.google.gson.Gson;
 
 public class PackgTest {
   final GsonAdaptersPackg adapterFactory = new GsonAdaptersPackg();

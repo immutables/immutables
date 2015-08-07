@@ -15,7 +15,6 @@
  */
 package org.immutables.serial.fixture;
 
-import java.util.Set;
 import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ListMultimap;
@@ -23,6 +22,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
 import java.util.List;
+import java.util.Set;
 import org.immutables.serial.Serial;
 import org.immutables.value.Value;
 

@@ -15,19 +15,19 @@
  */
 package org.immutables.serial.fixture;
 
-import static org.immutables.check.Checkers.*;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.base.Optional;
-import java.util.Arrays;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableMultiset;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 public class StructTest {
   @Test

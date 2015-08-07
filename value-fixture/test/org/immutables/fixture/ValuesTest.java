@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture;
 
-import static org.immutables.check.Checkers.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;

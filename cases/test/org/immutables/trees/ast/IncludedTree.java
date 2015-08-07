@@ -1,9 +1,9 @@
 package org.immutables.trees.ast;
 
-import java.util.Map;
-import com.google.common.collect.Multimap;
-import java.util.Set;
 import com.google.common.base.Optional;
+import com.google.common.collect.Multimap;
+import java.util.Map;
+import java.util.Set;
 import org.immutables.value.Value;
 
 // Included in SampleTree

@@ -16,10 +16,10 @@
 package org.immutables.mirror.fixture;
 
 import com.google.common.base.Optional;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Collections;
 import javax.lang.model.element.AnnotationMirror;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Retention;
 import org.immutables.mirror.Mirror;
 
 @Mirror.Annotation("some.sample.annotation.Ann")

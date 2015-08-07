@@ -15,11 +15,11 @@
  */
 package org.immutables.gson.adapter;
 
-import org.immutables.value.Value;
 import com.google.common.base.Optional;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.immutables.gson.Gson;
+import org.immutables.value.Value;
 
 @Gson.TypeAdapters
 @Value.Immutable

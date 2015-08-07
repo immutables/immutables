@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.io.Serializable;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -25,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Primitives;
+import java.io.Serializable;
 import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.TypeHierarchyCollector;
 

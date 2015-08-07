@@ -17,11 +17,9 @@ package org.immutables.ordinal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.junit.Test;
-
 import java.util.Arrays;
-
-import static org.immutables.check.Checkers.check;
+import org.junit.Test;
+import static org.immutables.check.Checkers.*;
 
 public class OrdinalSetTest {
 

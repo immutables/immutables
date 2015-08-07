@@ -15,7 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import org.immutables.ordinal.OrdinalValue;
 import org.immutables.value.Value;
 
 @Value.Immutable

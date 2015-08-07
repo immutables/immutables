@@ -15,9 +15,9 @@
  */
 package org.immutables.check;
 
-import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import javax.annotation.Nullable;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;

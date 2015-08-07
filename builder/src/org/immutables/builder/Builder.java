@@ -17,8 +17,6 @@ package org.immutables.builder;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;

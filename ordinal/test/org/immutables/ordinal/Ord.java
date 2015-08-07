@@ -15,8 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import org.immutables.ordinal.OrdinalDomain;
-import org.immutables.ordinal.OrdinalValue;
 import com.google.common.base.MoreObjects;
 
 class Ord implements OrdinalValue<Ord> {

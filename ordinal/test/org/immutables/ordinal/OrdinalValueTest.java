@@ -16,9 +16,7 @@
 package org.immutables.ordinal;
 
 import org.junit.Test;
-
-import static org.immutables.check.Checkers.check;
-import static org.immutables.check.Checkers.checkAll;
+import static org.immutables.check.Checkers.*;
 
 public class OrdinalValueTest {
   @Test

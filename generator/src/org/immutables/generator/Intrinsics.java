@@ -15,7 +15,6 @@
  */
 package org.immutables.generator;
 
-import java.util.ArrayList;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -23,8 +22,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.primitives.Chars;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
-import org.immutables.generator.Templates.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import org.immutables.generator.Templates.Apply;
+import org.immutables.generator.Templates.Binary;
+import org.immutables.generator.Templates.Invokable;
+import org.immutables.generator.Templates.Invokation;
+import org.immutables.generator.Templates.Product;
 
 public final class Intrinsics {
   private Intrinsics() {}
