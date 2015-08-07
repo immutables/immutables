@@ -15,7 +15,6 @@
  */
 package org.immutables.generator.processor;
 
-import com.google.auto.service.AutoService;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -42,8 +41,8 @@ import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 
-@AutoService(javax.annotation.processing.Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
+@org.immutables.metainf.retrofit.Metainf.Service(javax.annotation.processing.Processor.class)
 public final class Processor extends AbstractProcessor {
 
   private final Parser parser = Parboiled.createParser(Parser.class);
