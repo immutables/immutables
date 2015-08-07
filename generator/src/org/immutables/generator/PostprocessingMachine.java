@@ -457,19 +457,19 @@ final class PostprocessingMachine {
         if (isLowerCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
-        } else if (isAlphabetic(c) || isDigit(c)) {
+        } else if (isAlphabetic(c) || isDigit(c) || isUnderscore(c)) {
           state = FullyQualifiedNameState.IDLE;
         }
         break;
       case IDLE:
-        if (!isAlphabetic(c) && !isDigit(c) && c != '.') {
+        if (!isAlphabetic(c) && !isDigit(c) && !isUnderscore(c) && c != '.') {
           state = FullyQualifiedNameState.UNDEFINED;
         }
         break;
       case PACKAGE_PART_CANDIDATE:
         if (c == '.') {
           state = FullyQualifiedNameState.DOT;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
+        } else if (!isAlphabetic(c) && !isDigit(c) && !isUnderscore(c)) {
           reset();
         }
         break;
@@ -489,7 +489,7 @@ final class PostprocessingMachine {
         if (c == '.' & allowNestedTypes) {
           state = FullyQualifiedNameState.DOT;
           packageTo = -1;
-        } else if (!isAlphabetic(c) && !isDigit(c)) {
+        } else if (!isAlphabetic(c) && !isDigit(c) && !isUnderscore(c)) {
           state = FullyQualifiedNameState.FINISH;
           importTo = i;
         }
@@ -689,5 +689,9 @@ final class PostprocessingMachine {
 
   private static boolean isUpperCaseAlphabetic(char c) {
     return c >= 'A' && c <= 'Z';
+  }
+
+  private static boolean isUnderscore(char c) {
+      return c == '_';
   }
 }
