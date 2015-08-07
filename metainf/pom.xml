@@ -25,9 +25,10 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>com.google.auto.service</groupId>
-      <artifactId>auto-service</artifactId>
-      <version>1.0-rc2</version>
+      <groupId>org.immutables</groupId>
+      <artifactId>metainf</artifactId>
+      <version>2.1.0.alpha</version>
+      <classifier>retrofit</classifier>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
@@ -56,7 +57,7 @@
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <createSourcesJar>true</createSourcesJar>
               <minimizeJar>true</minimizeJar>
-              <shadedClassifierName>retrofit</shadedClassifierName>
+              <shadedClassifierName>standalone</shadedClassifierName>
 
               <artifactSet>
                 <includes>
@@ -76,16 +77,12 @@
                   <shadedPattern>org.immutables.metainf.retrofit.$thirdparty$</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.immutables.metainf</pattern>
-                  <shadedPattern>org.immutables.metainf.retrofit</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>org.immutables.metainf.processor</pattern>
-                  <shadedPattern>org.immutables.metainf.retrofit.$processor$</shadedPattern>
+                  <shadedPattern>org.immutables.metainf.internal.$processor$</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.immutables.generator</pattern>
-                  <shadedPattern>org.immutables.metainf.retrofit.$generator$</shadedPattern>
+                  <shadedPattern>org.immutables.metainf.internal.$generator$</shadedPattern>
                 </relocation>
               </relocations>
 
