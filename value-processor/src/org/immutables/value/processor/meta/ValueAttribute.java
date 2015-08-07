@@ -532,7 +532,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isOptionalAcceptNullable() {
     return containingType.isOptionalAcceptNullable()
-        && typeKind.isOptionalKind();
+        && (typeKind.isOptionalJdk() || typeKind.isOptionalGuava());
   }
 
   @Override
