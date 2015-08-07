@@ -307,17 +307,17 @@ public class PostprocessingMachineTest {
 
   @Test
   public void classNameInImportHasUnderscores() {
-      CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
-              "import b.PAYMENT_TYPE;",
-              "  public interface SomeValue { ",
-              "    PAYMENT_TYPE getPaymentType();",
-              "}"));
+    CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+        "import b.PAYMENT_TYPE;",
+        "  public interface SomeValue { ",
+        "    PAYMENT_TYPE getPaymentType();",
+        "}"));
 
-          check(rewrited).hasToString(LINES.join(
-              "import b.PAYMENT_TYPE;",
-              "  public interface SomeValue { ",
-              "    PAYMENT_TYPE getPaymentType();",
-              "}"));
+    check(rewrited).hasToString(LINES.join(
+        "import b.PAYMENT_TYPE;",
+        "  public interface SomeValue { ",
+        "    PAYMENT_TYPE getPaymentType();",
+        "}"));
   }
 
   @Test
@@ -434,6 +434,7 @@ public class PostprocessingMachineTest {
     check(header).startsWith("// sdsd");
     check(header).endsWith("/** */");
   }
+
   @Test
   public void onlyCollectImports() {
     SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
@@ -462,13 +463,31 @@ public class PostprocessingMachineTest {
   }
 
   @Test
-  public void importStartsWithUnderscore() {
+  public void safelySkipImportStartsWithUnderscore() {
     SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
-        LINES.join("package start;",
-            "import b._STATUS_TYPE;",
-            "final class B {",
-            "}"));
+        LINES.join(
+            "import b._TYPE;",
+            "class B { _TYPE b; }"));
+    check(imports.all).has("b._TYPE");
 
-    check(imports.classes.values()).hasContentInAnyOrder("b._STATUS_TYPE");
+    check(PostprocessingMachine.rewrite(
+        "class B { b._STATUS_TYPE s; }"))
+        .hasToString(
+            "class B { b._STATUS_TYPE s; }");
+  }
+
+  @Test
+  public void underscoreNamesImport() {
+    check(PostprocessingMachine.rewrite(
+        "class X { a.SET_OPT s; }"))
+        .hasToString(LINES.join(
+            "import a.SET_OPT;",
+            "class X { SET_OPT s; }"));
+
+    check(PostprocessingMachine.rewrite(
+        "class X { a.T.SET_OPT s; }"))
+        .hasToString(LINES.join(
+            "import a.T;",
+            "class X { T.SET_OPT s; }"));
   }
 }
