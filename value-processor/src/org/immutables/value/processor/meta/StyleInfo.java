@@ -15,9 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
+
 import org.immutables.value.Value;
+
+import com.google.common.collect.ImmutableSet;
 
 @SuppressWarnings("all")
 @Value.Immutable(intern = true, copy = false, builder = false)
@@ -138,6 +140,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract ImplementationVisibility visibility();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean optionalAcceptNullable();
 
   @Override
   public Class<? extends Annotation>[] passAnnotations() {
