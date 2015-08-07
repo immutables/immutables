@@ -306,6 +306,21 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  public void classNameInImportHasUnderscores() {
+      CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
+              "import b.PAYMENT_TYPE;",
+              "  public interface SomeValue { ",
+              "    PAYMENT_TYPE getPaymentType();",
+              "}"));
+
+          check(rewrited).hasToString(LINES.join(
+              "import b.PAYMENT_TYPE;",
+              "  public interface SomeValue { ",
+              "    PAYMENT_TYPE getPaymentType();",
+              "}"));
+  }
+
+  @Test
   public void keepClassModifiers() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "package mypack;",
@@ -419,7 +434,6 @@ public class PostprocessingMachineTest {
     check(header).startsWith("// sdsd");
     check(header).endsWith("/** */");
   }
-
   @Test
   public void onlyCollectImports() {
     SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
@@ -434,5 +448,27 @@ public class PostprocessingMachineTest {
 
     check(imports.classes.keySet()).hasContentInAnyOrder("List", "Nested");
     check(imports.classes.values()).hasContentInAnyOrder("java.util.List", "some.Some.Nested");
+  }
+
+  @Test
+  public void importsHaveUnderscores() {
+    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+        LINES.join("package start;",
+            "import b.PAYMENT_STATUS_TYPE;",
+            "final class B {",
+            "}"));
+
+    check(imports.classes.values()).hasContentInAnyOrder("b.PAYMENT_STATUS_TYPE");
+  }
+
+  @Test
+  public void importStartsWithUnderscore() {
+    SourceExtraction.Imports imports = PostprocessingMachine.collectImports(
+        LINES.join("package start;",
+            "import b._STATUS_TYPE;",
+            "final class B {",
+            "}"));
+
+    check(imports.classes.values()).hasContentInAnyOrder("b._STATUS_TYPE");
   }
 }
