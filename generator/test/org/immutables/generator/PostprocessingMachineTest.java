@@ -287,6 +287,21 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  public void funkyClassNames() {
+    check(PostprocessingMachine.rewrite(
+        "class X { a.SET_OPT s; }"))
+        .hasToString(LINES.join(
+            "import a.SET_OPT;",
+            "class X { SET_OPT s; }"));
+
+    check(PostprocessingMachine.rewrite(
+        "class X { a.T.SET_OPT s; }"))
+        .hasToString(LINES.join(
+            "import a.T;",
+            "class X { T.SET_OPT s; }"));
+  }
+
+  @Test
   public void fullyQualifiedWithSpaces() {
     CharSequence rewrited = PostprocessingMachine.rewrite(LINES.join(
         "class X {",
