@@ -191,7 +191,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   public final [type.names.typeModifiable] [v.names.set]([v.unwrappedElementType] [v.name]) {
-    [if type.optionalAcceptNullable]
+    [if v.optionalAcceptNullable]
     this.[v.name] = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if]([v.name]);
     [else]
     this.[v.name] = [v.rawType].of([v.name]);
