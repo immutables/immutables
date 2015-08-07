@@ -2,7 +2,6 @@ package org.immutables.fixture.jackson;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.value.Value;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -16,6 +15,7 @@ interface Val {
   // compile check for presense of
   // the Jackson specific creator method
   // triggered by meta annotation
+  @SuppressWarnings("deprecation")
   default void use() {
     ImmutableVal.fromJson(null);
   }

@@ -16,12 +16,11 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.Lists;
-import org.immutables.value.processor.meta.Proto.Protoclass;
-
+import java.util.List;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.List;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class FactoryMethodAttributesCollector {
   private final Protoclass protoclass;

@@ -15,11 +15,6 @@
  */
 package org.immutables.builder.fixture;
 
-import org.immutables.builder.fixture.Factory1Builder;
-import org.immutables.builder.fixture.Factory2Builder;
-import org.immutables.builder.fixture.Factory3Builder;
-import org.immutables.builder.fixture.Factory4Builder;
-import org.immutables.builder.fixture.Factory5Builder;
 import java.lang.annotation.RetentionPolicy;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
