@@ -14,6 +14,7 @@ import org.immutables.value.Value;
 @Trees.Ast
 @Trees.Transform
 @Value.Enclosing
+@SuppressWarnings("immutables")
 public interface SampleNodes {
 
   @Value.Immutable(builder = false)

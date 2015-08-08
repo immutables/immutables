@@ -1020,6 +1020,11 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
+  public boolean isGenerateSuppressAllWarnings() {
+    return constitution.protoclass().styles().style().generateSuppressAllWarnings()
+        || SuppressedWarnings.forElement(element).generated;
+  }
+
   /**
    * Used for type snapshoting
    */

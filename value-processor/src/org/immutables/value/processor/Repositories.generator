@@ -36,7 +36,7 @@ import [starImport];
  * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
  * from the MongoDB collection {@code "[type.documentName]"}.
  */
-@SuppressWarnings("all")
+[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract]"})
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.concurrent.ThreadSafe

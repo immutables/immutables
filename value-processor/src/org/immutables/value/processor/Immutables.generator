@@ -26,7 +26,7 @@
 
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
-@SuppressWarnings("all")
+[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]

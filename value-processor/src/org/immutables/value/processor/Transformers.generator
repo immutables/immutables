@@ -20,7 +20,7 @@ Use @Trees.Transform to annotate umbrella class with @Value.Enclosing, but with 
 package [transformerType.package];
 [/if]
 
-@SuppressWarnings("all")
+[if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
 [transformerType.typeValue.access]abstract class [transformersClassname] {

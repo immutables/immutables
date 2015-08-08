@@ -24,7 +24,7 @@ import org.immutables.trees.ast.Extractions;
 import java.lang.String;
 // Generated imports
 
-@SuppressWarnings("all")
+[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
 [type.typeValue.access]final class [astTypeName] {

@@ -5,7 +5,8 @@ import java.util.OptionalInt;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Value.Style(optionalAcceptNullable = false)
+@Value.Style(optionalAcceptNullable = false,
+    generateSuppressAllWarnings = false)
 public interface OptionalWithoutNullable {
   Optional<String> getJavaOptional();
 

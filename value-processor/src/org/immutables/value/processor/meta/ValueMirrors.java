@@ -135,6 +135,8 @@ public final class ValueMirrors {
 
     boolean optionalAcceptNullable() default false;
 
+    boolean generateSuppressAllWarnings() default true;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

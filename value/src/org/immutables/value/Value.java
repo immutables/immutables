@@ -198,16 +198,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   *
+   * 
    *   public abstract List&lt;Item&gt; items();
-   *
+   * 
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   *
+   * 
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   *
+   * 
    *     return cost;
    *   }
    * }
@@ -514,7 +514,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     *
+     * 
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -522,7 +522,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     *
+     * 
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -572,10 +572,22 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
-     * Specify whether the withX and and setX fields for an Optional<X> should handle null values
+     * Specify whether init and copy methods for an unwrapped {@code X} of {@code Optional<X>}
+     * should accept {@code null} values as empty value. By default nulls are rejected in favor of
+     * explicit conversion using {@code Optional.ofNullable}. Please note that initializers that
+     * take explicit {@code Optional} value always reject nulls regardless of this setting.
      * @return optional elements accept nullables
      */
     boolean optionalAcceptNullable() default false;
+
+    /**
+     * Generate {@code SuppressWarnings("all")} in generated code. Set this to {@code false} to
+     * expose all warnings in a generated code. To suppress other warnings issued by Immutables use
+     * explicit annotations {@literal @}{@code SuppressWarning("immutables")} or {@literal @}
+     * {@code SuppressWarning("all")}
+     * @return {@code true} if will generate suppress all warnings, enabled by default.
+     */
+    boolean generateSuppressAllWarnings() default true;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

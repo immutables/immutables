@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.tools.Diagnostic.Kind;
 import com.google.common.base.Optional;
 import java.lang.annotation.Annotation;
 import javax.annotation.processing.Messager;
@@ -66,6 +67,13 @@ abstract class Reporter {
   }
 
   private void reportMessage(Diagnostic.Kind messageKind, String message, Object... parameters) {
+    if (messageKind == Kind.WARNING || messageKind == Kind.MANDATORY_WARNING) {
+      SuppressedWarnings suppressed = SuppressedWarnings.forElement(getElement());
+      if (suppressed.immutables) {
+        return;
+      }
+    }
+
     String formattedMessage = String.format(message, parameters);
     if (element().isPresent() && annotation().isPresent()) {
       messager().printMessage(messageKind, formattedMessage, getElement(), getAnnotation());

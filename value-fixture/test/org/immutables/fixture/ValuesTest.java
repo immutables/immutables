@@ -30,7 +30,7 @@ import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers
 import org.immutables.fixture.style.ImmutableOptionalWithNullable;
 import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class ValuesTest {
 

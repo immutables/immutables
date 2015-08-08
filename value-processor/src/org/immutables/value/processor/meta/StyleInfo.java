@@ -19,6 +19,10 @@ import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
 import org.immutables.value.Value;
 
+/**
+ * We copy styles to StyleInfo to safely cache styles between rounds etc and prevent any memory
+ * leaks by unnecessary retaining compiler internal structures.
+ */
 @SuppressWarnings("all")
 @Value.Immutable(intern = true, copy = false, builder = false)
 public abstract class StyleInfo implements ValueMirrors.Style {
@@ -142,6 +146,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract boolean optionalAcceptNullable();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean generateSuppressAllWarnings();
 
   @Override
   public Class<? extends Annotation>[] passAnnotations() {

@@ -35,7 +35,7 @@ package [type.package];
  * <p><em>[type.names.typeModifiable] is not thread safe</em>
  * @see [type.typeValue.relative]
  */
-@SuppressWarnings("all")
+[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]

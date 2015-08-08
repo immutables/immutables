@@ -20,6 +20,7 @@ import org.immutables.mongo.Mongo;
 import org.immutables.mongo.types.Id;
 import org.immutables.value.Value;
 
+@SuppressWarnings("immutables")
 @Value.Immutable
 @Mongo.Repository("ent2")
 public abstract class SillyEntitySecond {

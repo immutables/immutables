@@ -45,7 +45,7 @@ import [starImport];
  * @see [v.typeValue.relative]
  [/for]
  */
-@SuppressWarnings("all")
+@SuppressWarnings("all")[-- reliably check for generateSuppressAllWarnings --]
 [if classpath.available 'javax.annotation.Generated']
 @javax.annotation.Generated({"Gsons.generator", "[packageName].[simpleName]"})
 [/if]
