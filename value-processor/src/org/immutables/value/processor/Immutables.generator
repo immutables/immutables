@@ -270,7 +270,7 @@ private static class SerialForm implements java.io.Serializable {
       [if v.collectionType or v.mapType]
     [createBuilderForCollection type v][v.name]Builder[/createBuilderForCollection]
       [else if v.optionalType]
-    [v.type] [v.name]Value = [v.rawType].[optionalEmpty v];
+    [v.type] [v.name]Value = [optionalEmpty v];
       [else]
     [atNullable][v.wrapperType] [v.name]Value = null;
       [/if]
@@ -899,7 +899,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   /**
    * Initializes present value for optional [sourceDocRef type v].
-   * @param [v.name] value for [v.name]
+   * @param [v.name] value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
   [deprecation v]
@@ -1170,7 +1170,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 
 [template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
 [if v.optionalType]
-  [v.rawType].[optionalEmpty v]
+  [optionalEmpty v]
 [else if v.mapType]
   [if v.generateJdkOnly]
     [if v.typeKind.isSortedMap]
@@ -1703,7 +1703,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
 
 /**
  * Copy current immutable object by setting present value for optional [sourceDocRef type v].
- * @param value value for [v.name]
+ * @param value value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
  * @return modified copy of {@code this} object
  */
 [deprecation v]
@@ -2194,7 +2194,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
   [if v.containerType]
     [if v.generateJdkOnly]
       [if v.optionalType]
-[if declare]private [v.type] [/if][v.name] = [v.rawType].[optionalEmpty v];
+[if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
       [else if v.generateEnumMap]
 [if declare]private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
       [else if v.mapType]
@@ -2210,7 +2210,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
       [else if v.collectionType]
 [if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [/if][v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
       [else if v.optionalType]
-[if declare]private [v.type] [/if][v.name] = [v.rawType].[optionalEmpty v];
+[if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
 [if declare]private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
       [else if v.mapType]
@@ -2269,7 +2269,7 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template optionalOf Attribute a][a.rawType].[if not a.optionalAcceptNullable]of[else if a.jdkOptional]ofNullable[else]fromNullable[/if][/template]
 

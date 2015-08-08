@@ -431,7 +431,7 @@ return value;
 JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
   in.nextNull();
-  return [a.rawType].[optionalEmpty a];
+  return [optionalEmpty a];
 }
     [if a.jdkSpecializedOptional]
 return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
@@ -692,6 +692,6 @@ out.value([variableName]);
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

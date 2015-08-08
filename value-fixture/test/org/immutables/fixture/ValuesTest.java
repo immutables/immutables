@@ -27,6 +27,8 @@ import javax.ws.rs.POST;
 import nonimmutables.GetterAnnotation;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
 import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.fixture.style.ImmutableOptionalWithNullable;
+import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
 import org.junit.Test;
 import static org.immutables.check.Checkers.*;
 
@@ -386,5 +388,20 @@ public class ValuesTest {
     ImmutableSillyValidatedConstructedValue.of(-10, true);
     ImmutableSillyValidatedConstructedValue.of(10, false);
     ImmutableSillyValidatedConstructedValue.of(-10, false);
+  }
+
+  @Test
+  public void optionalWhichAcceptsNullable() {
+    ImmutableOptionalWithNullable.builder()
+        .guavaOptional((String) null)
+        .javaOptional((String) null)
+        .build();
+  }
+
+  @Test(expected = NullPointerException.class)
+  public void optionalWhichDoesntAcceptsNullable() {
+    ImmutableOptionalWithoutNullable.builder()
+        .javaOptional((String) null)
+        .build();
   }
 }

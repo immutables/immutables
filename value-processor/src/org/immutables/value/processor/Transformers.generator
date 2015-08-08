@@ -60,7 +60,7 @@ package [transformerType.package];
       [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
       return changed != original ? [a.rawType].of(changed) : optional;
     }
-    return [a.rawType].[optionalEmpty a];
+    return [optionalEmpty a];
   }
     [else if a.collectionType]
 
@@ -143,6 +143,6 @@ package [transformerType.package];
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
