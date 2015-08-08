@@ -1,7 +1,7 @@
 package org.immutables.trees;
 
-import java.lang.annotation.Documented;
 import com.google.common.annotations.Beta;
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 

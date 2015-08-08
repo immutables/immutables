@@ -15,8 +15,8 @@
  */
 package org.immutables.metainf.fixture;
 
-import org.immutables.metainf.Metainf;
 import java.io.Serializable;
+import org.immutables.metainf.Metainf;
 
 @Metainf.Service
 public class Serserv implements Serializable {

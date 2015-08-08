@@ -80,8 +80,7 @@ final class Annotations {
   }
 
   static boolean annotationMatchesTarget(Element annotationElement, ElementType elementType) {
-    @Nullable
-    Target target = annotationElement.getAnnotation(Target.class);
+    @Nullable Target target = annotationElement.getAnnotation(Target.class);
     if (target != null) {
       ElementType[] targetTypes = target.value();
       if (targetTypes.length == 0) {

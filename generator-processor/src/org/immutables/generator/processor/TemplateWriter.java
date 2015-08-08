@@ -45,7 +45,7 @@ import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.immutables.generator.processor.ImmutableTrees.ValueDeclaration;
 import org.immutables.generator.processor.Trees.Expression;
-import static org.immutables.generator.StringLiterals.*;
+import static org.immutables.generator.StringLiterals.toLiteral;
 
 /**
  * This part is written with simples possible writer in mind. It was decided not to use dependencies

@@ -406,7 +406,7 @@ return value;
 JsonReader.Token t = in.peek();
 if (t == JsonReader.Token.NULL) {
   in.nextNull();
-  return [a.rawType].[optionalEmpty a];
+  return [optionalEmpty a];
 }
     [if a.jdkSpecializedOptional]
 return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
@@ -414,11 +414,7 @@ return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
 return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
-[if a.optionalAcceptNullable]
-return [a.rawType].[if a.jdkOptional]ofNullable[else]fromNullable[/if](value);
-[else]
 return [a.rawType].of(value);
-[/if]
     [/if]
   [else if a.mapType]
 [createBuilderForCollection type a 'mappings']
@@ -671,6 +667,6 @@ out.value([variableName]);
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

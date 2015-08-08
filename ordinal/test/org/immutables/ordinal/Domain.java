@@ -15,7 +15,6 @@
  */
 package org.immutables.ordinal;
 
-import org.immutables.ordinal.OrdinalDomain;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

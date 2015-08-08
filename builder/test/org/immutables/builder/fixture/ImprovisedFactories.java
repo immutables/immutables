@@ -15,9 +15,6 @@
  */
 package org.immutables.builder.fixture;
 
-import org.immutables.builder.fixture.ConcatBuilder;
-import org.immutables.builder.fixture.SumBuilder;
-import org.immutables.builder.fixture.SuperstringBuilder;
 import com.google.common.collect.Iterables;
 import java.util.List;
 import java.util.SortedSet;

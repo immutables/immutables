@@ -46,7 +46,7 @@ import org.immutables.generator.processor.Trees.TemplatePart;
 import org.immutables.generator.processor.Trees.TypeDeclaration.Kind;
 import org.immutables.generator.processor.Trees.TypeIdentifier;
 import org.immutables.generator.processor.Trees.TypeReference;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
 
 public final class TypeResolver {
   static final String ITERATION_ACCESS_VARIABLE = "for";

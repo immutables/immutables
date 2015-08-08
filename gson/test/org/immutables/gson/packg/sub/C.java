@@ -15,10 +15,11 @@
  */
 package org.immutables.gson.packg.sub;
 
-import org.immutables.gson.Gson;
 import java.util.List;
+import org.immutables.gson.Gson;
+import org.immutables.gson.packg.ImmutableA;
+import org.immutables.gson.packg.ImmutableB;
 import org.immutables.value.Value;
-import org.immutables.gson.packg.*;
 
 // Yet to be generated ImmutableA or ImmutableB
 @Gson.TypeAdapters
