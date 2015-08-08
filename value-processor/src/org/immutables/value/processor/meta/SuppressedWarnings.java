@@ -41,7 +41,7 @@ final class SuppressedWarnings {
             immutables = true;
             break;
           case GENERATED:
-            immutables = true;
+            generated = true;
             break;
           default:
             break;
