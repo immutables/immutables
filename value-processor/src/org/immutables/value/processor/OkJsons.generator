@@ -414,11 +414,7 @@ return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
 return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
-[if a.optionalAcceptNullable]
-return [a.rawType].[if a.jdkOptional]ofNullable[else]fromNullable[/if](value);
-[else]
 return [a.rawType].of(value);
-[/if]
     [/if]
   [else if a.mapType]
 [createBuilderForCollection type a 'mappings']

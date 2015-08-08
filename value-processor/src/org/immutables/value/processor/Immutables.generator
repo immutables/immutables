@@ -24,8 +24,6 @@
   [/for]
 [/template]
 
-[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
-
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
 @SuppressWarnings("all")
@@ -297,11 +295,7 @@ private static class SerialForm implements java.io.Serializable {
         }
       [else if v.optionalType]
         if (values[arri] != null) {
-          [if v.optionalAcceptNullable]
-          [v.name]Value = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if](([v.wrappedElementType]) values[arri]);
-          [else]
           [v.name]Value = [v.rawType].of(([v.wrappedElementType]) values[arri]);
-          [/if]
         }
       [else if v.nullable or v.arrayType]
         [v.name]Value = ([v.wrapperType]) values[arri];
@@ -909,13 +903,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return {@code this} builder for chained invocation
    */
   [deprecation v]
-  public final [builderReturnType type] [v.names.init]([v.unwrappedElementType] [v.name]) {
+  public final [builderReturnType type] [v.names.init]([atNullableAccept v][v.unwrappedElementType] [v.name]) {
     [checkNotIsSet v]
-    [if v.optionalAcceptNullable]
-    this.[v.name] = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if]([v.name]);
-    [else]
-    this.[v.name] = [v.rawType].of([v.name]);
-    [/if]
+    this.[v.name] = [optionalOf v]([v.name]);
     [nondefaultSetInBuilder v]
     [builderReturnThis type]
   }
@@ -1717,12 +1707,8 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType] value) {
-  [if v.optionalAcceptNullable]
-  [immutableImplementationType v] newValue = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if](value);
-  [else]
-  [immutableImplementationType v] newValue = [v.rawType].of(value);
-  [/if]
+public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.unwrappedElementType] value) {
+  [immutableImplementationType v] newValue = [optionalOf v](value);
   [generateReturnCopyContextual type v]
 }
 
@@ -2284,6 +2270,12 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
 [template optionalEmpty Attribute a][if a.jdkOptional]empty[else]absent[/if]()[/template]
+
+[template optionalOf Attribute a][a.rawType].[if not a.optionalAcceptNullable]of[else if a.jdkOptional]ofNullable[else]fromNullable[/if][/template]
+
+[template atNullableAccept Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][/if][/template]
+
+[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
 [template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
 
