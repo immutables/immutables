@@ -91,11 +91,9 @@ public abstract class Round {
     }
     // Collect remaining and attach if nested
     for (Protoclass protoclass : protoclasses) {
-      @Nullable
-      ValueType current = null;
+      @Nullable ValueType current = null;
       if (protoclass.kind().isNested()) {
-        @Nullable
-        ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
+        @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
         if (enclosing != null) {
           current = composer().compose(protoclass);
           // Attach nested to enclosing
@@ -254,7 +252,10 @@ public abstract class Round {
         }
       }
 
-      if (declaringType.isImmutable() || declaringType.isEnclosing()) {
+      if (declaringType.isImmutable()
+          || declaringType.isEnclosing()
+          || declaringType.isModifiable()) {
+
         Kind kind = kindOfDefinedBy(declaringType);
 
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
@@ -264,11 +265,7 @@ public abstract class Round {
             .declaringType(declaringType)
             .kind(kind)
             .build()));
-      }
-
-      if (declaringType.isTopLevel()
-          && !declaringType.isEnclosing()
-          && !declaringType.isImmutable()) {
+      } else if (declaringType.isTopLevel()) {
         for (TypeElement nested : ElementFilter.typesIn(declaringType.element().getEnclosedElements())) {
           collectIncludedAndDefinedBy(nested);
         }
@@ -279,11 +276,16 @@ public abstract class Round {
       if (declaringType.isImmutable()) {
         if (declaringType.isEnclosing()) {
           return Kind.DEFINED_AND_ENCLOSING_TYPE;
-        } else if (declaringType.enclosingOf().isPresent()) {
+        } else if (declaringType.isEnclosed()) {
           return Kind.DEFINED_NESTED_TYPE;
+        } else if (declaringType.isModifiable()) {
+          return Kind.DEFINED_TYPE_AND_COMPANION;
         } else {
           return Kind.DEFINED_TYPE;
         }
+      }
+      if (declaringType.isModifiable()) {
+        return Kind.DEFINED_COMPANION;
       }
       assert declaringType.isEnclosing();
       return Kind.DEFINED_ENCLOSING_TYPE;

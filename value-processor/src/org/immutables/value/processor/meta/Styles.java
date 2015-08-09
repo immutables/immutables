@@ -64,23 +64,22 @@ public final class Styles {
     Naming builder = Naming.from(style.builder());
     Naming newBuilder = Naming.from(style.newBuilder());
 
-//    Naming typeModifiable = Naming.from(style.typeModifiable());
-//    Naming create = Naming.from(style.create());
-//    Naming set = Naming.from(style.set());
-//    Naming isSet = Naming.from(style.isSet());
-//    Naming toImmutable = Naming.from(style.toImmutable());
-
     Naming[] get = Naming.fromAll(style.get());
     Naming init = Naming.from(style.init());
     Naming with = Naming.from(style.with());
-
-//    Naming unset = Naming.from(style.unset());
-//    Naming clear = Naming.from(style.clear());
 
     Naming add = Naming.from(style.add());
     Naming addAll = Naming.from(style.addAll());
     Naming put = Naming.from(style.put());
     Naming putAll = Naming.from(style.putAll());
+
+    Naming isSet = Naming.from(style.isSet());
+    Naming unset = Naming.from(style.unset());
+    Naming set = Naming.from(style.set());
+    Naming clear = Naming.from(style.clear());
+    Naming create = Naming.from(style.create());
+    Naming toImmutable = Naming.from(style.toImmutable());
+    Naming typeModifiable = Naming.from(style.typeModifiable());
   }
 
   public static class UsingName {
@@ -145,9 +144,21 @@ public final class Styles {
         return scheme.builder.apply(raw);
       }
 
-//      public final String typeModifiable = scheme.typeModifiable.apply(raw);
-//      public final String create = scheme.create.apply(raw);
-//      public final String toImmutable = scheme.toImmutable.apply(raw);
+      public final String typeModifiable() {
+        return scheme.typeModifiable.apply(raw);
+      }
+
+      public final String create() {
+        return scheme.create.apply(raw);
+      }
+
+      public final String clear() {
+        return scheme.clear.apply(raw);
+      }
+
+      public final String toImmutable() {
+        return scheme.toImmutable.apply(raw);
+      }
 
       String rawFromAbstract(String abstractName) {
         return detectRawFromAbstract(abstractName);
@@ -163,11 +174,18 @@ public final class Styles {
       public final String addAll = scheme.addAll.apply(raw);
       public final String put = scheme.put.apply(raw);
       public final String putAll = scheme.putAll.apply(raw);
-//      public final String set = scheme.set.apply(raw);
-//      public final String isSet = scheme.isSet.apply(raw);
 
-//      public final String unset = scheme.unset.apply(raw);
-//      public final String clear = scheme.clear.apply(raw);
+      public String set() {
+        return scheme.set.apply(raw);
+      }
+
+      public String isSet() {
+        return scheme.isSet.apply(raw);
+      }
+
+      public String unset() {
+        return scheme.unset.apply(raw);
+      }
     }
   }
 }

@@ -105,6 +105,18 @@ public final class ValueMirrors {
 
     String build() default "build";
 
+    String isSet() default "*IsSet";
+
+    String set() default "set*";
+
+    String unset() default "unset*";
+
+    String clear() default "clear";
+
+    String create() default "create";
+
+    String toImmutable() default "toImmutable";
+
     String typeBuilder() default "Builder";
 
     String typeInnerBuilder() default "Builder";
@@ -116,6 +128,8 @@ public final class ValueMirrors {
     String typeImmutableEnclosing() default "Immutable*";
 
     String typeImmutableNested() default "*";
+
+    String typeModifiable() default "Modifiable*";
 
     Immutable defaults() default @Immutable;
 

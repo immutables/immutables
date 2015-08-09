@@ -90,6 +90,30 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String isSet();
+
+  @Value.Parameter
+  @Override
+  public abstract String set();
+
+  @Value.Parameter
+  @Override
+  public abstract String unset();
+
+  @Value.Parameter
+  @Override
+  public abstract String clear();
+
+  @Value.Parameter
+  @Override
+  public abstract String create();
+
+  @Value.Parameter
+  @Override
+  public abstract String toImmutable();
+
+  @Value.Parameter
+  @Override
   public abstract String typeBuilder();
 
   @Value.Parameter
@@ -111,6 +135,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract String typeImmutableNested();
+
+  @Value.Parameter
+  @Override
+  public abstract String typeModifiable();
 
   @Override
   @Value.Parameter

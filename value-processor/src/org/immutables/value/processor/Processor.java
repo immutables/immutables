@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.ModifiableMirror;
 import com.google.common.collect.Multimap;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
@@ -35,6 +36,7 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
     IncludeMirror.QUALIFIED_NAME,
+    ModifiableMirror.QUALIFIED_NAME,
     ValueUmbrellaMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
@@ -49,13 +51,13 @@ public final class Processor extends AbstractGenerator {
     Multimap<DeclaringPackage, ValueType> values = round.collectValues();
 
     invoke(new Generator_Immutables().usingValues(values).generate());
+    invoke(new Generator_Modifiables().usingValues(values).generate());
     invoke(new Generator_Gsons().usingValues(values).generate());
     invoke(new Generator_OkJsons().usingValues(values).generate());
     invoke(new Generator_Repositories().usingValues(values).generate());
     invoke(new Generator_Transformers().usingValues(values).generate());
     invoke(new Generator_Asts().usingValues(values).generate());
 
-//  invoke(new Generator_Modifiables().usingValues(values).generate());
 //  invoke(new Generator_Parboileds().usingValues(values).generate());
 //
   }

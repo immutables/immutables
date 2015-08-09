@@ -300,6 +300,30 @@ public @interface Value {
   public @interface ReverseOrder {}
 
   /**
+   * Generate modifiable implementation of abstract value class. Modifiable implementation class
+   * might be useful when you either need overflexible builder or, alternatively, partially built
+   * representation of value type.
+   * This annotation could be used as companion to {@link Immutable} to
+   * provide modifiable variant that is convertible back and forth to immutable form. When it is
+   * used in a standalone manner, i.e. without using
+   * <p>
+   * Generated class will have name with "Modifiable" prefix by default which can be customizable
+   * using {@link Style#typeModifiable() "typeModifiable" style}. Use {@code create()} factory
+   * method to create instances or using "new" operator which is also depends on
+   * {@link Style#create() "create" style} . Generated modifiable class will have setter methods
+   * that return {@code this} for chained invocation. Getters will be of the same shape as defined
+   * by abstract value types.
+   * <p>
+   * <em>Note: unlike {@literal @}{@link Immutable}, this annotation has very little of additional "magic"
+   * and customisations implemented. Annotation like {@link Include}, {@link Enclosing}, {@link Lazy} do not work with
+   * modifiable implementation</em>
+   */
+  @Documented
+  @Target(ElementType.TYPE)
+  @Retention(RetentionPolicy.CLASS)
+  public @interface Modifiable {}
+
+  /**
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation. When used as meta-annotation, then annotation could
@@ -337,12 +361,15 @@ public @interface Value {
 
     /**
      * Builder initialization method. i.e. "setter" in builder.
+     * Do not confuse with {@link #set()}
      * @return naming template
      */
     String init() default "*";
 
     /**
      * Modify-by-copy "with" method.
+     * @see #init()
+     * @see #set()
      * @return naming template
      */
     String with() default "with*";
@@ -423,6 +450,45 @@ public @interface Value {
     String build() default "build";
 
     /**
+     * Method to determine if attribute is set
+     * @return naming template
+     */
+    String isSet() default "*IsSet";
+
+    /**
+     * Modifiable object "setter" method. Used for mutable implementations.
+     * Do not confuse with {@link #init()}
+     * @return naming template
+     */
+    String set() default "set*";
+
+    /**
+     * Unset attribute method. Used for mutable implementations.
+     * @return naming template
+     */
+    String unset() default "unset*";
+
+    /**
+     * Clear all collection attributes and unset(or other container). Used for mutable
+     * implementations.
+     * @return naming template
+     */
+    String clear() default "clear";
+
+    /**
+     * Factory method for modifiable implementation, could be "new" to create objects using
+     * constructor.
+     * @return naming template
+     */
+    String create() default "create";
+
+    /**
+     * Method to convert to instanse of modifiable type to "canonical" immutable instance.
+     * @return naming template
+     */
+    String toImmutable() default "toImmutable";
+
+    /**
      * Generated builder class name.
      * @return naming template
      */
@@ -464,6 +530,12 @@ public @interface Value {
      * @return naming template
      */
     String typeImmutableNested() default "*";
+
+    /**
+     * Modifiable companion class name template
+     * @return naming template
+     */
+    String typeModifiable() default "Modifiable*";
 
     /**
      * Specify default options for the generated immutable objects.
