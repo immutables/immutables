@@ -603,7 +603,7 @@ private Object writeReplace() {
             [if l.primitive or l.nullable]
           this.[l.name] = [invokeSuper l].[l.names.get]();
             [else]
-          this.[l.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper l].[l.names.get]());
+          this.[l.name] = [requireNonNull type]([invokeSuper l].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -738,7 +738,7 @@ private Object writeReplace() {
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] domain(Domain domain) {
-    this.domain = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
+    this.domain = [requireNonNull type](domain);
     [builderReturnThis type]
   }
 [/if]
@@ -753,7 +753,7 @@ private Object writeReplace() {
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
-    [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+    [requireNonNull type](instance);
     from((Object) instance);
     [builderReturnThis type]
   }
@@ -778,7 +778,7 @@ private Object writeReplace() {
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] [type.names.from]([type.typeAbstract] instance) {
-    [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+    [requireNonNull type](instance);
     [buildFromAttributes setters]
     [builderReturnThis type]
   }
@@ -831,7 +831,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.generateJdkOnly and (not v.primitiveElement)]
-    [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+    [v.name]Builder.add([requireNonNull type](element));
     [else]
     [v.name]Builder.add(element);
     [/if]
@@ -851,7 +851,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       [if v.primitiveElement]
       [v.name]Builder.add(element);
       [else]
-      [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+      [v.name]Builder.add([requireNonNull type](element));
       [/if]
     }
     [else]
@@ -887,7 +887,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
-      [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+      [v.name]Builder.add([requireNonNull type](element));
     }
     [else]
     [v.name]Builder.addAll(elements);
@@ -919,7 +919,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
-    this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = [requireNonNull type]([v.name]);
     [nondefaultSetInBuilder v]
     [builderReturnThis type]
   }
@@ -965,8 +965,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
-        [objectsUtilRef type]requireNonNull(key, "Key cannot be null"),
-        [objectsUtilRef type]requireNonNull(value, "Value cannot be null"));
+        [requireNonNull type](key, "Key cannot be null"),
+        [requireNonNull type](value, "Value cannot be null"));
     [else]
     [v.name]Builder.put(key, value);
     [/if]
@@ -982,8 +982,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
-        [objectsUtilRef type]requireNonNull(entry.getKey(), "Key cannot be null"),
-        [objectsUtilRef type]requireNonNull(entry.getValue(), "Value cannot be null"));
+        [requireNonNull type](entry.getKey(), "Key cannot be null"),
+        [requireNonNull type](entry.getValue(), "Value cannot be null"));
     [else]
     [v.name]Builder.put(entry);
     [/if]
@@ -1014,8 +1014,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
       [v.name]Builder.put(
-          [objectsUtilRef type]requireNonNull(entry.getKey(), "Key cannot be null"),
-          [objectsUtilRef type]requireNonNull(entry.getValue(), "Value cannot be null"));
+          [requireNonNull type](entry.getKey(), "Key cannot be null"),
+          [requireNonNull type](entry.getValue(), "Value cannot be null"));
     }
     [else]
     [v.name]Builder.putAll(entries);
@@ -1057,7 +1057,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
-    this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = [requireNonNull type]([v.name]);
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
@@ -1212,7 +1212,7 @@ this.[n] = DEFAULT_VALUE_[toConstant v.name];
   [if v.primitive or v.nullable]
 this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -1247,7 +1247,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
   [else if v.primitive or v.nullable]
     this.[n] = [n];
   [else]
-    this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([n]);
+    this.[n] = [requireNonNull type]([n]);
   [/if]
 [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
@@ -1283,7 +1283,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
       [else if v.nullable]
         : [invokeSuper v].[v.names.get]();
       [else]
-        : [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+        : [requireNonNull type]([invokeSuper v].[v.names.get]());
       [/if]
   [/if]
 [/if]
@@ -1317,7 +1317,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
   [if v.primitive or v.nullable]
 this.[v.name] = [invokeSuper v].[v.names.get]();
    [else]
-this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[v.name] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/for]
 [/template]
@@ -1723,7 +1723,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
   if (this.[v.name] == optional) {
     return this;
   }
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](optional);
+  [immutableImplementationType v] newValue = [requireNonNull type](optional);
   [generateReturnCopyContextual type v]
 }
     [else if v.mapType]
@@ -1767,7 +1767,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
     [if v.nullable or v.primitive]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
     [else]
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](value);
+  [immutableImplementationType v] newValue = [requireNonNull type](value);
     [/if]
   [generateReturnCopyContextual type v]
 }
@@ -2022,6 +2022,8 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
+[template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
+
 [template objectsUtility Type type]
 [for Boolean haveObjects = classpath.available 'java.util.Objects',
      Boolean haveAndroid = classpath.available 'android.R']
@@ -2065,7 +2067,7 @@ private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> i
       : new java.util.ArrayList<T>();
 
   for (T element : iterable) {
-    list.add([objectsUtilRef type]requireNonNull(element, "Null in collection attribute is not allowed"));
+    list.add([requireNonNull type](element, "Null in collection attribute is not allowed"));
   }
   return list;
 }
@@ -2140,8 +2142,8 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
   linkedMap.putAll(map);
   if (checkNulls) {
     for (java.util.Map.Entry<K, V> e : linkedMap.entrySet()) {
-      [objectsUtilRef type]requireNonNull(e.getKey(), "Null key are not allowed in map");
-      [objectsUtilRef type]requireNonNull(e.getValue(), "Null values are not allowed in map");
+      [requireNonNull type](e.getKey(), "Null key are not allowed in map");
+      [requireNonNull type](e.getValue(), "Null values are not allowed in map");
     }
   }
   switch (linkedMap.size()) {
@@ -2159,7 +2161,7 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
   java.util.EnumMap<K, V> enumMap = new java.util.EnumMap<K, V>(map);
   if (checkNulls) {
     for (V value : enumMap.values()) {
-      [objectsUtilRef type]requireNonNull(value, "Null values are not allowed in map");
+      [requireNonNull type](value, "Null values are not allowed in map");
     }
   }
   return java.util.Collections.unmodifiableMap(enumMap);
@@ -2181,8 +2183,8 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
   sortedMap.putAll(map);
   if (checkNulls) {
     for (java.util.Map.Entry<K, V> e : sortedMap.entrySet()) {
-      [objectsUtilRef type]requireNonNull(e.getKey(), "Null key are not allowed in map");
-      [objectsUtilRef type]requireNonNull(e.getValue(), "Null values are not allowed in map");
+      [requireNonNull type](e.getKey(), "Null key are not allowed in map");
+      [requireNonNull type](e.getValue(), "Null values are not allowed in map");
     }
   }
   return java.util.Collections.unmodifiable[unmodifiableSortedMapInterface](sortedMap);
@@ -2256,6 +2258,8 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [template builderReturnThis Type type]
 return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [/template]
+
+
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
 
