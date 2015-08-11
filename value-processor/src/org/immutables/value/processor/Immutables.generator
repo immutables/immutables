@@ -644,20 +644,17 @@ private Object writeReplace() {
 [/if]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple] [if type.innerBuilder.isSuper]
     [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].[type.innerBuilder.simpleName] {[else]{[/if]
-  [for l in positions.longs]
-  private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
-  [/for]
   [for m in mandatories, BitPosition pos = positions m]
-  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+  private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
-  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
+  private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
-  private long initializedBitset[emptyIfZero l.index];
+  private long initBits[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
-  private long nondefaultBitset[emptyIfZero l.index];
+  private long optBits[emptyIfZero l.index];
   [/for]
   [for v in setters]
   [defineOrResetBuildingField v true]
@@ -771,9 +768,11 @@ private Object writeReplace() {
 
   /**
    * Fill builder with attribute values from provided {@link [type.typeAbstract.relative]} instance.
-   * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
-   * Instance's absent optional values will not be copied (will not override current).
+   * Regular attribute values will be replaced with ones of an instance.
+   * Instance's absent optional values will not replace present values.
+  [if type.hasSettableCollection or type.hasSettableMapping]
    * Collection elements and entries will be added, not replaced.
+  [/if]
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
@@ -788,19 +787,19 @@ private Object writeReplace() {
 [-- Being called from builder initializer methods --]
 [let checkNotIsSet Attribute v]
 [if v.containingType.useStrictBuilder]
-checkNotIsSet([v.name]IsSet(), "[v.name]");
+checkNotIsSet([v.names.isSet](), "[v.name]");
 [/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let nondefaultSetInBuilder Attribute v]
 [if v.requiresTrackIsSet][for BitPosition pos = nondefaultsPositions v]
-nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+optBits[emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let mandatorySetInBuilder Attribute v]
 [if v.mandatory][for BitPosition pos = positions v]
-initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
   [for v in setters]
@@ -1086,14 +1085,14 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   }
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
-  private boolean [p.name]IsSet() {
-    return (nondefaultBitset[emptyIfZero pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
+  private boolean [p.names.isSet]() {
+    return (optBits[emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
 
-  private boolean [m.name]IsSet() {
-    return (initializedBitset[emptyIfZero pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
+  private boolean [m.names.isSet]() {
+    return (initBits[emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
@@ -1108,7 +1107,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
-        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
+        | [/if]initBits[emptyIfZero l.index] != 0[/for]) {
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }
@@ -1116,7 +1115,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   private String formatRequiredAttributesMessage() {
     java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
-    if (![m.name]IsSet()) {
+    if (![m.names.isSet]()) {
       attributes.add("[m.name]");
     }
     [/for]
@@ -1966,7 +1965,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template arrayAsList Attribute a String expression][output.trim]
+[template public arrayAsList Attribute a String expression][output.trim]
 [if a.unwrappedElementPrimitiveType]
   [if a.generateJdkOnly]
     [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
@@ -1978,7 +1977,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template arrayAsListSecondary Attribute a String expression][output.trim]
+[template public arrayAsListSecondary Attribute a String expression][output.trim]
 [if a.unwrappedSecondaryElementPrimitiveType]
   [if a.generateJdkOnly]
     [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
@@ -2012,7 +2011,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template objectsUtilRef Type type][output.trim]
+[template public objectsUtilRef Type type][output.trim]
 [if classpath.unavailable 'java.util.Objects']
   [type.topSimple].
 [else if classpath.available 'android.R']
@@ -2022,9 +2021,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
-
-[template objectsUtility Type type]
+[template public objectsUtility Type type]
 [for Boolean haveObjects = classpath.available 'java.util.Objects',
      Boolean haveAndroid = classpath.available 'android.R']
   [if haveAndroid or (not haveObjects)]
@@ -2058,7 +2055,7 @@ private static boolean equals(Object left, Object right) {
 [/for]
 [/template]
 
-[template collectionUtility Type type]
+[template public collectionUtility Type type]
 [if type.useListUtility or (type.useSetUtility or (type.useEnumSetUtility or type.useSortedSetUtility))]
 
 private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> iterable) {
@@ -2259,7 +2256,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [/template]
 
-
+[template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
 
