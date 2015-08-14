@@ -886,11 +886,29 @@ public final class ValueType extends TypeIntrospectionBase {
     return generateBuilderFrom;
   }
 
+  public boolean isGenerateFilledFrom() {
+    return kind().isModifiable() && noAttributeSetterIsNamedAsFrom();
+  }
+
   private boolean noAttributeInitializerIsNamedAsFrom() {
     for (ValueAttribute a : getSettableAttributes()) {
       if (a.names.init.equals(names().from)) {
         a.report().warning(
             "Attribute initializer named '%s' clashes with special builder method, "
+                + "which will not be generated to not have ambiguous overload or conflict",
+            names().from);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Used for modifiable
+  private boolean noAttributeSetterIsNamedAsFrom() {
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.names.set().equals(names().from)) {
+        a.report().warning(
+            "Attribute setter named '%s' clashes with special builder method, "
                 + "which will not be generated to not have ambiguous overload or conflict",
             names().from);
         return false;
@@ -920,9 +938,8 @@ public final class ValueType extends TypeIntrospectionBase {
   @Nullable
   private FromSupertypesModel buildFromTypes;
 
-  @Nullable
   public FromSupertypesModel getBuildFromTypes() {
-    if (buildFromTypes == null && !isUseStrictBuilder()) {
+    if (buildFromTypes == null) {
       buildFromTypes = new FromSupertypesModel(typeAbstract().toString(), getSettableAttributes());
     }
     return buildFromTypes;

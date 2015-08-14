@@ -73,6 +73,7 @@ public final class Styles {
     Naming put = Naming.from(style.put());
     Naming putAll = Naming.from(style.putAll());
 
+    Naming isInitialized = Naming.from(style.isInitialized());
     Naming isSet = Naming.from(style.isSet());
     Naming unset = Naming.from(style.unset());
     Naming set = Naming.from(style.set());
@@ -130,8 +131,6 @@ public final class Styles {
       public final String raw = detectRawFromAbstract();
       public final String typeAbstract = name;
       public final String typeImmutable = scheme.typeImmutable.apply(raw);
-      public final String typeImmutableEnclosing = scheme.typeImmutableEnclosing.apply(raw);
-      public final String typeImmutableNested = scheme.typeImmutableNested.apply(raw);
       public final String of = scheme.of.apply(raw);
       public final String instance = scheme.instance.apply(raw);
       // Builder template is being applied programatically in Constitution class
@@ -140,12 +139,20 @@ public final class Styles {
       public final String from = scheme.from.apply(raw);
       public final String build = scheme.build.apply(raw);
 
+      public final String typeImmutableEnclosing() {
+        return scheme.typeImmutableEnclosing.apply(raw);
+      }
+
+      public final String typeImmutableNested() {
+        return scheme.typeImmutableNested.apply(raw);
+      }
+
       public final String builder() {
         return scheme.builder.apply(raw);
       }
 
-      public final String typeModifiable() {
-        return scheme.typeModifiable.apply(raw);
+      public final String isInitialized() {
+        return scheme.isInitialized.apply(raw);
       }
 
       public final String create() {
@@ -158,6 +165,10 @@ public final class Styles {
 
       public final String toImmutable() {
         return scheme.toImmutable.apply(raw);
+      }
+
+      public final String typeModifiable() {
+        return scheme.typeModifiable.apply(raw);
       }
 
       String rawFromAbstract(String abstractName) {

@@ -77,6 +77,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private boolean generateOrdinalValueSet;
   private TypeMirror arrayComponent;
+
   @Nullable
   private NullabilityAnnotationInfo nullability;
 

@@ -184,10 +184,12 @@ public class PostprocessingMachineTest {
             "  private class Utils {}",
             "}"));
 
+    // Maybe this will end up wrong way, but following test was rewritten to still
+    // cut current package even in presense inner class Utils.
     check(rewrited).hasToString(
         LINES.join("package start;",
             "",
-            "class Throwable extends start.Utils {",
+            "class Throwable extends Utils {",
             "  private class Utils {}",
             "}"));
   }

@@ -15,20 +15,13 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.ModifiableMirror;
 import com.google.common.collect.Multimap;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
-import org.immutables.value.processor.meta.EnclosingMirror;
-import org.immutables.value.processor.meta.FactoryMirror;
-import org.immutables.value.processor.meta.ImmutableMirror;
-import org.immutables.value.processor.meta.ImmutableRound;
-import org.immutables.value.processor.meta.IncludeMirror;
+import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.Round;
-import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.ValueUmbrellaMirror;
+
+import javax.annotation.processing.SupportedAnnotationTypes;
 
 @Metainf.Service
 @SupportedAnnotationTypes({

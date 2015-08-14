@@ -3,7 +3,6 @@
     [if type.constitution.hasTopLevelImmutable]
 [-- Top level immutable type --]
 [output.java type.package type.typeImmutable.simple]
-[type.sourceHeader]
 [generateImmutable type true]
 [/output.java]
     [/if]
@@ -38,6 +37,7 @@
 
 [template packageWhenTopLevel Type type Boolean is]
 [if is]
+[type.sourceHeader]
   [if type.package]
 package [type.package];
   [/if]
@@ -431,9 +431,7 @@ private Object writeReplace() {
 
     @Override
     public String toString() {
-      if (this == INSTANCE) {
-        return "[type.typeImmutable.simple].Domain.get()";
-      }
+      if (this == INSTANCE) return "[type.typeImmutable.simple].Domain.get()";
       return [type.typeMoreObjects].toStringHelper("[type.typeImmutable.simple].Domain")
           .add("length", length())
           .toString();
@@ -656,6 +654,9 @@ private Object writeReplace() {
   [for l in nondefaultsPositions.longs]
   private long optBits[emptyIfZero l.index];
   [/for]
+  [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
+
+  [/if]
   [for v in setters]
   [defineOrResetBuildingField v true]
   [/for]
@@ -1098,26 +1099,22 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
 
   private void checkNotIsSet(boolean isSet, String name) {
-    if (isSet) {
-      throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
-    }
+    if (isSet) throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
   }
   [/if]
   [if positions.longs]
 
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
-        | [/if]initBits[emptyIfZero l.index] != 0[/for]) {
+        || [/if]initBits[emptyIfZero l.index] != 0[/for]) {
       throw new IllegalStateException(formatRequiredAttributesMessage());
     }
   }
 
   private String formatRequiredAttributesMessage() {
-    java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
+    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
-    if (![m.names.isSet]()) {
-      attributes.add("[m.name]");
-    }
+    if (![m.names.isSet]()) attributes.add("[m.name]");
     [/for]
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
@@ -1439,7 +1436,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/for]
 [deprecation v]
 @Override
-[if v.isPublic]public [/if][immutableImplementationType v] [v.names.get]() {
+[if v.isPublic]public [/if][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]
@@ -1479,8 +1476,9 @@ public boolean equals([atNullable]Object another) {
   [if type.useReferenceEquality]
   return this == another;
   [else]
-  return this == another
-      || (another instanceof [equalToType] && equalTo(([equalToType]) another));
+  if (this == another) return true;
+  return another instanceof [equalToType]
+      && equalTo(([equalToType]) another);
   [/if]
 }
 [/if]
@@ -1580,21 +1578,26 @@ private int [disambiguateAccessor type 'computeHashCode']() {
  */
 @Override
 public String toString() {
-[if type.generateJdkOnly]
-  [-- I first tried with concatenation, but StringBuilder looks prettier. Bytecode is the same though --]
+[if not type.equivalenceAttributes]
   [if type.annotationType]
-  return new StringBuilder("@[type.name](")
+  return "@[type.name]";
   [else]
-  return new StringBuilder("[type.name]{")
+  return "[type.name]{}";
+  [/if]
+[else if type.generateJdkOnly]
+  [if type.annotationType]
+  return "@[type.name]("
+  [else]
+  return "[type.name]{"
   [/if]
   [for v in type.equivalenceAttributes]
   [if v.arrayType]
-      .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
+      + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
   [else]
-      .append("[if not for.first], [/if][v.name]=").append([v.name])
+      + "[if not for.first], [/if][v.name]=" + [v.name]
   [/if]
   [/for]
-      .append([if type.annotationType]')'[else]'}'[/if]).toString();
+      + [if type.annotationType]")"[else]"}"[/if];
 [else]
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
   [for v in type.equivalenceAttributes]
@@ -1627,16 +1630,16 @@ this.domain = Domain.get();
 
 [template generateReturnCopyContextual Type type Attribute modified]
 return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
-        [if type.synthCopyConstructor]this,
-        [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
-        [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+    [if type.synthCopyConstructor]this,
+    [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
+    [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateReturnBuilderConstructed Type type]
 return [validated type true]new [type.typeImmutable.relative]([output.linesShortable]
-        [if type.synthCopyConstructor]null,
-        [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
-        [/if][output.trim]
+    [if type.synthCopyConstructor]null,
+    [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
+    [/if][output.trim]
     [if v.collectionType or v.mapType]
       [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
     [else]
@@ -1692,9 +1695,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElementType]> elements) {
-  if (this.[v.name] == elements) {
-    return this;
-  }
+  if (this.[v.name] == elements) return this;
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
 }
@@ -1719,9 +1720,7 @@ public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.u
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
-  if (this.[v.name] == optional) {
-    return this;
-  }
+  if (this.[v.name] == optional) return this;
   [immutableImplementationType v] newValue = [requireNonNull type](optional);
   [generateReturnCopyContextual type v]
 }
@@ -1737,9 +1736,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
-  if (this.[v.name] == entries) {
-    return this;
-  }
+  if (this.[v.name] == entries) return this;
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'entries'];
   [generateReturnCopyContextual type v]
 }
@@ -1759,9 +1756,7 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
     [if not v.floatType]
-  if (this.[v.name] == value) {
-    return this;
-  }
+  if (this.[v.name] == value) return this;
     [/if]
     [if v.nullable or v.primitive]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
@@ -2027,17 +2022,13 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [if haveAndroid or (not haveObjects)]
 
 private static <T> T requireNonNull(T object) {
-  if (object == null) {
-    throw new NullPointerException();
-  }
+  if (object == null) throw new NullPointerException();
   return object;
 }
     [if type.useCollectionUtility]
 
 private static <T> T requireNonNull(T object, String message) {
-  if (object == null) {
-    throw new NullPointerException(message);
-  }
+  if (object == null) throw new NullPointerException(message);
   return object;
 }
     [/if]

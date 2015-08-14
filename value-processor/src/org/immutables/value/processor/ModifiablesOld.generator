@@ -316,8 +316,11 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * @return immutable instance of [type.name]
    */
   public [type.typeValue] [type.names.toImmutable]() {
-  [if positions.longs]
+  [if positions.longs][-- do this only to fail fast, it's cheap enough --]
     checkRequiredAttributes();
+  [/if]
+  [if ]
+
   [/if]
     return [type.typeImmutable.relative].checkPreconditions(
         new [type.typeImmutable.relative](this));
@@ -410,8 +413,6 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 }
 [/for]
 [/template]
-
-
 
 [template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 

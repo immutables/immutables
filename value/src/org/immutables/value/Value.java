@@ -317,6 +317,8 @@ public @interface Value {
    * <em>Note: unlike {@literal @}{@link Immutable}, this annotation has very little of additional "magic"
    * and customisations implemented. Annotation like {@link Include}, {@link Enclosing}, {@link Lazy} do not work with
    * modifiable implementation</em>
+   * <p>
+   * <em>This is beta functionality that is likely to change</em>
    */
   @Documented
   @Target(ElementType.TYPE)
@@ -448,6 +450,13 @@ public @interface Value {
      * @return naming template
      */
     String build() default "build";
+
+    /**
+     * Method to determine if all required attributes are set.
+     * Default method name choice for this is mostly random.
+     * @return naming template
+     */
+    String isInitialized() default "isInitialized";
 
     /**
      * Method to determine if attribute is set
@@ -644,6 +653,21 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
+     * Set of builder features that are enabled.
+     * <p>
+     * <em>if {@link #strictBuilder()} is enabled, some conflicting(error-inducing) features will be turned
+     * off automatically</em>
+     * @return builder features.
+     */
+    BuilderFeature[] builderFeatures() default {
+        BuilderFeature.FROM,
+        BuilderFeature.RESET,
+        BuilderFeature.ADDPUT,
+        BuilderFeature.ADDPUT_VARARGS,
+        BuilderFeature.ADDPUT_ALL,
+        BuilderFeature.ENTRIES};
+
+    /**
      * Specify whether init and copy methods for an unwrapped {@code X} of {@code Optional<X>}
      * should accept {@code null} values as empty value. By default nulls are rejected in favor of
      * explicit conversion using {@code Optional.ofNullable}. Please note that initializers that
@@ -682,7 +706,7 @@ public @interface Value {
        */
       SAME_NON_RETURNED,
       /**
-       *
+       * Implementation will have package visibility
        */
       PACKAGE,
       /**
@@ -690,6 +714,28 @@ public @interface Value {
        * Builder visibility will follow the umbrella class visibility.
        */
       PRIVATE
+    }
+
+    /**
+     * Set of features available on builders. Helps to
+     */
+    public enum BuilderFeature {
+      /** Expose is-set methods. */
+      IS_SET,
+      /** Copy/merge from methods. */
+      FROM,
+      /** Methods to reset collection and map content. */
+      RESET,
+      /** Varargs/arrays overloads to set collection content. */
+      VARARGS,
+      /** Add/put methods for collections and maps. */
+      ADDPUT,
+      /** Varargs/arrays overloads for add/put methods. */
+      ADDPUT_VARARGS,
+      /** Add-all/put-all methods for individual collection. */
+      ADDPUT_ALL,
+      /** Put entries on map and multimap. */
+      ENTRIES
     }
   }
 }

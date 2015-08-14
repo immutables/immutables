@@ -105,6 +105,8 @@ public final class ValueMirrors {
 
     String build() default "build";
 
+    String isInitialized() default "isInitialized";
+
     String isSet() default "*IsSet";
 
     String set() default "set*";
@@ -147,6 +149,15 @@ public final class ValueMirrors {
 
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
+    BuilderFeature[] builderFeatures() default {
+        BuilderFeature.FROM,
+        BuilderFeature.RESET,
+        BuilderFeature.ADDPUT,
+        BuilderFeature.ADDPUT_VARARGS,
+        BuilderFeature.ADDPUT_ALL,
+        BuilderFeature.ENTRIES
+    };
+
     boolean optionalAcceptNullable() default false;
 
     boolean generateSuppressAllWarnings() default true;
@@ -157,6 +168,17 @@ public final class ValueMirrors {
       SAME_NON_RETURNED,
       PACKAGE,
       PRIVATE
+    }
+
+    public enum BuilderFeature {
+      IS_SET,
+      FROM,
+      RESET,
+      VARARGS,
+      ADDPUT,
+      ADDPUT_VARARGS,
+      ADDPUT_ALL,
+      ENTRIES
     }
   }
 }

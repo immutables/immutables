@@ -90,6 +90,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String isInitialized();
+
+  @Value.Parameter
+  @Override
   public abstract String isSet();
 
   @Value.Parameter
@@ -166,6 +170,13 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   public abstract ImmutableSet<String> passAnnotationsNames();
+
+  @Value.Parameter
+  public abstract ImmutableSet<BuilderFeature> builderFeaturesSet();
+
+  @Value.Parameter
+  @Override
+  public abstract BuilderFeature[] builderFeatures();
 
   @Value.Parameter
   @Override
