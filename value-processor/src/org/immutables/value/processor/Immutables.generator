@@ -1440,7 +1440,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/for]
 [deprecation v]
 @Override
-[if v.isPublic]public [/if][immutableImplementationType v] [v.names.get]() {
+[if v.isPublic]public [/if][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if v.arrayType]
   return [v.name].clone();
 [else]
