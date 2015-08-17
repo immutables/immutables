@@ -131,6 +131,8 @@ public final class ValueMirrors {
 
     Class<? extends Annotation>[] passAnnotations() default {};
 
+    Class<? extends Annotation>[] additionalJsonAnnotations() default {};
+
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     boolean optionalAcceptNullable() default false;

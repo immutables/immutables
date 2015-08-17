@@ -285,7 +285,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<CharSequence> passedAnnotations() {
     return Annotations.getAnnotationLines(
         element,
-        constitution.protoclass().styles().style().passAnnotationsNames(),
+        Sets.union(constitution.protoclass().styles().style().passAnnotationsNames(), constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
         false,
         ElementType.TYPE);
   }

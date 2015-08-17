@@ -198,16 +198,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   * 
+   *
    *   public abstract List&lt;Item&gt; items();
-   * 
+   *
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   * 
+   *
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   * 
+   *
    *     return cost;
    *   }
    * }
@@ -514,7 +514,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     * 
+     *
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -522,7 +522,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     * 
+     *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -549,7 +549,7 @@ public @interface Value {
 
     /**
      * List type of annotations to copy over from abstract value type to immutable implementation
-     * class. Very often this functionality is not needed when annoatations are declared as
+     * class. Very often this functionality is not needed when annotations are declared as
      * {@link Inherited}, but there are cases where you need to pass specific non-inherited
      * annotations to the implementation class. In general, copying all type-level annotations is
      * not very safe for annotation processing and some other annotation consumers. By default, no
@@ -562,6 +562,12 @@ public @interface Value {
      *         attributes.
      */
     Class<? extends Annotation>[] passAnnotations() default {};
+
+    /**
+     * List of additional annotations to pass through for any jackson json object
+     * @return types of annotations to pass to the json methods on an immutable implemenation class
+     */
+    Class<? extends Annotation>[] additionalJsonAnnotations() default {};
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value

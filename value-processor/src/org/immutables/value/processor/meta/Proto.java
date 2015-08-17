@@ -1051,6 +1051,7 @@ public class Proto {
           input.headerComments(),
           input.jdkOnly(),
           ImmutableSet.copyOf(input.passAnnotationsName()),
+          ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
           input.visibility(),
           input.optionalAcceptNullable(),
           input.generateSuppressAllWarnings());
