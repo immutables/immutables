@@ -140,6 +140,9 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   public abstract ImmutableSet<String> passAnnotationsNames();
 
   @Value.Parameter
+  public abstract ImmutableSet<String> additionalJsonAnnotationsNames();
+
+  @Value.Parameter
   @Override
   public abstract ImplementationVisibility visibility();
 
@@ -154,6 +157,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public Class<? extends Annotation>[] passAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");
+  }
+
+  @Override
+  public Class<? extends Annotation>[] additionalJsonAnnotations() {
+    throw new UnsupportedOperationException("Use StyleInfo.additionalJsonAnnotationsNames() instead");
   }
 
   @Value.Lazy

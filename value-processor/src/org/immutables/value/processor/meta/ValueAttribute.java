@@ -22,8 +22,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import java.lang.annotation.ElementType;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -218,14 +221,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public List<CharSequence> getAnnotations() {
     return Annotations.getAnnotationLines(element,
-        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        Sets.union(containingType.constitution.protoclass().styles().style().passAnnotationsNames(), containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
         false,
         ElementType.METHOD);
   }
 
   public List<CharSequence> getParameterAnnotations() {
     return Annotations.getAnnotationLines(element,
-        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        Sets.union(containingType.constitution.protoclass().styles().style().passAnnotationsNames(), containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
         false,
         ElementType.PARAMETER);
   }
@@ -242,6 +245,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       appendedJsonPropertyAnnotation.add("@" + JsonPropertyMirror.qualifiedName());
     }
 
+    List<CharSequence> additionalJsonAnnotations = Annotations.getAnnotationLines(element,
+        containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames(),
+        false,
+        ElementType.FIELD);
+
     List<CharSequence> allJacksonAnnotations = Annotations.getAnnotationLines(element,
         Collections.<String>emptySet(),
         true,
@@ -249,6 +257,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
     return FluentIterable.from(allJacksonAnnotations)
         .append(appendedJsonPropertyAnnotation)
+        .append(additionalJsonAnnotations)
         .toList();
   }
 
