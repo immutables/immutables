@@ -1201,6 +1201,20 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
+[template generateConstructorNoAttributes Type type Attribute... attributes]
+[for v in attributes, n = v.name]
+[if v.primitive]
+  [if v.boolean]
+this.[n] = false;
+  [else]
+this.[n] = 0;
+  [/if]  
+[else]
+this.[n] = null;
+[/if]
+[/for]
+[/template]
+
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
 this.[n] = [emptyImmutableInstanceInferred type v];
@@ -1230,13 +1244,15 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
   private final int ordinal;
   private final Domain domain;
 [/if]
-[if type.useSingleton]
 
   private [type.typeImmutable.simple]() {[output.collapsible]
+[if type.useSingleton]
     [generateConstructorDefaultAttributes type type.implementedAttributes]
+[else]
+    [generateConstructorNoAttributes type type.implementedAttributes]
+[/if]
     [generateAfterConstruction type false]
   [/output.collapsible]}
-[/if]
 [if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
 
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
