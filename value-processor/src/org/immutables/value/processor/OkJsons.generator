@@ -14,7 +14,7 @@
 [generateAdapters packageName simpleName typeAdaptersName adapters.types]
 [/output.java]
 
-[output.service 'com.squareup.moshi.JsonAdapter.Factory']
+[output.service 'com.squareup.moshi.JsonAdapter$Factory']
 [if packageName][packageName].[/if][typeAdaptersName]
 [/output.service]
 
