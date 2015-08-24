@@ -15,16 +15,19 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+
 import org.immutables.generator.AnnotationMirrors;
+
+import com.google.common.collect.Lists;
 
 final class Annotations {
   private Annotations() {}
@@ -32,6 +35,7 @@ final class Annotations {
   private static final String PREFIX_JAVA_LANG = "java.lang.";
   private static final String PREFIX_IMMUTABLES = "org.immutables.";
   private static final String PREFIX_JACKSON = "com.fasterxml.jackson.annotation.";
+  private static final String PREFIX_JACKSON_DATABIND = "com.fasterxml.jackson.databind.annotation.";
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
@@ -72,7 +76,7 @@ final class Annotations {
     }
 
     if (includeJacksonAnnotations
-        && qualifiedName.startsWith(PREFIX_JACKSON)) {
+        && (qualifiedName.startsWith(PREFIX_JACKSON) || qualifiedName.startsWith(PREFIX_JACKSON_DATABIND))) {
       return true;
     }
 
