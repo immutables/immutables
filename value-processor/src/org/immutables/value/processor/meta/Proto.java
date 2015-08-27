@@ -1054,7 +1054,8 @@ public class Proto {
           ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
           input.visibility(),
           input.optionalAcceptNullable(),
-          input.generateSuppressAllWarnings());
+          input.generateSuppressAllWarnings(),
+          input.privateNoargConstructor());
     }
   }
 

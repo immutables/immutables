@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 
 import java.lang.annotation.ElementType;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;

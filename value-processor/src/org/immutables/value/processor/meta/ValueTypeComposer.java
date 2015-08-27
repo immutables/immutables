@@ -117,6 +117,7 @@ public final class ValueTypeComposer {
     checkAttributeNamesIllegalCharacters(type);
     checkAttributeNamesForDuplicates(type, protoclass);
     checkConstructability(type);
+    checkStyleConflicts(protoclass);
     return type;
   }
 
@@ -164,7 +165,16 @@ public final class ValueTypeComposer {
       }
     }
   }
-
+  
+  private void checkStyleConflicts(Protoclass protoclass) {
+    if (protoclass.features().prehash()
+        && protoclass.styles().style().privateNoargConstructor()) {
+      protoclass.report()
+          .annotationNamed(ImmutableMirror.simpleName())
+          .warning("'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
+    }
+  }
+  
   private void checkForTypeHierarchy(Protoclass protoclass, ValueType type) {
     scanAndReportInvalidInheritance(protoclass, type.element, type.extendedClasses());
     scanAndReportInvalidInheritance(protoclass, type.element, type.implementedInterfaces());
