@@ -138,6 +138,8 @@ public final class ValueMirrors {
     boolean optionalAcceptNullable() default false;
 
     boolean generateSuppressAllWarnings() default true;
+    
+    boolean privateNoargConstructor() default false;
 
     public enum ImplementationVisibility {
       PUBLIC,

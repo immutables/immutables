@@ -154,6 +154,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean generateSuppressAllWarnings();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean privateNoargConstructor();
+
   @Override
   public Class<? extends Annotation>[] passAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");

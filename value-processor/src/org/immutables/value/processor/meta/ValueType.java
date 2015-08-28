@@ -359,7 +359,8 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUsePrehashed() {
-    return immutableFeatures.prehash();
+    return immutableFeatures.prehash() 
+        && !isGeneratePrivateNoargConstructor();
     // || isUseInterned()
     // || isGenerateOrdinalValue()
   }
@@ -659,6 +660,13 @@ public final class ValueType extends TypeIntrospectionBase {
         .styles()
         .style()
         .strictBuilder();
+  }
+  
+  public boolean isGeneratePrivateNoargConstructor() {
+    return constitution.protoclass()
+        .styles()
+        .style()
+        .privateNoargConstructor();    
   }
 
   public List<ValueAttribute> getImplementedAttributes() {

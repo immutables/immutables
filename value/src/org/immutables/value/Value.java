@@ -68,7 +68,7 @@ public @interface Value {
      * specified parameters. Default is {@literal false}. To access singleton instance use
      * {@code .of()} static accessor method.
      * <p>
-     * This requires that all attributes have default value (includind collections which can be left
+     * This requires that all attributes have default value (including collections which can be left
      * empty). If some required attributes exist it will result in compilation error. Note that in
      * case object do not have attributes, singleton instance will be generated automatically.
      * <p>
@@ -100,6 +100,9 @@ public @interface Value {
      * This could speed up collection lookups for objects with lots of attributes and nested
      * objects.
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
+     * 
+     * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be ignored.
+     * 
      * @return if generate hash code precomputing
      */
     boolean prehash() default false;
@@ -594,6 +597,13 @@ public @interface Value {
      * @return {@code true} if will generate suppress all warnings, enabled by default.
      */
     boolean generateSuppressAllWarnings() default true;
+
+    /**
+     * Generate a default no argument constructor in generated code. Note that this property will 
+     * be ignored if {@link Immutable#singleton()} returns <code>true</code>.
+     * @return {@code true} if will generate a default no argument constructor, disabled by default.
+     */
+    boolean privateNoargConstructor() default false;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
