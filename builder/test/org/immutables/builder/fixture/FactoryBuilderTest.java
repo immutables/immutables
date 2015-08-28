@@ -32,6 +32,11 @@ public class FactoryBuilderTest {
     new SumBuilder().build();
   }
 
+  @Test(expected = Exception.class)
+  public void throwingFactory() throws Exception {
+    new ThrowingBuilder().build();
+  }
+
   @Test
   public void invokesStaticFactory() {
     check(new SumBuilder().a(2).b(3).build()).is(5);

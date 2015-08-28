@@ -629,7 +629,7 @@ private Object writeReplace() {
 [if type.kind.isFactory]
  * [type.typeBuilder.simple] collects parameters and invokes static factory method:
  * {@code [type.factoryOf](..)}.
- * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue.simple]}.
+ * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue]}.
 [else]
  * Builds instances of {@link [type.typeValue] [type.typeValue.simple]}.
  * Initialize attributes and then invoke {@link #[type.names.build]()} method to create
@@ -1067,10 +1067,16 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/for]
 
   /**
+  [if type.kind.isFactory]
+   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
+   * @return result of type {@code [type.typeValue]}
+  [else]
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
+  [/if]
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]() {
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()[if type.throwing]
+      throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
   [if positions.longs]
     checkRequiredAttributes();
   [/if]

@@ -983,6 +983,8 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public Serialization serial = Serialization.NONE;
 
+  public ImmutableList<String> throwing = ImmutableList.of();
+
   public enum Serialization {
     NONE, STRUCTURAL, STRUCTURAL_IMPLEMENTS, IMPLEMENTS, SERIAL_VERSION;
 

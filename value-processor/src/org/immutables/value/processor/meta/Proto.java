@@ -519,12 +519,11 @@ public class Proto {
           || element.getReturnType().getKind() == TypeKind.VOID
           || element.getModifiers().contains(Modifier.PRIVATE)
           || !element.getModifiers().contains(Modifier.STATIC)
-          || !element.getThrownTypes().isEmpty()
           || !element.getTypeParameters().isEmpty()) {
         report().withElement(element)
             .annotationNamed(FactoryMirror.simpleName())
             .error("@%s method '%s' should be static, non-private, non-void"
-                + " with no type parameters or throws declaration, and enclosed in top level type",
+                + " with no type parameters and enclosed in top level type",
                 FactoryMirror.simpleName(),
                 element.getSimpleName());
         return false;

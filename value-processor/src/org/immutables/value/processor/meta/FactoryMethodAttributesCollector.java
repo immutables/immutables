@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Functions;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
 import javax.lang.model.element.ExecutableElement;
@@ -60,5 +63,12 @@ final class FactoryMethodAttributesCollector {
     }
 
     type.attributes.addAll(attributes);
+    type.throwing = extractThrowsClause(factoryMethodElement);
+  }
+
+  private static ImmutableList<String> extractThrowsClause(ExecutableElement factoryMethodElement) {
+    return FluentIterable.from(factoryMethodElement.getThrownTypes())
+        .transform(Functions.toStringFunction())
+        .toList();
   }
 }

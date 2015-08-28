@@ -31,6 +31,12 @@ class FactoryParameters {
   public static String factory2(@Builder.Parameter int theory, @Builder.Parameter String reality) {
     return theory + " != " + reality;
   }
+
+  @SuppressWarnings("unused")
+  @Builder.Factory
+  public static String throwing() throws Exception, Error {
+    throw new Exception();
+  }
 }
 
 @Value.Style(newBuilder = "newBuilder")
