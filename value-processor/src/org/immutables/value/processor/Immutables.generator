@@ -627,7 +627,7 @@ private Object writeReplace() {
 
 /**
 [if type.kind.isFactory]
- * [type.typeBuilder.simple] collects parameters and invokes static factory method:
+ * {@code [type.typeBuilderImpl.simple]} collects parameters and invokes static factory method:
  * {@code [type.factoryOf](..)}.
  * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue]}.
 [else]
@@ -635,7 +635,7 @@ private Object writeReplace() {
  * Initialize attributes and then invoke {@link #[type.names.build]()} method to create
  * immutable instance.
 [/if]
- * <p><em>[type.typeBuilderImpl.simple] is not thread safe and generally should not be stored in field or collection,
+ * <p><em>{@code [type.typeBuilderImpl.simple]} is not thread safe and generally should not be stored in field or collection,
  * but used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
