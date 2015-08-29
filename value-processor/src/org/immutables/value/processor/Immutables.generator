@@ -26,7 +26,11 @@
 
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
-[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if type.generateSuppressAllWarnings]
+@SuppressWarnings([if type.hasDeprecatedAttributes]{"all", "deprecation"}[else]"all"[/if])
+[else if type.hasDeprecatedAttributes]
+@SuppressWarnings("deprecation")
+[/if]
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
@@ -570,13 +574,11 @@ private Object writeReplace() {
 [/template]
 
 [template generateLazyValues Type type]
-[for lz = type.lazyAttributes,
-  Boolean atGuarded = classpath.available 'javax.annotation.concurrent.GuardedBy']
+[for lz = type.lazyAttributes]
   [if lz]
 
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
-  [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
   private [if type.serial.simple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
@@ -585,7 +587,6 @@ private Object writeReplace() {
 
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
-  [if atGuarded]@javax.annotation.concurrent.GuardedBy("this")[/if]
   private [if type.serial.simple]transient [/if][l.type] [l.name];
 
   /**
@@ -1368,6 +1369,7 @@ this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[els
  * Simple representation of this value type suitable Jackson binding
  * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
  */
+@Deprecated
 static final class Json {
 [for v in type.implementedAttributes]
   [for a in v.jacksonFieldsAnnotations]
