@@ -1078,8 +1078,24 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    */
   public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()[if type.throwing]
       throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
+    return [type.names.build](null);
+  }
+
+  /**
+  [if type.kind.isFactory]
+   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
+   * @param exceptionFunction if there is a failure, throw this exception instead of the default
+   * @return result of type {@code [type.typeValue]}
+  [else]
+   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
+   * @param exceptionFunction method to create a new RuntimeException with a given message
+   * @return immutable instance of [type.name]
+  [/if]
+   */
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]([functionClass]<String, ? extends RuntimeException> exceptionFunction)[if type.throwing]
+      throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
   [if positions.longs]
-    checkRequiredAttributes();
+    checkRequiredAttributes(exceptionFunction);
   [/if]
   [if type.kind.isFactory]
     [returnFactoryBuild type]
@@ -1113,10 +1129,14 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if positions.longs]
 
-  private void checkRequiredAttributes() {
+  private void checkRequiredAttributes([functionClass]<String, ? extends RuntimeException> exceptionFunction) {
     if ([for l in positions.longs][if not for.first]
         | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
-      throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
+      if (exceptionFunction != null) {
+        throw exceptionFunction.apply(formatRequiredAttributesMessage());
+      } else {
+        throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
+      }
     }
   }
 
@@ -2314,3 +2334,5 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
+
+[template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
