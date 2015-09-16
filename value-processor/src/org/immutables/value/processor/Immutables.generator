@@ -1107,7 +1107,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   private void checkNotIsSet(boolean isSet, String name) {
     if (isSet) {
-      throw new [type.throwForInvalidImmutableState]("Builder of [type.name] is strict, attribute is already set: ".concat(name));
+      throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
     }
   }
   [/if]
