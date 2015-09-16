@@ -138,8 +138,10 @@ public final class ValueMirrors {
     boolean optionalAcceptNullable() default false;
 
     boolean generateSuppressAllWarnings() default true;
-    
+
     boolean privateNoargConstructor() default false;
+
+    Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {
       PUBLIC,

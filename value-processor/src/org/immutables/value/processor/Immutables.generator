@@ -339,7 +339,7 @@ private static class SerialForm implements java.io.Serializable {
       if (elements.length == 1) {
         return elements['[0]'];
       }
-      throw new IllegalStateException("Cannot decide scalar value for attribute '"
+      throw new [type.throwForInvalidImmutableState]("Cannot decide scalar value for attribute '"
           + attribute + "' from array of length " + elements.length);
     }
     return value;
@@ -1107,7 +1107,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   private void checkNotIsSet(boolean isSet, String name) {
     if (isSet) {
-      throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
+      throw new [type.throwForInvalidImmutableState]("Builder of [type.name] is strict, attribute is already set: ".concat(name));
     }
   }
   [/if]
@@ -1116,7 +1116,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   private void checkRequiredAttributes() {
     if ([for l in positions.longs][if not for.first]
         | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
-      throw new IllegalStateException(formatRequiredAttributesMessage());
+      throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
     }
   }
 
@@ -1215,7 +1215,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 this.[n] = false;
   [else]
 this.[n] = 0;
-  [/if]  
+  [/if]
 [else]
 this.[n] = null;
 [/if]

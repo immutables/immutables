@@ -100,9 +100,9 @@ public @interface Value {
      * This could speed up collection lookups for objects with lots of attributes and nested
      * objects.
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
-     * 
+     *
      * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be ignored.
-     * 
+     *
      * @return if generate hash code precomputing
      */
     boolean prehash() default false;
@@ -599,11 +599,17 @@ public @interface Value {
     boolean generateSuppressAllWarnings() default true;
 
     /**
-     * Generate a default no argument constructor in generated code. Note that this property will 
+     * Generate a default no argument constructor in generated code. Note that this property will
      * be ignored if {@link Immutable#singleton()} returns <code>true</code>.
      * @return {@code true} if will generate a default no argument constructor, disabled by default.
      */
     boolean privateNoargConstructor() default false;
+
+    /**
+     * Exception to throw when an immutable object is in an invalid state.  The Throwable must have
+     * a constructor that takes a single string
+     */
+    Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
