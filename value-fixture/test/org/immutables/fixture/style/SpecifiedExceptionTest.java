@@ -9,11 +9,4 @@ public class SpecifiedExceptionTest {
   public void missingAttributesCheck() {
     ImmutableSpecifiedException.builder().build();
   }
-
-  @Test(expected = SampleRuntimeException.class)
-  public void doubleSetTest() {
-    ImmutableSpecifiedException.Builder builder = ImmutableSpecifiedException.builder();
-    builder.someRequiredInteger(1);
-    builder.someRequiredInteger(2);
-  }
 }
