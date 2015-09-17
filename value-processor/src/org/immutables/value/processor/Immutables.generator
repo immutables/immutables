@@ -339,7 +339,7 @@ private static class SerialForm implements java.io.Serializable {
       if (elements.length == 1) {
         return elements['[0]'];
       }
-      throw new IllegalStateException("Cannot decide scalar value for attribute '"
+      throw new [type.throwForInvalidImmutableState]("Cannot decide scalar value for attribute '"
           + attribute + "' from array of length " + elements.length);
     }
     return value;
@@ -1075,22 +1075,29 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
   [/if]
+   * @throws exception {@code [type.throwForInvalidImmutableState]} if any required attributes are missing
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()[if type.throwing]
-      throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
-  [if positions.longs]
-    checkRequiredAttributes();
-  [/if]
-  [if type.kind.isFactory]
-    [returnFactoryBuild type]
-  [else if type.useSingleton and (not type.settableAttributes)]
-    return [type.factoryInstance.relative]();
-  [else if type.generateBuilderUseCopyConstructor]
-    [generateReturnBuilderConstructed type]
-  [else]
-    return [validated type true]new [type.typeImmutable.relative](this)[/validated];
-  [/if]
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()
+      throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
+    [builderBody positions type]checkRequiredAttributes()[/builderBody]
   }
+  [if classpath.isJava8 or (not type.generateJdkOnly)]
+
+  /**
+  [if type.kind.isFactory]
+   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
+   * @return result of type {@code [type.typeValue]}
+  [else]
+   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return immutable instance of [type.name]
+  [/if]
+   * @throws the supplied exception {@code T} if any required attributes are missing
+   */
+  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]OrThrow([functionClass]<String, T> exceptionSupplier)
+      throws T[for t in type.throwing], [t][/for] {
+    [builderBody positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builderBody]
+  }
+  [/if]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   private boolean [p.name]IsSet() {
@@ -1113,13 +1120,16 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if positions.longs]
 
-  private void checkRequiredAttributes() {
-    if ([for l in positions.longs][if not for.first]
-        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
-      throw new IllegalStateException(formatRequiredAttributesMessage());
-    }
+  private void checkRequiredAttributes() throws [type.throwForInvalidImmutableState] {
+    [checkRequiredOrThrow positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
   }
 
+  [if classpath.isJava8 or (not type.generateJdkOnly)]
+  private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
+    [checkRequiredOrThrow positions]exceptionSupplier.apply[/checkRequiredOrThrow]
+  }
+
+  [/if]
   private String formatRequiredAttributesMessage() {
     java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
@@ -1142,6 +1152,28 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 }
 [/for]
 [/template]
+
+[template builderBody LongPositions positions Type type String attributeChecker][output.linesShortable]
+[if positions.longs]
+[attributeChecker];
+[/if]
+[if type.kind.isFactory]
+[returnFactoryBuild type]
+[else if type.useSingleton and (not type.settableAttributes)]
+return [type.factoryInstance.relative]();
+[else if type.generateBuilderUseCopyConstructor]
+[generateReturnBuilderConstructed type]
+[else]
+return [validated type true]new [type.typeImmutable.relative](this)[/validated];
+[/if]
+[/output.linesShortable][/template]
+
+[template checkRequiredOrThrow LongPositions positions String throwSupplier][output.linesShortable]
+if ([for l in positions.longs][if not for.first]
+    | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
+  throw [throwSupplier](formatRequiredAttributesMessage());
+}
+[/output.linesShortable][/template]
 
 [template buildFromAttributes Attribute... setters]
 [for v in setters]
@@ -1215,7 +1247,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 this.[n] = false;
   [else]
 this.[n] = 0;
-  [/if]  
+  [/if]
 [else]
 this.[n] = null;
 [/if]
@@ -2314,3 +2346,5 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
+
+[template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]

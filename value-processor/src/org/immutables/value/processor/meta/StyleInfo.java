@@ -15,9 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.Annotation;
+
 import org.immutables.value.Value;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * We copy styles to StyleInfo to safely cache styles between rounds etc and prevent any memory
@@ -167,6 +169,14 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   public Class<? extends Annotation>[] additionalJsonAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.additionalJsonAnnotationsNames() instead");
   }
+
+  @Override
+  public Class<? extends Exception> throwForInvalidImmutableState() {
+    throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
+  };
+
+  @Value.Parameter
+  public abstract String throwForInvalidImmutableStateName();
 
   @Value.Lazy
   public Styles getStyles() {

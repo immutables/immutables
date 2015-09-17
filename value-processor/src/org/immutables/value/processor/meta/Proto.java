@@ -1054,7 +1054,8 @@ public class Proto {
           input.visibility(),
           input.optionalAcceptNullable(),
           input.generateSuppressAllWarnings(),
-          input.privateNoargConstructor());
+          input.privateNoargConstructor(),
+          input.throwForInvalidImmutableStateName());
     }
   }
 

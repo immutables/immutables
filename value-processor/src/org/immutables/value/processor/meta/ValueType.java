@@ -661,12 +661,19 @@ public final class ValueType extends TypeIntrospectionBase {
         .style()
         .strictBuilder();
   }
-  
+
   public boolean isGeneratePrivateNoargConstructor() {
     return constitution.protoclass()
         .styles()
         .style()
         .privateNoargConstructor();
+  }
+
+  public String getThrowForInvalidImmutableState() {
+    return constitution.protoclass()
+        .styles()
+        .style()
+        .throwForInvalidImmutableStateName();
   }
 
   public List<ValueAttribute> getImplementedAttributes() {
