@@ -1079,7 +1079,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    */
   public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
-    [builder positions type]checkRequiredAttributes()[/builder]
+    [builderBody positions type]checkRequiredAttributes()[/builderBody]
   }
 
   /**
@@ -1094,7 +1094,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    */
   public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]OrThrow([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {
-    [builder positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builder]
+    [builderBody positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builderBody]
   }
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
@@ -1149,7 +1149,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 [/for]
 [/template]
 
-[template builder LongPositions positions Type type String attributeChecker][output.linesShortable]
+[template builderBody LongPositions positions Type type String attributeChecker][output.linesShortable]
 [if positions.longs]
 [attributeChecker];
 [/if]
