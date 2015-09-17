@@ -171,7 +171,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   }
 
   @Override
-  public Class<? extends RuntimeException> throwForInvalidImmutableState() {
+  public Class<? extends Exception> throwForInvalidImmutableState() {
     throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
   };
 

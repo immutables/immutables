@@ -609,7 +609,7 @@ public @interface Value {
      * Exception to throw when an immutable object is in an invalid state.  The Throwable must have
      * a constructor that takes a single string
      */
-    Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
+    Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
