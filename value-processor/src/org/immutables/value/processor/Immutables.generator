@@ -1081,6 +1081,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
     [builderBody positions type]checkRequiredAttributes()[/builderBody]
   }
+  [if classpath.isJava8 or (not type.generateJdkOnly)]
 
   /**
   [if type.kind.isFactory]
@@ -1096,6 +1097,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       throws T[for t in type.throwing], [t][/for] {
     [builderBody positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builderBody]
   }
+  [/if]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   private boolean [p.name]IsSet() {
@@ -1122,10 +1124,12 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [checkRequiredOrThrow positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
   }
 
+  [if classpath.isJava8 or (not type.generateJdkOnly)]
   private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
     [checkRequiredOrThrow positions]exceptionSupplier.apply[/checkRequiredOrThrow]
   }
 
+  [/if]
   private String formatRequiredAttributesMessage() {
     java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
