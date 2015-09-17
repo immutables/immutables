@@ -12,6 +12,6 @@ public class SpecifiedExceptionTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void itThrowsSpecifiedExceptionOnBuild() {
-    ImmutableSpecifiedException.builder().build(IllegalArgumentException::new);
+    ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new);
   }
 }

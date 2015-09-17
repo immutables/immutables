@@ -1075,37 +1075,26 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
   [/if]
+   * @throws exception {@code [type.throwForInvalidImmutableState]} if any required attributes are missing
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()[if type.throwing]
-      throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
-    return [type.names.build](null);
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()
+      throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
+    [builder positions type]checkRequiredAttributes()[/builder]
   }
 
   /**
   [if type.kind.isFactory]
    * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
-   * @param exceptionFunction if there is a failure, throw this exception instead of the default
    * @return result of type {@code [type.typeValue]}
   [else]
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
-   * @param exceptionFunction method to create a new RuntimeException with a given message
    * @return immutable instance of [type.name]
   [/if]
+   * @throws the supplied exception {@code T} if any required attributes are missing
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]([functionClass]<String, ? extends RuntimeException> exceptionFunction)[if type.throwing]
-      throws [for t in type.throwing][if not for.first], [/if][t][/for][/if] {
-  [if positions.longs]
-    checkRequiredAttributes(exceptionFunction);
-  [/if]
-  [if type.kind.isFactory]
-    [returnFactoryBuild type]
-  [else if type.useSingleton and (not type.settableAttributes)]
-    return [type.factoryInstance.relative]();
-  [else if type.generateBuilderUseCopyConstructor]
-    [generateReturnBuilderConstructed type]
-  [else]
-    return [validated type true]new [type.typeImmutable.relative](this)[/validated];
-  [/if]
+  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]OrThrow([functionClass]<String, T> exceptionSupplier)
+      throws T[for t in type.throwing], [t][/for] {
+    [builder positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builder]
   }
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
@@ -1129,15 +1118,12 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [if positions.longs]
 
-  private void checkRequiredAttributes([functionClass]<String, ? extends RuntimeException> exceptionFunction) {
-    if ([for l in positions.longs][if not for.first]
-        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
-      if (exceptionFunction != null) {
-        throw exceptionFunction.apply(formatRequiredAttributesMessage());
-      } else {
-        throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
-      }
-    }
+  private void checkRequiredAttributes() throws [type.throwForInvalidImmutableState] {
+    [checkRequiredOrThrow positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
+  }
+
+  private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
+    [checkRequiredOrThrow positions]exceptionSupplier.apply[/checkRequiredOrThrow]
   }
 
   private String formatRequiredAttributesMessage() {
@@ -1162,6 +1148,28 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 }
 [/for]
 [/template]
+
+[template builder LongPositions positions Type type String attributeChecker][output.linesShortable]
+[if positions.longs]
+[attributeChecker];
+[/if]
+[if type.kind.isFactory]
+[returnFactoryBuild type]
+[else if type.useSingleton and (not type.settableAttributes)]
+return [type.factoryInstance.relative]();
+[else if type.generateBuilderUseCopyConstructor]
+[generateReturnBuilderConstructed type]
+[else]
+return [validated type true]new [type.typeImmutable.relative](this)[/validated];
+[/if]
+[/output.linesShortable][/template]
+
+[template checkRequiredOrThrow LongPositions positions String throwSupplier][output.linesShortable]
+if ([for l in positions.longs][if not for.first]
+    | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
+  throw [throwSupplier](formatRequiredAttributesMessage());
+}
+[/output.linesShortable][/template]
 
 [template buildFromAttributes Attribute... setters]
 [for v in setters]
