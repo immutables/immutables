@@ -149,15 +149,6 @@ public final class ValueMirrors {
 
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
-    BuilderFeature[] builderFeatures() default {
-        BuilderFeature.FROM,
-        BuilderFeature.RESET,
-        BuilderFeature.ADDPUT,
-        BuilderFeature.ADDPUT_VARARGS,
-        BuilderFeature.ADDPUT_ALL,
-        BuilderFeature.ENTRIES
-    };
-
     boolean optionalAcceptNullable() default false;
 
     boolean generateSuppressAllWarnings() default true;
@@ -169,15 +160,56 @@ public final class ValueMirrors {
       PACKAGE,
       PRIVATE
     }
+  }
 
+	/*
+	@Value.Parameter
+	public abstract ImmutableSet<BuilderFeature> builderFeaturesSet();
+
+	@Value.Parameter
+	@Override
+	public abstract BuilderFeature[] builderFeatures();
+
+	Sets.immutableEnumSet(Arrays.asList(input.builderFeatures())),
+	input.builderFeatures(),
+	 */
+  /** NOTE: this is not implemented yet or ever will, nor exposed to API. */
+  @interface FutureStyleExt {
+    /**
+     * <p>
+     * Set of builder features that are enabled.
+     * <p>
+     * <em>if {@link Style#strictBuilder()} is enabled, some conflicting(error-inducing) features will be turned
+     * off automatically</em>
+     * @return builder features.
+     */
+    BuilderFeature[] builderFeatures() default {
+        BuilderFeature.FROM,
+        BuilderFeature.RESET,
+        BuilderFeature.ADDPUT,
+        BuilderFeature.ADDPUT_VARARGS,
+        BuilderFeature.ADDPUT_ALL,
+        BuilderFeature.ENTRIES};
+
+    /**
+     * Set of features available on builders. Helps to
+     */
     public enum BuilderFeature {
+      /** Expose is-set methods. */
       IS_SET,
+      /** Copy/merge from methods. */
       FROM,
+      /** Methods to reset collection and map content. */
       RESET,
+      /** Varargs/arrays overloads to set collection content. */
       VARARGS,
+      /** Add/put methods for collections and maps. */
       ADDPUT,
+      /** Varargs/arrays overloads for add/put methods. */
       ADDPUT_VARARGS,
+      /** Add-all/put-all methods for individual collection. */
       ADDPUT_ALL,
+      /** Put entries on map and multimap. */
       ENTRIES
     }
   }

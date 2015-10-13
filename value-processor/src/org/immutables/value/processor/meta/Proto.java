@@ -1075,8 +1075,6 @@ public class Proto {
           input.headerComments(),
           input.jdkOnly(),
           ImmutableSet.copyOf(input.passAnnotationsName()),
-          Sets.immutableEnumSet(Arrays.asList(input.builderFeatures())),
-          input.builderFeatures(),
           input.visibility(),
           input.optionalAcceptNullable(),
           input.generateSuppressAllWarnings());
