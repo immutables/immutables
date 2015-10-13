@@ -30,7 +30,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [else]
  * <p>Use {@link #[type.names.create]()} static factory methods to create new instances.
 [/if]
-[if type.kind.isValue]
+[if type.kind.isValue and type.useCopyConstructor]
  * Use {@link #[type.names.toImmutable]()} method to convert to canonical immutable instance.
 [/if]
  * <p><em>[type.names.typeModifiable] is not thread safe</em>
@@ -116,7 +116,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return "[type.name] in not initialized, some of required attributes are not set " + attributes;
   }
   [/if]
-[if type.kind.isValue]
+[if type.kind.isValue and type.useCopyConstructor]
 
   /**
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
@@ -124,10 +124,9 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    */
   public final [type.typeValue] [type.names.toImmutable]() {
   [if mandatories]
-    checkRequiredAttributes();
+    [disambiguateAccessor type 'checkRequiredAttributes']();
   [/if]
-    return [type.typeImmutable.relative].checkPreconditions(
-        new [type.typeImmutable.relative](this));
+    return [type.factoryCopyOf](this);
   }
 [/if]
   [generateEqualsHashCode type]
@@ -348,7 +347,6 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
 [deprecation v]
 [varargsSafety v]
 public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
-  [if v.generateJdkOnly]
   for ([v.unwrappedElementType] element : elements) {
     [if v.primitiveElement]
     [v.name].add(element);
@@ -356,13 +354,6 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements)
     [v.name].add([requireNonNull type](element));
     [/if]
   }
-  [else]
-    [if v.wrapArrayToIterable]
-  [v.name].addAll([im.arrayAsList v 'elements']);
-    [else]
-  [v.name].add(elements);
-    [/if]
-  [/if]
   [thisReturn type]
 }
 
@@ -373,6 +364,7 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements)
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> elements) {
+  [v.name].clear();
   return [v.names.addAll](elements);
 }
 
@@ -383,13 +375,9 @@ public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> ele
  */
 [deprecation v]
 public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
-  [if v.generateJdkOnly]
   for ([v.unwrappedElementType] element : elements) {
     [v.name].add([requireNonNull type](element));
   }
-  [else]
-  [v.name].addAll(elements);
-  [/if]
   [thisReturn type]
 }
 [else if v.optionalType]
@@ -454,30 +442,9 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
-  [if v.generateJdkOnly]
   [v.name].put(
       [requireNonNull type](key, "Key cannot be null"),
       [requireNonNull type](value, "Value cannot be null"));
-  [else]
-  [v.name].put(key, value);
-  [/if]
-  [thisReturn type]
-}
-
-/**
- * Put one entry to [sourceDocRef type v] map. Nulls are not permitted
- * @param entry the key and value entry
- * @return {@code this} for chained invocation
- */
-[deprecation v]
-public [thisReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
-  [if v.generateJdkOnly]
-  [v.name].put(
-      [requireNonNull type](entry.getKey(), "Key cannot be null"),
-      [requireNonNull type](entry.getValue(), "Value cannot be null"));
-  [else]
-  [v.name].put(entry);
-  [/if]
   [thisReturn type]
 }
 
@@ -488,6 +455,7 @@ public [thisReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [v.name].clear();
   return [v.names.putAll](entries);
 }
 
@@ -498,15 +466,11 @@ public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Mu
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
-  [if v.generateJdkOnly]
   for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
     [v.name].put(
         [requireNonNull type](entry.getKey(), "Key cannot be null"),
         [requireNonNull type](entry.getValue(), "Value cannot be null"));
   }
-  [else]
-  [v.name].putAll(entries);
-  [/if]
   [thisReturn type]
 }
   [/for]
@@ -626,7 +590,6 @@ if ([v.name]Value != null) {
 [template generateEqualsHashCode Type type]
 [let equalToType][type.names.typeModifiable][/let]
 [for getters = type.equivalenceAttributes]
-[if type.useReferenceEquality or (not type.equalToDefined)]
 
 /**
  * This instance is equal to instances of {@code [equalToType]} with equal attribute values.
@@ -646,20 +609,16 @@ public boolean equals([atNullable]Object another) {
   }
   [/if]
   return equalTo(o);
-  [/if]
 }
-[/if]
-[if type.useEqualTo]
 
 private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
   return [if not getters]true[/if][for v in getters][if not for.first]
-      && [/if][equalsAttribute v type.annotationType][/for];
+      && [/if][im.equalsAttribute v type.annotationType][/for];
   [/if]
 }
-[/if]
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
@@ -668,7 +627,7 @@ private boolean equalTo([equalToType] another) {
 [if v.arrayType]
   [h] += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
-  [h] += 127 * "[v.name]".hashCode() ^ [primitiveHashCode v];
+  [h] += 127 * "[v.name]".hashCode() ^ [im.primitiveHashCode v];
 [else]
   [h] += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
 [/if]
@@ -684,7 +643,7 @@ private boolean equalTo([equalToType] another) {
 [else if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
-  [h] = [h] * 17 + [primitiveHashCode v];
+  [h] = [h] * 17 + [im.primitiveHashCode v];
 [else]
   [h] = [h] * 17 + [v.name].hashCode();
 [/if]
@@ -703,8 +662,6 @@ public final int hashCode() {
 /**
 [if not getters]
  * Returns constant hash code value.
-[else if type.usePrehashed]
- * Returns precomputed on construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
  * Computes hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
@@ -712,18 +669,8 @@ public final int hashCode() {
  */
 @Override
 public int hashCode() {
-  [if type.usePrehashed]
-  return hashCode;
-  [else]
-[computeHashCodeBody]
-  [/if]
-}
-  [if type.usePrehashed]
-
-private int [disambiguateAccessor type 'computeHashCode']() {
 [computeHashCodeBody]
 }
-  [/if]
 [/if]
 [/for]
 [/template]

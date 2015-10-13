@@ -28,4 +28,8 @@ abstract class Immutables extends ValuesTemplate {
   abstract org.immutables.generator.Templates.Invokable objectsUtility();
 
   abstract org.immutables.generator.Templates.Invokable collectionUtility();
+
+  abstract org.immutables.generator.Templates.Invokable equalsAttribute();
+
+  abstract org.immutables.generator.Templates.Invokable primitiveHashCode();
 }

@@ -1939,7 +1939,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template equalsAttribute Attribute a Boolean useAccessor][output.trim]
+[template public equalsAttribute Attribute a Boolean useAccessor][output.trim]
 [let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
 [if a.float]
   Float.floatToIntBits([a.name]) == Float.floatToIntBits([getOther])
@@ -1984,7 +1984,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template primitiveHashCode Attribute v][output.trim]
+[template public primitiveHashCode Attribute v][output.trim]
 [if v.int]
   [v.name]
 [else if v.generateJdkOnly]
