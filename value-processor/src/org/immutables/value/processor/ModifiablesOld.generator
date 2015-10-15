@@ -1,0 +1,419 @@
+[template public generate]
+  [for type in values.values if type.generateModifiable]
+    [if type.generateOrdinalValue]
+[output.error]
+Use @Value.Modifiable cannot be used with @Value.Immutable which implements OrdinalValue
+[/output.error]
+    [else if type.kind.isValue]
+[output.java type.package type.names.typeModifiable)]
+[generateModifiable type]
+[/output.java]
+    [else]
+[output.error]
+Use @Value.Modifiable to annotate @Value.Immutable abstract value types
+[/output.error]
+    [/if]
+  [/for]
+[/template]
+
+[template generateModifiable Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+[for setters = type.settableAttributes,
+     getters = type.implementedAttributes,
+     mandatories = type.mandatoryAttributes,
+     LongPositions positions = longsFor mandatories,
+     primdefs = type.primitiveDefaultAttributes,
+     LongPositions defpos = longsFor primdefs]
+
+/**
+ * Modifiable implementation of {@link [type.typeValue] [type.typeValue.simple]}.
+ * <p>Use {@code [type.names.create]()} static factory methods to create new instances.
+ * Use {@code [type.names.toImmutable]()} method to convert to canonical immutable instance.
+ * <p><em>[type.names.typeModifiable] is not thread safe</em>
+ * @see [type.typeValue.relative]
+ */
+[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if classpath.available 'javax.annotation.Generated']
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
+[/if]
+[if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
+@javax.annotation.concurrent.NotThreadSafe
+[/if]
+[type.typeImmutable.access]final class [type.names.typeModifiable]
+    [type.inheritsKeyword] `[type.typeAbstract] {
+  [for l in positions.longs]
+  private static final long INITIALIZED_BITSET_ALL_[emptyIfZero l.index] = [literal.hex l.occupation];
+  [/for]
+  [for p in primdefs, BitPosition pos = defpos p]
+  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
+  [/for]
+  [for m in mandatories, BitPosition pos = positions m]
+  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+  [/for]
+  [for l in defpos.longs]
+  private long nondefaultBitset[emptyIfZero l.index];
+  [/for]
+  [for l in positions.longs]
+  private long initializedBitset[emptyIfZero l.index];
+  [/for]
+
+  [for v in setters]
+    [if v.containerType]
+
+  [if v.optionalType]
+  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
+  [else if v.generateEnumMap]
+  private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+  [else if v.mapType]
+  private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+  [else if v.generateEnumSet]
+  private final java.util.EnumSet<[v.elementType]> [v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
+  [else if v.]
+  [else]
+  private final java.util.ArrayList<[v.elementType]> [v.name]Builder = new java.util.ArrayList<[v.elementType]>();
+  [/if]
+
+  [if v.generateSortedSet]
+  private final [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [v.name]Builder = [guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+  [else if v.collectionType]
+  private final [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [v.name]Builder = [guava].collect.Immutable[v.rawCollectionType].builder();
+  [else if v.optionalType]
+  private [v.type] [v.name] = [if v.jdkOptional]java.util.Optional.empty()[else][guava].base.Optional.absent()[/if];
+  [else if v.generateSortedMap]
+  private final [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]();
+  [else if v.mapType]
+  private final [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = [guava].collect.Immutable[v.rawMapType].builder();
+  [/if]
+
+    [else if v.primitive]
+  private [v.type] [v.name];
+    [else]
+  private [atNullable][v.type] [v.name];
+    [/if]
+  [/for]
+[if ((type.names.builder ne 'new') and (not type.kind.isFactory))]
+  private [type.names.typeModifiable]() {}
+  [if type.constitution.isOutsideBuilder]
+
+  /**
+   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return new [type.typeValue.simple] builder
+   */
+  public static [type.names.typeModifiable] [type.names.builder]() {
+    return new [type.names.typeModifiable]();
+  }
+  [/if]
+[/if]
+  [if type.generateOrdinalValue]
+  private Domain domain = Domain.get();
+
+  public [type.names.typeModifiable] domain(Domain domain) {
+    this.domain = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
+    return this;
+  }
+  [/if]
+[-- Being called from builder initializer methods --]
+[let nondefaultSetInBuilder Attribute v]
+[if v.primitive and v.generateDefault][for BitPosition pos = defpos v]
+nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+[/for][/if]
+[/let]
+[-- Being called from builder initializer methods --]
+[let mandatorySetInBuilder Attribute v]
+[if v.mandatory][for BitPosition pos = positions v]
+initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+[/for][/if]
+[/let]
+  [for v in setters]
+  [if v.collectionType]
+
+  /**
+   * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param element [v.name] element
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.add]([v.unwrappedElementType] element) {
+    [if type.generateJdkOnly and (not v.primitiveElement)]
+    [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+    [else]
+    [v.name]Builder.add(element);
+    [/if]
+    return this;
+  }
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements array of [v.name] elements
+   * @return {@code this} builder for chained invocation
+   */
+  [if v.nonRawElemementType]@SafeVarargs[/if]
+  public final [type.names.typeModifiable] [v.names.add]([v.unwrappedElementType]... elements) {
+    [if type.generateJdkOnly]
+    for([v.unwrappedElementType] element : elements) {
+      [if v.primitiveElement]
+      [v.name]Builder.add(element);
+      [else]
+      [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+      [/if]
+    }
+    return this;
+    [else]
+    return [v.names.addAll]([arrayAsList v 'elements']);
+    [/if]
+  }
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements iterable of [v.name] elements
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+    [if type.generateJdkOnly]
+    for([v.unwrappedElementType] element : elements) {
+      [v.name]Builder.add(java.util.Objects.requireNonNull(element));
+    }
+    [else]
+    [v.name]Builder.addAll(elements);
+    [/if]
+    return this;
+  }
+  [else if v.optionalType]
+
+  /**
+   * Initializes present value for optional [sourceDocRef type v].
+   * @param [v.name] value for [v.name], non-null
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.set]([v.unwrappedElementType] [v.name]) {
+    [if v.optionalAcceptNullable]
+    this.[v.name] = [v.rawType].[if v.jdkOptional]ofNullable[else]fromNullable[/if]([v.name]);
+    [else]
+    this.[v.name] = [v.rawType].of([v.name]);
+    [/if]
+    return this;
+  }
+
+  /**
+   * Initializes optional value for [sourceDocRef type v].
+   * @param [v.name] value for [v.name], non-null
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.set]([v.rawType]<[v.wrappedElementType]> [v.name]) {
+    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    return this;
+  }
+  [else if v.mapType]
+    [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+
+  /**
+   * @return mutable
+   */
+  @Override
+  public [v.type] [v.names.get]() {
+    return [v.name];
+  }
+
+      [/if]
+  /**
+   * Put one entry to [sourceDocRef type v] map.
+   * @param key the key in [v.name] map
+   * @param value the associated value in [v.name] map
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.put]([uK] key, [uV] value) {
+    [if type.generateJdkOnly]
+    [v.name]Builder.put(
+        java.util.Objects.requireNonNull(key, "Key cannot be null"),
+        java.util.Objects.requireNonNull(value, "Value cannot be null"));
+    [else]
+    [v.name]Builder.put(key, value);
+    [/if]
+    return this;
+  }
+
+  /**
+   * Put one entry to [sourceDocRef type v] map. Nulls are not permitted
+   * @param entry the key and value entry
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+    [if type.generateJdkOnly]
+    [v.name]Builder.put(
+        java.util.Objects.requireNonNull(entry.getKey(), "Key cannot be null"),
+        java.util.Objects.requireNonNull(entry.getValue(), "Value cannot be null"));
+    [else]
+    [v.name]Builder.put(entry);
+    [/if]
+    return this;
+  }
+
+  /**
+   * Put all mappings from specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+   * @param entries to be added to [v.name] map
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+    [if type.generateJdkOnly]
+    for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
+      [v.name]Builder.put(
+          java.util.Objects.requireNonNull(entry.getKey(), "Key cannot be null"),
+          java.util.Objects.requireNonNull(entry.getValue(), "Value cannot be null"));
+    }
+    [else]
+    [v.name]Builder.putAll(entries);
+    [/if]
+    return this;
+  }
+
+    [/for]
+  [else if v.arrayType]
+
+  /**
+   * Initializes value for [sourceDocRef type v].
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have default value as defined by [sourceDocRef type v].</em>
+  [/if]
+   * @param elements elements for [v.name], non-null
+   * @return {@code this} builder for chained invocation
+   */
+  [if v.nonRawElemementType]@SafeVarargs[/if]
+  public final [type.names.typeModifiable] [v.names.set]([v.elementType]... elements) {
+    this.[v.name] = elements.clone();
+    [mandatorySetInBuilder v]
+    return this;
+  }
+  [else]
+
+  /**
+   * Initializes value for [sourceDocRef type v].
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have default value returned by initializer of [sourceDocRef type v].</em>
+  [/if]
+   * @param [v.name] value for [v.name][if not v.nullable], non-null[/if]
+   * @return {@code this} builder for chained invocation
+   */
+  public final [type.names.typeModifiable] [v.names.set]([v.atNullability][v.type] [v.name]) {
+    [if v.primitive or v.nullable]
+    this.[v.name] = [v.name];
+    [else]
+    this.[v.name] = [if type.generateJdkOnly]java.util.Objects.requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    [/if]
+    [nondefaultSetInBuilder v]
+    [mandatorySetInBuilder v]
+    return this;
+  }
+  [/if]
+  [/for]
+
+  /**
+   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return immutable instance of [type.name]
+   */
+  public [type.typeValue] [type.names.toImmutable]() {
+  [if positions.longs][-- do this only to fail fast, it's cheap enough --]
+    checkRequiredAttributes();
+  [/if]
+  [if ]
+
+  [/if]
+    return [type.typeImmutable.relative].checkPreconditions(
+        new [type.typeImmutable.relative](this));
+  }
+  [for p in primdefs, BitPosition pos = defpos p]
+
+  public boolean [p.names.isSet]() {
+    return (nondefaultBitset[emptyIfZero pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
+  }
+  [/for]
+  [for m in mandatories, BitPosition pos = positions m]
+
+  public boolean [m.names.isSet]() {
+    return (initializedBitset[emptyIfZero pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
+  }
+  [/for]
+  [if positions.longs]
+
+  private void checkRequiredAttributes() {
+    if ([for l in positions.longs][if not for.first]
+        | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL_[emptyIfZero l.index][/for]) {
+      throw new IllegalStateException(formatRequiredAttributesMessage());
+    }
+  }
+    [if type.generateJdkOnly]
+
+  private String formatRequiredAttributesMessage() {
+    return new StringBuilder("Cannot build [type.name], some of required attributes are not set {")
+      [for m in mandatories]
+        .append(![m.name]IsSet() ? ", [m.name]" : "")
+      [/for]
+        .append('}').toString().replaceFirst("{, ", "{");
+  }
+    [else]
+
+  private String formatRequiredAttributesMessage() {
+    return [type.typeMoreObjects].toStringHelper("Cannot build [type.name], some of required attributes are not set ")
+        .omitNullValues()
+      [for m in mandatories]
+        .addValue(![m.name]IsSet() ? "[m.name]" : null)
+      [/for]
+        .toString();
+  }
+    [/if]
+  [/if]
+
+  /**
+   * Prints currently set attributes.
+   * @return string representation of builder
+   */
+  [if type.generateJdkOnly]
+  @Override
+  public String toString() {
+    return new StringBuilder("[type.names.typeModifiable]{")
+  [for v in setters]
+    [if v.collectionType or v.mapType]
+        .append("[if not for.first], [/if][v.name]=").append([v.name]Builder)
+    [else if v.optionalType]
+        .append("[if not for.first], [/if][v.name]=").append([v.name].isPresent() ? [v.name].get() : "?")
+    [else if v.arrayType]
+        .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
+    [else if v.primitive]
+        .append("[if not for.first], [/if][v.name]=" ).append([v.name]IsSet() ? [v.name] : "?")
+    [else]
+        .append("[if not for.first], [/if][v.name]=").append([v.name])
+    [/if]
+  [/for]
+        .append('}').toString();
+  }
+  [else]
+  @Override
+  public String toString() {
+    return [type.typeMoreObjects].toStringHelper("[type.names.typeModifiable]")
+  [for v in setters]
+    [if v.collectionType or v.mapType]
+        .add("[v.name]", [v.name]Builder.build())
+    [else if v.optionalType]
+        .add("[v.name]", [v.name].isPresent() ? [v.name].get() : "?")
+    [else if v.arrayType]
+        .add("[v.name]", java.util.Arrays.toString([v.name]))
+    [else if v.primitive]
+        .add("[v.name]", [v.name]IsSet() ? [v.name] : "?")
+    [else]
+        .add("[v.name]", [v.name])
+    [/if]
+  [/for]
+        .toString();
+  }
+  [/if]
+}
+[/for]
+[/template]
+
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+
+[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

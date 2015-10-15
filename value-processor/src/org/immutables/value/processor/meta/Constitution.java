@@ -200,7 +200,7 @@ public abstract class Constitution {
 
     if (protoclass().kind().isNested()) {
       String enclosingSimpleName = typeImmutableEnclosingSimpleName();
-      simple = names().typeImmutableNested;
+      simple = names().typeImmutableNested();
       relative = inPackage(enclosingSimpleName, simple);
     } else if (hasImmutableInBuilder()) {
       simple = names().typeImmutable;
@@ -342,7 +342,7 @@ public abstract class Constitution {
   public NameForms typeEnclosing() {
     String name = protoclass().kind().isDefinedValue()
         ? names().typeImmutable
-        : names().typeImmutableEnclosing;
+        : names().typeImmutableEnclosing();
 
     return ImmutableConstitution.NameForms.builder()
         .simple(name)
@@ -383,7 +383,7 @@ public abstract class Constitution {
     } else if (outside) {
       relative = inPackage(simple);
     } else if (nested) {
-      relative = inPackage(inPackage(typeImmutableEnclosingSimpleName(), names.typeImmutableNested, simple));
+      relative = inPackage(inPackage(typeImmutableEnclosingSimpleName(), names.typeImmutableNested(), simple));
     } else {
       relative = inPackage(inPackage(names.typeImmutable, simple));
     }

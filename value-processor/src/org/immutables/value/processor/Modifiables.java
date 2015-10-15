@@ -1,5 +1,5 @@
 /*
-    Copyright 2014 Immutables Authors and Contributors
+    Copyright 2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,5 +15,9 @@
  */
 package org.immutables.value.processor;
 
-//@Generator.Template
-abstract class Modifiables extends ValuesTemplate {}
+import org.immutables.generator.Generator;
+
+@Generator.Template
+abstract class Modifiables extends ValuesTemplate {
+  final Immutables im = new Generator_Immutables();
+}

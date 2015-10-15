@@ -22,25 +22,21 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import javax.annotation.Nullable;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
+import com.google.common.collect.Sets;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+
+import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Value.Nested
 public class Proto {
@@ -85,12 +81,10 @@ public class Proto {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
 
-      @Nullable
-      MetaAnnotated metaAnnotated = cache.get(element);
+      @Nullable MetaAnnotated metaAnnotated = cache.get(element);
       if (metaAnnotated == null) {
         metaAnnotated = ImmutableProto.MetaAnnotated.of(element);
-        @Nullable
-        MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
+        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
         if (existing != null) {
           metaAnnotated = existing;
         }
@@ -142,8 +136,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean hasTreesModule() {
-      @Nullable
-      TypeElement annotationTypeElement = processing()
+      @Nullable TypeElement annotationTypeElement = processing()
           .getElementUtils()
           .getTypeElement(TransformMirror.qualifiedName());
 
@@ -158,8 +151,7 @@ public class Proto {
      */
     @Value.Lazy
     TypeAdaptersMirror defaultTypeAdapters() {
-      @Nullable
-      TypeElement typeElement = processing()
+      @Nullable TypeElement typeElement = processing()
           .getElementUtils()
           .getTypeElement(TypeAdaptersMirror.qualifiedName());
 
@@ -338,8 +330,7 @@ public class Proto {
     Optional<DeclaringPackage> namedParentPackage() {
       String parentPackageName = SourceNames.parentPackageName(element());
       if (!parentPackageName.isEmpty()) {
-        @Nullable
-        PackageElement parentPackage =
+        @Nullable PackageElement parentPackage =
             environment().processing()
                 .getElementUtils()
                 .getPackageElement(parentPackageName);
@@ -498,6 +489,11 @@ public class Proto {
       return EnclosingMirror.isPresent(element());
     }
 
+    @Value.Lazy
+    public boolean isModifiable() {
+      return ModifiableMirror.isPresent(element());
+    }
+
     /**
      * @return true, if is top level
      */
@@ -552,10 +548,17 @@ public class Proto {
             .annotationNamed(ImmutableMirror.simpleName())
             .error("@%s is not supported on enums", ImmutableMirror.simpleName());
       }
+      if (isModifiable() && (isEnclosed() || isEnclosing())) {
+        report()
+            .annotationNamed(ModifiableMirror.simpleName())
+            .error("@%s could not be used with or within @%s",
+                ModifiableMirror.simpleName(),
+                EnclosingMirror.simpleName());
+      }
     }
 
     @Value.Lazy
-    public String headerComments() {
+    public CharSequence headerComments() {
       return SourceExtraction.extractSourceHeader(processing(), CachingElements.getDelegate(element()));
     }
 
@@ -580,6 +583,10 @@ public class Proto {
       // considering ast is still in tree module
       return environment().hasTreesModule()
           && AstMirror.isPresent(element());
+    }
+
+    public boolean isEnclosed() {
+      return enclosingOf().isPresent();
     }
   }
 
@@ -877,6 +884,8 @@ public class Proto {
       INCLUDED_IN_TYPE,
       DEFINED_FACTORY,
       DEFINED_TYPE,
+      DEFINED_TYPE_AND_COMPANION,
+      DEFINED_COMPANION,
       DEFINED_AND_ENCLOSING_TYPE,
       DEFINED_ENCLOSING_TYPE,
       DEFINED_NESTED_TYPE;
@@ -918,6 +927,7 @@ public class Proto {
         case INCLUDED_ON_TYPE:
         case INCLUDED_IN_TYPE:
         case DEFINED_TYPE:
+        case DEFINED_TYPE_AND_COMPANION:
         case DEFINED_AND_ENCLOSING_TYPE:
         case DEFINED_NESTED_TYPE:
           return true;
@@ -929,12 +939,18 @@ public class Proto {
       public boolean isDefinedValue() {
         switch (this) {
         case DEFINED_TYPE:
+        case DEFINED_TYPE_AND_COMPANION:
         case DEFINED_AND_ENCLOSING_TYPE:
         case DEFINED_NESTED_TYPE:
           return true;
         default:
           return false;
         }
+      }
+
+      public boolean isModifiable() {
+        return this == DEFINED_TYPE_AND_COMPANION
+            || this == DEFINED_COMPANION;
       }
 
       public boolean isFactory() {
@@ -1037,12 +1053,20 @@ public class Proto {
           input.newBuilder(),
           input.from(),
           input.build(),
+          input.isInitialized(),
+          input.isSet(),
+          input.set(),
+          input.unset(),
+          input.clear(),
+          input.create(),
+          input.toImmutable(),
           input.typeBuilder(),
           input.typeInnerBuilder(),
           input.typeAbstract(),
           input.typeImmutable(),
           input.typeImmutableEnclosing(),
           input.typeImmutableNested(),
+          input.typeModifiable(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
           input.allParameters(),

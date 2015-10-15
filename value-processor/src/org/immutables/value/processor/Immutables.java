@@ -18,4 +18,18 @@ package org.immutables.value.processor;
 import org.immutables.generator.Generator;
 
 @Generator.Template
-abstract class Immutables extends ValuesTemplate {}
+abstract class Immutables extends ValuesTemplate {
+  abstract org.immutables.generator.Templates.Invokable arrayAsList();
+
+  abstract org.immutables.generator.Templates.Invokable arrayAsListSecondary();
+
+  abstract org.immutables.generator.Templates.Invokable objectsUtilRef();
+
+  abstract org.immutables.generator.Templates.Invokable objectsUtility();
+
+  abstract org.immutables.generator.Templates.Invokable collectionUtility();
+
+  abstract org.immutables.generator.Templates.Invokable equalsAttribute();
+
+  abstract org.immutables.generator.Templates.Invokable primitiveHashCode();
+}

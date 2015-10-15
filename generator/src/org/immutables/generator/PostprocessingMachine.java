@@ -17,7 +17,6 @@ package org.immutables.generator;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -74,8 +73,7 @@ final class PostprocessingMachine {
     QualifiedNameMachine importsQualifiedNameMachine = new QualifiedNameMachine().allowNestedTypes();
     CommentMachine commentMachine = new CommentMachine();
     ClassNameMachine nameMachine = new ClassNameMachine();
-    @Nullable
-    CharSequence header = null;
+    @Nullable CharSequence header = null;
 
     for (int i = 0; i < content.length(); i++) {
       char c = content.charAt(i);
@@ -355,15 +353,15 @@ final class PostprocessingMachine {
 
     private final TreeSet<String> imports = Sets.newTreeSet();
     private final HashMap<String, String> originalImports = Maps.newHashMap();
-    private Optional<String> currentPackage = Optional.absent();
     private final Multimap<String, ImportCandidate> importCandidates = HashMultimap.create();
     private final HashMap<String, String> nameToQualified = Maps.newHashMap();
     private final HashSet<String> exceptions = Sets.newHashSet();
     private final HashSet<String> stopList = Sets.newHashSet();
 
+    private String currentPackagePrefix = "";
+
     void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
-      @Nullable
-      String foundQualified = nameToQualified.get(name);
+      @Nullable String foundQualified = nameToQualified.get(name);
       if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
         return;
       }
@@ -392,7 +390,7 @@ final class PostprocessingMachine {
       if ((JAVA_LANG + name).equals(qualifiedName)) {
         return true;
       }
-      if (currentPackage.isPresent() && qualifiedName.equals(currentPackage.get() + '.' + name)) {
+      if (qualifiedName.equals(currentPackagePrefix.concat(name))) {
         return true;
       }
       return false;
@@ -409,12 +407,18 @@ final class PostprocessingMachine {
     }
 
     void setCurrentPackage(String currentPackage) {
-      this.currentPackage = Optional.of(currentPackage);
+      this.currentPackagePrefix = currentPackage.isEmpty() ? "" : (currentPackage + '.');
     }
 
     void preBuild() {
       for (String exception : exceptions) {
-        importCandidates.removeAll(nameToQualified.get(exception));
+        @Nullable String qualifiedName = nameToQualified.get(exception);
+        if (qualifiedName != null) {
+          String asInCurrentPackage = currentPackagePrefix.concat(exception);
+          if (!qualifiedName.equals(asInCurrentPackage)) {
+            importCandidates.removeAll(qualifiedName);
+          }
+        }
       }
 
       for (Map.Entry<String, ImportCandidate> candidateEntry : importCandidates.entries()) {
@@ -692,6 +696,6 @@ final class PostprocessingMachine {
   }
 
   private static boolean isUnderscore(char c) {
-      return c == '_';
+    return c == '_';
   }
 }

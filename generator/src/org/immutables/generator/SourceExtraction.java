@@ -77,10 +77,10 @@ public final class SourceExtraction {
     }
   }
 
-  public static String extractSourceHeader(ProcessingEnvironment processing, TypeElement element) {
+  public static CharSequence extractSourceHeader(ProcessingEnvironment processing, TypeElement element) {
     try {
       return PostprocessingMachine.collectHeader(
-          SourceExtraction.extract(processing, element)).toString();
+          SourceExtraction.extract(processing, element));
     } catch (UnsupportedOperationException cannotReadSourceFile) {
       cannotReadSourceFile.printStackTrace();
       return "";
@@ -179,8 +179,7 @@ public final class SourceExtraction {
         if (binding instanceof MethodBinding) {
           MethodBinding methodBinding = (MethodBinding) binding;
 
-          @Nullable
-          AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
+          @Nullable AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
           if (sourceMethod != null) {
             CharSequence rawType = getRawType(methodBinding);
             char[] content = sourceMethod.compilationResult.compilationUnit.getContents();

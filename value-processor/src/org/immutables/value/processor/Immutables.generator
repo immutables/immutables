@@ -3,14 +3,12 @@
     [if type.constitution.hasTopLevelImmutable]
 [-- Top level immutable type --]
 [output.java type.package type.typeImmutable.simple]
-[type.sourceHeader]
 [generateImmutable type true]
 [/output.java]
     [/if]
     [if type.constitution.hasTopLevelBuilder]
 [-- Top level builder --]
 [output.java type.package type.typeBuilderImpl.simple]
-[type.sourceHeader]
 [generateBuilder type true]
 [/output.java]
     [/if]
@@ -42,6 +40,7 @@
 
 [template packageWhenTopLevel Type type Boolean is]
 [if is]
+[type.sourceHeader]
   [if type.package]
 package [type.package];
   [/if]
@@ -435,9 +434,7 @@ private Object writeReplace() {
 
     @Override
     public String toString() {
-      if (this == INSTANCE) {
-        return "[type.typeImmutable.simple].Domain.get()";
-      }
+      if (this == INSTANCE) return "[type.typeImmutable.simple].Domain.get()";
       return [type.typeMoreObjects].toStringHelper("[type.typeImmutable.simple].Domain")
           .add("length", length())
           .toString();
@@ -604,7 +601,7 @@ private Object writeReplace() {
             [if l.primitive or l.nullable]
           this.[l.name] = [invokeSuper l].[l.names.get]();
             [else]
-          this.[l.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper l].[l.names.get]());
+          this.[l.name] = [requireNonNull type]([invokeSuper l].[l.names.get]());
             [/if]
           [bitmapFieldName] |= [maskConstantName];
         }
@@ -645,21 +642,21 @@ private Object writeReplace() {
 [/if]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple] [if type.innerBuilder.isSuper]
     [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].[type.innerBuilder.simpleName] {[else]{[/if]
-  [for l in positions.longs]
-  private static final long INITIALIZED_BITSET_ALL[emptyIfZero l.index] = [literal.hex l.occupation];
-  [/for]
   [for m in mandatories, BitPosition pos = positions m]
-  private static final long INITIALIZED_BIT_[toConstant m.name] = [literal.hex pos.mask];
+  private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
-  private static final long NONDEFAULT_BIT_[toConstant p.name] = [literal.hex pos.mask];
+  private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
-  private long initializedBitset[emptyIfZero l.index];
+  private long initBits[emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
-  private long nondefaultBitset[emptyIfZero l.index];
+  private long optBits[emptyIfZero l.index];
   [/for]
+  [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
+
+  [/if]
   [for v in setters]
   [defineOrResetBuildingField v true]
   [/for]
@@ -739,7 +736,7 @@ private Object writeReplace() {
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] domain(Domain domain) {
-    this.domain = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](domain);
+    this.domain = [requireNonNull type](domain);
     [builderReturnThis type]
   }
 [/if]
@@ -754,7 +751,7 @@ private Object writeReplace() {
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
-    [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+    [requireNonNull type](instance);
     from((Object) instance);
     [builderReturnThis type]
   }
@@ -772,14 +769,16 @@ private Object writeReplace() {
 
   /**
    * Fill builder with attribute values from provided {@link [type.typeAbstract.relative]} instance.
-   * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
-   * Instance's absent optional values will not be copied (will not override current).
+   * Regular attribute values will be replaced with ones of an instance.
+   * Instance's absent optional values will not replace present values.
+  [if type.hasSettableCollection or type.hasSettableMapping]
    * Collection elements and entries will be added, not replaced.
+  [/if]
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
   public final [builderReturnType type] [type.names.from]([type.typeAbstract] instance) {
-    [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](instance);
+    [requireNonNull type](instance);
     [buildFromAttributes setters]
     [builderReturnThis type]
   }
@@ -789,19 +788,19 @@ private Object writeReplace() {
 [-- Being called from builder initializer methods --]
 [let checkNotIsSet Attribute v]
 [if v.containingType.useStrictBuilder]
-checkNotIsSet([v.name]IsSet(), "[v.name]");
+checkNotIsSet([v.names.isSet](), "[v.name]");
 [/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let nondefaultSetInBuilder Attribute v]
 [if v.requiresTrackIsSet][for BitPosition pos = nondefaultsPositions v]
-nondefaultBitset[emptyIfZero pos.index] |= NONDEFAULT_BIT_[toConstant v.name];
+optBits[emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let mandatorySetInBuilder Attribute v]
 [if v.mandatory][for BitPosition pos = positions v]
-initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
+initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
   [for v in setters]
@@ -832,7 +831,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.generateJdkOnly and (not v.primitiveElement)]
-    [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+    [v.name]Builder.add([requireNonNull type](element));
     [else]
     [v.name]Builder.add(element);
     [/if]
@@ -852,7 +851,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
       [if v.primitiveElement]
       [v.name]Builder.add(element);
       [else]
-      [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+      [v.name]Builder.add([requireNonNull type](element));
       [/if]
     }
     [else]
@@ -888,7 +887,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
-      [v.name]Builder.add([objectsUtilRef type]requireNonNull(element));
+      [v.name]Builder.add([requireNonNull type](element));
     }
     [else]
     [v.name]Builder.addAll(elements);
@@ -920,7 +919,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
-    this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = [requireNonNull type]([v.name]);
     [nondefaultSetInBuilder v]
     [builderReturnThis type]
   }
@@ -966,8 +965,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
-        [objectsUtilRef type]requireNonNull(key, "Key cannot be null"),
-        [objectsUtilRef type]requireNonNull(value, "Value cannot be null"));
+        [requireNonNull type](key, "Key cannot be null"),
+        [requireNonNull type](value, "Value cannot be null"));
     [else]
     [v.name]Builder.put(key, value);
     [/if]
@@ -983,8 +982,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.generateJdkOnly]
     [v.name]Builder.put(
-        [objectsUtilRef type]requireNonNull(entry.getKey(), "Key cannot be null"),
-        [objectsUtilRef type]requireNonNull(entry.getValue(), "Value cannot be null"));
+        [requireNonNull type](entry.getKey(), "Key cannot be null"),
+        [requireNonNull type](entry.getValue(), "Value cannot be null"));
     [else]
     [v.name]Builder.put(entry);
     [/if]
@@ -1015,8 +1014,8 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
       [v.name]Builder.put(
-          [objectsUtilRef type]requireNonNull(entry.getKey(), "Key cannot be null"),
-          [objectsUtilRef type]requireNonNull(entry.getValue(), "Value cannot be null"));
+          [requireNonNull type](entry.getKey(), "Key cannot be null"),
+          [requireNonNull type](entry.getValue(), "Value cannot be null"));
     }
     [else]
     [v.name]Builder.putAll(entries);
@@ -1058,7 +1057,7 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
     [if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
-    this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([v.name]);
+    this.[v.name] = [requireNonNull type]([v.name]);
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
@@ -1100,22 +1099,20 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
   [/if]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
-  private boolean [p.name]IsSet() {
-    return (nondefaultBitset[emptyIfZero pos.index] & NONDEFAULT_BIT_[toConstant p.name]) != 0;
+  private boolean [p.names.isSet]() {
+    return (optBits[emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
 
-  private boolean [m.name]IsSet() {
-    return (initializedBitset[emptyIfZero pos.index] & INITIALIZED_BIT_[toConstant m.name]) != 0;
+  private boolean [m.names.isSet]() {
+    return (initBits[emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
 
   private void checkNotIsSet(boolean isSet, String name) {
-    if (isSet) {
-      throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
-    }
+    if (isSet) throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
   }
   [/if]
   [if positions.longs]
@@ -1131,11 +1128,9 @@ initializedBitset[emptyIfZero pos.index] |= INITIALIZED_BIT_[toConstant v.name];
 
   [/if]
   private String formatRequiredAttributesMessage() {
-    java.util.Collection<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
+    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
-    if (![m.name]IsSet()) {
-      attributes.add("[m.name]");
-    }
+    if (![m.names.isSet]()) attributes.add("[m.name]");
     [/for]
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
@@ -1265,7 +1260,7 @@ this.[n] = DEFAULT_VALUE_[toConstant v.name];
   [if v.primitive or v.nullable]
 this.[n] = [invokeSuper v].[v.names.get]();
   [else]
-this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/if]
 [/for]
@@ -1306,7 +1301,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
   [else if v.primitive or v.nullable]
     this.[n] = [n];
   [else]
-    this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([n]);
+    this.[n] = [requireNonNull type]([n]);
   [/if]
 [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
@@ -1342,7 +1337,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
       [else if v.nullable]
         : [invokeSuper v].[v.names.get]();
       [else]
-        : [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+        : [requireNonNull type]([invokeSuper v].[v.names.get]());
       [/if]
   [/if]
 [/if]
@@ -1376,7 +1371,7 @@ this.[n] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][gu
   [if v.primitive or v.nullable]
 this.[v.name] = [invokeSuper v].[v.names.get]();
    [else]
-this.[v.name] = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if]([invokeSuper v].[v.names.get]());
+this.[v.name] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/for]
 [/template]
@@ -1540,8 +1535,9 @@ public boolean equals([atNullable]Object another) {
   [if type.useReferenceEquality]
   return this == another;
   [else]
-  return this == another
-      || (another instanceof [equalToType] && equalTo(([equalToType]) another));
+  if (this == another) return true;
+  return another instanceof [equalToType]
+      && equalTo(([equalToType]) another);
   [/if]
 }
 [/if]
@@ -1641,21 +1637,26 @@ private int [disambiguateAccessor type 'computeHashCode']() {
  */
 @Override
 public String toString() {
-[if type.generateJdkOnly]
-  [-- I first tried with concatenation, but StringBuilder looks prettier. Bytecode is the same though --]
+[if not type.equivalenceAttributes]
   [if type.annotationType]
-  return new StringBuilder("@[type.name](")
+  return "@[type.name]";
   [else]
-  return new StringBuilder("[type.name]{")
+  return "[type.name]{}";
+  [/if]
+[else if type.generateJdkOnly]
+  [if type.annotationType]
+  return "@[type.name]("
+  [else]
+  return "[type.name]{"
   [/if]
   [for v in type.equivalenceAttributes]
   [if v.arrayType]
-      .append("[if not for.first], [/if][v.name]=").append(java.util.Arrays.toString([v.name]))
+      + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
   [else]
-      .append("[if not for.first], [/if][v.name]=").append([v.name])
+      + "[if not for.first], [/if][v.name]=" + [v.name]
   [/if]
   [/for]
-      .append([if type.annotationType]')'[else]'}'[/if]).toString();
+      + [if type.annotationType]")"[else]"}"[/if];
 [else]
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
   [for v in type.equivalenceAttributes]
@@ -1688,16 +1689,16 @@ this.domain = Domain.get();
 
 [template generateReturnCopyContextual Type type Attribute modified]
 return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
-        [if type.synthCopyConstructor]this,
-        [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
-        [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+    [if type.synthCopyConstructor]this,
+    [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
+    [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateReturnBuilderConstructed Type type]
 return [validated type true]new [type.typeImmutable.relative]([output.linesShortable]
-        [if type.synthCopyConstructor]null,
-        [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
-        [/if][output.trim]
+    [if type.synthCopyConstructor]null,
+    [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
+    [/if][output.trim]
     [if v.collectionType or v.mapType]
       [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
     [else]
@@ -1753,9 +1754,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElementType]> elements) {
-  if (this.[v.name] == elements) {
-    return this;
-  }
+  if (this.[v.name] == elements) return this;
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
 }
@@ -1780,10 +1779,8 @@ public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.u
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
-  if (this.[v.name] == optional) {
-    return this;
-  }
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](optional);
+  if (this.[v.name] == optional) return this;
+  [immutableImplementationType v] newValue = [requireNonNull type](optional);
   [generateReturnCopyContextual type v]
 }
     [else if v.mapType]
@@ -1798,9 +1795,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
-  if (this.[v.name] == entries) {
-    return this;
-  }
+  if (this.[v.name] == entries) return this;
   [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'entries'];
   [generateReturnCopyContextual type v]
 }
@@ -1820,14 +1815,12 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
     [if not v.floatType]
-  if (this.[v.name] == value) {
-    return this;
-  }
+  if (this.[v.name] == value) return this;
     [/if]
     [if v.nullable or v.primitive]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
     [else]
-  [immutableImplementationType v] newValue = [if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if](value);
+  [immutableImplementationType v] newValue = [requireNonNull type](value);
     [/if]
   [generateReturnCopyContextual type v]
 }
@@ -2005,7 +1998,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template equalsAttribute Attribute a Boolean useAccessor][output.trim]
+[template public equalsAttribute Attribute a Boolean useAccessor][output.trim]
 [let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
 [if a.float]
   Float.floatToIntBits([a.name]) == Float.floatToIntBits([getOther])
@@ -2026,7 +2019,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template arrayAsList Attribute a String expression][output.trim]
+[template public arrayAsList Attribute a String expression][output.trim]
 [if a.unwrappedElementPrimitiveType]
   [if a.generateJdkOnly]
     [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
@@ -2038,7 +2031,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template arrayAsListSecondary Attribute a String expression][output.trim]
+[template public arrayAsListSecondary Attribute a String expression][output.trim]
 [if a.unwrappedSecondaryElementPrimitiveType]
   [if a.generateJdkOnly]
     [output.error]Template methods 'arrayAsList' could not be used for primitive jdk only conversion[/output.error]
@@ -2050,7 +2043,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template primitiveHashCode Attribute v][output.trim]
+[template public primitiveHashCode Attribute v][output.trim]
 [if v.int]
   [v.name]
 [else if v.generateJdkOnly]
@@ -2072,7 +2065,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template objectsUtilRef Type type][output.trim]
+[template public objectsUtilRef Type type][output.trim]
 [if classpath.unavailable 'java.util.Objects']
   [type.topSimple].
 [else if classpath.available 'android.R']
@@ -2082,23 +2075,19 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/if]
 [/output.trim][/template]
 
-[template objectsUtility Type type]
+[template public objectsUtility Type type]
 [for Boolean haveObjects = classpath.available 'java.util.Objects',
      Boolean haveAndroid = classpath.available 'android.R']
   [if haveAndroid or (not haveObjects)]
 
 private static <T> T requireNonNull(T object) {
-  if (object == null) {
-    throw new NullPointerException();
-  }
+  if (object == null) throw new NullPointerException();
   return object;
 }
     [if type.useCollectionUtility]
 
 private static <T> T requireNonNull(T object, String message) {
-  if (object == null) {
-    throw new NullPointerException(message);
-  }
+  if (object == null) throw new NullPointerException(message);
   return object;
 }
     [/if]
@@ -2116,7 +2105,7 @@ private static boolean equals(Object left, Object right) {
 [/for]
 [/template]
 
-[template collectionUtility Type type]
+[template public collectionUtility Type type]
 [if type.useListUtility or (type.useSetUtility or (type.useEnumSetUtility or type.useSortedSetUtility))]
 
 private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> iterable) {
@@ -2125,7 +2114,7 @@ private static <T> java.util.ArrayList<T> createSafeList(Iterable<? extends T> i
       : new java.util.ArrayList<T>();
 
   for (T element : iterable) {
-    list.add([objectsUtilRef type]requireNonNull(element, "Null in collection attribute is not allowed"));
+    list.add([requireNonNull type](element, "Null in collection attribute is not allowed"));
   }
   return list;
 }
@@ -2200,8 +2189,8 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
   linkedMap.putAll(map);
   if (checkNulls) {
     for (java.util.Map.Entry<K, V> e : linkedMap.entrySet()) {
-      [objectsUtilRef type]requireNonNull(e.getKey(), "Null key are not allowed in map");
-      [objectsUtilRef type]requireNonNull(e.getValue(), "Null values are not allowed in map");
+      [requireNonNull type](e.getKey(), "Null key are not allowed in map");
+      [requireNonNull type](e.getValue(), "Null values are not allowed in map");
     }
   }
   switch (linkedMap.size()) {
@@ -2219,7 +2208,7 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
   java.util.EnumMap<K, V> enumMap = new java.util.EnumMap<K, V>(map);
   if (checkNulls) {
     for (V value : enumMap.values()) {
-      [objectsUtilRef type]requireNonNull(value, "Null values are not allowed in map");
+      [requireNonNull type](value, "Null values are not allowed in map");
     }
   }
   return java.util.Collections.unmodifiableMap(enumMap);
@@ -2241,8 +2230,8 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
   sortedMap.putAll(map);
   if (checkNulls) {
     for (java.util.Map.Entry<K, V> e : sortedMap.entrySet()) {
-      [objectsUtilRef type]requireNonNull(e.getKey(), "Null key are not allowed in map");
-      [objectsUtilRef type]requireNonNull(e.getValue(), "Null values are not allowed in map");
+      [requireNonNull type](e.getKey(), "Null key are not allowed in map");
+      [requireNonNull type](e.getValue(), "Null values are not allowed in map");
     }
   }
   return java.util.Collections.unmodifiable[unmodifiableSortedMapInterface](sortedMap);
@@ -2316,6 +2305,8 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [template builderReturnThis Type type]
 return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [/template]
+
+[template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
 

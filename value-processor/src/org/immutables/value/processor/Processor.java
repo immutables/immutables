@@ -16,18 +16,12 @@
 package org.immutables.value.processor;
 
 import com.google.common.collect.Multimap;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
-import org.immutables.value.processor.meta.EnclosingMirror;
-import org.immutables.value.processor.meta.FactoryMirror;
-import org.immutables.value.processor.meta.ImmutableMirror;
-import org.immutables.value.processor.meta.ImmutableRound;
-import org.immutables.value.processor.meta.IncludeMirror;
+import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.Round;
-import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.ValueUmbrellaMirror;
+
+import javax.annotation.processing.SupportedAnnotationTypes;
 
 @Metainf.Service
 @SupportedAnnotationTypes({
@@ -35,6 +29,7 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
     IncludeMirror.QUALIFIED_NAME,
+    ModifiableMirror.QUALIFIED_NAME,
     ValueUmbrellaMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
@@ -49,13 +44,13 @@ public final class Processor extends AbstractGenerator {
     Multimap<DeclaringPackage, ValueType> values = round.collectValues();
 
     invoke(new Generator_Immutables().usingValues(values).generate());
+    invoke(new Generator_Modifiables().usingValues(values).generate());
     invoke(new Generator_Gsons().usingValues(values).generate());
     invoke(new Generator_OkJsons().usingValues(values).generate());
     invoke(new Generator_Repositories().usingValues(values).generate());
     invoke(new Generator_Transformers().usingValues(values).generate());
     invoke(new Generator_Asts().usingValues(values).generate());
 
-//  invoke(new Generator_Modifiables().usingValues(values).generate());
 //  invoke(new Generator_Parboileds().usingValues(values).generate());
 //
   }

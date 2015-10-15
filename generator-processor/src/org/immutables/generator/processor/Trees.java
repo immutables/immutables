@@ -351,6 +351,12 @@ public class Trees {
     public boolean newline() {
       return false;
     }
-  }
 
+    @Override
+    public String toString() {
+      return StringLiterals.toLiteral(
+          fragment().value()
+              + (newline() ? "\n" : ""));
+    }
+  }
 }

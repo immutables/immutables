@@ -76,8 +76,7 @@ public final class ValueTypeComposer {
 
   private boolean isValidElementFound(String typeName) {
     try {
-      @Nullable
-      TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
+      @Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
       return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
     } catch (Exception e) {
       // type loading problem
@@ -95,7 +94,7 @@ public final class ValueTypeComposer {
 
     if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(protoclass, type).collect();
-    } else if (protoclass.kind().isValue()) {
+    } else if (protoclass.kind().isValue() || protoclass.kind().isModifiable()) {
       Collection<String> violations = Lists.newArrayList();
       // This check is legacy, most such checks should have been done on a higher level?
       if (checkAbstractValueType(type.element, violations)) {
