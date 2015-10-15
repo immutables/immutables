@@ -303,7 +303,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [if v.isPublic]public [/if]final [v.atNullability][v.type] [v.names.get]() {
 [if v.mandatory]
   if (![isSet v]()) {[-- opportunistically reuse attributes check --]
-    checkRequiredAttributes();
+    [disambiguateAccessor type 'checkRequiredAttributes']();
   }
 [/if]
 [if v.generateLazy]
@@ -348,10 +348,10 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
-  [if v.generateJdkOnly and (not v.primitiveElement)]
-  [v.name].add([requireNonNull type](element));
-  [else]
+  [if v.unwrappedElementPrimitiveType]
   [v.name].add(element);
+  [else]
+  [v.name].add([requireNonNull type](element));
   [/if]
   [thisReturn type]
 }
@@ -365,7 +365,7 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
 [varargsSafety v]
 public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
   for ([v.unwrappedElementType] element : elements) {
-    [if v.primitiveElement]
+    [if v.unwrappedElementPrimitiveType]
     [v.name].add(element);
     [else]
     [v.name].add([requireNonNull type](element));
@@ -393,7 +393,11 @@ public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> ele
 [deprecation v]
 public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   for ([v.unwrappedElementType] element : elements) {
+    [if v.unwrappedElementPrimitiveType]
+    [v.name].add(element);
+    [else]
     [v.name].add([requireNonNull type](element));
+    [/if]
   }
   [thisReturn type]
 }
@@ -460,8 +464,8 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
   [v.name].put(
-      [requireNonNull type](key, "Key cannot be null"),
-      [requireNonNull type](value, "Value cannot be null"));
+      [if not v.unwrappedElementPrimitiveType][requireNonNull type](key, "Key cannot be null")[else]key[/if],
+      [if not v.unwrappedSecondaryElementPrimitiveType][requireNonNull type](value, "Value cannot be null")[else]value[/if]);
   [thisReturn type]
 }
 

@@ -1163,12 +1163,12 @@ return [validated type true]new [type.typeImmutable.relative](this)[/validated];
 [/if]
 [/output.linesShortable][/template]
 
-[template checkRequiredOrThrow LongPositions positions String throwSupplier][output.linesShortable]
+[template checkRequiredOrThrow LongPositions positions String throwSupplier]
 if ([for l in positions.longs][if not for.first]
-    | [/if]initializedBitset[emptyIfZero l.index] != INITIALIZED_BITSET_ALL[emptyIfZero l.index][/for]) {
+        || [/if]initBits[emptyIfZero l.index] != 0[/for]) {
   throw [throwSupplier](formatRequiredAttributesMessage());
 }
-[/output.linesShortable][/template]
+[/template]
 
 [template buildFromAttributes Attribute... setters]
 [for v in setters]
