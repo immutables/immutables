@@ -52,19 +52,36 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
-  private long initBits[emptyIfZero l.index] = [literal.hex l.occupation];
+  private long [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
-  private long optBits[emptyIfZero l.index];
+  private long [disambiguateField type 'optBits'][emptyIfZero l.index];
   [/for]
   [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
 
   [/if]
-  [for v in type.implementedAttributes]
+  [for v in type.implementedAttributes if not v.generateDerived]
   [defineField v true]
   [/for]
   [generateConstructors type]
   [generateAccessors type]
+
+  /**
+   * Clears object by setting attributes to it's initial values.
+   * @return {@code this} for chained invocation
+   */
+  public [thisReturnType type] [type.names.clear]() {
+    [for l in positions.longs]
+    [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
+    [/for]
+    [for l in nondefaultsPositions.longs]
+    [disambiguateField type 'optBits'][emptyIfZero l.index] = 0;
+    [/for]
+    [for v in type.implementedAttributes if not v.generateDerived]
+    [clearField v true]
+    [/for]
+    [thisReturn type]
+  }
   [generateFrom type]
   [generateSetters type]
   [for m in mandatories, BitPosition pos = positions m]
@@ -74,7 +91,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * @return {@code true} if set
    */
   public final boolean [isSet m]() {
-    return (initBits[emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
+    return ([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
@@ -84,7 +101,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * @return {@code true} if set
    */
   public final boolean [isSet p]() {
-    return (optBits[emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
+    return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
 
@@ -95,7 +112,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   public final boolean [isInitialized type]() {
     [if positions.longs]
     return [for l in positions.longs][if not for.first]
-        && [/if]initBits[emptyIfZero l.index] == 0[/for];
+        && [/if][disambiguateField type 'initBits'][emptyIfZero l.index] == 0[/for];
     [else]
     return true;
     [/if]
@@ -285,7 +302,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 @Override
 [if v.isPublic]public [/if]final [v.atNullability][v.type] [v.names.get]() {
 [if v.mandatory]
-  if (![isSet v]()) {
+  if (![isSet v]()) {[-- opportunistically reuse attributes check --]
     checkRequiredAttributes();
   }
 [/if]
@@ -312,13 +329,13 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [-- Being called from builder initializer methods --]
 [let nondefaultSetter Attribute v]
 [if v.requiresTrackIsSet][for BitPosition pos = nondefaultsPositions v]
-optBits[emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
+[disambiguateField type 'optBits'][emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let mandatorySetter Attribute v]
 [if v.mandatory][for BitPosition pos = positions v]
-initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
+[disambiguateField type 'initBits'][emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
 [for v in type.settableAttributes]
@@ -466,7 +483,7 @@ public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Mu
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
-  for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
+  for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
     [v.name].put(
         [requireNonNull type](entry.getKey(), "Key cannot be null"),
         [requireNonNull type](entry.getValue(), "Value cannot be null"));
@@ -565,6 +582,20 @@ private [v.atNullability][v.type] [v.name];
   [/if]
 [/template]
 
+[template clearField Attribute v]
+  [if v.optionalType]
+[v.name] = [optionalEmpty v];
+  [else if v.containerType and (not v.guavaImmutableDeclared)]
+[v.name].clear();
+  [else if v.boolean]
+[v.name] = false;
+  [else if v.primitive]
+[v.name] = 0;
+  [else if v.nullable]
+[v.name] = null;
+  [/if]
+[/template]
+
 [template buildFromAttributes Attribute... setters]
 [for v in setters]
   [if v.collectionType]
@@ -615,15 +646,24 @@ private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
+[for v in getters]
+  [if v.generateDerived]
+  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
+  [else if v.generateDefault]
+  [v.type] [v.name] = [disambiguateAccessor type v.names.isSet]()
+      ? this.[v.name]
+      : [invokeSuper v].[v.names.get]();
+  [/if]
+[/for]
   return [if not getters]true[/if][for v in getters][if not for.first]
-      && [/if][im.equalsAttribute v type.annotationType][/for];
+      && [/if][im.equalsAttribute v (type.annotationType or (v.generateDerived or v.generateDefault))][/for];
   [/if]
 }
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
   int [h] = 0;
-[for v in getters]
+[for v in getters if not v.generateDerived]
 [if v.arrayType]
   [h] += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
@@ -638,6 +678,13 @@ private boolean equalTo([equalToType] another) {
 [else]
   int [h] = 31;
 [for v in getters]
+  [if v.generateDerived]
+  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
+  [else if v.generateDefault]
+  [v.type] [v.name] = [disambiguateAccessor type v.names.isSet]()
+      ? this.[v.name]
+      : [invokeSuper v].[v.names.get]();
+  [/if]
 [if v.nullable]
   [h] = [h] * 17 + [if type.generateJdkOnly][im.objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
 [else if v.arrayType]

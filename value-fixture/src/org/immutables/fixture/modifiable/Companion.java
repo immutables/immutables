@@ -1,24 +1,12 @@
 package org.immutables.fixture.modifiable;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.SetMultimap;
 import com.google.common.base.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.SortedMap;
+import com.google.common.collect.*;
+import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import java.lang.annotation.RetentionPolicy;
-import java.util.List;
-import java.util.NavigableSet;
-import java.util.Set;
-import java.util.SortedSet;
-import org.immutables.value.Value;
+import java.util.*;
 
 @Value.Immutable
 @Value.Modifiable
@@ -73,6 +61,21 @@ interface Companion {
 
     @Value.Parameter
     String second();
+
+    @Value.Parameter
+    short sh();
+
+    @Value.Parameter
+    char ch();
+
+    @Value.Parameter
+    boolean bool();
+
+    @Value.Parameter
+    double dob();
+
+    @Value.Parameter
+    float fl();
 
     Optional<Integer> v1();
 
