@@ -1396,6 +1396,9 @@ this.[v.name] = [requireNonNull type]([invokeSuper v].[v.names.get]());
  * Simple representation of this value type suitable Jackson binding
  * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
  */
+[for a in type.passedJsonAnnotations]
+[a]
+[/for]
 @Deprecated
 static final class Json {
 [for v in type.implementedAttributes]
@@ -1406,19 +1409,6 @@ static final class Json {
 [/for]
 }
 
-/**
- * @return JSON-bindable data structure
- * @deprecated Do not use this method directly, it exists only for <em>Jackson</em>-binding infrastructure
- */
-@Deprecated
-@com.fasterxml.jackson.annotation.JsonValue
-Json [disambiguateAccessor type 'toJson']() {
-  Json json = new Json();
-  [for v in type.implementedAttributes]
-  json.[v.name] = this.[v.name];
-  [/for]
-  return json;
-}
 [/if]
 
 /**

@@ -56,6 +56,15 @@ public class ObjectMappedTest {
   }
 
   @Test
+  public void minimumIgnoreUnknownNames() throws IOException {
+    String originalSampleJson = "{\"A\":\"a\", \"B\": [1, 2], \"Z\": false}";
+    ImmutableMinimumAnnotationsMapped mapped =
+        OBJECT_MAPPER.readValue(originalSampleJson, ImmutableMinimumAnnotationsMapped.class);
+    String json = OBJECT_MAPPER.writeValueAsString(mapped);
+    check(OBJECT_MAPPER.readValue(json, ImmutableMinimumAnnotationsMapped.class)).is(mapped);
+  }
+
+  @Test
   public void topLevelMarshalUnmarshal() throws IOException {
     ImmutableSampleJacksonMapped mapped = ImmutableSampleJacksonMapped.builder().a("a").addB(1, 2).build();
     String json = OBJECT_MAPPER.writeValueAsString(mapped);

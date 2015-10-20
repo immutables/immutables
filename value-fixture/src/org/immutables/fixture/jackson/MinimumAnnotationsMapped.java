@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 @JsonDeserialize(as = ImmutableMinimumAnnotationsMapped.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public interface MinimumAnnotationsMapped {
   @JsonProperty("A")
   String a();

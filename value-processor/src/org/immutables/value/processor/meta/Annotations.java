@@ -36,6 +36,8 @@ final class Annotations {
   private static final String PREFIX_IMMUTABLES = "org.immutables.";
   private static final String PREFIX_JACKSON = "com.fasterxml.jackson.annotation.";
   private static final String PREFIX_JACKSON_DATABIND = "com.fasterxml.jackson.databind.annotation.";
+  private static final String PREFIX_JACKSON_IGNORE_PROPERTIES =
+      "com.fasterxml.jackson.annotation.JsonIgnoreProperties";
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
@@ -73,6 +75,12 @@ final class Annotations {
     if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
       // we expect to propagate nullability separately
       return false;
+    }
+    
+    if (qualifiedName.equals(PREFIX_JACKSON_IGNORE_PROPERTIES)) {
+      // this is just very often used exception
+      // but preferred way is to use additionalJsonAnnotations style attribute.
+      return true;
     }
 
     if (includeJacksonAnnotations

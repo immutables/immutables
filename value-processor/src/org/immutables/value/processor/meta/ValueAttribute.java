@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import java.lang.annotation.ElementType;
 import java.util.Collections;
 import java.util.List;
@@ -220,45 +219,43 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getAnnotations() {
-    return Annotations.getAnnotationLines(element,
-        Sets.union(containingType.constitution.protoclass().styles().style().passAnnotationsNames(), containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
-        false,
-        ElementType.METHOD);
-  }
+    if (containingType.isGenerateJacksonMapped()) {
+      return extractAnnotationsForElement(
+          ElementType.METHOD,
+          containingType.constitution.protoclass().styles().style().passAnnotationsNames());
 
-  public List<CharSequence> getParameterAnnotations() {
-    return Annotations.getAnnotationLines(element,
-        Sets.union(containingType.constitution.protoclass().styles().style().passAnnotationsNames(), containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
-        false,
-        ElementType.PARAMETER);
+    } else {
+      return Annotations.getAnnotationLines(element,
+          containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+          false,
+          ElementType.METHOD);
+    }
   }
 
   public List<CharSequence> getJacksonFieldsAnnotations() {
-    List<CharSequence> jsonPropertyAnnotation = Annotations.getAnnotationLines(element,
-        Collections.singleton(JsonPropertyMirror.QUALIFIED_NAME),
+    return extractAnnotationsForElement(ElementType.FIELD, Collections.<String>emptySet());
+  }
+
+  private List<CharSequence> extractAnnotationsForElement(ElementType elementType, Set<String> additionalAnnotations) {
+    List<CharSequence> allAnnotations = Lists.newArrayListWithCapacity(1);
+
+    boolean dontHaveJsonPropetyAnnotationAlready = Annotations.getAnnotationLines(element,
+        Collections.singleton(JsonPropertyMirror.qualifiedName()),
         false,
-        ElementType.FIELD);
-
-    List<CharSequence> appendedJsonPropertyAnnotation = Lists.newArrayListWithCapacity(1);
-
-    if (jsonPropertyAnnotation.isEmpty()) {
-      appendedJsonPropertyAnnotation.add("@" + JsonPropertyMirror.qualifiedName());
+        elementType).isEmpty();
+    
+    if (dontHaveJsonPropetyAnnotationAlready) {
+      allAnnotations.add("@" + JsonPropertyMirror.qualifiedName());
     }
 
-    List<CharSequence> additionalJsonAnnotations = Annotations.getAnnotationLines(element,
-        containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames(),
-        false,
-        ElementType.FIELD);
+    allAnnotations.addAll(
+        Annotations.getAnnotationLines(element,
+            Sets.union(additionalAnnotations,
+                containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
+            true,
+            elementType));
 
-    List<CharSequence> allJacksonAnnotations = Annotations.getAnnotationLines(element,
-        Collections.<String>emptySet(),
-        true,
-        ElementType.FIELD);
-
-    return FluentIterable.from(allJacksonAnnotations)
-        .append(appendedJsonPropertyAnnotation)
-        .append(additionalJsonAnnotations)
-        .toList();
+    return allAnnotations;
   }
 
   public boolean isGsonIgnore() {
@@ -822,8 +819,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   DeclaringType getDeclaringType() {
-    @Nullable
-    TypeElement declaringType = null;
+    @Nullable TypeElement declaringType = null;
     for (Element e = element; e != null;) {
       e = e.getEnclosingElement();
       if (e instanceof TypeElement) {
@@ -918,8 +914,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.deprecated = elements.isDeprecated(element);
 
     if (containingType.constitution.implementationVisibility().isPublic()) {
-      @Nullable
-      String docComment = elements.getDocComment(element);
+      @Nullable String docComment = elements.getDocComment(element);
       if (docComment != null) {
         this.docComment = ImmutableList.copyOf(DOC_COMMENT_LINE_SPLITTER.split(docComment));
       }
