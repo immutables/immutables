@@ -196,6 +196,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean privateNoargConstructor();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean attributelessSingleton();
+
   @Override
   public Class<? extends Annotation>[] passAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");

@@ -702,6 +702,15 @@ public @interface Value {
     boolean privateNoargConstructor() default false;
 
     /**
+     * Enabling {@code attributelessSingleton} switches to old behavior of 2.0.x version when
+     * immutables wich had no attributes defined acted as .
+     * As of 2.1 we are more strict and explicit with singletons and are not generating it by
+     * default, only when {@link Immutable#singleton()} is explicitly enabled.
+     * @return {@code true} no attribute immutables will be auto-singletons.
+     */
+    boolean attributelessSingleton() default false;
+
+    /**
      * Exception to throw when an immutable object is in an invalid state. The Throwable must have
      * a constructor that takes a single string
      */

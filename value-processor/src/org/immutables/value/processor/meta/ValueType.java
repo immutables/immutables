@@ -222,8 +222,11 @@ public final class ValueType extends TypeIntrospectionBase {
       // but only if we are not validated by method or generating ordinal value.
       return false;
     }
-    return isUseSingleton()
-        || isUseInterned();
+    if (isUseSingleton()) {
+      return serial.isEnabled()
+          || !useAttributelessSingleton();
+    }
+    return isUseInterned();
   }
 
   public boolean isGenerateJacksonMapped() {
@@ -368,6 +371,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseSingleton() {
     return immutableFeatures.singleton()
+        || useAttributelessSingleton()
         || useSingletonNoOtherWay();
   }
 
@@ -414,6 +418,7 @@ public final class ValueType extends TypeIntrospectionBase {
     }
     return isUseInterned()
         || isUseSingletonOnly()
+        || useAttributelessSingleton()
         || isGenerateOrdinalValue();
   }
 
@@ -424,6 +429,9 @@ public final class ValueType extends TypeIntrospectionBase {
     if (isUseSingletonOnly()) {
       return false;
     }
+    if (useAttributelessSingleton() && !isUseValidation()) {
+      return false;
+    }
     return true;
   }
 
@@ -432,6 +440,11 @@ public final class ValueType extends TypeIntrospectionBase {
         && !isUseBuilder()
         && !isUseConstructor()
         && getWithSettableAfterConstruction().isEmpty();
+  }
+
+  private boolean useAttributelessSingleton() {
+    return constitution.style().attributelessSingleton()
+        && getSettableAttributes().isEmpty();
   }
 
   private boolean useSingletonNoOtherWay() {

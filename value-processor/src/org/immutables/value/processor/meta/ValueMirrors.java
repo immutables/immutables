@@ -159,6 +159,8 @@ public final class ValueMirrors {
 
     boolean privateNoargConstructor() default false;
 
+    boolean attributelessSingleton() default false;
+
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {

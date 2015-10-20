@@ -65,3 +65,11 @@ interface Sing6 {
     ImmutableSing6.builder();
   }
 }
+
+@Value.Immutable(builder = false)
+@Value.Style(attributelessSingleton = true)
+interface Sing7 {
+  default void use() {
+    ImmutableSing7.of();
+  }
+}

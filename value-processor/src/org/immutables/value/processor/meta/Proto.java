@@ -1080,6 +1080,7 @@ public class Proto {
           input.optionalAcceptNullable(),
           input.generateSuppressAllWarnings(),
           input.privateNoargConstructor(),
+          input.attributelessSingleton(),
           input.throwForInvalidImmutableStateName());
     }
   }
