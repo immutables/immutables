@@ -26,6 +26,5 @@ public class Processor extends AbstractGenerator {
   @Override
   protected void process() {
     invoke(new Generator_Mirrors().generate());
-    invoke(new Generator_Reflects().generate());
   }
 }
