@@ -31,6 +31,13 @@
       <version>${project.version}</version>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
+      <artifactId>metainf</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+      <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.immutables</groupId>

@@ -15,6 +15,9 @@
  */
 package org.immutables.generator;
 
+import org.immutables.extgenerator.GeneratedImportsModifier;
+import com.google.common.collect.ImmutableList;
+import java.util.ServiceLoader;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
@@ -34,6 +37,10 @@ import org.immutables.generator.SourceExtraction.Imports;
 
 final class PostprocessingMachine {
   private static final Joiner JOINER = Joiner.on("");
+
+  private static final ImmutableList<GeneratedImportsModifier> importsModifiers =
+      ImmutableList.copyOf(ServiceLoader.load(GeneratedImportsModifier.class,
+          PostprocessingMachine.class.getClassLoader()));
 
   private PostprocessingMachine() {}
 
@@ -360,6 +367,8 @@ final class PostprocessingMachine {
 
     private String currentPackagePrefix = "";
 
+    private String currentPackage;
+
     void addImportCandidate(String name, String qualifiedName, int importFrom, int importTo, int packageTo) {
       @Nullable String foundQualified = nameToQualified.get(name);
       if (foundQualified != null && !foundQualified.equals(qualifiedName)) {
@@ -407,6 +416,7 @@ final class PostprocessingMachine {
     }
 
     void setCurrentPackage(String currentPackage) {
+      this.currentPackage = currentPackage;
       this.currentPackagePrefix = currentPackage.isEmpty() ? "" : (currentPackage + '.');
     }
 
@@ -431,7 +441,14 @@ final class PostprocessingMachine {
     }
 
     String build() {
+      invokeImportModifiers();
       return JOINER.join(Iterables.transform(imports, ToImportStatement.FUNCTION));
+    }
+
+    private void invokeImportModifiers() {
+      for (GeneratedImportsModifier modifier : importsModifiers) {
+        modifier.modify(currentPackage, imports);
+      }
     }
 
     List<ImportCandidate> candidates() {
