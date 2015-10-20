@@ -100,9 +100,8 @@ public @interface Value {
      * This could speed up collection lookups for objects with lots of attributes and nested
      * objects.
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
-     *
-     * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be ignored.
-     *
+     * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be
+     * ignored.
      * @return if generate hash code precomputing
      */
     boolean prehash() default false;
@@ -201,16 +200,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   *
+   * 
    *   public abstract List&lt;Item&gt; items();
-   *
+   * 
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   *
+   * 
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   *
+   * 
    *     return cost;
    *   }
    * }
@@ -455,6 +454,22 @@ public @interface Value {
     String build() default "build";
 
     /**
+     * Naming template for the {@code buildOrThrow} method which accept exception factory function
+     * for throwing in case not all mandatory properties are set. Non-default (i.e. not empty)
+     * template will essentially enable generation of this method, acting both as a naming template
+     * and as a feature flag.
+     * <p>
+     * Generation of build or throws method requires presense of a function type on the classpath,
+     * provided either by Java 8 or Guava on Java 7. If used on java 7 without Guava, this style
+     * will have no effect: no method will be generated.
+     * <p>
+     * <em>Note: This attribute-style is experimental and may be changed in near releases.
+     * You should not rely on it if don't ready to change code on minor updates of the annotation processor</em>
+     * @return naming template
+     */
+    String buildOrThrow() default "";
+
+    /**
      * Method to determine if all required attributes are set.
      * Default method name choice for this is mostly random.
      * @return naming template
@@ -598,7 +613,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     *
+     * 
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -606,7 +621,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     *
+     * 
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -687,7 +702,7 @@ public @interface Value {
     boolean privateNoargConstructor() default false;
 
     /**
-     * Exception to throw when an immutable object is in an invalid state.  The Throwable must have
+     * Exception to throw when an immutable object is in an invalid state. The Throwable must have
      * a constructor that takes a single string
      */
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;

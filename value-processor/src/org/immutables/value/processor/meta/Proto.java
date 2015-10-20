@@ -1053,6 +1053,7 @@ public class Proto {
           input.newBuilder(),
           input.from(),
           input.build(),
+          input.buildOrThrow(),
           input.isInitialized(),
           input.isSet(),
           input.set(),

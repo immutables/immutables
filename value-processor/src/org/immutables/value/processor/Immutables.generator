@@ -1080,6 +1080,7 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
     [builderBody positions type]checkRequiredAttributes()[/builderBody]
   }
+  [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 or (not type.generateJdkOnly)]
 
   /**
@@ -1092,10 +1093,11 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   [/if]
    * @throws the supplied exception {@code T} if any required attributes are missing
    */
-  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]OrThrow([functionClass]<String, T> exceptionSupplier)
+  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {
     [builderBody positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builderBody]
   }
+  [/if]
   [/if]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
@@ -1120,12 +1122,13 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   private void checkRequiredAttributes() throws [type.throwForInvalidImmutableState] {
     [checkRequiredOrThrow positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
   }
+  [if type.isGenerateBuildOrThrow]
+    [if classpath.isJava8 or (not type.generateJdkOnly)]
 
-  [if classpath.isJava8 or (not type.generateJdkOnly)]
   private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
     [checkRequiredOrThrow positions]exceptionSupplier.apply[/checkRequiredOrThrow]
   }
-
+    [/if]
   [/if]
   private String formatRequiredAttributesMessage() {
     java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];

@@ -105,6 +105,8 @@ public final class ValueMirrors {
 
     String build() default "build";
 
+    String buildOrThrow() default "";
+
     String isInitialized() default "isInitialized";
 
     String isSet() default "*IsSet";

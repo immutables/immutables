@@ -60,6 +60,7 @@ public final class Styles {
     Naming typeInnerBuilder = Naming.from(style.typeInnerBuilder());
     Naming from = Naming.from(style.from());
     Naming build = Naming.from(style.build());
+    Naming buildOrThrow = Naming.from(style.buildOrThrow());
 
     Naming builder = Naming.from(style.builder());
     Naming newBuilder = Naming.from(style.newBuilder());
@@ -149,6 +150,10 @@ public final class Styles {
 
       public final String builder() {
         return scheme.builder.apply(raw);
+      }
+
+      public final String buildOrThrow() {
+        return scheme.buildOrThrow.apply(raw);
       }
 
       public final String isInitialized() {

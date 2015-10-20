@@ -92,6 +92,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract String buildOrThrow();
+
+  @Value.Parameter
+  @Override
   public abstract String isInitialized();
 
   @Value.Parameter
@@ -205,7 +209,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public Class<? extends Exception> throwForInvalidImmutableState() {
     throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
-  };
+  }
 
   @Value.Parameter
   public abstract String throwForInvalidImmutableStateName();

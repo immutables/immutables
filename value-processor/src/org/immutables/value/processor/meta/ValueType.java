@@ -176,6 +176,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().jdkOnly() || noGuavaInClasspath();
   }
 
+  public boolean isGenerateBuildOrThrow() {
+    return !constitution.style().buildOrThrow().isEmpty();
+  }
+
   private boolean noGuavaInClasspath() {
     return typeMoreObjects == null;
   }
