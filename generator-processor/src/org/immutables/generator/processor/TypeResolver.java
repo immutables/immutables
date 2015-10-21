@@ -362,10 +362,14 @@ public final class TypeResolver {
     /** Overriden to specify order in which we process declaration first, and then parts. */
     @Override
     public Template transform(Scope scope, Template template) {
-      scope = scope.nest();
-      return template
-          .withDeclaration(transformTemplateDeclaration(scope, template, template.declaration()))
-          .withParts(transformTemplateListParts(scope, template, template.parts()));
+      try {
+        scope = scope.nest();
+        return template
+            .withDeclaration(transformTemplateDeclaration(scope, template, template.declaration()))
+            .withParts(transformTemplateListParts(scope, template, template.parts()));
+      } catch (RuntimeException ex) {
+        throw new RuntimeException("In template " + template.declaration().name() + ": " + ex.getMessage(), ex);
+      }
     }
 
     /** Overriden to specify order in which we process declaration first, and then parts. */

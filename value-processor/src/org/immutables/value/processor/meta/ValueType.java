@@ -76,9 +76,9 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isHashCodeDefined;
   public boolean isEqualToDefined;
   public boolean isToStringDefined;
-  public boolean hasDefaultAttributes;
-  public boolean hasDerivedAttributes;
   public Constitution constitution;
+  public int defaultAttributesCount;
+  public int derivedAttributesCount;
 
   Round round;
 
@@ -102,6 +102,14 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return "";
+  }
+
+  public boolean hasDefaultAttributes() {
+    return defaultAttributesCount > 0;
+  }
+
+  public boolean hasDerivedAttributes() {
+    return derivedAttributesCount > 0;
   }
 
   public TypeNames names() {
@@ -351,6 +359,13 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateOrdinalValue() {
     return isOrdinalValue();
+  }
+
+  public boolean isGenerateSafeDerived() {
+    boolean moreThanOne = defaultAttributesCount + derivedAttributesCount > 1;
+    return moreThanOne
+        && !isAnnotationType()
+        && !constitution.style().unsafeDefaultAndDerived();
   }
 
   public boolean isUseConstructorOnly() {
@@ -664,7 +679,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getDefaultAttributes() {
-    if (!hasDefaultAttributes) {
+    if (!hasDefaultAttributes()) {
       return ImmutableList.of();
     }
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
@@ -870,7 +885,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateConstructorUseCopyConstructor() {
     return isUseCopyMethods()
-        && !hasDefaultAttributes
+        && !hasDefaultAttributes()
         && hasNonNullCheckableParametersInDefaultOrder()
         && getConstructorExcluded().isEmpty();
   }

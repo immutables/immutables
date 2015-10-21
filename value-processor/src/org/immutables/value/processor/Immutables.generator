@@ -1260,7 +1260,9 @@ this.[n] = [emptyImmutableInstanceInferred type v];
 [if type.annotationType]
 this.[n] = DEFAULT_VALUE_[toConstant v.name];
 [else]
-  [if v.primitive or v.nullable]
+  [if type.generateSafeDerived]
+this.[n] = [disambiguateField type 'initShim'].[v.names.get]();
+  [else if v.primitive or v.nullable]
 this.[n] = [invokeSuper v].[v.names.get]();
   [else]
 this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
@@ -1322,9 +1324,18 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/for]
 [-- Generate default values comes after required values]
+[if type.generateSafeDerived]
+  [for v in getters if v.generateDefault, n = v.name]
+    if ([if v.primitive]builder.[n]IsSet()[else]builder.[n] != null[/if]) {
+      [disambiguateField type 'initShim'].[v.names.init](builder.[n]);
+    }
+  [/for]
+[/if]
 [for v in getters, n = v.name]
 [if v.generateDefault]
-  [if v.primitive]
+  [if type.generateSafeDerived]
+    this.[n] = [disambiguateField type 'initShim'].[v.names.get]();
+  [else if v.primitive]
     this.[n] = builder.[n]IsSet()
         ? builder.[n]
       [if type.annotationType]
@@ -1348,6 +1359,9 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
     [generateDerivedConstruction type]
     [generateAfterConstruction type true]
   }
+[/if]
+[if type.generateSafeDerived]
+  [generateSafeDerivedShim type]
 [/if]
 [if type.useCopyMethods]
 
@@ -1376,6 +1390,64 @@ this.[v.name] = [invokeSuper v].[v.names.get]();
    [else]
 this.[v.name] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
+[/for]
+[/template]
+
+[template generateSafeDerivedShim Type type]
+[for deriveds = v for v in type.implementedAttributes if v.generateDefault or v.generateDerived]
+
+private static final int STAGE_INITIALIZING = -1;
+private static final int STAGE_UNINITIALIZED = 0;
+private static final int STAGE_INITIALIZED = 1;
+[-- would it remain thread safe if remove volatile? --]
+private volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
+
+private final class InitShim {
+[for v in deriveds]
+  [let stage][disambiguateField type][v.name]Stage[/disambiguateField][/let]
+  [let invokeSuperGet][disambiguateAccessor type][v.names.get]Initialize[/disambiguateAccessor][/let]
+  private [v.type] [v.name];
+  private byte [stage];
+
+  [v.type] [v.names.get]() {
+    if ([stage] == STAGE_INITIALIZING) throw new [type.throwForInvalidImmutableState](formatInitCycleMessage());
+    if ([stage] == STAGE_UNINITIALIZED) {
+      [stage] = STAGE_INITIALIZING;
+        [if v.primitive or v.nullable]
+      this.[v.name] = [if v.defaultInterface][invokeSuperGet][else][invokeSuperQualified v].[v.names.get][/if]();
+        [else]
+      this.[v.name] = [requireNonNull type]([if v.defaultInterface][invokeSuperGet][else][invokeSuperQualified v].[v.names.get][/if]());
+        [/if]
+      [stage] = STAGE_INITIALIZED;
+    }
+    return [v.name];
+  }
+  [if v.generateDefault]
+
+  [v.type] [v.names.init]([v.type] value) {
+    this.[v.name] = value;
+    [stage] = STAGE_INITIALIZED;
+    return value;
+  }
+  [/if]
+[/for]
+
+  private String formatInitCycleMessage() {
+    java.util.ArrayList<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];;
+    [for v in deriveds]
+    [let stage][disambiguateField type][v.name]Stage[/disambiguateField][/let]
+    if ([stage] == STAGE_INITIALIZING) attributes.add("[v.name]");
+    [/for]
+    return "Cannot build [type.name], attribute initializers form cycle" + attributes;
+  }
+}
+
+[for v in deriveds if v.defaultInterface]
+[let invokeSuperGet][disambiguateAccessor type][v.names.get]Initialize[/disambiguateAccessor][/let]
+private [v.type] [invokeSuperGet]() {
+  return [invokeSuper v].[v.names.get]();
+}
+[/for]
 [/for]
 [/template]
 
@@ -1489,7 +1561,11 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [deprecation v]
 @Override
 [if v.isPublic]public [/if][v.atNullability][immutableImplementationType v] [v.names.get]() {
-[if v.arrayType]
+[if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
+  return [disambiguateField type 'initShim'] != null
+      ? [disambiguateField type 'initShim'].[v.names.get]()
+      : [v.name];
+[else if v.arrayType]
   return [v.name].clone();
 [else]
   return [v.name];
@@ -1677,6 +1753,9 @@ this.domain = builder.domain;
 [-- Default static ordinal domain --]
 this.domain = Domain.get();
     [/if]
+  [/if]
+  [if type.generateSafeDerived]
+this.[disambiguateField type 'initShim'] = null;
   [/if]
 [/template]
 
@@ -2308,6 +2387,8 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
+
+[template invokeSuperQualified Attribute a][a.containingType.typeImmutable.simple].super[/template]
 
 [template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 

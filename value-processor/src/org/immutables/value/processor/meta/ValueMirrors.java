@@ -161,6 +161,8 @@ public final class ValueMirrors {
 
     boolean attributelessSingleton() default false;
 
+    boolean unsafeDefaultAndDerived() default false;
+
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {

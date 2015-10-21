@@ -711,8 +711,31 @@ public @interface Value {
     boolean attributelessSingleton() default false;
 
     /**
-     * Exception to throw when an immutable object is in an invalid state. The Throwable must have
-     * a constructor that takes a single string
+     * As of 2.1 we are switching to safe generation of derived and default values when there are
+     * more than one such attribute. This {@code unsafeDefaultAndDerived} style could be enabled to
+     * revert to old, unsafe behavior.
+     * <p>
+     * In order to initialize default and derived attributes method bodies (initializers) will be
+     * invoked. Intializers could refer to other attributes, some of which might be also derived or
+     * uninitialized default values. As it's extremely difficult to reliably inspect initializer
+     * methods bodies and compute proper ordering, we use some special generated code which figures
+     * it out in runtime. If there will be a cycle in initializers, then
+     * {@link IllegalStateException} will be thrown.
+     * <p>
+     * If you set {@code unsafeDefaultAndDerived} to {@code true}, then simpler, unsafe code will be
+     * generated. With usafe code you cannot refer to other default or derived attributes in
+     * initializers as otherwise result will be undefined as order of initialization is not
+     * guaranteed.
+     * @return {@code true} default
+     */
+    boolean unsafeDefaultAndDerived() default false;
+
+    /**
+     * Exception to throw when an immutable object is in an invalid state. I.e. when some mandatory
+     * attributes are missing and immutable object cannot be built. The runtime exception class must
+     * have a constructor that takes a single string, otherwise there will be compile error in the
+     * generated code. The default exception type is {@link IllegalStateException}.
+     * @return exception type
      */
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
@@ -726,6 +749,7 @@ public @interface Value {
        * Generated implementation class forced to be public.
        */
       PUBLIC,
+
       /**
        * Visibility is the same
        */
@@ -736,10 +760,12 @@ public @interface Value {
        * abstract value type returned.
        */
       SAME_NON_RETURNED,
+
       /**
        * Implementation will have package visibility
        */
       PACKAGE,
+
       /**
        * Allowed only when builder is enabled or nested inside enclosing type.
        * Builder visibility will follow the umbrella class visibility.

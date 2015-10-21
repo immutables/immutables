@@ -1081,6 +1081,7 @@ public class Proto {
           input.generateSuppressAllWarnings(),
           input.privateNoargConstructor(),
           input.attributelessSingleton(),
+          input.unsafeDefaultAndDerived(),
           input.throwForInvalidImmutableStateName());
     }
   }

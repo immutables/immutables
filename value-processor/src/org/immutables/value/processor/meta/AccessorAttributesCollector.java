@@ -321,11 +321,11 @@ final class AccessorAttributesCollector {
 
       // Compute this eagerly here, for no strong reason
       if (attribute.isGenerateDefault) {
-        type.hasDefaultAttributes = true;
+        type.defaultAttributesCount++;
       }
 
       if (attribute.isGenerateDerived) {
-        type.hasDerivedAttributes = true;
+        type.derivedAttributesCount++;
       }
 
       if (attributeMethodCandidate.getEnclosingElement().equals(originalType)) {
