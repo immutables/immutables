@@ -22,7 +22,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [template classJavadoc Type type]
 
 /**
- * Modifiable implementation of {@link [type.typeAbstract.relative] [type.typeValue.simple]}.
+ * Modifiable implementation of {@link [type.typeAbstract.relative] [type.typeAbstract.simple]}.
 [if type.names.create eq 'new']
  * <p>Use constructor to create new modifiable instances. You may even extend this class to
  * add some convenience methods, however most of the methods in this class are final
@@ -97,11 +97,21 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   /**
-   * Gets if non-required attribute [sourceDocRef type p] is set
+   * Gets if [if p.generateDefault]default[else]non-required[/if] attribute [sourceDocRef type p] is set
    * @return {@code true} if set
    */
   public final boolean [isSet p]() {
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
+  }
+  [/for]
+  [for v in type.implementedAttributes if v.generateDefault and (not v.primitive)]
+
+  /**
+   * Gets if default attribute [sourceDocRef type v] is set
+   * @return {@code true} if set
+   */
+  public final boolean [isSet v]() {
+    return [v.name] != null;
   }
   [/for]
 
@@ -136,7 +146,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [if type.kind.isValue and type.useCopyConstructor]
 
   /**
-   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
+   * Converts to {@link [type.typeValue.relative] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
    */
   public final [type.typeValue] [type.names.toImmutable]() {
@@ -168,7 +178,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [if not useFactoryMethod]
 
 /**
- * Construct modifiable instance of {@code [type.typeValue.simple]}.
+ * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
 [for p in type.constructorArguments]
  * @param [p.name] value for [sourceDocRef type p] attribute[if p.nullable], can be {@code null}[/if]
 [/for]
@@ -190,7 +200,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 
   [if not useFactoryMethod]
 /**
- * Construct modifiable instance of {@code [type.typeValue.simple]}.
+ * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
  */
   [/if]
 [constructorAccess][type.names.typeModifiable]() {}
@@ -199,7 +209,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [if type.useConstructor]
 
 /**
- * Construct modifiable instance of {@code [type.typeValue.simple]}.
+ * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
 [for p in type.constructorArguments]
  * @param [p.name] value for [sourceDocRef type p] attribute[if p.nullable], can be {@code null}[/if]
 [/for]
@@ -215,7 +225,7 @@ public static [thisReturnType type] [type.names.create]([constructorParameters])
   [/if]
 
 /**
- * Construct modifiable instance of {@code [type.typeValue.simple]}.
+ * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
  * @return new modifiable instance
  */
 public static [thisReturnType type] [type.names.create]() {
@@ -311,7 +321,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [else if v.generateDerived]
   return [invokeSuper v].[v.names.get]();
 [else if v.generateDefault]
-  return [disambiguateAccessor type v.names.isSet]()
+  return [isSet v]()
       ? [v.name]
       : [invokeSuper v].[v.names.get]();
 [else]
@@ -654,7 +664,7 @@ private boolean equalTo([equalToType] another) {
   [if v.generateDerived]
   [v.type] [v.name] = [invokeSuper v].[v.names.get]();
   [else if v.generateDefault]
-  [v.type] [v.name] = [disambiguateAccessor type v.names.isSet]()
+  [v.type] [v.name] = [isSet v]()
       ? this.[v.name]
       : [invokeSuper v].[v.names.get]();
   [/if]
@@ -685,7 +695,7 @@ private boolean equalTo([equalToType] another) {
   [if v.generateDerived]
   [v.type] [v.name] = [invokeSuper v].[v.names.get]();
   [else if v.generateDefault]
-  [v.type] [v.name] = [disambiguateAccessor type v.names.isSet]()
+  [v.type] [v.name] = [isSet v]()
       ? this.[v.name]
       : [invokeSuper v].[v.names.get]();
   [/if]
@@ -730,7 +740,7 @@ public int hashCode() {
 [if not type.toStringDefined]
 
 /**
- * Converts this {@code [type.typeValue.simple]} to string.
+ * Converts this {@code [type.typeAbstract.simple]} to string.
  * If uninitialized, some attributes' values may appear as question marks.
  * @return string representation
  */

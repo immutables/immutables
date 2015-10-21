@@ -80,4 +80,17 @@ public class ModifiablesTest {
     check(c1).is(c1);
     check(c1).not().is(c2);
   }
+
+  @Test
+  public void defaults() {
+    ModifiableStandalone m = ModifiableStandalone.create();
+
+    check(m.def()).is(1);
+    m.setDef(2);
+    check(m.def()).is(2);
+
+    check(m.defs()).is("");
+    m.setDefs("a");
+    check(m.defs()).is("a");
+  }
 }

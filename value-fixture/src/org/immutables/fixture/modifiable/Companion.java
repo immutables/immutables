@@ -92,6 +92,11 @@ interface Companion {
       return 1;
     }
 
+    @Value.Default
+    default String defs() {
+      return "";
+    }
+
     @Value.Lazy
     default String lazy() {
       return "";
