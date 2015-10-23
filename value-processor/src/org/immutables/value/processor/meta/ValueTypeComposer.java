@@ -98,8 +98,12 @@ public final class ValueTypeComposer {
       Collection<String> violations = Lists.newArrayList();
       // This check is legacy, most such checks should have been done on a higher level?
       if (checkAbstractValueType(type.element, violations)) {
-        checkForMutableFields(protoclass, (TypeElement) type.element);
-        checkForTypeHierarchy(protoclass, type);
+
+        if (protoclass.kind().isValue()) {
+          // essentially skip checks if only kind().isModifiable() and not kind().isValue()
+          checkForMutableFields(protoclass, (TypeElement) type.element);
+          checkForTypeHierarchy(protoclass, type);
+        }
 
         new AccessorAttributesCollector(protoclass, type).collect();
       } else {
