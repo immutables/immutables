@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.HashMap;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -23,6 +24,7 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -31,12 +33,10 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -1005,67 +1005,19 @@ public final class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
+  ImmutableListMultimap<String, TypeElement> accessorMapping;
+
   @Nullable
   private FromSupertypesModel buildFromTypes;
 
   public FromSupertypesModel getBuildFromTypes() {
     if (buildFromTypes == null) {
-      buildFromTypes = new FromSupertypesModel(typeAbstract().toString(), getSettableAttributes());
+      buildFromTypes = new FromSupertypesModel(
+          typeAbstract().toString(),
+          getSettableAttributes(),
+          accessorMapping);
     }
     return buildFromTypes;
-  }
-
-  public final static class FromSupertypesModel {
-    public final ImmutableList<FromSupertype> supertypes;
-
-    FromSupertypesModel(String abstractTypeName, Iterable<ValueAttribute> attributes) {
-      Multimap<String, ValueAttribute> byDefinedBy = ArrayListMultimap.create();
-
-      for (ValueAttribute a : attributes) {
-        String fromType = firstNonNull(getEligibleFromType(a), abstractTypeName);
-        byDefinedBy.put(fromType, a);
-      }
-
-      ImmutableList.Builder<FromSupertype> builder = ImmutableList.builder();
-      for (Entry<String, Collection<ValueAttribute>> e : byDefinedBy.asMap().entrySet()) {
-        builder.add(new FromSupertype(e.getKey(), e.getValue()));
-      }
-
-      if (!byDefinedBy.containsKey(abstractTypeName)) {
-        builder.add(new FromSupertype(abstractTypeName, ImmutableList.<ValueAttribute>of()));
-      }
-
-      this.supertypes = builder.build();
-    }
-
-    private @Nullable String getEligibleFromType(ValueAttribute a) {
-      Element enclosing = a.element.getEnclosingElement();
-      if (enclosing.getKind().isClass()
-          || enclosing.getKind().isInterface()) {
-
-        TypeElement typeElement = (TypeElement) enclosing;
-        if (typeElement.getTypeParameters().isEmpty()) {
-          // We do not support type parameters as there's problem with
-          // proper type variable substitution
-          return typeElement.getQualifiedName().toString();
-        }
-      }
-      return null;
-    }
-
-    public boolean hasManySupertypes() {
-      return supertypes.size() > 1;
-    }
-
-    public final static class FromSupertype {
-      public final String type;
-      public final ImmutableList<ValueAttribute> attributes;
-
-      FromSupertype(String type, Iterable<ValueAttribute> attribute) {
-        this.type = type;
-        this.attributes = ImmutableList.copyOf(attribute);
-      }
-    }
   }
 
   public Serialization serial = Serialization.NONE;

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -78,6 +79,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
       return longPositions.values();
     }
 
+    @Nullable
     @Override
     public BitPosition apply(Object input) {
       return positions.get(input);

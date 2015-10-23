@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.SourceOrdering.AccessorProvider;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +60,7 @@ final class AccessorAttributesCollector {
   private final List<ValueAttribute> attributes = Lists.newArrayList();
   private final Styles styles;
   private final Reporter reporter;
+  private ImmutableListMultimap<String, TypeElement> accessorMapping = ImmutableListMultimap.of();
 
   private final boolean isEclipseImplementation;
   private boolean hasNonInheritedAttributes;
@@ -92,6 +95,7 @@ final class AccessorAttributesCollector {
     }
 
     type.attributes.addAll(attributes);
+    type.accessorMapping = accessorMapping;
   }
 
   private TypeElement getTypeElement() {
@@ -100,7 +104,18 @@ final class AccessorAttributesCollector {
 
   private void collectGeneratedCandidateMethods(TypeElement type) {
     TypeElement originalType = CachingElements.getDelegate(type);
-    for (ExecutableElement element : ElementFilter.methodsIn(getAccessorsInSourceOrder(originalType))) {
+
+    List<? extends Element> accessorsInSourceOrder;
+    if (originalType.getKind() == ElementKind.ANNOTATION_TYPE) {
+      accessorsInSourceOrder = SourceOrdering.getEnclosedElements(originalType);
+    } else {
+      AccessorProvider provider =
+          SourceOrdering.getAllAccessorsProvider(processing.getElementUtils(), processing.getTypeUtils(), originalType);
+      accessorsInSourceOrder = provider.get();
+      accessorMapping = provider.accessorMapping();
+    }
+
+    for (ExecutableElement element : ElementFilter.methodsIn(accessorsInSourceOrder)) {
       if (isElegibleAccessorMethod(element)) {
         processGenerationCandidateMethod(element, originalType);
       }
@@ -120,12 +135,6 @@ final class AccessorAttributesCollector {
         }
       }
     }
-  }
-
-  private List<? extends Element> getAccessorsInSourceOrder(TypeElement type) {
-    return type.getKind() == ElementKind.ANNOTATION_TYPE
-        ? SourceOrdering.getEnclosedElements(type)
-        : SourceOrdering.getAllAccessors(processing.getElementUtils(), processing.getTypeUtils(), type);
   }
 
   private boolean isElegibleAccessorMethod(Element element) {

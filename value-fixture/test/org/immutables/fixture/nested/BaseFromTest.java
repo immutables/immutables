@@ -26,4 +26,19 @@ public class BaseFromTest {
     check(sub.getC()).is("*");
     check(!sub.isA());
   }
+
+  @Test
+  public void complicatedFrom() {
+    ImmutableAB ab = ImmutableAB.builder()
+        .a(1)
+        .addB("a", "b")
+        .c(3)
+        .build();
+
+    ImmutableAB copiedAb = ImmutableAB.builder()
+        .from(ab)
+        .build();
+
+    check(copiedAb).is(ab);
+  }
 }

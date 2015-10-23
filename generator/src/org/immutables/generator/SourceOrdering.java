@@ -15,12 +15,16 @@
  */
 package org.immutables.generator;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -146,6 +150,12 @@ public final class SourceOrdering {
     }
   }
 
+  public interface AccessorProvider {
+    ImmutableListMultimap<String, TypeElement> accessorMapping();
+
+    ImmutableList<ExecutableElement> get();
+  }
+
   /**
    * While we have {@link SourceOrdering}, there's still a problem: We have inheritance hierarchy
    * and
@@ -158,9 +168,9 @@ public final class SourceOrdering {
    * @param elements the elements utility
    * @param types the types utility
    * @param type the type to traverse
-   * @return all accessors in source order
+   * @return provider of all accessors in source order and mapping
    */
-  public static ImmutableList<ExecutableElement> getAllAccessors(
+  public static AccessorProvider getAllAccessorsProvider(
       final Elements elements,
       final Types types,
       final TypeElement type) {
@@ -177,6 +187,7 @@ public final class SourceOrdering {
       final List<TypeElement> linearizedTypes = Lists.newArrayList();
       final Predicate<String> accessorNotYetInOrderings =
           Predicates.not(Predicates.in(accessorOrderings.keySet()));
+      final ArrayListMultimap<String, TypeElement> accessorMapping = ArrayListMultimap.create();
 
       CollectedOrdering() {
         traverse(type);
@@ -209,10 +220,17 @@ public final class SourceOrdering {
       }
 
       void collectEnclosing(TypeElement type) {
-        List<String> accessors =
+        FluentIterable<String> accessorsInType =
             FluentIterable.from(SourceOrdering.getEnclosedElements(type))
-                .filter(IsAccessor.PREDICATE)
-                .transform(ToSimpleName.FUNCTION)
+                .filter(IsParameterlessNonstatic.PREDICATE)
+                .transform(ToSimpleName.FUNCTION);
+
+        for (String accessor : accessorsInType) {
+          accessorMapping.put(accessor, type);
+        }
+
+        List<String> accessors =
+            accessorsInType
                 .filter(accessorNotYetInOrderings)
                 .toList();
 
@@ -243,9 +261,27 @@ public final class SourceOrdering {
       }
     }
 
-    return FluentIterable.from(ElementFilter.methodsIn(elements.getAllMembers(type)))
-        .filter(IsAccessor.PREDICATE)
-        .toSortedList(new CollectedOrdering());
+    final CollectedOrdering ordering = new CollectedOrdering();
+
+    return new AccessorProvider() {
+      ImmutableListMultimap<String, TypeElement> accessorMapping =
+          ImmutableListMultimap.copyOf(ordering.accessorMapping);
+
+      ImmutableList<ExecutableElement> sortedList =
+          FluentIterable.from(ElementFilter.methodsIn(elements.getAllMembers(type)))
+              .filter(IsParameterlessNonstatic.PREDICATE)
+              .toSortedList(ordering);
+
+      @Override
+      public ImmutableListMultimap<String, TypeElement> accessorMapping() {
+        return accessorMapping;
+      }
+
+      @Override
+      public ImmutableList<ExecutableElement> get() {
+        return sortedList;
+      }
+    };
   }
 
   private enum ToSimpleName implements Function<Element, String> {
@@ -256,7 +292,7 @@ public final class SourceOrdering {
     }
   }
 
-  private enum IsAccessor implements Predicate<Element> {
+  private enum IsParameterlessNonstatic implements Predicate<Element> {
     PREDICATE;
     @Override
     public boolean apply(Element input) {

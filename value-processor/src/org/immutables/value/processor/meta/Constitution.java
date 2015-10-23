@@ -60,6 +60,10 @@ public abstract class Constitution {
         || style().visibility() == ValueMirrors.Style.ImplementationVisibility.SAME_NON_RETURNED;
   }
 
+  public boolean isImplementationPrimary() {
+    return protoclass().visibility().isMoreRestrictiveThan(implementationVisibility());
+  }
+
   @Value.Derived
   public TypeNames names() {
     return protoclass().createTypeNames();

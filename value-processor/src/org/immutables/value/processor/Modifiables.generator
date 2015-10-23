@@ -253,12 +253,26 @@ public [thisReturnType type] [type.names.from]([s.type] instance) {
   [/for]
 
 private void from(Object object) {
-    [for s in type.buildFromTypes.supertypes if s.attributes]
+[for bs = type.buildFromTypes]
+[for l in bs.positions.longs]
+  long bits[emptyIfZero l.index] = 0;
+  [/for]
+[for s in bs.supertypes if s.attributes]
   if (object instanceof [s.type]) {
     [s.type] instance = ([s.type]) object;
-    [buildFromAttributes s.attributes]
-  }
+    [for v in s.attributes, BitPosition pos = bs.positions v.name]
+    [if pos]
+    if ((bits[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
+      [buildFromAttribute v]
+      bits[emptyIfZero pos.index] |= [literal.hex pos.mask];
+    }
+    [else]
+    [buildFromAttribute v]
+    [/if]
     [/for]
+  }
+[/for]
+[/for]
 }
 [else]
 
@@ -274,7 +288,9 @@ private void from(Object object) {
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [requireNonNull type](instance);
-  [buildFromAttributes type.settableAttributes]
+[for v in type.settableAttributes]
+  [buildFromAttribute v]
+[/for]
   [thisReturn type]
 }
 [/if]
@@ -610,8 +626,7 @@ private [v.atNullability][v.type] [v.name];
   [/if]
 [/template]
 
-[template buildFromAttributes Attribute... setters]
-[for v in setters]
+[template buildFromAttribute Attribute v]
   [if v.collectionType]
 [v.names.addAll](instance.[v.names.get]());
   [else if v.mapType]
@@ -629,7 +644,6 @@ if ([v.name]Value != null) {
   [else]
 [v.names.set](instance.[v.names.get]());
   [/if]
-[/for]
 [/template]
 
 [template generateEqualsHashCode Type type]

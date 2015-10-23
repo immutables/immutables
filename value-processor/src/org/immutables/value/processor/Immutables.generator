@@ -541,7 +541,7 @@ private Object writeReplace() {
  * @param instance instance to copy
  * @return copied immutable [type.name] instance
  */
-[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract] instance) {
+[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
@@ -750,7 +750,7 @@ private Object writeReplace() {
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
-  public final [builderReturnType type] [type.names.from]([s.type] instance) {
+  public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary and (s.type eq type.typeAbstract.toString)][type.typeImmutable.relative][else][s.type][/if] instance) {
     [requireNonNull type](instance);
     from((Object) instance);
     [builderReturnThis type]
@@ -758,12 +758,26 @@ private Object writeReplace() {
       [/for]
 
   private void from(Object object) {
-      [for s in type.buildFromTypes.supertypes if s.attributes]
+[for bs = type.buildFromTypes]
+    [for l in bs.positions.longs]
+    long bits[emptyIfZero l.index] = 0;
+    [/for]
+  [for s in bs.supertypes if s.attributes]
     if (object instanceof [s.type]) {
       [s.type] instance = ([s.type]) object;
-      [buildFromAttributes s.attributes]
-    }
+      [for v in s.attributes, BitPosition pos = bs.positions v.name]
+      [if pos]
+      if ((bits[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
+        [buildFromAttribute v]
+        bits[emptyIfZero pos.index] |= [literal.hex pos.mask];
+      }
+      [else]
+      [buildFromAttribute v]
+      [/if]
       [/for]
+    }
+  [/for]
+[/for]
   }
     [else]
 
@@ -777,9 +791,11 @@ private Object writeReplace() {
    * @param instance instance to copy values from
    * @return {@code this} builder for chained invocation
    */
-  public final [builderReturnType type] [type.names.from]([type.typeAbstract] instance) {
+  public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
     [requireNonNull type](instance);
-    [buildFromAttributes setters]
+    [for v in setters]
+    [buildFromAttribute v]
+    [/for]
     [builderReturnThis type]
   }
     [/if]
@@ -1173,8 +1189,7 @@ if ([for l in positions.longs][if not for.first]
 }
 [/template]
 
-[template buildFromAttributes Attribute... setters]
-[for v in setters]
+[template buildFromAttribute Attribute v]
   [if v.collectionType]
 [v.names.addAll](instance.[v.names.get]());
   [else if v.mapType]
@@ -1192,7 +1207,6 @@ if ([v.name]Value != null) {
   [else]
 [v.names.init](instance.[v.names.get]());
   [/if]
-[/for]
 [/template]
 
 [template returnFactoryBuild Type type]
