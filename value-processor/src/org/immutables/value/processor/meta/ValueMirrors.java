@@ -163,6 +163,8 @@ public final class ValueMirrors {
 
     boolean unsafeDefaultAndDerived() default false;
 
+    boolean clearBuilder() default false;
+
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {

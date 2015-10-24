@@ -921,6 +921,10 @@ public final class ValueType extends TypeIntrospectionBase {
         && !isGenerateBuilderUseCopyConstructor();
   }
 
+  public boolean isGenerateClearBuilder() {
+    return constitution.style().clearBuilder();
+  }
+
   @Override
   protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
     this.hierarchiCollector = super.collectTypeHierarchy(typeMirror);

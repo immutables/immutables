@@ -22,21 +22,25 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-
-import javax.annotation.Nullable;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import javax.annotation.Nullable;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import org.immutables.generator.SourceExtraction;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 @Value.Nested
 public class Proto {
@@ -1082,6 +1086,7 @@ public class Proto {
           input.privateNoargConstructor(),
           input.attributelessSingleton(),
           input.unsafeDefaultAndDerived(),
+          input.clearBuilder(),
           input.throwForInvalidImmutableStateName());
     }
   }

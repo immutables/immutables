@@ -621,7 +621,7 @@ private [v.atNullability][v.type] [v.name];
 [v.name] = false;
   [else if v.primitive]
 [v.name] = 0;
-  [else if v.nullable]
+  [else]
 [v.name] = null;
   [/if]
 [/template]

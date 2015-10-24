@@ -649,10 +649,10 @@ private Object writeReplace() {
   private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
-  private long initBits[emptyIfZero l.index] = [literal.hex l.occupation];
+  private long [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
-  private long optBits[emptyIfZero l.index];
+  private long [disambiguateField type 'optBits'][emptyIfZero l.index];
   [/for]
   [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
 
@@ -810,13 +810,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 [-- Being called from builder initializer methods --]
 [let nondefaultSetInBuilder Attribute v]
 [if v.requiresTrackIsSet][for BitPosition pos = nondefaultsPositions v]
-optBits[emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
+[disambiguateField type 'optBits'][emptyIfZero pos.index] |= OPT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
 [-- Being called from builder initializer methods --]
 [let mandatorySetInBuilder Attribute v]
 [if v.mandatory][for BitPosition pos = positions v]
-initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
+[disambiguateField type 'initBits'][emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
 [/for][/if]
 [/let]
   [for v in setters]
@@ -1081,7 +1081,23 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   }
   [/if]
   [/for]
-
+[if type.generateClearBuilder]
+  /**
+   * Clear builder to initial state.
+   */
+  public [builderReturnType type] [type.names.clear]() {
+    [for l in positions.longs]
+    [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
+    [/for]
+    [for l in nondefaultsPositions.longs]
+    [disambiguateField type 'optBits'][emptyIfZero l.index] = 0;
+    [/for]
+    [for v in setters]
+    [defineOrResetBuildingField v false]
+    [/for]
+    [builderReturnThis type]
+  }
+[/if]
   /**
   [if type.kind.isFactory]
    * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
@@ -1118,13 +1134,13 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   private boolean [p.names.isSet]() {
-    return (optBits[emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
+    return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
   [for m in mandatories, BitPosition pos = positions m]
 
   private boolean [m.names.isSet]() {
-    return (initBits[emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
+    return ([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
   [/for]
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
@@ -1136,13 +1152,13 @@ initBits[emptyIfZero pos.index] &= ~INIT_BIT_[toConstant v.name];
   [if positions.longs]
 
   private void checkRequiredAttributes() throws [type.throwForInvalidImmutableState] {
-    [checkRequiredOrThrow positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
+    [checkRequiredOrThrow type positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
   }
   [if type.isGenerateBuildOrThrow]
     [if classpath.isJava8 or (not type.generateJdkOnly)]
 
   private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
-    [checkRequiredOrThrow positions]exceptionSupplier.apply[/checkRequiredOrThrow]
+    [checkRequiredOrThrow type positions]exceptionSupplier.apply[/checkRequiredOrThrow]
   }
     [/if]
   [/if]
@@ -1182,9 +1198,9 @@ return [validated type true]new [type.typeImmutable.relative](this)[/validated];
 [/if]
 [/output.linesShortable][/template]
 
-[template checkRequiredOrThrow LongPositions positions String throwSupplier]
+[template checkRequiredOrThrow Type type LongPositions positions String throwSupplier]
 if ([for l in positions.longs][if not for.first]
-        || [/if]initBits[emptyIfZero l.index] != 0[/for]) {
+        || [/if][disambiguateField type 'initBits'][emptyIfZero l.index] != 0[/for]) {
   throw [throwSupplier](formatRequiredAttributesMessage());
 }
 [/template]
@@ -1714,7 +1730,7 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [if not type.toStringDefined]
 
 /**
- * Prints immutable value {@code [type.name]{...}} with attribute values,
+ * Prints immutable value {@code [type.name]...} with attribute values,
  * excluding any non-generated and auxiliary attributes.
  * @return string representation of value
  */
@@ -2330,14 +2346,16 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
     [if v.generateJdkOnly]
       [if v.optionalType]
 [if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
+      [else if not declare]
+[v.name]Builder.clear();
       [else if v.generateEnumMap]
-[if declare]private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
       [else if v.mapType]
-[if declare]private java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [/if][v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+private java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name]Builder = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
       [else if v.generateEnumSet]
-[if declare]private java.util.EnumSet<[v.elementType]> [/if][v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
+private java.util.EnumSet<[v.elementType]> [v.name]Builder = java.util.EnumSet.noneOf([v.elementType].class);
       [else]
-[if declare]private java.util.ArrayList<[v.elementType]> [/if][v.name]Builder = new java.util.ArrayList<[v.elementType]>();
+private java.util.ArrayList<[v.elementType]> [v.name]Builder = new java.util.ArrayList<[v.elementType]>();
       [/if]
     [else]
       [if v.generateSortedSet]
@@ -2353,9 +2371,19 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
       [/if]
     [/if]
   [else if v.primitive]
-[if declare]private [v.type] [v.name];[/if]
+    [if declare]
+private [v.type] [v.name];
+    [else if v.boolean]
+[v.name] = false;
+    [else]
+[v.name] = 0;
+    [/if]
   [else]
-[if declare]private [atNullable][v.type] [v.name];[/if]
+    [if declare]
+private [atNullable][v.type] [v.name];
+    [else]
+[v.name] = null;
+    [/if]
   [/if]
 [/template]
 

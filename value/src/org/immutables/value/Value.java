@@ -731,6 +731,19 @@ public @interface Value {
     boolean unsafeDefaultAndDerived() default false;
 
     /**
+     * When enabled: {@code clear} method will be generated on builder to reset state of a builder.
+     * Primarily designed for resource constrained environments to minimize allocations. This
+     * functionality is disabled by default as usually it's better to create fresh builders with a
+     * clean state: in server side java it may be more efficient to allocate new builder than clean
+     * previously allocated one.
+     * <p>
+     * <em>Note: this functionality is experimental and may be changed in further versions</em>
+     * @see #clear()
+     * @return {@code true} if clean method would be generated.
+     */
+    boolean clearBuilder() default false;
+
+    /**
      * Exception to throw when an immutable object is in an invalid state. I.e. when some mandatory
      * attributes are missing and immutable object cannot be built. The runtime exception class must
      * have a constructor that takes a single string, otherwise there will be compile error in the
