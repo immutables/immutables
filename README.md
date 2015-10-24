@@ -23,6 +23,13 @@ Read full documentation at http://immutables.org
 Changelog
 ---------
 
+### 2.1.0 (2015-10-23)
+* Point release
++ Added `Value.Modifiable` annotation to create modifiable companion classes, which may serve as uber-builder or instead of `buildPartial` in other builder toolkits.
++ Added number of minor styles and feature flags and refinements of existing functionality
++ Numerous bugfixes
++ [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1+is%3Aclosed)
+
 ### 2.0.18 (2015-08-13)
 + Bugfix and minor enhancement release [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.0.18+is%3Aclosed)
 
@@ -144,4 +151,3 @@ Release with all of what was developed, including reengineering of template engi
   + Added array attributes
   + Added `Builder.addAttribute(T...)` overload for collection attributes
   + Removed `ImmutableValue.Builder.copy` methods
-
