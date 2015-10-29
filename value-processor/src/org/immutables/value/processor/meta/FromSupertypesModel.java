@@ -72,7 +72,7 @@ public final class FromSupertypesModel {
     }
 
     // This abstract value type should be always present and be a from target,
-    // even if it's not defines any specific attributes (just inherits)
+    // even if it doesn't define any specific attributes (just inherits)
     if (!attributeByType.containsKey(abstractTypeName)) {
       builder.add(new FromSupertype(abstractTypeName, ImmutableList.<ValueAttribute>of()));
     }

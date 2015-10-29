@@ -838,7 +838,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       typeKind = AttributeTypeKind.REGULAR;
       report()
           .annotationNamed(DefaultMirror.simpleName())
-          .warning("@Value.Default on a container attribute make it lose it's special treatment");
+          .warning("@Value.Default on a container attribute make it lose its special treatment");
     }
   }
 

@@ -67,7 +67,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [generateAccessors type]
 
   /**
-   * Clears object by setting attributes to it's initial values.
+   * Clears object by setting attributes to their initial values.
    * @return {@code this} for chained invocation
    */
   public [thisReturnType type] [type.names.clear]() {
