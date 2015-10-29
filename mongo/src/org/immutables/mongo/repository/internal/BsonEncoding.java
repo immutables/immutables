@@ -69,7 +69,7 @@ public final class BsonEncoding {
       .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
 
   /**
-   * This field name will cause an MongoDB confuse if not unwrapped correctly so it's may be a good
+   * This field name will cause an MongoDB confuse if not unwrapped correctly so it may be a good
    * choice.
    */
   private static final String PREENCODED_VALUE_WRAPPER_FIELD_NAME = "$";

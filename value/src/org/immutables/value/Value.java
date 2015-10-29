@@ -244,7 +244,7 @@ public @interface Value {
   @Retention(RetentionPolicy.CLASS)
   public @interface Parameter {
     /**
-     * Used to specify order of constructor argument. It's defaults to zero and allows for
+     * Used to specify order of constructor argument. It defaults to zero and allows for
      * non-contiguous order values (arguments are sorted ascending by this order value).
      * <p>
      * <em>This attribute was introduced as potentially not all annotation processors could use source
@@ -253,7 +253,7 @@ public @interface Value {
      * developer should supply argument order explicitly.
      * As of version 1.0, we implemented workaround for
      * the Eclipse compiler, so it is not strictly needed to specify order,
-     * but it's still might be needed if you wish to reorder arguments</em>
+     * but it still might be needed if you wish to reorder arguments</em>
      * @return order
      */
     int order() default 0;
@@ -657,7 +657,7 @@ public @interface Value {
      * copied using special logic, such as {@code Nullable} annotations (and Jackson annotations)
      * <p>
      * This style parameter is experimental and may change in future.
-     * @return types of annotations to pass to an immutable implementation class and it's
+     * @return types of annotations to pass to an immutable implementation class and its
      *         attributes.
      */
     Class<? extends Annotation>[] passAnnotations() default {};

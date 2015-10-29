@@ -87,7 +87,7 @@ class TypeStringProvider {
         this.buffer = new StringBuilder(workaroundTypeString);
       }
 
-      // It's seems that array type annotations are not exposed in javac
+      // It seems that array type annotations are not exposed in javac
       // Nested type argument's type annotations are not exposed as well (in javac)
       // So currently we instert only for top level, declared type (here),
       // and primitives (see above)

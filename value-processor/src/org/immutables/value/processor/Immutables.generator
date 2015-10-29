@@ -1100,7 +1100,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 [/if]
   /**
   [if type.kind.isFactory]
-   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
+   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning its result
    * @return result of type {@code [type.typeValue]}
   [else]
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
@@ -1117,7 +1117,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
   [if type.kind.isFactory]
-   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning it's result
+   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning its result
    * @return result of type {@code [type.typeValue]}
   [else]
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.

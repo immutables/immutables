@@ -49,7 +49,7 @@ public @interface Serial {
    * <p>
    * Structural serialization of value types use attribute names, collections, optional values and
    * map into the representation, rather than exact internal fields used to store the data. The
-   * important aspect of this is that objects are being deserialized using it's constructors and
+   * important aspect of this is that objects are being deserialized using their constructors and
    * builders, and not the internal representation, thus all singletons, interning and other
    * invariants will be preserved and data migration made possible (using either optional or
    * nullable attributes) or changing types of collections, moving from scalar values to collections

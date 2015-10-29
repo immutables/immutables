@@ -80,7 +80,7 @@ _Note versions 1.1.x are still supported, there's no rush to switch to 2.0 if yo
   * `builder` Module with annotations for generating builder from static factory methods
   * `ordinal` Module to generate more exotic enum-like values and efficiently handle them, etc
 + JSON infrastructure underwent overhaul. See guide at http://immutables.org/json.html
-+ JAX-RS support switched to Gson, for _Jackson_ integration there's no need to integrate anything, it's own provider will fully work.
++ JAX-RS support switched to Gson, for _Jackson_ integration there's no need to integrate anything, its own provider will fully work.
 + MongoDB repository generation was refined and adjusted following JSON changes. See guide at http://immutables.org/mongo.html
 + Temporarily removed JDBI integration. It may be resurrected later.
 + Direct inheritance of `@Value.Immutable` from another `@Value.Immutable` is discouraged.
