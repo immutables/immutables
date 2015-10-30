@@ -34,7 +34,9 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
  * Use {@link #[type.names.toImmutable]()} method to convert to canonical immutable instance.
 [/if]
  * <p><em>[type.names.typeModifiable] is not thread safe</em>
+[if type.kind.isValue]
  * @see [type.typeValue.relative]
+[/if]
  */
 [/template]
 
