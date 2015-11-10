@@ -1106,7 +1106,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
    * @return immutable instance of [type.name]
   [/if]
-   * @throws exception {@code [type.throwForInvalidImmutableState]} if any required attributes are missing
+   * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
   public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
