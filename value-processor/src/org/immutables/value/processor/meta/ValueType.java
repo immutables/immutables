@@ -885,7 +885,6 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isGenerateConstructorUseCopyConstructor() {
     return isUseCopyMethods()
-        && !hasDefaultAttributes()
         && hasNonNullCheckableParametersInDefaultOrder()
         && getConstructorExcluded().isEmpty();
   }

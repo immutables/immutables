@@ -1339,6 +1339,11 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
     this.[n] = [requireNonNull type]([n]);
   [/if]
 [/for]
+[if type.generateSafeDerived]
+  [for v in type.constructorArguments if v.generateDefault]
+    [disambiguateField type 'initShim'].[v.names.init]([v.name]);
+  [/for]
+[/if]
     [generateConstructorDefaultAttributes type type.constructorOmited]
     [generateAfterConstruction type false]
   }
@@ -1390,9 +1395,6 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
     [generateAfterConstruction type true]
   }
 [/if]
-[if type.generateSafeDerived]
-  [generateSafeDerivedShim type]
-[/if]
 [if type.useCopyMethods]
 
   private [type.typeImmutable.simple]([output.linesShortable]
@@ -1402,9 +1404,17 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [for v in getters if not v.generateDerived]
     this.[v.name] = [v.name];
   [/for]
+  [if type.generateSafeDerived]
+  [for v in getters if v.generateDefault]
+    [disambiguateField type 'initShim'].[v.names.init]([v.name]);
+  [/for]
+  [/if]
     [generateDerivedConstruction type]
     [generateAfterConstruction type false]
   }
+[/if]
+[if type.generateSafeDerived]
+  [generateSafeDerivedShim type]
 [/if]
   [generateAccessorMethods type]
   [generateCopyMethods type]
@@ -1415,9 +1425,11 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get]());
 
 [template generateDerivedConstruction Type type]
 [for v in type.implementedAttributes if v.generateDerived]
-  [if v.primitive or v.nullable]
+  [if type.generateSafeDerived]
+this.[v.name] = [disambiguateField type 'initShim'].[v.names.get]();
+  [else if v.primitive or v.nullable]
 this.[v.name] = [invokeSuper v].[v.names.get]();
-   [else]
+  [else]
 this.[v.name] = [requireNonNull type]([invokeSuper v].[v.names.get]());
   [/if]
 [/for]
@@ -1463,7 +1475,7 @@ private final class InitShim {
 [/for]
 
   private String formatInitCycleMessage() {
-    java.util.ArrayList<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];;
+    java.util.ArrayList<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for v in deriveds]
     [let stage][disambiguateField type][v.name]Stage[/disambiguateField][/let]
     if ([stage] == STAGE_INITIALIZING) attributes.add("[v.name]");

@@ -43,4 +43,14 @@ public class SafeInitTest {
     check(obj.a()).not(1);
     check(obj.b()).not(1);
   }
+
+  @Test
+  public void defaultAndDerived() {
+    DefaultDerivedInit source = ImmutableDefaultDerivedInit.builder().title("a").build();
+    DefaultDerivedInit replica = ImmutableDefaultDerivedInit.copyOf(source).withTitle("b");
+    check(replica.index()).is(source.index());
+
+    replica = ImmutableDefaultDerivedInit.of(source.uuid(), source.title());
+    check(replica.index()).is(source.index());
+  }
 }
