@@ -17,6 +17,7 @@ package org.immutables.value.processor.meta;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,10 +49,11 @@ final class Annotations {
       ElementType elementType) {
     List<CharSequence> lines = Lists.newArrayList();
 
+    Set<String> seenAnnotations = new HashSet<>();
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationTypeMatches(annotationElement, includeAnnotations, includeJacksonAnnotations)
+      if (annotationTypeMatches(annotationElement, includeAnnotations, includeJacksonAnnotations, seenAnnotations)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation));
       }
@@ -62,21 +64,24 @@ final class Annotations {
   private static boolean annotationTypeMatches(
       TypeElement annotationElement,
       Set<String> includeAnnotations,
-      boolean includeJacksonAnnotations) {
+      boolean includeJacksonAnnotations,
+      Set<String> seenAnnotations) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
 
-    if (qualifiedName.startsWith(PREFIX_IMMUTABLES)
+    if (seenAnnotations.contains(qualifiedName)
+        || qualifiedName.startsWith(PREFIX_IMMUTABLES)
         || qualifiedName.startsWith(PREFIX_JAVA_LANG)) {
       // skip immutables and core java annotations (like Override etc)
       // Also skip JsonProperty annotation as we will add it separately
+      // also skip any we've already seen, since we're recursing.
       return false;
     }
-
+    seenAnnotations.add(qualifiedName);
     if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
       // we expect to propagate nullability separately
       return false;
     }
-    
+
     if (qualifiedName.equals(PREFIX_JACKSON_IGNORE_PROPERTIES)) {
       // this is just very often used exception
       // but preferred way is to use additionalJsonAnnotations style attribute.
@@ -88,7 +93,17 @@ final class Annotations {
       return true;
     }
 
-    return includeAnnotations.contains(qualifiedName);
+    if (includeAnnotations.contains(qualifiedName)) {
+      return true;
+    }
+
+    for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
+      TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
+      if (annotationTypeMatches(parentElement, includeAnnotations, includeJacksonAnnotations, seenAnnotations)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   static boolean annotationMatchesTarget(Element annotationElement, ElementType elementType) {
