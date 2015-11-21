@@ -1514,7 +1514,8 @@ private [v.type] [invokeSuperGet]() {
  * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
-@com.fasterxml.jackson.databind.annotation.JsonDeserialize
+[overrideJsonDeserialize type]
+[overrideJsonTypeInfo type]
 static final class JsonPojo [extendsImplements type]
 [for v in type.implementedAttributes]
   private [atNullable][v.type] [v.name];
@@ -2476,3 +2477,7 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
+
+[template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@com.fasterxml.jackson.databind.annotation.JsonDeserialize[/if][/template]
+
+[template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]
