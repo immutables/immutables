@@ -1513,16 +1513,22 @@ private [v.type] [invokeSuperGet]() {
  * Simple representation of this value type suitable Jackson binding
  * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
  */
-[for a in type.passedJsonAnnotations]
-[a]
-[/for]
 @Deprecated
-static final class Json {
+[overrideJsonDeserialize type]
+[overrideJsonTypeInfo type]
+static final class JsonPojo [extendsImplements type]
 [for v in type.implementedAttributes]
-  [for a in v.jacksonFieldsAnnotations]
-  [a]
-  [/for]
-  [atNullable][v.wrapperType] [v.name];
+  private [atNullable][v.type] [v.name];
+[/for]
+
+[for v in type.implementedAttributes]
+  @Override
+  [if v.isPublic]public [/if][v.atNullability][v.type] [v.names.get]() {
+    return [v.name];
+  }
+  public void [v.names.jsonSet]([v.atNullability][v.type] [v.name]) {
+    this.[v.name] = [v.name];
+  }
 [/for]
 }
 
@@ -1535,9 +1541,12 @@ static final class Json {
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static [type.typeValue.relative] fromJson([if type.implementedAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
+static [type.typeValue.relative] fromJson([if type.implementedAttributes]JsonPojo json[else]java.util.Map<String, Object> json[/if]) {
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+  [if type.implementedAttributes]
+  builder = builder.from(json);
+  [else]
   [for v in type.settableAttributes]
   if (json.[v.name] != null) {
       [if v.collectionType]
@@ -1549,6 +1558,7 @@ static [type.typeValue.relative] fromJson([if type.implementedAttributes]Json js
       [/if]
   }
   [/for]
+  [/if]
   return builder.[type.names.build]();
 [else if type.useSingletonOnly]
   return [type.factoryInstance.relative]();
@@ -2467,3 +2477,7 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 [template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
+
+[template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@com.fasterxml.jackson.databind.annotation.JsonDeserialize[/if][/template]
+
+[template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]

@@ -81,6 +81,18 @@ public class Proto {
       return isJacksonSerializedAnnotated(element());
     }
 
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJacksonDeserialized() {
+      return isJacksonDeserializedAnnotated(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJacksonJsonTypeInfo() {
+      return isJacksonJsonTypeInfoAnnotated(element());
+    }
+
     public static MetaAnnotated from(AnnotationMirror mirror) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
@@ -295,6 +307,40 @@ public class Proto {
       }
       return false;
     }
+
+    @Value.Lazy
+    public boolean isJacksonDeserialized() {
+      if (isJacksonDeserializedAnnotated(element())) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        if (metaAnnotated.isJacksonDeserialized()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Value.Lazy
+    public boolean isJacksonJsonTypeInfo() {
+      if (isJacksonJsonTypeInfoAnnotated(element())) {
+        // while DeclaringPackage cannot have those annotations
+        // directly, just checking them as a general computation path
+        // will not hurt much.
+        return true;
+      }
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        if (metaAnnotated.isJacksonJsonTypeInfo()) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   @Value.Immutable
@@ -361,6 +407,30 @@ public class Proto {
       Optional<DeclaringPackage> parent = namedParentPackage();
       if (parent.isPresent()) {
         return parent.get().isJacksonSerialized();
+      }
+      return false;
+    }
+
+    @Value.Lazy
+    public boolean isJacksonDeserialized() {
+      if (super.isJacksonDeserialized()) {
+        return true;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isJacksonDeserialized();
+      }
+      return false;
+    }
+
+    @Value.Lazy
+    public boolean isJacksonJsonTypeInfo() {
+      if (super.isJacksonJsonTypeInfo()) {
+        return true;
+      }
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        return parent.get().isJacksonJsonTypeInfo();
       }
       return false;
     }
@@ -977,6 +1047,28 @@ public class Proto {
       return packageOf().isJacksonSerialized();
     }
 
+    @Value.Lazy
+    public boolean isJacksonDeserialized() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonDeserialized()) {
+          return true;
+        }
+      }
+      return packageOf().isJacksonDeserialized();
+    }
+
+    @Value.Lazy
+    public boolean isJacksonJsonTypeInfo() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonJsonTypeInfo()) {
+          return true;
+        }
+      }
+      return packageOf().isJacksonJsonTypeInfo();
+    }
+
     public boolean isAst() {
       return declaringType().isPresent()
           && declaringType().get().isAst();
@@ -1101,6 +1193,28 @@ public class Proto {
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static boolean isJacksonDeserializedAnnotated(Element element) {
+    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+    for (AnnotationMirror annotation : annotationMirrors) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if ("com.fasterxml.jackson.databind.annotation.JsonDeserialize".equals(annotationElement.getQualifiedName().toString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  protected static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
+    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
+    for (AnnotationMirror annotation : annotationMirrors) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      if ("com.fasterxml.jackson.annotation.JsonTypeInfo".equals(annotationElement.getQualifiedName().toString())) {
         return true;
       }
     }

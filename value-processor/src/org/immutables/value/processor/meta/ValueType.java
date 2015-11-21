@@ -15,20 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.HashMap;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
@@ -241,6 +238,27 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().isJacksonSerialized();
   }
 
+  public boolean isJacksonDeserialized() {
+    return constitution.protoclass().isJacksonDeserialized();
+  }
+
+  public boolean isJacksonJsonTypeInfo() {
+    if (constitution.protoclass().isJacksonJsonTypeInfo()) {
+      return true;
+    }
+    for (DeclaredType type : implementedInterfaces()) {
+      if (Proto.isJacksonJsonTypeInfoAnnotated(type.asElement())) {
+        return true;
+      }
+    }
+    for (DeclaredType type : extendedClasses()) {
+      if (Proto.isJacksonJsonTypeInfoAnnotated(type.asElement())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public String getTopSimple() {
     if (enclosingValue != null) {
       return enclosingValue.typeEnclosing().simple();
@@ -295,17 +313,6 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return includedElements;
-  }
-
-  public List<CharSequence> passedJsonAnnotations() {
-    return Annotations.getAnnotationLines(
-        element,
-        constitution.protoclass()
-            .styles()
-            .style()
-            .additionalJsonAnnotationsNames(),
-        false,
-        ElementType.TYPE);
   }
 
   public List<CharSequence> passedAnnotations() {
