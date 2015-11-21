@@ -1525,7 +1525,7 @@ static final class JsonPojo [extendsImplements type]
   [if v.isPublic]public [/if][v.atNullability][v.type] [v.names.get]() {
     return [v.name];
   }
-  public final void [v.names.init]([v.atNullability][v.type] [v.name]) {
+  public void [v.names.jsonSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
   }
 [/for]
