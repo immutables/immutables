@@ -155,7 +155,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isComparable() {
     return isNumberType()
         || isStringType()
-        || super.isComparable();
+        || (!isContainerType() && super.isComparable());
   }
 
   @Nullable
