@@ -151,6 +151,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean deprecated;
 
+  public boolean isComparableKey() {
+    return isContainerType()
+        && super.isComparable();
+  }
+
   @Override
   public boolean isComparable() {
     return isNumberType()
@@ -328,7 +333,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
     } else if (naturalOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
-        if (isComparable()) {
+        if (isComparableKey()) {
           orderKind = OrderKind.NATURAL;
         } else {
           report()
@@ -342,7 +347,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
     } else if (reverseOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
-        if (isComparable()) {
+        if (isComparableKey()) {
           orderKind = OrderKind.REVERSE;
         } else {
           report()
