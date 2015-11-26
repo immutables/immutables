@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import java.lang.annotation.Annotation;
 import org.immutables.value.Value;
 import com.google.common.collect.ImmutableSet;
@@ -205,6 +206,18 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract boolean clearBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean overshadowImplementation();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean implementationNestedInBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract BuilderVisibility builderVisibility();
 
   @Override
   public Class<? extends Annotation>[] passAnnotations() {

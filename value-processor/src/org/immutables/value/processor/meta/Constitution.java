@@ -51,13 +51,21 @@ public abstract class Constitution {
     return protoclass().visibility().forImplementation(style().visibility());
   }
 
+  @Value.Derived
+  public Visibility builderVisibility() {
+    return protoclass().visibility().forBuilder(style().builderVisibility());
+  }
+
   public boolean isImplementationHidden() {
     return implementationVisibility().isPrivate();
   }
 
   public boolean returnsAbstractValueType() {
     return isImplementationHidden()
-        || style().visibility() == ValueMirrors.Style.ImplementationVisibility.SAME_NON_RETURNED;
+        || style().visibility() == ValueMirrors.Style.ImplementationVisibility.SAME_NON_RETURNED
+        || style().overshadowImplementation()
+        || (style().implementationNestedInBuilder()
+        && implementationVisibility().isMoreRestrictiveThan(builderVisibility()));
   }
 
   public boolean isImplementationPrimary() {
@@ -121,7 +129,7 @@ public abstract class Constitution {
 
   @Value.Derived
   public boolean hasImmutableInBuilder() {
-    return implementationVisibility().isPrivate() && isTopLevelValue();
+    return isOutsideBuilder() && isTopLevelValue();
   }
 
   public boolean hasTopLevelBuilder() {
@@ -138,8 +146,10 @@ public abstract class Constitution {
   }
 
   public boolean isOutsideBuilder() {
-    return protoclass().features().builder()
-        && isImplementationHidden();
+    return isFactory()
+        || (protoclass().features().builder()
+        && (isImplementationHidden()
+        || style().implementationNestedInBuilder()));
   }
 
   private boolean isTopLevelValue() {
@@ -242,7 +252,7 @@ public abstract class Constitution {
   }
 
   private String typeBuilderSimpleName() {
-    boolean isOutside = isImplementationHidden() || isFactory();
+    boolean isOutside = isOutsideBuilder();
     Naming typeBuilderNaming = names().namings.typeBuilder;
     if (isOutside) {
       // For outer builder we can override with constant builder naming, but not the default.
@@ -376,7 +386,7 @@ public abstract class Constitution {
   public NameForms typeImplementationBuilder() {
     TypeNames names = names();
 
-    boolean outside = isOutsideBuilder() || isFactory();
+    boolean outside = isOutsideBuilder();
     boolean nested = protoclass().kind().isNested();
 
     String simple = typeBuilderSimpleName();
@@ -392,11 +402,17 @@ public abstract class Constitution {
       relative = inPackage(inPackage(names.typeImmutable, simple));
     }
 
+    Visibility visibility = builderVisibility();
+
+    if (!outside) {
+      visibility = visibility.min(implementationVisibility());
+    }
+
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
         .relative(relative)
         .packageOf(protoclass().packageOf().name())
-        .visibility(protoclass().visibility().max(implementationVisibility()))
+        .visibility(visibility)
         .build();
   }
 
@@ -521,8 +537,7 @@ public abstract class Constitution {
     public final @Nullable String simpleName;
 
     InnerBuilderDefinition() {
-      @Nullable
-      TypeElement builderElement = findBuilderElement();
+      @Nullable TypeElement builderElement = findBuilderElement();
       if (builderElement != null) {
         this.isPresent = true;
         this.isInterface = builderElement.getKind() == ElementKind.INTERFACE;

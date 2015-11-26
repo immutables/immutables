@@ -165,6 +165,12 @@ public final class ValueMirrors {
 
     boolean clearBuilder() default false;
 
+    boolean overshadowImplementation() default false;
+
+    boolean implementationNestedInBuilder() default false;
+
+    BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
+
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {
@@ -173,6 +179,12 @@ public final class ValueMirrors {
       SAME_NON_RETURNED,
       PACKAGE,
       PRIVATE
+    }
+
+    public enum BuilderVisibility {
+      PUBLIC,
+      SAME,
+      PACKAGE
     }
   }
 

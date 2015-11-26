@@ -33,6 +33,7 @@ abstract class ExtendingInnerBuilderValue {
   }
 }
 
+@SuppressWarnings("deprecation")
 @Value.Immutable
 @Value.Style(
     typeInnerBuilder = "Creator",

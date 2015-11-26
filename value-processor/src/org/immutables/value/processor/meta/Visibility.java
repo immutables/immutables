@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import com.google.common.collect.Ordering;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
@@ -40,6 +41,18 @@ public enum Visibility {
       return PACKAGE;
     case PRIVATE:
       return PRIVATE;
+    case PUBLIC:
+      return PUBLIC;
+    case SAME:
+    default:
+      return this;
+    }
+  }
+
+  public Visibility forBuilder(BuilderVisibility visibility) {
+    switch (visibility) {
+    case PACKAGE:
+      return PACKAGE;
     case PUBLIC:
       return PUBLIC;
     case SAME:

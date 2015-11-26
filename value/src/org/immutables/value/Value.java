@@ -726,7 +726,8 @@ public @interface Value {
      * generated. With usafe code you cannot refer to other default or derived attributes in
      * initializers as otherwise result will be undefined as order of initialization is not
      * guaranteed.
-     * @return {@code true} default
+     * @return {@code true} if old unsafe (but potentially with less overhead) generation should be
+     *         used.
      */
     boolean unsafeDefaultAndDerived() default false;
 
@@ -742,6 +743,36 @@ public @interface Value {
      * @return {@code true} if clean method would be generated.
      */
     boolean clearBuilder() default false;
+
+    /**
+     * Makes abstract value type predominantly used in generated signatures rather than immutable
+     * implementation class. In case of {@link #visibility()} is more restrictive than
+     * {@link #builderVisibility()} (for example is {@code PRIVATE}), then this
+     * feature is turned on automatically.
+     * <p>
+     * <em>Note: not all generators or generation modes might honor this attribute</em>
+     * @return {@code true} if methods of generated builders and other classes should return
+     *         abstract type, rather than work with immutable implementation class.
+     */
+    boolean overshadowImplementation() default false;
+
+    /**
+     * By default builder is generated as inner builder class nested in immutable value class.
+     * Setting this to {@code true} will flip the picture — immutable implementation class will be
+     * nested inside builder, which will be top level class. In case if {@link #visibility()} is set
+     * to {@link ImplementationVisibility#PRIVATE} this feature is turned on automatically.
+     * @return {@code true} if builder should be generated as top level class and implementation
+     *         will became static inner class inside builder.
+     */
+    boolean implementationNestedInBuilder() default false;
+
+    /**
+     * Specify the mode in which visibility of generated value type is derived from abstract value
+     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * rather create style annotation (@see Style).
+     * @return implementation visibility
+     */
+    BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
 
     /**
      * Exception to throw when an immutable object is in an invalid state. I.e. when some mandatory
@@ -764,14 +795,16 @@ public @interface Value {
       PUBLIC,
 
       /**
-       * Visibility is the same
+       * Visibility is the same as abstract value type
        */
       SAME,
 
       /**
        * Visibility is the same, but it is not returned from build and factory method, instead
        * abstract value type returned.
+       * @deprecated use combination with {@link Style#overshadowImplementation()}
        */
+      @Deprecated
       SAME_NON_RETURNED,
 
       /**
@@ -784,6 +817,21 @@ public @interface Value {
        * Builder visibility will follow the umbrella class visibility.
        */
       PRIVATE
+    }
+
+    public enum BuilderVisibility {
+      /**
+       * Generated builder visibility is forced to be public.
+       */
+      PUBLIC,
+      /**
+       * Generated builder visibility is the same as abstract value type
+       */
+      SAME,
+      /**
+       * Generated builder visibility is forced to be package-private.
+       */
+      PACKAGE
     }
   }
 }
