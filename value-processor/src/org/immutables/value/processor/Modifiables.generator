@@ -22,18 +22,18 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [template classJavadoc Type type]
 
 /**
- * Modifiable implementation of {@link [type.typeAbstract.relative] [type.typeAbstract.simple]}.
+ * A modifiable implementation of the {@link [type.typeAbstract.relative] [type.typeAbstract.simple]} type.
 [if type.names.create eq 'new']
- * <p>Use constructor to create new modifiable instances. You may even extend this class to
+ * <p>Use the constructor to create new modifiable instances. You may even extend this class to
  * add some convenience methods, however most of the methods in this class are final
  * to preserve safety and predictable invariants.
 [else]
- * <p>Use {@link #[type.names.create]()} static factory methods to create new instances.
+ * <p>Use the {@link #[type.names.create]()} static factory methods to create new instances.
 [/if]
 [if type.kind.isValue and type.useCopyConstructor]
- * Use {@link #[type.names.toImmutable]()} method to convert to canonical immutable instance.
+ * Use the {@link #[type.names.toImmutable]()} method to convert to canonical immutable instances.
 [/if]
- * <p><em>[type.names.typeModifiable] is not thread safe</em>
+ * <p><em>[type.names.typeModifiable] is not thread-safe</em>
 [if type.kind.isValue]
  * @see [type.typeValue.relative]
 [/if]
@@ -69,8 +69,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [generateAccessors type]
 
   /**
-   * Clears object by setting attributes to their initial values.
-   * @return {@code this} for chained invocation
+   * Clears the object by setting all attributes to their initial values.
+   * @return {@code this} for use in a chained invocation
    */
   public [thisReturnType type] [type.names.clear]() {
     [for l in positions.longs]
@@ -89,7 +89,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [for m in mandatories, BitPosition pos = positions m]
 
   /**
-   * Gets if required attribute [sourceDocRef type m] is set
+   * Returns {@code true} if the required attribute [sourceDocRef type m] is set.
    * @return {@code true} if set
    */
   public final boolean [isSet m]() {
@@ -99,7 +99,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
 
   /**
-   * Gets if [if p.generateDefault]default[else]non-required[/if] attribute [sourceDocRef type p] is set
+   * Returns {@code true} if the [if p.generateDefault]default[else]non-required[/if] attribute [sourceDocRef type p] is set.
    * @return {@code true} if set
    */
   public final boolean [isSet p]() {
@@ -109,7 +109,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [for v in type.implementedAttributes if v.generateDefault and (not v.primitive)]
 
   /**
-   * Gets if default attribute [sourceDocRef type v] is set
+   * Returns {@code true} if the default attribute [sourceDocRef type v] is set.
    * @return {@code true} if set
    */
   public final boolean [isSet v]() {
@@ -118,7 +118,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [/for]
 
   /**
-   * Gets if all required attributes are set, which means that object is initialized
+   * Returns {@code true} if all required attributes are set, indicating that the object is initialized.
    * @return {@code true} if set
    */
   public final boolean [isInitialized type]() {
@@ -142,14 +142,14 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     [for m in mandatories]
     if (![m.names.isSet]()) attributes.add("[m.name]");
     [/for]
-    return "[type.name] in not initialized, some of required attributes are not set " + attributes;
+    return "[type.name] in not initialized, some of the required attributes are not set " + attributes;
   }
   [/if]
 [if type.kind.isValue and type.useCopyConstructor]
 
   /**
    * Converts to {@link [type.typeValue.relative] [type.typeValue.simple]}.
-   * @return immutable instance of [type.name]
+   * @return An immutable instance of [type.name]
    */
   public final [type.typeValue] [type.names.toImmutable]() {
   [if mandatories]
@@ -180,9 +180,9 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [if not useFactoryMethod]
 
 /**
- * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
+ * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
 [for p in type.constructorArguments]
- * @param [p.name] value for [sourceDocRef type p] attribute[if p.nullable], can be {@code null}[/if]
+ * @param [p.name] The value for the [sourceDocRef type p] attribute [if p.nullable](can be {@code null})[/if]
 [/for]
  */
 [constructorAccess][type.names.typeModifiable]([constructorParameters]) {
@@ -202,7 +202,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 
   [if not useFactoryMethod]
 /**
- * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
+ * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
  */
   [/if]
 [constructorAccess][type.names.typeModifiable]() {}
@@ -211,11 +211,11 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [if type.useConstructor]
 
 /**
- * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
+ * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
 [for p in type.constructorArguments]
- * @param [p.name] value for [sourceDocRef type p] attribute[if p.nullable], can be {@code null}[/if]
+ * @param [p.name] The value for the [sourceDocRef type p] attribute [if p.nullable](can be {@code null})[/if]
 [/for]
- * @return new modifiable instance
+ * @return A new modifiable instance
  */
 public static [thisReturnType type] [type.names.create]([constructorParameters]) {
   return new [type.names.typeModifiable]()[for v in type.constructorArguments]
@@ -227,8 +227,8 @@ public static [thisReturnType type] [type.names.create]([constructorParameters])
   [/if]
 
 /**
- * Construct modifiable instance of {@code [type.typeAbstract.simple]}.
- * @return new modifiable instance
+ * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
+ * @return A new modifiable instance
  */
 public static [thisReturnType type] [type.names.create]() {
   return new [type.names.typeModifiable]();
@@ -243,9 +243,9 @@ public static [thisReturnType type] [type.names.create]() {
   [for s in type.buildFromTypes.supertypes]
 
 /**
- * Fill this modifiable instance with attribute values from provided {@link [s.type]} instance.
- * @param instance instance to copy values from
- * @return {@code this} for chained invocation
+ * Fill this modifiable instance with attribute values from the provided {@link [s.type]} instance.
+ * @param instance The instance from which to copy values
+ * @return {@code this} for use in a chained invocation
  */
 public [thisReturnType type] [type.names.from]([s.type] instance) {
   [requireNonNull type](instance);
@@ -279,14 +279,14 @@ private void from(Object object) {
 [else]
 
 /**
- * Fill this modifiable instance with attribute values from provided {@link [type.typeAbstract.relative]} instance.
+ * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relative]} instance.
  * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
- * Instance's absent optional values will not be copied (will not override current).
+ * Any of the instance's absent optional values will not be copied (will not override current values).
 [if type.hasSettableCollection or type.hasSettableMapping]
  * Collection elements and entries will be added, not replaced.
 [/if]
- * @param instance instance to copy values from
- * @return {@code this} for chained invocation
+ * @param instance The instance from which to copy values
+ * @return {@code this} for use in a chained invocation
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [requireNonNull type](instance);
@@ -371,8 +371,8 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 
 /**
  * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
- * @param element [v.name] element
- * @return {@code this} for chained invocation
+ * @param element The [v.name] element
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
@@ -386,8 +386,8 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
 
 /**
  * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
- * @param elements array of [v.name] elements
- * @return {@code this} for chained invocation
+ * @param elements An array of [v.name] elements
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 [varargsSafety v]
@@ -404,8 +404,8 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements)
 
 /**
  * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
- * @param elements iterable of [v.name] elements
- * @return {@code this} for chained invocation
+ * @param elements An iterable of [v.name] elements
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> elements) {
@@ -415,8 +415,8 @@ public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> ele
 
 /**
  * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
- * @param elements iterable of [v.name] elements
- * @return {@code this} for chained invocation
+ * @param elements An iterable of [v.name] elements
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
@@ -432,9 +432,9 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
 [else if v.optionalType]
 
 /**
- * Assigns present value for optional [sourceDocRef type v].
- * @param [v.name] value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
- * @return {@code this} for chained invocation
+ * Assigns a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+ * @param [v.name] A value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([atNullableAccept v][v.unwrappedElementType] [v.name]) {
@@ -444,9 +444,9 @@ public [thisReturnType type] [v.names.set]([atNullableAccept v][v.unwrappedEleme
 }
 
 /**
- * Assigns optional value for [sourceDocRef type v].
- * @param [v.name] value for [v.name]
- * @return {@code this} for chained invocation
+ * Assigns an optional value for [sourceDocRef type v].
+ * @param [v.name] A value for [v.name]
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
@@ -459,10 +459,10 @@ public [thisReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOp
     [if v.multimapType]
 
 /**
- * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
- * @param key the key for [v.name]
- * @param values the values for [v.name]
- * @return {@code this} for chained invocation
+ * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+ * @param key The key for [v.name]
+ * @param values The values for [v.name]
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV]... values) {
@@ -471,10 +471,10 @@ public [thisReturnType type] [v.names.put]([uK] key, [uV]... values) {
 }
 
 /**
- * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
- * @param key the key for [v.name]
- * @param values the values for [v.name]
- * @return {@code this} for chained invocation
+ * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+ * @param key The key for [v.name]
+ * @param values The values for [v.name]
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
@@ -484,10 +484,10 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [/if]
 
 /**
- * Put one entry to [sourceDocRef type v] map.
- * @param key the key in [v.name] map
- * @param value the associated value in [v.name] map
- * @return {@code this} for chained invocation
+ * Put one entry to the [sourceDocRef type v] map.
+ * @param key The key in [v.name] map
+ * @param value The associated value in the [v.name] map
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
@@ -498,9 +498,9 @@ public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
 }
 
 /**
- * Sets or replaces all mappings from specified map as entries for [sourceDocRef type v] map. Nulls are not permitted
- * @param entries to be added to [v.name] map
- * @return {@code this} for chained invocation
+ * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map. Nulls are not permitted
+ * @param entries The entries that will be added to the [v.name] map
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -509,9 +509,9 @@ public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Mu
 }
 
 /**
- * Put all mappings from specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+ * Put all mappings from the specified map as entries to the [sourceDocRef type v] map. Nulls are not permitted
  * @param entries to be added to [v.name] map
- * @return {@code this} for chained invocation
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -526,12 +526,12 @@ public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect
 [else if v.arrayType]
 
 /**
- * Assigns value for [sourceDocRef type v].
+ * Assigns a value to the [sourceDocRef type v] attribute.
 [if v.generateDefault]
- * <p><em>If not set, this attribute will have default value as defined by [sourceDocRef type v].</em>
+ * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
 [/if]
- * @param elements elements for [v.name]
- * @return {@code this} for chained invocation
+ * @param elements The elements for [v.name]
+ * @return {@code this} for use in a chained invocation
  */
 [varargsSafety v]
 [deprecation v]
@@ -543,12 +543,12 @@ public [thisReturnType type] [v.names.set]([v.elementType]... elements) {
 [else]
 
 /**
- * Assigns value for [sourceDocRef type v].
+ * Assigns a value to the [sourceDocRef type v] attribute.
 [if v.generateDefault]
- * <p><em>If not set, this attribute will have default value returned by initializer of [sourceDocRef type v].</em>
+ * <p><em>If not set, this attribute will have a default value returned by the initializer of [sourceDocRef type v].</em>
 [/if]
- * @param [v.name] value for [v.name][if v.nullable], can be {@code null}[/if]
- * @return {@code this} for chained invocation
+ * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
+ * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
@@ -653,9 +653,9 @@ if ([v.name]Value != null) {
 [for getters = type.equivalenceAttributes]
 
 /**
- * This instance is equal to instances of {@code [equalToType]} with equal attribute values.
+ * This instance is equal to all instances of {@code [equalToType]} that have equal attribute values.
 [if type.mandatoryAttributes]
- * Uninitialized instances are equal only to itself.
+ * An uninitialized instance is equal only to itself.
 [/if]
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
@@ -738,9 +738,9 @@ public final int hashCode() {
 
 /**
 [if not getters]
- * Returns constant hash code value.
+ * Returns a constant hash code value.
 [else]
- * Computes hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
+ * Computes a hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
  * @return hashCode value
  */
@@ -756,9 +756,9 @@ public int hashCode() {
 [if not type.toStringDefined]
 
 /**
- * Converts this {@code [type.typeAbstract.simple]} to string.
- * If uninitialized, some attributes' values may appear as question marks.
- * @return string representation
+ * Generates a string represetion of this {@code [type.typeAbstract.simple]}.
+ * If uninitialized, some attribute values may appear as question marks.
+ * @return A string representation
  */
 @Override
 public String toString() {
