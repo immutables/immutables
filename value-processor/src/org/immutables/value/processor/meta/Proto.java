@@ -411,6 +411,7 @@ public class Proto {
       return false;
     }
 
+    @Override
     @Value.Lazy
     public boolean isJacksonDeserialized() {
       if (super.isJacksonDeserialized()) {
@@ -423,6 +424,7 @@ public class Proto {
       return false;
     }
 
+    @Override
     @Value.Lazy
     public boolean isJacksonJsonTypeInfo() {
       if (super.isJacksonJsonTypeInfo()) {
@@ -701,10 +703,14 @@ public class Proto {
 
     @Value.Lazy
     public Optional<RepositoryMirror> repository() {
+      if (!declaringType().isPresent()) {
+        return Optional.absent();
+      }
+
       Optional<RepositoryMirror> repositoryMirror =
-          kind().isDefinedValue() && declaringType().isPresent()
+          kind().isIncluded() || kind().isDefinedValue()
               ? declaringType().get().repository()
-              : Optional.<RepositoryMirror>absent();
+							: Optional.<RepositoryMirror>absent();
 
       if (repositoryMirror.isPresent() && !typeAdaptersProvider().isPresent()) {
         if (kind().isNested()) {
@@ -732,7 +738,7 @@ public class Proto {
       if (typeAdaptersProvider.isPresent()) {
         return typeAdaptersProvider.get().typeAdapters();
       }
-      if (kind().isDefinedValue()
+      if ((kind().isDefinedValue() || kind().isIncluded())
           && !kind().isNested()
           && repository().isPresent()) {
         return Optional.of(environment().defaultTypeAdapters());
@@ -1203,7 +1209,8 @@ public class Proto {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if ("com.fasterxml.jackson.databind.annotation.JsonDeserialize".equals(annotationElement.getQualifiedName().toString())) {
+      if ("com.fasterxml.jackson.databind.annotation.JsonDeserialize".equals(annotationElement.getQualifiedName()
+          .toString())) {
         return true;
       }
     }
