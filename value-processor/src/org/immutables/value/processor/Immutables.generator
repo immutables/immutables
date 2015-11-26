@@ -89,15 +89,15 @@ import [starImport];
  * Immutable implementation of {@link [type.typeAbstract.relative]}.
  * <p>
  [if type.useBuilder]
- * Use builder to create immutable instances:
+ * Use the builder to create immutable instances:
  * {@code [type.factoryBuilder.relative]()}.
  [/if]
  [if type.useConstructor]
- * Use static factory method to create immutable instances:
+ * Use the static factory method to create immutable instances:
  * {@code [type.factoryOf.relative]()}.
  [/if]
  [if type.useSingleton]
- * Use static factory method to get default singleton instance:
+ * Use the static factory method to get the default singleton instance:
  * {@code [type.factoryInstance.relative]()}.
  [/if]
  */
@@ -123,8 +123,8 @@ import [starImport];
   [if not type.factoryBuilder.isNew]
 
   /**
-   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
-   * @return new [type.typeValue.simple] builder
+   * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return A new [type.typeValue.simple] builder
    */
   [type.typeBuilderImpl.access]static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.relative]();
@@ -176,9 +176,10 @@ private Object readResolve() throws java.io.ObjectStreamException {
 [if type.serial.structural]
 
 /**
- * Serialized form captures structural content of the value object.
- * To be able to reconstruct with a data migration capability. Using optional, nullable
- * and flexible handling of collection attributes.
+ * The serialized form captures the structural content of the value object,
+ * providing the ability to reconstruct values with the capability to migrate
+ * data. Uses optional, nullable, and provides flexible handling of
+ * collection attributes.
  */
 private static class SerialForm implements java.io.Serializable {
 [for serialVersion = type.serialVersionUID, String arr = '[]', String arri = '[i]']
@@ -425,7 +426,7 @@ private Object writeReplace() {
 
     private static final Domain INSTANCE = new Domain();
 
-    /** Construct ordinal domain of [type.name] values. */
+    /** Construct the ordinal domain of [type.name] values. */
     public Domain() {}
 
     protected [type.typeAbstract] extractValue(InternProxy proxy, int ordinal) {
@@ -441,9 +442,10 @@ private Object writeReplace() {
     }
 
     /**
-     * Gets static singleton instance of {@link OrdinalDomain}.
-     * All instances that was not build with specified domain will be bound to static domain.
-     * @return ordinal domain of all instances
+     * Retrieves the static singleton instance of {@link OrdinalDomain}.
+     * All instances that were not built with the specified domain will be
+     * bound to a static domain.
+     * @return The ordinal domain of all instances
      */
     public static Domain get() {
       return INSTANCE;
@@ -468,11 +470,11 @@ private Object writeReplace() {
   [if type.requiresAlternativeStrictConstructor]
 
   /**
-   * Construct new immutable {@code [type.name]} instance.
+   * Construct a new immutable {@code [type.name]} instance.
 [for v in type.constructorArguments]
-   * @param [v.name] value for {@code [v.name]}
+   * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
-   * @return immutable [type.name] instance
+   * @return An immutable [type.name] instance
    */
   public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
@@ -480,11 +482,11 @@ private Object writeReplace() {
   [/if]
 
   /**
-   * Construct new immutable {@code [type.name]} instance.
+   * Construct a new immutable {@code [type.name]} instance.
 [for v in type.constructorArguments]
-   * @param [v.name] value for {@code [v.name]}
+   * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
-   * @return immutable [type.name] instance
+   * @return An immutable [type.name] instance
    */
   public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
@@ -522,8 +524,8 @@ private Object writeReplace() {
   private static final [type.typeImmutable.simple] INSTANCE = [validated type false]new [type.typeImmutable.simple]()[/validated];
 
   /**
-   * Returns default immutable singleton value of {@code [type.name]}
-   * @return immutable instance of [type.name]
+   * Returns the default immutable singleton value of {@code [type.name]}
+   * @return An immutable instance of [type.name]
    */
   [type.typeImmutable.access]static [type.typeValue.relative] [type.names.instance]() {
     return INSTANCE;
@@ -535,11 +537,11 @@ private Object writeReplace() {
 [if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
 /**
- * Creates immutable copy of {@link [type.typeAbstract.relative]}.
- * Uses accessors to get values to initialize immutable instance.
+ * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
+ * Uses accessors to get values to initialize the new immutable instance.
  * If an instance is already immutable, it is returned as is.
- * @param instance instance to copy
- * @return copied immutable [type.name] instance
+ * @param instance The instance to copy
+ * @return A copied immutable [type.name] instance
  */
 [type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
@@ -589,9 +591,9 @@ private Object writeReplace() {
   /**
    * {@inheritDoc}
    * <p>
-   * Returns lazily initialized value of [sourceDocRef type l] attribute.
+   * Returns a lazily initialized value of the [sourceDocRef type l] attribute.
    * Initialized once and only once and stored for subsequent access with proper synchronization.
-   * @return lazily initialized value of {@code l.name}
+   * @return A lazily initialized value of the {@code l.name} attribute
    */
   @Override
   public [l.type] [l.names.get]() {
@@ -625,16 +627,16 @@ private Object writeReplace() {
 
 /**
 [if type.kind.isFactory]
- * {@code [type.typeBuilderImpl.simple]} collects parameters and invokes static factory method:
+ * {@code [type.typeBuilderImpl.simple]} collects parameters and invokes the static factory method:
  * {@code [type.factoryOf](..)}.
- * Call {@link #[type.names.build]()} method to get result of type {@code [type.typeValue]}.
+ * Call the {@link #[type.names.build]()} method to get a result of type {@code [type.typeValue]}.
 [else]
- * Builds instances of {@link [type.typeValue] [type.typeValue.simple]}.
- * Initialize attributes and then invoke {@link #[type.names.build]()} method to create
+ * Builds instances of type {@link [type.typeValue] [type.typeValue.simple]}.
+ * Initialize attributes and then invoke the {@link #[type.names.build]()} method to create an
  * immutable instance.
 [/if]
- * <p><em>{@code [type.typeBuilderImpl.simple]} is not thread safe and generally should not be stored in field or collection,
- * but used immediately to create instances.</em>
+ * <p><em>{@code [type.typeBuilderImpl.simple]} is not thread-safe and generally should not be stored in a field or collection,
+ * but instead used immediately to create instances.</em>
  */
 [annotationsWhenTopLevel type topLevel]
 [if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
@@ -696,11 +698,11 @@ private Object writeReplace() {
     [if useFactoryMethod]
 
   /**
-   * Creates {@code [type.typeBuilder.simple]} factory builder.
+   * Creates a {@code [type.typeBuilder.simple]} factory builder.
 [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
 [/for]
-   * @return new builder
+   * @return A new builder
    */
   [type.typeBuilder.access]static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
@@ -713,8 +715,8 @@ private Object writeReplace() {
   [if type.constitution.isOutsideBuilder]
 
   /**
-   * Creates builder for {@link [type.typeValue] [type.typeValue.simple]}.
-   * @return new [type.typeValue.simple] builder
+   * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]} instances.
+   * @return A new [type.typeValue.simple] builder
    */
   public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.simple]();
@@ -732,8 +734,8 @@ private Object writeReplace() {
 [if type.generateOrdinalValue]
 
   /**
-   * Specify non-default {@link Domain} for ordinal value.
-   * @return {@code this} builder for chained invocation
+   * Specify a non-default {@link Domain} for ordinal values.
+   * @return {@code this} builder for use in a chained invocation
    */
   public final [builderReturnType type] domain(Domain domain) {
     this.domain = [requireNonNull type](domain);
@@ -746,9 +748,9 @@ private Object writeReplace() {
       [for s in type.buildFromTypes.supertypes]
 
   /**
-   * Fill builder with attribute values from provided {@link [s.type]} instance.
-   * @param instance instance to copy values from
-   * @return {@code this} builder for chained invocation
+   * Fill a builder with attribute values from the provided {@link [s.type]} instance.
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
    */
   public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary and (s.type eq type.typeAbstract.toString)][type.typeImmutable.relative][else][s.type][/if] instance) {
     [requireNonNull type](instance);
@@ -782,14 +784,14 @@ private Object writeReplace() {
     [else]
 
   /**
-   * Fill builder with attribute values from provided {@link [type.typeAbstract.relative]} instance.
-   * Regular attribute values will be replaced with ones of an instance.
-   * Instance's absent optional values will not replace present values.
+   * Fill a builder with attribute values from the provided {@link [type.typeAbstract.relative]} instance.
+   * Regular attribute values will be replaced with those from the given instance.
+   * Absent optional values will not replace present values.
   [if type.hasSettableCollection or type.hasSettableMapping]
    * Collection elements and entries will be added, not replaced.
   [/if]
-   * @param instance instance to copy values from
-   * @return {@code this} builder for chained invocation
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
    */
   public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
     [requireNonNull type](instance);
@@ -825,7 +827,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Switches {@code [v.name]} to {@code [o.constantName]}.
-   * @return {@code this} builder for chained invocation
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [if o.isDefault]private[else]public[/if] final [builderReturnType type] [o.switcherName]() {
@@ -841,8 +843,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
-   * @param element [v.name] element
-   * @return {@code this} builder for chained invocation
+   * @param element A [v.name] element
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
@@ -856,8 +858,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
-   * @param elements array of [v.name] elements
-   * @return {@code this} builder for chained invocation
+   * @param elements An array of [v.name] elements
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [varargsSafety v]
@@ -883,8 +885,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
-   * @param elements iterable of [v.name] elements
-   * @return {@code this} builder for chained invocation
+   * @param elements An iterable of [v.name] elements
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.init](Iterable<[v.consumedElementType]> elements) {
@@ -896,8 +898,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
-   * @param elements iterable of [v.name] elements
-   * @return {@code this} builder for chained invocation
+   * @param elements An iterable of [v.name] elements
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
@@ -914,8 +916,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [if not v.isBuilderParameter]
 
   /**
-   * Initializes present value for optional [sourceDocRef type v].
-   * @param [v.name] value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
   [deprecation v]
@@ -928,9 +930,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [/if]
 
   /**
-   * Initializes optional value for [sourceDocRef type v].
-   * @param [v.name] value for [v.name]
-   * @return {@code this} builder for chained invocation
+   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * @param [v.name] The value for [v.name]
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
@@ -945,10 +947,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
         [if not v.isBuilderParameter]
 
   /**
-   * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
-   * @param key the key for [v.name]
-   * @param values the values for [v.name]
-   * @return {@code this} builder for chained invocation
+   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key The key for [v.name]
+   * @param values The values for [v.name]
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
@@ -957,10 +959,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   }
 
   /**
-   * Put all mappings from specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
-   * @param key the key for [v.name]
-   * @param values the values for [v.name]
-   * @return {@code this} builder for chained invocation
+   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key The key for [v.name]
+   * @param values The values for [v.name]
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
@@ -972,10 +974,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
         [if not v.isBuilderParameter]
 
   /**
-   * Put one entry to [sourceDocRef type v] map.
-   * @param key the key in [v.name] map
-   * @param value the associated value in [v.name] map
-   * @return {@code this} builder for chained invocation
+   * Put one entry to the [sourceDocRef type v] map.
+   * @param key The key in the [v.name] map
+   * @param value The associated value in the [v.name] map
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
@@ -990,9 +992,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   }
 
   /**
-   * Put one entry to [sourceDocRef type v] map. Nulls are not permitted
-   * @param entry the key and value entry
-   * @return {@code this} builder for chained invocation
+   * Put one entry to the [sourceDocRef type v] map. Nulls are not permitted
+   * @param entry The key and value entry
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
@@ -1008,9 +1010,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
           [if not type.useStrictBuilder]
 
   /**
-   * Sets or replaces all mappings from specified map as entries for [sourceDocRef type v] map. Nulls are not permitted
-   * @param entries to be added to [v.name] map
-   * @return {@code this} builder for chained invocation
+   * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map. Nulls are not permitted
+   * @param entries The entries that will be added to the [v.name] map
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -1021,9 +1023,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
         [/if]
 
   /**
-   * Put all mappings from specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
-   * @param entries to be added to [v.name] map
-   * @return {@code this} builder for chained invocation
+   * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+   * @param entries The entries that will be added to the [v.name] map
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -1042,12 +1044,12 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [else if v.arrayType]
 
   /**
-   * Initializes value for [sourceDocRef type v].
+   * Initializes the value for the [sourceDocRef type v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have default value as defined by [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
   [/if]
-   * @param elements elements for [v.name]
-   * @return {@code this} builder for chained invocation
+   * @param elements The elements for [v.name]
+   * @return {@code this} builder for use in a chained invocation
    */
   [varargsSafety v]
   [deprecation v]
@@ -1060,12 +1062,12 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [else]
 
   /**
-   * Initializes value for [sourceDocRef type v].
+   * Initializes the value for the [sourceDocRef type v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have default value returned by initializer of [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef type v].</em>
   [/if]
-   * @param [v.name] value for [v.name][if v.nullable], can be {@code null}[/if]
-   * @return {@code this} builder for chained invocation
+   * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
+   * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
@@ -1083,7 +1085,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [/for]
 [if type.generateClearBuilder]
   /**
-   * Clear builder to initial state.
+   * Clear the builder to the initial state.
    */
   public [builderReturnType type] [type.names.clear]() {
     [for l in positions.longs]
@@ -1100,11 +1102,11 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 [/if]
   /**
   [if type.kind.isFactory]
-   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning its result
-   * @return result of type {@code [type.typeValue]}
+   * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
+   * @return A result of type {@code [type.typeValue]}
   [else]
-   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
-   * @return immutable instance of [type.name]
+   * Builds a new {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return An immutable instance of [type.name]
   [/if]
    * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
@@ -1117,13 +1119,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
   [if type.kind.isFactory]
-   * Invokes {@code [type.factoryOf](..)} using collected parameters and returning its result
-   * @return result of type {@code [type.typeValue]}
+   * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
+   * @return A result of type {@code [type.typeValue]}
   [else]
-   * Builds new {@link [type.typeValue] [type.typeValue.simple]}.
-   * @return immutable instance of [type.name]
+   * Builds a new {@link [type.typeValue] [type.typeValue.simple]}.
+   * @return An immutable instance of [type.name]
   [/if]
-   * @throws the supplied exception {@code T} if any required attributes are missing
+   * @throws The supplied exception {@code T} if any required attributes are missing
    */
   public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {
@@ -1510,8 +1512,8 @@ private [v.type] [invokeSuperGet]() {
 [if type.implementedAttributes]
 
 /**
- * Simple representation of this value type suitable Jackson binding
- * @deprecated Do not use this type directly, it exists only for <em>Jackson</em>-binding infrastructure
+ * A simple representation of this value type suitable for Jackson binding.
+ * @deprecated Do not use this type directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
 [overrideJsonDeserialize type]
@@ -1535,9 +1537,9 @@ static final class JsonPojo [extendsImplements type]
 [/if]
 
 /**
- * @param json JSON-bindable data structure
- * @return immutable value type
- * @deprecated Do not use this method directly, it exists only for <em>Jackson</em>-binding infrastructure
+ * @param json A JSON-bindable data structure
+ * @return An immutable value type
+ * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
@@ -1568,7 +1570,7 @@ static [type.typeValue.relative] fromJson([if type.implementedAttributes]JsonPoj
     [else if type.useSingleton]
   [type.typeValue.relative] instance = [type.factoryInstance.relative]();
     [else]
-  [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+  [output.error]Cannot generate code when there are no builders, constructors or singletons available[/output.error]
     [/if]
   [for o in type.withSettableAfterConstruction]
   if (json.[o.name] != null) {
@@ -1599,11 +1601,11 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/for]
   [else]
 [if v.arrayType]
- * @return cloned {@code [v.name]} array
+ * @return A cloned {@code [v.name]} array
 [else if v.generateDerived]
- * @return computed at construction value of {@code [v.name]} attribute
+ * @return The computed-at-construction value of the {@code [v.name]} attribute
 [else]
- * @return value of {@code [v.name]} attribute
+ * @return The value of the {@code [v.name]} attribute
 [/if]
   [/if]
  */
@@ -1641,13 +1643,13 @@ public int ordinal() {
 
 /**
 [if type.annotationType]
- * This instance is equal to any implementation of {@link [type.typeAbstract.relative]} with equal attribute values.
+ * This instance is equal to any implementation of the {@link [type.typeAbstract.relative]} type with equal attribute values.
 [else]
- * This instance is equal to instances of {@code [type.typeImmutable.simple]} with equal attribute values.
+ * This instance is equal to all instances of {@code [type.typeImmutable.simple]} that have equal attribute values.
 [/if]
 [if type.useReferenceEquality]
- * As instances of {@code [type.typeImmutable.simple]} class are interned, {@code equals} method is implemented
- * as efficient reference equality check.
+ * As instances of the {@code [type.typeImmutable.simple]} class are interned, the {@code equals} method is implemented
+ * as an efficient reference equality check.
 [/if]
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
@@ -1709,8 +1711,8 @@ private boolean equalTo([equalToType] another) {
   [if type.usePrehashed]
 
 /**
- * Returns precomputed on construction hash code from super implementation {@code super.hashCode()}.
- * @return hashCode value
+ * Returns the precomputed-on-construction hash code from the supertype implementation of {@code super.hashCode()}.
+ * @return The hashCode value
  */
 @Override
 public int hashCode() {
@@ -1721,11 +1723,11 @@ public int hashCode() {
 
 /**
 [if not getters]
- * Returns constant hash code value.
+ * Returns a constant hash code value.
 [else if type.usePrehashed]
- * Returns precomputed on construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
+ * Returns a precomputed-on-construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
- * Computes hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
+ * Computes a hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
  * @return hashCode value
  */
@@ -1752,9 +1754,9 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [if not type.toStringDefined]
 
 /**
- * Prints immutable value {@code [type.name]...} with attribute values,
- * excluding any non-generated and auxiliary attributes.
- * @return string representation of value
+ * Prints the immutable value {@code [type.name]...} with all non-generated
+ * and non-auxiliary attribute values.
+ * @return A string representation of the value
  */
 @Override
 public String toString() {
@@ -1837,10 +1839,10 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
     [if v.arrayType]
 
 /**
- * Copy current immutable object with elements that replace content of [sourceDocRef type v].
- * Array is cloned before saved as the attribute value.
- * @param elements elements for [v.name], not null
- * @return modified copy of {@code this} object
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * The array is cloned before being saved as attribute values.
+ * @param elements The non-null elements for [v.name]
+ * @return A modified copy of {@code this} object
  */
 [varargsSafety v]
 [deprecation v]
@@ -1851,9 +1853,9 @@ public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... eleme
     [else if v.collectionType]
 
 /**
- * Copy current immutable object with elements that replace content of [sourceDocRef type v].
- * @param elements elements to set
- * @return modified copy of {@code this} object
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * @param elements The elements to set
+ * @return A modified copy of {@code this} object
  */
 [varargsSafety v]
 [deprecation v]
@@ -1871,10 +1873,10 @@ public final [type.typeImmutable.simple] [v.names.with]([v.unwrappedElementType]
 }
 
 /**
- * Copy current immutable object with elements that replace content of [sourceDocRef type v].
- * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
- * @param elements iterable of [v.name] elements to set
- * @return modified copy of {@code this} object
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+ * @param elements An iterable of [v.name] elements to set
+ * @return A modified copy of {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElementType]> elements) {
@@ -1885,9 +1887,9 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
     [else if v.optionalType]
 
 /**
- * Copy current immutable object by setting present value for optional [sourceDocRef type v].
- * @param value value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
- * @return modified copy of {@code this} object
+ * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+ * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+ * @return A modified copy of {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.unwrappedElementType] value) {
@@ -1896,10 +1898,10 @@ public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.u
 }
 
 /**
- * Copy current immutable object by setting optional value for [sourceDocRef type v].
- * Shallow reference equality check on optional value is used to prevent copying of the same value by returning {@code this}.
- * @param optional value for [v.name]
- * @return modified copy of {@code this} object
+ * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+ * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
+ * @param optional A value for [v.name]
+ * @return A modified copy of {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
@@ -1911,11 +1913,11 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
 /**
- * Copy current immutable object by replacing [sourceDocRef type v] map with specified map.
+ * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
  * Nulls are not permitted as keys or values.
- * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
- * @param entries to be added to [v.name] map
- * @return modified copy of {@code this} object
+ * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+ * @param entries The entries to be added to the [v.name] map
+ * @return A modified copy of {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -1927,14 +1929,14 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
     [else]
 
 /**
- * Copy current immutable object by setting value for [sourceDocRef type v].
+ * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
  [if v.primitive and (not v.floatType)]
- * Value equality check is used to prevent copying of the same value by returning {@code this}.
+ * A value equality check is used to prevent copying of the same value by returning {@code this}.
  [else if not v.primitive]
- * Shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+ * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
- * @param value new value for [v.name][if v.nullable], can be {@code null}[/if]
- * @return modified copy of the {@code this} object
+ * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
+ * @return A modified copy of the {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
@@ -1984,8 +1986,8 @@ private static <T> T cast(Object object) {
     [if type.useSingleton]
 
 /**
- * Returns default immutable singleton value of [type.name]
- * @return immutable instance of [type.name]
+ * Returns a default immutable singleton value of [type.name].
+ * @return An immutable instance of [type.name]
  */
 public static [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
@@ -1995,11 +1997,11 @@ public static [type.typeValue.relative] [type.factoryInstance.simple]() {
       [if type.requiresAlternativeStrictConstructor]
 
 /**
- * Construct new immutable {@code [type.name]} instance.
+ * Construct a new immutable {@code [type.name]} instance.
 [for v in type.constructorArguments]
- * @param [v.name] value for {@code [v.name]}
+ * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
- * @return immutable [type.name] instance
+ * @return An immutable [type.name] instance
  */
 public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
@@ -2007,11 +2009,11 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
       [/if]
 
 /**
- * Construct new immutable {@code [type.name]} instance.
+ * Construct a new immutable {@code [type.name]} instance.
 [for v in type.constructorArguments]
- * @param [v.name] value for {@code [v.name]}
+ * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
- * @return immutable [type.name] instance
+ * @return An immutable [type.name] instance
  */
 public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
