@@ -40,7 +40,7 @@ import [starImport];
 [/for]
 
 /**
- * {@code TypeAdapterFactory} that handle all the immutable types generated under {@code [simpleName]}.
+ * A {@code TypeAdapterFactory} that handles all of the immutable types generated under {@code [simpleName]}.
  [for v in allValues]
  * @see [v.typeValue.relative]
  [/for]

@@ -38,7 +38,7 @@ import [starImport];
 [/for]
 
 /**
- * {@code JsonAdapter.Factory} that handle all the immutable types generated under {@code [simpleName]}.
+ * A {@code JsonAdapter.Factory} that handles all of the immutable types generated under {@code [simpleName]}.
  [for v in allValues]
  * @see [v.typeValue.relative]
  [/for]

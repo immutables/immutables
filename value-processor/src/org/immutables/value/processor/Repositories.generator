@@ -33,7 +33,7 @@ import [starImport];
 [/for]
 
 /**
- * {@code [type.name]Repository} provides type safe access for storing and retrieving documents
+ * A {@code [type.name]Repository} provides type-safe access for storing and retrieving documents
  * from the MongoDB collection {@code "[type.documentName]"}.
  */
 [if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
@@ -47,8 +47,8 @@ import [starImport];
   private final Criteria anyCriteria;
 
   /**
-   * Constructs {@link [type.name]} repository using {@link RepositorySetup configuration}.
-   * @param configuration the repository configuration
+   * Constructs a {@link [type.name]} repository using {@link RepositorySetup configuration}.
+   * @param configuration The repository configuration
    */
   public [type.name]Repository(RepositorySetup configuration) {
     super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeDocument].class);
@@ -57,9 +57,9 @@ import [starImport];
   }
   
   /**
-   * Insert single document into the collection.
-   * @param document [toLower type.name] to insert
-   * @return future of number of inserted documents (1) if WriteConcern allows.
+   * Inserts a single document into the collection.
+   * @param document The [toLower type.name] to insert
+   * @return A future representing the number of inserted documents (1) if WriteConcern allows the insertion.
    */
   public FluentFuture<Integer> insert([type.typeDocument] document) {
     return super.doInsert(com.google.common.collect.ImmutableList.of(document));
@@ -67,17 +67,17 @@ import [starImport];
 
   /**
    * Insert documents into the collection.
-   * @param documents documents to insert
-   * @return future of number of inserted documents if WriteConcern allows.
+   * @param documents The documents to insert
+   * @return A future representing the number of inserted documents if WriteConcern allows the insertion.
    */
   public FluentFuture<Integer> insert(Iterable<? extends [type.typeDocument]> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
 
   /**
-   * Finds all documents. Use returned {@link Finder} object to complete
-   * {@link Finder#fetchAll() fetch all}, {@link Finder#deleteAll() delete all} or other operation.
-   * @return finder object to complete operation
+   * Finds all documents. Use the returned {@link Finder} object to complete
+   * {@link Finder#fetchAll() fetch all}, {@link Finder#deleteAll() delete all}, or other operations.
+   * @return A finder object used to complete operations
    */
   @javax.annotation.CheckReturnValue
   public Finder findAll() {
@@ -85,10 +85,10 @@ import [starImport];
   }
   
  /**
-  * Find document by criteria expressed as JSON string. Use returned {@link Finder} object to complete
-  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
-  * @param jsonCriteria json string for native criteria
-  * @return finder object to complete operation
+  * Find documents by the criteria expressed as a JSON string. Use the returned {@link Finder} object to complete
+  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+  * @param jsonCriteria A JSON string for native criteria
+  * @return A finder object used to complete operations
   */
   @javax.annotation.CheckReturnValue
   public Finder find(String jsonCriteria) {
@@ -98,10 +98,10 @@ import [starImport];
 [if a]
 
   /**
-   * Find document by {@link [type.name]#[a.names.get]() [a.name]} identity attribute. Use returned {@link Finder} object to complete
-   * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
-   * @param [a.name] the exact {@code [a.name]} value
-   * @return finder object to complete operation
+   * Find documents by the {@link [type.name]#[a.names.get]() [a.name]} identity attribute. Use the returned {@link Finder} object to complete
+   * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+   * @param [a.name] The exact {@code [a.name]} value
+   * @return A finder object used to complete operations
    */
   @javax.annotation.CheckReturnValue
   public Finder findBy[toUpper a.name]([a.type] [a.name]) {
@@ -109,9 +109,9 @@ import [starImport];
   }
   
   /**
-   * Update or insert document, matched by identifier value of '[a.name]' attribute.
-   * @param document [toLower type.name] to upsert
-   * @return future of number of inserted documents (1) if WriteConcern allows.
+   * Update or insert a document, matched by the identifier value of the '[a.name]' attribute.
+   * @param document The [toLower type.name] to upsert
+   * @return A future representing the of number of inserted documents (1) if WriteConcern allows the insertion.
    */
   public FluentFuture<Integer> upsert([type.typeDocument] document) {
     Criteria byId = criteria().[a.name](document.[a.names.get]());
@@ -133,9 +133,9 @@ import [starImport];
 
 /**
  * Order by {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
- * Specify next attribute to sort will be {@link [type.name]#[a.names.get]() [a.name]} attribute using ascending order
+ * Specify that the next attribute to sort will be the {@link [type.name]#[a.names.get]() [a.name]} attribute using ascending order
  * in the the chain of comparisons performed to sort results.
- * @return {@code this} [toLower tT] for chained invocation
+ * @return {@code this} [toLower tT] for use in a chained invocation
  */
 public [tT] orderBy[toUpper a.name]() {
   ordering = ordering.equal(serialization.[a.name]Name, false, 1);
@@ -144,9 +144,9 @@ public [tT] orderBy[toUpper a.name]() {
 
 /**
  * Order by {@link [type.name]#[a.names.get]() [a.name]} in the descending direction.
- * Specify next attribute to sort will be {@link [type.name]#[a.names.get]() [a.name]} attribute using descending order
+ * Specify that the next attribute to sort will be the {@link [type.name]#[a.names.get]() [a.name]} attribute using descending order
  * in the the chain of comparisons performed to sort results.
- * @return {@code this} [toLower tT] for chained invocation
+ * @return {@code this} [toLower tT] for use in a chained invocation
  */
 public [tT] orderBy[toUpper a.name]Desceding() {
   ordering = ordering.equal(serialization.[a.name]Name, false, -1);
@@ -156,8 +156,8 @@ public [tT] orderBy[toUpper a.name]Desceding() {
   [for a in type.excludableAttributes]
  
 /**
- * Exclude {@link [type.name]#[a.names.get]() [a.name]} attribute from each document in results.
- * @return {@code this} [toLower tT] for chained invocation
+ * Exclude the {@link [type.name]#[a.names.get]() [a.name]} attribute from each document in the results.
+ * @return {@code this} [toLower tT] for use in a chained invocation
  */    
 public [tT] exclude[toUpper a.name]() {
   exclusion = exclusion.equal(serialization.[a.name]Name, false, -1);
@@ -169,10 +169,10 @@ public [tT] exclude[toUpper a.name]() {
 [template generateFinder Type type]
 
 /**
- * Find document by {@link [type.name]Repository#criteria() criteria}. Use returned {@link Finder} object to complete
- * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete} operation.
- * @param criteria search criteria
- * @return finder object to complete operation
+ * Find a document by the given {@link [type.name]Repository#criteria() criteria}. Use the returned {@link Finder} object to complete
+ * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+ * @param criteria The search criteria
+ * @return A finder object used to complete operations
  */
 @javax.annotation.CheckReturnValue
 public Finder find(Criteria criteria) {
@@ -180,9 +180,9 @@ public Finder find(Criteria criteria) {
 }
 
 /**
- * Finder object used to proceed with find operation by using methods
- * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()} or {@link Finder#deleteFirst()} methods.
- * Configure exclusion and sort ordering for results using family of {@code exclude*()} and {@code orderBy*()} attribute specific methods.
+ * The finder object used to proceed with find operations via the
+ * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()}, or {@link Finder#deleteFirst()} methods.
+ * Configure exclusion and sort ordering for results using the family of {@code exclude*()} and {@code orderBy*()} attribute-specific methods.
  * @see [type.name]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
@@ -202,10 +202,10 @@ public static final class Finder extends Repositories.Finder<[type.typeDocument]
 [template generateAndModifyFirst Type type]
 
 /**
- * Turn find operation into atomic {@link DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean, boolean) findAndModify}
- * operation. Use family of {@code set*()}, {@code unset*()}, {@code add*()}, {@code remove*()}, {@code put*()} and {@code init*()}
- * and other attribute specific methods to describe modification.
- * @return modifier object to complete {@code findAndModify} operation
+ * Turn a find operation into an atomic {@link DBCollection#findAndModify(DBObject, DBObject, DBObject, boolean, DBObject, boolean, boolean) findAndModify}
+ * operation. Use the family of {@code set*()}, {@code unset*()}, {@code add*()}, {@code remove*()}, {@code put*()}m and {@code init*()}
+ * (and other attribute-specific) methods to describe the modification.
+ * @return A modifier object to complete the {@code findAndModify} operation
  */
 @javax.annotation.CheckReturnValue
 public Modifier andModifyFirst() {
@@ -216,13 +216,13 @@ public Modifier andModifyFirst() {
 [template generateIndexer Type type]
 
 /**
- * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure index} on collection {@code "[type.documentName]"} by one or
- * more attributes using family of {@code with*()} attribute specific methods.
- * While indexes usually will be maintained by special administration scripts, for simple cases it is convenient
- * to ensure index on application startup.
+ * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure an index} on collection {@code "[type.documentName]"} by one or
+ * more attributes using the family of {@code with*()} attribute-specific methods.
+ * While indexes will usually be maintained by special administration scripts, for simple cases it is convenient
+ * to ensure an index on application startup.
  * @see Indexer#named(String)
  * @see Indexer#unique()
- * @return indexer object to complete with {@link Indexer#ensure()} operation.
+ * @return An indexer object to be completed with the {@link Indexer#ensure()} operation.
  */
 @javax.annotation.CheckReturnValue
 public Indexer index() {
@@ -230,7 +230,7 @@ public Indexer index() {
 }
 
 /**
- * Indexer used to create index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
+ * An indexer used to create an index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
  * @see DBCollection#ensureIndex(DBObject, DBObject)
  */
 @javax.annotation.concurrent.NotThreadSafe
@@ -244,8 +244,8 @@ public static final class Indexer extends Repositories.Indexer<[type.typeDocumen
 [for a in type.allMarshalingAttributes]
 
   /**
-   * Specify next attribute to in index will be {@link [type.name]#[a.names.get]() [a.name]} in the ascending direction.
-   * @return {@code this} indexer for chained invocation
+   * Specify that the next attribute to index will be {@link [type.name]#[a.names.get]() [a.name]}, in the ascending direction.
+   * @return {@code this} indexer for use in a chained invocation
    */
   public Indexer with[toUpper a.name]() {
     fields = fields.equal(serialization.[a.name]Name, false, 1);
@@ -253,8 +253,8 @@ public static final class Indexer extends Repositories.Indexer<[type.typeDocumen
   }
 
   /**
-   * Specify next attribute to in index will be {@link [type.name]#[a.names.get]() [a.name]} in the descending direction.
-   * @return {@code this} indexer for chained invocation
+   * Specify that the next attribute to index will be {@link [type.name]#[a.names.get]() [a.name]}, in the descending direction.
+   * @return {@code this} indexer for use in a chained invocation
    */
   public Indexer with[toUpper a.name]Desceding() {
     fields = fields.equal(serialization.[a.name]Name, false, -1);
@@ -267,9 +267,9 @@ public static final class Indexer extends Repositories.Indexer<[type.typeDocumen
 [template generateUpdater Type type]
 
 /**
- * Update set of {@code "[type.documentName]"} documents.
- * @param criteria search criteria for update
- * @return updater object to complete update.
+ * Update the set of {@code "[type.documentName]"} documents.
+ * @param criteria The search criteria for update
+ * @return An updater object that will be used to complete the update.
  */
 @javax.annotation.CheckReturnValue
 public Updater update(Criteria criteria) {
@@ -278,7 +278,7 @@ public Updater update(Criteria criteria) {
 
 /**
  * {@link #update(Criteria) Given} the criteria updater describes how to perform
- * update operation on a set of documents.
+ * update operations on sets of documents.
  */
 @javax.annotation.concurrent.NotThreadSafe
 public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
@@ -322,14 +322,14 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   [if a.collectionType]
 
   /**
-   * Clear {@code [a.name]} [toLower a.rawCollectionType] attribute.
+   * Clear the {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
 [if a.forcedEmpty]
-   * Corresponds to MongoDB {@code $set} operator resetting to empty array
+   * Corresponds to the MongoDB {@code $set} operator resetting to empty array
 [else]
-   * Corresponds to MongoDB {@code $unset} operator
+   * Corresponds to the MongoDB {@code $unset} operator
 [/if]
-   * @return {@code this} [toLower tT] to complete update operation
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] clear[toUpper a.name]() {
   [if a.forcedEmpty]
@@ -341,11 +341,11 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Remove value from {@code [a.name]} [toLower a.rawCollectionType] attribute.
+   * Remove a value from the {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
-   * Corresponds to MongoDB {@code $pull} operator.
-   * @param value value to remove
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $pull} operator.
+   * @param value The value to remove
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] remove[toUpper a.name]([uU] value) {
     pullFields = pullFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
@@ -353,15 +353,15 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Add value to {@code [a.name]} [toLower a.rawCollectionType] attribute.
+   * Add a value to the {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
   [if a.setType]
-   * Corresponds to MongoDB {@code $addToSet} operator.
+   * Corresponds to the MongoDB {@code $addToSet} operator.
   [else]
-   * Corresponds to MongoDB {@code $push} operator.
+   * Corresponds to the MongoDB {@code $push} operator.
   [/if]
-   * @param value value to add
-   * @return {@code this} [toLower tT] to complete update operation
+   * @param value The value to add
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] add[toUpper a.name]([uU] value) {
   [if a.setType]
@@ -373,15 +373,15 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Add all values to {@code [a.name]} [toLower a.rawCollectionType] attribute.
+   * Add all of the given values to the {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
   [if a.setType]
-   * Corresponds to MongoDB {@code $addToSet} operator with {@code $each} modifier.
+   * Corresponds to the MongoDB {@code $addToSet} operator with the {@code $each} modifier.
   [else]
-   * Corresponds to MongoDB {@code $push} operator with {@code $each} modifier.
+   * Corresponds to the MongoDB {@code $push} operator with the {@code $each} modifier.
   [/if]
-   * @param values values to add
-   * @return {@code this} [toLower tT] to complete update operation
+   * @param values The values to add
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] addAll[toUpper a.name](Iterable<[wW]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
@@ -408,10 +408,10 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   [if a.mapType]
 
   /**
-   * Clear {@code [a.name]} map attribute.
+   * Clear the {@code [a.name]} map attribute.
    * <p>
-   * Corresponds to MongoDB {@code $set} operator to reset to empty object
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $set} operator, used to reset to empty object
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] clear[toUpper a.name]() {
     setFields = setFields.equal(serialization.[a.name]Name, false, Support.emptyBsonObject());
@@ -419,12 +419,12 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Put key, value into the map of {@code [a.name]} map attribute.
+   * Put the given key and value into the {@code [a.name]} map attribute.
    * <p>
-   * Corresponds to MongoDB {@code $set} operator for nested object
-   * @param key key
-   * @param value value
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $set} operator for nested objects
+   * @param key The key
+   * @param value The value
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] put[toUpper a.name]([uU] key, [a.unwrappedSecondaryElementType] value) {
     setFields = setFields.equal(serialization.[a.name]Name + "." + key, false, [wrapSecondaryMarshalable a]value));
@@ -432,11 +432,11 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Remove key, value mapping from {@code [a.name]} map attribute.
+   * Remove the key to value mapping from the {@code [a.name]} map attribute.
    * <p>
-   * Corresponds to MongoDB {@code $unset} operator for nested object
-   * @param key key
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to MongoDB {@code $unset} operator for nested objects
+   * @param key The key
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] remove[toUpper a.name]([uU] key) {
     unsetFields = unsetFields.equal(serialization.[a.name]Name + "." + key, false, 1);
@@ -446,14 +446,14 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
     [if a.optionalType]
 
   /**
-   * Clear {@code [a.name]} optional attribute.
+   * Clear the optional {@code [a.name]} attribute.
    * <p>
 [if a.forcedEmpty]
-   * Corresponds to MongoDB {@code $set} operator resetting to {@code null}
+   * Corresponds to the MongoDB {@code $set} operator resetting to {@code null}
 [else]
-   * Corresponds to MongoDB {@code $unset} operator
+   * Corresponds to the MongoDB {@code $unset} operator
 [/if]
-   * @return {@code this} [toLower tT] to complete update operation
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] empty[toUpper a.name]() {
       [if a.forcedEmpty]
@@ -466,11 +466,11 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
     [/if]
 
   /**
-   * Specify new value for the {@code [a.name]} attribute.
+   * Specify a new value for the {@code [a.name]} attribute.
    * <p>
-   * Corresponds to MongoDB {@code $set} operator.
-   * @param value new value for the {@code [a.name]} attribute
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $set} operator.
+   * @param value A new value for the {@code [a.name]} attribute
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] set[toUpper a.name]([uU] value) {
     setFields = setFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
@@ -478,12 +478,12 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
   }
 
   /**
-   * Specify initial value for the {@code [a.name]} attribute which will be used if document is
+   * Specify an initial value for the {@code [a.name]} attribute. The value will be used if the document is
    * to be inserted. If one or more documents are found for an update, this value will not be used.
    * <p>
-   * Corresponds to MongoDB {@code $setOnInsert} operator.
-   * @param value {@code [a.name]} value for an insert.
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $setOnInsert} operator.
+   * @param value The {@code [a.name]} value for an insert.
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] init[toUpper a.name]([uU] value) {
     setOnInsertFields = setOnInsertFields.equal(serialization.[a.name]Name, false, [wrapMarshalable a]value));
@@ -492,12 +492,12 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
 
     [if a.numberType]
   /**
-   * Specify increment amount for the {@code [a.name]} attribute. If document is to inserted
-   * and no initial value provided, then {@code 0} will be the default value and increment will adjust it.
+   * Specify an increment amount for the {@code [a.name]} attribute. If the document is to inserted
+   * and no initial value has been provided, then {@code 0} will be the default value and the increment will adjust it.
    * <p>
-   * Corresponds to MongoDB {@code $inc} operator.
-   * @param increment an amount to increment {@code [a.name]} attribute (may be negative)
-   * @return {@code this} [toLower tT] to complete update operation
+   * Corresponds to the MongoDB {@code $inc} operator.
+   * @param increment An amount by which to increment the {@code [a.name]} attribute (may be negative)
+   * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] increment[toUpper a.name]([uU] increment) {
     incrementFields = incrementFields.equal(serialization.[a.name]Name, false, increment);
@@ -516,8 +516,8 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
 
 /**
  * Search criteria.
- * Returns initial object to create criteria by invoking methods that describe attribute specific constraints.
- * @return empty immutable criteria
+ * Returns an initial object to create criteria by invoking methods that describe attribute specific constraints.
+ * @return An empty immutable criteria
  */
 public Criteria criteria() {
   return anyCriteria;
@@ -525,7 +525,7 @@ public Criteria criteria() {
 
 /**
  * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
- * Call methods on criteria to add constraint for search query.
+ * Call methods on the criteria to add constraints for search queries.
  */
 @javax.annotation.concurrent.Immutable
 @SuppressWarnings("unchecked")
