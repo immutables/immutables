@@ -1055,6 +1055,11 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
     [checkNotIsSet v]
+    [if v.nullable][-- this is a special case --]
+    if (elements == null) {
+      [builderReturnThis type]
+    }
+    [/if]
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
     [builderReturnThis type]
@@ -1620,7 +1625,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
       ? [disambiguateField type 'initShim'].[v.names.get]()
       : [v.name];
 [else if v.arrayType]
-  return [v.name].clone();
+  return [if v.nullable][v.name] == null ? null : [/if][v.name].clone();
 [else]
   return [v.name];
 [/if]
@@ -1694,10 +1699,10 @@ private boolean equalTo([equalToType] another) {
 [else]
   int [h] = 31;
 [for v in getters]
-[if v.nullable]
-  [h] = [h] * 17 + [if type.generateJdkOnly][objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
-[else if v.arrayType]
+[if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
+[else if v.nullable]
+  [h] = [h] * 17 + [if type.generateJdkOnly][objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
 [else if v.primitive]
   [h] = [h] * 17 + [primitiveHashCode v];
 [else]

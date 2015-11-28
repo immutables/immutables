@@ -862,10 +862,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           report()
               .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
               .error("@Nullable could not be used with primitive type attibutes");
+        } else if (containingType.isAnnotationType()) {
+          report()
+              .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+              .error("@Nullable could not be used on annotation attibutes");
         } else {
           nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
           nullability.eagerize();
-          if (isNullable()) {
+          if (isNullable() && !isArrayType()) {
             typeKind = AttributeTypeKind.REGULAR;
           }
         }

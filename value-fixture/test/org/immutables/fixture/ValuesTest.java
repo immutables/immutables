@@ -216,6 +216,19 @@ public class ValuesTest {
   }
 
   @Test
+  public void nullableArray() {
+    NullableArray n1 = ImmutableNullableArray.builder()
+        .array((byte[]) null)
+        .build();
+
+    NullableArray n2 = ImmutableNullableArray.builder()
+        .build();
+
+    check(n1).is(n2);
+    check(n1.array()).isNull();
+  }
+
+  @Test
   public void java8TypeAnnotation() {
     // FIXME Type Annotations
     // HasTypeAnnotation hasTypeAnnotation = ImmutableHasTypeAnnotation.builder().build();

@@ -48,27 +48,27 @@ public class Checkers {
   }
 
   public static <E> IterableChecker<List<E>, E> check(E[] actualValue) {
-    return check(Arrays.asList(actualValue));
+    return check(actualValue == null ? null : Arrays.asList(actualValue));
   }
 
   public static IterableChecker<List<Long>, Long> check(long[] actualLongArray) {
-    return check(Longs.asList(actualLongArray));
+    return check(actualLongArray == null ? null : Longs.asList(actualLongArray));
   }
 
   public static IterableChecker<List<Double>, Double> check(double[] actualDoubleArray) {
-    return check(Doubles.asList(actualDoubleArray));
+    return check(actualDoubleArray == null ? null : Doubles.asList(actualDoubleArray));
   }
 
   public static IterableChecker<List<Integer>, Integer> check(int[] actualIntArray) {
-    return check(Ints.asList(actualIntArray));
+    return check(actualIntArray == null ? null : Ints.asList(actualIntArray));
   }
 
   public static IterableChecker<List<Byte>, Byte> check(byte[] actualByteArray) {
-    return check(Bytes.asList(actualByteArray));
+    return check(actualByteArray == null ? null : Bytes.asList(actualByteArray));
   }
 
   public static StringChecker check(char[] actualCharArray) {
-    return check(String.valueOf(actualCharArray));
+    return check(actualCharArray == null ? null : String.valueOf(actualCharArray));
   }
 
   public static <T> OptionalChecker<T> check(Optional<T> actualValue) {
