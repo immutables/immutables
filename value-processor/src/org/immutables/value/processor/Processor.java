@@ -15,12 +15,16 @@
  */
 package org.immutables.value.processor;
 
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Strings;
+import com.google.common.base.Splitter;
+import java.util.Set;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
 import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-
 import javax.annotation.processing.SupportedAnnotationTypes;
 
 @Metainf.Service
@@ -35,9 +39,11 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 public final class Processor extends AbstractGenerator {
   @Override
   protected void process() {
+
     Round round = ImmutableRound.builder()
         .addAllAnnotations(annotations())
         .processing(processing())
+        .addAllCustomImmutableAnnotations(CustomImmutableAnnotations.annotations())
         .round(round())
         .build();
 
@@ -53,5 +59,12 @@ public final class Processor extends AbstractGenerator {
 
 //  invoke(new Generator_Parboileds().usingValues(values).generate());
 //
+  }
+
+  @Override
+  public Set<String> getSupportedAnnotationTypes() {
+    return FluentIterable.from(super.getSupportedAnnotationTypes())
+        .append(CustomImmutableAnnotations.annotations())
+        .toSet();
   }
 }

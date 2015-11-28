@@ -69,7 +69,7 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   }
 
   @Override
-  public final Set<String> getSupportedAnnotationTypes() {
+  public Set<String> getSupportedAnnotationTypes() {
     @Nullable SupportedAnnotations annotations = getClass().getAnnotation(Generator.SupportedAnnotations.class);
     if (annotations != null) {
       Set<String> annotationNames = Sets.newHashSet();
