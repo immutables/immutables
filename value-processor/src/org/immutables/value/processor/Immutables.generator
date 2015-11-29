@@ -2473,8 +2473,6 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
-[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]
-
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]

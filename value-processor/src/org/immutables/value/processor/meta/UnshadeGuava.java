@@ -15,10 +15,15 @@
  */
 package org.immutables.value.processor.meta;
 
-final class UnshadeGuava {
-  private static final String GOOGLE_COMMON_PREFIX = "com.go".concat("ogle.common.");
+public final class UnshadeGuava {
+  private static final String GUAVA_PREFIX =
+      System.getProperty("guava.prefix", "com.go".concat("ogle.common"));
 
-  static String typeString(String partiallyQualifiedType) {
-    return GOOGLE_COMMON_PREFIX + partiallyQualifiedType;
+  public static String typeString(String partiallyQualifiedType) {
+    return GUAVA_PREFIX + '.' + partiallyQualifiedType;
+  }
+
+  public static String prefix() {
+    return GUAVA_PREFIX;
   }
 }

@@ -860,5 +860,3 @@ import [starImport];
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
-
-[template guava]co['m.google.com']mon[/template][-- this is to hide from jar shading/class relocation in string constants --]

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.UnshadeGuava;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
@@ -41,6 +42,8 @@ abstract class ValuesTemplate extends AbstractTemplate {
   DeclaringPackage Package;
 
   public abstract Templates.Invokable generate();
+
+  public final String guava = UnshadeGuava.prefix();
 
   public final LongBits longsFor = new LongBits();
 
