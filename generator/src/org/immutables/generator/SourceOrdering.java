@@ -15,8 +15,6 @@
  */
 package org.immutables.generator;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
