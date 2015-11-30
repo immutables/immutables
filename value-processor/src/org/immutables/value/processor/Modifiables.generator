@@ -248,7 +248,7 @@ public static [thisReturnType type] [type.names.create]() {
  * @return {@code this} for use in a chained invocation
  */
 public [thisReturnType type] [type.names.from]([s.type] instance) {
-  [requireNonNull type](instance);
+  [requireNonNull type](instance, "instance");
   from((Object) instance);
   [thisReturn type]
 }
@@ -289,7 +289,7 @@ private void from(Object object) {
  * @return {@code this} for use in a chained invocation
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
-  [requireNonNull type](instance);
+  [requireNonNull type](instance, "instance");
 [for v in type.settableAttributes]
   [buildFromAttribute v]
 [/for]
@@ -379,7 +379,7 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
   [if v.unwrappedElementPrimitiveType]
   [v.name].add(element);
   [else]
-  [v.name].add([requireNonNull type](element));
+  [v.name].add([requireNonNull type](element, "[v.name] element"));
   [/if]
   [thisReturn type]
 }
@@ -396,7 +396,7 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements)
     [if v.unwrappedElementPrimitiveType]
     [v.name].add(element);
     [else]
-    [v.name].add([requireNonNull type](element));
+    [v.name].add([requireNonNull type](element, "[v.name] element"));
     [/if]
   }
   [thisReturn type]
@@ -424,7 +424,7 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
     [if v.unwrappedElementPrimitiveType]
     [v.name].add(element);
     [else]
-    [v.name].add([requireNonNull type](element));
+    [v.name].add([requireNonNull type](element, "[v.name] element"));
     [/if]
   }
   [thisReturn type]
@@ -450,7 +450,7 @@ public [thisReturnType type] [v.names.set]([atNullableAccept v][v.unwrappedEleme
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
-  this.[v.name] = [requireNonNull type]([v.name]);
+  this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
   [nondefaultSetter v]
   [thisReturn type]
 }
@@ -492,8 +492,8 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
   [v.name].put(
-      [if not v.unwrappedElementPrimitiveType][requireNonNull type](key, "Key cannot be null")[else]key[/if],
-      [if not v.unwrappedSecondaryElementPrimitiveType][requireNonNull type](value, "Value cannot be null")[else]value[/if]);
+      [if not v.unwrappedElementPrimitiveType][requireNonNull type](key, "[v.name] key")[else]key[/if],
+      [if not v.unwrappedSecondaryElementPrimitiveType][requireNonNull type](value, "[v.name] value")[else]value[/if]);
   [thisReturn type]
 }
 
@@ -517,8 +517,8 @@ public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Mu
 public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
     [v.name].put(
-        [requireNonNull type](entry.getKey(), "Key cannot be null"),
-        [requireNonNull type](entry.getValue(), "Value cannot be null"));
+        [requireNonNull type](entry.getKey(), "[v.name] key"),
+        [requireNonNull type](entry.getValue(), "[v.name] value"));
   }
   [thisReturn type]
 }
@@ -555,7 +555,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
   [if v.primitive or v.nullable]
   this.[v.name] = [v.name];
   [else]
-  this.[v.name] = [requireNonNull type]([v.name]);
+  this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
   [/if]
   [nondefaultSetter v]
   [mandatorySetter v]
