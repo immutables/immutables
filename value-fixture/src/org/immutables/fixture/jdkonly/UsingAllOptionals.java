@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.jdkonly;
 
+import com.atlassian.fugue.Option;
 import com.google.common.base.Optional;
 import java.util.Objects;
 import java.util.OptionalDouble;
@@ -35,6 +36,10 @@ public interface UsingAllOptionals {
   OptionalLong l1();
 
   OptionalDouble d1();
+
+  Option<String> fo2();
+
+  io.atlassian.fugue.Option<String> fo3();
 
   class Use {
     void use() {

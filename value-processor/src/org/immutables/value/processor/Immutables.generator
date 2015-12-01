@@ -210,7 +210,7 @@ private static class SerialForm implements java.io.Serializable {
       values.add(toArray(instance.[v.names.get]().[if v.multimapType]entries[else]entrySet[/if]()));
     }
     [else if v.optionalType]
-    if (instance.[v.names.get]().isPresent()) {
+    if (instance.[v.names.get]().[optionalPresent v]) {
       names.add("[v.name]");
       values.add(instance.[v.names.get]().[optionalGet v]);
     }
@@ -1219,7 +1219,7 @@ if ([for l in positions.longs][if not for.first]
 [v.names.putAll](instance.[v.names.get]());
   [else if v.optionalType]
 [v.type] [v.name]Optional = instance.[v.names.get]();
-if ([v.name]Optional.isPresent()) {
+if ([v.name]Optional.[optionalPresent v]) {
   [v.names.init]([v.name]Optional);
 }
   [else if v.nullable]
@@ -2458,9 +2458,11 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
 
-[template optionalOf Attribute a][a.rawType].[if not a.optionalAcceptNullable]of[else if a.jdkOptional]ofNullable[else]fromNullable[/if][/template]
+[template optionalOf Attribute a][a.rawType].[if not a.optionalAcceptNullable][if a.fugueOptional]some[else]of[/if][else if a.jdkOptional]ofNullable[else if a.fugueOptional]option[else]fromNullable[/if][/template]
+
+[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
 
 [template atNullableAccept Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][/if][/template]
 

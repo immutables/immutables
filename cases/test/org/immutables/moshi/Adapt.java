@@ -1,5 +1,6 @@
 package org.immutables.moshi;
 
+import com.atlassian.fugue.Option;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
@@ -19,6 +20,12 @@ public interface Adapt {
 
   @Value.Parameter
   Multiset<Nst> bag();
+
+  @Value.Parameter
+  Option<String> optionFugue2();
+
+  @Value.Parameter
+  io.atlassian.fugue.Option<String> optionFugue3();
 
   @Value.Immutable
   public interface Inr {

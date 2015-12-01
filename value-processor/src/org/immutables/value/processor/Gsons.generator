@@ -201,7 +201,7 @@ if ([a.name]Value != null) {
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
-if ([a.name]Optional.isPresent()) {
+if ([a.name]Optional.[optionalPresent a]) {
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
@@ -268,7 +268,7 @@ if ([a.name]Value != null) {
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
-if ([a.name]Optional.isPresent()) {
+if ([a.name]Optional.[optionalPresent a]) {
   out.name([serializedName a]);
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
@@ -692,4 +692,6 @@ out.value([variableName]);
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
+
+[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]

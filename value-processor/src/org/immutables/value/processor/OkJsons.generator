@@ -185,7 +185,7 @@ if ([a.name]Value != null) {
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
-if ([a.name]Optional.isPresent()) {
+if ([a.name]Optional.[optionalPresent a]) {
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
@@ -252,7 +252,7 @@ if ([a.name]Value != null) {
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
-if ([a.name]Optional.isPresent()) {
+if ([a.name]Optional.[optionalPresent a]) {
   out.name([serializedName a]);
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
@@ -409,12 +409,12 @@ if (t == JsonReader.Token.NULL) {
   return [optionalEmpty a];
 }
     [if a.jdkSpecializedOptional]
-return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
+return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);kmo
     [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
-return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
+return [optionalOf a]([simpleTypeNext a.unwrappedElementType]);
     [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
-return [a.rawType].of(value);
+return [optionalOf a](value);
     [/if]
   [else if a.mapType]
 [createBuilderForCollection type a 'mappings']
@@ -667,4 +667,8 @@ out.value([variableName]);
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
+
+[template optionalOf Attribute a][a.rawType].[if a.fugueOptional]some[else]of[/if][/template]
+
+[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]

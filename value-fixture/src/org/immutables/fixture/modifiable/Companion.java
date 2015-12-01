@@ -1,5 +1,6 @@
 package org.immutables.fixture.modifiable;
 
+import com.atlassian.fugue.Option;
 import com.google.common.base.Optional;
 import com.google.common.collect.*;
 import org.immutables.value.Value;
@@ -86,6 +87,10 @@ interface Companion {
     OptionalLong l1();
 
     OptionalDouble d1();
+
+    Option<Integer> fugue2();
+
+    io.atlassian.fugue.Option<Integer> fugue3();
 
     @Value.Default
     default int def() {

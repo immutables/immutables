@@ -75,7 +75,12 @@ public enum AttributeTypeKind {
       "java.util.OptionalDouble"),
   OPTIONAL_GUAVA(
       "Optional",
-      UnshadeGuava.typeString("base.Optional"));
+      UnshadeGuava.typeString("base.Optional")),
+  OPTION_FUGUE(
+      "Option",
+      "com.atlassian.fugue.Option",
+      "io.atlassian.fugue.Option"),
+  ;
 
   private final String[] rawTypes;
   private final String rawSimpleName;
@@ -234,6 +239,10 @@ public enum AttributeTypeKind {
     return this == OPTIONAL_GUAVA;
   }
 
+  public boolean isOptionFugue() {
+    return this == OPTION_FUGUE;
+  }
+
   public boolean isOptionalKind() {
     switch (this) {
     case OPTIONAL_GUAVA:
@@ -241,6 +250,7 @@ public enum AttributeTypeKind {
     case OPTIONAL_INT_JDK:
     case OPTIONAL_LONG_JDK:
     case OPTIONAL_DOUBLE_JDK:
+    case OPTION_FUGUE:
       return true;
     default:
       return false;

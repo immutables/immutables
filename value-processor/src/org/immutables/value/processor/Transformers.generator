@@ -55,10 +55,10 @@ package [transformerType.package];
     [else if a.optionalType]
 
   protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] optional) {
-    if (optional.isPresent()) {
+    if (optional.[optionalPresent a]) {
       [a.unwrappedElementType] original = optional.[optionalGet a];
       [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
-      return changed != original ? [a.rawType].of(changed) : optional;
+      return changed != original ? [optionalOf a](changed) : optional;
     }
     return [optionalEmpty a];
   }
@@ -135,6 +135,7 @@ package [transformerType.package];
 
 [template transformAttributeSuffix Attribute a][toUpper a.name][output.trim]
 [if a.nullable]Nullable
+[else if a.fugueOptional]Option
 [else if a.optionalType]Optional
 [else if a.mapType]Entries
 [else if a.collectionType]Elements
@@ -143,4 +144,8 @@ package [transformerType.package];
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
+
+[template optionalOf Attribute a][a.rawType].[if a.fugueOptional]some[else]of[/if][/template]
+
+[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
