@@ -52,6 +52,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.atlassian.fugue</groupId>
+      <artifactId>fugue</artifactId>
+      <version>2.2.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.atlassian.fugue</groupId>
+      <artifactId>fugue</artifactId>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <!-- Test only for moshi -->
       <groupId>com.squareup.moshi</groupId>
       <artifactId>moshi</artifactId>

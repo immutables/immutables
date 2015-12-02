@@ -18,7 +18,6 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -248,7 +247,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         Collections.singleton(JsonPropertyMirror.qualifiedName()),
         false,
         elementType).isEmpty();
-    
+
     if (dontHaveJsonPropetyAnnotationAlready) {
       allAnnotations.add("@" + JsonPropertyMirror.qualifiedName());
     }
@@ -364,6 +363,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isJdkOptional() {
     return typeKind.isOptionalKind() && typeKind.isJdkOnlyContainerKind();
+  }
+
+  public boolean isFugueOptional() {
+    return typeKind.isOptionFugue();
   }
 
   public boolean isJdkSpecializedOptional() {

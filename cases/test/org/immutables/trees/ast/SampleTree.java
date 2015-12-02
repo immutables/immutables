@@ -1,5 +1,6 @@
 package org.immutables.trees.ast;
 
+import com.atlassian.fugue.Option;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.trees.Trees;
@@ -30,6 +31,10 @@ public class SampleTree {
     List<Integer> cardinalities();
 
     Optional<String> position();
+
+    Option<String> fugue2Option();
+
+    io.atlassian.fugue.Option<String> fugue3Option();
 
     enum Kind {
       PLUS,
