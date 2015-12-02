@@ -409,7 +409,7 @@ if (t == JsonReader.Token.NULL) {
   return [optionalEmpty a];
 }
     [if a.jdkSpecializedOptional]
-return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);kmo
+return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
     [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 return [optionalOf a]([simpleTypeNext a.unwrappedElementType]);
     [else]
