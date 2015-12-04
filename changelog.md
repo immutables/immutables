@@ -2,8 +2,12 @@ Changelog
 ---------
 
 ### 2.1.1 (2015-12-03)
-+ Bugfix and Minor improvement release 
-+ [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.1+is%3Aclosed)
+- Bugfix and Minor improvement release.
+- Many thanks to all user and contributors for issue reports, PRs and suggestions!
+  + Notable JSON fixes. Courtesy of @ldriscoll
+  + Generated Javadocs corrections and proofreading. Courtesy of @io7m and @trask
+  + Atlassian Fugue 2.x and 3.x `Option` support. Courtesy of @mzeijen
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.1+is%3Aclosed)
 
 ### 2.1.0 (2015-10-23)
 + Added `Value.Modifiable` annotation to create modifiable companion classes, which may serve as uber-builder or instead of `buildPartial` in other builder toolkits.

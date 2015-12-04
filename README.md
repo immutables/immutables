@@ -18,4 +18,6 @@ ValueObject valueObject =
 
 Read full documentation at http://immutables.org
 
+[Changelog](https://github.com/immutables/immutables/blob/master/changelog.md)
+
 [![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
