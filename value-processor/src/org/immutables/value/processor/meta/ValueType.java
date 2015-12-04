@@ -32,6 +32,7 @@ import java.lang.annotation.ElementType;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -1106,14 +1107,49 @@ public final class ValueType extends TypeIntrospectionBase {
     return round.declaringTypeFrom(declaringType);
   }
 
-  public List<String> allAbstractMethodSignatures() {
-    List<String> signatures = Lists.newArrayList();
-    for (ExecutableElement m : ElementFilter.methodsIn(element.getEnclosedElements())) {
-      if (m.getModifiers().contains(Modifier.ABSTRACT)) {
-        signatures.add(toSignature(m));
+  public Set<String> allAbstractMethodSignatures() {
+    if (element.getKind().isClass() || element.getKind().isInterface()) {
+      Set<String> signatures = new LinkedHashSet<>();
+
+      List<? extends Element> members = round.environment()
+          .processing()
+          .getElementUtils()
+          .getAllMembers(CachingElements.getDelegate((TypeElement) element));
+
+      // For attribute signatures we will use more reliable mechanism
+      for (ValueAttribute a : getImplementedAttributes()) {
+        if (a.isGenerateAbstract) {
+          signatures.add(toSignature(a));
+        }
       }
+
+      for (ExecutableElement m : ElementFilter.methodsIn(members)) {
+        if (!m.getParameters().isEmpty()) {
+          if (m.getModifiers().contains(Modifier.ABSTRACT)) {
+            signatures.add(toSignature(m));
+          }
+        }
+      }
+
+      return signatures;
     }
-    return signatures;
+    return Collections.emptySet();
+  }
+
+  private String toSignature(ValueAttribute a) {
+    StringBuilder signature = new StringBuilder();
+
+    if (a.element.getModifiers().contains(Modifier.PUBLIC)) {
+      signature.append("public ");
+    } else if (a.element.getModifiers().contains(Modifier.PROTECTED)) {
+      signature.append("protected ");
+    }
+
+    return signature.append(a.returnTypeName)
+        .append(" ")
+        .append(a.names.get)
+        .append("()")
+        .toString();
   }
 
   private String toSignature(ExecutableElement m) {

@@ -137,7 +137,7 @@ final class AccessorAttributesCollector {
     }
   }
 
-  private boolean isElegibleAccessorMethod(Element element) {
+  private static boolean isElegibleAccessorMethod(Element element) {
     if (element.getKind() != ElementKind.METHOD) {
       return false;
     }
