@@ -1888,7 +1888,7 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
 [varargsSafety v]
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.elementType]... elements) {
-  [immutableImplementationType v] newValue = elements.clone();
+  [immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [generateReturnCopyContextual type v]
 }
     [else if v.collectionType]

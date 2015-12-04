@@ -536,7 +536,7 @@ public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect
 [varargsSafety v]
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.elementType]... elements) {
-  this.[v.name] = elements.clone();
+  this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [mandatorySetter v]
   [thisReturn type]
 }
@@ -715,10 +715,10 @@ private boolean equalTo([equalToType] another) {
       ? this.[v.name]
       : [invokeSuper v].[v.names.get]();
   [/if]
-[if v.nullable]
-  [h] = [h] * 17 + [if type.generateJdkOnly][im.objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
-[else if v.arrayType]
+[if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
+[else if v.nullable]
+  [h] = [h] * 17 + [if type.generateJdkOnly][im.objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
 [else if v.primitive]
   [h] = [h] * 17 + [im.primitiveHashCode v];
 [else]
@@ -770,7 +770,7 @@ public String toString() {
     [if v.containerType]
       + "[if not for.first], [/if][v.name]=" + [v.name]
     [else if v.arrayType]
-      + "[if not for.first], [/if][v.name]=" + ([isSet v]() ? java.util.Arrays.toString([v.name]) : "?")
+      + "[if not for.first], [/if][v.name]=" + ([if v.nullable][v.name] == null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
     [else if v.nullable]
       + "[if not for.first], [/if][v.name]=" + [v.name]
     [else if not v.generateDerived]
@@ -784,7 +784,7 @@ public String toString() {
   [if v.containerType]
       .add("[v.name]", [v.name])
   [else if v.arrayType]
-      .add("[v.name]", [isSet v]() ? java.util.Arrays.toString([v.name]) : "?")
+      .add("[v.name]", [if v.nullable][v.name] == null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
   [else if v.nullable]
       .add("[v.name]", [v.name])
   [else if not v.generateDerived]
