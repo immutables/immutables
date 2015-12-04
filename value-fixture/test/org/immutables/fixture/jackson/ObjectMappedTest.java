@@ -19,15 +19,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class ObjectMappedTest {
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper(); {
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  {
     OBJECT_MAPPER.registerModule(new GuavaModule());
   }
 
   public static class Wrapper {
     public ImmutableSampleJacksonMapped mapped;
+  }
+
+  @Test
+  public void propertyOrder() throws Exception {
+    String json = "[0.1,1.2,2.3]";
+    GeoPoint value = OBJECT_MAPPER.readValue(json, GeoPoint.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 
   @Test
