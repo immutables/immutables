@@ -1517,28 +1517,39 @@ private [v.type] [invokeSuperGet]() {
 [if type.implementedAttributes]
 
 /**
- * A simple representation of this value type suitable for Jackson binding.
+ * Utility type used to correctly read immutable object from JSON representation.
  * @deprecated Do not use this type directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
-static final class JsonPojo [extendsImplements type]
-[for v in type.implementedAttributes]
-  private [atNullable][v.type] [v.name];
+static final [output.linesShortable]class Json
+    [extendsImplements type][/output.linesShortable]
+[for v in type.settableAttributes if not v.anyGetter]
+  [atNullable][v.wrapperType] [v.name];
 [/for]
+[for v in type.settableAttributes if v.anyGetter]
+  final [v.type] [v.name] = new java.util.HashMap<>();
+[/for]
+[for v in type.settableAttributes if not v.anyGetter]
 
-[for v in type.implementedAttributes]
-  @Override
-  [if v.isPublic]public [/if][v.atNullability][v.type] [v.names.get]() {
-    return [v.name];
-  }
-  public void [v.names.jsonSet]([v.atNullability][v.type] [v.name]) {
+  public void set[toUpper v.name]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
   }
 [/for]
-}
+[for v in type.settableAttributes if v.anyGetter]
 
+  @com.fasterxml.jackson.annotation.JsonAnySetter
+  public void set[toUpper v.name]([v.wrappedElementType] key, [v.wrappedSecondaryElementType] value) {
+    this.[v.name].put(key, value);
+  }
+[/for]
+[for signature in type.allAbstractMethodSignatures]
+  [-- we actually don't need this implementation, signature is good enough --]
+  @Override
+  [signature] { throw new UnsupportedOperationException(); }
+[/for]
+}
 [/if]
 
 /**
@@ -1548,12 +1559,9 @@ static final class JsonPojo [extendsImplements type]
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static [type.typeValue.relative] fromJson([if type.implementedAttributes]JsonPojo json[else]java.util.Map<String, Object> json[/if]) {
+static [type.typeValue.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
-  [if type.implementedAttributes]
-  builder = builder.from(json);
-  [else]
   [for v in type.settableAttributes]
   if (json.[v.name] != null) {
       [if v.collectionType]
@@ -1565,7 +1573,6 @@ static [type.typeValue.relative] fromJson([if type.implementedAttributes]JsonPoj
       [/if]
   }
   [/for]
-  [/if]
   return builder.[type.names.build]();
 [else if type.useSingletonOnly]
   return [type.factoryInstance.relative]();

@@ -25,7 +25,6 @@ import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -228,12 +227,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           ElementType.METHOD,
           containingType.constitution.protoclass().styles().style().passAnnotationsNames());
 
-    } else {
-      return Annotations.getAnnotationLines(element,
-          containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
-          false,
-          ElementType.METHOD);
     }
+    return Annotations.getAnnotationLines(element,
+        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        false,
+        ElementType.METHOD);
   }
 
   public List<CharSequence> getJacksonFieldsAnnotations() {
@@ -263,12 +261,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isGsonIgnore() {
-    // TBD need to optimize
     return IgnoreMirror.isPresent(element);
   }
 
   public boolean isJsonIgnore() {
-    // TBD need to optimize
     return OkIgnoreMirror.isPresent(element);
   }
 
@@ -720,6 +716,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private int parameterOrder = Integer.MIN_VALUE;
   private AttributeTypeKind typeKind;
+  public boolean anyGetter;
 
   int getConstructorParameterOrder() {
     boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
@@ -802,7 +799,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeName() {
-    TypeStringProvider provider = new TypeStringProvider(this);
+    TypeStringProvider provider = new TypeStringProvider(
+        reporter,
+        element,
+        returnType,
+        getDeclaringType());
 
     provider.process();
 
@@ -827,18 +828,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   DeclaringType getDeclaringType() {
-    @Nullable TypeElement declaringType = null;
-    for (Element e = element; e != null;) {
-      e = e.getEnclosingElement();
-      if (e instanceof TypeElement) {
-        declaringType = (TypeElement) e;
-        break;
-      }
-    }
-    if (declaringType == null) {
-      throw new NoSuchElementException();
-    }
-    return containingType.round.declaringTypeFrom(declaringType);
+    return containingType.inferDeclaringType(element);
   }
 
   private void makeRegularIfDefaultWithValidation() {
@@ -876,6 +866,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             typeKind = AttributeTypeKind.REGULAR;
           }
         }
+      } else if (containingType.isGenerateJacksonMapped()
+          && annotationElement.getQualifiedName().toString().equals(Annotations.JACKSON_ANY_GETTER)) {
+        anyGetter = typeKind.isMap();
       }
     }
     if (containingType.isAnnotationType() && isNullable()) {

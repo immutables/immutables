@@ -1,5 +1,6 @@
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,7 +28,6 @@ import org.immutables.generator.SourceTypes;
  * while attempting to resolve unresolved types using source imports.
  */
 class TypeStringProvider {
-  private final ValueAttribute attribute;
   private final TypeMirror startType;
   private final Element element;
   private final List<String> typeParameterStrings = Lists.newArrayListWithCapacity(2);
@@ -43,11 +43,14 @@ class TypeStringProvider {
   private List<String> workaroundTypeParameters;
   @Nullable
   private String workaroundTypeString;
+  private final Reporter reporter;
+  private final DeclaringType declaringType;
 
-  TypeStringProvider(ValueAttribute attribute) {
-    this.attribute = attribute;
-    this.startType = attribute.returnType;
-    this.element = attribute.element;
+  TypeStringProvider(Reporter reporter, Element element, TypeMirror returnType, DeclaringType declaringType) {
+    this.reporter = reporter;
+    this.declaringType = declaringType;
+    this.startType = returnType;
+    this.element = element;
   }
 
   String rawTypeName() {
@@ -121,8 +124,7 @@ class TypeStringProvider {
     if (indexOfDot > 0) {
       resolvable = resolvable.substring(0, indexOfDot);
     }
-    @Nullable
-    String resolved = getFromSourceImports(resolvable);
+    @Nullable String resolved = getFromSourceImports(resolvable);
     if (resolved != null) {
       if (indexOfDot > 0) {
         typeName = resolved + '.' + resolvable.substring(indexOfDot + 1);
@@ -138,7 +140,7 @@ class TypeStringProvider {
   @Nullable
   private String getFromSourceImports(String resolvable) {
     if (sourceClassesImports == null) {
-      sourceClassesImports = attribute.getDeclaringType()
+      sourceClassesImports = declaringType
           .associatedTopLevel()
           .sourceImports().classes;
     }
@@ -228,10 +230,8 @@ class TypeStringProvider {
       break;
     case WILDCARD:
       WildcardType wildcard = (WildcardType) type;
-      @Nullable
-      TypeMirror extendsBound = wildcard.getExtendsBound();
-      @Nullable
-      TypeMirror superBound = wildcard.getSuperBound();
+      @Nullable TypeMirror extendsBound = wildcard.getExtendsBound();
+      @Nullable TypeMirror superBound = wildcard.getSuperBound();
       if (extendsBound != null) {
         buffer.append("? extends ");
         caseType(extendsBound);
@@ -251,8 +251,7 @@ class TypeStringProvider {
         break;
       }
 
-      attribute.report()
-          .error("It is a compiler/annotation processing bug to receive type variables '%s' here."
+      reporter.error("It is a compiler/annotation processing bug to receive type variables '%s' here."
               + " To avoid it — do not use not yet generated types in %s attribute",
               type,
               element.getSimpleName());

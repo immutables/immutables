@@ -191,7 +191,6 @@ public final class Styles {
       public final String addAll = scheme.addAll.apply(raw);
       public final String put = scheme.put.apply(raw);
       public final String putAll = scheme.putAll.apply(raw);
-      public final String jsonSet = Naming.from("set*").apply(raw);
 
       public String set() {
         return scheme.set.apply(raw);

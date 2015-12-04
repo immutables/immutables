@@ -34,11 +34,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
@@ -54,7 +57,6 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import static com.google.common.base.MoreObjects.*;
 
 /**
  * It's pointless to refactor this mess until
@@ -1088,4 +1090,66 @@ public final class ValueType extends TypeIntrospectionBase {
   public String toString() {
     return "Type[" + name() + "]";
   }
+
+  DeclaringType inferDeclaringType(Element element) {
+    @Nullable TypeElement declaringType = null;
+    for (Element e = element; e != null;) {
+      e = e.getEnclosingElement();
+      if (e instanceof TypeElement) {
+        declaringType = (TypeElement) e;
+        break;
+      }
+    }
+    if (declaringType == null) {
+      throw new NoSuchElementException();
+    }
+    return round.declaringTypeFrom(declaringType);
+  }
+
+  public List<String> allAbstractMethodSignatures() {
+    List<String> signatures = Lists.newArrayList();
+    for (ExecutableElement m : ElementFilter.methodsIn(element.getEnclosedElements())) {
+      if (m.getModifiers().contains(Modifier.ABSTRACT)) {
+        signatures.add(toSignature(m));
+      }
+    }
+    return signatures;
+  }
+
+  private String toSignature(ExecutableElement m) {
+    StringBuilder signature = new StringBuilder();
+
+    if (m.getModifiers().contains(Modifier.PUBLIC)) {
+      signature.append("public ");
+    } else if (m.getModifiers().contains(Modifier.PROTECTED)) {
+      signature.append("protected ");
+    }
+
+    DeclaringType declaringType = inferDeclaringType(m);
+
+    signature.append(printType(m, m.getReturnType(), declaringType));
+    signature.append(" ").append(m.getSimpleName());
+    signature.append("(");
+
+    boolean notFirst = false;
+    for (VariableElement p : m.getParameters()) {
+      if (notFirst) {
+        signature.append(", ");
+      }
+      signature.append(printType(p, p.asType(), declaringType));
+      signature.append(" ").append(p.getSimpleName());
+      notFirst = true;
+    }
+
+    signature.append(")");
+    return signature.toString();
+  }
+
+  private String printType(Element element, TypeMirror type, DeclaringType declaringType) {
+    TypeStringProvider provider =
+        new TypeStringProvider(constitution.protoclass().report(), element, type, declaringType);
+    provider.process();
+    return provider.returnTypeName();
+  }
+
 }

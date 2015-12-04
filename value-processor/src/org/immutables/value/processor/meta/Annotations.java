@@ -40,6 +40,9 @@ final class Annotations {
   private static final String PREFIX_JACKSON_IGNORE_PROPERTIES =
       "com.fasterxml.jackson.annotation.JsonIgnoreProperties";
 
+  static final String JACKSON_ANY_GETTER =
+      "com.fasterxml.jackson.annotation.JsonAnyGetter";
+
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
   static List<CharSequence> getAnnotationLines(

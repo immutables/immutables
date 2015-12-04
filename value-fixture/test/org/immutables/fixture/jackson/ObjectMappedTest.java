@@ -32,13 +32,6 @@ public class ObjectMappedTest {
   }
 
   @Test
-  public void propertyOrder() throws Exception {
-    String json = "[0.1,1.2,2.3]";
-    GeoPoint value = OBJECT_MAPPER.readValue(json, GeoPoint.class);
-    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
-  }
-
-  @Test
   public void constructorMapping() throws IOException {
     String originalSampleJson = "{\"X\":1, \"bal\": \"V\"}";
     ConstructorJacksonMapped mapped =
@@ -112,5 +105,26 @@ public class ObjectMappedTest {
     SampleJacksonMapped value = OBJECT_MAPPER.readValue(json, SampleJacksonMapped.class);
     check(value).is(original);
     check(value).not().same(original);
+  }
+
+  @Test
+  public void includeNonEmpty() throws Exception {
+    String json = "{}";
+    OptionIncludeNonEmpty value = OBJECT_MAPPER.readValue(json, OptionIncludeNonEmpty.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void propertyOrder() throws Exception {
+    String json = "[0.1,1.2,2.3]";
+    GeoPoint value = OBJECT_MAPPER.readValue(json, GeoPoint.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void anyGetterSetter() throws Exception {
+    String json = "{\"A\":1,\"B\":true}";
+    AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 }
