@@ -277,7 +277,7 @@ public abstract class Constitution {
   }
 
   private AppliedNameForms factoryImplementationBuilder() {
-    boolean isOutside = isImplementationHidden() || isFactory();
+    boolean isOutside = isOutsideBuilder();
     Naming methodBuilderNaming = isOutside
         ? names().namings.newBuilder
         : names().namings.builder;
