@@ -19,10 +19,8 @@ public interface Canvas {
 
   @Value.Immutable
   public interface Line {
-    @Value.Parameter
     Point start();
 
-    @Value.Parameter
     Point end();
 
     Color color();
