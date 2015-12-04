@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.Environment;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -63,6 +65,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public Reporter reporter;
 
   public ValueType containingType;
+
+  @Nullable
+  public ValueType attributeValueType;
 
   TypeMirror returnType;
   Element element;
@@ -773,6 +778,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initOrderKind();
     initFactoryParamsIfApplicable();
     initMiscellaneous();
+    initAttributeValueType();
 
     makeRegularAndNullableWithValidation();
     makeRegularIfContainsWildcards();
@@ -811,6 +817,38 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.rawTypeName = provider.rawTypeName();
     this.returnTypeName = provider.returnTypeName();
     this.typeParameters = provider.typeParameters();
+  }
+
+  private void initAttributeValueType() {
+    if (containingType.constitution.style().deepImmutablesDetection()
+        && typeKind == AttributeTypeKind.REGULAR
+        && !isGenerateDerived
+        && !isGenerateDefault
+        && containedTypeElement != null) {
+      Environment environment = containingType.round.environment();
+      for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
+        if (p.kind().isDefinedValue()) {
+          ValueType valueType = environment.composeValue(p);
+          if (valueType.isUseCopyConstructor()) {
+            attributeValueType = valueType;
+          }
+        }
+        break;
+      }
+    }
+  }
+
+  public String implementationType() {
+    return attributeValueType != null
+        ? attributeValueType.typeValue().toString()
+        : getType();
+  }
+
+  public Set<ValueAttribute> getConstructorParameters() {
+    if (attributeValueType != null) {
+      return attributeValueType.getConstructorArguments();
+    }
+    return Collections.emptySet();
   }
 
   private void initTypeKind() {

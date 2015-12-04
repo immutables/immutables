@@ -1065,6 +1065,27 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [builderReturnThis type]
   }
   [else]
+  [if v.constructorParameters]
+
+  /**
+   * Constructs and initializes the value for the [sourceDocRef type v] attribute.
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef type v].</em>
+  [/if]
+  [for c in v.constructorParameters]
+   * @param [c.name] The value for {@code [v.name].[c.name]} [if c.nullable](can be {@code null})[/if]
+  [/for]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  [builderInitAccess v] final [builderReturnType type] [v.names.init]Of([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
+    [checkNotIsSet v]
+    this.[v.name] = [v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]);
+    [nondefaultSetInBuilder v]
+    [mandatorySetInBuilder v]
+    [builderReturnThis type]
+  }
+  [/if]
 
   /**
    * Initializes the value for the [sourceDocRef type v] attribute.
@@ -1077,7 +1098,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
-    [if v.primitive or v.nullable]
+    [if v.attributeValueType]
+    this.[v.name] = [if v.nullable][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([v.name]);
+    [else if v.primitive or v.nullable]
     this.[v.name] = [v.name];
     [else]
     this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
@@ -1338,7 +1361,9 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
 [for v in type.constructorArguments, n = v.name]
-  [if v.collectionType or v.mapType]
+  [if v.attributeValueType]
+    this.[n] = [if v.nullable][n] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([n]);
+  [else if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionCopyOf v n];
   [else if v.primitive or v.nullable]
     this.[n] = [n];
@@ -1359,7 +1384,9 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 
   private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
 [for v in getters if not v.generateDerived, n = v.name]
-  [if v.collectionType or v.mapType]
+  [if v.attributeValueType]
+    this.[n] = [if v.nullable]builder.[n] == null ? null : [/if][v.attributeValueType.factoryCopyOf](builder.[n]);
+  [else if v.collectionType or v.mapType]
     this.[n] = [immutableCollectionBuild v]builder.[n]Builder[/immutableCollectionBuild];
   [else if not v.generateDefault]
     this.[n] = builder.[n];
@@ -1837,7 +1864,9 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
     [if type.synthCopyConstructor]null,
     [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
     [/if][output.trim]
-    [if v.collectionType or v.mapType]
+    [if v.attributeValueType]
+      [if v.nullable][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([v.name])
+    [else if v.collectionType or v.mapType]
       [immutableCollectionBuild v][v.name]Builder[/immutableCollectionBuild]
     [else]
       [v.name]
@@ -1955,7 +1984,9 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
     [if not v.floatType]
   if (this.[v.name] == value) return this;
     [/if]
-    [if v.nullable or v.primitive]
+    [if v.attributeValueType]
+  [immutableImplementationType v] newValue = [if v.nullable]value == null ? null : [/if][v.attributeValueType.factoryCopyOf](value);
+    [else if v.nullable or v.primitive]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
     [else]
   [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
@@ -2048,7 +2079,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if v.mapType]
   [guava].collect.Immutable[v.rawMapType]<[v.elementType], [v.secondaryElementType]>
 [else]
-  [v.type]
+  [v.implementationType]
 [/if]
 [/output.trim][/template]
 

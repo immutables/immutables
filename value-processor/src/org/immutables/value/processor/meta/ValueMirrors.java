@@ -165,6 +165,8 @@ public final class ValueMirrors {
 
     boolean clearBuilder() default false;
 
+    boolean deepImmutablesDetection() default false;
+    
     boolean overshadowImplementation() default false;
 
     boolean implementationNestedInBuilder() default false;

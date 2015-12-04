@@ -745,6 +745,18 @@ public @interface Value {
     boolean clearBuilder() default false;
 
     /**
+     * Deep analysis of immutable types enables additional convenience features, such as special
+     * initializers for types with constuctor shortcut. It also enables to use immutable type as
+     * actual implementation type (with covariant return override in accessor implementation).
+     * <p>
+     * Disabled by default as, speculatively, this might significantly add-up to processing time. *
+     * <p>
+     * <em>Note: this functionality is experimental and may be changed in further versions</em>
+     * @return {@code true} if deep detection is enabled.
+     */
+    boolean deepImmutablesDetection() default false;
+
+    /**
      * Makes abstract value type predominantly used in generated signatures rather than immutable
      * implementation class. In case of {@link #visibility()} is more restrictive than
      * {@link #builderVisibility()} (for example is {@code PRIVATE}), then this

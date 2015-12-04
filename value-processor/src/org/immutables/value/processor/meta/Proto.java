@@ -1185,6 +1185,7 @@ public class Proto {
           input.attributelessSingleton(),
           input.unsafeDefaultAndDerived(),
           input.clearBuilder(),
+          input.deepImmutablesDetection(),
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
           input.builderVisibility(),

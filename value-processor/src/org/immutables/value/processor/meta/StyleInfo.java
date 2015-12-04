@@ -207,6 +207,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean clearBuilder();
 
+  @Override
+  @Value.Parameter
+  public abstract boolean deepImmutablesDetection();
+
   @Value.Parameter
   @Override
   public abstract boolean overshadowImplementation();
