@@ -15,16 +15,14 @@
  */
 package org.immutables.fixture.jackson;
 
-import static org.immutables.check.Checkers.check;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
+import static org.immutables.check.Checkers.check;
 
 public class ObjectMappedTest {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
