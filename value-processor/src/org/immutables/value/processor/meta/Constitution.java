@@ -15,11 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Strings;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Verify.verify;
+
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -28,6 +28,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
+
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
 import org.immutables.generator.SourceExtraction;
@@ -35,7 +36,10 @@ import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import static com.google.common.base.Verify.*;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 @Value.Nested
 @Value.Immutable

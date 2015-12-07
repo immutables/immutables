@@ -200,16 +200,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   * 
+   *
    *   public abstract List&lt;Item&gt; items();
-   * 
+   *
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   * 
+   *
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   * 
+   *
    *     return cost;
    *   }
    * }
@@ -613,7 +613,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     * 
+     *
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -621,7 +621,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     * 
+     *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -664,7 +664,8 @@ public @interface Value {
 
     /**
      * List of additional annotations to pass through for any jackson json object
-     * @return types of annotations to pass to the json methods on an immutable implemenation class
+     * @Deprecated this is no longer necessary.
+     * @return types of annotations to pass to the json methods on an immutable implementation class
      */
     Class<? extends Annotation>[] additionalJsonAnnotations() default {};
 
@@ -780,7 +781,7 @@ public @interface Value {
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
-     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).
      * @return implementation visibility
      */
@@ -794,6 +795,15 @@ public @interface Value {
      * @return exception type
      */
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
+
+    /**
+     * By default the Jackson Mapping code, necessary to deserialize classes, will only be generated
+     * if you annotate the interface/abstract class with @JsonDeserialize or JsonSerialize. If you want
+     * to generate the Jackson Mapping code without those annotations, then set this to
+     * GenerateJacksonMappings.ALWAYS.
+     * @return option to generate jackson mapping code always, or when the class is annotated
+     */
+    GenerateJacksonMappings generateJacksonMappings() default GenerateJacksonMappings.WHEN_ANNOTATED;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
@@ -844,6 +854,19 @@ public @interface Value {
        * Generated builder visibility is forced to be package-private.
        */
       PACKAGE
+    }
+
+    public enum GenerateJacksonMappings {
+      /**
+       * Generate the Jackson Mapping code whether or not the class is
+       * annotated with @JsonDeserialize or @JsonSerialize
+       */
+      ALWAYS,
+      /**
+       * Only generate the Jackson Mapping code when the abstract class or interface
+       * is annotated with @JsonDeserialize or @JsonSerialize (default)
+       */
+      WHEN_ANNOTATED
     }
   }
 }

@@ -166,12 +166,14 @@ public final class ValueMirrors {
     boolean clearBuilder() default false;
 
     boolean deepImmutablesDetection() default false;
-    
+
     boolean overshadowImplementation() default false;
 
     boolean implementationNestedInBuilder() default false;
 
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
+
+    GenerateJacksonMappings generateJacksonMappings() default GenerateJacksonMappings.WHEN_ANNOTATED;
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
@@ -187,6 +189,11 @@ public final class ValueMirrors {
       PUBLIC,
       SAME,
       PACKAGE
+    }
+
+    public enum GenerateJacksonMappings {
+      ALWAYS,
+      WHEN_ANNOTATED
     }
   }
 

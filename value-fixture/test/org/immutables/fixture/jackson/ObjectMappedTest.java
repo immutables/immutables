@@ -15,11 +15,16 @@
  */
 package org.immutables.fixture.jackson;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import java.io.IOException;
-import org.junit.Test;
 import static org.immutables.check.Checkers.check;
+
+import java.io.IOException;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 
 public class ObjectMappedTest {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -125,6 +130,14 @@ public class ObjectMappedTest {
   public void anyGetterSetter() throws Exception {
     String json = "{\"A\":1,\"B\":true}";
     AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void noAnnotationsWorks() throws Exception {
+    Assert.assertTrue(ImmutableJacksonMappedWithNoAnnotations.Json.class.getAnnotation(JsonDeserialize.class) == null);
+    String json = "{\"someString\":\"xxx\"}";
+    ImmutableJacksonMappedWithNoAnnotations value = OBJECT_MAPPER.readValue(json, ImmutableJacksonMappedWithNoAnnotations.class);
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 }
