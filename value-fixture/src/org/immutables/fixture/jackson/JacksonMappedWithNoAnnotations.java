@@ -1,10 +1,9 @@
 package org.immutables.fixture.jackson;
 
 import org.immutables.value.Value;
-import org.immutables.value.Value.Style.GenerateJacksonMappings;
 
 @Value.Immutable
-@Value.Style(generateJacksonMappings = GenerateJacksonMappings.ALWAYS)
+@Value.Style
 public interface JacksonMappedWithNoAnnotations {
   String getSomeString();
 }

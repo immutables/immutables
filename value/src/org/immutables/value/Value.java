@@ -797,15 +797,6 @@ public @interface Value {
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
-     * By default the Jackson Mapping code, necessary to deserialize classes, will only be generated
-     * if you annotate the interface/abstract class with @JsonDeserialize or JsonSerialize. If you want
-     * to generate the Jackson Mapping code without those annotations, then set this to
-     * GenerateJacksonMappings.ALWAYS.
-     * @return option to generate jackson mapping code always, or when the class is annotated
-     */
-    GenerateJacksonMappings generateJacksonMappings() default GenerateJacksonMappings.WHEN_ANNOTATED;
-
-    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.
@@ -854,19 +845,6 @@ public @interface Value {
        * Generated builder visibility is forced to be package-private.
        */
       PACKAGE
-    }
-
-    public enum GenerateJacksonMappings {
-      /**
-       * Generate the Jackson Mapping code whether or not the class is
-       * annotated with @JsonDeserialize or @JsonSerialize
-       */
-      ALWAYS,
-      /**
-       * Only generate the Jackson Mapping code when the abstract class or interface
-       * is annotated with @JsonDeserialize or @JsonSerialize (default)
-       */
-      WHEN_ANNOTATED
     }
   }
 }

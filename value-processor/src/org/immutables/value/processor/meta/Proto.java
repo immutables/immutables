@@ -1189,7 +1189,6 @@ public class Proto {
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
           input.builderVisibility(),
-          input.generateJacksonMappings(),
           input.throwForInvalidImmutableStateName());
     }
   }

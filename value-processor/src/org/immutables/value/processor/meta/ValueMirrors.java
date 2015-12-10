@@ -173,8 +173,6 @@ public final class ValueMirrors {
 
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
 
-    GenerateJacksonMappings generateJacksonMappings() default GenerateJacksonMappings.WHEN_ANNOTATED;
-
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
     public enum ImplementationVisibility {
@@ -189,11 +187,6 @@ public final class ValueMirrors {
       PUBLIC,
       SAME,
       PACKAGE
-    }
-
-    public enum GenerateJacksonMappings {
-      ALWAYS,
-      WHEN_ANNOTATED
     }
   }
 
