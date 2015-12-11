@@ -3,7 +3,7 @@ package org.immutables.fixture.jackson;
 import org.immutables.value.Value;
 
 @Value.Immutable
-@Value.Style
+@MetaJacksonAnnotation
 public interface JacksonMappedWithNoAnnotations {
   String getSomeString();
 }

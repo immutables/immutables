@@ -310,7 +310,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonDeserialized() {
-      if (isJacksonDeserializedAnnotated(element())) {
+      if (isJacksonDeserializedAnnotated()) {
         // while DeclaringPackage cannot have those annotations
         // directly, just checking them as a general computation path
         // will not hurt much.
@@ -323,6 +323,11 @@ public class Proto {
         }
       }
       return false;
+    }
+
+    @Value.Lazy
+    public boolean isJacksonDeserializedAnnotated() {
+      return Proto.isJacksonDeserializedAnnotated(element());
     }
 
     @Value.Lazy
@@ -1198,7 +1203,7 @@ public class Proto {
           "com.fasterxml.jackson.databind.annotation.JsonSerialize",
           "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
 
-  private static boolean isJacksonSerializedAnnotated(Element element) {
+  static boolean isJacksonSerializedAnnotated(Element element) {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
@@ -1209,7 +1214,7 @@ public class Proto {
     return false;
   }
 
-  private static boolean isJacksonDeserializedAnnotated(Element element) {
+  static boolean isJacksonDeserializedAnnotated(Element element) {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
@@ -1221,7 +1226,7 @@ public class Proto {
     return false;
   }
 
-  protected static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
+  static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
