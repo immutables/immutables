@@ -1540,7 +1540,7 @@ private [v.type] [invokeSuperGet]() {
 [/output.trim][/template]
 
 [template generateJacksonMapped Type type]
-[if type.generateJacksonMapped]
+[if type.generateJacksonMapped or classpath.available 'com.fasterxml.jackson.annotation.JsonCreator']
 [if type.implementedAttributes]
 
 /**

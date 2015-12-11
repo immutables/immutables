@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import java.lang.annotation.Annotation;
 import org.immutables.value.Value;
 import com.google.common.collect.ImmutableSet;

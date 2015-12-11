@@ -200,16 +200,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   * 
+   *
    *   public abstract List&lt;Item&gt; items();
-   * 
+   *
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   * 
+   *
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   * 
+   *
    *     return cost;
    *   }
    * }
@@ -613,7 +613,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     * 
+     *
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -621,7 +621,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     * 
+     *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -664,7 +664,8 @@ public @interface Value {
 
     /**
      * List of additional annotations to pass through for any jackson json object
-     * @return types of annotations to pass to the json methods on an immutable implemenation class
+     * @Deprecated this is no longer necessary.
+     * @return types of annotations to pass to the json methods on an immutable implementation class
      */
     Class<? extends Annotation>[] additionalJsonAnnotations() default {};
 
@@ -780,7 +781,7 @@ public @interface Value {
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
-     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).
      * @return implementation visibility
      */
