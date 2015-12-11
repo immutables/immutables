@@ -1112,6 +1112,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [/if]
   [/for]
 [if type.generateClearBuilder]
+
   /**
    * Clear the builder to the initial state.
    */
@@ -1128,6 +1129,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [builderReturnThis type]
   }
 [/if]
+
   /**
   [if type.kind.isFactory]
    * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
@@ -1517,9 +1519,9 @@ private final class InitShim {
     return "Cannot build [type.name], attribute initializers form cycle" + attributes;
   }
 }
-
 [for v in deriveds if v.defaultInterface]
 [let invokeSuperGet][disambiguateAccessor type][v.names.get]Initialize[/disambiguateAccessor][/let]
+
 private [v.type] [invokeSuperGet]() {
   return [invokeSuper v].[v.names.get]();
 }
@@ -1572,6 +1574,7 @@ static final [output.linesShortable]class Json
   }
 [/for]
 [for signature in type.allAbstractMethodSignatures]
+
   [-- we actually don't need this implementation, signature is good enough --]
   @Override
   [signature] { throw new UnsupportedOperationException(); }

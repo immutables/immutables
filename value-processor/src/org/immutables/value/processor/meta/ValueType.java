@@ -1117,12 +1117,15 @@ public final class ValueType extends TypeIntrospectionBase {
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
 
       // For attribute signatures we will use more reliable mechanism
-      for (ValueAttribute a : getImplementedAttributes()) {
-        if (a.isGenerateAbstract) {
+      for (ValueAttribute a : attributes()) {
+        if (a.isGenerateAbstract
+            || a.isGenerateLazy
+            || a.isGenerateDerived
+            || a.isGenerateDefault) {
           signatures.add(toSignature(a));
         }
       }
-
+      
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()) {
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {

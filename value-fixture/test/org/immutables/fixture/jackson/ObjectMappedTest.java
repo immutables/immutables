@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
@@ -126,5 +128,14 @@ public class ObjectMappedTest {
     String json = "{\"A\":1,\"B\":true}";
     AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void lazyAttribute() throws Exception {
+    String json = "{\"a\":1}";
+    LazyAttributesSafe value = OBJECT_MAPPER.readValue(json, LazyAttributesSafe.class);
+    check(value.getA()).is(1);
+    System.out.println(value);
+    // check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 }
