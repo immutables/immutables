@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture.jackson;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
+import org.junit.Assert;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -130,12 +130,16 @@ public class ObjectMappedTest {
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 
-  @Test
   public void lazyAttribute() throws Exception {
     String json = "{\"a\":1}";
     LazyAttributesSafe value = OBJECT_MAPPER.readValue(json, LazyAttributesSafe.class);
     check(value.getA()).is(1);
-    System.out.println(value);
-    // check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+  
+  public void noAnnotationsWorks() throws Exception {
+    Assert.assertTrue(ImmutableJacksonMappedWithNoAnnotations.Json.class.getAnnotation(JsonDeserialize.class) == null);
+    String json = "{\"someString\":\"xxx\"}";
+    ImmutableJacksonMappedWithNoAnnotations value = OBJECT_MAPPER.readValue(json, ImmutableJacksonMappedWithNoAnnotations.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 }
