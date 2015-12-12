@@ -37,6 +37,13 @@ public final class GsonMirrors {
     String value();
   }
 
+  @Mirror.Annotation("com.google.gson.annotations.SerializedName")
+  public @interface SerializedName {
+    String value();
+
+    String[] alternate() default {};
+  }
+
   @Mirror.Annotation("org.immutables.gson.Gson.Ignore")
   public @interface Ignore {}
 }

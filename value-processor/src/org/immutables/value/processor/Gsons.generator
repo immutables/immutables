@@ -380,14 +380,20 @@ private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
     readIn[toUpper a.name](in, builder);
     return;
   }
+  [for alternateName in a.alternateSerializedNames]
+  if ("alternateName".equals(attributeName)) {
+    readIn[toUpper a.name](in, builder);
+    return;
+  }
+  [/for]
   [/for]
 [else]
   switch (attributeName.charAt(0)) {
   [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
      e in mm.asMap.entrySet]
   case '[e.key]':
-    [for a in e.value]
-    if ("[a.marshaledName]".equals(attributeName)) {
+    [for nm in e.value, name = nm.key, a = nm.value]
+    if ("[name]".equals(attributeName)) {
       readIn[toUpper a.name](in, builder);
       return;
     }

@@ -55,6 +55,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
   private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
+  private static final String[] EMPTY_SERIALIZED_NAMES = {};
 
   public AttributeNames names;
   public boolean isGenerateDefault;
@@ -169,13 +170,49 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   @Nullable
   private String serializedName;
 
+  private String[] alternateSerializedNames = EMPTY_SERIALIZED_NAMES;
+
+  public String[] getAlternateSerializedNames() {
+    getSerializedName();// trigger lazy init
+    return alternateSerializedNames;
+  }
+
   /**
    * Serialized name, actully specified via annotation
    * @return name for JSON as overriden.
    */
   public String getSerializedName() {
     if (serializedName == null) {
-      serializedName = readSerializedName();
+      Optional<SerializedNameMirror> serializedNameAnnotation = SerializedNameMirror.find(element);
+      if (serializedNameAnnotation.isPresent()) {
+        SerializedNameMirror m = serializedNameAnnotation.get();
+        serializedName = m.value();
+        alternateSerializedNames = m.alternate();
+        return serializedName;
+      }
+
+      Optional<NamedMirror> namedAnnotation = NamedMirror.find(element);
+      if (namedAnnotation.isPresent()) {
+        String value = namedAnnotation.get().value();
+        if (!value.isEmpty()) {
+          serializedName = value;
+          return serializedName;
+        }
+      }
+      Optional<OkNamedMirror> okNamedAnnotation = OkNamedMirror.find(element);
+      if (okNamedAnnotation.isPresent()) {
+        String value = okNamedAnnotation.get().value();
+        if (!value.isEmpty()) {
+          serializedName = value;
+          return serializedName;
+        }
+      }
+      if (isMarkedAsMongoId()) {
+        serializedName = ID_ATTRIBUTE_NAME;
+        return serializedName;
+      }
+      serializedName = "";
+      return serializedName;
     }
     return serializedName;
   }
@@ -190,27 +227,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return serializedName;
     }
     return name();
-  }
-
-  private String readSerializedName() {
-    Optional<NamedMirror> namedAnnotation = NamedMirror.find(element);
-    if (namedAnnotation.isPresent()) {
-      String value = namedAnnotation.get().value();
-      if (!value.isEmpty()) {
-        return value;
-      }
-    }
-    Optional<OkNamedMirror> okNamedAnnotation = OkNamedMirror.find(element);
-    if (okNamedAnnotation.isPresent()) {
-      String value = okNamedAnnotation.get().value();
-      if (!value.isEmpty()) {
-        return value;
-      }
-    }
-    if (isMarkedAsMongoId()) {
-      return ID_ATTRIBUTE_NAME;
-    }
-    return "";
   }
 
   public boolean isForcedEmpty() {

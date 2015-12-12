@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.adapter;
 
+import com.google.gson.annotations.SerializedName;
 import com.google.common.collect.Multiset;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ import org.immutables.value.Value;
 @Value.Immutable(builder = false)
 public interface NoSpecialNesting {
 
-  @Gson.Named("SETH")
+  @SerializedName("SETH")
   @Value.Parameter
   Set<Inr> set();
 

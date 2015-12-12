@@ -140,11 +140,13 @@ public @interface Gson {
    * &#064;Gson.Named(&quot;_id&quot;)
    * public abstract String id();
    * </pre>
-   * 
-   * This annotation is analogous to {@link SerializedName}, but works on attributes (expressed as
-   * methods).
    * @see SerializedName
+   * @deprecated use {@link SerializedName} instead. This annotation is analogous to
+   *             {@code SerializedName} but was created when {@code SerializedName} was applicable
+   *             only to fields in older versions of Gson, but works on attributes (expressed as
+   *             methods).
    */
+  @Deprecated
   @Documented
   @Target(ElementType.METHOD)
   public @interface Named {

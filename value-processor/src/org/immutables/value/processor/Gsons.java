@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor;
 
+import com.google.common.collect.Maps;
+import java.util.Map;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
@@ -70,19 +72,26 @@ abstract class Gsons extends ValuesTemplate {
   }
 
   @Generator.Typedef
-  Multimap<Character, ValueAttribute> Mm;
+  Multimap<Character, Map.Entry<String, ValueAttribute>> Mm;
 
-  public final Function<Iterable<ValueAttribute>, Multimap<Character, ValueAttribute>> byFirstCharacter =
-      new Function<Iterable<ValueAttribute>, Multimap<Character, ValueAttribute>>() {
+  @Generator.Typedef
+  Map.Entry<String, ValueAttribute> Nv;
+
+  public final Function<Iterable<ValueAttribute>, Multimap<Character, Map.Entry<String, ValueAttribute>>> byFirstCharacter =
+      new Function<Iterable<ValueAttribute>, Multimap<Character, Map.Entry<String, ValueAttribute>>>() {
         @Override
-        public Multimap<Character, ValueAttribute> apply(Iterable<ValueAttribute> attributes) {
-          ImmutableMultimap.Builder<Character, ValueAttribute> builder = ImmutableMultimap.builder();
+        public Multimap<Character, Map.Entry<String, ValueAttribute>> apply(Iterable<ValueAttribute> attributes) {
+          ImmutableMultimap.Builder<Character, Map.Entry<String, ValueAttribute>> builder = ImmutableMultimap.builder();
 
           for (ValueAttribute attribute : attributes) {
-            String name = attribute.getMarshaledName();
-            char firstChar = name.charAt(0);
+            String serializedName = attribute.getMarshaledName();
+            builder.put(serializedName.charAt(0), Maps.immutableEntry(serializedName, attribute));
 
-            builder.put(firstChar, attribute);
+            for (String alternateName : attribute.getAlternateSerializedNames()) {
+              if (!alternateName.isEmpty()) {
+                builder.put(alternateName.charAt(0), Maps.immutableEntry(alternateName, attribute));
+              }
+            }
           }
 
           return builder.build();

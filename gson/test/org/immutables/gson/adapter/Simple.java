@@ -26,6 +26,7 @@ import org.immutables.value.Value;
 public interface Simple {
   Optional<String> optionalString();
 
+  @SuppressWarnings("deprecation")
   @Gson.Named("_nullable_")
   @Nullable
   Integer nlb();
