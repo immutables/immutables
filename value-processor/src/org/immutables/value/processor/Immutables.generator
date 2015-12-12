@@ -126,7 +126,7 @@ import [starImport];
    * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]}.
    * @return A new [type.typeValue.simple] builder
    */
-  [type.typeBuilderImpl.access]static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
+  public static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.relative]();
   }
   [/if]
@@ -527,7 +527,7 @@ private Object writeReplace() {
    * Returns the default immutable singleton value of {@code [type.name]}
    * @return An immutable instance of [type.name]
    */
-  [type.typeImmutable.access]static [type.typeValue.relative] [type.names.instance]() {
+  public static [type.typeValue.relative] [type.names.instance]() {
     return INSTANCE;
   }
 [/if]
@@ -543,7 +543,7 @@ private Object writeReplace() {
  * @param instance The instance to copy
  * @return A copied immutable [type.name] instance
  */
-[type.typeImmutable.access]static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
+public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
@@ -704,7 +704,7 @@ private Object writeReplace() {
 [/for]
    * @return A new builder
    */
-  [type.typeBuilder.access]static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  public static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
     [/if]
