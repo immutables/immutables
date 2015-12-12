@@ -381,7 +381,7 @@ private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
     return;
   }
   [for alternateName in a.alternateSerializedNames]
-  if ("alternateName".equals(attributeName)) {
+  if ("[alternateName]".equals(attributeName)) {
     readIn[toUpper a.name](in, builder);
     return;
   }

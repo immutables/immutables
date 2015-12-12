@@ -143,8 +143,7 @@ public @interface Gson {
    * @see SerializedName
    * @deprecated use {@link SerializedName} instead. This annotation is analogous to
    *             {@code SerializedName} but was created when {@code SerializedName} was applicable
-   *             only to fields in older versions of Gson, but works on attributes (expressed as
-   *             methods).
+   *             only to fields in older versions of Gson.
    */
   @Deprecated
   @Documented

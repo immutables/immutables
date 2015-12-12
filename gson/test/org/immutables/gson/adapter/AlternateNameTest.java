@@ -8,6 +8,7 @@ import static org.immutables.check.Checkers.check;
 public class AlternateNameTest {
   private final Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new GsonAdaptersAlternateNames())
+      .registerTypeAdapterFactory(new GsonAdaptersAlternateNamesStrategy())
       .create();
 
   @Test
@@ -15,5 +16,12 @@ public class AlternateNameTest {
     check(gson.fromJson("{\"url\":\"a\"}", AlternateNames.class).url()).is("a");
     check(gson.fromJson("{\"URL\":\"b\"}", AlternateNames.class).url()).is("b");
     check(gson.fromJson("{\"href\":\"c\"}", AlternateNames.class).url()).is("c");
+  }
+
+  @Test
+  public void alternateNamesStrategy() {
+    check(gson.fromJson("{\"url\":\"a\"}", AlternateNamesStrategy.class).url()).is("a");
+    check(gson.fromJson("{\"URL\":\"b\"}", AlternateNamesStrategy.class).url()).is("b");
+    check(gson.fromJson("{\"href\":\"c\"}", AlternateNamesStrategy.class).url()).is("c");
   }
 }
