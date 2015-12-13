@@ -278,16 +278,22 @@ if ([a.name]Optional.[optionalPresent a]) {
 }
   [else if a.mapType]
 [a.type] [a.name]Mapping = instance.[a.names.get]();
+[if type.gsonTypeAdapters.emptyAsNulls]
 if (![a.name]Mapping.isEmpty()) {
   out.name([serializedName a]);
   [generateMarshalMapping type a]
-} else[if type.gsonTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
+} else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
   out.beginObject();
   out.endObject();
 }
-  [else if a.collectionType or a.arrayType]
+[else]
+out.name([serializedName a]);
+[generateMarshalMapping type a]
+[/if]
+  [else if a.collectionType or (a.arrayType and (not a.nullable))]
 [a.type] [a.name]Elements = instance.[a.names.get]();
+[if type.gsonTypeAdapters.emptyAsNulls]
 [if a.arrayType]
 if ([a.name]Elements.length != 0) {
 [else]
@@ -299,11 +305,19 @@ if (![a.name]Elements.isEmpty()) {
     [generateWriteAttributeValue type a 'e' false]
   }
   out.endArray();
-} else[if type.gsonTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
+} else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
   out.beginArray();
   out.endArray();
 }
+[else]
+out.name([serializedName a]);
+out.beginArray();
+for ([a.unwrappedElementType] e : [a.name]Elements) {
+  [generateWriteAttributeValue type a 'e' false]
+}
+out.endArray();
+[/if]
   [else]
 out.name([serializedName a]);
 [generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
