@@ -1,6 +1,8 @@
 package org.immutables.fixture.modifiable;
 
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.immutables.check.Checkers.*;
+
 import org.junit.Test;
 
 public class ModifiablesTest {
@@ -79,6 +81,11 @@ public class ModifiablesTest {
 
     check(c1).is(c1);
     check(c1).not().is(c2);
+  }
+
+  @Test
+  public void equalsWithDifferenObjectType() {
+    check(ModifiableCompanion.create()).not().is(equalTo(new Object()));
   }
 
   @Test
