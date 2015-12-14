@@ -662,7 +662,7 @@ if ([v.name]Value != null) {
 @Override
 public boolean equals([atNullable]Object another) {
   if (this == another) return true;
-  if (!(this instanceof [equalToType])) return false;
+  if (!(another instanceof [equalToType])) return false;
   [equalToType] o = ([equalToType]) another;
   [if type.mandatoryAttributes]
   if (![isInitialized type]() || !o.[isInitialized type]()) {
