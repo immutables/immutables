@@ -84,7 +84,7 @@ public class ModifiablesTest {
   }
 
   @Test
-  public void equalsWithDifferenObjectType() {
+  public void equalsWithDifferentObjectType() {
     check(ModifiableCompanion.create()).not().is(equalTo(new Object()));
   }
 
