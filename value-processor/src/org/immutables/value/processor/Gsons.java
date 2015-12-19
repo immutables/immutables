@@ -77,6 +77,7 @@ abstract class Gsons extends ValuesTemplate {
   @Generator.Typedef
   Map.Entry<String, ValueAttribute> Nv;
 
+  // Uhh that's ugly )))
   public final Function<Iterable<ValueAttribute>, Multimap<Character, Map.Entry<String, ValueAttribute>>> byFirstCharacter =
       new Function<Iterable<ValueAttribute>, Multimap<Character, Map.Entry<String, ValueAttribute>>>() {
         @Override

@@ -29,5 +29,8 @@ public class PackgTest {
     check(adapterFactory.create(gson, TypeToken.get(A.class))).notNull();
     check(adapterFactory.create(gson, TypeToken.get(B.class))).notNull();
     check(adapterFactory.create(gson, TypeToken.get(B.C.class))).notNull();
+    check(adapterFactory.create(gson, TypeToken.get(D.E.class))).notNull();
+    check(adapterFactory.create(gson, TypeToken.get(D.F.class))).notNull();
+    check(adapterFactory.create(gson, TypeToken.get(G.H.class))).notNull();
   }
 }
