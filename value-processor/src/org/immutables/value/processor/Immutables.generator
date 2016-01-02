@@ -466,7 +466,7 @@ private Object writeReplace() {
   private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
   [/if]
 [/if]
-[if type.useConstructor]
+[if type.useConstructor and (not type.factoryOf.new)]
   [if type.requiresAlternativeStrictConstructor]
 
   /**
@@ -1140,8 +1140,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [/if]
    * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.build]()
-      throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {
+  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [output.linesShortable][type.names.build]()
+      throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {[/output.linesShortable]
     [builderBody positions type]checkRequiredAttributes()[/builderBody]
   }
   [if type.isGenerateBuildOrThrow]
@@ -1215,7 +1215,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 [/for]
 [/template]
 
-[template builderBody LongPositions positions Type type String attributeChecker][output.linesShortable]
+[template builderBody LongPositions positions Type type String attributeChecker]
 [if positions.longs]
 [attributeChecker];
 [/if]
@@ -1228,7 +1228,7 @@ return [type.factoryInstance.relative]();
 [else]
 return [validated type true]new [type.typeImmutable.relative](this)[/validated];
 [/if]
-[/output.linesShortable][/template]
+[/template]
 
 [template checkRequiredOrThrow Type type LongPositions positions String throwSupplier]
 if ([for l in positions.longs][if not for.first]
@@ -1360,7 +1360,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 [/if]
 [if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
 
-  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+  [if type.factoryOf.new]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
 [for v in type.constructorArguments, n = v.name]
   [if v.attributeValueType]
@@ -1433,7 +1433,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 [/if]
 [if type.useCopyMethods]
 
-  private [type.typeImmutable.simple]([output.linesShortable]
+  [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable]
       [if type.synthCopyConstructor][type.typeImmutable.simple] original,
       [/if][for v in getters if not v.generateDerived][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {

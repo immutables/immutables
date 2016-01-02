@@ -200,16 +200,16 @@ public @interface Value {
    * <pre>
    * &#064;Value.Immutable
    * public abstract class Order {
-   *
+   * 
    *   public abstract List&lt;Item&gt; items();
-   *
+   * 
    *   &#064;Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   *
+   * 
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   *
+   * 
    *     return cost;
    *   }
    * }
@@ -410,6 +410,12 @@ public @interface Value {
 
     /**
      * Constructor method name.
+     * <p>
+     * Since version {@code 2.1.5} you can also use "new" template string to generate public
+     * constructor instead of factory. The public constructor functionality is experimentatal. Note
+     * that having public constructor configured will not work if {@link Check} or
+     * {@link Immutable#singleton()} is used and certain other functionality. In such cases compile
+     * error would be raised.
      * @return naming template
      */
     String of() default "of";
@@ -613,7 +619,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     *
+     * 
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -621,7 +627,7 @@ public @interface Value {
      *   int green();
      *   int blue();
      * }
-     *
+     * 
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters

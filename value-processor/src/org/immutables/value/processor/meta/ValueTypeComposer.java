@@ -40,238 +40,250 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
  * just a glue between new "protoclass" model and old discovery routines.
  */
 public final class ValueTypeComposer {
-  private static final CharMatcher ATTRIBUTE_NAME_CHARS =
-      CharMatcher.is('_')
-          .or(CharMatcher.inRange('a', 'z'))
-          .or(CharMatcher.inRange('A', 'Z'))
-          .or(CharMatcher.inRange('0', '9')).precomputed();
+	private static final CharMatcher ATTRIBUTE_NAME_CHARS =
+			CharMatcher.is('_')
+					.or(CharMatcher.inRange('a', 'z'))
+					.or(CharMatcher.inRange('A', 'Z'))
+					.or(CharMatcher.inRange('0', '9')).precomputed();
 
-  private final ProcessingEnvironment processing;
-  private final Round round;
-  @Nullable
-  private final String typeMoreObjects;
+	private final ProcessingEnvironment processing;
+	private final Round round;
+	@Nullable
+	private final String typeMoreObjects;
 
-  ValueTypeComposer(Round round) {
-    this.round = round;
-    this.processing = round.processing();
-    this.typeMoreObjects = inferTypeMoreObjects();
-  }
+	ValueTypeComposer(Round round) {
+		this.round = round;
+		this.processing = round.processing();
+		this.typeMoreObjects = inferTypeMoreObjects();
+	}
 
-  /**
-   * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
-   */
-  @Nullable
-  String inferTypeMoreObjects() {
-    String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
-    String typeObjects = UnshadeGuava.typeString("base.Objects");
+	/**
+	 * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
+	 */
+	@Nullable
+	String inferTypeMoreObjects() {
+		String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
+		String typeObjects = UnshadeGuava.typeString("base.Objects");
 
-    if (isValidElementFound(typeMoreObjects)) {
-      return typeMoreObjects;
-    }
-    if (isValidElementFound(typeMoreObjects)) {
-      return typeObjects;
-    }
-    return null;
-  }
+		if (isValidElementFound(typeMoreObjects)) {
+			return typeMoreObjects;
+		}
+		if (isValidElementFound(typeMoreObjects)) {
+			return typeObjects;
+		}
+		return null;
+	}
 
-  private boolean isValidElementFound(String typeName) {
-    try {
-      @Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
-      return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
-    } catch (Exception e) {
-      // type loading problem
-      return false;
-    }
-  }
+	private boolean isValidElementFound(String typeName) {
+		try {
+			@Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
+			return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
+		} catch (Exception e) {
+			// type loading problem
+			return false;
+		}
+	}
 
-  ValueType compose(Protoclass protoclass) {
-    ValueType type = new ValueType();
-    type.round = round;
-    type.typeMoreObjects = typeMoreObjects;
-    type.element = protoclass.sourceElement();
-    type.immutableFeatures = protoclass.features();
-    type.constitution = protoclass.constitution();
+	ValueType compose(Protoclass protoclass) {
+		ValueType type = new ValueType();
+		type.round = round;
+		type.typeMoreObjects = typeMoreObjects;
+		type.element = protoclass.sourceElement();
+		type.immutableFeatures = protoclass.features();
+		type.constitution = protoclass.constitution();
 
-    if (protoclass.kind().isFactory()) {
-      new FactoryMethodAttributesCollector(protoclass, type).collect();
-    } else if (protoclass.kind().isValue() || protoclass.kind().isModifiable()) {
-      Collection<String> violations = Lists.newArrayList();
-      // This check is legacy, most such checks should have been done on a higher level?
-      if (checkAbstractValueType(type.element, violations)) {
+		if (protoclass.kind().isFactory()) {
+			new FactoryMethodAttributesCollector(protoclass, type).collect();
+		} else if (protoclass.kind().isValue() || protoclass.kind().isModifiable()) {
+			Collection<String> violations = Lists.newArrayList();
+			// This check is legacy, most such checks should have been done on a higher level?
+			if (checkAbstractValueType(type.element, violations)) {
 
-        if (protoclass.kind().isValue()) {
-          // essentially skip checks if only kind().isModifiable() and not kind().isValue()
-          checkForMutableFields(protoclass, (TypeElement) type.element);
-          checkForTypeHierarchy(protoclass, type);
-        }
+				if (protoclass.kind().isValue()) {
+					// essentially skip checks if only kind().isModifiable() and not kind().isValue()
+					checkForMutableFields(protoclass, (TypeElement) type.element);
+					checkForTypeHierarchy(protoclass, type);
+				}
 
-        new AccessorAttributesCollector(protoclass, type).collect();
-      } else {
-        protoclass.report()
-            .error("Value type '%s' %s",
-                protoclass.sourceElement().getSimpleName(),
-                Joiner.on(", ").join(violations));
-        // Do nothing now. kind of way to less blow things up when it happens.
-      }
+				new AccessorAttributesCollector(protoclass, type).collect();
+			} else {
+				protoclass.report()
+						.error("Value type '%s' %s",
+								protoclass.sourceElement().getSimpleName(),
+								Joiner.on(", ").join(violations));
+				// Do nothing now. kind of way to less blow things up when it happens.
+			}
 
-      type.detectSerialization();
-    }
+			type.detectSerialization();
+		}
 
-    checkAttributeNamesIllegalCharacters(type);
-    checkAttributeNamesForDuplicates(type, protoclass);
-    checkConstructability(type);
-    checkStyleConflicts(protoclass);
-    return type;
-  }
+		checkAttributeNamesIllegalCharacters(type);
+		checkAttributeNamesForDuplicates(type, protoclass);
+		checkConstructability(type);
+		checkStyleConflicts(type, protoclass);
+		return type;
+	}
 
-  private void checkAttributeNamesIllegalCharacters(ValueType type) {
-    for (ValueAttribute a : type.attributes) {
-      if (!ATTRIBUTE_NAME_CHARS.matchesAllOf(a.name())) {
-        a.report()
-            .error("Name '%s' contains some unsupported or reserved characters, please use only A-Z, a-z, 0-9 and _ chars",
-                a.name());
-      }
-    }
-  }
+	private void checkAttributeNamesIllegalCharacters(ValueType type) {
+		for (ValueAttribute a : type.attributes) {
+			if (!ATTRIBUTE_NAME_CHARS.matchesAllOf(a.name())) {
+				a.report()
+						.error("Name '%s' contains some unsupported or reserved characters, please use only A-Z, a-z, 0-9 and _ chars",
+								a.name());
+			}
+		}
+	}
 
-  private void checkConstructability(ValueType type) {
-    if (!type.isUseBuilder() || type.isUseConstructor()) {
-      for (ValueAttribute a : type.getConstructorExcluded()) {
-        if (a.isMandatory()) {
-          a.report()
-              .error("Attribute '%s' is mandatory and should be a constructor"
-                  + " @Value.Parameter when builder is disabled or"
-                  + " there are other constructor parameters",
-                  a.name());
-        }
-      }
-    }
-    if (!type.isUseBuilder() && !type.isUseCopyMethods()) {
-      for (ValueAttribute a : type.getConstructorExcluded()) {
-        if (!a.isMandatory()) {
-          a.report()
-              .warning("There is no way to initialize '%s' attribute to non-default value."
-                  + " Enable builder=true or copy=true or add it as a constructor @Value.Parameter",
-                  a.name());
-        }
-      }
-    }
-    if (type.isUseSingleton() && !type.getMandatoryAttributes().isEmpty()) {
-      for (ValueAttribute a : type.getMandatoryAttributes()) {
-        if (a.isMandatory()) {
-          a.report()
-              .error("Attribute '%s' is mandatory and cannot be used with singleton enabled."
-                  + " Singleton instance require all attributes to have default value, otherwise"
-                  + " default instance could not be created",
-                  a.name());
-        }
-      }
-    }
-  }
-  
-  private void checkStyleConflicts(Protoclass protoclass) {
-    if (protoclass.features().prehash()
-        && protoclass.styles().style().privateNoargConstructor()) {
-      protoclass.report()
-          .annotationNamed(ImmutableMirror.simpleName())
-          .warning("'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
-    }
-  }
-  
-  private void checkForTypeHierarchy(Protoclass protoclass, ValueType type) {
-    scanAndReportInvalidInheritance(protoclass, type.element, type.extendedClasses());
-    scanAndReportInvalidInheritance(protoclass, type.element, type.implementedInterfaces());
-  }
+	private void checkConstructability(ValueType type) {
+		if (!type.isUseBuilder() || type.isUseConstructor()) {
+			for (ValueAttribute a : type.getConstructorExcluded()) {
+				if (a.isMandatory()) {
+					a.report()
+							.error("Attribute '%s' is mandatory and should be a constructor"
+									+ " @Value.Parameter when builder is disabled or"
+									+ " there are other constructor parameters",
+									a.name());
+				}
+			}
+		}
+		if (!type.isUseBuilder() && !type.isUseCopyMethods()) {
+			for (ValueAttribute a : type.getConstructorExcluded()) {
+				if (!a.isMandatory()) {
+					a.report()
+							.warning("There is no way to initialize '%s' attribute to non-default value."
+									+ " Enable builder=true or copy=true or add it as a constructor @Value.Parameter",
+									a.name());
+				}
+			}
+		}
+		if (type.isUseSingleton() && !type.getMandatoryAttributes().isEmpty()) {
+			for (ValueAttribute a : type.getMandatoryAttributes()) {
+				if (a.isMandatory()) {
+					a.report()
+							.error("Attribute '%s' is mandatory and cannot be used with singleton enabled."
+									+ " Singleton instance require all attributes to have default value, otherwise"
+									+ " default instance could not be created",
+									a.name());
+				}
+			}
+		}
+	}
 
-  private static void scanAndReportInvalidInheritance(
-      Protoclass protoclass,
-      Element element,
-      Iterable<DeclaredType> supertypes) {
-    for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
-      if (!CachingElements.equals(element, supertype) && ImmutableMirror.isPresent(supertype)) {
-        protoclass.report()
-            .error("Should not inherit %s which is a value type itself."
-                + " Avoid extending from another abstract value type."
-                + " Better to share common abstract class or interface which"
-                + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
-      }
-    }
-  }
+	private void checkStyleConflicts(ValueType type, Protoclass protoclass) {
+		if (protoclass.features().prehash()
+				&& protoclass.styles().style().privateNoargConstructor()) {
+			protoclass.report()
+					.annotationNamed(ImmutableMirror.simpleName())
+					.warning("'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
+		}
+		if (type.isUseConstructor()
+				&& protoclass.constitution().factoryOf().isNew()) {
+			if (type.isUseValidation()) {
+				protoclass.report()
+						.annotationNamed(ImmutableMirror.simpleName())
+						.error("interning, singleton and validation will not work correctly with 'new' constructor configured in style");
+			} else if (type.constitution.isImplementationHidden()
+					&& (type.kind().isEnclosing() || type.kind().isNested())) {
+				protoclass.report()
+						.annotationNamed(ImmutableMirror.simpleName())
+						.error("Enclosing with hidden implementation do not mix with 'new' constructor configured in style");
+			}
+		}
+	}
+	private void checkForTypeHierarchy(Protoclass protoclass, ValueType type) {
+		scanAndReportInvalidInheritance(protoclass, type.element, type.extendedClasses());
+		scanAndReportInvalidInheritance(protoclass, type.element, type.implementedInterfaces());
+	}
 
-  private void checkForMutableFields(Protoclass protoclass, TypeElement element) {
-    for (VariableElement field : ElementFilter.fieldsIn(
-        processing.getElementUtils().getAllMembers(CachingElements.getDelegate(element)))) {
-      if (!field.getModifiers().contains(Modifier.FINAL)) {
-        Reporter report = protoclass.report();
-        boolean ownField = CachingElements.equals(element, field.getEnclosingElement());
-        if (ownField) {
-          report.withElement(field).warning("Avoid introduction of fields (except constants) in abstract value types");
-        } else {
-          report.warning("Abstract value type inherits mutable fields");
-        }
-      }
-    }
-  }
+	private static void scanAndReportInvalidInheritance(
+			Protoclass protoclass,
+			Element element,
+			Iterable<DeclaredType> supertypes) {
+		for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
+			if (!CachingElements.equals(element, supertype) && ImmutableMirror.isPresent(supertype)) {
+				protoclass.report()
+						.error("Should not inherit %s which is a value type itself."
+								+ " Avoid extending from another abstract value type."
+								+ " Better to share common abstract class or interface which"
+								+ " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
+			}
+		}
+	}
 
-  private void checkAttributeNamesForDuplicates(ValueType type, Protoclass protoclass) {
-    if (!type.attributes.isEmpty()) {
-      Multiset<String> attributeNames = HashMultiset.create(type.attributes.size());
-      for (ValueAttribute attribute : type.attributes) {
-        attributeNames.add(attribute.name());
-      }
+	private void checkForMutableFields(Protoclass protoclass, TypeElement element) {
+		for (VariableElement field : ElementFilter.fieldsIn(
+				processing.getElementUtils().getAllMembers(CachingElements.getDelegate(element)))) {
+			if (!field.getModifiers().contains(Modifier.FINAL)) {
+				Reporter report = protoclass.report();
+				boolean ownField = CachingElements.equals(element, field.getEnclosingElement());
+				if (ownField) {
+					report.withElement(field).warning("Avoid introduction of fields (except constants) in abstract value types");
+				} else {
+					report.warning("Abstract value type inherits mutable fields");
+				}
+			}
+		}
+	}
 
-      List<String> duplicates = Lists.newArrayList();
-      for (Multiset.Entry<String> entry : attributeNames.entrySet()) {
-        if (entry.getCount() > 1) {
-          duplicates.add(entry.getElement());
-        }
-      }
+	private void checkAttributeNamesForDuplicates(ValueType type, Protoclass protoclass) {
+		if (!type.attributes.isEmpty()) {
+			Multiset<String> attributeNames = HashMultiset.create(type.attributes.size());
+			for (ValueAttribute attribute : type.attributes) {
+				attributeNames.add(attribute.name());
+			}
 
-      if (!duplicates.isEmpty()) {
-        protoclass.report()
-            .error("Duplicate attribute names %s. You should check if correct @Value.Style applied",
-                duplicates);
-      }
-    }
-  }
+			List<String> duplicates = Lists.newArrayList();
+			for (Multiset.Entry<String> entry : attributeNames.entrySet()) {
+				if (entry.getCount() > 1) {
+					duplicates.add(entry.getElement());
+				}
+			}
 
-  static boolean checkAbstractValueType(Element element, Collection<String> violations) {
-    boolean ofSupportedKind = false
-        || element.getKind() == ElementKind.INTERFACE
-        || element.getKind() == ElementKind.ANNOTATION_TYPE
-        || element.getKind() == ElementKind.CLASS;
+			if (!duplicates.isEmpty()) {
+				protoclass.report()
+						.error("Duplicate attribute names %s. You should check if correct @Value.Style applied",
+								duplicates);
+			}
+		}
+	}
 
-    boolean staticOrTopLevel = false
-        || element.getEnclosingElement().getKind() == ElementKind.PACKAGE
-        || element.getModifiers().contains(Modifier.STATIC);
+	static boolean checkAbstractValueType(Element element, Collection<String> violations) {
+		boolean ofSupportedKind = false
+				|| element.getKind() == ElementKind.INTERFACE
+				|| element.getKind() == ElementKind.ANNOTATION_TYPE
+				|| element.getKind() == ElementKind.CLASS;
 
-    boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
-    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
+		boolean staticOrTopLevel = false
+				|| element.getEnclosingElement().getKind() == ElementKind.PACKAGE
+				|| element.getModifiers().contains(Modifier.STATIC);
 
-    boolean publicOrPackageVisible =
-        !element.getModifiers().contains(Modifier.PRIVATE)
-            && !element.getModifiers().contains(Modifier.PROTECTED);
+		boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
+		boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
 
-    if (!ofSupportedKind) {
-      violations.add("must be class or interface or annotation type");
-    }
+		boolean publicOrPackageVisible =
+				!element.getModifiers().contains(Modifier.PRIVATE)
+						&& !element.getModifiers().contains(Modifier.PROTECTED);
 
-    if (!nonFinal) {
-      violations.add("must be non-final");
-    }
+		if (!ofSupportedKind) {
+			violations.add("must be class or interface or annotation type");
+		}
 
-    if (!hasNoTypeParameters) {
-      violations.add("should have no type parameters");
-    }
+		if (!nonFinal) {
+			violations.add("must be non-final");
+		}
 
-    if (!publicOrPackageVisible) {
-      violations.add("should be public or package-visible");
-    }
+		if (!hasNoTypeParameters) {
+			violations.add("should have no type parameters");
+		}
 
-    if (!staticOrTopLevel) {
-      violations.add("should be top-level or static inner class");
-    }
+		if (!publicOrPackageVisible) {
+			violations.add("should be public or package-visible");
+		}
 
-    return violations.isEmpty();
-  }
+		if (!staticOrTopLevel) {
+			violations.add("should be top-level or static inner class");
+		}
+
+		return violations.isEmpty();
+	}
 }
