@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.types.Id;
 import org.immutables.value.Value;
@@ -25,7 +24,7 @@ import org.immutables.value.Value;
 @Mongo.Repository("ent2")
 public abstract class SillyEntitySecond {
 
-  @Gson.Named("_id")
+  @Mongo.Id
   @Value.Default
   public Id id() {
     return Id.generate();

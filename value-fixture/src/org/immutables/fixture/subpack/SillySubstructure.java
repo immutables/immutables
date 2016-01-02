@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.subpack;
 
+import org.immutables.value.processor.meta.GsonMirrors.SerializedName;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
@@ -29,7 +30,7 @@ import org.immutables.value.Value;
 public abstract class SillySubstructure {
 
   @Value.Default
-  @Gson.Named("e1")
+  @SerializedName("e1")
   public RetentionPolicy enum1() {
     return RetentionPolicy.SOURCE;
   }

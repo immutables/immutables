@@ -28,7 +28,7 @@ import org.immutables.value.Value;
 @Gson.TypeAdapters
 public interface SillyStructureWithId {
 
-  @Gson.Named("_id")
+  @Mongo.Id
   String id();
 
   String attr1();

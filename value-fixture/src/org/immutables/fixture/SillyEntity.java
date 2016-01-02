@@ -16,9 +16,9 @@
 package org.immutables.fixture;
 
 import com.google.common.primitives.UnsignedInteger;
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import java.util.Map;
-import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 
@@ -30,13 +30,13 @@ public abstract class SillyEntity {
   @Mongo.Id
   public abstract int id();
 
-  @Gson.Named("v")
+  @SerializedName("v")
   public abstract String val();
 
-  @Gson.Named("p")
+  @SerializedName("p")
   public abstract Map<String, Integer> payload();
 
-  @Gson.Named("i")
+  @SerializedName("i")
   public abstract List<Integer> ints();
 
   @Value.Derived
