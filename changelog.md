@@ -5,11 +5,13 @@ Changelog
 - Bugfix and Minor improvement release.
 - Thanks to contributors and issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.5)
+  + Public constructors style
 
 ### 2.1.4 (2015-12-10)
 - Bugfix and Minor improvement release.
 - Thanks to contributors and issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.4+is%3Aclosed)
+  + Gson 2.5 support for SerializedName annotation including alternate names
 
 ### 2.1.1 (2015-12-03)
 - Bugfix and Minor improvement release.
