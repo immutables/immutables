@@ -27,3 +27,12 @@ public abstract class OptionIncludeNonEmpty implements Inherited {
   // used to test abstract method generation in Json class
   public abstract OptionIncludeNonEmpty withMap(Map<String, ? extends Number> number);
 }
+
+@Value.Immutable(builder = false)
+@JsonDeserialize(as = ImmutableOptionIncludeNonEmptyWithConstructor.class)
+abstract class OptionIncludeNonEmptyWithConstructor {
+
+  @Value.Parameter
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  public abstract Optional<String> getRelationships();
+}

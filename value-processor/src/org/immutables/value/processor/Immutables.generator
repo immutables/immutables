@@ -1555,7 +1555,13 @@ private [v.type] [invokeSuperGet]() {
 static final [output.linesShortable]class Json
     [extendsImplements type][/output.linesShortable]
 [for v in type.settableAttributes if not v.anyGetter]
+  [if v.optionalType]
+  [v.type] [v.name] = [optionalEmpty v];
+  [else if v.collectionType]
+  [v.type] [v.name] = [emptyImmutableInstanceInferred type v];
+  [else]
   [atNullable][v.wrapperType] [v.name];
+  [/if]
 [/for]
 [for v in type.settableAttributes if v.anyGetter]
   final [v.type] [v.name] = new java.util.HashMap<>();

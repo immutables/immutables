@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
-import org.junit.Assert;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -117,6 +116,14 @@ public class ObjectMappedTest {
   }
 
   @Test
+  public void includeNonEmptyWithConstructor() throws Exception {
+    String json = "{}";
+    OptionIncludeNonEmptyWithConstructor value =
+        OBJECT_MAPPER.readValue(json, OptionIncludeNonEmptyWithConstructor.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
   public void propertyOrder() throws Exception {
     String json = "[0.1,1.2,2.3]";
     GeoPoint value = OBJECT_MAPPER.readValue(json, GeoPoint.class);
@@ -130,16 +137,20 @@ public class ObjectMappedTest {
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 
+  @Test
   public void lazyAttribute() throws Exception {
     String json = "{\"a\":1}";
     LazyAttributesSafe value = OBJECT_MAPPER.readValue(json, LazyAttributesSafe.class);
     check(value.getA()).is(1);
   }
-  
+
+  @SuppressWarnings("deprecation")
+  @Test
   public void noAnnotationsWorks() throws Exception {
-    Assert.assertTrue(ImmutableJacksonMappedWithNoAnnotations.Json.class.getAnnotation(JsonDeserialize.class) == null);
+    check(ImmutableJacksonMappedWithNoAnnotations.Json.class.getAnnotation(JsonDeserialize.class)).isNull();
     String json = "{\"someString\":\"xxx\"}";
-    ImmutableJacksonMappedWithNoAnnotations value = OBJECT_MAPPER.readValue(json, ImmutableJacksonMappedWithNoAnnotations.class);
+    ImmutableJacksonMappedWithNoAnnotations value =
+        OBJECT_MAPPER.readValue(json, ImmutableJacksonMappedWithNoAnnotations.class);
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 }
