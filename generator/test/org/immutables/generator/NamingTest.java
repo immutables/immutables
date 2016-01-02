@@ -17,7 +17,7 @@ package org.immutables.generator;
 
 import org.immutables.generator.Naming.Preference;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class NamingTest {
   @Test(expected = IllegalArgumentException.class)
@@ -126,9 +126,17 @@ public class NamingTest {
   }
 
   @Test
+  public void lowercaseSuffix() {
+    check(Naming.from("check*out").detect("checkThisout")).is("this");
+    check(Naming.from("check*out").apply("it")).is("checkItout");
+  }
+
+  @Test
   public void usageCorrection() {
-    String apply = Naming.from("of").requireNonConstant(Preference.SUFFIX).apply("Hen");
-    check(Naming.Usage.LOWERIZED.apply(apply)).is("henOf");
-    check(Naming.from("check*out").apply("it")).is("checkItOut");
+    String suffix = Naming.from("of").requireNonConstant(Preference.SUFFIX).apply("Hen");
+    check(Naming.Usage.LOWERIZED.apply(suffix)).is("henOf");
+
+    String prefix = Naming.from("of").requireNonConstant(Preference.PREFIX).apply("Hen");
+    check(Naming.Usage.CAPITALIZED.apply(prefix)).is("OfHen");
   }
 }

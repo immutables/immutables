@@ -204,7 +204,7 @@ public abstract class Naming implements Function<String, String> {
     public Naming requireNonConstant(Preference preference) {
       switch (preference) {
       case SUFFIX:
-        return new PrefixSuffixNaming("", name);
+        return new PrefixSuffixNaming("", Usage.CAPITALIZED.apply(name));
       case PREFIX:
       default:
         return new PrefixSuffixNaming(name, "");
@@ -235,7 +235,7 @@ public abstract class Naming implements Function<String, String> {
           ? Usage.INDIFFERENT
           : Usage.CAPITALIZED;
 
-      return prefix + resultFormat.apply(input) + Usage.CAPITALIZED.apply(suffix);
+      return prefix + resultFormat.apply(input) + suffix;
     }
 
     @Override
