@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+### 2.1.5 (2016-01-02)
+- Bugfix and Minor improvement release.
+- Thanks to contributors and issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.5)
+
+### 2.1.4 (2015-12-10)
+- Bugfix and Minor improvement release.
+- Thanks to contributors and issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.4+is%3Aclosed)
+
 ### 2.1.1 (2015-12-03)
 - Bugfix and Minor improvement release.
 - Many thanks to all user and contributors for issue reports, PRs and suggestions!
