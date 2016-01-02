@@ -24,8 +24,7 @@ public interface Constr {
   }
 
   static void use() {
-    ImRev rev = new ImRev(1, 2);
-    
-    ImBuild build = new ImBuild("2016.01.01", "Happy new build!");
+    new ImRev(1, 2);
+    new ImBuild("2016.01.01", "Happy new build!");
   }
 }
