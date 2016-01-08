@@ -83,10 +83,10 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
   private static final TypeToken<[im]> [toConstant type.name]_IMMUTABLE = TypeToken.get([im].class);
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElemementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
+  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
-  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = new TypeToken<[a.secondaryElementType]>() {};
+  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = [if a.nonRawSecondaryElementType]new TypeToken<[a.secondaryElementType]>() {}[else]TypeToken.get([a.secondaryElementType].class)[/if];
     [/if]
   [/for]
   [for a in allAttributes]

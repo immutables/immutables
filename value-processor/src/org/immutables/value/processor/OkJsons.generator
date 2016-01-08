@@ -86,12 +86,12 @@ public final class [typeAdaptersName] implements JsonAdapter.Factory {
 private static class [type.name]Adapter extends JsonAdapter<[t]> {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-      [if a.nonRawElemementType]
+      [if a.nonRawElementType]
   public static final [a.elementType] [toConstant a.name]_TYPE_OF = null;
       [/if]
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
-      [if a.nonRawElemementType]
+      [if a.nonRawElementType]
   public static final [a.secondaryElementType] [toConstant a.name]_SECONDARY_TYPE_OF = null;
       [/if]
     [/if]
@@ -140,7 +140,7 @@ private static class [type.name]Adapter extends JsonAdapter<[t]> {
 [/template]
 
 [template getAdapterFromMoshi Attribute a Boolean secondary]
-[if a.nonRawElemementType]
+[if a.nonRawElementType]
 this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter(getClass().getField("[toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_OF").getGenericType());
 [else]
 this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter([if secondary][a.secondaryElementType][else][a.elementType][/if].class);

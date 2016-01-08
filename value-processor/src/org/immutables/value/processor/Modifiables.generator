@@ -861,4 +861,4 @@ import [starImport];
 
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
-[template varargsSafety Attribute a][if a.nonRawElemementType]@SafeVarargs[/if][/template]
+[template varargsSafety Attribute a][if a.nonRawElementType]@SafeVarargs[/if][/template]

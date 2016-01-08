@@ -714,10 +714,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind() == TypeKind.DOUBLE;
   }
 
-  public boolean isNonRawElemementType() {
+  public boolean isNonRawElementType() {
     return getElementType().indexOf('<') > 0;
   }
-
+  
+  public boolean isNonRawSecondaryElementType() {
+    return getSecondaryElementType().indexOf('<') > 0;
+  }
+  
   public boolean isContainerType() {
     // TBD replace with typeKind.isContainerKind() ?
     return isCollectionType()
