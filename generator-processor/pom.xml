@@ -43,6 +43,7 @@
       <artifactId>parboiled-java</artifactId>
       <version>1.1.7</version>
     </dependency>
+
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
@@ -69,7 +70,6 @@
                 <configuration>
                   <createDependencyReducedPom>true</createDependencyReducedPom>
                   <shadedArtifactAttached>true</shadedArtifactAttached>
-                  <minimizeJar>true</minimizeJar>
                   <createSourcesJar>true</createSourcesJar>
                   <shadedClassifierName>pargen</shadedClassifierName>
 
@@ -80,38 +80,11 @@
                       <include>org.parboiled:parboiled-java</include>
                       <include>org.parboiled:parboiled-core</include>
                       <include>org.ow2.asm:asm</include>
-                      <include>org.ow2.asm:tree</include>
-                      <include>org.ow2.asm:analysis</include>
-                      <include>org.ow2.asm:util</include>
+                      <include>org.ow2.asm:asm-tree</include>
+                      <include>org.ow2.asm:asm-analysis</include>
+                      <include>org.ow2.asm:asm-util</include>
                     </includes>
                   </artifactSet>
-
-                  <filters>
-                    <filter>
-                      <artifact>org.immutables:generator</artifact>
-                      <includes>
-                        <include>**</include>
-                      </includes>
-                    </filter>
-                    <filter>
-                      <artifact>org.immutables:generator-processor</artifact>
-                      <includes>
-                        <include>**</include>
-                      </includes>
-                    </filter>
-                    <filter>
-                      <artifact>org.parboiler:parboiled-core</artifact>
-                      <includes>
-                        <include>**</include>
-                      </includes>
-                    </filter>
-                    <filter>
-                      <artifact>org.parboiler:parboiled-java</artifact>
-                      <includes>
-                        <include>**</include>
-                      </includes>
-                    </filter>
-                  </filters>
 
                   <transformers>
                     <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />

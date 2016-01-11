@@ -575,8 +575,8 @@ public @interface Value {
      * @return naming template
      * @deprecated not implemented / experimental. May be used or removed in the next versions
      */
-    // @Deprecated
-    // String typeWith() default "With";
+    @Deprecated
+    String typeWith() default "With";
 
     /**
      * Specify default options for the generated immutable objects.
