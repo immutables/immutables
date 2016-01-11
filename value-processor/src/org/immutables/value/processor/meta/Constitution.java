@@ -369,6 +369,15 @@ public abstract class Constitution {
   private Visibility implementationEnclosingVisibility() {
     return implementationVisibility().max(Visibility.PACKAGE);
   }
+  
+  @Value.Lazy
+  public NameForms typeWith() {
+    String simple = names().typeWith();
+    NameForms typeImmutable = typeImmutable();
+    return ImmutableConstitution.NameForms.copyOf(typeImmutable)
+        .withRelative(DOT_JOINER.join(typeImmutable.relative(), simple))
+        .withSimple(simple);
+  }
 
   @Value.Lazy
   public NameForms typeBuilder() {

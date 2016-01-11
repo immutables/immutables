@@ -164,6 +164,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeEnclosing();
   }
 
+  public NameForms typeWith() {
+    return constitution.typeWith();
+  }
+
   public boolean isUseBuilder() {
     return immutableFeatures.builder();
   }
@@ -388,7 +392,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseCopyMethods() {
     return immutableFeatures.copy()
-        && !constitution.returnsAbstractValueType()
+        && !constitution.isImplementationHidden()
         && !getSettableAttributes().isEmpty();
   }
 

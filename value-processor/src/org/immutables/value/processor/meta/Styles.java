@@ -83,6 +83,7 @@ public final class Styles {
     Naming create = Naming.from(style.create());
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
+    Naming typeWith = Naming.from(style.typeWith());
   }
 
   public static class UsingName {
@@ -147,6 +148,10 @@ public final class Styles {
 
       public final String typeImmutableNested() {
         return scheme.typeImmutableNested.apply(raw);
+      }
+
+      public final String typeWith() {
+        return scheme.typeWith.apply(raw);
       }
 
       public final String builder() {

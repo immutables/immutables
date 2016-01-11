@@ -1175,6 +1175,7 @@ public class Proto {
           input.typeImmutableEnclosing(),
           input.typeImmutableNested(),
           input.typeModifiable(),
+          input.typeWith(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
           input.allParameters(),

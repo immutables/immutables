@@ -30,12 +30,36 @@ package [transformerType.package];
        t = type.typeValue,
        im = type.typeImmutable,
        s = type.name,
-       Boolean useCopy = type.useCopyConstructor and type.useCopyMethods]
+       Boolean useCopy = type.useBuilder or (type.useCopyConstructor and type.useCopyMethods)]
   [if useCopy]
 
   public [t] to[s]([t] value) {
+    [if type.useCopyConstructor and type.useCopyMethods]
+      [if type.constitution.returnsAbstractValueType]
+    [im] copy  = ([im]) [type.factoryCopyOf](value);
+        [for a in type.settableAttributes]
+    copy = ([im]) copy.[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()));
+        [/for]
+    return copy;
+      [else]
     return [if t eq im]value[else][type.factoryCopyOf](value)[/if][for a in type.settableAttributes]
         .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
+      [/if]
+    [else if type.useBuilder]
+    return [type.factoryBuilder.relative]()
+        [for v in type.settableAttributes]
+          [if v.collectionType]
+        .[v.names.addAll](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+          [else if v.mapType]
+        .[v.names.putAll](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+          [else]
+        .[v.names.init](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+          [/if]
+        [/for]
+        .[type.names.build]();
+    [else][-- unreachable --]
+    return value;
+    [/if]
   }
   [else]
 

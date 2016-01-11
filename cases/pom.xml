@@ -9,7 +9,7 @@
   <artifactId>cases</artifactId>
 
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>API for generating visitor-like constructs for ADT-like case classes.</description>
+  <description>Experimental and incomplete stuff goes here.</description>
 
   <dependencies>
     <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,

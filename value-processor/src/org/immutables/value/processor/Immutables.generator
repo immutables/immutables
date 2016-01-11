@@ -1454,6 +1454,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 [/if]
   [generateAccessorMethods type]
   [generateCopyMethods type]
+  [--generateWithInterface type--]
   [generateObjectUtilityMethods type]
   [generateJacksonMapped type]
 [/for]
@@ -2004,6 +2005,90 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
 }
     [/if]
   [/for]
+[/if]
+[/template]
+
+[template generateWithInterface Type type]
+[-- Experimental, not used yet --]
+[if type.useCopyMethods]
+interface [type.typeWith.simple] {
+    [for v in type.settableAttributes]
+      [if v.arrayType]
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * The array is cloned before being saved as attribute values.
+   * @param elements The non-null elements for [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([v.elementType]... elements);
+      [else if v.collectionType]
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * @param elements The elements to set
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([v.unwrappedElementType]... elements);
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   * @param elements An iterable of [v.name] elements to set
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with](Iterable<[v.consumedElementType]> elements);
+      [else if v.optionalType]
+
+  /**
+   * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+   * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([atNullableAccept v][v.unwrappedElementType] value);
+
+  /**
+   * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+   * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
+   * @param optional A value for [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional);
+      [else if v.mapType]
+      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+
+  /**
+   * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
+   * Nulls are not permitted as keys or values.
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   * @param entries The entries to be added to the [v.name] map
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
+      [/for]
+      [else]
+
+  /**
+   * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
+   [if v.primitive and (not v.floatType)]
+   * A value equality check is used to prevent copying of the same value by returning {@code this}.
+   [else if not v.primitive]
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   [/if]
+   * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
+   * @return A modified copy of the {@code this} object
+   */
+  [deprecation v]
+  [type.typeValue.relative] [v.names.with]([v.atNullability][v.type] value);
+      [/if]
+    [/for]
+}
 [/if]
 [/template]
 

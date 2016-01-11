@@ -570,6 +570,14 @@ public @interface Value {
      */
     String typeModifiable() default "Modifiable*";
 
+    /*
+     * Generated "with" interface name. Used to detect demand and generate "with" interface.
+     * @return naming template
+     * @deprecated not implemented / experimental. May be used or removed in the next versions
+     */
+    // @Deprecated
+    // String typeWith() default "With";
+
     /**
      * Specify default options for the generated immutable objects.
      * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,

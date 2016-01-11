@@ -116,7 +116,7 @@ public final class Extractions {
 
       @Override
       public String toString() {
-        return Extractions.class.getSimpleName() + ".diagnose()";
+        return Extractions.class.getSimpleName() + ".print()";
       }
     };
   }

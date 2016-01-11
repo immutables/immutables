@@ -148,6 +148,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract String typeModifiable();
 
+  @Value.Parameter
+  @Override
+  public abstract String typeWith();
+
   @Override
   @Value.Parameter
   public abstract ValueImmutableInfo defaults();

@@ -135,6 +135,8 @@ public final class ValueMirrors {
 
     String typeModifiable() default "Modifiable*";
 
+    String typeWith() default "With";
+
     Immutable defaults() default @Immutable;
 
     boolean strictBuilder() default false;
