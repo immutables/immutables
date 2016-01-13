@@ -46,19 +46,18 @@ package [type.package];
  * Predicate on instance of [type.name] that tests attribute [sourceDocRef type h].
  * @return {@code [h.name]} predicate instance
  */
-public static com.google.common.base.Predicate<[type.typeValue]> [h.names.get]() {
+public static [guava].base.Predicate<[type.typeValue]> [h.names.get]() {
   return [toUpper h.name]Predicate.INSTANCE;
 }
 
-private enum [toUpper h.name]Predicate
-    implements com.google.common.base.Predicate<[type.typeValue]> {
+private enum [toUpper h.name]Predicate implements [guava].base.Predicate<[type.typeValue]> {
   INSTANCE;
   @Override
   public boolean apply([type.typeValue] input) {
     return input.[h.names.get]();
   }
   @Override
-  public String toString() {
+  public java.lang.String toString() {
     return "[type.name]Functions.[h.names.get]()";
   }
 }
@@ -68,19 +67,18 @@ private enum [toUpper h.name]Predicate
  * Projection function from instance of [type.name] to attribute [sourceDocRef type h].
  * @return {@code [h.name]} function instance
  */
-public static com.google.common.base.Function<[type.typeValue], [h.wrapperType]> [h.names.get]() {
+public static [guava].base.Function<[type.typeValue], [h.wrapperType]> [h.names.get]() {
   return [toUpper h.name]Function.INSTANCE;
 }
 
-private enum [toUpper h.name]Function
-    implements com.google.common.base.Function<[type.typeValue], [h.wrapperType]> {
+private enum [toUpper h.name]Function implements [guava].base.Function<[type.typeValue], [h.wrapperType]> {
   INSTANCE;
   @Override
-  public [h.wrapperType] apply([type.typeValue] input) {
+  public [h.atNullability][h.wrapperType] apply([type.typeValue] input) {
     return input.[h.names.get]();
   }
   @Override
-  public String toString() {
+  public java.lang.String toString() {
     return "[type.name]Functions.[h.names.get]()";
   }
 }
