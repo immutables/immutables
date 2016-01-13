@@ -1,19 +1,16 @@
 [template public generate]
-  [for type in values.values if type.constitution.protoclass.hasFunctionalModule]
-    [if type.kind.isValue]
+  [for type in values.values if type.kind.isValue,
+       attrs = type.functionalAttributes]
+    [if attrs]
 [output.java type.package (type.name 'Functions')]
 [type.sourceHeader]
-[generateFunctions type]
+[generateFunctions type attrs]
 [/output.java]
-    [else]
-[output.error]
-Use @Functional to annotate @Value.Immutable abstract value types
-[/output.error]
     [/if]
   [/for]
 [/template]
 
-[template generateFunctions Type type]
+[template generateFunctions Type type Attribute... attrs]
 [if type.package]
 package [type.package];
 [/if]
@@ -34,12 +31,12 @@ package [type.package];
 [/if]
 [type.typePreferablyAbstract.access]final class [type.name]Functions {
   private [type.name]Functions() {}
-  [generateHelpers type]
+  [generateHelpers type attrs]
 }
 [/template]
 
-[template generateHelpers Type type]
-[for h in type.functionalAttributes]
+[template generateHelpers Type type Attribute... attrs]
+[for h in attrs]
 [if h.boolean]
 
 /**
