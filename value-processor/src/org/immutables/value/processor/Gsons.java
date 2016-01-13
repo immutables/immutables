@@ -15,17 +15,9 @@
  */
 package org.immutables.value.processor;
 
-import com.google.common.collect.Maps;
-import java.util.Map;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map.Entry;
+import com.google.common.collect.*;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.AbstractDeclaring;
@@ -33,9 +25,15 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @Generator.Template
 abstract class Gsons extends ValuesTemplate {
+
+  final String gson = System.getProperty("gson.prefix", "com.google.gson");
 
   @Value.Immutable
   public interface TypeAdapterTypes {
