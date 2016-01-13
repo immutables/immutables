@@ -159,6 +159,15 @@ public class Proto {
       return annotationTypeElement != null;
     }
 
+    @Value.Lazy
+    public boolean hasFunctionalModule() {
+      @Nullable TypeElement annotationTypeElement = processing()
+          .getElementUtils()
+          .getTypeElement(FunctionalMirror.qualifiedName());
+
+      return annotationTypeElement != null;
+    }
+
     /**
      * Default type adapters should only be called if {@code Gson.TypeAdapters} annotation is
      * definitely in classpath. Currenlty, it is called by for mongo repository module,
@@ -1101,6 +1110,10 @@ public class Proto {
       return ImmutableConstitution.builder()
           .protoclass(this)
           .build();
+    }
+
+    public boolean hasFunctionalModule() {
+      return environment().hasFunctionalModule();
     }
   }
 

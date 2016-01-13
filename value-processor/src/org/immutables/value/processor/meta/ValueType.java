@@ -1131,7 +1131,7 @@ public final class ValueType extends TypeIntrospectionBase {
           signatures.add(toSignature(a));
         }
       }
-      
+
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()) {
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
@@ -1143,6 +1143,34 @@ public final class ValueType extends TypeIntrospectionBase {
       return signatures;
     }
     return Collections.emptySet();
+  }
+
+  public List<ValueAttribute> getFunctionalAttributes() {
+    if (!constitution.protoclass().hasFunctionalModule()) {
+      return ImmutableList.of();
+    }
+
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    
+    if (declaringType.isPresent()) {
+      if (FunctionalMirror.isPresent(declaringType.get().element())) {
+        return getAllAccessibleAttributes();
+      }
+    }
+    
+    if (FunctionalMirror.isPresent(element)) {
+      return getAllAccessibleAttributes();
+    }
+
+    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+
+    for (ValueAttribute a : getAllAccessibleAttributes()) {
+      if (FunctionalMirror.isPresent(a.element)) {
+        builder.add(a);
+      }
+    }
+
+    return builder.build();
   }
 
   private String toSignature(ValueAttribute a) {

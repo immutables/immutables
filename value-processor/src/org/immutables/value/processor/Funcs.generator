@@ -1,0 +1,91 @@
+[template public generate]
+  [for type in values.values if type.constitution.protoclass.hasFunctionalModule]
+    [if type.kind.isValue]
+[output.java type.package (type.name 'Functions')]
+[type.sourceHeader]
+[generateFunctions type]
+[/output.java]
+    [else]
+[output.error]
+Use @Functional to annotate @Value.Immutable abstract value types
+[/output.error]
+    [/if]
+  [/for]
+[/template]
+
+[template generateFunctions Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+/**
+ * Projection functions and predicates that corresponds to attributes of {@link [type.typeAbstract.relative]}.
+ */
+[if type.generateSuppressAllWarnings]
+@SuppressWarnings([if type.hasDeprecatedAttributes]{"all", "deprecation"}[else]"all"[/if])
+[else if type.hasDeprecatedAttributes]
+@SuppressWarnings("deprecation")
+[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if classpath.available 'javax.annotation.Generated']
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
+[/if]
+[type.typeValue.access]final class [type.name]Functions {
+  private [type.name]Functions() {}
+  [generateHelpers type]
+}
+[/template]
+
+[template generateHelpers Type type]
+[for h in type.functionalAttributes]
+[if h.boolean]
+
+/**
+ * Predicate on instance of [type.name] that tests attribute [sourceDocRef type h].
+ * @return {@code [h.name]} predicate instance
+ */
+public static com.google.common.base.Predicate<[type.typeValue]> [h.names.get]() {
+  return [toUpper h.name]Predicate.INSTANCE;
+}
+
+private enum [toUpper h.name]Predicate
+    implements com.google.common.base.Predicate<[type.typeValue]> {
+  INSTANCE;
+  @Override
+  public boolean apply([type.typeValue] input) {
+    return input.[h.names.get]();
+  }
+  @Override
+  public String toString() {
+    return "[type.name]Functions.[h.names.get]()";
+  }
+}
+[else]
+
+/**
+ * Projection function from instance of [type.name] to attribute [sourceDocRef type h].
+ * @return {@code [h.name]} function instance
+ */
+public static com.google.common.base.Function<[type.typeValue], [h.wrapperType]> [h.names.get]() {
+  return [toUpper h.name]Function.INSTANCE;
+}
+
+private enum [toUpper h.name]Function
+    implements com.google.common.base.Function<[type.typeValue], [h.wrapperType]> {
+  INSTANCE;
+  @Override
+  public [h.wrapperType] apply([type.typeValue] input) {
+    return input.[h.names.get]();
+  }
+  @Override
+  public String toString() {
+    return "[type.name]Functions.[h.names.get]()";
+  }
+}
+[/if]
+[/for]
+[/template]
+
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]

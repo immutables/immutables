@@ -16,16 +16,14 @@
 package org.immutables.value.processor;
 
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.base.Strings;
-import com.google.common.base.Splitter;
-import java.util.Set;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
 import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+
 import javax.annotation.processing.SupportedAnnotationTypes;
+import java.util.Set;
 
 @Metainf.Service
 @SupportedAnnotationTypes({
@@ -54,6 +52,7 @@ public final class Processor extends AbstractGenerator {
     invoke(new Generator_Gsons().usingValues(values).generate());
     invoke(new Generator_OkJsons().usingValues(values).generate());
     invoke(new Generator_Repositories().usingValues(values).generate());
+    invoke(new Generator_Funcs().usingValues(values).generate());
     invoke(new Generator_Transformers().usingValues(values).generate());
     invoke(new Generator_Asts().usingValues(values).generate());
 
