@@ -168,6 +168,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeWith();
   }
 
+  public NameForms typePreferablyAbstract() {
+    return constitution.typePreferablyAbstract();
+  }
+
   public boolean isUseBuilder() {
     return immutableFeatures.builder();
   }
@@ -1151,13 +1155,13 @@ public final class ValueType extends TypeIntrospectionBase {
     }
 
     Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
-    
+
     if (declaringType.isPresent()) {
       if (FunctionalMirror.isPresent(declaringType.get().element())) {
         return getAllAccessibleAttributes();
       }
     }
-    
+
     if (FunctionalMirror.isPresent(element)) {
       return getAllAccessibleAttributes();
     }
