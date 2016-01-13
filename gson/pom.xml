@@ -85,6 +85,13 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <!-- Test only android indicator -->
+      <groupId>org.immutables</groupId>
+      <artifactId>android-stub</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <!-- Test only jersey dependency -->
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
