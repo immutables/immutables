@@ -752,11 +752,30 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
-  public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary and (s.type eq type.typeAbstract.toString)][type.typeImmutable.relative][else][s.type][/if] instance) {
+  [if type.constitution.isImplementationPrimary and (s.type eq type.typeAbstract.toString)]
+  public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
     [builderReturnThis type]
   }
+
+  /**
+   * Copy abstract value type {@code [type.typeAbstract.simple]} instance into builder.
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
+    [requireNonNull type](instance, "instance");
+    from((Object) instance);
+    [builderReturnThis type]
+  }
+  [else]
+  public final [builderReturnType type] [type.names.from]([s.type] instance) {
+    [requireNonNull type](instance, "instance");
+    from((Object) instance);
+    [builderReturnThis type]
+  }
+  [/if]
       [/for]
 
   private void from(Object object) {
@@ -784,7 +803,7 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
     [else]
 
   /**
-   * Fill a builder with attribute values from the provided {@link [type.typeAbstract.relative]} instance.
+   * Fill a builder with attribute values from the provided {@link [type.typePreferablyAbstract.relative]} instance.
    * Regular attribute values will be replaced with those from the given instance.
    * Absent optional values will not replace present values.
   [if type.hasSettableCollection or type.hasSettableMapping]
@@ -793,13 +812,43 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
-  public final [builderReturnType type] [type.names.from]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
+  [if type.constitution.isImplementationPrimary]
+  public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
+    return [type.names.from](([type.typeAbstract.relative]) instance);
+  }
+
+  /**
+   * Copy abstract value type {@code [type.typeAbstract.simple]} instance into builder.
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     [for v in setters]
     [buildFromAttribute v]
     [/for]
     [builderReturnThis type]
   }
+  [else]
+  public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
+    [requireNonNull type](instance, "instance");
+    [for v in setters]
+    [buildFromAttribute v]
+    [/for]
+    [builderReturnThis type]
+  }
+  [/if]
+
+  /**
+   * Fill a builder with attribute values from the provided {@link [type.typePreferablyAbstract.relative]} instance.
+   * Regular attribute values will be replaced with those from the given instance.
+   * Absent optional values will not replace present values.
+  [if type.hasSettableCollection or type.hasSettableMapping]
+   * Collection elements and entries will be added, not replaced.
+  [/if]
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
+   */
     [/if]
   [/if]
 [/if]
