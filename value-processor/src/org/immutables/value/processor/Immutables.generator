@@ -1157,6 +1157,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     this.[v.name] = [if v.nullable][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([v.name]);
     [else if v.primitive or v.nullable]
     this.[v.name] = [v.name];
+    [else if v.isBuilderSwitcher and type.kind.isFactory][-- considered always null safe --]
+    this.[v.name] = [v.name];
     [else]
     this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
     [/if]
