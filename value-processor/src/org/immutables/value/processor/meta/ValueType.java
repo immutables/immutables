@@ -1117,7 +1117,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return round.declaringTypeFrom(declaringType);
   }
 
-  public Set<String> allAbstractMethodSignatures() {
+  public Set<String> getNonAttributeAbstractMethodSignatures() {
     if (element.getKind().isClass() || element.getKind().isInterface()) {
       Set<String> signatures = new LinkedHashSet<>();
 
@@ -1125,16 +1125,6 @@ public final class ValueType extends TypeIntrospectionBase {
           .processing()
           .getElementUtils()
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
-
-      // For attribute signatures we will use more reliable mechanism
-      for (ValueAttribute a : attributes()) {
-        if (a.isGenerateAbstract
-            || a.isGenerateLazy
-            || a.isGenerateDerived
-            || a.isGenerateDefault) {
-          signatures.add(toSignature(a));
-        }
-      }
 
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()) {
@@ -1191,22 +1181,6 @@ public final class ValueType extends TypeIntrospectionBase {
     }
 
     return params;
-  }
-
-  private String toSignature(ValueAttribute a) {
-    StringBuilder signature = new StringBuilder();
-
-    if (a.element.getModifiers().contains(Modifier.PUBLIC)) {
-      signature.append("public ");
-    } else if (a.element.getModifiers().contains(Modifier.PROTECTED)) {
-      signature.append("protected ");
-    }
-
-    return signature.append(a.returnTypeName)
-        .append(" ")
-        .append(a.names.get)
-        .append("()")
-        .toString();
   }
 
   private String toSignature(ExecutableElement m) {

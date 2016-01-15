@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Proto.Environment;
-import org.immutables.value.processor.meta.Proto.Protoclass;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -41,6 +39,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
+import org.immutables.value.processor.meta.Proto.Environment;
+import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 /**
@@ -772,6 +772,22 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
     }
     return true;
+  }
+
+  public String toSignature() {
+    StringBuilder signature = new StringBuilder();
+
+    if (element.getModifiers().contains(Modifier.PUBLIC)) {
+      signature.append("public ");
+    } else if (element.getModifiers().contains(Modifier.PROTECTED)) {
+      signature.append("protected ");
+    }
+
+    return signature.append(returnTypeName)
+        .append(" ")
+        .append(names.get)
+        .append("()")
+        .toString();
   }
 
   public boolean isPrimitiveElement() {

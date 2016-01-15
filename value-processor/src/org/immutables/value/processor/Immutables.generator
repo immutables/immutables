@@ -1625,7 +1625,9 @@ static final [output.linesShortable]class Json
   final [v.type] [v.name] = new java.util.HashMap<>();
 [/for]
 [for v in type.settableAttributes if not v.anyGetter]
-
+  [for a in v.annotations]
+  [a]
+  [/for]
   public void set[toUpper v.name]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
   }
@@ -1637,11 +1639,13 @@ static final [output.linesShortable]class Json
     this.[v.name].put(key, value);
   }
 [/for]
-[for signature in type.allAbstractMethodSignatures]
-
-  [-- we actually don't need this implementation, signature is good enough --]
-  @Override
+[for signature in type.nonAttributeAbstractMethodSignatures]
+  @Override[-- we actually don't need this implementation, signature is good enough --]
   [signature] { throw new UnsupportedOperationException(); }
+[/for]
+[for v in type.allAccessibleAttributes]
+  @Override[-- we actually don't need this implementation, signature is good enough --]
+  [v.toSignature] { throw new UnsupportedOperationException(); }
 [/for]
 }
 [/if]
