@@ -121,14 +121,25 @@ import [starImport];
   [generateSerialization type]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
   [if not type.factoryBuilder.isNew]
+    [for parameters = type.builderParameters]
 
   /**
    * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]}.
+[for p in parameters]
+   * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
+[/for]
    * @return A new [type.typeValue.simple] builder
    */
-  public static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
+  public static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    return new [type.typeBuilderImpl.relative]([for p in parameters][if not for.first], [/if][p.name][/for]);
+  }
+  [if parameters and (not type.kind.isFactory)]
+
+  static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.relative]();
   }
+  [/if]
+    [/for]
   [/if]
   [generateBuilder type false]
 [/if]
@@ -666,22 +677,30 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
   private Domain domain = Domain.get();
   [/if]
 [for Boolean useFactoryMethod = not type.factoryBuilder.isNew]
-[if type.kind.isFactory]
-  [for parameters = p for p in setters if p.isBuilderParameter]
+  [for parameters = type.builderParameters]
 
   [if not useFactoryMethod]
   /**
-   * Constructs {@code [type.typeBuilder.simple]} factory builder.
+[if type.kind.isFactory]
+   * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
+[else]
+   * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]} instances.
+[/if]
 [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
 [/for]
    */
   [/if]
-  [if useFactoryMethod]private [else][type.typeBuilder.access][/if][type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  [if useFactoryMethod]private [else][type.typeBuilderImpl.access][/if][type.typeBuilderImpl.simple]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    [if type.innerBuilder.isExtending]
+    if (!(this instanceof [type.typeBuilder])) {
+      throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
+    }
+    [/if]
     [for v in setters]
       [if v.builderSwitcher]
         [for o in v.builderSwitcherModel.options if o.isDefault]
-    this.[v.name] = [v.rawType].[o.constantName];
+    [v.names.init]([v.rawType].[o.constantName]);
         [/for]
       [/if]
       [if v.isBuilderParameter]
@@ -695,41 +714,42 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
       [/if]
     [/for]
   }
+  [if parameters and (not type.kind.isFactory)]
+
+  [if useFactoryMethod]private [/if][type.typeBuilderImpl.simple]() {
+    [if type.innerBuilder.isExtending]
+    if (!(this instanceof [type.typeBuilder])) {
+      throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
+    }
+    [/if]
+  }
+  [/if]
     [if useFactoryMethod]
+[if type.kind.isFactory or type.constitution.isOutsideBuilder]
 
   /**
-   * Creates a {@code [type.typeBuilder.simple]} factory builder.
+[if type.kind.isFactory]
+   * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
+[else]
+   * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]} instances.
+[/if]
 [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
 [/for]
    * @return A new builder
    */
-  public static [type.typeBuilder.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
-    return new [type.typeBuilder.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
+  public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    return new [type.typeBuilderImpl.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
-    [/if]
-  [/for]
-[else if useFactoryMethod]
+  [if parameters and (not type.kind.isFactory)]
 
-  private [type.typeBuilderImpl.simple]() {}
-  [if type.constitution.isOutsideBuilder]
-
-  /**
-   * Creates a builder for {@link [type.typeValue] [type.typeValue.simple]} instances.
-   * @return A new [type.typeValue.simple] builder
-   */
-  public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
+  static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.simple]();
   }
   [/if]
-[else if type.innerBuilder.isExtending]
-
-  [type.typeBuilderImpl.simple]() {
-    if (!(this instanceof [type.typeBuilder])) {
-      throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
-    }
-  }
 [/if]
+    [/if]
+  [/for]
 [/for]
 [if type.generateOrdinalValue]
 
@@ -838,17 +858,6 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.co
     [builderReturnThis type]
   }
   [/if]
-
-  /**
-   * Fill a builder with attribute values from the provided {@link [type.typePreferablyAbstract.relative]} instance.
-   * Regular attribute values will be replaced with those from the given instance.
-   * Absent optional values will not replace present values.
-  [if type.hasSettableCollection or type.hasSettableMapping]
-   * Collection elements and entries will be added, not replaced.
-  [/if]
-   * @param instance The instance from which to copy values
-   * @return {@code this} builder for use in a chained invocation
-   */
     [/if]
   [/if]
 [/if]
@@ -880,14 +889,11 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   [if o.isDefault]private[else]public[/if] final [builderReturnType type] [o.switcherName]() {
-    [checkNotIsSet v]
-    this.[v.name] = [v.rawType].[o.constantName];
-    [nondefaultSetInBuilder v]
-    [mandatorySetInBuilder v]
-    [builderReturnThis type]
+    return [v.names.init]([v.rawType].[o.constantName]);
   }
     [/for]
-  [else if v.collectionType]
+  [/if]
+  [if v.collectionType]
     [if not v.isBuilderParameter]
 
   /**
@@ -951,7 +957,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
       [v.name]Builder.add([requireNonNull type](element, "[v.name] element"));
@@ -984,7 +990,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
     this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
     [nondefaultSetInBuilder v]
@@ -1064,7 +1070,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [defineOrResetBuildingField v false]
     return [v.names.putAll](entries);
   }
@@ -1077,7 +1083,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.entrySet()) {
       [v.name]Builder.put(
@@ -1102,7 +1108,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [varargsSafety v]
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.elementType]... elements) {
     [checkNotIsSet v]
     [if v.nullable][-- this is a special case --]
     if (elements == null) {
@@ -1127,7 +1133,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.init]Of([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]Of([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
     [checkNotIsSet v]
     this.[v.name] = [v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]);
     [nondefaultSetInBuilder v]
@@ -1145,7 +1151,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  [builderInitAccess v] final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
     [if v.attributeValueType]
     this.[v.name] = [if v.nullable][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([v.name]);
@@ -2629,7 +2635,7 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
 
-[template builderInitAccess Attribute a][if a.isBuilderParameter]private[else]public[/if][/template]
+[template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else]public [/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 

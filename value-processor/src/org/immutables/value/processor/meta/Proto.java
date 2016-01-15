@@ -143,29 +143,24 @@ public class Proto {
 
     @Value.Derived
     StyleInfo defaultStyles() {
-      TypeElement typeElement = processing()
-          .getElementUtils()
-          .getTypeElement(StyleMirror.qualifiedName());
-
+      @Nullable TypeElement typeElement =
+          findElement(StyleMirror.qualifiedName());
       return ToStyleInfo.FUNCTION.apply(StyleMirror.from(typeElement));
     }
 
     @Value.Lazy
     public boolean hasTreesModule() {
-      @Nullable TypeElement annotationTypeElement = processing()
-          .getElementUtils()
-          .getTypeElement(TransformMirror.qualifiedName());
-
-      return annotationTypeElement != null;
+      return findElement(TransformMirror.qualifiedName()) != null;
     }
 
     @Value.Lazy
     public boolean hasFunctionalModule() {
-      @Nullable TypeElement annotationTypeElement = processing()
-          .getElementUtils()
-          .getTypeElement(FunctionalMirror.qualifiedName());
+      return findElement(FunctionalMirror.qualifiedName()) != null;
+    }
 
-      return annotationTypeElement != null;
+    @Value.Lazy
+    public boolean hasBuilderModule() {
+      return findElement(FactoryMirror.qualifiedName()) != null;
     }
 
     /**
@@ -176,9 +171,8 @@ public class Proto {
      */
     @Value.Lazy
     TypeAdaptersMirror defaultTypeAdapters() {
-      @Nullable TypeElement typeElement = processing()
-          .getElementUtils()
-          .getTypeElement(TypeAdaptersMirror.qualifiedName());
+      @Nullable TypeElement typeElement =
+          findElement(TypeAdaptersMirror.qualifiedName());
 
       Preconditions.checkState(typeElement != null,
           "Processor internal error, @%s is not know to be on the classpath",
@@ -193,6 +187,12 @@ public class Proto {
 
     ImmutableList<Protoclass> protoclassesFrom(Iterable<? extends Element> elements) {
       return round().protoclassesFrom(elements);
+    }
+
+    private @Nullable TypeElement findElement(String qualifiedName) {
+      return processing()
+          .getElementUtils()
+          .getTypeElement(qualifiedName);
     }
   }
 
@@ -724,7 +724,7 @@ public class Proto {
       Optional<RepositoryMirror> repositoryMirror =
           kind().isIncluded() || kind().isDefinedValue()
               ? declaringType().get().repository()
-							: Optional.<RepositoryMirror>absent();
+              : Optional.<RepositoryMirror>absent();
 
       if (repositoryMirror.isPresent() && !typeAdaptersProvider().isPresent()) {
         if (kind().isNested()) {
@@ -1114,6 +1114,10 @@ public class Proto {
 
     public boolean hasFunctionalModule() {
       return environment().hasFunctionalModule();
+    }
+
+    public boolean hasBuilderModule() {
+      return environment().hasBuilderModule();
     }
   }
 

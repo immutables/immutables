@@ -71,9 +71,12 @@ public @interface Builder {
    *    .right(node2)
    *    .build();
    * </pre>
+   * <p>
+   * Also note that with some limitation this annotation works on value type attribute to generate
+   * builder parameter.
    */
   @Documented
-  @Target(ElementType.PARAMETER)
+  @Target({ElementType.PARAMETER, ElementType.METHOD})
   public @interface Parameter {}
 
   /**
@@ -117,9 +120,12 @@ public @interface Builder {
    *    .onLight() // but we can switch to Switcher.ON
    *    .build();
    * </pre>
+   * <p>
+   * Also note that with some limitation this annotation works on value type attribute to generate
+   * switch option.
    */
   @Documented
-  @Target(ElementType.PARAMETER)
+  @Target({ElementType.PARAMETER, ElementType.METHOD})
   public @interface Switch {
     /**
      * Specify constant name of default enum value for this switch. The name should match constant

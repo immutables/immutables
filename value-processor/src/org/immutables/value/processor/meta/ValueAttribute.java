@@ -246,11 +246,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.isGenerateJacksonMapped()) {
       return extractAnnotationsForElement(
           ElementType.METHOD,
-          containingType.constitution.protoclass().styles().style().passAnnotationsNames());
+          protoclass().styles().style().passAnnotationsNames());
 
     }
     return Annotations.getAnnotationLines(element,
-        containingType.constitution.protoclass().styles().style().passAnnotationsNames(),
+        protoclass().styles().style().passAnnotationsNames(),
         false,
         ElementType.METHOD);
   }
@@ -274,7 +274,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     allAnnotations.addAll(
         Annotations.getAnnotationLines(element,
             Sets.union(additionalAnnotations,
-                containingType.constitution.protoclass().styles().style().additionalJsonAnnotationsNames()),
+                protoclass().styles().style().additionalJsonAnnotationsNames()),
             true,
             elementType));
 
@@ -717,11 +717,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isNonRawElementType() {
     return getElementType().indexOf('<') > 0;
   }
-  
+
   public boolean isNonRawSecondaryElementType() {
     return getSecondaryElementType().indexOf('<') > 0;
   }
-  
+
   public boolean isContainerType() {
     // TBD replace with typeKind.isContainerKind() ?
     return isCollectionType()
@@ -796,7 +796,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initTypeName();
     initTypeKind();
     initOrderKind();
-    initFactoryParamsIfApplicable();
+    initBuilderParamsIfApplicable();
     initMiscellaneous();
     initAttributeValueType();
 
@@ -970,7 +970,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initMiscellaneous() {
-    Elements elements = containingType.constitution.protoclass()
+    Elements elements = protoclass()
         .processing()
         .getElementUtils();
 
@@ -984,8 +984,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
-  private void initFactoryParamsIfApplicable() {
-    if (!containingType.kind().isFactory()) {
+  private void initBuilderParamsIfApplicable() {
+    if (!protoclass().hasBuilderModule()) {
       return;
     }
     isBuilderParameter = FParameterMirror.isPresent(element);
@@ -1005,10 +1005,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         builderSwitcherModel = new SwitcherModel(switcher.get(), name(), containedTypeElement);
       }
     }
-  }
-
-  Reporter report() {
-    return reporter.withElement(element);
   }
 
   @Nullable
@@ -1035,12 +1031,21 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || (isPrimitive() && isGenerateDefault);
   }
 
-  @Override
-  public String toString() {
-    return "Attribute[" + name() + "]";
-  }
 
   boolean hasConstructorParameterCustomOrder() {
     return getConstructorParameterOrder() > ValueAttribute.CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+  }
+
+  private Protoclass protoclass() {
+    return containingType.constitution.protoclass();
+  }
+
+  Reporter report() {
+    return reporter.withElement(element);
+  }
+
+  @Override
+  public String toString() {
+    return "Attribute[" + name() + "]";
   }
 }

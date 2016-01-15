@@ -1166,15 +1166,31 @@ public final class ValueType extends TypeIntrospectionBase {
       return getAllAccessibleAttributes();
     }
 
-    ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
+    List<ValueAttribute> params = Lists.newArrayList();
 
     for (ValueAttribute a : getAllAccessibleAttributes()) {
       if (FunctionalMirror.isPresent(a.element)) {
-        builder.add(a);
+        params.add(a);
       }
     }
 
-    return builder.build();
+    return params;
+  }
+
+  public List<ValueAttribute> getBuilderParameters() {
+    if (!constitution.protoclass().hasBuilderModule()) {
+      return ImmutableList.of();
+    }
+
+    List<ValueAttribute> params = Lists.newArrayList();
+
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isBuilderParameter) {
+        params.add(a);
+      }
+    }
+
+    return params;
   }
 
   private String toSignature(ValueAttribute a) {
