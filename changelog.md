@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+### 2.1.8 (2016-01-15)
+- Bugfix and Minor improvement release.
+  + New 'func' module: Functions and predicate generator (for Guava, pre java 8)
+  + `@Builder.Parameter` and `@Builder.Switch` are working on value attributes now
+  + New 'android-stub' module, may be useful to compile android libraries using Immutables for API level < 19
+- Thanks to contributors and issue reporters!  
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.8)
+
 ### 2.1.5 (2016-01-02)
 - Bugfix and Minor improvement release.
 - Thanks to contributors and issue reporters!
