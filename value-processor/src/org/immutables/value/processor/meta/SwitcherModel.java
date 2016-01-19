@@ -8,7 +8,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
-import org.immutables.generator.SourceOrdering;
 
 public final class SwitcherModel {
   private final String defaultName;
@@ -28,7 +27,7 @@ public final class SwitcherModel {
   private ImmutableList<SwitchOption> constructOptions() {
     ImmutableList.Builder<SwitchOption> builder = ImmutableList.builder();
 
-    for (Element v : SourceOrdering.getEnclosedElements(containedTypeElement)) {
+    for (Element v : containedTypeElement.getEnclosedElements()) {
       if (v.getKind() == ElementKind.ENUM_CONSTANT) {
         String name = v.getSimpleName().toString();
         builder.add(new SwitchOption(name, defaultName.equals(name)));

@@ -168,6 +168,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeWith();
   }
 
+  public NameForms typePreferablyAbstract() {
+    return constitution.typePreferablyAbstract();
+  }
+
   public boolean isUseBuilder() {
     return immutableFeatures.builder();
   }
@@ -1113,7 +1117,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return round.declaringTypeFrom(declaringType);
   }
 
-  public Set<String> allAbstractMethodSignatures() {
+  public Set<String> getNonAttributeAbstractMethodSignatures() {
     if (element.getKind().isClass() || element.getKind().isInterface()) {
       Set<String> signatures = new LinkedHashSet<>();
 
@@ -1122,16 +1126,6 @@ public final class ValueType extends TypeIntrospectionBase {
           .getElementUtils()
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
 
-      // For attribute signatures we will use more reliable mechanism
-      for (ValueAttribute a : attributes()) {
-        if (a.isGenerateAbstract
-            || a.isGenerateLazy
-            || a.isGenerateDerived
-            || a.isGenerateDefault) {
-          signatures.add(toSignature(a));
-        }
-      }
-      
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()) {
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
@@ -1145,20 +1139,48 @@ public final class ValueType extends TypeIntrospectionBase {
     return Collections.emptySet();
   }
 
-  private String toSignature(ValueAttribute a) {
-    StringBuilder signature = new StringBuilder();
-
-    if (a.element.getModifiers().contains(Modifier.PUBLIC)) {
-      signature.append("public ");
-    } else if (a.element.getModifiers().contains(Modifier.PROTECTED)) {
-      signature.append("protected ");
+  public List<ValueAttribute> getFunctionalAttributes() {
+    if (!constitution.protoclass().hasFunctionalModule()) {
+      return ImmutableList.of();
     }
 
-    return signature.append(a.returnTypeName)
-        .append(" ")
-        .append(a.names.get)
-        .append("()")
-        .toString();
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+
+    if (declaringType.isPresent()) {
+      if (FunctionalMirror.isPresent(declaringType.get().element())) {
+        return getAllAccessibleAttributes();
+      }
+    }
+
+    if (FunctionalMirror.isPresent(element)) {
+      return getAllAccessibleAttributes();
+    }
+
+    List<ValueAttribute> params = Lists.newArrayList();
+
+    for (ValueAttribute a : getAllAccessibleAttributes()) {
+      if (FunctionalMirror.isPresent(a.element)) {
+        params.add(a);
+      }
+    }
+
+    return params;
+  }
+
+  public List<ValueAttribute> getBuilderParameters() {
+    if (!constitution.protoclass().hasBuilderModule()) {
+      return ImmutableList.of();
+    }
+
+    List<ValueAttribute> params = Lists.newArrayList();
+
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (a.isBuilderParameter) {
+        params.add(a);
+      }
+    }
+
+    return params;
   }
 
   private String toSignature(ExecutableElement m) {

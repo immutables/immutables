@@ -22,7 +22,6 @@ package [type.package];
 
 import org.immutables.trees.ast.Extractions;
 import java.lang.String;
-// Generated imports
 
 [if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault

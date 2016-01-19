@@ -10,7 +10,7 @@
 
   <groupId>org.immutables</groupId>
   <artifactId>immutables</artifactId>
-  <version>2.1.6-SNAPSHOT</version>
+  <version>2.1.9-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}.${project.artifactId}</name>
@@ -30,8 +30,10 @@
     <module>value</module>
     <module>ordinal</module>
     <module>builder</module>
+    <module>android-stub</module>
     <module>gson</module>
     <module>mongo</module>
+    <module>func</module>
     <module>value-processor</module>
     <module>value-fixture</module>
     <module>serial</module>

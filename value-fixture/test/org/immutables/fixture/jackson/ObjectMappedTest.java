@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -30,6 +32,13 @@ public class ObjectMappedTest {
 
   public static class Wrapper {
     public ImmutableSampleJacksonMapped mapped;
+  }
+
+  @Test
+  public void jsonPropertyName() throws IOException {
+    ObjectMapper mapper = new ObjectMapper();
+    Foo foo = mapper.readValue("{\"bar\": true}", Foo.class);
+    check(foo.isBar());
   }
 
   @Test

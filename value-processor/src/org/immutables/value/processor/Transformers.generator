@@ -128,7 +128,7 @@ package [transformerType.package];
 
   protected [et] as[s][toUpper a.name]([t] value, [et] element) {
     [if cases.isImplementedType et]
-    return to[s](element);
+    return to[simplifyName et](element);
     [else][for Type subtype in cases.knownSubtypes et]
     if (element instanceof [subtype.typeValue]) {
       return as[simplifyName et](([subtype.typeValue]) element);

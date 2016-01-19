@@ -1,0 +1,86 @@
+[template public generate]
+  [for type in values.values if type.kind.isValue,
+       attrs = type.functionalAttributes]
+    [if attrs]
+[output.java type.package (type.name 'Functions')]
+[type.sourceHeader]
+[generateFunctions type attrs]
+[/output.java]
+    [/if]
+  [/for]
+[/template]
+
+[template generateFunctions Type type Attribute... attrs]
+[if type.package]
+package [type.package];
+[/if]
+
+/**
+ * Projection functions and predicates that corresponds to attributes of {@link [type.typeAbstract.relative]}.
+ */
+[if type.generateSuppressAllWarnings]
+@SuppressWarnings([if type.hasDeprecatedAttributes]{"all", "deprecation"}[else]"all"[/if])
+[else if type.hasDeprecatedAttributes]
+@SuppressWarnings("deprecation")
+[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if classpath.available 'javax.annotation.Generated']
+@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
+[/if]
+[type.typePreferablyAbstract.access]final class [type.name]Functions {
+  private [type.name]Functions() {}
+  [generateHelpers type attrs]
+}
+[/template]
+
+[template generateHelpers Type type Attribute... attrs]
+[for h in attrs]
+[if h.boolean]
+
+/**
+ * Predicate on instance of [type.name] that tests attribute [sourceDocRef type h].
+ * @return {@code [h.name]} predicate instance
+ */
+public static [guava].base.Predicate<[type.typePreferablyAbstract]> [h.names.get]() {
+  return [toUpper h.name]Predicate.INSTANCE;
+}
+
+private enum [toUpper h.name]Predicate implements [guava].base.Predicate<[type.typePreferablyAbstract]> {
+  INSTANCE;
+  @Override
+  public boolean apply([type.typePreferablyAbstract] input) {
+    return input.[h.names.get]();
+  }
+  @Override
+  public java.lang.String toString() {
+    return "[type.name]Functions.[h.names.get]()";
+  }
+}
+[else]
+
+/**
+ * Projection function from instance of [type.name] to attribute [sourceDocRef type h].
+ * @return {@code [h.name]} function instance
+ */
+public static [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]> [h.names.get]() {
+  return [toUpper h.name]Function.INSTANCE;
+}
+
+private enum [toUpper h.name]Function implements [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]> {
+  INSTANCE;
+  @Override
+  public [h.atNullability][h.wrapperType] apply([type.typePreferablyAbstract] input) {
+    return input.[h.names.get]();
+  }
+  @Override
+  public java.lang.String toString() {
+    return "[type.name]Functions.[h.names.get]()";
+  }
+}
+[/if]
+[/for]
+[/template]
+
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
