@@ -1724,7 +1724,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/for]
 [deprecation v]
 @Override
-[if v.isPublic]public [/if][v.atNullability][immutableImplementationType v] [v.names.get]() {
+[v.access][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
   return [disambiguateField type 'initShim'] != null
       ? [disambiguateField type 'initShim'].[v.names.get]()

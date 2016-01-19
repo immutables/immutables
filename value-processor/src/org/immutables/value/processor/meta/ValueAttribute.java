@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -91,11 +92,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public String name() {
     return names.raw;
-  }
-
-  public boolean isPublic() {
-    return element.getModifiers().contains(Modifier.PUBLIC)
-        || containingType.constitution.implementationVisibility().isPublic();
   }
 
   public boolean isBoolean() {
@@ -777,17 +773,23 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String toSignature() {
     StringBuilder signature = new StringBuilder();
 
-    if (element.getModifiers().contains(Modifier.PUBLIC)) {
-      signature.append("public ");
-    } else if (element.getModifiers().contains(Modifier.PROTECTED)) {
-      signature.append("protected ");
-    }
+    signature.append(getAccess());
 
     return signature.append(returnTypeName)
         .append(" ")
         .append(names.get)
         .append("()")
         .toString();
+  }
+
+  public String getAccess() {
+    if (element.getModifiers().contains(Modifier.PUBLIC)
+        || containingType.constitution.style().visibility() == ImplementationVisibility.PUBLIC) {
+      return "public ";
+    } else if (element.getModifiers().contains(Modifier.PROTECTED)) {
+      return "protected ";
+    }
+    return "";
   }
 
   public boolean isPrimitiveElement() {
@@ -1046,7 +1048,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !hasForwardOnlyInitializer())
         || (isPrimitive() && isGenerateDefault);
   }
-
 
   boolean hasConstructorParameterCustomOrder() {
     return getConstructorParameterOrder() > ValueAttribute.CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;

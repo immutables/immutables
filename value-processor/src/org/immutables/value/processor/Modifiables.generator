@@ -328,7 +328,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [/for]
 [deprecation v]
 @Override
-[if v.isPublic]public [/if]final [v.atNullability][v.type] [v.names.get]() {
+[v.access]final [v.atNullability][v.type] [v.names.get]() {
 [if v.mandatory]
   if (![isSet v]()) {[-- opportunistically reuse attributes check --]
     [disambiguateAccessor type 'checkRequiredAttributes']();
