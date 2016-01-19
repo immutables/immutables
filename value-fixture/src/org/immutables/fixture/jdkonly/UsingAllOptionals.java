@@ -27,18 +27,25 @@ import org.immutables.value.Value;
 @Value.Immutable
 @Gson.TypeAdapters
 public interface UsingAllOptionals {
+  @Value.Parameter
   Optional<Integer> v1();
 
+  @Value.Parameter
   java.util.Optional<Integer> v2();
 
+  @Value.Parameter
   OptionalInt i1();
 
+  @Value.Parameter
   OptionalLong l1();
 
+  @Value.Parameter
   OptionalDouble d1();
 
+  @Value.Parameter
   Option<String> fo2();
 
+  @Value.Parameter
   io.atlassian.fugue.Option<String> fo3();
 
   class Use {

@@ -80,7 +80,7 @@ public abstract class Constitution {
   @Value.Lazy
   public NameForms typePreferablyAbstract() {
     if (protoclass().kind().isValue()) {
-      return protoclass().visibility().isMoreRestrictiveThan(implementationVisibility())
+      return isImplementationPrimary()
           ? typeImmutable()
           : typeAbstract();
     }
@@ -99,7 +99,7 @@ public abstract class Constitution {
 
   private boolean isAbstractPrimary() {
     return returnsAbstractValueType()
-        || !protoclass().visibility().isMoreRestrictiveThan(implementationVisibility());
+        || !isImplementationPrimary();
   }
 
   public boolean isSimple() {
