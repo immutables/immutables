@@ -548,13 +548,26 @@ private Object writeReplace() {
 [if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
 /**
- * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
+ * Creates an immutable copy of a {@link [if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if]} value.
  * Uses accessors to get values to initialize the new immutable instance.
  * If an instance is already immutable, it is returned as is.
  * @param instance The instance to copy
  * @return A copied immutable [type.name] instance
  */
-public static [type.typeValue.relative] [type.factoryCopyOf.applied]([if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if] instance) {
+[if type.constitution.isImplementationPrimary]
+public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeImmutable.relative] instance) {
+  return [type.factoryCopyOf.applied](([type.typeAbstract.relative]) instance);
+}
+
+/**
+ * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
+ * @param instance The instance to copy
+ * @return A copied immutable [type.name] instance
+ */
+static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
+[else]
+public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
+[/if]
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }

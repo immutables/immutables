@@ -8,6 +8,11 @@ import org.immutables.value.Value;
 abstract class BuildFromRegression {
   public abstract List<String> values();
 
+  public ImmutableBuildFromRegression replace(ImmutableBuildFromRegression that) {
+    return ImmutableBuildFromRegression.copyOf(this)
+        .withValues(that.values());
+  }
+
   public ImmutableBuildFromRegression append(ImmutableBuildFromRegression that) {
     return ImmutableBuildFromRegression.builder()
         .from(this)
