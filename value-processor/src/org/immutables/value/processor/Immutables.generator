@@ -547,20 +547,22 @@ private Object writeReplace() {
 [template generateImmutableCopyOf Type type]
 [if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
-/**
- * Creates an immutable copy of a {@link [if type.constitution.isImplementationPrimary][type.typeImmutable.relative][else][type.typeAbstract.relative][/if]} value.
- * Uses accessors to get values to initialize the new immutable instance.
- * If an instance is already immutable, it is returned as is.
- * @param instance The instance to copy
- * @return A copied immutable [type.name] instance
- */
 [if type.constitution.isImplementationPrimary]
+/**
+ * You already have immutable object.
+ * @deprecated do not use this method
+ * @param instance The instance
+ * @return the same instance
+ */
+@Deprecated
 public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeImmutable.relative] instance) {
-  return [type.factoryCopyOf.applied](([type.typeAbstract.relative]) instance);
+  return instance;
 }
 
 /**
  * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
+ * Uses accessors to get values to initialize the new immutable instance.
+ * If an instance is already immutable, it is returned as is.
  * @param instance The instance to copy
  * @return A copied immutable [type.name] instance
  */
@@ -1686,7 +1688,8 @@ static final [output.linesShortable]class Json
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static [type.typeValue.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
+static [type.typeImmutable.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
+[let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
@@ -1700,16 +1703,16 @@ static [type.typeValue.relative] fromJson([if type.settableAttributes]Json json[
       [/if]
   }
   [/for]
-  return builder.[type.names.build]();
+  return [cast]builder.[type.names.build]();
 [else if type.useSingletonOnly]
-  return [type.factoryInstance.relative]();
+  return [cast][type.factoryInstance.relative]();
 [else]
     [if type.useConstructor]
-  [type.typeValue.relative] instance = [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
+  [type.typeImmutable.relative] instance = [cast][type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
     [else if type.useSingleton]
-  [type.typeValue.relative] instance = [type.factoryInstance.relative]();
+  [type.typeImmutable.relative] instance = [cast][type.factoryInstance.relative]();
     [else]
-  [output.error]Cannot generate code when there are no builders, constructors or singletons available[/output.error]
+  [output.error]Cannot generate JSON code when there are no builders, constructors or singletons available[/output.error]
     [/if]
   [for o in type.withSettableAfterConstruction]
   if (json.[o.name] != null) {

@@ -15,8 +15,6 @@
  */
 package org.immutables.fixture.jackson;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -161,5 +159,14 @@ public class ObjectMappedTest {
     ImmutableJacksonMappedWithNoAnnotations value =
         OBJECT_MAPPER.readValue(json, ImmutableJacksonMappedWithNoAnnotations.class);
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void packageHiddenInsideBuilder() throws Exception {
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = "{\"strings\":[\"asd\"]}"; // Passes the test.
+    PackageHidden example = objectMapper.readValue(json, PackageHidden.class);
+
+    check(example.getStrings()).isOf("asd");
   }
 }
