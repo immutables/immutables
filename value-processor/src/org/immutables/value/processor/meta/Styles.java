@@ -16,7 +16,6 @@
 package org.immutables.value.processor.meta;
 
 import org.immutables.generator.Naming;
-
 import com.google.common.base.CaseFormat;
 
 public final class Styles {
@@ -98,6 +97,10 @@ public final class Styles {
     }
 
     private String detectRawFromGet() {
+      return Keywords.safeIdentifier(detectRawFrom(name), name);
+    }
+
+    private String detectRawFrom(String name) {
       if (!forcedRaw.isEmpty()) {
         return forcedRaw;
       }
