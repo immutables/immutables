@@ -551,18 +551,6 @@ private Object writeReplace() {
 [template generateImmutableCopyOf Type type]
 [if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
-[if type.constitution.isImplementationPrimary]
-/**
- * You already have immutable object.
- * @deprecated do not use this method
- * @param instance The instance
- * @return the same instance
- */
-@Deprecated
-public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeImmutable.relative] instance) {
-  return instance;
-}
-
 /**
  * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
  * Uses accessors to get values to initialize the new immutable instance.
@@ -570,10 +558,7 @@ public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeI
  * @param instance The instance to copy
  * @return A copied immutable [type.name] instance
  */
-static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
-[else]
-public static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
-[/if]
+[if not type.constitution.isImplementationPrimary]public [/if]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
   if (instance instanceof [type.typeImmutable.relative]) {
     return ([type.typeImmutable.simple]) instance;
   }
