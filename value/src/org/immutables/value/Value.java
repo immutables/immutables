@@ -685,7 +685,7 @@ public @interface Value {
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
-     * type. It is a good idea to not specify such attributea inline with immutable values, but
+     * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).
      * @return implementation visibility
      */
