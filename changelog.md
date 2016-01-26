@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+### 2.1.9 (2016-01-26)
+- Bugfix and Minor improvement release.
+  + Automatic unboxing and boxing of java.util.Optional<A> to nullable A fields
+- Thanks to contributors and issue reporters!  
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.9)
+
 ### 2.1.8 (2016-01-15)
 - Bugfix and Minor improvement release.
   + New 'func' module: Functions and predicate generator (for Guava, pre java 8)
