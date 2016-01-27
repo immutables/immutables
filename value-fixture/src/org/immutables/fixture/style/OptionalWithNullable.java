@@ -10,6 +10,7 @@ public interface OptionalWithNullable {
   Optional<String> getJavaOptional();
 
   OptionalInt getJavaOptionalInt();
+  Optional<Integer> getJavaOptionalInteger();
 
   com.google.common.base.Optional<String> getGuavaOptional();
 }

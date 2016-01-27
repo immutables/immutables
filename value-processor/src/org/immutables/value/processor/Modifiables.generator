@@ -437,7 +437,7 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set]([atNullableAccept v][v.unwrappedElementType] [v.name]) {
+public [thisReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
   this.[v.name] = [optionalOf v]([v.name]);
   [nondefaultSetter v]
   [thisReturn type]
@@ -851,7 +851,7 @@ import [starImport];
 
 [template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
 
-[template atNullableAccept Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][/if][/template]
+[template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
