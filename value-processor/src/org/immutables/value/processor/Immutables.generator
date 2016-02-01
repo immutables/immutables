@@ -833,7 +833,7 @@ private Object writeReplace() {
     [else]
 
   /**
-   * Fill a builder with attribute values from the provided {@link [if type.constitution.isImplementationPrimary][type.typeImmutable.simple][else][type.typeAbstract.simple][/if]} instance.
+   * Fill a builder with attribute values from the provided {@code [if type.constitution.isImplementationPrimary][type.typeImmutable.simple][else][type.typeAbstract.simple][/if]} instance.
    * Regular attribute values will be replaced with those from the given instance.
    * Absent optional values will not replace present values.
   [if type.hasSettableCollection or type.hasSettableMapping]
