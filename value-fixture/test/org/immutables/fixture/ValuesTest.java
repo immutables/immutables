@@ -408,6 +408,7 @@ public class ValuesTest {
     ImmutableOptionalWithNullable.builder()
         .guavaOptional((String) null)
         .javaOptional((String) null)
+        .javaOptionalInteger((Integer) null)
         .build();
   }
 

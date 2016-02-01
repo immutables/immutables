@@ -986,7 +986,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @return {@code this} builder for chained invocation
    */
   [deprecation v]
-  public final [builderReturnType type] [v.names.init]([atNullableAccept v][v.unwrappedElementType] [v.name]) {
+  public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional]
     this.[v.name] = [if v.jdkSpecializedOptional or v.optionalAcceptNullable][v.name][else][requireNonNull type]([v.name], "[v.name]")[/if];
@@ -2042,7 +2042,7 @@ public final [type.typeImmutable.simple] [v.names.with](Iterable<[v.consumedElem
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([atNullableAccept v][v.unwrappedElementType] value) {
+public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v] value) {
 [if v.jdkOptional]
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
@@ -2166,7 +2166,7 @@ interface [type.typeWith.simple] {
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeValue.relative] [v.names.with]([atNullableAccept v][v.unwrappedElementType] value);
+  [type.typeValue.relative] [v.names.with]([unwrappedOptionalType v] value);
 
   /**
    * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
@@ -2721,7 +2721,7 @@ return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
 
 [template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
 
-[template atNullableAccept Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][/if][/template]
+[template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
