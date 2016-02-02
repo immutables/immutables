@@ -21,15 +21,19 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
+import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -199,7 +203,7 @@ public final class SourceOrdering {
       }
 
       void traverse(@Nullable TypeElement element) {
-        if (element == null) {
+        if (element == null || isJavaLangObject(element)) {
           return;
         }
         collectEnclosing(element);
@@ -220,7 +224,7 @@ public final class SourceOrdering {
       void collectEnclosing(TypeElement type) {
         FluentIterable<String> accessorsInType =
             FluentIterable.from(SourceOrdering.getEnclosedElements(type))
-                .filter(IsParameterlessNonstatic.PREDICATE)
+                .filter(IsParameterlessNonstaticNonobject.PREDICATE)
                 .transform(ToSimpleName.FUNCTION);
 
         for (String accessor : accessorsInType) {
@@ -261,14 +265,15 @@ public final class SourceOrdering {
 
     final CollectedOrdering ordering = new CollectedOrdering();
 
+    final ImmutableList<ExecutableElement> sortedList =
+        ordering.immutableSortedCopy(
+            disambiguateMethods(
+            ElementFilter.methodsIn(
+                elements.getAllMembers(type))));
+
     return new AccessorProvider() {
       ImmutableListMultimap<String, TypeElement> accessorMapping =
           ImmutableListMultimap.copyOf(ordering.accessorMapping);
-
-      ImmutableList<ExecutableElement> sortedList =
-          FluentIterable.from(ElementFilter.methodsIn(elements.getAllMembers(type)))
-              .filter(IsParameterlessNonstatic.PREDICATE)
-              .toSortedList(ordering);
 
       @Override
       public ImmutableListMultimap<String, TypeElement> accessorMapping() {
@@ -282,6 +287,44 @@ public final class SourceOrdering {
     };
   }
 
+  private static List<ExecutableElement> disambiguateMethods(
+      Iterable<? extends ExecutableElement> methods) {
+
+    Multimap<String, ExecutableElement> methodsAlternatives = HashMultimap.create();
+    for (ExecutableElement m : methods) {
+      if (IsParameterlessNonstaticNonobject.PREDICATE.apply(m)) {
+        methodsAlternatives.put(ToSimpleName.FUNCTION.apply(m), m);
+      }
+    }
+
+    List<ExecutableElement> resolvedMethods = Lists.newArrayList();
+
+    entries: for (Entry<String, Collection<ExecutableElement>> e : methodsAlternatives.asMap().entrySet()) {
+      Collection<ExecutableElement> values = e.getValue();
+      if (values.size() == 1) {
+        resolvedMethods.addAll(values);
+      } else {
+        // Preferebly take the one coming from a class rather than interface
+        for (ExecutableElement v : values) {
+          if (v.getEnclosingElement().getKind().isClass()) {
+            resolvedMethods.add(v);
+            continue entries;
+          }
+        }
+        // grab just the first among interface names
+        for (ExecutableElement v : values) {
+          resolvedMethods.add(v);
+          continue entries;
+        }
+        // Expect that compilation error in user code
+        // will happen if methods are not compatible, they have to
+        // be resolved either way.
+      }
+    }
+
+    return resolvedMethods;
+  }
+
   private enum ToSimpleName implements Function<Element, String> {
     FUNCTION;
     @Override
@@ -290,11 +333,14 @@ public final class SourceOrdering {
     }
   }
 
-  private enum IsParameterlessNonstatic implements Predicate<Element> {
+  private enum IsParameterlessNonstaticNonobject implements Predicate<Element> {
     PREDICATE;
     @Override
     public boolean apply(Element input) {
       if (input.getKind() != ElementKind.METHOD) {
+        return false;
+      }
+      if (isJavaLangObject((TypeElement) input.getEnclosingElement())) {
         return false;
       }
       ExecutableElement element = (ExecutableElement) input;
@@ -302,5 +348,9 @@ public final class SourceOrdering {
       boolean nonstatic = !element.getModifiers().contains(Modifier.STATIC);
       return parameterless && nonstatic;
     }
+  }
+
+  static boolean isJavaLangObject(TypeElement element) {
+    return element.getQualifiedName().contentEquals(Object.class.getName());
   }
 }
