@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+### 2.1.10 (2016-02-02)
+- Bugfix release.
+  + License headers, added missing, plus some cleanup
+  + Fixed override of final method in some cases
+  + Javadoc linting to fix javadocs in generated code
+- Thanks to contributors and issue reporters!  
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.10)
+
 ### 2.1.9 (2016-01-26)
 - Bugfix and Minor improvement release.
   + Automatic unboxing and boxing of java.util.Optional<A> to nullable A fields
