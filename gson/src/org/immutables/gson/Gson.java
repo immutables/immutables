@@ -143,7 +143,7 @@ public @interface Gson {
    * <p>
    * <em>If you use Gson versions 2.5.0 and higher it's better to use {@link SerializedName} instead.
    * This annotation is analogous to {@code SerializedName} but was created when {@code SerializedName}
-   * was applicable only to fields in older versions of Gson. You can think of this <del>Gson.Named</del>
+   * was applicable only to fields in older versions of Gson. You can think of this {@code Gson.Named}
    * annotation as deprecated now.
    * </em>
    * @see SerializedName

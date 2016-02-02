@@ -1205,6 +1205,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 
   /**
    * Clear the builder to the initial state.
+   * @return {@code this} builder for use in a chained invocation
    */
   public [builderReturnType type] [type.names.clear]() {
     [for l in positions.longs]
@@ -1240,12 +1241,16 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   /**
   [if type.kind.isFactory]
    * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
+   * @param <T> exception type
+   * @param exceptionSupplier used to create new exception from supplied error message
    * @return A result of type {@code [type.typeValue]}
   [else]
    * Builds a new {@link [type.typeValue.relative] [type.typeValue.simple]}.
+   * @param <T> exception type
+   * @param exceptionSupplier used to create new exception from supplied error message
    * @return An immutable instance of [type.name]
   [/if]
-   * @throws The supplied exception {@code T} if any required attributes are missing
+   * @throws T The supplied exception {@code T} if any required attributes are missing
    */
   public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {

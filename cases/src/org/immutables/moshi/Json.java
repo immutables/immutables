@@ -30,16 +30,18 @@ public @interface Json {
     /**
      * When {@code emptyAsNulls=true}, empty arrays and objects will be omitted from output as
      * if they where {@code null}, both field name and value will be omited.
-     * <p>
+     * @return if empty should be omitted as nulls
      */
     boolean emptyAsNulls() default false;
   }
 
   /**
+   * <p>
    * Specify attribute's custom name in JSON representation.
+   * </p>
    * <p>
    * This example used to define JSON attribute name as "_id" during marshaling and unmarshaling.
-   * 
+   * </p>
    * <pre>
    * &#064;OkJson.Named(&quot;_id&quot;)
    * public abstract String id();
