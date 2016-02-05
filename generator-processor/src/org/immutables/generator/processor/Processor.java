@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import javax.lang.model.element.Name;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -102,12 +103,23 @@ public final class Processor extends AbstractProcessor {
     Filer filer = knife.environment.getFiler();
 
     FileObject templateResource =
-        filer.getResource(
-            StandardLocation.SOURCE_PATH,
-            packageElement.getQualifiedName(),
-            templateType.getSimpleName() + ".generator");
+        extracted(templateType, packageElement, filer);
 
     return templateResource.getCharContent(true).toString();
+  }
+
+  private FileObject extracted(TypeElement templateType, PackageElement packageElement, Filer filer) throws IOException {
+    CharSequence relativeName = templateType.getSimpleName() + ".generator";
+    CharSequence packageName = packageElement.getQualifiedName();
+    try {
+      return filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName);
+    } catch (Exception cannotGetFromSourcePath) {
+      try {
+        return filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, relativeName);
+      } catch (Exception cannotGetFromOutputPath) {
+        return filer.getResource(StandardLocation.CLASS_PATH, packageName, relativeName);
+      }
+    }
   }
 
   private Unit parseUnit(String templateText) throws Exception {
