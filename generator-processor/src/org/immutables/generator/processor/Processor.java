@@ -103,12 +103,15 @@ public final class Processor extends AbstractProcessor {
     Filer filer = knife.environment.getFiler();
 
     FileObject templateResource =
-        extracted(templateType, packageElement, filer);
+        getTemplateResource(filer, templateType, packageElement);
 
     return templateResource.getCharContent(true).toString();
   }
 
-  private FileObject extracted(TypeElement templateType, PackageElement packageElement, Filer filer) throws IOException {
+  private FileObject getTemplateResource(
+      Filer filer,
+      TypeElement templateType,
+      PackageElement packageElement) throws IOException {
     CharSequence relativeName = templateType.getSimpleName() + ".generator";
     CharSequence packageName = packageElement.getQualifiedName();
     try {
