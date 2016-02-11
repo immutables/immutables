@@ -41,8 +41,9 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.SourceOrdering;
+import org.immutables.generator.SourceOrdering.AccessorProvider;
 import org.immutables.generator.Templates;
-import org.immutables.generator.processor.Implicits.ImplicitResolver;
 
 public final class Accessors extends Introspection {
   private static final String OPTIONAL_TYPE_SIMPLE_NAME = Optional.class.getSimpleName();
@@ -93,9 +94,7 @@ public final class Accessors extends Introspection {
       collectAccessors(implementationSubclass.get(), accesors);
     }
 
-    return ImmutableMap.<String, Accessor>builder()
-        .putAll(accesors)
-        .build();
+    return ImmutableMap.copyOf(accesors);
   }
 
   private Optional<TypeElement> getImplementationSubclass(TypeElement type) {
@@ -105,23 +104,28 @@ public final class Accessors extends Introspection {
   }
 
   private void collectAccessors(TypeElement type, Map<String, Accessor> accesors) {
-    List<? extends Element> members = elements.getAllMembers(type);
-    collectMethodAccesors(accesors, members);
-    collectFieldAccessors(accesors, members);
-  }
-
-  private void collectFieldAccessors(Map<String, Accessor> accesors, List<? extends Element> allMembers) {
-    for (VariableElement value : ElementFilter.fieldsIn(allMembers)) {
-      if (isAccessible(value)) {
-        Accessor accessor = new Accessor(value);
+    List<? extends Element> allMembers = elements.getAllMembers(type);
+    for (VariableElement field : ElementFilter.fieldsIn(allMembers)) {
+      if (isAccessible(field)) {
+        Accessor accessor = new Accessor(field);
         accesors.put(accessor.name, accessor);
       }
     }
-  }
-
-  private void collectMethodAccesors(Map<String, Accessor> accesors, List<? extends Element> allMembers) {
+    // toString, hashCode from Object
     for (ExecutableElement method : ElementFilter.methodsIn(allMembers)) {
-      if (isAccessible(method) && isSimpleAccessor(method)) {
+      TypeElement definingType = (TypeElement) method.getEnclosingElement();
+      if (definingType.getQualifiedName().contentEquals(Object.class.getCanonicalName())
+          || isSimpleAccessor(method) && isAccessible(method)) {
+        Accessor accessor = new Accessor(method);
+        accesors.put(accessor.name, accessor);
+      }
+    }
+
+    // For other accessors we use shared utility
+    AccessorProvider provider = SourceOrdering.getAllAccessorsProvider(elements, types, type);
+    for (ExecutableElement method : provider.get()) {
+      // this should be already checked, but we check for completeness
+      if (isSimpleAccessor(method) && isAccessible(method)) {
         Accessor accessor = new Accessor(method);
         accesors.put(accessor.name, accessor);
       }
@@ -152,7 +156,13 @@ public final class Accessors extends Introspection {
     }
 
     final BoundAccessor bind(TypeMirror target) {
-      TypeMirror type = types.asMemberOf((DeclaredType) target, element);
+      // asMemberOf wrongly implemented in ECJ,
+      // we use it for fields only in Javac
+      // but we expect it is already resolved
+      TypeMirror type = !inEclipseCompiler
+          ? types.asMemberOf((DeclaredType) target, element)
+          : element.asType();
+
       if (type instanceof ExecutableType) {
         type = ((ExecutableType) type).getReturnType();
       }
@@ -304,7 +314,7 @@ public final class Accessors extends Introspection {
   }
 
   public final class Binder {
-    private final ImplicitResolver implicits;
+    private Binder() {}
 
     Binder(ImplicitResolver implicits) {
       this.implicits = implicits;
@@ -358,13 +368,6 @@ public final class Accessors extends Introspection {
         return accessor.bind(targetType);
       }
 
-      for (TypeMirror implicit : implicits.resolveFor(targetType)) {
-        accessor = definedBy(implicit).get(attribute);
-        if (accessor != null) {
-          return accessor.bind(implicit);
-        }
-      }
-
       return null;
     }
 
@@ -380,10 +383,6 @@ public final class Accessors extends Introspection {
       ImmutableList.Builder<Accessor> builder = ImmutableList.builder();
 
       builder.addAll(definedBy(targetType).values());
-
-      for (TypeMirror implicit : implicits.resolveFor(targetType)) {
-        builder.addAll(definedBy(implicit).values());
-      }
 
       return builder.build();
     }

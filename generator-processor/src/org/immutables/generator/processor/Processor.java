@@ -15,6 +15,8 @@
  */
 package org.immutables.generator.processor;
 
+import com.google.common.collect.Lists;
+import java.util.List;
 import javax.lang.model.element.Name;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
@@ -100,27 +102,43 @@ public final class Processor extends AbstractProcessor {
   private String readTemplateResource(TypeElement templateType, SwissArmyKnife knife) throws IOException {
     PackageElement packageElement = knife.elements.getPackageOf(templateType);
 
-    Filer filer = knife.environment.getFiler();
-
-    FileObject templateResource =
-        getTemplateResource(filer, templateType, packageElement);
-
-    return templateResource.getCharContent(true).toString();
+    return getTemplateText(
+        knife.environment.getFiler(),
+        templateType,
+        packageElement);
   }
 
-  private FileObject getTemplateResource(
+  private String getTemplateText(
       Filer filer,
       TypeElement templateType,
       PackageElement packageElement) throws IOException {
     CharSequence relativeName = templateType.getSimpleName() + ".generator";
     CharSequence packageName = packageElement.getQualifiedName();
+    List<Exception> suppressed = Lists.newArrayList();
     try {
-      return filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName);
+      return filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName)
+          .getCharContent(true)
+          .toString();
     } catch (Exception cannotGetFromSourcePath) {
+      suppressed.add(cannotGetFromSourcePath);
       try {
-        return filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, relativeName);
+        return filer.getResource(StandardLocation.CLASS_OUTPUT, packageName, relativeName)
+            .getCharContent(true)
+            .toString();
       } catch (Exception cannotGetFromOutputPath) {
-        return filer.getResource(StandardLocation.CLASS_PATH, packageName, relativeName);
+        suppressed.add(cannotGetFromOutputPath);
+        try {
+          return filer.getResource(StandardLocation.CLASS_PATH,
+              "",
+              packageName.toString().replace('.', '/') + '/' + relativeName)
+              .getCharContent(true)
+              .toString();
+        } catch (IOException cannotGetFromClasspath) {
+          for (Exception e : suppressed) {
+            cannotGetFromClasspath.addSuppressed(e);
+          }
+          throw cannotGetFromClasspath;
+        }
       }
     }
   }

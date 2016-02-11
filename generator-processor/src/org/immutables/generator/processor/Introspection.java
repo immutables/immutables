@@ -26,11 +26,13 @@ public abstract class Introspection {
   protected final ProcessingEnvironment environment;
   protected final Elements elements;
   protected final Types types;
+  protected final boolean inEclipseCompiler;
 
   Introspection(ProcessingEnvironment environment) {
     this.environment = environment;
     this.elements = environment.getElementUtils();
     this.types = environment.getTypeUtils();
+    this.inEclipseCompiler = environment.getClass().getName().startsWith("org.eclipse.jdt");
   }
 
   protected String toSimpleName(TypeMirror typeMirror) {
