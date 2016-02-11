@@ -69,11 +69,6 @@ public @interface Generator {
   @Target(ElementType.FIELD)
   public @interface Typedef {}
 
-  @Documented
-  @Target({ ElementType.METHOD, ElementType.TYPE })
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Memoised {}
-
   /**
    * Applies to the annotation processor extending {@link AbstractGenerator} to supply annotation
    * names that processor will handle. Could be used instead of {@link SupportedAnnotationTypes},

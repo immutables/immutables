@@ -21,7 +21,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import org.immutables.generator.processor.Implicits.ImplicitResolver;
 
 /**
  * Temporary "global context" class while interactions and structure is not sorted out well.
@@ -30,7 +29,6 @@ import org.immutables.generator.processor.Implicits.ImplicitResolver;
 public class SwissArmyKnife {
 
   public final ImmutableMap<String, TypeMirror> imports;
-  public final ImplicitResolver facetResolver;
   public final Accessors accessors;
   public final Accessors.Binder binder;
   public final Elements elements;
@@ -44,9 +42,8 @@ public class SwissArmyKnife {
     this.elements = environment.getElementUtils();
     this.types = environment.getTypeUtils();
     this.imports = new Imports(environment).importsIn(type);
-    this.facetResolver = new Implicits(environment).resolverFrom(imports.values());
     this.accessors = new Accessors(environment);
-    this.binder = accessors.binder(facetResolver);
+    this.binder = accessors.binder();
   }
 
 }

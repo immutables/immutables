@@ -309,16 +309,12 @@ public final class Accessors extends Introspection {
     return new LocalAccess(value, requiredVar);
   }
 
-  public Binder binder(ImplicitResolver implicits) {
-    return new Binder(implicits);
+  public Binder binder() {
+    return new Binder();
   }
 
   public final class Binder {
     private Binder() {}
-
-    Binder(ImplicitResolver implicits) {
-      this.implicits = implicits;
-    }
 
     public BoundAccessor bind(TypeMirror targetType, String attribute) {
       @Nullable BoundAccessor accessor = resolveAccessorWithBeanAccessor(targetType, attribute);
