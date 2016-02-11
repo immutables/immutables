@@ -15,16 +15,27 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.Naming;
 import com.google.common.base.CaseFormat;
+import java.util.Arrays;
+import org.immutables.generator.Naming;
 
 public final class Styles {
   private final StyleInfo style;
   private final Scheme scheme;
+  private final Depluralizer depluralizer;
 
   Styles(StyleInfo style) {
     this.style = style;
+    this.depluralizer = depluralizerFor(style);
     this.scheme = new Scheme();
+  }
+
+  private static Depluralizer depluralizerFor(StyleInfo style) {
+    String[] exceptions = style.depluralize();
+    boolean shouldDepluralize = !Arrays.equals(exceptions, new String[] {""});
+    return shouldDepluralize
+        ? new Depluralizer.DepluralizerWithExceptions(exceptions)
+        : Depluralizer.NONE;
   }
 
   public ValueImmutableInfo defaults() {
@@ -36,11 +47,11 @@ public final class Styles {
   }
 
   public UsingName.TypeNames forType(String name) {
-    return new UsingName(name, scheme, "").new TypeNames();
+    return new UsingName(name, scheme, depluralizer, "").new TypeNames();
   }
 
   public UsingName.AttributeNames forAccessorWithRaw(String name, String raw) {
-    return new UsingName(name, scheme, raw).new AttributeNames();
+    return new UsingName(name, scheme, depluralizer, raw).new AttributeNames();
   }
 
   public UsingName.AttributeNames forAccessor(String name) {
@@ -89,10 +100,12 @@ public final class Styles {
     private final String name;
     private final Scheme scheme;
     private final String forcedRaw;
+    private final Depluralizer depluralizer;
 
-    private UsingName(String name, Scheme scheme, String forcedRaw) {
+    private UsingName(String name, Scheme scheme, Depluralizer depluralizer, String forcedRaw) {
       this.name = name;
       this.scheme = scheme;
+      this.depluralizer = depluralizer;
       this.forcedRaw = forcedRaw;
     }
 
@@ -195,10 +208,23 @@ public final class Styles {
       public final String get = name;
       public final String init = scheme.init.apply(raw);
       public final String with = scheme.with.apply(raw);
-      public final String add = scheme.add.apply(raw);
-      public final String addAll = scheme.addAll.apply(raw);
-      public final String put = scheme.put.apply(raw);
-      public final String putAll = scheme.putAll.apply(raw);
+      private ForCollections coll = null;
+
+      public String add() {
+        return collectionSpecific().add;
+      }
+
+      public String put() {
+        return collectionSpecific().put;
+      }
+
+      public String addAll() {
+        return collectionSpecific().addAll;
+      }
+
+      public String putAll() {
+        return collectionSpecific().putAll;
+      }
 
       public String set() {
         return scheme.set.apply(raw);
@@ -210,6 +236,19 @@ public final class Styles {
 
       public String unset() {
         return scheme.unset.apply(raw);
+      }
+
+      private ForCollections collectionSpecific() {
+        return coll == null ? coll = new ForCollections() : coll;
+      }
+
+      public class ForCollections {
+        final String singular = depluralizer.depluralize(raw);
+        final String add = scheme.add.apply(singular);
+        final String put = scheme.put.apply(singular);
+        final String addAll = scheme.addAll.apply(raw);
+        final String putAll = scheme.putAll.apply(raw);
+
       }
     }
   }

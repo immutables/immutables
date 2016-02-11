@@ -177,6 +177,8 @@ public final class ValueMirrors {
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
+    String[] depluralize() default {""};
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,
@@ -192,17 +194,17 @@ public final class ValueMirrors {
     }
   }
 
-	/*
-	@Value.Parameter
-	public abstract ImmutableSet<BuilderFeature> builderFeaturesSet();
+  /*
+  @Value.Parameter
+  public abstract ImmutableSet<BuilderFeature> builderFeaturesSet();
 
-	@Value.Parameter
-	@Override
-	public abstract BuilderFeature[] builderFeatures();
+  @Value.Parameter
+  @Override
+  public abstract BuilderFeature[] builderFeatures();
 
-	Sets.immutableEnumSet(Arrays.asList(input.builderFeatures())),
-	input.builderFeatures(),
-	 */
+  Sets.immutableEnumSet(Arrays.asList(input.builderFeatures())),
+  input.builderFeatures(),
+   */
   /** NOTE: this is not implemented yet or ever will, nor exposed to API. */
   @interface FutureStyleExt {
     /**

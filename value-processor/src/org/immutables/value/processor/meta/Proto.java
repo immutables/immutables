@@ -1212,7 +1212,8 @@ public class Proto {
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
           input.builderVisibility(),
-          input.throwForInvalidImmutableStateName());
+          input.throwForInvalidImmutableStateName(),
+          input.depluralize());
     }
   }
 

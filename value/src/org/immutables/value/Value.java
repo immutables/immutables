@@ -811,6 +811,44 @@ public @interface Value {
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
+     * <p>
+     * Depluralize names for collection and map attributes used for generating derived method names,
+     * such as {@link #add()} and {@link #put()}. In order to enable depluratization use, a possibly
+     * empty, array as a value for {@code depluralize} attribute: this will trim trailing "s" if
+     * present to create singular form. Exceptions are provided as actual array values of
+     * {@code "singular:plural"} pairs as alternative to mechanical "*s" depluratization
+     * (uninterpretable pairs will be ignored.). Suppress trimming of trailing "s" for certain words
+     * by using exceptions of form {@code "words:words"} or simply {@code "words"}. Important to
+     * note is that words will be converted to lowercase and identifier in question consists of
+     * couple of words joined using camel case — only a last segment will be considered for
+     * depluratization when matching for exception.
+     * </p>
+     * 
+     * <pre>
+     * {@literal @}Value.Style(depluralize = {}) // enable without exception
+     * 
+     * {@literal @}Value.Style(depluralize = {"person:people", "foot:feet"}) // specifying dictionary of exceptions
+     * </pre>
+     * <p>
+     * When given the exceptions defined as {@code "person:people", "foot:feet"} then
+     * depluratization examples for collection {@code add*} method in builder would be:
+     * <ul>
+     * <li>boats -> addBoat</li>
+     * <li>people -> addPerson</li>
+     * <li>feet -> addFoot</li>
+     * <li>feetPeople -> addFeetPerson</li>
+     * <li>peopleRepublics -> addPeopleRepublic</li>
+     * </ul>
+     * </p>
+     * <p>
+     * The default value is a special placeholder array which disables the feature and this behavior
+     * is compatible with previous versions.
+     * </p>
+     * @return array of exception pairs.
+     */
+    String[] depluralize() default {""};
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.

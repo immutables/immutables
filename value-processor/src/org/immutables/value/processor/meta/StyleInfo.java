@@ -244,6 +244,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   public abstract String throwForInvalidImmutableStateName();
 
+  @Value.Parameter
+  @Override
+  public abstract String[] depluralize();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);
