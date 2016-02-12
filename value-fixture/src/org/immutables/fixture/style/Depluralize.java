@@ -28,7 +28,7 @@ import org.immutables.value.Value.Style;
  * according to logic and examples from {@link Style#depluralize()} javadoc.
  */
 @Value.Immutable
-@Value.Style(depluralize = {"foot:feet", "person:people", "goods"})
+@Value.Style(depluralize = true, depluralizeDictionary = {"foot:feet", "person:people", "goods"})
 public interface Depluralize {
 
   List<String> feet();

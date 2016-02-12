@@ -37,10 +37,10 @@ interface Depluralizer {
     }
   };
 
-  class DepluralizerWithExceptions implements Depluralizer {
-    private final ImmutableMap<String, String> exceptions;
+  class DictionaryAidedDepluralizer implements Depluralizer {
+    private final ImmutableMap<String, String> dictionary;
 
-    DepluralizerWithExceptions(String[] exceptions) {
+    DictionaryAidedDepluralizer(String[] exceptions) {
       Map<String, String> map = Maps.newHashMapWithExpectedSize(exceptions.length);
       Splitter splitter = Splitter.on(':');
       for (String s : exceptions) {
@@ -53,7 +53,7 @@ interface Depluralizer {
           map.put(parts.get(1), parts.get(0));
         }
       }
-      this.exceptions = ImmutableMap.copyOf(map);
+      this.dictionary = ImmutableMap.copyOf(map);
     }
 
     @Override
@@ -62,7 +62,7 @@ interface Depluralizer {
           Lists.newLinkedList(splitCamelCase(name));
 
       String plural = parts.removeLast();
-      @Nullable String singular = exceptions.get(plural);
+      @Nullable String singular = dictionary.get(plural);
       if (singular != null) {
         parts.addLast(singular);
         return joinCamelCase(parts);

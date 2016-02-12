@@ -31,10 +31,8 @@ public final class Styles {
   }
 
   private static Depluralizer depluralizerFor(StyleInfo style) {
-    String[] exceptions = style.depluralize();
-    boolean shouldDepluralize = !Arrays.equals(exceptions, new String[] {""});
-    return shouldDepluralize
-        ? new Depluralizer.DepluralizerWithExceptions(exceptions)
+    return style.depluralize()
+        ? new Depluralizer.DictionaryAidedDepluralizer(style.depluralizeDictionary())
         : Depluralizer.NONE;
   }
 

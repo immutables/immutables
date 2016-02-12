@@ -246,7 +246,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
-  public abstract String[] depluralize();
+  public abstract boolean depluralize();
+
+  @Value.Parameter
+  @Override
+  public abstract String[] depluralizeDictionary();
 
   @Value.Lazy
   public Styles getStyles() {

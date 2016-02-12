@@ -1213,7 +1213,8 @@ public class Proto {
           input.implementationNestedInBuilder(),
           input.builderVisibility(),
           input.throwForInvalidImmutableStateName(),
-          input.depluralize());
+          input.depluralize(),
+          input.depluralizeDictionary());
     }
   }
 

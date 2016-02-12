@@ -177,7 +177,9 @@ public final class ValueMirrors {
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
-    String[] depluralize() default {""};
+    boolean depluralize() default false;
+
+    String[] depluralizeDictionary() default {};
 
     public enum ImplementationVisibility {
       PUBLIC,
