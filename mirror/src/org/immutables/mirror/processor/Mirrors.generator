@@ -138,28 +138,28 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
     [/if]
   [/for]
 
-    for (ExecutableElement attributeElement
+    for (ExecutableElement attributeElement$
         : ElementFilter.methodsIn(defaultAnnotationElement.getEnclosedElements())) {
-      String name = attributeElement.getSimpleName().toString();
+      String name$ = attributeElement$.getSimpleName().toString();
       [for a in m.attributes]
-      if ("[a.name]".equals(name)) {
-        AnnotationValue annotationValue = attributeElement.getDefaultValue();
-        if (annotationValue == null) {
+      if ("[a.name]".equals(name$)) {
+        AnnotationValue annotationValue$ = attributeElement$.getDefaultValue();
+        if (annotationValue$ == null) {
           throw new IllegalStateException("All annotation attributes should have default value to create mirror of @[m.simpleName]");
         }
-        [toUpper a.name]Extractor [a.name]Extractor = new [toUpper a.name]Extractor();
-        annotationValue.accept([a.name]Extractor, null);
+        [toUpper a.name]Extractor [a.name]Extractor$ = new [toUpper a.name]Extractor();
+        annotationValue$.accept([a.name]Extractor$, null);
 
           [if a.kind.type]
-        [a.name] = [a.name]Extractor.get();
-        [a.name]Name = [a.name]Extractor.name();
+        [a.name] = [a.name]Extractor$.get();
+        [a.name]Name = [a.name]Extractor$.name();
           [else if a.kind.annotation]
-        [a.name] = [a.name]Extractor.get();
+        [a.name] = [a.name]Extractor$.get();
             [if a.mirrorModel]
-        [a.name]Mirror = [a.name]Extractor.mirror();
+        [a.name]Mirror = [a.name]Extractor$.mirror();
             [/if]
           [else]
-        [a.name] = [a.name]Extractor.get();
+        [a.name] = [a.name]Extractor$.get();
           [/if]
         continue;
       }
@@ -203,32 +203,32 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
     [/if]
   [/for]
 
-    java.util.Map<? extends ExecutableElement, ? extends AnnotationValue> attributeValues = annotationMirror.getElementValues();
-    for (ExecutableElement attributeElement
+    java.util.Map<? extends ExecutableElement, ? extends AnnotationValue> attributeValues$ = annotationMirror.getElementValues();
+    for (ExecutableElement attributeElement$
         : ElementFilter.methodsIn(annotationMirror.getAnnotationType().asElement().getEnclosedElements())) {
-      String name = attributeElement.getSimpleName().toString();
+      String name$ = attributeElement$.getSimpleName().toString();
       [for a in m.attributes]
-      if ("[a.name]".equals(name)) {
-        AnnotationValue annotationValue = attributeValues.get(attributeElement);
-        if (annotationValue == null) {
-          annotationValue = attributeElement.getDefaultValue();
+      if ("[a.name]".equals(name$)) {
+        AnnotationValue annotationValue$ = attributeValues$.get(attributeElement$);
+        if (annotationValue$ == null) {
+          annotationValue$ = attributeElement$.getDefaultValue();
         }
-        if (annotationValue == null) {
+        if (annotationValue$ == null) {
           throw new IllegalStateException("Annotation mirror contains no value (neither default) for '[a.name]' attribute of @[m.simpleName]");
         }
-        [toUpper a.name]Extractor [a.name]Extractor = new [toUpper a.name]Extractor();
-        annotationValue.accept([a.name]Extractor, null);
+        [toUpper a.name]Extractor [a.name]Extractor$ = new [toUpper a.name]Extractor();
+        annotationValue$.accept([a.name]Extractor$, null);
 
           [if a.kind.type]
-        [a.name] = [a.name]Extractor.get();
-        [a.name]Name = [a.name]Extractor.name();
+        [a.name] = [a.name]Extractor$.get();
+        [a.name]Name = [a.name]Extractor$.name();
           [else if a.kind.annotation]
-        [a.name] = [a.name]Extractor.get();
+        [a.name] = [a.name]Extractor$.get();
             [if a.mirrorModel]
-        [a.name]Mirror = [a.name]Extractor.mirror();
+        [a.name]Mirror = [a.name]Extractor$.mirror();
             [/if]
           [else]
-        [a.name] = [a.name]Extractor.get();
+        [a.name] = [a.name]Extractor$.get();
           [/if]
         continue;
       }
