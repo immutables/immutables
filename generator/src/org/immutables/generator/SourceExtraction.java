@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import javax.lang.model.element.Element;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -96,10 +97,9 @@ public final class SourceExtraction {
     try {
       return PostprocessingMachine.collectHeader(
           SourceExtraction.extract(processing, element));
-    } catch (UnsupportedOperationException cannotReadSourceFile) {
-      cannotReadSourceFile.printStackTrace();
-      return "";
-    } catch (IOException cannotReadSourceFile) {
+    } catch (UnsupportedOperationException
+        | IllegalArgumentException
+        | IOException cannotReadSourceFile) {
       cannotReadSourceFile.printStackTrace();
       return "";
     }
@@ -109,7 +109,8 @@ public final class SourceExtraction {
     try {
       return PostprocessingMachine.collectImports(
           extract(processing, element));
-    } catch (UnsupportedOperationException cannotReadSourceFile) {
+    } catch (UnsupportedOperationException
+        | IllegalArgumentException cannotReadSourceFile) {
       return Imports.empty();
     } catch (IOException cannotReadSourceFile) {
       processing.getMessager().printMessage(
@@ -130,6 +131,8 @@ public final class SourceExtraction {
   interface SourceExtractor {
     CharSequence UNABLE_TO_EXTRACT = "";
 
+    boolean claim(Element element);
+
     CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException;
 
     CharSequence extractReturnType(ExecutableElement executableElement);
@@ -138,10 +141,14 @@ public final class SourceExtraction {
   private static final SourceExtractor DEFAULT_EXTRACTOR = new SourceExtractor() {
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
-      FileObject resource = environment.getFiler().getResource(
-          StandardLocation.SOURCE_PATH, "", toFilename(element));
+      try {
+        FileObject resource = environment.getFiler().getResource(
+            StandardLocation.SOURCE_PATH, "", toFilename(element));
 
-      return resource.getCharContent(true);
+        return resource.getCharContent(true);
+      } catch (UnsupportedOperationException | IllegalArgumentException ex) {
+        return UNABLE_TO_EXTRACT;
+      }
     }
 
     private String toFilename(TypeElement element) {
@@ -152,9 +159,19 @@ public final class SourceExtraction {
     public CharSequence extractReturnType(ExecutableElement executableElement) {
       return UNABLE_TO_EXTRACT;
     }
+
+    @Override
+    public boolean claim(Element element) {
+      return false;
+    }
   };
 
   private static final class JavacSourceExtractor implements SourceExtractor {
+
+    @Override
+    public boolean claim(Element element) {
+      return element instanceof ClassSymbol;
+    }
 
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
@@ -174,6 +191,12 @@ public final class SourceExtraction {
   }
 
   private static final class EclipseSourceExtractor implements SourceExtractor {
+
+    @Override
+    public boolean claim(Element element) {
+      return element instanceof ElementImpl;
+    }
+
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
       if (typeElement instanceof ElementImpl) {
@@ -245,11 +268,23 @@ public final class SourceExtraction {
     }
 
     @Override
+    public boolean claim(Element element) {
+      return false;
+    }
+
+    @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
       for (SourceExtractor extractor : extractors) {
         CharSequence source = extractor.extract(environment, typeElement);
         if (!source.equals(UNABLE_TO_EXTRACT)) {
           return source;
+        }
+        if (extractor.claim(typeElement)) {
+          // cannot extract, but an extractor knows for sure
+          // that it was his case which it may claim, then no
+          // need to consult other extractors, which actually might
+          // cause additional trouble.
+          return UNABLE_TO_EXTRACT;
         }
       }
       return DEFAULT_EXTRACTOR.extract(environment, typeElement);
@@ -261,6 +296,13 @@ public final class SourceExtraction {
         CharSequence source = extractor.extractReturnType(executableElement);
         if (!source.equals(UNABLE_TO_EXTRACT)) {
           return source;
+        }
+        if (extractor.claim(executableElement)) {
+          // cannot extract, but an extractor knows for sure
+          // that it was his case which it may claim, then no
+          // need to consult other extractors, which actually might
+          // cause additional trouble.
+          return UNABLE_TO_EXTRACT;
         }
       }
       return DEFAULT_EXTRACTOR.extractReturnType(executableElement);
