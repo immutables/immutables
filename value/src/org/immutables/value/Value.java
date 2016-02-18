@@ -764,7 +764,7 @@ public @interface Value {
      * initializers for types with constuctor shortcut. It also enables to use immutable type as
      * actual implementation type (with covariant return override in accessor implementation).
      * <p>
-     * Disabled by default as, speculatively, this might significantly add-up to processing time. *
+     * Disabled by default as, speculatively, this might significantly add-up to processing time.
      * <p>
      * <em>Note: this functionality is experimental and may be changed in further versions</em>
      * @return {@code true} if deep detection is enabled.
@@ -812,19 +812,20 @@ public @interface Value {
 
     /**
      * Depluralize names for collection and map attributes used for generating derived method names,
-     * such as {@link #add()} and {@link #put()}. In order to enable depluratization use
-     * {@code depluralize = true}: this will trim trailing "s" if present to create singular form.
+     * such as {@link #add()} and {@link #put()}. In order to enable depluralization use
+     * {@code depluralize = true}: this will trim trailing "s" if present to create singular form
+     * ("*ies" to "*y" is also supported).
      * Exceptions are provided using {@link #depluralizeDictionary()} array of "singular:plural"
-     * pairs as alternative to mechanical "*s" depluratization.
+     * pairs as alternative to mechanical "*s" depluralization.
      * 
      * <pre>
      * {@literal @}Value.Style(
-     *    depluralize = true, // enable without exception
+     *    depluralize = true, // enable feature
      *    depluralizeDictionary = {"person:people", "foot:feet"}) // specifying dictionary of exceptions
      * </pre>
      * 
      * When given the dictionary defined as {@code "person:people", "foot:feet"} then
-     * depluratization examples for collection {@code add*} method in builder would be:
+     * depluralization examples for collection {@code add*} method in builder would be:
      * <ul>
      * <li>boats -> addBoat</li>
      * <li>people -> addPerson</li>
@@ -840,10 +841,10 @@ public @interface Value {
 
     /**
      * Dictionary of exceptions — array of "singular:plural" pairs as alternative to mechanical "*s"
-     * depluratization. Suppress trimming of trailing "s" for certain words by using exceptions of
+     * depluralization. Suppress trimming of trailing "s" for certain words by using exceptions of
      * form {@code "words:words"} or simply {@code "words"}. Important to note is that words will be
      * converted to lowercase and identifier in question consists of couple of words joined using
-     * camel case — only a last segment will be considered for depluratization when matching
+     * camel case — only a last segment will be considered for depluralization when matching
      * dictionary. Uninterpretable pairs will be ignored. By default no dictionary is supplied and
      * depluralization performed only by mechanical "*s" trimming.
      * @see #depluralize()

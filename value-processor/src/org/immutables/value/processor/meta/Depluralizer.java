@@ -68,10 +68,15 @@ interface Depluralizer {
         return joinCamelCase(parts);
       }
 
-      String detected = NAMING_PLURAL.detect(name);
-      return !detected.isEmpty()
-          ? detected
-          : name;
+      String detected = NAMING_IES_PLURAL.detect(name);
+      if (!detected.isEmpty()) {
+        return detected + "y";
+      }
+      detected = NAMING_S_PLURAL.detect(name);
+      if (!detected.isEmpty()) {
+        return detected;
+      }
+      return name;
     }
 
     private static String joinCamelCase(Iterable<String> parts) {
@@ -85,7 +90,8 @@ interface Depluralizer {
               CaseFormat.LOWER_UNDERSCORE, name));
     }
 
-    private static final Naming NAMING_PLURAL = Naming.from("*s");
+    private static final Naming NAMING_IES_PLURAL = Naming.from("*ies");
+    private static final Naming NAMING_S_PLURAL = Naming.from("*s");
     private static final Splitter SPLITTER_UNDERSCORE = Splitter.on('_')
         .omitEmptyStrings()
         .trimResults();
