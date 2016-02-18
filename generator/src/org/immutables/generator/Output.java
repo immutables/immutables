@@ -121,7 +121,7 @@ public final class Output {
     @Override
     void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
       String collapsed = CharMatcher.WHITESPACE.trimAndCollapseFrom(content, ' ');
-      int estimatedLimitOnThisLine = LIMIT - invokation.getCurrentIndentation().length();
+      int estimatedLimitOnThisLine = LIMIT - invokation.consumer.getCurrentIndentation().length();
 
       if (collapsed.length() < estimatedLimitOnThisLine) {
         invokation.out(collapsed);
@@ -301,8 +301,8 @@ public final class Output {
           getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
         } else {
           getMessager().printMessage(Kind.ERROR, String.format(
-                  "Generated source file name collission. Attempt to overwrite already generated file: %s, %s",
-                  key, ex));
+              "Generated source file name collission. Attempt to overwrite already generated file: %s, %s",
+              key, ex));
         }
       } catch (IOException ex) {
         throw Throwables.propagate(ex);

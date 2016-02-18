@@ -47,7 +47,7 @@ public final class Templates {
     private final StringBuilder builder = new StringBuilder();
     /** Index after indentation. */
     private int lineStartIndex;
-    public CharSequence indentation = "";
+    public String indentation = "";
     private boolean delimit;
     private boolean wasNewline = true;
 
@@ -58,9 +58,7 @@ public final class Templates {
 
     void append(String string) {
       beforeAppend();
-      if (string != null) {
-        builder.append(string);
-      }
+      builder.append(string);
     }
 
     void append(char c) {
@@ -92,9 +90,7 @@ public final class Templates {
     }
 
     private void indent() {
-      if (indentation != null) {
-        builder.append(indentation);
-      }
+      builder.append(indentation);
     }
 
     /** makes next newline remove previous whitespace line */
@@ -139,7 +135,7 @@ public final class Templates {
     private final Object[] params;
 
     static Invokation initial() {
-      return new Invokation(null, "");
+      return new Invokation(new CharConsumer(), "");
     }
 
     Invokation(@Nullable CharConsumer consumer, Object... params) {
@@ -156,23 +152,17 @@ public final class Templates {
     }
 
     public Invokation dl() {
-      if (consumer != null) {
-        consumer.delimit();
-      }
+      consumer.delimit();
       return this;
     }
 
     public Invokation ln() {
-      if (consumer != null) {
-        consumer.newline();
-      }
+      consumer.newline();
       return this;
     }
 
     public Invokation out(String string) {
-      if (consumer != null) {
-        consumer.append(string);
-      }
+      consumer.append(string);
       return this;
     }
 
@@ -183,11 +173,9 @@ public final class Templates {
       if (content == null) {
         return this;
       }
-      if (consumer != null) {
-        consumer.append(content instanceof CharSequence
-            ? ((CharSequence) content)
-            : content.toString());
-      }
+      consumer.append(content instanceof CharSequence
+          ? ((CharSequence) content)
+          : content.toString());
       return this;
     }
 
@@ -205,10 +193,6 @@ public final class Templates {
      */
     public Invokation pos(int pos) {
       throw new UnsupportedOperationException();
-    }
-
-    public CharSequence getCurrentIndentation() {
-      return consumer != null ? consumer.getCurrentIndentation() : "";
     }
   }
 
@@ -257,11 +241,11 @@ public final class Templates {
     @Nullable
     @Override
     public Invokable invoke(Invokation invokation, Object... params) {
-      CharSequence indentationToResore = "";
+      String indentationToResore = "";
       if (invokation.consumer != null) {
         indentationToResore = invokation.consumer.indentation;
         // switch to the current indentation inside fragment
-        invokation.consumer.indentation = invokation.consumer.getCurrentIndentation();
+        invokation.consumer.indentation = invokation.consumer.getCurrentIndentation().toString();
       }
 
       run(new Invokation(invokation.consumer, params));
