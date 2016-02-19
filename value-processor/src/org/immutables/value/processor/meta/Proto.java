@@ -38,6 +38,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.tools.Diagnostic;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
@@ -143,10 +144,18 @@ public class Proto {
 
     @Value.Derived
     StyleInfo defaultStyles() {
-      @Nullable TypeElement typeElement =
-          findElement(StyleMirror.qualifiedName());
-      return ToStyleInfo.FUNCTION.apply(StyleMirror.from(typeElement));
+      @Nullable TypeElement element = findElement(StyleMirror.qualifiedName());
+      if (element == null) {
+        processing().getMessager()
+            .printMessage(Diagnostic.Kind.ERROR,
+                "Could not found annotations on the compile classpath. It looks like annotation processor is running"
+                    + " in a separate annotation-processing classpath and unable to get to annotation definitions."
+                    + " To fix this, please add annotation-only artifact 'org.immutables:value:(version):annotations'"
+                    + " to 'compile' 'compileOnly' or 'provided' dependency scope.");
+      }
+      return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
     }
+
 
     @Value.Lazy
     public boolean hasTreesModule() {
