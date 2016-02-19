@@ -1,8 +1,16 @@
 Changelog
 ---------
 
+### 2.1.11 (2016-02-18)
+- Bugfix and Minor improvement release:
+  + Depluralization for `add*` and `put*` methods enabled with `Style(depluralize, depluralizeDictionary)`
+  + Fixed regression for using `java.util.Optional*` with `Builder.Factory` caused by autounboxing
+  + Improved handling for some internal problems in the processor
+- Thanks to contributors and issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.11)
+
 ### 2.1.10 (2016-02-02)
-- Bugfix release.
+- Bugfix release:
   + License headers, added missing, plus some cleanup
   + Fixed override of final method in some cases
   + Javadoc linting to fix javadocs in generated code
@@ -10,13 +18,13 @@ Changelog
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.10)
 
 ### 2.1.9 (2016-01-26)
-- Bugfix and Minor improvement release.
+- Bugfix and Minor improvement release:
   + Automatic unboxing and boxing of java.util.Optional<A> to nullable A fields
 - Thanks to contributors and issue reporters!  
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.9)
 
 ### 2.1.8 (2016-01-15)
-- Bugfix and Minor improvement release.
+- Bugfix and Minor improvement release:
   + New 'func' module: Functions and predicate generator (for Guava, pre java 8)
   + `@Builder.Parameter` and `@Builder.Switch` are working on value attributes now
   + New 'android-stub' module, may be useful to compile android libraries using Immutables for API level < 19
