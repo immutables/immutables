@@ -1003,7 +1003,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
     [checkNotIsSet v]
-  [if v.jdkOptional]
+  [if v.jdkOptional and type.kind.isFactory]
+    this.[v.name] = [optionalOf v]([v.name]);
+  [else if v.jdkOptional]
     this.[v.name] = [if v.jdkSpecializedOptional or v.optionalAcceptNullable][v.name][else][requireNonNull type]([v.name], "[v.name]")[/if];
   [else]
     this.[v.name] = [optionalOf v]([v.name]);
@@ -1021,7 +1023,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
-  [if v.jdkOptional]
+  [if v.jdkOptional and type.kind.isFactory]
+    this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
+  [else if v.jdkOptional]
     this.[v.name] = [if v.jdkSpecializedOptional][v.name].isPresent() ? [v.name].getAs[toUpper v.unwrappedElementType]() : null[else][v.name].orElse(null)[/if];
   [else]
     this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
@@ -1273,7 +1277,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
 
   private void checkNotIsSet(boolean isSet, String name) {
-    if (isSet) throw new IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
+    if (isSet) throw new java.lang.IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
   }
   [/if]
   [if positions.longs]
@@ -1289,6 +1293,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   }
     [/if]
   [/if]
+
   private String formatRequiredAttributesMessage() {
     java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for m in mandatories]
@@ -2635,7 +2640,9 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [/template]
 
 [template defineOrResetBuildingField Attribute v Boolean declare]
-  [if v.jdkOptional][-- Combine with else case at the bottom?  --]
+  [if v.jdkOptional and v.containingType.kind.isFactory]
+[if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
+  [else if v.jdkOptional][-- Combine with else case at the bottom?  --]
     [if declare]
 private [atNullable][v.wrappedElementType] [v.name];
     [else]

@@ -47,6 +47,12 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>builder</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>value-processor</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
