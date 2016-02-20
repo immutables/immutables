@@ -32,10 +32,6 @@ public final class Templates {
     T apply(L left, R right);
   }
 
-  public interface Apply<T> {
-    T apply(Object... parameters);
-  }
-
   public interface Invokable {
     @Nullable
     Invokable invoke(Invokation parentInvokation, Object... parameters);
@@ -51,9 +47,9 @@ public final class Templates {
     private boolean delimit;
     private boolean wasNewline = true;
 
-    void append(CharSequence string) {
+    void append(CharSequence sequence) {
       beforeAppend();
-      builder.append(string);
+      builder.append(sequence);
     }
 
     void append(String string) {
@@ -130,7 +126,6 @@ public final class Templates {
   }
 
   public final static class Invokation {
-    @Nullable
     final CharConsumer consumer;
     private final Object[] params;
 
@@ -138,7 +133,7 @@ public final class Templates {
       return new Invokation(new CharConsumer(), "");
     }
 
-    Invokation(@Nullable CharConsumer consumer, Object... params) {
+    Invokation(CharConsumer consumer, Object... params) {
       this.consumer = consumer;
       this.params = checkNotNull(params);
     }
@@ -165,6 +160,13 @@ public final class Templates {
       consumer.append(string);
       return this;
     }
+    
+    public Invokation out(@Nullable CharSequence content) {
+      if (content != null) {
+        consumer.append(content);
+      }
+      return this;
+    }
 
     public Invokation out(@Nullable Object content) {
       if (content instanceof Invokable) {
@@ -173,9 +175,11 @@ public final class Templates {
       if (content == null) {
         return this;
       }
-      consumer.append(content instanceof CharSequence
-          ? ((CharSequence) content)
-          : content.toString());
+      if (content instanceof CharSequence) {
+        consumer.append((CharSequence) content);
+      } else {
+        consumer.append(content.toString());
+      }
       return this;
     }
 
@@ -241,19 +245,11 @@ public final class Templates {
     @Nullable
     @Override
     public Invokable invoke(Invokation invokation, Object... params) {
-      String indentationToResore = "";
-      if (invokation.consumer != null) {
-        indentationToResore = invokation.consumer.indentation;
-        // switch to the current indentation inside fragment
-        invokation.consumer.indentation = invokation.consumer.getCurrentIndentation().toString();
-      }
-
+      String indentationToResore = invokation.consumer.indentation;
+      // switch to the current indentation inside fragment
+      invokation.consumer.indentation = invokation.consumer.getCurrentIndentation().toString();
       run(new Invokation(invokation.consumer, params));
-
-      if (invokation.consumer != null) {
-        invokation.consumer.indentation = indentationToResore;
-      }
-
+      invokation.consumer.indentation = indentationToResore;
       return null;
     }
 

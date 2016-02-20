@@ -24,7 +24,6 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import java.util.ArrayList;
 import java.util.Collection;
-import org.immutables.generator.Templates.Apply;
 import org.immutables.generator.Templates.Binary;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
@@ -60,10 +59,6 @@ public final class Intrinsics {
     return binary.apply(left, right);
   }
 
-  public static <T> T $(Apply<T> apply, Object... parameters) {
-    return apply.apply(parameters);
-  }
-
   public static String $(String a, String b) {
     return a.concat(b);
   }
@@ -97,19 +92,10 @@ public final class Intrinsics {
     invokation.out($(left, binary, right));
   }
 
-  public static void $(Invokation invokation, Apply<?> apply, Object... parameters) {
-    invokation.out($(apply, parameters));
-  }
-
   public static void $(Invokation invokation, Invokable invokable, Object... parameters) {
     invokable.invoke(invokation, parameters);
   }
 
-/*  public static void $(Invokation invokation, Object object, Object... parameters) {
-    // TBD do we need this overload
-    invokation.out(object).out(parameters);
-  }
-*/
   public static void $(Invokation invokation, Object object) {
     invokation.out(object);
   }
