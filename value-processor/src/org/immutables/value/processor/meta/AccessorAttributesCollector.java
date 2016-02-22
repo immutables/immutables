@@ -275,7 +275,7 @@ final class AccessorAttributesCollector {
             } else {
               report(attributeMethodCandidate)
                   .annotationNamed(DefaultMirror.simpleName())
-                  .error("@Value.Default attibute should have initializer body", name);
+                  .error("@Value.Default attribute should have initializer body", name);
             }
           }
           if (derivedAnnotationPresent) {
@@ -286,7 +286,7 @@ final class AccessorAttributesCollector {
             } else {
               report(attributeMethodCandidate)
                   .annotationNamed(DerivedMirror.simpleName())
-                  .error("@Value.Derived attibute should have initializer body", name);
+                  .error("@Value.Derived attribute should have initializer body", name);
             }
           }
         }
