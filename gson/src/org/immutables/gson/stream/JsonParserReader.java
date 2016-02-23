@@ -21,14 +21,22 @@ import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import static com.fasterxml.jackson.core.JsonToken.*;
+
+import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
+import static com.fasterxml.jackson.core.JsonToken.END_OBJECT;
+import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
+import static com.fasterxml.jackson.core.JsonToken.START_ARRAY;
+import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
+import static com.fasterxml.jackson.core.JsonToken.VALUE_NULL;
+import static com.fasterxml.jackson.core.JsonToken.VALUE_STRING;
 
 /**
  * {@link JsonReader} impementation backed by Jackson's {@link JsonParser}.
@@ -220,6 +228,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
     case VALUE_NUMBER_FLOAT:
       return JsonToken.NUMBER;
     case VALUE_STRING:
+    case VALUE_EMBEDDED_OBJECT:
       return JsonToken.STRING;
     default: // Not semantically equivalent
       return JsonToken.NULL;
