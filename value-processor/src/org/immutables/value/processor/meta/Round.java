@@ -75,7 +75,7 @@ public abstract class Round {
   }
 
   @Value.Lazy
-  Proto.Environment environment() {
+  public Proto.Environment environment() {
     return ImmutableProto.Environment.of(processing(), this);
   }
 

@@ -16,7 +16,6 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.CaseFormat;
-import java.util.Arrays;
 import org.immutables.generator.Naming;
 
 public final class Styles {

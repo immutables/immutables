@@ -90,10 +90,6 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().gsonTypeAdapters().get();
   }
 
-  public OkJsonMirrors.OkTypeAdapters okTypeAdapters() {
-    return constitution.protoclass().okJsonTypeAdapters().get();
-  }
-
   public CharSequence sourceHeader() {
     if (constitution.style().headerComments()) {
       Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
@@ -648,7 +644,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getMarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getImplementedAttributes()) {
-      if (!attribute.isGsonIgnore()) {
+      if (!attribute.isJsonIgnore()) {
         builder.add(attribute);
       }
     }
@@ -658,7 +654,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<ValueAttribute> getUnmarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
     for (ValueAttribute attribute : getSettableAttributes()) {
-      if (!attribute.isGsonIgnore()) {
+      if (!attribute.isJsonIgnore()) {
         builder.add(attribute);
       }
     }

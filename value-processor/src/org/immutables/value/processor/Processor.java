@@ -21,7 +21,6 @@ import org.immutables.generator.AbstractGenerator;
 import org.immutables.metainf.Metainf;
 import org.immutables.value.processor.meta.*;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-
 import javax.annotation.processing.SupportedAnnotationTypes;
 import java.util.Set;
 
@@ -49,15 +48,25 @@ public final class Processor extends AbstractGenerator {
 
     invoke(new Generator_Immutables().usingValues(values).generate());
     invoke(new Generator_Modifiables().usingValues(values).generate());
-    invoke(new Generator_Gsons().usingValues(values).generate());
-    invoke(new Generator_OkJsons().usingValues(values).generate());
-    invoke(new Generator_Repositories().usingValues(values).generate());
-    invoke(new Generator_Funcs().usingValues(values).generate());
-    invoke(new Generator_Transformers().usingValues(values).generate());
-    invoke(new Generator_Asts().usingValues(values).generate());
 
-//  invoke(new Generator_Parboileds().usingValues(values).generate());
-//
+//    if (round.environment().hasOkJsonLib()) {
+//      invoke(new Generator_OkJsons().usingValues(values).generate());
+//    }
+    if (round.environment().hasGsonLib()) {
+      invoke(new Generator_Gsons().usingValues(values).generate());
+    }
+    if (round.environment().hasMongoModule()) {
+      invoke(new Generator_Repositories().usingValues(values).generate());
+    }
+    if (round.environment().hasFuncModule()) {
+      invoke(new Generator_Funcs().usingValues(values).generate());
+    }
+    if (round.environment().hasTransformModule()) {
+      invoke(new Generator_Transformers().usingValues(values).generate());
+    }
+    if (round.environment().hasAstModule()) {
+      invoke(new Generator_Asts().usingValues(values).generate());
+    }
   }
 
   @Override

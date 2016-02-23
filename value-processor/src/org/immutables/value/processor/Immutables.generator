@@ -61,6 +61,7 @@ package [type.package];
   [/if]
 
 import java.lang.String;
+import java.lang.Object;
   [for starImport in type.requiredSourceStarImports]
 import [starImport];
   [/for]
@@ -778,7 +779,7 @@ private Object writeReplace() {
    */
   public final [builderReturnType type] domain(Domain domain) {
     this.domain = [requireNonNull type](domain, "domain");
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 [/if]
 [if type.kind.isValue]
@@ -795,7 +796,7 @@ private Object writeReplace() {
   public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 
   /**
@@ -806,7 +807,7 @@ private Object writeReplace() {
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [else]
 
@@ -818,7 +819,7 @@ private Object writeReplace() {
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [/if]
       [/for]
@@ -872,7 +873,7 @@ private Object writeReplace() {
     [for v in setters]
     [buildFromAttribute v]
     [/for]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [else]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
@@ -880,7 +881,7 @@ private Object writeReplace() {
     [for v in setters]
     [buildFromAttribute v]
     [/for]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [/if]
     [/if]
@@ -933,7 +934,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [else]
     [v.name]Builder.add(element);
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 
   /**
@@ -959,7 +960,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [v.name]Builder.add(elements);
       [/if]
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
       [if not type.useStrictBuilder]
 
@@ -990,7 +991,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [else]
     [v.name]Builder.addAll(elements);
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [else if v.optionalType]
     [if not v.isBuilderParameter]
@@ -1011,7 +1012,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     this.[v.name] = [optionalOf v]([v.name]);
   [/if]
     [nondefaultSetInBuilder v]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
     [/if]
 
@@ -1031,7 +1032,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
   [/if]
     [nondefaultSetInBuilder v]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
@@ -1047,7 +1048,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
     [v.name]Builder.putAll(key, [arrayAsListSecondary v 'values']);
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 
   /**
@@ -1059,7 +1060,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [v.name]Builder.putAll(key, values);
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
         [/if]
       [/if]
@@ -1080,7 +1081,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [else]
     [v.name]Builder.put(key, value);
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 
   /**
@@ -1097,7 +1098,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [else]
     [v.name]Builder.put(entry);
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
           [if not type.useStrictBuilder]
 
@@ -1130,7 +1131,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [else]
     [v.name]Builder.putAll(entries);
     [/if]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
     [/for]
   [else if v.arrayType]
@@ -1149,12 +1150,12 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [checkNotIsSet v]
     [if v.nullable][-- this is a special case --]
     if (elements == null) {
-      [builderReturnThis type]
+      return [builderReturnThis type];
     }
     [/if]
     this.[v.name] = elements.clone();
     [mandatorySetInBuilder v]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [else]
   [if v.constructorParameters]
@@ -1175,7 +1176,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     this.[v.name] = [v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]);
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [/if]
 
@@ -1201,7 +1202,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
   [/if]
   [/for]
@@ -1221,7 +1222,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [for v in setters]
     [defineOrResetBuildingField v false]
     [/for]
-    [builderReturnThis type]
+    return [builderReturnThis type];
   }
 [/if]
 
@@ -2722,9 +2723,8 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/if]
 [/output.trim][/template]
 
-[template builderReturnThis Type type]
-return [if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this;
-[/template]
+[-- templates below are one-liners so they auto-inlined --]
+[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this[/template]
 
 [template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
 

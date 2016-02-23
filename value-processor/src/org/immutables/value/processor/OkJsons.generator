@@ -1,5 +1,5 @@
 [--
-   Copyright 2014-2016 Immutables Authors and Contributors
+   Copyright 2015-2016 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,34 +15,31 @@
 --]
 [template public generate]
   [for adapters in typeAdapters,
-    packageName = adapters.definedBy.packageOf.name,
-    simpleName = adapters.definedBy.simpleName,
-    String capitalizedSimpleName = toUpper simpleName,
-    String typeAdaptersName = ('JsonAdapters' capitalizedSimpleName)]
+      packageName = adapters.definedBy.packageOf.name,
+      simpleName = adapters.definedBy.simpleName,
+      String capitalizedSimpleName = toUpper simpleName,
+      String typeAdaptersName = ('JsonAdapters' capitalizedSimpleName)]
 
+[setCurrent adapters]
 [output.java packageName typeAdaptersName]
 [for d = adapters.definedBy,
      s in d.style if s.headerComments,
      t in d.asType]
 [t.associatedTopLevel.headerComments]
 [/for]
-[generateAdapters packageName simpleName typeAdaptersName adapters.types]
+[generateAdapters packageName simpleName typeAdaptersName]
 [/output.java]
-
-[output.service 'com.squareup.moshi.JsonAdapter$Factory']
-[if packageName][packageName].[/if][typeAdaptersName]
-[/output.service]
-
   [/for]
 [/template]
 
-[template generateAdapters String packageName String simpleName String typeAdaptersName Type... allValues]
+[template generateAdapters
+    String packageName
+    String simpleName
+    String typeAdaptersName]
+[for Type... allValues = adapted.types]
 [if packageName]
 package [packageName];
 [/if]
-
-[-- replace with fully qualified names where needed --]
-import com.squareup.moshi.*;
 
 import java.io.IOException;
 import java.lang.String;
@@ -65,20 +62,31 @@ import [starImport];
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
-public final class [typeAdaptersName] implements JsonAdapter.Factory {
+public final class [typeAdaptersName] implements com.squareup.moshi.JsonAdapter.Factory {
+  private final java.util.Set<? extends java.lang.annotation.Annotation> annotations;
+
+  public [typeAdaptersName](java.util.Set<? extends java.lang.annotation.Annotation> annotations) {
+    if (annotations == null) throw new java.lang.NullPointerException("annotations");
+    this.annotations = annotations;
+  }
+
+  public [typeAdaptersName]() {
+    this.annotations = java.util.Collections.<java.lang.annotation.Annotation>emptySet();
+  }
 
   @Override
-  public JsonAdapter<?> create(java.lang.reflect.Type type, java.util.Set<? extends java.lang.annotation.Annotation> annotations, Moshi moshi) {
+  public com.squareup.moshi.JsonAdapter<?> create(java.lang.reflect.Type type, java.util.Set<? extends java.lang.annotation.Annotation> annotations, com.squareup.moshi.Moshi moshi) {
     [if allValues]
-    try {
+    if (this.annotations.equals(annotations)) {
       [for v in allValues, t = v.typeAbstract, im = v.typeImmutable]
       if (type == [t].class || type == [im].class) {
+        [if adapted.requireAdapters v]
         return new [v.name]Adapter(moshi);
+        [else]
+        return [v.name]Adapter.INSTANCE;
+        [/if]
       }
       [/for]
-    } catch (Exception reflectionException) {
-      // probably not the best idea ), to be revised
-      reflectionException.printStackTrace();
     }
     [/if]
     return null;
@@ -91,81 +99,91 @@ public final class [typeAdaptersName] implements JsonAdapter.Factory {
   [for v in allValues]
   [generateAdapter v]
   [/for]
+  [generateUtility adapted]
 }
+[/for]
 [/template]
 
 [template generateAdapter Type type]
 [checkAttributes type]
 [for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
 
-private static class [type.name]Adapter extends JsonAdapter<[t]> {
-  [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
-      [if a.nonRawElementType]
-  public static final [a.elementType] [toConstant a.name]_TYPE_OF = null;
+private static class [type.name]Adapter extends com.squareup.moshi.JsonAdapter<[t]> {
+[if adapted.requireAdapters type]
+  [for a in allAttributes,
+      Decider decider = adapted.decider a,
+      af = decider.adapterFull,
+      a1 = decider.adapterFirst,
+      a2 = decider.adapterSecond]
+    [if af]
+      [if af.reflect]
+  static final[for q in a.jsonQualiferAnnotations] [q][/for] [af.type] [toConstant a.name]_TYPE = null;
+      [/if]
+    [else]
+      [if a1][if a1.reflect]
+  static final [a1.type] [toConstant a.name]_TYPE1 = null;
+      [/if][/if]
+      [if a2][if a2.reflect]
+  static final [a2.type] [toConstant a.name]_TYPE2 = null;
+      [/if][/if]
+    [/if]
+  [/for]
+  [for a in allAttributes,
+      Decider decider = adapted.decider a,
+      af = decider.adapterFull,
+      a1 = decider.adapterFirst,
+      a2 = decider.adapterSecond]
+    [if af]
+  private final com.squareup.moshi.JsonAdapter<[af.type]> [a.name]Adapter;
+    [else]
+      [if a1]
+  private final com.squareup.moshi.JsonAdapter<[a1.type]> [a.name]Adapter1;
+      [/if]
+      [if a2]
+  private final com.squareup.moshi.JsonAdapter<[a2.type]> [a.name]Adapter2;
       [/if]
     [/if]
-    [if a.requiresMarshalingSecondaryAdapter]
-      [if a.nonRawElementType]
-  public static final [a.secondaryElementType] [toConstant a.name]_SECONDARY_TYPE_OF = null;
+  [/for]
+
+  [type.name]Adapter(com.squareup.moshi.Moshi moshi) {
+  [for a in allAttributes,
+      Decider decider = adapted.decider a,
+      af = decider.adapterFull,
+      a1 = decider.adapterFirst,
+      a2 = decider.adapterSecond]
+    [if af]
+    [getAdapterFromMoshi a.name af.type af.reflect ''];
+    [else]
+      [if a1]
+    [getAdapterFromMoshi a.name a1.type a1.reflect '1'];
+      [/if]
+      [if a2]
+    [getAdapterFromMoshi a.name a2.type a2.reflect '2'];
       [/if]
     [/if]
   [/for]
-  [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
-  private final JsonAdapter<[a.elementType]> [a.name]Adapter;
-    [/if]
-    [if a.requiresMarshalingSecondaryAdapter]
-  private final JsonAdapter<[a.secondaryElementType]> [a.name]SecondaryAdapter;
-    [/if]
-  [/for]
-
-  [type.name]Adapter(Moshi moshi) throws Exception {[if not allAttributes]}[/if]
-  [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
-    [getAdapterFromMoshi a false]
-    [/if]
-    [if a.requiresMarshalingSecondaryAdapter]
-    [getAdapterFromMoshi a true]
-    [/if]
-  [/for]
-  [if allAttributes]} [/if]
-
-  @Override
-  public void toJson(JsonWriter out, [t] value) throws IOException {
-    if (value == null) {
-      out.nullValue();
-    } else {
-      write[type.name](out, value);
-    }
   }
-
-  @Override
-  public [t] fromJson(JsonReader in) throws IOException {
-    if (in.peek() == JsonReader.Token.NULL) {
-      in.nextNull();
-      return null;
-    }
-    return read[type.name](in);
-  }
-  [generateMarshalingMethods type]
-  [generateUnmarshalingMethods type]
+[else]
+  static final [type.name]Adapter INSTANCE = new [type.name]Adapter();
+[/if]
+  [--generateMarshalingMethods type]
+  [--generateUnmarshalingMethods type]
 }
 [/for]
 [/template]
 
-[template getAdapterFromMoshi Attribute a Boolean secondary]
-[if a.nonRawElementType]
-this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter(getClass().getField("[toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_OF").getGenericType());
+[template getAdapterFromMoshi String name String type Boolean reflect String suffix]
+[if reflect]
+this.[name]Adapter[suffix] = adapter(moshi, getClass(), "[toConstant name]_TYPE[suffix]");
 [else]
-this.[a.name][if secondary]Secondary[/if]Adapter = moshi.adapter([if secondary][a.secondaryElementType][else][a.elementType][/if].class);
+this.[name]Adapter[suffix] = moshi.adapter([type].class);
 [/if]
 [/template]
 
 [template generateMarshalingMethods Type type]
 
-private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
-    throws IOException {
+@Override
+public void toJson(com.squareup.moshi.JsonWriter out, [type.typeAbstract] instance) throws IOException {
 [if type.useConstructorOnly]
   [for ca = type.constructorArguments]
   [if singular ca]
@@ -183,8 +201,10 @@ private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
 [else]
   out.beginObject();
   [for a in type.marshaledAttributes]
+
   [generateMarshalAttributeValue type a]
   [/for]
+
   out.endObject();
 [/if]
 }
@@ -250,59 +270,43 @@ out.endObject();
 String key = String.valueOf([expression]);
   [else if a.elementType eq 'java.lang.String']
 String key = [expression];
-  [else][if not a.requiresMarshalingAdapter][output.error]assertion: key write to string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
-String key = [a.name]Adapter.toJsonTree([expression]).getAsString();
+  [else if a.hasEnumFirstTypeParameter]
+String key = [expression].name();
+  [else]
+String key = [expression].toString();
   [/if]
 [/template]
 
 [template generateMarshalAttributeValue Type type Attribute a]
   [if a.nullable]
 [a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
+out.name([serializedName a]);
 if ([a.name]Value != null) {
-  out.name([serializedName a]);
   [generateWriteAttributeValue type a (a.name 'Value') false]
-} else if (out.getSerializeNulls()) {
-  out.name([serializedName a]);
+} else {
   out.nullValue();
 }
   [else if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
+out.name([serializedName a]);
 if ([a.name]Optional.[optionalPresent a]) {
-  out.name([serializedName a]);
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
-} else if (out.getSerializeNulls()) {
-  out.name([serializedName a]);
+} else {
   out.nullValue();
 }
   [else if a.mapType]
 [a.type] [a.name]Mapping = instance.[a.names.get]();
-if (![a.name]Mapping.isEmpty()) {
-  out.name([serializedName a]);
-  [generateMarshalMapping type a]
-} else[if type.okTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
-  out.name([serializedName a]);
-  out.beginObject();
-  out.endObject();
-}
+out.name([serializedName a]);
+[generateMarshalMapping type a]
   [else if a.collectionType or a.arrayType]
 [a.type] [a.name]Elements = instance.[a.names.get]();
-[if a.arrayType]
-if ([a.name]Elements.length != 0) {
-[else]
-if (![a.name]Elements.isEmpty()) {
-[/if]
-  out.name([serializedName a]);
-  out.beginArray();
-  for ([a.unwrappedElementType] e : [a.name]Elements) {
-    [generateWriteAttributeValue type a 'e' false]
-  }
-  out.endArray();
-} else[if type.okTypeAdapters.emptyAsNulls] if (out.getSerializeNulls())[/if] {
-  out.name([serializedName a]);
-  out.beginArray();
-  out.endArray();
+out.name([serializedName a]);
+out.beginArray();
+for ([a.unwrappedElementType] e : [a.name]Elements) {
+  [generateWriteAttributeValue type a 'e' false]
 }
+out.endArray();
   [else]
 out.name([serializedName a]);
 [generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
@@ -310,116 +314,177 @@ out.name([serializedName a]);
 [/template]
 
 [template generateUnmarshalingMethods Type type]
-[for charAttributes = a for
-    a in type.unmarshaledAttributes
-    if a.unwrappedElementType eq 'char']
-[if charAttributes]
-
-private static char charValueOf(String string) {
-  if (string.length() == 1) {
-    return string.charAt(0);
-  }
-  throw new IllegalArgumentException(
-      String.format("Expected string with a single character but was: '%s'", string));
-}
-[/if]
-[/for]
 [if type.useSingletonOnly]
 
-private [type.typeAbstract] read[type.name](JsonReader in)
-    throws IOException {
+@Override
+public [type.typeAbstract] fromJson(com.squareup.moshi.JsonReader in) throws IOException {
   in.skipValue();
   return [type.factoryInstance]();
 }
 [else if type.useConstructorOnly]
 
 [for ca = type.constructorArguments]
-private [type.typeAbstract] read[type.name](JsonReader in)
-    throws IOException {
+@Override
+public [type.typeAbstract] fromJson(com.squareup.moshi.JsonReader in) throws IOException {
+  try {
 [if singular ca]
   [for a in ca]
-  return [type.factoryOf](readParameter[toUpper a.name](in));
+    return [type.factoryOf]([generateInlineUnmarshal type a]);
   [/for]
 [else]
-  in.beginArray();
-  [type.typeAbstract] instance = [type.factoryOf]([for a in ca][if not for.first],[/if]
-    readParameter[toUpper a.name](in)[/for]);
-  in.endArray();
-  return instance;
+    in.beginArray();
+    [type.typeAbstract] instance = [output.linesShortable][type.factoryOf]([for a in ca][if not for.first],
+        [/if][generateInlineUnmarshal type a][/for]);[/output.linesShortable]
+    in.endArray();
+    return instance;
 [/if]
+  } catch (NullPointerException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  } catch (IllegalArgumentException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  } catch (IllegalStateException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  }
 }
-[for a in ca]
-[generateConstructorArgumentUnmarshal type a]
+[for a in ca, Decider d = adapted.decider s]
+[if d.complex][-- skipping generation of attributes which are inline, see generateInlineUnmarshal --]
+
+private [a.atNullability][constructorAcceptType a] read[toUpper a.name](com.squareup.moshi.JsonReader in) throws IOException {
+  [generateConstructorArgumentComplexUnmarshal type a]
+}
+[/if]
 [/for]
 [/for]
 [else]
 
-private [type.typeAbstract] read[type.name](JsonReader in)
-    throws IOException {
-  [type.typeBuilder] builder = [type.factoryBuilder]();
-    [if type.unmarshaledAttributes]
+@Override
+public [type.typeAbstract] fromJson(com.squareup.moshi.JsonReader in) throws IOException {
+[if type.unmarshaledAttributes]
+  try {
+    [type.typeBuilder] builder = [type.factoryBuilder]();
+    in.beginObject();
+    next: while (in.hasNext()) {
+      String name = in.nextName();
+      [for attrs = type.unmarshaledAttributes, Mm mm = byFirstCharacter attrs]
+      [if mm.useFlatIfElse]
+        [for a in attrs]
+      if ([serializedName a].equals(name)) {
+        [generateInlineUnmarshalBuilder type a]
+        continue next;
+      }
+        [/for]
+      [else]
+      if (!name.isEmpty()) {
+        switch (name.charAt(0)) {
+        [for e in mm.asMap.entrySet]
+        case '[e.key]':
+          [for a in e.value]
+          if ([serializedName a].equals(name)) {
+            [generateInlineUnmarshalBuilder type a]
+            continue next;
+          }
+          [/for]
+          break;
+        [/for]
+        default:
+        }
+      }
+      [/if]
+      [/for]
+      if (in.failOnUnknown()) {
+        throw new com.squareup.moshi.JsonDataException("Unknown field of [type.name] \'" + name +  "\'"
+            + ", known are [for a in type.unmarshaledAttributes][if not for.first], [/if]'[a.marshaledName]'[/for]"
+            + ", at " + in.getPath());
+      }
+      in.skipValue();
+    }
+    in.endObject();
+    return builder.[type.names.build]();
+  } catch (NullPointerException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  } catch (IllegalArgumentException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  } catch (IllegalStateException ex) {
+    throw new com.squareup.moshi.JsonDataException("Cannot read [type.name] at " + in.getPath(), ex);
+  }
+[else]
   in.beginObject();
   while (in.hasNext()) {
-    eachAttribute(in, builder);
+    String name = in.nextName();
+    if (in.failOnUnknown()) {
+      throw new com.squareup.moshi.JsonDataException("No field are expected in [type.name] but found \'" + name +  "\'"
+          + ", at " + in.getPath());
+    }
+    in.skipValue();
   }
   in.endObject();
-    [else]
-  in.skipValue();
-    [/if]
-  return builder.[type.names.build]();
+  return [type.factoryBuilder]().[type.names.build]();
+[/if]
 }
-[if type.unmarshaledAttributes]
+[for s in type.unmarshaledAttributes, Decider d = adapted.decider s]
+[if d.complex][-- skipping generation of attributes which are inline, see generateInlineUnmarshalBuilder --]
 
-private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
-    throws IOException {
-  String attributeName = in.nextName();
-  switch (attributeName.charAt(0)) {
-  [for Mm mm = byFirstCharacter type.unmarshaledAttributes,
-     e in mm.asMap.entrySet]
-  case '[e.key]':
-    [for a in e.value]
-    if ("[a.marshaledName]".equals(attributeName)) {
-      readIn[toUpper a.name](in, builder);
-      return;
-    }
-    [/for]
-    break;
-  [/for]
-  default:
-  }
-  in.skipValue();
+private void read[toUpper s.name](com.squareup.moshi.JsonReader in, [type.typeBuilder] builder) throws IOException {
+  [generateComplexTypeUnmarshalAttribute type s]
 }
 [/if]
-[for s in type.unmarshaledAttributes]
-[generateUnmarshalAttribute type s]
 [/for]
 [/if]
 [/template]
 
-[template generateConstructorArgumentUnmarshal Type type Attribute a]
+[template readInline Type type Attribute a String context][output.trim]
+[-- context is '1' for first type argument or '2' for second type argument, otherwise '' as a general case --]
+[for Decider d = adapted.decider a]
+[if context eq '1']
+  [for a1 = d.adapterFirst, c1 = d.enumFirst]
+  [if a1]
+[a.name]Adapter[context].fromJson(in)
+  [else if c1]
 
-private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name](JsonReader in)
-    throws IOException {
-  [if a.primitive]
-  return [simpleTypeNext a.type];
-  [else]
-  [generateConstructorArgumentComplexUnmarshal type a]
   [/if]
-}
+  [/for]
+[else if context eq '2']
+  
+[else]
+
+[/if]
+[/for]
+[/output.trim][/template]
+
+[template generateInlineUnmarshal Type type Attribute a][output.trim]
+[if a.primitive]
+  [simpleTypeNext a.type]
+[else if a.typeKind.regular]
+  [a.name]Adapter.fromJson(in)
+[else]
+  read[toUpper a.name](in)
+[/if]
+[/output.trim][/template]
+
+[template generateInlineUnmarshalBuilder Type type Attribute a]
+[if a.jsonQualiferAnnotations]
+read[toUpper a.name](in, builder);
+[else if a.primitive or a.stringType]
+builder.[a.names.init]([simpleTypeNext a.type]);
+[else if a.typeKind.regular]
+builder.[a.names.init]([a.name]Adapter.fromJson(in));
+[else]
+read[toUpper a.name](in, builder);
+[/if]
 [/template]
 
 [template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
   [if a.nullable]
-JsonReader.Token t = in.peek();
-if (t == JsonReader.Token.NULL) {
+com.squareup.moshi.JsonReader.Token t = in.peek();
+if (t == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
   return null;
 }
 [generateReadAttributeValue type a a.type a.rawType false]
 return value;
   [else if a.optionalType]
-JsonReader.Token t = in.peek();
-if (t == JsonReader.Token.NULL) {
+com.squareup.moshi.JsonReader.Token t = in.peek();
+if (t == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
   return [optionalEmpty a];
 }
@@ -449,18 +514,6 @@ return value;
   [/if]
 [/template]
 
-[template generateUnmarshalAttribute Type type Attribute a]
-
-private void readIn[toUpper a.name](JsonReader in, [type.typeBuilder] builder)
-    throws IOException {
-  [if a.primitive]
-  builder.[a.names.init]([simpleTypeNext a.type]);
-  [else]
-  [generateComplexTypeUnmarshalAttribute type a]
-  [/if]
-}
-[/template]
-
 [template createBuilderForCollection Type type Attribute a String variableName]
 [if a.mapType]
 [let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
@@ -487,14 +540,14 @@ return [variableName].build();
 [/template]
 
 [template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
-JsonReader.Token t = in.peek();
-if (t == JsonReader.Token.BEGIN_ARRAY) {
+com.squareup.moshi.JsonReader.Token t = in.peek();
+if (t == com.squareup.moshi.JsonReader.Token.BEGIN_ARRAY) {
   in.beginArray();
-  while(in.hasNext()) {
+  while (in.hasNext()) {
     [unmarshalCollectionElement]
   }
   in.endArray();
-} else if (t == JsonReader.Token.NULL) {
+} else if (t == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
 } else {
   [unmarshalCollectionElement]
@@ -502,27 +555,30 @@ if (t == JsonReader.Token.BEGIN_ARRAY) {
 [/template]
 
 [template generateMappingUnmarshalCode Type type Attribute a String collectorExpression]
-if (in.peek() == JsonReader.Token.NULL) {
+if (in.peek() == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
 } else {
   in.beginObject();
-  while(in.hasNext()) {
-    String rawKey = in.nextName();
+  while (in.hasNext()) {
 [if a.unwrappedElementPrimitiveType]
   [if a.unwrappedElementType eq 'char']
-    char key = charValueOf(rawKey);
+    char key = charValueOf(in.nextName());
   [else]
-    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](rawKey);
+    [a.unwrappedElementType] key = [a.wrappedElementType].parse[toUpper a.unwrappedElementType](in.nextName());
   [/if]
 [else if a.wrappedElementType eq 'java.lang.String']
-    [a.wrappedElementType] key = rawKey;
-[else][if not a.requiresMarshalingAdapter][output.error]assertion: key read from string with type adapter for attribute: [a.type] [a.name][/output.error][/if]
-    [a.wrappedElementType] key = [a.name]Adapter.fromJsonTree(new JsonPrimitive(rawKey));
+    [a.wrappedElementType] key = in.nextName();
+[else if adapted.isEnum a.elementType]
+  [for EnumDefinition en = adapted.enums a.elementType]
+    [a.elementType] key = [en.simple]FromString(in.nextName(), in);
+  [/for]
+[else]
+  [output.error]unsupported type for mapping key in attribute: [a.type].[a.name]. Use only primitive wrapper types, strings or local enums (covered by scope of @JsonAdapted)[/output.error]
 [/if]
   [if a.typeKind.isMultimapKind]
-    if (in.peek() == JsonReader.Token.BEGIN_ARRAY) {
+    if (in.peek() == com.squareup.moshi.JsonReader.Token.BEGIN_ARRAY) {
       in.beginArray();
-      while(in.hasNext()) {
+      while (in.hasNext()) {
         [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
         [collectorExpression](key, value);
       }
@@ -542,7 +598,9 @@ if (in.peek() == JsonReader.Token.NULL) {
 
 [template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression]
 [collectionUnmarshalCaseNullSingleArray]
-  [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+  [if adapted.isEnum a.unwrappedElementType]
+[collectorExpression]([simpleTypeNext a.unwrappedElementType]);
+  [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 [collectorExpression]([simpleTypeNext a.unwrappedElementType]);
   [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
@@ -553,11 +611,13 @@ if (in.peek() == JsonReader.Token.NULL) {
 
 [template generateComplexTypeUnmarshalAttribute Type type Attribute a]
   [if a.nullable]
-JsonReader.Token t = in.peek();
-if (t == JsonReader.Token.NULL) {
+com.squareup.moshi.JsonReader.Token t = in.peek();
+if (t == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
 } else {
     [if a.stringType]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else if adapted.isEnum a.unwrappedElementType]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
   [generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
@@ -567,11 +627,13 @@ if (t == JsonReader.Token.NULL) {
   [else if a.stringType]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
   [else if a.optionalType]
-JsonReader.Token t = in.peek();
-if (t == JsonReader.Token.NULL) {
+com.squareup.moshi.JsonReader.Token t = in.peek();
+if (t == com.squareup.moshi.JsonReader.Token.NULL) {
   in.nextNull();
 } else {
     [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
+    [else if adapted.isEnum a.unwrappedElementType]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
   [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
@@ -595,7 +657,7 @@ builder.[a.names.init](value);
 [template generateReadAttributeValue Type type Attribute attribute String genericType String rawType Boolean secondary]
 [if secondary]
   [if attribute.requiresMarshalingSecondaryAdapter]
-[genericType] value = [attribute.name]SecondaryAdapter.fromJson(in);
+[genericType] value = [attribute.name]Adapter.fromJson(in);
   [else]
 [attribute.unwrappedSecondaryElementType] value = [simpleTypeNext attribute.unwrappedSecondaryElementType];
   [/if]
@@ -611,7 +673,7 @@ builder.[a.names.init](value);
 [template generateWriteAttributeValue Type type Attribute attribute String variableName Boolean secondary]
 [if secondary]
   [if attribute.requiresMarshalingSecondaryAdapter]
-[attribute.name]SecondaryAdapter.toJson(out, [variableName]);
+[attribute.name]Adapter.toJson(out, [variableName]);
   [else]
 [simpleTypeWrite attribute.secondaryElementType variableName]
   [/if]
@@ -633,28 +695,30 @@ out.value([variableName]);
 [/template]
 
 [template simpleTypeNext String typeName][output.trim]
-[if typeName eq 'boolean']
-  in.nextBoolean()
-[else if typeName eq 'byte']
-  (byte) in.nextInt()
-[else if typeName eq 'short']
-  (short) in.nextInt()
-[else if typeName eq 'int']
-  in.nextInt()
-[else if typeName eq 'long']
-  in.nextLong()
-[else if typeName eq 'float']
-  (float) in.nextDouble()
-[else if typeName eq 'double']
-  in.nextDouble()
-[else if typeName eq 'java.lang.String']
-  in.nextString()
-[else if typeName eq 'char']
-  charValueOf(in.nextString())
-[else]
-  null
-  [output.error]unexpected type [typeName], not a simple one[/output.error]
-[/if]
+  [if typeName eq 'boolean']
+in.nextBoolean()
+  [else if typeName eq 'byte']
+(byte) in.nextInt()
+  [else if typeName eq 'short']
+(short) in.nextInt()
+  [else if typeName eq 'int']
+in.nextInt()
+  [else if typeName eq 'long']
+in.nextLong()
+  [else if typeName eq 'float']
+(float) in.nextDouble()
+  [else if typeName eq 'double']
+in.nextDouble()
+  [else if typeName eq 'java.lang.String']
+in.nextString()
+  [else if typeName eq 'char']
+charValueOf(in.nextString())
+  [else if adapted.isEnum typeName]
+    [for EnumDefinition en = adapted.enums typeName]
+[en.simple]FromString(in.nextString(), in)
+    [/for]
+  [else]null[output.error]unexpected type [typeName], not a simple one[/output.error]
+  [/if]
 [/output.trim][/template]
 
 [template constructorAcceptType Attribute a][output.trim]
@@ -673,8 +737,82 @@ out.value([variableName]);
 [for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
 [-- mandatory constructor arguments are not checked, should they? --]
 [output.error]
-@Json.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
+@JsonAdapted.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
 [/output.error]
+[/for]
+[/template]
+
+[template generateUtility Adapted adapted]
+[for t in adapted.types, a in t.allMarshalingAttributes if a.jsonQualiferAnnotations]
+[if for.first]
+
+@SuppressWarnings("unchecked") // checked in runtime to match expected type
+private static <T> com.squareup.moshi.JsonAdapter<T> adapter(com.squareup.moshi.Moshi moshi, Class<?> type, String field) {
+  try {
+    java.util.reflect.Field field = type.getDeclaredField(field);
+    java.lang.Set<Annotation> annotations = new java.lang.HashSet<Annotation>();
+    for (Annotation a : field.getDeclaredAnnotations()) {
+      annotations.add(a);
+    }
+    return (T) moshi.adapter(field.getGenericType(), annotations);
+  } catch (Exception ex) {
+    throw new AssertionError("Reflection failed", ex);
+  }
+}
+[/if]
+[/for]
+[for t in adapted.types,
+    a in t.unmarshaledAttributes if a.unwrappedElementType eq 'char']
+[if for.first]
+
+private static char charValueOf(String string) {
+  if (string.length() == 1) return string.charAt(0);
+  throw new IllegalArgumentException("Expected string with a single character but was '" + string + "'");
+}
+[/if]
+[/for]
+[for en in adapted.enums.all]
+[if en.useFromString]
+
+private static [en.qualified] [en.simple]FromString(String string, com.squareup.moshi.JsonReader in) {
+  [if en.useFlatIfElse]
+    [for c in en.constants]
+  if ("[c.json]".equals(string)) {
+    return [en.qualified].[c.name];
+  }
+    [/for]
+  [else]
+  if (!string.isEmpty()) {
+    switch (string.charAt(0)) {
+    [for e in en.byFirstLetter.asMap.entrySet]
+    case '[e.key]':
+      [for c in e.value]
+      if ("[c.json]".equals(string)) {
+        return [en.qualified].[c.name];
+      }
+      [/for]
+      break;
+    [/for]
+    default:
+    }
+  }
+  [/if]
+  throw new com.squareup.moshi.JsonDataException("Unknown value for [en.qualified] \'" + string +  "\'"
+      + ", known are [for c in en.constants][if not for.first], [/if]'[c.json]'[/for]"
+      + ", at " + in.getPath());
+}
+[/if]
+[if en.useToString]
+
+private static String [en.simple]ToString([en.qualified] value) {
+  switch (value) {
+  [for c in en.constants]
+  case [c.name]: return "[c.json]";
+  [/for]
+  default: throw new AssertionError();
+  }
+}
+[/if]
 [/for]
 [/template]
 

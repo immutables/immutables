@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -24,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +38,14 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
+import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 
 /**
  * It's pointless to refactor this mess until
@@ -75,7 +78,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   Element element;
   String returnTypeName;
 
-  private boolean hasEnumFirstTypeParameter;
+  public boolean hasEnumFirstTypeParameter;
+
   @Nullable
   private TypeElement containedTypeElement;
   @Nullable
@@ -163,6 +167,24 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || (!isContainerType() && super.isComparable());
   }
 
+  private List<CharSequence> jsonQualifierAnnotations;
+
+  public List<CharSequence> getJsonQualiferAnnotations() {
+    if (jsonQualifierAnnotations == null) {
+      List<CharSequence> annotationStrings = Collections.emptyList();
+      for (AnnotationMirror m : element.getAnnotationMirrors()) {
+        if (MetaAnnotated.from(m, protoclass().environment()).isJsonQualifier()) {
+          if (annotationStrings.isEmpty()) {
+            annotationStrings = Lists.newArrayList();
+          }
+          annotationStrings.add(AnnotationMirrors.toCharSequence(m));
+        }
+      }
+      jsonQualifierAnnotations = annotationStrings;
+    }
+    return jsonQualifierAnnotations;
+  }
+
   @Nullable
   private String serializedName;
 
@@ -186,7 +208,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         alternateSerializedNames = m.alternate();
         return serializedName;
       }
-
       Optional<NamedMirror> namedAnnotation = NamedMirror.find(element);
       if (namedAnnotation.isPresent()) {
         String value = namedAnnotation.get().value();
@@ -197,7 +218,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
       Optional<OkNamedMirror> okNamedAnnotation = OkNamedMirror.find(element);
       if (okNamedAnnotation.isPresent()) {
-        String value = okNamedAnnotation.get().value();
+        String value = okNamedAnnotation.get().name();
         if (!value.isEmpty()) {
           serializedName = value;
           return serializedName;
@@ -277,12 +298,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return allAnnotations;
   }
 
+  @Deprecated
   public boolean isGsonIgnore() {
-    return IgnoreMirror.isPresent(element);
+    return isJsonIgnore();
   }
 
   public boolean isJsonIgnore() {
-    return OkIgnoreMirror.isPresent(element);
+    return IgnoreMirror.isPresent(element)
+        || OkIgnoreMirror.isPresent(element);
   }
 
   public List<String> typeParameters() {
@@ -455,9 +478,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public String getConsumedElementType() {
     return (isUnwrappedElementPrimitiveType()
         || String.class.getName().equals(containmentTypeName())
-        || hasEnumFirstTypeParameter)
+        || hasEnumFirstTypeParameter())
         ? getWrappedElementType()
         : "? extends " + getWrappedElementType();
+  }
+
+  public boolean hasEnumFirstTypeParameter() {
+    return typeKind().isEnumKeyed()
+        && containedTypeElement.getKind() == ElementKind.ENUM;
   }
 
   private String extractRawType(String className) {
@@ -581,18 +609,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
         if (!typeArguments.isEmpty()) {
           final TypeMirror typeArgument = typeArguments.get(0);
-          TypeIntrospectionBase firstTypeParameterIntrospection = new TypeIntrospectionBase() {
-            @Override
-            protected TypeMirror internalTypeMirror() {
-              return typeArgument;
-            }
-          };
 
-          if (isSetType()) {
-            this.generateOrdinalValueSet = firstTypeParameterIntrospection.isOrdinalValue();
-          }
-          if (isSetType() || isMapType()) {
-            this.hasEnumFirstTypeParameter = firstTypeParameterIntrospection.isEnumType();
+          if (isSetType() && protoclass().environment().hasOrdinalModule()) {
+            this.generateOrdinalValueSet = new TypeIntrospectionBase() {
+              @Override
+              protected TypeMirror internalTypeMirror() {
+                return typeArgument;
+              }
+            }.isOrdinalValue();
           }
           if (isMapType()) {
             TypeMirror typeSecondArgument = typeArguments.get(1);
@@ -899,7 +923,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     } else {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
       ensureTypeIntrospected();
-      typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumFirstTypeParameter);
+      boolean firstEnum = containedTypeElement != null
+          && containedTypeElement.getKind() == ElementKind.ENUM;
+
+      typeKind = typeKind.havingEnumFirstTypeParameter(firstEnum);
     }
   }
 
@@ -1047,6 +1074,23 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isMandatory()
         && !hasForwardOnlyInitializer())
         || (isPrimitive() && isGenerateDefault);
+  }
+
+  public Collection<TypeElement> getEnumElements() {
+    if (isEnumType()) {
+      return Collections.singletonList(containedTypeElement);
+    }
+    if (!isContainerType()) {
+      List<TypeElement> elements = Lists.newArrayListWithCapacity(2);
+      if (containedTypeElement != null && containedTypeElement.getKind() == ElementKind.ENUM) {
+        elements.add(containedTypeElement);
+      }
+      if (isMapType() && containedSecondaryTypeElement.getKind() == ElementKind.ENUM) {
+        elements.add(containedSecondaryTypeElement);
+      }
+      return elements;
+    }
+    return Collections.emptyList();
   }
 
   boolean hasConstructorParameterCustomOrder() {

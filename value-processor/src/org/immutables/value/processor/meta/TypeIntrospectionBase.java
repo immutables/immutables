@@ -16,9 +16,6 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,8 +26,7 @@ import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.TypeHierarchyCollector;
 
 public abstract class TypeIntrospectionBase {
-  protected static final Predicate<CharSequence> UNDEFINABLE_PATTERN = Predicates.containsPattern("\\.Undefinable$");
-  protected static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
+  static final String ORDINAL_VALUE_INTERFACE_TYPE = Proto.ORDINAL_VALUE_INTERFACE_TYPE;
 
   protected static final ImmutableBiMap<String, String> BOXED_TO_PRIMITIVE_TYPES;
 
@@ -100,11 +96,6 @@ public abstract class TypeIntrospectionBase {
   public boolean isSerializable() {
     ensureTypeIntrospected();
     return implementedInterfacesNames.contains(Serializable.class.getName());
-  }
-
-  public boolean isUndefinable() {
-    ensureTypeIntrospected();
-    return FluentIterable.from(implementedInterfacesNames).anyMatch(UNDEFINABLE_PATTERN);
   }
 
   public String getDirectSupertype() {

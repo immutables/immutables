@@ -78,13 +78,6 @@
       <version>3.0.0</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <!-- Test only for moshi -->
-      <groupId>com.squareup.moshi</groupId>
-      <artifactId>moshi</artifactId>
-      <version>0.9.0</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <repositories>
     <repository>

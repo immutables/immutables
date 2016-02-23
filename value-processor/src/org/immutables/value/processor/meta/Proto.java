@@ -55,6 +55,10 @@ public class Proto {
     @Value.Auxiliary
     public abstract Element element();
 
+    @Value.Parameter
+    @Value.Auxiliary
+    public abstract Environment environment();
+
     @Value.Derived
     @Value.Auxiliary
     public Optional<StyleInfo> style() {
@@ -64,6 +68,9 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     public Optional<Long> serialVersion() {
+      if (!environment().hasSerialModule()) {
+        return Optional.absent();
+      }
       Optional<VersionMirror> version = VersionMirror.find(element());
       return version.isPresent()
           ? Optional.of(version.get().value())
@@ -73,34 +80,44 @@ public class Proto {
     @Value.Derived
     @Value.Auxiliary
     public boolean isSerialStructural() {
-      return StructuralMirror.isPresent(element());
+      return environment().hasSerialModule()
+          && StructuralMirror.isPresent(element());
     }
 
     @Value.Derived
     @Value.Auxiliary
     public boolean isJacksonSerialized() {
-      return isJacksonSerializedAnnotated(element());
+      return environment().hasJacksonLib()
+          && isJacksonSerializedAnnotated(element());
     }
 
     @Value.Derived
     @Value.Auxiliary
     public boolean isJacksonDeserialized() {
-      return isJacksonDeserializedAnnotated(element());
+      return environment().hasJacksonLib()
+          && isJacksonDeserializedAnnotated(element());
     }
 
     @Value.Derived
     @Value.Auxiliary
     public boolean isJacksonJsonTypeInfo() {
-      return isJacksonJsonTypeInfoAnnotated(element());
+      return environment().hasJacksonLib()
+          && isJacksonJsonTypeInfoAnnotated(element());
     }
 
-    public static MetaAnnotated from(AnnotationMirror mirror) {
+    @Value.Default
+    public boolean isJsonQualifier() {
+      return environment().hasOkJsonLib()
+          && OkQualifierMirror.isPresent(element());
+    }
+
+    public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
 
       @Nullable MetaAnnotated metaAnnotated = cache.get(element);
       if (metaAnnotated == null) {
-        metaAnnotated = ImmutableProto.MetaAnnotated.of(element);
+        metaAnnotated = ImmutableProto.MetaAnnotated.of(element, environment);
         @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
         if (existing != null) {
           metaAnnotated = existing;
@@ -135,7 +152,7 @@ public class Proto {
   }
 
   @Value.Immutable
-  abstract static class Environment {
+  public abstract static class Environment {
     @Value.Parameter
     abstract ProcessingEnvironment processing();
 
@@ -156,10 +173,45 @@ public class Proto {
       return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
     }
 
+    @Value.Lazy
+    public boolean hasOkJsonLib() {
+      return findElement("com.squareup.moshi.Moshi") != null;
+    }
 
     @Value.Lazy
-    public boolean hasTreesModule() {
+    public boolean hasGsonLib() {
+      return findElement("com.google.gson.Gson") != null;
+    }
+
+    @Value.Lazy
+    public boolean hasJacksonLib() {
+      return findElement(Proto.JACKSON_DESERIALIZE) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasMongoModule() {
+      return findElement(RepositoryMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasSerialModule() {
+      return findElement(VersionMirror.qualifiedName()) != null;
+    }
+
+
+    @Value.Lazy
+    public boolean hasTransformModule() {
       return findElement(TransformMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasAstModule() {
+      return findElement(AstMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasOrdinalModule() {
+      return findElement(TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE) != null;
     }
 
     @Value.Lazy
@@ -170,6 +222,11 @@ public class Proto {
     @Value.Lazy
     public boolean hasBuilderModule() {
       return findElement(FactoryMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasFuncModule() {
+      return findElement(FunctionalMirror.qualifiedName()) != null;
     }
 
     /**
@@ -220,6 +277,10 @@ public class Proto {
 
     public boolean hasInclude() {
       return include().isPresent();
+    }
+
+    public String asPrefix() {
+      return name().isEmpty() ? "" : (name() + ".");
     }
 
     public Optional<DeclaringType> asType() {
@@ -276,7 +337,7 @@ public class Proto {
       }
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
         Optional<StyleInfo> metaStyle = metaAnnotated.style();
         if (metaStyle.isPresent()) {
           return metaStyle;
@@ -294,7 +355,7 @@ public class Proto {
       }
 
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
         Optional<Long> serialVersion = metaAnnotated.serialVersion();
         if (serialVersion.isPresent()) {
           return serialVersion;
@@ -318,7 +379,7 @@ public class Proto {
         return true;
       }
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
         if (metaAnnotated.isJacksonSerialized()) {
           return true;
         }
@@ -335,7 +396,7 @@ public class Proto {
         return true;
       }
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
         if (metaAnnotated.isJacksonDeserialized()) {
           return true;
         }
@@ -357,7 +418,7 @@ public class Proto {
         return true;
       }
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror);
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
         if (metaAnnotated.isJacksonJsonTypeInfo()) {
           return true;
         }
@@ -393,10 +454,6 @@ public class Proto {
     @Value.Derived
     public String name() {
       return element().isUnnamed() ? "" : element().getQualifiedName().toString();
-    }
-
-    public String asPrefix() {
-      return element().isUnnamed() ? "" : (name() + ".");
     }
 
     @Value.Lazy
@@ -672,7 +729,7 @@ public class Proto {
 
     @Value.Lazy
     public Optional<TransformMirror> getTransform() {
-      return environment().hasTreesModule()
+      return environment().hasTransformModule()
           ? TransformMirror.find(element())
           : Optional.<TransformMirror>absent();
     }
@@ -680,7 +737,7 @@ public class Proto {
     @Value.Lazy
     public boolean isAst() {
       // considering ast is still in tree module
-      return environment().hasTreesModule()
+      return environment().hasTransformModule()
           && AstMirror.isPresent(element());
     }
 
@@ -1227,11 +1284,6 @@ public class Proto {
     }
   }
 
-  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
-      ImmutableSet.of(
-          "com.fasterxml.jackson.databind.annotation.JsonSerialize",
-          "com.fasterxml.jackson.databind.annotation.JsonDeserialize");
-
   static boolean isJacksonSerializedAnnotated(Element element) {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
@@ -1247,7 +1299,7 @@ public class Proto {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if ("com.fasterxml.jackson.databind.annotation.JsonDeserialize".equals(annotationElement.getQualifiedName()
+      if (JACKSON_DESERIALIZE.equals(annotationElement.getQualifiedName()
           .toString())) {
         return true;
       }
@@ -1259,10 +1311,20 @@ public class Proto {
     List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
     for (AnnotationMirror annotation : annotationMirrors) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if ("com.fasterxml.jackson.annotation.JsonTypeInfo".equals(annotationElement.getQualifiedName().toString())) {
+      if (JACKSON_TYPE_INFO.equals(annotationElement.getQualifiedName().toString())) {
         return true;
       }
     }
     return false;
   }
+
+  static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
+  static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";
+  static final String JACKSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
+  static final String JACKSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+
+  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
+      ImmutableSet.of(
+          JACKSON_SERIALIZE,
+          JACKSON_DESERIALIZE);
 }
