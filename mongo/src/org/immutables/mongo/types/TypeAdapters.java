@@ -153,7 +153,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
 
     @Override
     public Pattern read(JsonReader in) throws IOException {
-      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonWriter");
+      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
       return ((BsonReader) in).nextPattern();
     }
   };
@@ -168,7 +168,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
 
     @Override
     public Long read(JsonReader in) throws IOException {
-      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonWriter");
+      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
       return ((BsonReader) in).nextTimeInstant();
     }
 
@@ -188,7 +188,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
 
     @Override
     public byte[] read(JsonReader in) throws IOException {
-      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonWriter");
+      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
       return ((BsonReader) in).nextObjectId();
     }
 
@@ -208,7 +208,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
 
     @Override
     public byte[] read(JsonReader in) throws IOException {
-      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonWriter");
+      checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
       return ((BsonReader) in).nextBinary();
     }
 
