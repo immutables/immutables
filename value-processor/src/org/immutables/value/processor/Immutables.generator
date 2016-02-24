@@ -1244,7 +1244,17 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [output.linesShortable][type.names.build]()
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {[/output.linesShortable]
-    [builderBody positions type]checkRequiredAttributes()[/builderBody]
+  [if positions.longs]
+    [if type.useCompactBuilder]
+    if ([for l in positions.longs][if not for.first]
+        || [/if][disambiguateField type 'initBits'][emptyIfZero l.index] != 0[/for]) {
+      throw new java.lang.IllegalStateException(formatRequiredAttributesMessage());
+    }
+    [else]
+    checkRequiredAttributes();
+    [/if]
+  [/if]
+    [builderReturnValue type]
   }
   [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 or (not type.generateJdkOnly)]
@@ -1265,7 +1275,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {
-    [builderBody positions type]checkRequiredAttributesOrThrow(exceptionSupplier)[/builderBody]
+    [if positions.longs]
+    checkRequiredAttributesOrThrow(exceptionSupplier);
+    [/if]
+    [builderReturnValue type]
   }
   [/if]
   [/if]
@@ -1275,6 +1288,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
+[if not type.useCompactBuilder]
   [for m in mandatories, BitPosition pos = positions m]
 
   private boolean [m.names.isSet]() {
@@ -1300,12 +1314,21 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   }
     [/if]
   [/if]
+  [/if]
+[/if]
+  [if positions.longs]
 
   private String formatRequiredAttributesMessage() {
-    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
-    [for m in mandatories]
+    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<>()[else][guava].collect.Lists.newArrayList()[/if];
+    [if type.useCompactBuilder]
+      [for m in mandatories, BitPosition pos = positions m]
+    if (([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) != 0) attributes.add("[m.name]");
+      [/for]
+    [else]
+      [for m in mandatories]
     if (![m.names.isSet]()) attributes.add("[m.name]");
-    [/for]
+      [/for]
+    [/if]
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
   [/if]
@@ -1322,10 +1345,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
 [/for]
 [/template]
 
-[template builderBody LongPositions positions Type type String attributeChecker]
-[if positions.longs]
-[attributeChecker];
-[/if]
+[template builderReturnValue Type type]
 [if type.kind.isFactory]
 [returnFactoryBuild type]
 [else if type.useSingleton and (not type.settableAttributes)]
@@ -1508,7 +1528,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 [-- Generate default values comes after required values]
 [if type.generateSafeDerived]
   [for v in getters if v.generateDefault, n = v.name]
-    if ([if v.primitive]builder.[n]IsSet()[else]builder.[n] != null[/if]) {
+    if ([if v.primitive]builder.[v.names.isSet]()[else]builder.[n] != null[/if]) {
       [disambiguateField type 'initShim'].[v.names.init](builder.[n]);
     }
   [/for]
@@ -1518,7 +1538,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
   [if type.generateSafeDerived]
     this.[n] = [disambiguateField type 'initShim'].[v.names.get]();
   [else if v.primitive]
-    this.[n] = builder.[n]IsSet()
+    this.[n] = builder.[v.names.isSet]()
         ? builder.[n]
       [if type.annotationType]
         : DEFAULT_VALUE_[toConstant v.name];

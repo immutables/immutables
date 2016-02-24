@@ -1085,17 +1085,11 @@ public final class ValueType extends TypeIntrospectionBase {
         || SuppressedWarnings.forElement(element).generated;
   }
 
-  /**
-   * Used for type snapshoting
-   */
-  @Override
-  public int hashCode() {
-    return Objects.hash(constitution.protoclass().name());
-  }
-
-  @Override
-  public String toString() {
-    return "Type[" + name() + "]";
+  public boolean isUseCompactBuilder() {
+    return !kind().isFactory()
+        && !isUseStrictBuilder()
+        && !isGenerateBuildOrThrow()
+        && getThrowForInvalidImmutableState().equals(IllegalStateException.class.getName());
   }
 
   DeclaringType inferDeclaringType(Element element) {
@@ -1215,4 +1209,16 @@ public final class ValueType extends TypeIntrospectionBase {
     return provider.returnTypeName();
   }
 
+  /**
+   * Used for type snapshoting
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(constitution.protoclass().name());
+  }
+
+  @Override
+  public String toString() {
+    return "Type[" + name() + "]";
+  }
 }
