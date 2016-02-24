@@ -460,10 +460,10 @@ public final class ValueType extends TypeIntrospectionBase {
     if (isUseSingletonOnly()) {
       return false;
     }
-    if (useAttributelessSingleton() && !isUseValidation()) {
-      return false;
+    if (isUseInterned() || isUseSingleton()) {
+      return true;
     }
-    return true;
+    return !isEqualToDefined;
   }
 
   public boolean isUseSingletonOnly() {

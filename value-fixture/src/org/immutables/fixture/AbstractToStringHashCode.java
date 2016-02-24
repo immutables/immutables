@@ -45,4 +45,19 @@ public class AbstractToStringHashCode {
       return obj instanceof InternCustomHashCode;
     }
   }
+
+  @Value.Immutable
+  static abstract class CustomEquals {
+    abstract int a();
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      return obj instanceof CustomEquals;
+    }
+  }
 }
