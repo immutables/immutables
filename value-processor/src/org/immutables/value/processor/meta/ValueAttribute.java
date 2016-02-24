@@ -660,6 +660,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind;
   }
 
+  public boolean isPrimitiveWrapperType() {
+    return isPrimitiveWrappedType(returnTypeName);
+  }
+
   private static boolean isRegularMarshalableType(String name, boolean couldBeWrapped) {
     return String.class.getName().equals(name)
         || (couldBeWrapped ? isPrimitiveOrWrapped(name) : isPrimitiveType(name));

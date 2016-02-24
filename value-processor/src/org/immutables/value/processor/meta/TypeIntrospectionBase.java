@@ -42,9 +42,13 @@ public abstract class TypeIntrospectionBase {
     return BOXED_TO_PRIMITIVE_TYPES.containsValue(typeName);
   }
 
+  protected static boolean isPrimitiveWrappedType(String name) {
+    return BOXED_TO_PRIMITIVE_TYPES.containsKey(name);
+  }
+
   protected static boolean isPrimitiveOrWrapped(String name) {
-    return BOXED_TO_PRIMITIVE_TYPES.containsKey(name)
-        || BOXED_TO_PRIMITIVE_TYPES.containsValue(name);
+    return isPrimitiveType(name)
+        || isPrimitiveWrappedType(name);
   }
 
   protected static String wrapType(String typeName) {

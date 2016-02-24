@@ -47,6 +47,9 @@
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
+[if classpath.available 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+[/if]
 [if classpath.available 'javax.annotation.Generated']
 @javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})
 [/if]
@@ -60,8 +63,11 @@
 package [type.package];
   [/if]
 
-import java.lang.String;
+[-- these imports will be deleted if unused, essentially this is plumbing for the imports post-processor  --]
 import java.lang.Object;
+import java.lang.String;
+import java.lang.Float;
+import java.lang.Double;
   [for starImport in type.requiredSourceStarImports]
 import [starImport];
   [/for]
@@ -1987,11 +1993,15 @@ this.[disambiguateField type 'initShim'] = null;
   [/if]
 [/template]
 
-[template generateReturnCopyContextual Type type Attribute modified]
+[template generateReturnCopy Type type Attribute modified String expression]
 return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
     [if type.synthCopyConstructor]this,
     [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
-    [/if][if a.name eq modified.name]newValue[else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+    [/if][if a.name eq modified.name][expression][else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+[/template]
+
+[template generateReturnCopyContextual Type type Attribute modified]
+[generateReturnCopy type modified 'newValue']
 [/template]
 
 [template generateReturnBuilderConstructed Type type]
@@ -2075,33 +2085,50 @@ public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v
   [else]
   [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
   [/if]
-  [if v.unwrappedElementType ne 'double']
+  [if v.unwrappedElementType eq 'double'][-- skip for double --]
+  [else if v.unwrappedElementType eq 'float'][-- skip for float --]
+  [else if v.elementType eq 'java.lang.String']
+  if ([objectsUtilRef type]equals(this.[v.name], newValue)) return this;
+  [else if v.primitiveWrapperType]
+  if ([objectsUtilRef type]equals(this.[v.name], newValue)) return this;
+  [else]
   if (this.[v.name] == newValue) return this;
   [/if]
+  [generateReturnCopyContextual type v]
 [else]
   [immutableImplementationType v] newValue = [optionalOf v](value);
-[/if]
   [generateReturnCopyContextual type v]
+[/if]
 }
 
 /**
  * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+[if not v.jdkOptional][-- just to not lie --]
  * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
+[/if]
  * @param optional A value for [v.name]
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
 [if v.jdkOptional]
-  [immutableImplementationType v] newValue = [if v.jdkSpecializedOptional]optional.isPresent() ? optional.getAs[toUpper v.unwrappedElementType]() : null[else]optional.orElse(null)[/if];
-  [if v.unwrappedElementType ne 'double']
-  if (this.[v.name] == newValue) return this;
+  [immutableImplementationType v] value = [if v.jdkSpecializedOptional]optional.isPresent() ? optional.getAs[toUpper v.unwrappedElementType]() : null[else]optional.orElse(null)[/if];
+  [if v.unwrappedElementType eq 'float']
+  if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
+  [else if v.unwrappedElementType eq 'double']
+  if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
+  [else if v.elementType eq 'java.lang.String'][-- java8 should have java.util.Objects anyway --]
+  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
+  [else if v.primitiveWrapperType]
+  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
+  [else]
+  if (this.[v.name] == value) return this;
   [/if]
 [else]
-  [immutableImplementationType v] newValue = [requireNonNull type](optional, "[v.name]");
-  if (this.[v.name] == newValue) return this;
+  [immutableImplementationType v] value = [requireNonNull type](optional, "[v.name]");
+  if (this.[v.name] == value) return this;
 [/if]
-  [generateReturnCopyContextual type v]
+  [generateReturnCopy type v 'value']
 }
     [else if v.mapType]
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
@@ -2116,17 +2143,21 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   if (this.[v.name] == entries) return this;
-  [immutableImplementationType v] newValue = [immutableCollectionCopyOf v 'entries'];
-  [generateReturnCopyContextual type v]
+  [immutableImplementationType v] value = [immutableCollectionCopyOf v 'entries'];
+  [generateReturnCopy type v 'value']
 }
     [/for]
     [else]
 
 /**
  * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
- [if v.primitive and (not v.floatType)]
+ [if v.primitive and v.floatType]
+ * A value strict bits equality used to prevent copying of the same value by returning {@code this}.
+ [else if v.primitive]
  * A value equality check is used to prevent copying of the same value by returning {@code this}.
- [else if not v.primitive]
+ [else if v.primitiveWrapperType or v.stringType]
+ * An equals check used to prevent copying of the same value by returning {@code this}.
+ [else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
  * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
@@ -2134,17 +2165,32 @@ public final [type.typeImmutable.simple] [v.names.with]([if v.multimapType][guav
  */
 [deprecation v]
 public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] value) {
-    [if not v.floatType]
+    [if v.float]
+  if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
+    [else if v.double]
+  if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
+    [else if v.stringType or v.primitiveWrapperType]
+      [if v.nullable]
+        [if v.generateJdkOnly]
+  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
+        [else]
+  if ([guava].base.Objects.equal(this.[v.name], value)) return this;
+        [/if]
+      [else]
+  if (this.[v.name].equals(value)) return this;
+      [/if]
+    [else]
   if (this.[v.name] == value) return this;
     [/if]
     [if v.attributeValueType]
   [immutableImplementationType v] newValue = [if v.nullable]value == null ? null : [/if][v.attributeValueType.factoryCopyOf](value);
-    [else if v.nullable or v.primitive]
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = value;
-    [else]
-  [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
-    [/if]
   [generateReturnCopyContextual type v]
+    [else if v.nullable or v.primitive]
+  [generateReturnCopy type v 'value']
+    [else]
+  [let value][requireNonNull type](value, "[v.name]")[/let]
+  [generateReturnCopy type v value]
+    [/if]
 }
     [/if]
   [/for]
