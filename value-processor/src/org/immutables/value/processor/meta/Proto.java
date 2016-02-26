@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import static com.google.common.base.Verify.verify;
+import com.google.common.base.Verify;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -164,12 +166,15 @@ public class Proto {
       @Nullable TypeElement element = findElement(StyleMirror.qualifiedName());
       if (element == null) {
         processing().getMessager()
-            .printMessage(Diagnostic.Kind.ERROR,
+            .printMessage(Diagnostic.Kind.MANDATORY_WARNING,
                 "Could not found annotations on the compile classpath. It looks like annotation processor is running"
                     + " in a separate annotation-processing classpath and unable to get to annotation definitions."
                     + " To fix this, please add annotation-only artifact 'org.immutables:value:(version):annotations'"
                     + " to 'compile' 'compileOnly' or 'provided' dependency scope.");
+
+        element = findElement(StyleMirror.mirrorQualifiedName());
       }
+      verify(element != null, "Classpath should contain at least mirror annotation, otherwise library is corrupted");
       return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
     }
 

@@ -16,6 +16,8 @@ import [guava].base.Verify;
 import [guava].base.Preconditions;
 import [guava].base.Optional;
 import [guava].collect.ImmutableList;
+import java.lang.Object;
+import java.lang.String;
 
 /**
  * [m.name]Mirror used to parse data of AnnotationMirror for original annotation {@code [m.qualifiedName]}
@@ -27,6 +29,11 @@ import [guava].collect.ImmutableList;
 @SuppressWarnings("all")
 public class [m.name]Mirror implements [m.element.qualifiedName] {
   public static final String QUALIFIED_NAME = "[m.qualifiedName]";
+  public static final String MIRROR_QUALIFIED_NAME = "[m.element.qualifiedName]";
+
+  public static String mirrorQualifiedName() {
+    return QUALIFIED_NAME;
+  }
 
   public static String qualifiedName() {
     return QUALIFIED_NAME;
@@ -116,7 +123,8 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
 [/for]
 
   private [m.name]Mirror(TypeElement defaultAnnotationElement) {
-    Preconditions.checkArgument(defaultAnnotationElement.getQualifiedName().contentEquals(QUALIFIED_NAME));
+    Preconditions.checkArgument(defaultAnnotationElement.getQualifiedName().contentEquals(QUALIFIED_NAME)
+        || defaultAnnotationElement.getQualifiedName().contentEquals(MIRROR_QUALIFIED_NAME));
     this.annotationMirror = null;
 
     // TBD TODO BIG
