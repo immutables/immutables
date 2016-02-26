@@ -28,7 +28,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Verify.verify;
 
 @NotThreadSafe
 public final class TypeHierarchyCollector {
@@ -42,7 +42,7 @@ public final class TypeHierarchyCollector {
   }
 
   private DeclaredType toDeclaredType(TypeMirror typeMirror) {
-    checkArgument(typeMirror.getKind() == TypeKind.DECLARED);
+    verify(typeMirror.getKind() == TypeKind.DECLARED || typeMirror.getKind() == TypeKind.ERROR);
     return (DeclaredType) typeMirror;
   }
 
