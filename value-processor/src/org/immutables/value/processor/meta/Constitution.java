@@ -35,7 +35,7 @@ import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import static com.google.common.base.Verify.*;
+import static com.google.common.base.Verify.verify;
 
 @Value.Nested
 @Value.Immutable
@@ -379,7 +379,7 @@ public abstract class Constitution {
   private Visibility implementationEnclosingVisibility() {
     return implementationVisibility().max(Visibility.PACKAGE);
   }
-  
+
   @Value.Lazy
   public NameForms typeWith() {
     String simple = names().typeWith();
@@ -622,6 +622,16 @@ public abstract class Constitution {
                   .warning("Inner type %s is %s - not supported as Builder extend/super type",
                       t.getSimpleName(),
                       kind.name().toLowerCase());
+
+              return null;
+            }
+
+            if (!((TypeElement) t).getTypeParameters().isEmpty()) {
+              protoclass
+                  .report()
+                  .withElement(t)
+                  .warning("Inner type %s is not supported as Builder extend/super type. Remove type parameters",
+                      t.getSimpleName());
 
               return null;
             }

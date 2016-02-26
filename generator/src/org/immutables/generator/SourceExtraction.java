@@ -15,8 +15,9 @@
  */
 package org.immutables.generator;
 
-import javax.lang.model.element.Element;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -25,27 +26,27 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import org.eclipse.jdt.core.compiler.CharOperation;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
 import org.eclipse.jdt.internal.compiler.apt.model.ExecutableElementImpl;
 import org.eclipse.jdt.internal.compiler.apt.model.TypeElementImpl;
 import org.eclipse.jdt.internal.compiler.ast.AbstractMethodDeclaration;
 import org.eclipse.jdt.internal.compiler.ast.CompilationUnitDeclaration;
+import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.compiler.lookup.Binding;
-import org.eclipse.jdt.internal.compiler.lookup.MemberTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.MethodBinding;
-import org.eclipse.jdt.internal.compiler.lookup.ReferenceBinding;
 import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
@@ -191,6 +192,10 @@ public final class SourceExtraction {
   }
 
   private static final class EclipseSourceExtractor implements SourceExtractor {
+    private static final Splitter DECLARATION_SPLITTER =
+        Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')))
+            .omitEmptyStrings()
+            .trimResults();
 
     @Override
     public boolean claim(Element element) {
@@ -250,7 +255,51 @@ public final class SourceExtraction {
       return i;
     }
 
-    private CharSequence getRawType(MethodBinding methodBinding) {
+    private static CharSequence extractSuperclass(SourceTypeBinding binding) {
+      CharSequence declaration = readSourceDeclaration(binding);
+      Iterator<String> iterator = DECLARATION_SPLITTER.split(declaration).iterator();
+      while (iterator.hasNext()) {
+        String token = iterator.next();
+        if (token.equals("extends")) {
+          return readSourceSuperclass(iterator);
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
+
+    private static CharSequence readSourceSuperclass(Iterator<String> declarationParts) {
+      StringBuilder superclass = new StringBuilder();
+      while (declarationParts.hasNext()) {
+        String part = declarationParts.next();
+        if (superclass.length() == 0
+            || part.charAt(0) == '.'
+            || superclass.charAt(superclass.length() - 1) == '.') {
+          superclass.append(part);
+        } else {
+          break;
+        }
+      }
+      return superclass;
+    }
+
+    private static CharSequence readSourceDeclaration(SourceTypeBinding binding) {
+      TypeDeclaration referenceContext = binding.scope.referenceContext;
+      char[] content = referenceContext.compilationResult.compilationUnit.getContents();
+      int start = referenceContext.declarationSourceStart;
+      int end = referenceContext.declarationSourceEnd;
+
+      StringBuilder declaration = new StringBuilder();
+      for (int p = start; p <= end; p++) {
+        char c = content[p];
+        if (c == '{') {
+          break;
+        }
+        declaration.append(c);
+      }
+      return declaration;
+    }
+
+    private static CharSequence getRawType(MethodBinding methodBinding) {
       TypeBinding returnType = methodBinding.returnType;
       char[] sourceName = returnType.sourceName();
       if (sourceName == null) {
@@ -333,14 +382,11 @@ public final class SourceExtraction {
     if (Compiler.ECJ.isPresent()) {
       if (element instanceof TypeElementImpl) {
         TypeElementImpl elementImpl = ((TypeElementImpl) element);
-        if (elementImpl._binding instanceof MemberTypeBinding) {
-          SourceTypeBinding sourceBinding = (SourceTypeBinding) elementImpl._binding;
-          ReferenceBinding superclassBinding = sourceBinding.superclass;
-          return CharOperation.toString(superclassBinding.compoundName).replace('$', '.');
+        if (elementImpl._binding instanceof SourceTypeBinding) {
+          return EclipseSourceExtractor.extractSuperclass((SourceTypeBinding) elementImpl._binding).toString();
         }
       }
     }
-
     return element.getSuperclass().toString();
   }
 }
