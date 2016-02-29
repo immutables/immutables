@@ -2,7 +2,10 @@ Changelog
 ---------
 
 ### 2.1.12 (2016-02-29)
-- Bugfix release
+- Bugfix and minor changes release.
+  + Findbugs' `SuppressFBWarnings` placed on immutable implementation if found in the classpath
+  + Primitive wrapper types and strings have an `equals` comparison now in `with*` methods in short-circuiting check to `return this`.
+  + Fixed some Eclipse specific compilation bugs. 
 - Thanks to contributors and issue reporters!
 - [Issues](https://github.com/immutables/immutables/milestones/2.1.12)
 
