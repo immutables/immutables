@@ -7,7 +7,7 @@ Changelog
   + Primitive wrapper types and strings have an `equals` comparison now in `with*` methods in short-circuiting check to `return this`.
   + Fixed some Eclipse specific compilation bugs. 
 - Thanks to contributors and issue reporters!
-- [Issues](https://github.com/immutables/immutables/milestones/2.1.12)
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.12)
 
 ### 2.1.11 (2016-02-18)
 - Bugfix and Minor improvement release:
