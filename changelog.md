@@ -1,6 +1,11 @@
 Changelog
 ---------
 
+### 2.1.12 (2016-02-29)
+- Bugfix release
+- Thanks to contributors and issue reporters!
+- [Issues](https://github.com/immutables/immutables/milestones/2.1.12)
+
 ### 2.1.11 (2016-02-18)
 - Bugfix and Minor improvement release:
   + Depluralization for `add*` and `put*` methods enabled with `Style(depluralize, depluralizeDictionary)`
