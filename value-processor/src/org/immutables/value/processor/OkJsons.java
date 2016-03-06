@@ -15,28 +15,11 @@
  */
 package org.immutables.value.processor;
 
-import java.util.IdentityHashMap;
-import com.google.common.collect.Iterables;
-import com.google.common.base.Predicate;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
+import com.google.common.base.Predicate;
+import com.google.common.collect.*;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.OkNamedMirror;
@@ -45,6 +28,13 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+import java.util.*;
+import java.util.Map.Entry;
 
 //@Generator.Template
 abstract class OkJsons extends ValuesTemplate {
@@ -58,7 +48,7 @@ abstract class OkJsons extends ValuesTemplate {
   @Value.Immutable
   abstract static class OkTypeAdapterTypes {
     abstract AbstractDeclaring definedBy();
-
+    abstract String packageGenerated();
     abstract List<ValueType> types();
 
     @Value.Derived
@@ -306,8 +296,10 @@ abstract class OkJsons extends ValuesTemplate {
 
     ImmutableList.Builder<OkTypeAdapterTypes> builder = ImmutableList.builder();
     for (Entry<AbstractDeclaring, Collection<ValueType>> entry : byDeclaring.asMap().entrySet()) {
+      String pack = Iterables.get(entry.getValue(), 0).$$package();
       builder.add(ImmutableOkTypeAdapterTypes.builder()
           .definedBy(entry.getKey())
+          .packageGenerated(pack)
           .addAllTypes(entry.getValue())
           .build());
     }

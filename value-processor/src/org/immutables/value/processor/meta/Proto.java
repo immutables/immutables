@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import static com.google.common.base.Verify.verify;
-import com.google.common.base.Verify;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -44,6 +42,7 @@ import javax.tools.Diagnostic;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import static com.google.common.base.Verify.verify;
 
 @Value.Nested
 public class Proto {
@@ -1264,6 +1263,7 @@ public class Proto {
           input.typeImmutableNested(),
           input.typeModifiable(),
           input.typeWith(),
+          input.packageGenerated(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
           input.allParameters(),

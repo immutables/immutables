@@ -15,7 +15,7 @@
 --]
 [template public generate]
   [for adapters in typeAdapters,
-    packageName = adapters.definedBy.packageOf.name,
+    packageName = adapters.packageGenerated,
     simpleName = adapters.definedBy.simpleName,
     String capitalizedSimpleName = toUpper simpleName,
     String typeAdaptersName = ('GsonAdapters' capitalizedSimpleName),

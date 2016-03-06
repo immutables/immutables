@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Styles.PackageNaming;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -70,6 +71,12 @@ public abstract class Constitution {
 
   public boolean isImplementationPrimary() {
     return protoclass().visibility().isMoreRestrictiveThan(implementationVisibility());
+  }
+
+  @Value.Derived
+  public String implementationPackage() {
+    PackageNaming naming = protoclass().styles().packageGenerated();
+    return naming.apply(protoclass().packageOf().name());
   }
 
   @Value.Derived
@@ -186,7 +193,7 @@ public abstract class Constitution {
     String relative = DOT_JOINER.join(classSegments);
     boolean relativeAlreadyQualified = false;
 
-    if (!protoclass().packageOf().name().equals(packageOf)) {
+    if (!implementationPackage().equals(packageOf)) {
       relative = DOT_JOINER.join(packageOf, relative);
       relativeAlreadyQualified = true;
     }
@@ -237,7 +244,7 @@ public abstract class Constitution {
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
         .relative(relative)
-        .packageOf(protoclass().packageOf().name())
+        .packageOf(implementationPackage())
         .visibility(implementationVisibility())
         .build();
   }
@@ -314,7 +321,7 @@ public abstract class Constitution {
           .simple(protoclass().declaringType().get().element().getSimpleName().toString())
           .relative(protoclass().declaringType().get().name())
           .relativeAlreadyQualified(true)
-          .packageOf(protoclass().packageOf().name())
+          .packageOf(implementationPackage())
           .visibility(protoclass().visibility())
           .build()
           .applied(protoclass().sourceElement().getSimpleName().toString());
@@ -357,7 +364,7 @@ public abstract class Constitution {
     return ImmutableConstitution.NameForms.builder()
         .simple(enclosingSimpleName)
         .relative(enclosingSimpleName)
-        .packageOf(protoclass().packageOf().name())
+        .packageOf(implementationPackage())
         .visibility(protoclass().declaringVisibility())
         .build();
   }
@@ -371,7 +378,7 @@ public abstract class Constitution {
     return ImmutableConstitution.NameForms.builder()
         .simple(name)
         .relative(name)
-        .packageOf(protoclass().packageOf().name())
+        .packageOf(implementationPackage())
         .visibility(implementationEnclosingVisibility())
         .build();
   }
@@ -430,7 +437,7 @@ public abstract class Constitution {
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
         .relative(relative)
-        .packageOf(protoclass().packageOf().name())
+        .packageOf(implementationPackage())
         .visibility(visibility)
         .build();
   }

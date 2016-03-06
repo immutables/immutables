@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Joiner;
 import com.google.common.base.CaseFormat;
 import org.immutables.generator.Naming;
 
@@ -43,6 +45,10 @@ public final class Styles {
     return style;
   }
 
+  PackageNaming packageGenerated() {
+    return scheme.packageGenerated;
+  }
+
   public UsingName.TypeNames forType(String name) {
     return new UsingName(name, scheme, depluralizer, "").new TypeNames();
   }
@@ -56,6 +62,7 @@ public final class Styles {
   }
 
   class Scheme {
+    PackageNaming packageGenerated = PackageNaming.from(style().packageGenerated());
     Naming[] typeAbstract = Naming.fromAll(style.typeAbstract());
     Naming typeImmutable = Naming.from(style.typeImmutable());
     Naming typeImmutableNested = Naming.from(style.typeImmutableNested());
@@ -247,6 +254,32 @@ public final class Styles {
         final String putAll = scheme.putAll.apply(raw);
 
       }
+    }
+  }
+
+  /**
+   * Plain {@link Naming} does not fit package name patterns and pimping it will uselessly
+   * compilcate things. So here we're creating separate ad-hoc dead-simple naming pattern formatter
+   * for package name templates.
+   */
+  static class PackageNaming {
+    private final String template;
+
+    PackageNaming(String template) {
+      this.template = template;
+    }
+
+    String apply(String name) {
+      return template.replace("*", name);
+    }
+
+    static PackageNaming from(String template) {
+      return new PackageNaming(template);
+    }
+
+    @Override
+    public String toString() {
+      return template;
     }
   }
 }

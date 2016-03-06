@@ -579,6 +579,25 @@ public @interface Value {
     String typeWith() default "With";
 
     /**
+     * <p>
+     * Naming template {@code packageGenerated} used to derive name of the package where the
+     * annotation processor should put generated classes for corresponding immutable values. By
+     * default it equals to {@code "*"} which means to use the same package as abstract value type.
+     * It can be configured to a specific package name, like {@code "com.acme.specific"}, or used to
+     * specify pattern, like "*.gen" or "*.immutable.impl".
+     * </p>
+     * <p>
+     * <em>Note: It is expected that most generators will honor this style attribute, but it's not guaranteed.
+     * When you generate derived classes in the same package (by default), then implementation could access
+     * and/or override package-private methods. If using a different package make sure to use public
+     * or protected access where needed, otherwise illegal access compilation errors will be flagged
+     * in the generated code.</em>
+     * </p>
+     * @return generated package naming template
+     */
+    String packageGenerated() default "*";
+
+    /**
      * Specify default options for the generated immutable objects.
      * If at least one attribute is specifid in inline {@literal @}{@link Immutable} annotation,
      * then this default will not be taken into account, objects will be generated using attributes
@@ -814,7 +833,7 @@ public @interface Value {
      * </pre>
      * <p>
      * Disabled by default as, speculatively, this might increase processing time. It will not work for
-     * yet-to-be-generated types as attribute types, which allows only shallow analysis. 
+     * yet-to-be-generated types as attribute types, which allows only shallow analysis.
      * <p>
      * <em>Note: this functionality is experimental and may be changed in further versions. As of version 2.2
      * we no longer add {@code *Of} suffix to the shortcut initializer attribute.</em>

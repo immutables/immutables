@@ -366,7 +366,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public String $$package() {
-    return constitution.protoclass().packageOf().name();
+    return constitution.implementationPackage();
   }
 
   public String name() {

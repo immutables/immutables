@@ -28,7 +28,7 @@ import org.immutables.mongo.Mongo;
     typeAbstract = "*Val",
     typeImmutable = "*",
     visibility = Value.Style.ImplementationVisibility.PUBLIC)
-interface GatenVal {
+public interface GatenVal {
 
   @Mongo.Id
   String id();

@@ -38,7 +38,7 @@ abstract class Gsons extends ValuesTemplate {
   @Value.Immutable
   public interface TypeAdapterTypes {
     AbstractDeclaring definedBy();
-
+    String packageGenerated();
     List<ValueType> types();
   }
 
@@ -60,8 +60,10 @@ abstract class Gsons extends ValuesTemplate {
 
     ImmutableList.Builder<TypeAdapterTypes> builder = ImmutableList.builder();
     for (Entry<AbstractDeclaring, Collection<ValueType>> entry : byDeclaring.asMap().entrySet()) {
+      String pack = Iterables.get(entry.getValue(), 0).$$package();
       builder.add(ImmutableTypeAdapterTypes.builder()
           .definedBy(entry.getKey())
+          .packageGenerated(pack)
           .addAllTypes(entry.getValue())
           .build());
     }

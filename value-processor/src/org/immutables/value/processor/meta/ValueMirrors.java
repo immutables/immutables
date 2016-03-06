@@ -137,6 +137,8 @@ public final class ValueMirrors {
 
     String typeWith() default "With";
 
+    String packageGenerated() default "*";
+
     Immutable defaults() default @Immutable;
 
     boolean strictBuilder() default false;
