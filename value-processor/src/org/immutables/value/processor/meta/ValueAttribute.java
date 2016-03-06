@@ -887,17 +887,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void initAttributeValueType() {
     if (containingType.constitution.style().deepImmutablesDetection()
-        && typeKind == AttributeTypeKind.REGULAR
-        && !isGenerateDerived
-        && !isGenerateDefault
         && containedTypeElement != null) {
       Environment environment = containingType.round.environment();
       for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
+        // We cannot detect included types etc, so isDefinedValue is good enouph check
         if (p.kind().isDefinedValue()) {
-          ValueType valueType = environment.composeValue(p);
-          if (valueType.isUseCopyConstructor()) {
-            attributeValueType = valueType;
-          }
+          attributeValueType = environment.composeValue(p);
         }
         break;
       }
@@ -905,13 +900,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String implementationType() {
-    return attributeValueType != null
-        ? attributeValueType.typeValue().toString()
-        : getType();
+    if (attributeValueType != null
+        && typeKind.isRegular()
+        && !isGenerateDerived
+        && !isGenerateDefault) {
+      return attributeValueType.typeValue().toString();
+    }
+    return getType();
   }
 
   public Set<ValueAttribute> getConstructorParameters() {
-    if (attributeValueType != null) {
+    if (attributeValueType != null && attributeValueType.isUseConstructor()) {
       return attributeValueType.getConstructorArguments();
     }
     return Collections.emptySet();

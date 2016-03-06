@@ -760,13 +760,64 @@ public @interface Value {
     boolean clearBuilder() default false;
 
     /**
-     * Deep analysis of immutable types enables additional convenience features, such as special
-     * initializers for types with constuctor shortcut. It also enables to use immutable type as
-     * actual implementation type (with covariant return override in accessor implementation).
+     * Deep analysis of immutable types enables additional convenience features.
+     * When enabled, each attribute is being analized and if it discovered to be an
+     * {@literal @}{@code Value.Immutable} object (either abstract value type or generated implementation type),
+     * then some special handling will be applied to it. As of now following functionality is applied:
+     * <ul>
+     * <li>Accessors in a generated immutable type will be implemented with covariant return
+     * type of immutable implementation of the abstract value type of the declared attribute.
+     * This have no effect on collection/container attributes to not interfere with invariant
+     * generic types. Derived and Default attributes also not supported as of now to avoid excessive complexity</li>
+     * <li>Builder initializers will have an overload consuming parameters of attribute value object's constructor
+     * (if it has constructor as opposed to the ones which only have builder).
+     * Effectively this is a shortcut to initialize value object in a more consice way. This works for regular and
+     * collection attributes (but not for maps or arrays to avoid complex and confusing overload).</li>
+     * </ul>
+     * See the example below which illustrates these behaviors.
+     * 
+     * <pre>
+     * &#064;Value.Style(deepImmutablesDetection = true)
+     * public interface Canvas {
+     *   &#064;Value.Immutable public interface Color {
+     *     &#064;Value.Parameter double red();
+     *     &#064;Value.Parameter double green();
+     *     &#064;Value.Parameter double blue();
+     *   }
+     *   &#064;Value.Immutable public interface Point {
+     *     &#064;Value.Parameter int x();
+     *     &#064;Value.Parameter int y();
+     *   }
+     *   &#064;Value.Immutable public interface Line {
+     *     Color color();
+     *     Point start();
+     *     Point end();
+     *   }
+     *   public static void main(String... args) {
+     *     ImmutableLine line = ImmutableLine.builder()
+     *         .start(1, 2) // overload, equivalent of .start(ImmutablePoint.of(1, 2))
+     *         .end(2, 3) // overload, equivalent of .end(ImmutablePoint.of(2, 3))
+     *         .color(0.9, 0.7, 0.4) // overload, equivalent of .color(ImmutableColor.of(0.9, 0.7. 0.4))
+     *         .build();
+     * 
+     *     ImmutablePoint start = line.start(); // return type is ImmutablePoint rather than declared Point
+     *     ImmutablePoint end = line.end(); // return type is ImmutablePoint rather than declared Point
+     *     ImmutableColor color = line.color(); // return type is ImmutableColor rather than declared Color
+     * 
+     *     ImmutableLine.builder()
+     *         .start(start)
+     *         .end(end)
+     *         .color(color)
+     *         .build();
+     *   }
+     * }
+     * </pre>
      * <p>
-     * Disabled by default as, speculatively, this might significantly add-up to processing time.
+     * Disabled by default as, speculatively, this might increase processing time. It will not work for
+     * yet-to-be-generated types as attribute types, which allows only shallow analysis. 
      * <p>
-     * <em>Note: this functionality is experimental and may be changed in further versions</em>
+     * <em>Note: this functionality is experimental and may be changed in further versions. As of version 2.2
+     * we no longer add {@code *Of} suffix to the shortcut initializer attribute.</em>
      * @return {@code true} if deep detection is enabled.
      */
     boolean deepImmutablesDetection() default false;

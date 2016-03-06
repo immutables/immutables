@@ -15,9 +15,10 @@
  */
 package org.immutables.fixture.deep;
 
+import java.util.List;
 import org.immutables.value.Value;
 
-@Value.Style(deepImmutablesDetection = true)
+@Value.Style(deepImmutablesDetection = true, depluralize = true)
 public interface Canvas {
 
   @Value.Immutable
@@ -34,9 +35,7 @@ public interface Canvas {
 
   @Value.Immutable
   public interface Line {
-    Point start();
-
-    Point end();
+    List<Point> points();
 
     Color color();
   }
@@ -52,18 +51,16 @@ public interface Canvas {
 
   default void use() {
     ImmutableLine line = ImmutableLine.builder()
-        .startOf(1, 2)
-        .endOf(2, 3)
-        .colorOf(0.9, 0.7, 0.4)
+        .color(0.9, 0.7, 0.4)
+        .addPoint(1, 2)
+        .addPoint(2, 3)
+        .addPoint(4, 5)
         .build();
 
-    ImmutablePoint start = line.start();
-    ImmutablePoint end = line.end();
     ImmutableColor color = line.color();
 
     ImmutableLine.builder()
-        .start(start)
-        .end(end)
+        .addAllPoints(line.points())
         .color(color)
         .build();
   }
