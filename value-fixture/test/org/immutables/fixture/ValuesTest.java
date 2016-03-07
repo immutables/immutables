@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture;
 
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Method;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
@@ -229,10 +231,11 @@ public class ValuesTest {
   }
 
   @Test
-  public void java8TypeAnnotation() {
-    // FIXME Type Annotations
-    // HasTypeAnnotation hasTypeAnnotation = ImmutableHasTypeAnnotation.builder().build();
-    // check(hasTypeAnnotation.str()).isNull();
+  public void java8TypeAnnotation() throws Exception {
+    Method method = ImmutableHasTypeAnnotation.class.getMethod("str");
+    AnnotatedType returnType = method.getAnnotatedReturnType();
+    check(returnType.getAnnotation(TypeA.class)).notNull();
+    check(returnType.getAnnotation(TypeB.class)).notNull();
   }
 
   @Test
@@ -417,5 +420,10 @@ public class ValuesTest {
     ImmutableOptionalWithoutNullable.builder()
         .javaOptional((String) null)
         .build();
+  }
+
+  @Test
+  public void properInitInternNoBuilder() {
+    ImmutableProperInitInternNoBuilder.of();
   }
 }

@@ -15,19 +15,28 @@
  */
 package org.immutables.fixture;
 
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Retention;
+import org.immutables.gson.Gson;
+import org.immutables.value.Value;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.Map;
 import javax.annotation.Nullable;
 
 @Target(ElementType.TYPE_USE)
+@Retention(RetentionPolicy.RUNTIME)
 @interface TypeA {}
 
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE_USE)
 @interface TypeB {}
 
-//FIXME @Value.Immutable
-//FIXME @Gson.TypeAdapters
+/**
+ * Compilation and reflection test for preserving type annotations.
+ */
+@Value.Immutable
+@Gson.TypeAdapters
 public abstract class HasTypeAnnotation {
   @Nullable
   public abstract @TypeA @TypeB String str();

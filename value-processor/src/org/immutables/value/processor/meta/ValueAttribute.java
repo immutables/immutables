@@ -738,6 +738,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind() == TypeKind.DOUBLE;
   }
 
+  public boolean hasTypeAnnotations() {
+    return returnTypeName.indexOf('@') >= 0;
+  }
+
   public boolean isNonRawElementType() {
     return getElementType().indexOf('<') > 0;
   }

@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Splitter;
-import com.google.common.base.Joiner;
 import com.google.common.base.CaseFormat;
 import org.immutables.generator.Naming;
 
