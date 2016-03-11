@@ -426,4 +426,12 @@ public class ValuesTest {
   public void properInitInternNoBuilder() {
     ImmutableProperInitInternNoBuilder.of();
   }
+
+  @Test
+  public void normalize() {
+    check(ImmutableNormalize.builder()
+        .value(-2)
+        .build()
+        .value()).is(2);
+  }
 }

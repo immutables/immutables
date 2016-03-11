@@ -600,7 +600,6 @@ public abstract class Constitution {
         // If we are extending yet to be generated builder, we detect it by having the same name
         // as relative name of builder type
         if (superclassString.endsWith(typeImplementationBuilder().relative())) {
-
           return true;
         }
       }

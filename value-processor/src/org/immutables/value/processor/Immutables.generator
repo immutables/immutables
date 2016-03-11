@@ -532,8 +532,12 @@ private Object writeReplace() {
 [if type.useValidation]
 
   private static [type.typeImmutable.simple] validate([type.typeImmutable.simple] instance) {
-[if type.validationMethodName]
-    instance.[type.validationMethodName]();
+[if type.validationMethod]
+  [if type.validationMethod.normalize]
+    instance = ([type.typeImmutable.simple]) instance.[type.validationMethod.name]();
+  [else]
+    instance.[type.validationMethod.name]();
+  [/if]
 [/if]
 [if type.useSingletonOnly]
     return INSTANCE != null ? INSTANCE : instance;[-- may be null during initialization --]
@@ -1249,8 +1253,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [/if]
    * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
-  public [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [output.linesShortable][type.names.build]()
+[let returnType][if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if][/let]
+[if type.throwing or type.customizedThrowForInvalidImmutableState]
+  public [returnType] [output.linesShortable][type.names.build]()
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {[/output.linesShortable]
+[else]
+  public [returnType] [type.names.build]() {
+[/if]
   [if positions.longs]
     [if type.useCompactBuilder]
     if ([for l in positions.longs][if not for.first]

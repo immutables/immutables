@@ -226,7 +226,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseValidation() {
-    if (isGenerateOrdinalValue() || validationMethodName != null) {
+    if (isGenerateOrdinalValue() || validationMethod != null) {
       return true;
     }
     if (isUseSingletonOnly()) {
@@ -358,7 +358,21 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   @Nullable
-  public String validationMethodName;
+  public ValidationMethod validationMethod;
+
+  public static class ValidationMethod {
+    public final String name;
+    public final boolean normalize;
+
+    ValidationMethod(String name, boolean normalize) {
+      this.name = name;
+      this.normalize = normalize;
+    }
+  }
+
+  void addNormalizeMethod(String name, boolean normalize) {
+    validationMethod = new ValidationMethod(name, normalize);
+  }
 
   public boolean isImplementing() {
     return element.getKind() == ElementKind.INTERFACE
@@ -736,6 +750,11 @@ public final class ValueType extends TypeIntrospectionBase {
         .styles()
         .style()
         .throwForInvalidImmutableStateName();
+  }
+
+  public boolean isCustomizedThrowForInvalidImmutableState() {
+    return !getThrowForInvalidImmutableState()
+        .equals(IllegalStateException.class.getName());
   }
 
   public List<ValueAttribute> getImplementedAttributes() {

@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Optional;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.generator.SourceOrdering.AccessorProvider;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
@@ -227,19 +229,24 @@ final class AccessorAttributesCollector {
     Name name = attributeMethodCandidate.getSimpleName();
 
     if (CheckMirror.isPresent(attributeMethodCandidate)) {
-      if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID
-          && attributeMethodCandidate.getParameters().isEmpty()
-          && !attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
-          && !attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
-          && !attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
-          && !attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
-        type.validationMethodName = attributeMethodCandidate.getSimpleName().toString();
+      if (!attributeMethodCandidate.getParameters().isEmpty()
+          || attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
+          || attributeMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)
+          || attributeMethodCandidate.getModifiers().contains(Modifier.STATIC)
+          || attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
+        report(attributeMethodCandidate)
+            .error("Method '%s' annotated with @%s must be non-private parameter-less method",
+                name, CheckMirror.simpleName());
+      } else if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID) {
+        type.addNormalizeMethod(name.toString(), false);
+      } else if (returnsNormalizedAbstractValueType(attributeMethodCandidate)) {
+        type.addNormalizeMethod(name.toString(), true);
       } else {
         report(attributeMethodCandidate)
-            .error("Method '%s' annotated with @%s must be non-private parameter-less method and have void return type.",
-                attributeMethodCandidate.getSimpleName(),
-                CheckMirror.simpleName());
+            .error("Method '%s' annotated with @%s must return void or normalized instance of abstract value type",
+                name, CheckMirror.simpleName());
       }
+      return;
     }
 
     boolean useDefaultAsDefault = type.constitution.style().defaultAsDefault();
@@ -347,6 +354,21 @@ final class AccessorAttributesCollector {
         hasNonInheritedAttributes = true;
       }
     }
+  }
+
+  private boolean returnsNormalizedAbstractValueType(ExecutableElement validationMethodCandidate) {
+    Optional<DeclaringType> declaringType = protoclass.declaringType();
+    if (declaringType.isPresent()) {
+      TypeStringProvider provider = new TypeStringProvider(
+          reporter,
+          validationMethodCandidate,
+          validationMethodCandidate.getReturnType(),
+          declaringType.get());
+      provider.process();
+      String returnTypeName = provider.returnTypeName();
+      return protoclass.constitution().typeAbstract().toString().equals(returnTypeName);
+    }
+    return false;
   }
 
   private AttributeNames deriveNames(String accessorName) {

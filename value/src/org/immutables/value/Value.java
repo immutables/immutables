@@ -198,12 +198,12 @@ public @interface Value {
    * once and only once in a thread safe manner.
    *
    * <pre>
-   * &#064;Value.Immutable
+   * {@literal @}Value.Immutable
    * public abstract class Order {
    * 
    *   public abstract List&lt;Item&gt; items();
    * 
-   *   &#064;Value.Lazy
+   *   {@literal @}Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
    * 
@@ -260,17 +260,73 @@ public @interface Value {
   }
 
   /**
-   * Annotates method that should be invoked internally to validate invariants
-   * after instance had been created, but before returned to a client.
-   * Annotated method must be parameter-less (non-private) method and have a {@code void} return
-   * type,
-   * which also should not throw a checked exceptions.
+   * <p>
+   * Annotates method that should be invoked internally to validate invariants after instance had
+   * been created, but before returned to a client. Annotated method must be parameter-less
+   * (non-private) method and have a {@code void} return type, which also should not throw a checked
+   * exceptions.
+   * </p>
+   * 
+   * <pre>
+   * {@literal @}Value.Immutable
+   * public abstract class NumberContainer {
+   *   public abstract List<Number> nonEmptyNumbers();
+   * 
+   *   {@literal @}Value.Check
+   *   protected void check() {
+   *     Preconditions.checkState(!nonEmptyNumbers().isEmpty(),
+   *         "'nonEmptyNumbers' should have at least one number");
+   *   }
+   * }
+   * 
+   * // will throw IllegalStateException("'nonEmptyNumbers' should have at least one number")
+   * ImmutableNumberContainer.builder().build();
+   * </pre>
    * <p>
    * Precondition checking should not be used to validate against context dependent business rules,
    * but to preserve consistency and guarantee that instances will be usable. Precondition check
    * methods runs when immutable object <em>instantiated and all attributes are initialized</em>,
    * but <em>before returned to caller</em>. Any instance that failed precondition check is
    * unreachable to caller due to runtime exception.
+   * </p>
+   * <p>
+   * There's additional variant of using this annotation to compute normalized value. This should be
+   * a last-resort solution as implementation might be brittle and error-prone. If you declare
+   * return type of validation method with return type specified as abstract value type, this
+   * validation method will also be able to return substitute instance. Substitute instance should
+   * always be immutable implementations type, otherwise {@link ClassCastException} will occur
+   * during construction.
+   * <em>Be warned that it's easy introduce unresolvable recusion if normalization is implemented without
+   * proper or conflicting guarding checks. Always return {@code this} if value do not require normalization
+   * when using normalization.</em>
+   * </p>
+   * 
+   * <pre>
+   * {@literal @}Value.Immutable
+   * public interface Normalize {
+   *   int value();
+   * 
+   *   {@literal @}Value.Check
+   *   default Normalize normalize() {
+   *     if (value() == Integer.MIN_VALUE) {
+   *       return ImmutableNormalize.builder()
+   *           .value(0)
+   *           .build();
+   *     }
+   *     if (value() &lt; 0) {
+   *       return ImmutableNormalize.builder()
+   *           .value(-value())
+   *           .build();
+   *     }
+   *     return this;
+   *   }
+   * }
+   * 
+   * int shouldBePositive2 = ImmutableNormalize.builder()
+   *     .value(-2)
+   *     .build()
+   *     .value();
+   * </pre>
    */
   @Documented
   @Target(ElementType.METHOD)
@@ -780,43 +836,53 @@ public @interface Value {
 
     /**
      * Deep analysis of immutable types enables additional convenience features.
-     * When enabled, each attribute is being analized and if it discovered to be an
-     * {@literal @}{@code Value.Immutable} object (either abstract value type or generated implementation type),
-     * then some special handling will be applied to it. As of now following functionality is applied:
+     * When enabled, each attribute is being analized and if it discovered to be an {@literal @}
+     * {@code Value.Immutable} object (either abstract value type or generated implementation type),
+     * then some special handling will be applied to it. As of now following functionality is
+     * applied:
      * <ul>
-     * <li>Accessors in a generated immutable type will be implemented with covariant return
-     * type of immutable implementation of the abstract value type of the declared attribute.
-     * This have no effect on collection/container attributes to not interfere with invariant
-     * generic types. Derived and Default attributes also not supported as of now to avoid excessive complexity</li>
-     * <li>Builder initializers will have an overload consuming parameters of attribute value object's constructor
-     * (if it has constructor as opposed to the ones which only have builder).
-     * Effectively this is a shortcut to initialize value object in a more consice way. This works for regular and
-     * collection attributes (but not for maps or arrays to avoid complex and confusing overload).</li>
+     * <li>Accessors in a generated immutable type will be implemented with covariant return type of
+     * immutable implementation of the abstract value type of the declared attribute. This have no
+     * effect on collection/container attributes to not interfere with invariant generic types.
+     * Derived and Default attributes also not supported as of now to avoid excessive complexity</li>
+     * <li>Builder initializers will have an overload consuming parameters of attribute value
+     * object's constructor (if it has constructor as opposed to the ones which only have builder).
+     * Effectively this is a shortcut to initialize value object in a more consice way. This works
+     * for regular and collection attributes (but not for maps or arrays to avoid complex and
+     * confusing overload).</li>
      * </ul>
      * See the example below which illustrates these behaviors.
      * 
      * <pre>
-     * &#064;Value.Style(deepImmutablesDetection = true)
+     * {@literal @}Value.Style(deepImmutablesDetection = true)
      * public interface Canvas {
-     *   &#064;Value.Immutable public interface Color {
-     *     &#064;Value.Parameter double red();
-     *     &#064;Value.Parameter double green();
-     *     &#064;Value.Parameter double blue();
+     *   {@literal @}Value.Immutable
+     *   public interface Color {
+     *     {@literal @}Value.Parameter double red();
+     *     {@literal @}Value.Parameter double green();
+     *     {@literal @}Value.Parameter double blue();
      *   }
-     *   &#064;Value.Immutable public interface Point {
-     *     &#064;Value.Parameter int x();
-     *     &#064;Value.Parameter int y();
+     * 
+     *   {@literal @}Value.Immutable
+     *   public interface Point {
+     *     {@literal @}Value.Parameter int x();
+     *     {@literal @}Value.Parameter int y();
      *   }
-     *   &#064;Value.Immutable public interface Line {
+     * 
+     *   {@literal @}Value.Immutable
+     *   public interface Line {
      *     Color color();
      *     Point start();
      *     Point end();
      *   }
+     * 
      *   public static void main(String... args) {
      *     ImmutableLine line = ImmutableLine.builder()
      *         .start(1, 2) // overload, equivalent of .start(ImmutablePoint.of(1, 2))
-     *         .end(2, 3) // overload, equivalent of .end(ImmutablePoint.of(2, 3))
-     *         .color(0.9, 0.7, 0.4) // overload, equivalent of .color(ImmutableColor.of(0.9, 0.7. 0.4))
+     *         .end(2, 3)
+     *         // overload, equivalent of .end(ImmutablePoint.of(2, 3))
+     *         .color(0.9, 0.7, 0.4)
+     *         // overload, equivalent of .color(ImmutableColor.of(0.9, 0.7. 0.4))
      *         .build();
      * 
      *     ImmutablePoint start = line.start(); // return type is ImmutablePoint rather than declared Point
@@ -832,8 +898,8 @@ public @interface Value {
      * }
      * </pre>
      * <p>
-     * Disabled by default as, speculatively, this might increase processing time. It will not work for
-     * yet-to-be-generated types as attribute types, which allows only shallow analysis.
+     * Disabled by default as, speculatively, this might increase processing time. It will not work
+     * for yet-to-be-generated types as attribute types, which allows only shallow analysis.
      * <p>
      * <em>Note: this functionality is experimental and may be changed in further versions. As of version 2.2
      * we no longer add {@code *Of} suffix to the shortcut initializer attribute.</em>
