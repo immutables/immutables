@@ -1,11 +1,12 @@
 Changelog
 ---------
 
-### 2.1.13 (2016-03-11)
+### 2.1.14 (2016-03-12)
 - Bugfix and minor improvement release.
   + Output package pattern can be configured using style
   + Ad-Hoc normalization using Value.Check
   + `Style(deepImmutablesDetection = true)` behavior refined
+  + Refined `JsonSerialize` enclosing top-level type annotation handling
 - Thanks to contributors and issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.13)
 
