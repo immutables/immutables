@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+### 2.1.13 (2016-03-11)
+- Bugfix and minor improvement release.
+  + Output package pattern can be configured using style
+  + Ad-Hoc normalization using Value.Check
+  + `Style(deepImmutablesDetection = true)` behavior refined
+- Thanks to contributors and issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.13)
+
 ### 2.1.12 (2016-02-29)
 - Bugfix and minor changes release.
   + Findbugs' `SuppressFBWarnings` placed on immutable implementation if found in the classpath
