@@ -202,7 +202,6 @@ public class Proto {
       return findElement(VersionMirror.qualifiedName()) != null;
     }
 
-
     @Value.Lazy
     public boolean hasTransformModule() {
       return findElement(TransformMirror.qualifiedName()) != null;
@@ -967,6 +966,38 @@ public class Proto {
     }
 
     @Value.Lazy
+    public boolean isJacksonSerialized() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonSerialized()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJacksonSerialized()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJacksonSerialized();
+    }
+
+    @Value.Lazy
+    public boolean isJacksonDeserialized() {
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+        if (type.isJacksonDeserialized()) {
+          return true;
+        }
+        if (t.enclosingTopLevel().isPresent()) {
+          if (t.enclosingTopLevel().get().isJacksonDeserialized()) {
+            return true;
+          }
+        }
+      }
+      return packageOf().isJacksonDeserialized();
+    }
+
+    @Value.Lazy
     public ValueImmutableInfo features() {
       if (declaringType().isPresent()
           && !declaringType().get().useImmutableDefaults()) {
@@ -1124,28 +1155,6 @@ public class Proto {
       public boolean isEnclosingOnly() {
         return this == DEFINED_ENCLOSING_TYPE;
       }
-    }
-
-    @Value.Lazy
-    public boolean isJacksonSerialized() {
-      if (declaringType().isPresent()) {
-        DeclaringType type = declaringType().get();
-        if (type.isJacksonSerialized()) {
-          return true;
-        }
-      }
-      return packageOf().isJacksonSerialized();
-    }
-
-    @Value.Lazy
-    public boolean isJacksonDeserialized() {
-      if (declaringType().isPresent()) {
-        DeclaringType type = declaringType().get();
-        if (type.isJacksonDeserialized()) {
-          return true;
-        }
-      }
-      return packageOf().isJacksonDeserialized();
     }
 
     @Value.Lazy
