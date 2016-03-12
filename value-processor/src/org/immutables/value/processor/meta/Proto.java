@@ -968,8 +968,8 @@ public class Proto {
     @Value.Lazy
     public boolean isJacksonSerialized() {
       if (declaringType().isPresent()) {
-        DeclaringType type = declaringType().get();
-        if (type.isJacksonSerialized()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJacksonSerialized()) {
           return true;
         }
         if (t.enclosingTopLevel().isPresent()) {
@@ -984,8 +984,8 @@ public class Proto {
     @Value.Lazy
     public boolean isJacksonDeserialized() {
       if (declaringType().isPresent()) {
-        DeclaringType type = declaringType().get();
-        if (type.isJacksonDeserialized()) {
+        DeclaringType t = declaringType().get();
+        if (t.isJacksonDeserialized()) {
           return true;
         }
         if (t.enclosingTopLevel().isPresent()) {
