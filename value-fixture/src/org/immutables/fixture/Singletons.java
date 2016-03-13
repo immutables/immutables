@@ -4,7 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import org.immutables.value.Value;
 
-// Compilation tests for singletons/builders
+//Compilation tests for singletons/builders
+public interface Singletons {}
 
 @Value.Immutable(singleton = true)
 interface Sing1 {

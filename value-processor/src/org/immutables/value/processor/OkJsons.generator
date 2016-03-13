@@ -820,8 +820,8 @@ private static String [en.simple]ToString([en.qualified] value) {
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional or a.javaslangOptional]none[else]absent[/if]()[/template]
 
-[template optionalOf Attribute a][a.rawType].[if a.fugueOptional]some[else]of[/if][/template]
+[template optionalOf Attribute a][a.rawType].[if not a.optionalAcceptNullable][if a.fugueOptional or a.javaslangOptional]some[else]of[/if][else if a.jdkOptional]ofNullable[else if a.fugueOptional]option[else if a.javaslangOptional]of[else]fromNullable[/if][/template]
 
-[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
+[template optionalPresent Attribute a][if a.fugueOptional or a.javaslangOptional]isDefined[else]isPresent[/if]()[/template]

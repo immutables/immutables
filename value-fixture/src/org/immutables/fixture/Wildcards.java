@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.base.Optional;
+import javaslang.control.Option;
 import java.util.List;
 import org.immutables.value.Value;
 
@@ -24,5 +24,5 @@ public interface Wildcards {
 
   List<?> wilcards();
 
-  Optional<? super String> optional();
+  Option<? super String> option();
 }

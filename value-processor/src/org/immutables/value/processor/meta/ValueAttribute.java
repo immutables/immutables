@@ -298,11 +298,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return allAnnotations;
   }
 
-  @Deprecated
-  public boolean isGsonIgnore() {
-    return isJsonIgnore();
-  }
-
   public boolean isJsonIgnore() {
     return IgnoreMirror.isPresent(element)
         || OkIgnoreMirror.isPresent(element);
@@ -403,6 +398,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean isFugueOptional() {
     return typeKind.isOptionFugue();
+  }
+
+  public boolean isJavaslangOptional() {
+    return typeKind.isOptionJavaslang();
   }
 
   public boolean isJdkSpecializedOptional() {
@@ -952,7 +951,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void makeRegularIfContainsWildcards() {
     // I hope this check isn't too simplistic
-    if (returnTypeName.indexOf('?') >= 0 && typeKind != AttributeTypeKind.ARRAY) {
+    boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
+    if (hasWildcardInType && typeKind != AttributeTypeKind.ARRAY) {
       typeKind = AttributeTypeKind.REGULAR;
     }
   }

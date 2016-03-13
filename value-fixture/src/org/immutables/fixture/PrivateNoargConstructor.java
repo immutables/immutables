@@ -3,6 +3,8 @@ package org.immutables.fixture;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Style;
 
+public interface PrivateNoargConstructor {}
+
 @Value.Immutable
 @Style(privateNoargConstructor = true)
 interface PrivateNoargConstructorNominal {

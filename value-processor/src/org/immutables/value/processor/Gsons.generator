@@ -716,7 +716,7 @@ out.value([variableName]);
 [/output.trim][/template]
 
 [template checkAttributes Type type]
-[for a in type.implementedAttributes if a.gsonIgnore and a.mandatory]
+[for a in type.implementedAttributes if a.jsonIgnore and a.mandatory]
 [-- mandatory constructor arguments are not checked, should they? --]
 [output.error]
 @Gson.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
@@ -728,6 +728,6 @@ out.value([variableName]);
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
-[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional]none[else]absent[/if]()[/template]
+[template optionalEmpty Attribute a][a.rawType].[if a.jdkOptional]empty[else if a.fugueOptional or a.javaslangOptional]none[else]absent[/if]()[/template]
 
-[template optionalPresent Attribute a][if a.fugueOptional]isDefined[else]isPresent[/if]()[/template]
+[template optionalPresent Attribute a][if a.fugueOptional or a.javaslangOptional]isDefined[else]isPresent[/if]()[/template]

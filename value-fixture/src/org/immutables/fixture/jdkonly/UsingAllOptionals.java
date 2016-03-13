@@ -48,6 +48,9 @@ public interface UsingAllOptionals {
   @Value.Parameter
   io.atlassian.fugue.Option<String> fo3();
 
+  @Value.Parameter
+  javaslang.control.Option<String> jso();
+
   class Use {
     void use() {
       UsingAllOptionals value =
@@ -57,6 +60,7 @@ public interface UsingAllOptionals {
               .i1(OptionalInt.of(1))
               .d1(1.1)
               .l1(OptionalLong.empty())
+              .jso(javaslang.control.Option.none())
               .build();
 
       Objects.equals(value.v1().get(), value.v2().get());

@@ -80,7 +80,9 @@ public enum AttributeTypeKind {
       "Option",
       "com.atlassian.fugue.Option",
       "io.atlassian.fugue.Option"),
-  ;
+  OPTION_JAVASLANG(
+      "Option",
+      "javaslang.control.Option");
 
   private final String[] rawTypes;
   private final String rawSimpleName;
@@ -243,6 +245,10 @@ public enum AttributeTypeKind {
     return this == OPTION_FUGUE;
   }
 
+  public boolean isOptionJavaslang() {
+    return this == OPTION_JAVASLANG;
+  }
+
   public boolean isOptionalKind() {
     switch (this) {
     case OPTIONAL_GUAVA:
@@ -251,6 +257,7 @@ public enum AttributeTypeKind {
     case OPTIONAL_LONG_JDK:
     case OPTIONAL_DOUBLE_JDK:
     case OPTION_FUGUE:
+    case OPTION_JAVASLANG:
       return true;
     default:
       return false;
