@@ -61,7 +61,17 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
      LongPositions positions = longsFor mandatories,
      LongPositions nondefaultsPositions = longsFor nondefaults]
 [type.typeImmutable.access][if not topLevel]static [/if][if type.names.create ne 'new']final [/if][output.linesShortable]class [type.names.typeModifiable]
-    [if type.implementing]implements[else]extends[/if] [type.typeAbstract] {[/output.linesShortable]
+    [if type.implementing]implements[else]extends[/if] [type.typeAbstract][if type.serial.shouldImplement][if type.implementing],
+        [else]
+    implements [/if]java.io.Serializable[/if] {[/output.linesShortable]
+[if type.serial.enabled]
+  [for serialVersion = type.serialVersionUID]
+    [if serialVersion]
+  private static final long serialVersionUID = [literal serialVersion];
+    [/if]
+  [/for]
+
+[/if]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
@@ -778,7 +788,7 @@ public int hashCode() {
 @Override
 public String toString() {
 [if not type.equivalenceAttributes]
-  return "[type.names.typeModifiable]{}"
+  return "[type.names.typeModifiable]{}";
 [else if type.generateJdkOnly]
   return "[type.names.typeModifiable]{"
   [for v in type.equivalenceAttributes]

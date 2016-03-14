@@ -18,6 +18,7 @@ package org.immutables.fixture.serial;
 import java.io.Serializable;
 import org.immutables.value.Value;
 
+@Value.Modifiable
 @Value.Immutable(intern = true)
 public abstract class SomeSer implements Serializable {
 
@@ -33,6 +34,7 @@ public abstract class SomeSer implements Serializable {
     return 1;
   }
 
+  @Value.Modifiable
   @Value.Immutable(singleton = true)
   interface OthSer extends Serializable {}
 }

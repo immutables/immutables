@@ -52,6 +52,25 @@ public class SerialTest {
     check(false);
   }
 
+  @Test
+  public void serializeModifiable() throws Exception {
+    ModifiableSomeSer instance = ModifiableSomeSer.create().setRegular(1);
+    // interning
+    check(deserialize(serialize(instance))).is(ModifiableSomeSer.create().setRegular(1));
+  }
+
+  @Test
+  public void copySerialVersionModifiable() throws Exception {
+    for (Field field : ModifiableSomeSer.class.getDeclaredFields()) {
+      field.setAccessible(true);
+      if (field.getName().equals("serialVersionUID") && field.get(null).equals(1L)) {
+        return;
+      }
+    }
+
+    check(false);
+  }
+
   private Serializable deserialize(byte[] bytes) throws Exception {
     ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
     ObjectInputStream objectStream = new ObjectInputStream(stream);
