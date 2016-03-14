@@ -8,7 +8,7 @@ Changelog
   + `Style(deepImmutablesDetection = true)` behavior refined
   + Refined `JsonSerialize` enclosing top-level type annotation handling
 - Thanks to contributors and issue reporters!
-- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.13)
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.14)
 
 ### 2.1.12 (2016-02-29)
 - Bugfix and minor changes release.
