@@ -1030,8 +1030,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
     this.[v.name] = [optionalOf v]([v.name]);
+  [else if v.jdkOptional and ((v.jdkSpecializedOptional or v.optionalAcceptNullable) or v.primitiveElement)]
+    this.[v.name] = [v.name];
   [else if v.jdkOptional]
-    this.[v.name] = [if v.jdkSpecializedOptional or v.optionalAcceptNullable][v.name][else][requireNonNull type]([v.name], "[v.name]")[/if];
+    this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
   [else]
     this.[v.name] = [optionalOf v]([v.name]);
   [/if]
@@ -2153,9 +2155,9 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
   [else if v.unwrappedElementType eq 'double']
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-  [else if v.elementType eq 'java.lang.String'][-- java8 should have java.util.Objects anyway --]
+  [else if v.elementType eq 'java.lang.String']
   if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
-  [else if v.primitiveWrapperType]
+  [else if v.primitiveWrapperType or ]
   if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
   [else]
   if (this.[v.name].equals(value)) return this;
