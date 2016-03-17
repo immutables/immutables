@@ -47,6 +47,11 @@ public abstract class Constitution {
 
   public abstract Protoclass protoclass();
 
+  @Value.Lazy
+  public Generics generics() {
+    return new Generics(protoclass(), protoclass().sourceElement());
+  }
+
   @Value.Derived
   public Visibility implementationVisibility() {
     return protoclass().visibility().forImplementation(style().visibility());

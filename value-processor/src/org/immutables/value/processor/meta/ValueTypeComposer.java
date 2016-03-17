@@ -48,46 +48,14 @@ public final class ValueTypeComposer {
 
 	private final ProcessingEnvironment processing;
 	private final Round round;
-	@Nullable
-	private final String typeMoreObjects;
 
 	ValueTypeComposer(Round round) {
 		this.round = round;
 		this.processing = round.processing();
-		this.typeMoreObjects = inferTypeMoreObjects();
-	}
-
-	/**
-	 * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
-	 */
-	@Nullable
-	String inferTypeMoreObjects() {
-		String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
-		String typeObjects = UnshadeGuava.typeString("base.Objects");
-
-		if (isValidElementFound(typeMoreObjects)) {
-			return typeMoreObjects;
-		}
-		if (isValidElementFound(typeMoreObjects)) {
-			return typeObjects;
-		}
-		return null;
-	}
-
-	private boolean isValidElementFound(String typeName) {
-		try {
-			@Nullable TypeElement typeElement = processing.getElementUtils().getTypeElement(typeName);
-			return typeElement != null && typeElement.asType().getKind() != TypeKind.ERROR;
-		} catch (Exception e) {
-			// type loading problem
-			return false;
-		}
 	}
 
 	ValueType compose(Protoclass protoclass) {
 		ValueType type = new ValueType();
-		type.round = round;
-		type.typeMoreObjects = typeMoreObjects;
 		type.element = protoclass.sourceElement();
 		type.immutableFeatures = protoclass.features();
 		type.constitution = protoclass.constitution();
@@ -258,7 +226,7 @@ public final class ValueTypeComposer {
 				|| element.getModifiers().contains(Modifier.STATIC);
 
 		boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
-		boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
+    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
 
 		boolean publicOrPackageVisible =
 				!element.getModifiers().contains(Modifier.PRIVATE)
@@ -272,7 +240,7 @@ public final class ValueTypeComposer {
 			violations.add("must be non-final");
 		}
 
-		if (!hasNoTypeParameters) {
+    if (!hasNoTypeParameters) {
 			violations.add("should have no type parameters");
 		}
 

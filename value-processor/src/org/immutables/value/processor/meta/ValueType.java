@@ -66,11 +66,6 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
  */
 public final class ValueType extends TypeIntrospectionBase {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
-
-  // TBD Should we change this field to usage of [classpath.available] templating directive???
-  @Nullable
-  public String typeMoreObjects;
-
   public Element element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
   public boolean isHashCodeDefined;
@@ -79,8 +74,10 @@ public final class ValueType extends TypeIntrospectionBase {
   public Constitution constitution;
   public int defaultAttributesCount;
   public int derivedAttributesCount;
-
-  Round round;
+  
+  public Generics generics() {
+    return constitution.generics();
+  }
 
   /**
    * Should be called when it is known that there type adapters generation provided.
@@ -98,6 +95,11 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return "";
+  }
+
+  @Nullable
+  public String typeMoreObjects() {
+    return constitution.protoclass().environment().typeMoreObjects();
   }
 
   public boolean hasDefaultAttributes() {
@@ -193,7 +195,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   private boolean noGuavaInClasspath() {
-    return typeMoreObjects == null;
+    return !constitution.protoclass().environment().hasGuavaLib();
   }
 
   public boolean isUseSimpleReadResolve() {
@@ -1112,25 +1114,14 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   DeclaringType inferDeclaringType(Element element) {
-    @Nullable TypeElement declaringType = null;
-    for (Element e = element; e != null;) {
-      e = e.getEnclosingElement();
-      if (e instanceof TypeElement) {
-        declaringType = (TypeElement) e;
-        break;
-      }
-    }
-    if (declaringType == null) {
-      throw new NoSuchElementException();
-    }
-    return round.declaringTypeFrom(declaringType);
+    return constitution.protoclass().environment().round().inferDeclaringTypeFor(element);
   }
 
   public Set<String> getNonAttributeAbstractMethodSignatures() {
     if (element.getKind().isClass() || element.getKind().isInterface()) {
       Set<String> signatures = new LinkedHashSet<>();
 
-      List<? extends Element> members = round.environment()
+      List<? extends Element> members = constitution.protoclass().environment()
           .processing()
           .getElementUtils()
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
@@ -1223,7 +1214,12 @@ public final class ValueType extends TypeIntrospectionBase {
 
   private String printType(Element element, TypeMirror type, DeclaringType declaringType) {
     TypeStringProvider provider =
-        new TypeStringProvider(constitution.protoclass().report(), element, type, declaringType);
+        new TypeStringProvider(
+            constitution.protoclass().report(),
+            element,
+            type,
+            declaringType,
+            constitution.generics().vars());
     provider.process();
     return provider.returnTypeName();
   }

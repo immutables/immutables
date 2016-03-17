@@ -363,7 +363,8 @@ final class AccessorAttributesCollector {
           reporter,
           validationMethodCandidate,
           validationMethodCandidate.getReturnType(),
-          declaringType.get());
+          declaringType.get(),
+          protoclass.constitution().generics().vars());
       provider.process();
       String returnTypeName = provider.returnTypeName();
       return protoclass.constitution().typeAbstract().toString().equals(returnTypeName);

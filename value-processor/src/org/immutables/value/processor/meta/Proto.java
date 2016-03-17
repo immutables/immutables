@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Throwables;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -177,6 +178,28 @@ public class Proto {
       return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
     }
 
+    /**
+     * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
+     */
+    @Nullable
+    @Value.Lazy
+    String typeMoreObjects() {
+      String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
+      String typeObjects = UnshadeGuava.typeString("base.Objects");
+
+      if (findElement(typeMoreObjects) != null) {
+        return typeMoreObjects;
+      }
+      if (findElement(typeMoreObjects) != null) {
+        return typeObjects;
+      }
+      return null;
+    }
+
+    public boolean hasGuavaLib() {
+      return typeMoreObjects() != null;
+    }
+
     @Value.Lazy
     public boolean hasOkJsonLib() {
       return findElement("com.squareup.moshi.Moshi") != null;
@@ -259,9 +282,17 @@ public class Proto {
     }
 
     private @Nullable TypeElement findElement(String qualifiedName) {
-      return processing()
-          .getElementUtils()
-          .getTypeElement(qualifiedName);
+      try {
+        TypeElement typeElement = processing()
+            .getElementUtils()
+            .getTypeElement(qualifiedName);
+        return typeElement;
+      } catch (Exception ex) {
+        // to be visible during build
+        ex.printStackTrace();
+        // any type loading problems, which are unlikely (leftover?)
+        return null;
+      }
     }
   }
 

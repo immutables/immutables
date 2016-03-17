@@ -130,7 +130,7 @@ import [starImport];
 [for a in type.passedAnnotations]
 [a]
 [/for]
-[type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple]
+[type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple][type.generics]
     [extendsImplements type][/output.linesShortable]
 [if type.annotationType]
   [defaultAnnotationValues type]
@@ -181,9 +181,9 @@ import [starImport];
 
 [template extendsImplements Type type]
 [if type.implementing]
-implements [type.typeAbstract][if type.serial.shouldImplement], java.io.Serializable[/if] {
+implements [type.typeAbstract][type.generics.args][if type.serial.shouldImplement], java.io.Serializable[/if] {
 [else]
-extends [type.typeAbstract][if not type.serial.shouldImplement] {[else]
+extends [type.typeAbstract][type.generics.args][if not type.serial.shouldImplement] {[else]
 implements java.io.Serializable {[/if]
 [/if]
 [/template]
@@ -683,8 +683,8 @@ private Object writeReplace() {
 [if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
-[type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple] [if type.innerBuilder.isSuper]
-    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].[type.innerBuilder.simpleName] {[else]{[/if]
+[type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple][type.generics] [if type.innerBuilder.isSuper]
+    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract].[type.innerBuilder.simpleName][type.generics.args] {[else]{[/if]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
@@ -768,13 +768,13 @@ private Object writeReplace() {
 [/for]
    * @return A new builder
    */
-  public static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
-    return new [type.typeBuilderImpl.simple]([for p in parameters][if not for.first], [/if][p.name][/for]);
+  public static[type.generics.def] [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+    return new [type.typeBuilderImpl.simple][type.generics.diamond]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
   [if parameters and (not type.kind.isFactory)]
 
-  static [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
-    return new [type.typeBuilderImpl.simple]();
+  static[type.generics.def] [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]() {
+    return new [type.typeBuilderImpl.simple][type.generics.diamond]();
   }
   [/if]
 [/if]
@@ -2806,7 +2806,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/output.trim][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
-[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this[/template]
+[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics]) [/if]this[/template]
 
 [template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
 

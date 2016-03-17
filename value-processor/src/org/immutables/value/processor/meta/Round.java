@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ElementKind;
+import java.util.NoSuchElementException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Interner;
@@ -161,6 +163,21 @@ public abstract class Round {
 
   PackageElement wrapElement(PackageElement element) {
     return CachingElements.asCaching(element);
+  }
+
+  DeclaringType inferDeclaringTypeFor(Element element) {
+    return declaringTypeFrom(enclosingTypeOf(element));
+  }
+
+  private TypeElement enclosingTypeOf(Element element) {
+    for (Element e = element; e != null;) {
+      ElementKind kind = e.getKind();
+      if (kind.isClass() || kind.isInterface()) {
+        return (TypeElement) e;
+      }
+      e = e.getEnclosingElement();
+    }
+    throw new NoSuchElementException();
   }
 
   DeclaringType declaringTypeFrom(TypeElement element) {

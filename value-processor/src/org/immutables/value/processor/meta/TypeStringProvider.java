@@ -15,6 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Arrays;
+import javax.lang.model.element.Name;
+import javax.lang.model.type.TypeVariable;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
@@ -60,12 +63,19 @@ class TypeStringProvider {
   private String workaroundTypeString;
   private final Reporter reporter;
   private final DeclaringType declaringType;
+  private final String[] allowedTypevars;
 
-  TypeStringProvider(Reporter reporter, Element element, TypeMirror returnType, DeclaringType declaringType) {
+  TypeStringProvider(
+      Reporter reporter,
+      Element element,
+      TypeMirror startType,
+      DeclaringType declaringType,
+      String[] allowedTypevars) {
     this.reporter = reporter;
     this.declaringType = declaringType;
-    this.startType = returnType;
+    this.startType = startType;
     this.element = element;
+    this.allowedTypevars = allowedTypevars;
   }
 
   String rawTypeName() {
@@ -258,18 +268,28 @@ class TypeStringProvider {
       }
       break;
     case TYPEVAR:
+      if (allowedTypevars.length != 0) {
+        TypeVariable typeVariable = (TypeVariable) type;
+        String var = typeVariable.toString();// .asElement().getSimpleName().toString()
+        if (Arrays.asList(allowedTypevars).contains(var)) {
+          buffer.append(var);
+          break;
+        }
+        // If we don't have such parameter we consider this is the quirk
+        // that was witnessed in Eclipse, we let the code below deal with it.
+      }
+
       // this workaround breaks this recursive flow, so we set up
       // ended flag
-
       if (tryToUseSourceAsAWorkaround()) {
         ended = true;
         break;
       }
 
       reporter.error("It is a compiler/annotation processing bug to receive type variables '%s' here."
-              + " To avoid it — do not use not yet generated types in %s attribute",
-              type,
-              element.getSimpleName());
+          + " To avoid it — do not use not yet generated types in %s attribute",
+          type,
+          element.getSimpleName());
 
       // just append as toString whatever we have
       buffer.append(type);

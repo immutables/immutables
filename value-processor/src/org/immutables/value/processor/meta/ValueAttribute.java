@@ -67,6 +67,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
   public ImmutableList<String> typeParameters = ImmutableList.of();
+  // Replace with delegation?
   public Reporter reporter;
 
   public ValueType containingType;
@@ -878,7 +879,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         reporter,
         element,
         returnType,
-        getDeclaringType());
+        getDeclaringType(),
+        protoclass().constitution().generics().vars());
 
     provider.process();
 
@@ -891,7 +893,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initAttributeValueType() {
     if (containingType.constitution.style().deepImmutablesDetection()
         && containedTypeElement != null) {
-      Environment environment = containingType.round.environment();
+      Environment environment = protoclass().environment();
       for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
         // We cannot detect included types etc, so isDefinedValue is good enouph check
         if (p.kind().isDefinedValue()) {
