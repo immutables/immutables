@@ -130,4 +130,10 @@ public class JdkOnlyTest {
     } catch (NullPointerException ex) {
     }
   }
+
+  @Test
+  public void enum() {
+    check(ImmutableEnumUser.builder().setType(ImmutableHasEnum.Type.FOO).build().getType())
+      .is(ImmutableHasEnum.Type.FOO);
+  }
 }
