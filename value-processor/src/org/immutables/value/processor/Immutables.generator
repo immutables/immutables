@@ -1911,7 +1911,7 @@ private boolean equalTo([equalToType] another) {
 [if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.nullable or v.jdkOptional]
-  [h] = [h] * 17 + [if type.generateJdkOnly][objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
+  [h] = [h] * 17 + [objectsHashCode type]([v.name]);
 [else if v.primitive]
   [h] = [h] * 17 + [primitiveHashCode v];
 [else]
@@ -2123,25 +2123,32 @@ public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v
   [else]
   [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
   [/if]
-  [if v.unwrappedElementType eq 'double'][-- skip for double --]
-  [else if v.unwrappedElementType eq 'float'][-- skip for float --]
-  [else if v.elementType eq 'java.lang.String']
-  if ([objectsUtilRef type]equals(this.[v.name], newValue)) return this;
-  [else if v.primitiveWrapperType]
-  if ([objectsUtilRef type]equals(this.[v.name], newValue)) return this;
+  [if v.hasSimpleScalarElementType]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
   [else]
   if (this.[v.name] == newValue) return this;
   [/if]
   [generateReturnCopyContextual type v]
 [else]
   [immutableImplementationType v] newValue = [optionalOf v](value);
+  [if v.hasSimpleScalarElementType]
+  if (this.[v.name].equals(newValue)) return this;
+  [else]
+  if (this.[v.name].[optionalPresent v] && this.[v.name].[optionalGet v] == value) return this;
+  [/if]
   [generateReturnCopyContextual type v]
 [/if]
 }
 
 /**
  * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
-[if not v.jdkOptional][-- just to not lie --]
+[if v.jdkOptional and v.hasSimpleScalarElementType]
+ * An equality check is used on inner nullable value to prevent copying of the same value by returning {@code this}.
+[else if v.jdkOptional]
+ * A shallow reference equality check is used on unboxed optional value to prevent copying of the same value by returning {@code this}.
+[else if v.hasSimpleScalarElementType]
+ * An equality check is used to prevent copying of the same value by returning {@code this}.
+[else]
  * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
 [/if]
  * @param optional A value for [v.name]
@@ -2151,20 +2158,19 @@ public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v
 public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
 [if v.jdkOptional]
   [immutableImplementationType v] value = [if v.jdkSpecializedOptional]optional.isPresent() ? optional.getAs[toUpper v.unwrappedElementType]() : null[else]optional.orElse(null)[/if];
-  [if v.unwrappedElementType eq 'float']
-  if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
-  [else if v.unwrappedElementType eq 'double']
-  if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-  [else if v.elementType eq 'java.lang.String']
-  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
-  [else if v.primitiveWrapperType or ]
-  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
+  [if v.hasSimpleScalarElementType]
+  if ([objectsEqual type](this.[v.name], value)) return this;
   [else]
-  if (this.[v.name].equals(value)) return this;
+  if (this.[v.name] == value) return this;
   [/if]
 [else]
   [immutableImplementationType v] value = [requireNonNull type](optional, "[v.name]");
+  [if v.hasSimpleScalarElementType]
   if (this.[v.name].equals(value)) return this;
+  [else]
+  if (!this.[v.name].[optionalPresent v] && !value.[optionalPresent v]) return this;
+  if (this.[v.name].[optionalPresent v] && value.[optionalPresent v] && this.[v.name].[optionalGet v] == value.[optionalGet v]) return this;
+  [/if]
 [/if]
   [generateReturnCopy type v 'value']
 }
@@ -2209,11 +2215,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
     [else if v.stringType or v.primitiveWrapperType]
       [if v.nullable]
-        [if v.generateJdkOnly]
-  if ([objectsUtilRef type]equals(this.[v.name], value)) return this;
-        [else]
-  if ([guava].base.Objects.equal(this.[v.name], value)) return this;
-        [/if]
+  if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
   if (this.[v.name].equals(value)) return this;
       [/if]
@@ -2501,11 +2503,7 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [else if a.arrayType]
   java.util.Arrays.equals([a.name], [getOther])
 [else if a.nullable or a.jdkOptional]
-  [if a.generateJdkOnly]
-    [objectsUtilRef a.containingType]equals([a.name], [getOther])
-  [else]
-    [guava].base.Objects.equal([a.name], [getOther])
-  [/if]
+  [objectsEqual a.containingType]([a.name], [getOther])
 [else]
   [a.name].equals([getOther])
 [/if]
@@ -2554,6 +2552,34 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
   [/if]
 [else]
   [guava].primitives.[toUpper v.type]s.hashCode([v.name])
+[/if]
+[/output.trim][/template]
+
+[template public objectsEqual Type type][output.trim]
+[if type.generateJdkOnly]
+  [if classpath.unavailable 'java.util.Objects']
+    [type.topSimple].equals
+  [else if classpath.available 'android.R']
+    [type.topSimple].equals
+  [else]
+    java.util.Objects.equals
+  [/if]
+[else]
+  [guava].base.Objects.equal
+[/if]
+[/output.trim][/template]
+
+[template public objectsHashCode Type type][output.trim]
+[if type.generateJdkOnly]
+  [if classpath.unavailable 'java.util.Objects']
+    [type.topSimple].hashCode
+  [else if classpath.available 'android.R']
+    [type.topSimple].hashCode
+  [else]
+    java.util.Objects.hashCode
+  [/if]
+[else]
+  [guava].base.Objects.hashCode
 [/if]
 [/output.trim][/template]
 

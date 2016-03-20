@@ -434,4 +434,21 @@ public class ValuesTest {
         .build()
         .value()).is(2);
   }
+
+  @Test
+  public void primitiveOptional() {
+    ImmutablePrimitiveOptionals.builder()
+        .v1(1)
+        .v2(0.2)
+        .v3(2)
+        .v4(true)
+        .v5("a")
+        .v6("b")
+        .v7(1)
+        .v8(0.1)
+        .v9(2L)
+        .build()
+        .withV1(2)
+        .withV2(0.3);
+  }
 }

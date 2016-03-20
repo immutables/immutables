@@ -133,6 +133,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isEnumType();
   }
 
+  public boolean hasSimpleScalarElementType() {
+    ensureTypeIntrospected();
+    String type = getWrappedElementType();
+    return type.equals(String.class.getName())
+        || isPrimitiveWrappedType(type)
+        || hasEnumContainedElementType()
+        || isEnumType()
+        || isJdkSpecializedOptional(); // the last is not needed, probably
+  }
+
   public boolean requiresAlternativeStrictConstructor() {
     return typeKind.isCollectionKind()
         || (typeKind.isMappingKind()
@@ -931,11 +941,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     } else {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
       ensureTypeIntrospected();
-      boolean firstEnum = containedTypeElement != null
-          && containedTypeElement.getKind() == ElementKind.ENUM;
-
-      typeKind = typeKind.havingEnumFirstTypeParameter(firstEnum);
+      typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
     }
+  }
+
+  private boolean hasEnumContainedElementType() {
+    return containedTypeElement != null
+        && containedTypeElement.getKind() == ElementKind.ENUM;
   }
 
   DeclaringType getDeclaringType() {
@@ -1091,7 +1103,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
     if (!isContainerType()) {
       List<TypeElement> elements = Lists.newArrayListWithCapacity(2);
-      if (containedTypeElement != null && containedTypeElement.getKind() == ElementKind.ENUM) {
+      if (hasEnumContainedElementType()) {
         elements.add(containedTypeElement);
       }
       if (isMapType() && containedSecondaryTypeElement.getKind() == ElementKind.ENUM) {

@@ -30,10 +30,20 @@ public interface PrimitiveOptionals {
   Optional<Integer> v1();
 
   @Value.Parameter
-  Optional<Boolean> v2();
+  Optional<Double> v2();
 
   @Value.Parameter
   java.util.Optional<Integer> v3();
 
   java.util.Optional<Boolean> v4();
+
+  java.util.Optional<String> v5();
+
+  Optional<String> v6();
+
+  OptionalInt v7();
+
+  OptionalDouble v8();
+
+  OptionalLong v9();
 }

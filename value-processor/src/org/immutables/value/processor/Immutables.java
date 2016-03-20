@@ -26,6 +26,10 @@ abstract class Immutables extends ValuesTemplate {
 
   abstract Templates.Invokable objectsUtilRef();
 
+  abstract Templates.Invokable objectsEqual();
+
+  abstract Templates.Invokable objectsHashCode();
+
   abstract Templates.Invokable objectsUtility();
 
   abstract Templates.Invokable collectionUtility();

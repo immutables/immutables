@@ -743,7 +743,7 @@ private boolean equalTo([equalToType] another) {
 [if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.nullable]
-  [h] = [h] * 17 + [if type.generateJdkOnly][im.objectsUtilRef type]hashCode[else][guava].base.Objects.hashCode[/if]([v.name]);
+  [h] = [h] * 17 + [im.objectsHashCode type]([v.name]);
 [else if v.primitive]
   [h] = [h] * 17 + [im.primitiveHashCode v];
 [else]
