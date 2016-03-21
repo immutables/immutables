@@ -35,7 +35,7 @@
   <url>http://immutables.org</url>
 
   <modules>
-    <module>dependency/utility</module>
+    <module>utility</module>
     <module>testing</module>
     <module>generator</module>
     <module>generator-processor</module>

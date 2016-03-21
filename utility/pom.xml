@@ -28,21 +28,18 @@
   <artifactId>utility</artifactId>
   <packaging>pom</packaging>
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Core set of dependencies, required for generated classes</description>
+  <description>Guava and findbugs</description>
 
   <dependencies>
-    <!-- Guava used as base utility library. It's transitive dependency needed to compile generated classes. -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
+      <version>19.0</version>
     </dependency>
-    <!-- Used to document and statically verify code properties.
-    jsr305 annotations needed to compile generated classes. -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-      <version>1.3.9</version>
+      <version>3.0.1</version>
     </dependency>
   </dependencies>
 
