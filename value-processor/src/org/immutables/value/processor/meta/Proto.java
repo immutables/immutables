@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Throwables;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -173,9 +172,22 @@ public class Proto {
                     + " to 'compile' 'compileOnly' or 'provided' dependency scope.");
 
         element = findElement(StyleMirror.mirrorQualifiedName());
+        verify(element != null, "Classpath should contain at least mirror annotation, otherwise library is corrupted");
       }
-      verify(element != null, "Classpath should contain at least mirror annotation, otherwise library is corrupted");
-      return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
+      try {
+        return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
+      } catch (Exception ex) {
+        processing().getMessager()
+            .printMessage(Diagnostic.Kind.MANDATORY_WARNING,
+                "The version of the Immutables annotation on the classpath has incompatible differences"
+                    + " from the Immutables annotation processor used. Various problems might occur,"
+                    + " like this one: " + ex);
+
+        element = findElement(StyleMirror.mirrorQualifiedName());
+        verify(element != null,
+            "classpath should contain at least the mirror annotation, otherwise library is corrupted");
+        return ToStyleInfo.FUNCTION.apply(StyleMirror.from(element));
+      }
     }
 
     /**

@@ -73,7 +73,7 @@ public abstract class Round {
 
   @Value.Derived
   ValueTypeComposer composer() {
-    return new ValueTypeComposer(this);
+    return new ValueTypeComposer();
   }
 
   @Value.Lazy

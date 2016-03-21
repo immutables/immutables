@@ -1,16 +1,15 @@
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.Iterators;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Parameterizable;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.TypeMirror;
-import com.google.common.collect.Iterators;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
-import com.google.common.base.Joiner;
-import java.util.List;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.Parameterizable;
 
 public final class Generics implements Iterable<String> {
   private static final String[] NO_BOUNDS = new String[0];

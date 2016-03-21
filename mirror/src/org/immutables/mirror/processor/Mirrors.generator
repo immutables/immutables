@@ -175,17 +175,17 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
     }
     [for a in m.attributes]
       [if a.kind.type]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
-    this.[a.name]Name = Preconditions.checkNotNull([a.name]Name);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "default attribute '[a.name]'");
+    this.[a.name]Name = Preconditions.checkNotNull([a.name]Name, "default attribute '[a.name]'");
       [else if a.kind.annotation]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "default attribute '[a.name]'");
          [if a.mirrorModel]
-    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror);
+    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror, "default attribute '[a.name]'");
          [/if]
       [else if a.kind.primitive]
     this.[a.name] = [a.name];
       [else]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "default attribute '[a.name]'");
       [/if]
     [/for]
   [/if]
@@ -244,17 +244,17 @@ public class [m.name]Mirror implements [m.element.qualifiedName] {
     }
     [for a in m.attributes]
       [if a.kind.type]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
-    this.[a.name]Name = Preconditions.checkNotNull([a.name]Name);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "value for '[a.name]'");
+    this.[a.name]Name = Preconditions.checkNotNull([a.name]Name, "Value for '[a.name]'");
       [else if a.kind.annotation]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "value for '[a.name]'");
          [if a.mirrorModel]
-    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror);
+    this.[a.name]Mirror = Preconditions.checkNotNull([a.name]Mirror, "value for '[a.name]'");
          [/if]
       [else if a.kind.primitive]
     this.[a.name] = [a.name];
       [else]
-    this.[a.name] = Preconditions.checkNotNull([a.name]);
+    this.[a.name] = Preconditions.checkNotNull([a.name], "value for '[a.name]'");
       [/if]
     [/for]
   [/if]
