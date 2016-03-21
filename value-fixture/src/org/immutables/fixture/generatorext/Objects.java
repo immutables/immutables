@@ -15,8 +15,8 @@
  */
 package org.immutables.fixture.generatorext;
 
-final class Preconditions {
-  static <T> T checkNotNull(T instance) {
+final class Objects {
+  static <T> T requireNonNull(T instance) {
     if (instance == null) {
       throw new IllegalArgumentException();
     }
@@ -27,7 +27,7 @@ final class Preconditions {
    * @param instance
    * @param message
    */
-  static <T> T checkNotNull(T instance, String message) {
-    return checkNotNull(instance);
+  static <T> T requireNonNull(T instance, String message) {
+    return requireNonNull(instance);
   }
 }

@@ -15,9 +15,8 @@
  */
 package org.immutables.fixture.generics;
 
-import java.util.List;
-import org.immutables.value.Value;
 import java.io.Serializable;
+import java.util.List;
 
 //@Value.Immutable
 public interface Firstie<T, V extends Runnable & Serializable> {

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.generatorext;
 
+import java.util.Objects;
 import org.immutables.extgenerator.GeneratedImportsModifier;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
@@ -25,14 +26,14 @@ import org.immutables.metainf.Metainf;
 @Metainf.Service
 public class PreconditionsRewriter implements GeneratedImportsModifier {
   private static final String THIS_PACKAGE_NAME = PreconditionsRewriter.class.getPackage().getName();
-  private static final String GUAVA_PRECONDITIONS = Preconditions.class.getCanonicalName();
+  private static final String UTIL_OBJECTS = Objects.class.getCanonicalName();
 
   @Override
   public void modify(String packageOfGeneratedFile, Set<String> imports) {
     if (packageOfGeneratedFile.equals(THIS_PACKAGE_NAME)) {
       List<String> newImports = new ArrayList<>(imports.size());
       for (String importString : imports) {
-        if (!importString.equals(GUAVA_PRECONDITIONS)) {
+        if (!importString.equals(UTIL_OBJECTS)) {
           newImports.add(importString);
         }
       }

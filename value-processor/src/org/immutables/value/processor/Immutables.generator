@@ -2556,40 +2556,50 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/output.trim][/template]
 
 [template public objectsEqual Type type][output.trim]
-[if type.generateJdkOnly]
-  [if classpath.unavailable 'java.util.Objects']
-    [type.topSimple].equals
-  [else if classpath.available 'android.R']
-    [type.topSimple].equals
+[if classpath.available 'android.R']
+  [if type.generateJdkOnly]
+  [type.topSimple].equals
   [else]
-    java.util.Objects.equals
+  [guava].base.Objects.equal
   [/if]
+[else if classpath.available 'java.util.Objects']
+  java.util.Objects.equals
+[else if type.generateJdkOnly]
+  [type.topSimple].equals
 [else]
   [guava].base.Objects.equal
 [/if]
 [/output.trim][/template]
 
 [template public objectsHashCode Type type][output.trim]
-[if type.generateJdkOnly]
-  [if classpath.unavailable 'java.util.Objects']
-    [type.topSimple].hashCode
-  [else if classpath.available 'android.R']
-    [type.topSimple].hashCode
+[if classpath.available 'android.R']
+  [if type.generateJdkOnly]
+  [type.topSimple].hashCode
   [else]
-    java.util.Objects.hashCode
+  [guava].base.Objects.hashCode
   [/if]
+[else if classpath.available 'java.util.Objects']
+  java.util.Objects.hashCode
+[else if type.generateJdkOnly]
+  [type.topSimple].hashCode
 [else]
   [guava].base.Objects.hashCode
 [/if]
 [/output.trim][/template]
 
-[template public objectsUtilRef Type type][output.trim]
-[if classpath.unavailable 'java.util.Objects']
-  [type.topSimple].
-[else if classpath.available 'android.R']
-  [type.topSimple].
+[template public requireNonNull Type type][output.trim]
+[if classpath.available 'android.R']
+  [if type.generateJdkOnly]
+  [type.topSimple].requireNonNull
+  [else]
+  [guava].base.Preconditions.checkNotNull
+  [/if]
+[else if classpath.available 'java.util.Objects']
+  java.util.Objects.requireNonNull
+[else if type.generateJdkOnly]
+  [type.topSimple].requireNonNull
 [else]
-  java.util.Objects.
+  [guava].base.Preconditions.checkNotNull
 [/if]
 [/output.trim][/template]
 
@@ -2835,8 +2845,6 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [-- templates below are one-liners so they auto-inlined --]
 [template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics]) [/if]this[/template]
-
-[template requireNonNull Type type][if type.generateJdkOnly][objectsUtilRef type]requireNonNull[else][guava].base.Preconditions.checkNotNull[/if][/template]
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
 

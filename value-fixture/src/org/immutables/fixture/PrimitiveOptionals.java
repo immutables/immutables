@@ -15,13 +15,10 @@
  */
 package org.immutables.fixture;
 
-import com.atlassian.fugue.Option;
 import com.google.common.base.Optional;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
-import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 @Value.Immutable

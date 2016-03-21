@@ -24,7 +24,7 @@ abstract class Immutables extends ValuesTemplate {
 
   abstract Templates.Invokable arrayAsListSecondary();
 
-  abstract Templates.Invokable objectsUtilRef();
+  abstract Templates.Invokable requireNonNull();
 
   abstract Templates.Invokable objectsEqual();
 
