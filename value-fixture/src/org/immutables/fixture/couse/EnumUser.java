@@ -13,16 +13,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jdkonly;
+package org.immutables.fixture.couse;
 
 import org.immutables.value.Value;
+import org.immutables.fixture.couse.sub.ImmutableHasEnumOtherPackage;
 
+/**
+ * Compilation and runtime test to see generate accessors using types that are nested
+ * in not-yet-generated types (by inheriting it from abstract value types)
+ */
+@Value.Style // reset style
 @Value.Immutable
-public interface HasEnum {
-  enum Type {
-      FOO,
-      BAR
-  };
+public interface EnumUser {
+  ImmutableHasEnum.Type getType();
 
-  Type getType();
+  ImmutableHasEnumOtherPackage.Type getType2();
 }

@@ -13,11 +13,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jdkonly;
+package org.immutables.fixture.couse;
 
 import org.immutables.value.Value;
 
+@Value.Style //reset style
 @Value.Immutable
-public interface EnumUser {
-  ImmutableHasEnum.Type getType();
+public interface HasEnum {
+  enum Type {
+    FOO,
+    BAR
+  }
+
+  Type getType();
 }
