@@ -787,9 +787,21 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (parameterOrderIsNotDefined) {
       Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
 
-      parameterOrder = parameterAnnotation.isPresent()
-          ? parameterAnnotation.get().order()
+      parameterOrder = containingType.constitution.style().allParameters()
+          ? CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
           : CONSTRUCTOR_NOT_A_PARAMETER;
+
+      if (parameterAnnotation.isPresent()) {
+        if (parameterAnnotation.get().value()
+            && containingType.constitution.style().allParameters()) {
+          report().annotationNamed(ParameterMirror.simpleName())
+              .warning("Annotation @Value.Parameter is superfluous when Style(allParameters = true)");
+        }
+
+        parameterOrder = parameterAnnotation.get().value()
+            ? parameterAnnotation.get().order()
+            : CONSTRUCTOR_NOT_A_PARAMETER;
+      }
 
       if (parameterOrder == CONSTRUCTOR_NOT_A_PARAMETER
           && containingType.isAnnotationType()

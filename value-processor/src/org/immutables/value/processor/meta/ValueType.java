@@ -518,9 +518,6 @@ public final class ValueType extends TypeIntrospectionBase {
   public Set<ValueAttribute> getConstructorArguments() {
     if (constructorArguments == null) {
       constructorArguments = computeConstructorArguments();
-      if (constructorArguments.isEmpty() && constitution.style().allParameters()) {
-        constructorArguments = ImmutableSet.copyOf(getSettableAttributes());
-      }
       validateConstructorParameters(constructorArguments);
     }
     return constructorArguments;

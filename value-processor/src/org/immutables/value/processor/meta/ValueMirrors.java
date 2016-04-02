@@ -61,6 +61,8 @@ public final class ValueMirrors {
   @Mirror.Annotation("org.immutables.value.Value.Parameter")
   public @interface Parameter {
     int order() default 0;
+
+    boolean value() default true;
   }
 
   @Mirror.Annotation("org.immutables.value.Value.Check")

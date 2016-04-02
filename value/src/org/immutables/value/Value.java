@@ -257,6 +257,14 @@ public @interface Value {
      * @return order
      */
     int order() default 0;
+    
+    /**
+     * Specify as {@code false} to cancel out parameter: an attribute would not be considered as a
+     * parameter. This is useful to override the effect of {@link Style#allParameters()} flag.
+     * By default it is {@code true} and should be omited.
+     * @return {@code false} if not a parameter
+     */
+    boolean value() default true;
   }
 
   /**
@@ -689,12 +697,14 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
+     * <p>
      * When {@code true} &mdash; all settable attributes are considered as they are annotated with
-     * {@link Value.Parameter}. When explicit {@link Value.Parameter} are specified,
-     * {@code allParameter} feature will be disabled. This allows to use default all parameters if
-     * enabled, or override this if needed by specifying explicit parameters.
+     * {@link Value.Parameter}. Use {@code Value.Parameter(false)} annotation on an attribute to
+     * cancel the effect of {@code allParameters = true}.
+     * </p>
      * <p>
      * This style could be used to create special tuple-style annotations:
+     * </p>
      *
      * <pre>
      * {@literal @}Value.Style(
@@ -709,6 +719,8 @@ public @interface Value {
      *   int red();
      *   int green();
      *   int blue();
+     *   {@literal @}Value.Parameter(false)
+     *   List<Info> auxiliaryInfo();
      * }
      * 
      * ColorTuple.of(0xFF, 0x00, 0xFE);

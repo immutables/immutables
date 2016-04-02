@@ -38,12 +38,11 @@ interface Color {
 @Tuple
 @Value.Immutable
 interface OverrideColor {
-  @Value.Parameter
   int white();
 
-  @Value.Parameter
   int black();
 
+  @Value.Parameter(false)
   @Value.Default
   default int gray() {
     return black() - gray();
