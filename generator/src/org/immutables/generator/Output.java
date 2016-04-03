@@ -51,6 +51,8 @@ import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.*;
 
 public final class Output {
+  public static final String NO_IMPORTS = "//-no-import-rewrite";
+
   public final Templates.Invokable error = new Templates.Invokable() {
     @Override
     @Nullable
@@ -297,6 +299,10 @@ public final class Output {
   }
 
   private static class SourceFile {
+    /**
+     * Pragma-like comment indicator just at beginning of the source file used to disable import
+     * post-processing.
+     */
     final ResourceKey key;
     final Templates.CharConsumer consumer = new Templates.CharConsumer();
 
@@ -350,7 +356,11 @@ public final class Output {
     }
 
     private CharSequence extractSourceCode() {
-      return PostprocessingMachine.rewrite(consumer.asCharSequence());
+      CharSequence charSequence = consumer.asCharSequence();
+      if (Strings.commonPrefix(charSequence, NO_IMPORTS).startsWith(NO_IMPORTS)) {
+        return charSequence;
+      }
+      return PostprocessingMachine.rewrite(charSequence);
     }
   }
 

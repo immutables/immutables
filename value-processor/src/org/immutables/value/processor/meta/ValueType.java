@@ -15,6 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.Output;
+import javax.lang.model.element.PackageElement;
+import com.google.common.base.Splitter;
+import com.google.common.base.Joiner;
+import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -73,7 +78,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public Constitution constitution;
   public int defaultAttributesCount;
   public int derivedAttributesCount;
-  
+
   public Generics generics() {
     return constitution.generics();
   }
@@ -87,13 +92,20 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public CharSequence sourceHeader() {
+    String noImportsPragma = ImportRewriteDisabler.shouldDisableFor(this)
+        ? Output.NO_IMPORTS
+        : "";
+
     if (constitution.style().headerComments()) {
       Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
       if (declaringType.isPresent()) {
-        return declaringType.get().associatedTopLevel().headerComments();
+        CharSequence headerComments = declaringType.get().associatedTopLevel().headerComments();
+        return !noImportsPragma.isEmpty()
+            ? new StringBuilder(noImportsPragma).append('\n').append(headerComments)
+            : headerComments;
       }
     }
-    return "";
+    return noImportsPragma;
   }
 
   @Nullable
@@ -104,7 +116,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean hasDefaultAttributes() {
     return defaultAttributesCount > 0;
   }
-  
+
   public boolean hasOptionalAttributes() {
     for (ValueAttribute attribute : attributes()) {
       if (attribute.isOptionalType()) {

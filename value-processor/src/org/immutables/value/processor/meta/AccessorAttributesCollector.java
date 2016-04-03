@@ -252,12 +252,6 @@ final class AccessorAttributesCollector {
     boolean useDefaultAsDefault = type.constitution.style().defaultAsDefault();
 
     if (isDiscoveredAttribute(attributeMethodCandidate, useDefaultAsDefault)) {
-      if (Character.isUpperCase(name.charAt(0))) {
-        report(attributeMethodCandidate)
-            .warning("Attributes with names starting with uppercase letters are not supported and are ignored. Sorry.");
-        return;
-      }
-
       TypeMirror returnType = resolveReturnType(attributeMethodCandidate);
 
       ValueAttribute attribute = new ValueAttribute();
