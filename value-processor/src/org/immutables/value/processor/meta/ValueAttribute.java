@@ -411,6 +411,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isOptionFugue();
   }
 
+  public boolean isGuavaOptional() {
+    return typeKind.isOptionalGuava();
+  }
+
   public boolean isJavaslangOptional() {
     return typeKind.isOptionJavaslang();
   }

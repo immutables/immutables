@@ -29,6 +29,24 @@ import java.io.Serializable;
 
 // tests how unboxing of jdk optionals is implemented
 public class JdkOptionalTest {
+  @Test
+  public void stringify() {
+    check(ImmutableHasOptionalToString.builder()
+        .into(1)
+        .mandatory("m")
+        .nullable("n")
+        .optional("o")
+        .build()).hasToString("HasOptionalToString{into=1, mandatory=m, nullable=n, optional=o}");
+
+    check(ImmutableHasOptionalToString.builder()
+        .mandatory("m")
+        .build()).hasToString("HasOptionalToString{mandatory=m}");
+
+    check(ImmutableHasOptionalToString.builder()
+        .mandatory("m")
+        .nullable("n")
+        .build()).hasToString("HasOptionalToString{mandatory=m, nullable=n}");
+  }
 
   @Test
   public void equals() {

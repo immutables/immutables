@@ -1968,8 +1968,7 @@ private int [disambiguateAccessor type 'computeHashCode']() {
 [if not type.toStringDefined]
 
 /**
- * Prints the immutable value {@code [type.name]...} with all non-generated
- * and non-auxiliary attribute values.
+ * Prints the immutable value {@code [type.name]}[if type.equivalenceAttributes] with attribute values[/if].
  * @return A string representation of the value
  */
 @Override
@@ -1981,28 +1980,53 @@ public String toString() {
   return "[type.name]{}";
   [/if]
 [else if type.generateJdkOnly]
-  [if type.annotationType]
-  return "@[type.name]("
-  [else]
-  return "[type.name]{"
-  [/if]
+  [if type.hasOptionalAttributes]
+  [flag.set][-- When flag is set we are expecting that any attribute might be first so we do need to decide if leading comma is necessary  --]
+  java.lang.StringBuilder builder = new java.lang.StringBuilder([if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]);
+  [let startLen][output.length][if type.annotationType]@[type.name]([else][type.name]{[/if][/output.length][/let]
   [for v in type.equivalenceAttributes]
-  [if v.arrayType]
-      + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
-  [else if v.jdkOptional]
-      + "[if not for.first], [/if][v.name]=" + [v.names.get]()
-  [else]
-      + "[if not for.first], [/if][v.name]=" + [v.name]
-  [/if]
+    [if v.arrayType]
+  [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
+  builder.append("[v.name]=").append(java.util.Arrays.toString([v.name]));
+    [else if v.jdkOptional or v.nullable]
+  if ([v.name] != null) {
+    [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
+    builder.append("[v.name]=").append([v.name]);
+  }
+    [else if v.optionalType]
+  if ([v.name].[optionalPresent v]) {
+    [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
+    builder.append("[v.name]=").append([v.name].[optionalGet v]);
+  }
+    [else]
+  [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
+  builder.append("[v.name]=").append([v.name]);
+    [/if]
   [/for]
+  return builder.append([if type.annotationType]")"[else]"}"[/if]).toString();
+  [else]
+  return [if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]
+    [for v in type.equivalenceAttributes]
+      [if v.arrayType]
+      + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
+      [else]
+      + "[if not for.first], [/if][v.name]=" + [v.name]
+      [/if]
+    [/for]
       + [if type.annotationType]")"[else]"}"[/if];
+  [/if]
 [else]
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
+      .omitNullValues()
   [for v in type.equivalenceAttributes]
   [if v.arrayType]
       .add("[v.name]", java.util.Arrays.toString([v.name]))
   [else if v.jdkOptional]
-      .add("[v.name]", [v.names.get]())
+      .add("[v.name]", [v.name])
+  [else if v.guavaOptional]
+      .add("[v.name]", [v.name].orNull())
+  [else if v.optionalType]
+      .add("[v.name]", [v.name].[optionalPresent v] ? [v.name].[optionalGet v] : null)
   [else]
       .add("[v.name]", [v.name])
   [/if]

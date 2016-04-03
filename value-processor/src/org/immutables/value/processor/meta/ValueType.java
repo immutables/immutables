@@ -104,6 +104,15 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean hasDefaultAttributes() {
     return defaultAttributesCount > 0;
   }
+  
+  public boolean hasOptionalAttributes() {
+    for (ValueAttribute attribute : attributes()) {
+      if (attribute.isOptionalType()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   public boolean hasDerivedAttributes() {
     return derivedAttributesCount > 0;

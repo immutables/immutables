@@ -57,4 +57,20 @@ abstract class ValuesTemplate extends AbstractTemplate {
   public Multimap<DeclaringPackage, ValueType> values() {
     return values;
   }
+
+  Flag flag = new Flag();
+
+  static class Flag {
+    boolean is;
+
+    String set() {
+      this.is = true;
+      return "";
+    }
+
+    String clear() {
+      this.is = false;
+      return "";
+    }
+  }
 }

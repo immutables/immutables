@@ -81,6 +81,20 @@ public final class Output {
     }
   };
 
+  public final Templates.Invokable length = new Templates.Invokable() {
+    @Override
+    @Nullable
+    public Invokable invoke(Invokation invokation, Object... parameters) {
+      invokation.out(parameters[0].toString().length());
+      return null;
+    }
+
+    @Override
+    public int arity() {
+      return 1;
+    }
+  };
+
   private static abstract class OutputFilter extends Templates.Fragment {
     public OutputFilter() {
       super(1);
