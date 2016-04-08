@@ -15,12 +15,11 @@
  */
 package org.immutables.fixture.generatorext;
 
-import java.util.Objects;
-import org.immutables.extgenerator.GeneratedImportsModifier;
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import org.immutables.extgenerator.GeneratedImportsModifier;
 import org.immutables.metainf.Metainf;
 
 @Metainf.Service

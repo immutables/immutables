@@ -52,9 +52,9 @@ final class AccessorAttributesCollector {
    */
   private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
 
-  private static final String EQUALS_METHOD = "equals";
-  private static final String TO_STRING_METHOD = "toString";
-  private static final String HASH_CODE_METHOD = "hashCode";
+  static final String EQUALS_METHOD = "equals";
+  static final String TO_STRING_METHOD = "toString";
+  static final String HASH_CODE_METHOD = "hashCode";
 
   private final Protoclass protoclass;
   private final ValueType type;
@@ -185,7 +185,7 @@ final class AccessorAttributesCollector {
         if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
           report(originalType)
               .warning("Type inherits non-default 'equals' method but have some non-inherited attributes."
-                  + " Please override 'equals' with abstract method to have generate it. Otherwise override"
+                  + " Please override 'equals' with abstract method to have it generate. Otherwise override"
                   + " with calling super implemtation to use custom implementation");
         }
       }
@@ -201,7 +201,7 @@ final class AccessorAttributesCollector {
         if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
           report(originalType)
               .warning("Type inherits non-default 'hashCode' method but have some non-inherited attributes."
-                  + " Please override 'hashCode' with abstract method to have generated it. Otherwise override"
+                  + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
                   + " with calling super implemtation to use custom implementation");
         }
       }
