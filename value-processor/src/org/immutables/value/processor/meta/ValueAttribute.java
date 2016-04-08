@@ -1138,6 +1138,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return containingType.constitution.protoclass();
   }
 
+  public String genericArguments() {
+    String type = getType();
+    int indexOfGenerics = type.indexOf('<');
+    if (indexOfGenerics > 0) {
+      return type.substring(indexOfGenerics);
+    }
+    return "<>";
+  }
+
   Reporter report() {
     return reporter.withElement(element);
   }

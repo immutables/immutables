@@ -15,11 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.Output;
-import javax.lang.model.element.PackageElement;
-import com.google.common.base.Splitter;
-import com.google.common.base.Joiner;
-import com.google.common.base.Ascii;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -53,6 +48,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import org.immutables.generator.Output;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;

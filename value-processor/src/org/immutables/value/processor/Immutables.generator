@@ -495,7 +495,7 @@ private Object writeReplace() {
 
   [if type.generateJdkOnly]
   private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
-      new java.util.concurrent.ConcurrentHashMap<>();
+      new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]>();
   [else]
   private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
   [/if]
@@ -1337,7 +1337,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [if positions.longs]
 
   private String formatRequiredAttributesMessage() {
-    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<>()[else][guava].collect.Lists.newArrayList()[/if];
+    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [if type.useCompactBuilder]
       [for m in mandatories, BitPosition pos = positions m]
     if (([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) != 0) attributes.add("[m.name]");
@@ -1714,7 +1714,7 @@ static final [output.linesShortable]class Json
   [/if]
 [/for]
 [for v in type.settableAttributes if v.anyGetter]
-  final [v.type] [v.name] = new java.util.HashMap<>();
+  final [v.type] [v.name] = new java.util.HashMap[v.genericArguments]();
 [/for]
 [for v in type.settableAttributes if not v.anyGetter]
   [for a in v.annotations]
