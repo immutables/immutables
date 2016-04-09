@@ -429,7 +429,8 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseCopyConstructor() {
-    return isUseCopyMethods() && (isUseConstructor() || isUseBuilder());
+    return immutableFeatures.copy()
+        && (isUseConstructor() || isUseBuilder());
   }
 
   public boolean isUseSingleton() {
@@ -446,8 +447,6 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
         && !isGeneratePrivateNoargConstructor();
-    // || isUseInterned()
-    // || isGenerateOrdinalValue()
   }
 
   public InnerBuilderDefinition getInnerBuilder() {

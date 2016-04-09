@@ -170,7 +170,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return "[type.name] in not initialized, some of the required attributes are not set " + attributes;
   }
   [/if]
-[if type.kind.isValue and type.useCopyConstructor]
+[if type.kind.isValue and (type.useCopyConstructor or (type.useBuilder or type.useConstructor))]
 
   /**
    * Converts to {@link [type.typeValue.relative] [type.typeValue.simple]}.
@@ -180,7 +180,29 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [if mandatories]
     [disambiguateAccessor type 'checkRequiredAttributes']();
   [/if]
+[if type.useCopyConstructor]
     return [type.factoryCopyOf](this);
+[else if type.useBuilder]
+    return [type.factoryBuilder.relative]()
+      [if type.generateBuilderFrom]
+        .[type.names.from](this)
+      [else]
+        [for v in type.settableAttributes]
+          [if v.collectionType]
+        .[v.names.addAll]([v.names.get]())
+          [else if v.mapType]
+        .[v.names.putAll]([v.names.get]())
+          [else]
+        .[v.names.init]([v.names.get]())
+          [/if]
+        [/for]
+      [/if]
+        .[type.names.build]();
+[else if type.useConstructor]
+    return [type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if][v.names.get]()[/for])[for
+            o in type.withSettableAfterConstruction]
+        .[o.names.with]([o.names.get]())[/for];
+[/if]
   }
 [/if]
   [generateEqualsHashCode type]
