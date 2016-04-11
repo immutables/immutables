@@ -122,7 +122,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
     BitPosition(int index, int bit) {
       this.index = index;
       this.bit = bit;
-      this.mask = 1 << bit;
+      this.mask = 1L << bit;
     }
   }
 }

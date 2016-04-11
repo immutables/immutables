@@ -18,7 +18,7 @@ package org.immutables.value.processor.meta;
 import com.google.common.collect.ImmutableList;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class LongBitsTest {
   private static final String A = "a", B = "b", C = "c";
@@ -27,6 +27,7 @@ public class LongBitsTest {
   @Test
   public void singleLong() {
     LongPositions positions = longBits.forIterable(ImmutableList.of(A, B), 2);
+    check(positions.longs()).hasSize(1);
     check(positions.longsIndeces()).isOf(0);
     check(positions.apply(A).index).is(0);
     check(positions.apply(A).bit).is(0);
@@ -40,6 +41,7 @@ public class LongBitsTest {
   @Test
   public void doubleLong() {
     LongPositions positions = longBits.forIterable(ImmutableList.of(A, B, C), 2);
+    check(positions.longs()).hasSize(2);
     check(positions.longsIndeces()).isOf(0, 1);
     check(positions.apply(A).index).is(0);
     check(positions.apply(A).bit).is(0);
