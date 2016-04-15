@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+### 2.1.16 (2016-04-14)
+- Thanks to contributors and issue reporters, important bugfixes were made!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.16)
+- Minor enhancements
+  + Javaslang Option support
+  + More compact toString, omitting non-present Optionals and nulls
+  + Cancel-out individual parameters when `allParameters = true`
+
 ### 2.1.14 (2016-03-12)
 - Bugfix and minor improvement release.
   + Output package pattern can be configured using style
