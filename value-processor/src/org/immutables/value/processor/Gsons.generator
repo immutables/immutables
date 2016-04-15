@@ -208,14 +208,7 @@ private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
 [/template]
 
 [template generateMarshalConstructorValue Type type Attribute a]
-  [if a.nullable]
-[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
-if ([a.name]Value != null) {
-  [generateWriteAttributeValue type a (a.name 'Value') false]
-} else {
-  out.nullValue();
-}
-  [else if a.optionalType]
+  [if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
 if ([a.name]Optional.[optionalPresent a]) {
   [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
@@ -224,16 +217,45 @@ if ([a.name]Optional.[optionalPresent a]) {
   out.nullValue();
 }
   [else if a.mapType]
-[a.type] [a.name]Mapping = instance.[a.names.get]();
+[a.atNullabilityLocal][a.type] [a.name]Mapping = instance.[a.names.get]();
+    [if a.nullable]
+if ([a.name]Mapping != null) {
+  [generateMarshalMapping type a]
+} else {
+  out.nullValue();
+}
+    [else]
 [generateMarshalMapping type a]
+    [/if]
   [else if a.collectionType or a.arrayType]
+    [if a.nullable]
+if (instance.[a.names.get]() == null) {
+  out.nullValue();
+} else {
+  out.beginArray();
+  for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
+    [generateWriteAttributeValue type a 'e' false]
+  }
+  out.endArray();
+}
+    [else]
 out.beginArray();
 for ([a.unwrappedElementType] e : instance.[a.names.get]()) {
   [generateWriteAttributeValue type a 'e' false]
 }
 out.endArray();
+    [/if]
   [else]
+    [if a.nullable]
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else {
+  out.nullValue();
+}
+    [else]
 [generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
+    [/if]
   [/if]
 [/template]
 
@@ -273,16 +295,7 @@ String key = [a.name]TypeAdapter.toJsonTree([expression]).getAsString();
 [/template]
 
 [template generateMarshalAttributeValue Type type Attribute a]
-  [if a.nullable]
-[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
-if ([a.name]Value != null) {
-  out.name([serializedName a]);
-  [generateWriteAttributeValue type a (a.name 'Value') false]
-} else if (out.getSerializeNulls()) {
-  out.name([serializedName a]);
-  out.nullValue();
-}
-  [else if a.optionalType]
+  [if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
 if ([a.name]Optional.[optionalPresent a]) {
   out.name([serializedName a]);
@@ -293,28 +306,41 @@ if ([a.name]Optional.[optionalPresent a]) {
   out.nullValue();
 }
   [else if a.mapType]
-[a.type] [a.name]Mapping = instance.[a.names.get]();
+[a.atNullabilityLocal][a.type] [a.name]Mapping = instance.[a.names.get]();
 [if type.gsonTypeAdapters.emptyAsNulls]
-if (![a.name]Mapping.isEmpty()) {
+if ([if a.nullable][a.name]Mapping != null && [/if]![a.name]Mapping.isEmpty()) {
   out.name([serializedName a]);
   [generateMarshalMapping type a]
 } else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
+  [if a.nullable]
+  if ([a.name]Mapping == null) {
+    out.nullValue();
+  } else {
+    out.beginObject();
+    out.endObject();
+  }
+  [else]
   out.beginObject();
   out.endObject();
+  [/if]
+}
+[else if a.nullable]
+if ([a.name]Mapping != null) {
+  out.name([serializedName a]);
+  [generateMarshalMapping type a]
+} else if (out.getSerializeNulls()) {
+  out.name([serializedName a]);
+  out.nullValue();
 }
 [else]
 out.name([serializedName a]);
 [generateMarshalMapping type a]
 [/if]
-  [else if a.collectionType or (a.arrayType and (not a.nullable))]
-[a.type] [a.name]Elements = instance.[a.names.get]();
+  [else if a.collectionType or a.arrayType]
+[a.atNullabilityLocal][a.type] [a.name]Elements = instance.[a.names.get]();
 [if type.gsonTypeAdapters.emptyAsNulls]
-[if a.arrayType]
-if ([a.name]Elements.length != 0) {
-[else]
-if (![a.name]Elements.isEmpty()) {
-[/if]
+if ([if a.nullable][a.name]Elements != null && [/if][if a.arrayType][a.name]Elements.length != 0[else]![a.name]Elements.isEmpty()[/if]) {
   out.name([serializedName a]);
   out.beginArray();
   for ([a.unwrappedElementType] e : [a.name]Elements) {
@@ -323,8 +349,28 @@ if (![a.name]Elements.isEmpty()) {
   out.endArray();
 } else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
+      [if a.nullable]
+  if ([a.name]Elements == null) {
+    out.nullValue();
+  } else {
+    out.beginArray();
+    out.endArray();
+  }
+      [else]
   out.beginArray();
   out.endArray();
+      [/if]
+}
+[else if a.nullable]
+if ([a.name]Elements != null) {
+  out.beginArray();
+  for ([a.unwrappedElementType] e : [a.name]Elements) {
+    [generateWriteAttributeValue type a 'e' false]
+  }
+  out.endArray();
+} else if (out.getSerializeNulls()) {
+  out.name([serializedName a]);
+  out.nullValue();
 }
 [else]
 out.name([serializedName a]);
@@ -334,6 +380,15 @@ for ([a.unwrappedElementType] e : [a.name]Elements) {
 }
 out.endArray();
 [/if]
+  [else if a.nullable]
+[a.atNullabilityLocal][a.type] [a.name]Value = instance.[a.names.get]();
+if ([a.name]Value != null) {
+  out.name([serializedName a]);
+  [generateWriteAttributeValue type a (a.name 'Value') false]
+} else if (out.getSerializeNulls()) {
+  out.name([serializedName a]);
+  out.nullValue();
+}
   [else]
 out.name([serializedName a]);
 [generateWriteAttributeValue type a ('instance.' a.names.get '()') false]
@@ -455,15 +510,7 @@ private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name]
 [/template]
 
 [template generateConstructorArgumentComplexUnmarshal Type type Attribute a]
-  [if a.nullable]
-JsonToken t = in.peek();
-if (t == JsonToken.NULL) {
-  in.nextNull();
-  return null;
-}
-[generateReadAttributeValue type a a.type a.rawType false]
-return value;
-  [else if a.optionalType]
+  [if a.optionalType]
 JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
   in.nextNull();
@@ -478,18 +525,46 @@ return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
 return [a.rawType].of(value);
     [/if]
   [else if a.mapType]
+    [if a.nullable]
+JsonToken t = in.peek();
+if (t == JsonToken.NULL) {
+  in.nextNull();
+  return null;
+}
+    [/if]
 [createBuilderForCollection type a 'mappings']
 [generateMappingUnmarshalCode type a 'mappings.put']
 [returnBuiltCollection type a 'mappings']
   [else if a.collectionType]
+    [if a.nullable]
+JsonToken t = in.peek();
+if (t == JsonToken.NULL) {
+  in.nextNull();
+  return null;
+}
+    [/if]
 [createBuilderForCollection type a 'elements']
 [generateCollectionUnmarshalCode type a 'elements.add']
 [returnBuiltCollection type a 'elements']
   [else if a.arrayType]
+    [if a.nullable]
+JsonToken t = in.peek();
+if (t == JsonToken.NULL) {
+  in.nextNull();
+  return null;
+}
+    [/if]
 java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
 [generateCollectionUnmarshalCode type a ('elements.add')]
 return elements.toArray(new [a.elementType]['[']elements.size()[']']);
   [else]
+    [if a.nullable]
+JsonToken t = in.peek();
+if (t == JsonToken.NULL) {
+  in.nextNull();
+  return null;
+}
+    [/if]
 [generateReadAttributeValue type a a.type a.rawType false]
 return value;
   [/if]
@@ -533,14 +608,13 @@ return [variableName].build();
 [/template]
 
 [template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
-JsonToken t = in.peek();
-if (t == JsonToken.BEGIN_ARRAY) {
+if (in.peek() == JsonToken.BEGIN_ARRAY) {
   in.beginArray();
   while(in.hasNext()) {
     [unmarshalCollectionElement]
   }
   in.endArray();
-} else if (t == JsonToken.NULL) {
+} else if (in.peek() == JsonToken.NULL) {
   in.nextNull();
 } else {
   [unmarshalCollectionElement]
@@ -598,23 +672,8 @@ if (in.peek() == JsonToken.NULL) {
 [/template]
 
 [template generateComplexTypeUnmarshalAttribute Type type Attribute a]
-  [if a.nullable]
-JsonToken t = in.peek();
-if (t == JsonToken.NULL) {
-  in.nextNull();
-} else {
-    [if a.stringType]
-  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
-    [else]
-  [generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
-  builder.[a.names.init](value);
-    [/if]
-}
-  [else if a.stringType]
-  builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
-  [else if a.optionalType]
-JsonToken t = in.peek();
-if (t == JsonToken.NULL) {
+  [if a.optionalType]
+if (in.peek() == JsonToken.NULL) {
   in.nextNull();
 } else {
     [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
@@ -625,16 +684,76 @@ if (t == JsonToken.NULL) {
     [/if]
 }
   [else if a.mapType]
+    [if a.nullable]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  builder.[a.names.init](null);
+  [/if]
+} else {
+  [generateMappingUnmarshalCode type a ('builder.' a.names.put)]
+}
+    [else]
 [generateMappingUnmarshalCode type a ('builder.' a.names.put)]
+    [/if]
   [else if a.collectionType]
+    [if a.nullable]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  builder.[a.names.init](null);
+  [/if]
+} else {
+  [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+}
+    [else]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+    [/if]
   [else if a.arrayType]
+    [if a.nullable]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  builder.[a.names.init](null);
+  [/if]
+} else {
+  java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
+  [generateCollectionUnmarshalCode type a ('elements.add')]
+  builder.[a.names.init](elements.toArray(new [a.elementType]['[']elements.size()[']']));
+}
+    [else]
 java.util.List<[a.elementType]> elements = new java.util.ArrayList<[a.elementType]>();
 [generateCollectionUnmarshalCode type a ('elements.add')]
 builder.[a.names.init](elements.toArray(new [a.elementType]['[']elements.size()[']']));
+[/if]
+  [else if a.stringType]
+    [if a.nullable]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+  [if a.generateDefault]
+  builder.[a.names.init](null);
+  [/if]
+} else {
+  builder.[a.names.init]([simpleTypeNext a.rawType]);
+}
+    [else]
+builder.[a.names.init]([simpleTypeNext a.rawType]);
+    [/if]
   [else]
-[generateReadAttributeValue type a a.type a.rawType false]
+    [if a.nullable]
+if (in.peek() == JsonToken.NULL) {
+  in.nextNull();
+  [if a.generateDefault]
+  builder.[a.names.init](null);
+  [/if]
+} else {
+  [generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
+  builder.[a.names.init](value);
+}
+    [else]
+[generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
 builder.[a.names.init](value);
+    [/if]
   [/if]
 [/template]
 

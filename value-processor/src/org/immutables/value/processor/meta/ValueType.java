@@ -943,7 +943,7 @@ public final class ValueType extends TypeIntrospectionBase {
       if (c.hasConstructorParameterCustomOrder()) {
         return false;
       }
-      if (!c.isPrimitive() && !c.isNullable()) {
+      if (!c.typeKind().isRegular() || (!c.isPrimitive() && !c.isNullable())) {
         return false;
       }
     }

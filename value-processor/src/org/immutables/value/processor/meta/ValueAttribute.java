@@ -112,7 +112,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isStringType() {
-    return returnTypeName.equals(String.class.getName());
+    return rawTypeName.equals(String.class.getName());
   }
 
   public boolean charType() {
@@ -874,13 +874,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initOrderKind();
     initBuilderParamsIfApplicable();
     initMiscellaneous();
+
+    initSpecialAnnotations();
+    validateTypeAndAnnotations();
+
     initAttributeValueType();
-
-    makeRegularAndNullableWithValidation();
-    makeRegularIfContainsWildcards();
-    makeRegularIfDefaultWithValidation();
-
-    prohibitAuxiliaryOnAnnotationTypes();
   }
 
   private void initOrderKind() {
@@ -889,14 +887,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       if (orderKind == OrderKind.NONE) {
         typeKind = AttributeTypeKind.REGULAR;
       }
-    }
-  }
-
-  private void prohibitAuxiliaryOnAnnotationTypes() {
-    if (containingType.isAnnotationType() && isAuxiliary()) {
-      report()
-          .annotationNamed(AuxiliaryMirror.simpleName())
-          .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
   }
 
@@ -920,24 +910,33 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.constitution.style().deepImmutablesDetection()
         && containedTypeElement != null) {
       Environment environment = protoclass().environment();
+
       for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-        // We cannot detect included types etc, so isDefinedValue is good enouph check
-        if (p.kind().isDefinedValue()) {
-          attributeValueType = environment.composeValue(p);
+        if (p.kind().isDefinedValue() && canAccessImplementation(p)) {
+          this.attributeValueType = environment.composeValue(p);
         }
         break;
       }
     }
   }
 
+  private boolean canAccessImplementation(Protoclass p) {
+    return p.constitution().implementationVisibility().isPublic()
+        || (!p.constitution().implementationVisibility().isPrivate()
+        && p.constitution().implementationPackage().equals(p.constitution().implementationPackage()));
+  }
+
   public String implementationType() {
-    if (attributeValueType != null
-        && typeKind.isRegular()
-        && !isGenerateDerived
-        && !isGenerateDefault) {
+    if (isAttributeValueKindCopy()) {
       return attributeValueType.typeValue().toString();
     }
     return getType();
+  }
+
+  public boolean isAttributeValueKindCopy() {
+    return attributeValueType != null
+        && typeKind.isRegular()
+        && attributeValueType.isUseCopyConstructor();
   }
 
   public Set<ValueAttribute> getConstructorParameters() {
@@ -970,51 +969,69 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return containingType.inferDeclaringType(element);
   }
 
-  private void makeRegularIfDefaultWithValidation() {
-    if (isGenerateDefault && isContainerType()) {
-      typeKind = AttributeTypeKind.REGULAR;
-      report()
-          .annotationNamed(DefaultMirror.simpleName())
-          .warning("@Value.Default on a container attribute make it lose its special treatment");
-    }
-  }
-
-  private void makeRegularIfContainsWildcards() {
-    // I hope this check isn't too simplistic
+  private void validateTypeAndAnnotations() {
     boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
     if (hasWildcardInType && typeKind != AttributeTypeKind.ARRAY) {
       typeKind = AttributeTypeKind.REGULAR;
+      report()
+          .annotationNamed(DefaultMirror.simpleName())
+          .warning("Generic wildcards are not supported, so the container attribute loosing its special treatment");
+    }
+
+    if (isNullable()) {
+      if (isOptionalType()) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report()
+            .annotationNamed(DefaultMirror.simpleName())
+            .warning("@Nullable on a Optional attribute make it lose its special treatment");
+      } else if (isPrimitive()) {
+        report()
+            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+            .error("@Nullable could not be used with primitive type attibutes");
+      } else if (containingType.isAnnotationType()) {
+        report()
+            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+            .error("@Nullable could not be used with annotation attribute, use default value");
+      }
+    }
+
+    if (isGenerateDefault && isOptionalType()) {
+      typeKind = AttributeTypeKind.REGULAR;
+      report()
+          .annotationNamed(DefaultMirror.simpleName())
+          .warning("@Value.Default on a optional attribute make it lose its special treatment");
+    }
+
+    if (containingType.isUseStrictBuilder() && isContainerType()) {
+      if (isGenerateDefault) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report()
+            .annotationNamed(DefaultMirror.simpleName())
+            .warning("@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = true)");
+      } else if (isNullable()) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report()
+            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+            .warning("@Nullable on a container attribute make it lose its special treatment (when strictBuilder = true)");
+      }
+    }
+
+    if (containingType.isAnnotationType() && isAuxiliary()) {
+      report()
+          .annotationNamed(AuxiliaryMirror.simpleName())
+          .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
   }
 
-  private void makeRegularAndNullableWithValidation() {
+  private void initSpecialAnnotations() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       if (annotationElement.getSimpleName().contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
-        if (isPrimitive()) {
-          report()
-              .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-              .error("@Nullable could not be used with primitive type attibutes");
-        } else if (containingType.isAnnotationType()) {
-          report()
-              .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-              .error("@Nullable could not be used on annotation attibutes");
-        } else {
-          nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
-          nullability.eagerize();
-          if (isNullable() && !isArrayType()) {
-            typeKind = AttributeTypeKind.REGULAR;
-          }
-        }
+        nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
       } else if (containingType.isGenerateJacksonMapped()
           && annotationElement.getQualifiedName().toString().equals(Annotations.JACKSON_ANY_GETTER)) {
         anyGetter = typeKind.isMap();
       }
-    }
-    if (containingType.isAnnotationType() && isNullable()) {
-      report()
-          .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-          .error("@Nullable could not be used with annotation attribute, use default value");
     }
   }
 
@@ -1043,11 +1060,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return applicableToLocal
           ? asPrefix()
           : "";
-    }
-
-    void eagerize() {
-      asPrefix();
-      asLocalPrefix();
     }
   }
 
@@ -1102,15 +1114,28 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return builderSwitcherModel != null;
   }
 
-  public boolean hasForwardOnlyInitializer() {
-    return isCollectionType() || isMapType();
-  }
-
   public boolean requiresTrackIsSet() {
-    return (containingType.isUseStrictBuilder()
+    if (isGenerateDefault && isPrimitive()) {
+      // because privimitive cannot be null
+      return true;
+    }
+    if ((typeKind.isCollectionKind() || typeKind.isMappingKind()) && isGenerateDefault) {
+      // becase builder/collector is used and have to distinguish non-default value is set
+      return true;
+    }
+    if (typeKind.isArray() && isGenerateDefault && isNullable()) {
+      // nullable arrays should be able to distinguish null from default
+      return true;
+    }
+    if (containingType.isUseStrictBuilder()
         && !isMandatory()
-        && !hasForwardOnlyInitializer())
-        || (isPrimitive() && isGenerateDefault);
+        && !(typeKind.isCollectionKind() || typeKind.isMappingKind())) {
+      // non mandatory attributes without add/put methods
+      // should be checked if it was already initialized
+      // for a strict builder
+      return true;
+    }
+    return false;
   }
 
   public Collection<TypeElement> getEnumElements() {
