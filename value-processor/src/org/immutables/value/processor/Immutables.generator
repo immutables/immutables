@@ -1695,7 +1695,7 @@ private static final int STAGE_INITIALIZING = -1;
 private static final int STAGE_UNINITIALIZED = 0;
 private static final int STAGE_INITIALIZED = 1;
 [-- would it remain thread safe if remove volatile? --]
-private volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
+private transient volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
 
 private final class InitShim {
 [for v in deriveds]
