@@ -181,6 +181,10 @@ public final class Generics implements Iterable<String> {
     return arguments;
   }
 
+  public String spaceAfter() {
+    return isEmpty() ? "" : (declaration + " ");
+  }
+
   public String diamond() {
     return isEmpty() ? "" : "<>";
   }

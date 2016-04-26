@@ -543,7 +543,7 @@ private Object writeReplace() {
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
   }
   [/if]
@@ -555,8 +555,8 @@ private Object writeReplace() {
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
-    return [validated type false]new [type.typeImmutable.simple]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+    return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
 [if type.useValidation]
@@ -2939,9 +2939,9 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [-- templates below are one-liners so they auto-inlined --]
 [template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
 
-[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics]) [/if]this[/template]
+[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics.args]) [/if]this[/template]
 
-[template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][/template]
+[template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][type.generics.args][/template]
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
 

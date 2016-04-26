@@ -112,7 +112,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isStringType() {
-    return rawTypeName.equals(String.class.getName());
+    return String.class.getName().equals(rawTypeName);
   }
 
   public boolean charType() {
