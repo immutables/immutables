@@ -2596,32 +2596,28 @@ public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.c
 [/output.trim][/template]
 
 [template public objectsHashCode Type type][output.trim]
-[if classpath.available 'android.R']
-  [if type.generateJdkOnly]
-  [type.topSimple].hashCode
+[if type.generateJdkOnly]
+  [if classpath.available 'android.R']
+    [type.topSimple].hashCode
+  [else if classpath.available 'java.util.Objects']
+    java.util.Objects.hashCode
   [else]
-  [guava].base.Objects.hashCode
+    [type.topSimple].hashCode
   [/if]
-[else if classpath.available 'java.util.Objects']
-  java.util.Objects.hashCode
-[else if type.generateJdkOnly]
-  [type.topSimple].hashCode
 [else]
   [guava].base.Objects.hashCode
 [/if]
 [/output.trim][/template]
 
 [template public requireNonNull Type type][output.trim]
-[if classpath.available 'android.R']
-  [if type.generateJdkOnly]
-  [type.topSimple].requireNonNull
+[if type.generateJdkOnly]
+  [if classpath.available 'android.R']
+    [type.topSimple].requireNonNull
+  [else if classpath.available 'java.util.Objects']
+    java.util.Objects.requireNonNull
   [else]
-  [guava].base.Preconditions.checkNotNull
+    [type.topSimple].requireNonNull
   [/if]
-[else if classpath.available 'java.util.Objects']
-  java.util.Objects.requireNonNull
-[else if type.generateJdkOnly]
-  [type.topSimple].requireNonNull
 [else]
   [guava].base.Preconditions.checkNotNull
 [/if]
