@@ -582,9 +582,10 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public Set<ValueAttribute> computeConstructorArguments() {
-    return ImmutableSet.copyOf(attributes()
-        .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
-        .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION)));
+    return ImmutableSet.copyOf(
+        FluentIterable.from(getSettableAttributes())
+            .filter(Predicates.compose(Predicates.not(Predicates.equalTo(-1)), ToConstructorArgumentOrder.FUNCTION))
+            .toSortedList(Ordering.natural().onResultOf(ToConstructorArgumentOrder.FUNCTION)));
   }
 
   public List<ValueAttribute> getConstructorOmited() {
