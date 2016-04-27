@@ -1,9 +1,9 @@
 Changelog
 ---------
 
-### 2.1.17 (2016-04-26)
+### 2.1.18 (2016-04-26)
 - Minor Bugfixes, Thank you!
-- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.17)
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.18)
 
 ### 2.1.16 (2016-04-14)
 - Thanks to contributors and issue reporters, important bugfixes were made!
