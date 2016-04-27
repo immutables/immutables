@@ -1583,7 +1583,7 @@ this.[n] = [requireNonNull type]([invokeSuper v].[v.names.get](), "[v.name]");
 [if type.useCopyMethods]
 
   [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable]
-      [if type.synthCopyConstructor][type.typeImmutable.simple] original,
+      [if type.synthCopyConstructor][type.typeImmutable.simple] [disambiguateField type 'original'],
       [/if][for v in getters if not v.generateDerived][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [for v in getters if not v.generateDerived]
