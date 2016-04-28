@@ -37,7 +37,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [template classJavadoc Type type]
 
 /**
- * A modifiable implementation of the {@link [type.typeAbstract.relative] [type.typeAbstract.simple]} type.
+ * A modifiable implementation of the {@link [type.typeAbstract.relativeRaw] [type.typeAbstract.simple]} type.
 [if type.names.create eq 'new']
  * <p>Use the constructor to create new modifiable instances. You may even extend this class to
  * add some convenience methods, however most of the methods in this class are final
@@ -49,6 +49,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
  * Use the {@link #[type.names.toImmutable]()} method to convert to canonical immutable instances.
 [/if]
  * <p><em>[type.names.typeModifiable] is not thread-safe</em>
+[im.javadocGenerics type]
 [if type.kind.isValue]
  * @see [type.typeValue.relative]
 [/if]
@@ -60,7 +61,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
      nondefaults = type.requiresTrackedIsSetNonMandatoryAttributes,
      LongPositions positions = longsFor mandatories,
      LongPositions nondefaultsPositions = longsFor nondefaults]
-[type.typeImmutable.access][if not topLevel]static [/if][if type.names.create ne 'new']final [/if][output.linesShortable]class [type.names.typeModifiable]
+[type.typeImmutable.access][if not topLevel]static [/if][if type.names.create ne 'new']final [/if][output.linesShortable]class [type.names.typeModifiable][type.generics]
     [if type.implementing]implements[else]extends[/if] [type.typeAbstract][if type.serial.shouldImplement][if type.implementing],
         [else]
     implements [/if]java.io.Serializable[/if] {[/output.linesShortable]
@@ -131,7 +132,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
-  [for v in type.implementedAttributes if v.generateDefault and (not v.primitive)]
+  [for v in type.implementedAttributes if v.generateDefault and v.canUseNullAsUndefined]
 
   /**
    * Returns {@code true} if the default attribute [sourceDocRef type v] is set.
@@ -173,7 +174,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [if type.kind.isValue and (type.useCopyConstructor or (type.useBuilder or type.useConstructor))]
 
   /**
-   * Converts to {@link [type.typeValue.relative] [type.typeValue.simple]}.
+   * Converts to {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
    * @return An immutable instance of [type.name]
    */
   public final [type.typeValue] [type.names.toImmutable]() {
@@ -259,13 +260,14 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 
 /**
  * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
+[im.javadocGenerics type]
 [for p in type.constructorArguments]
  * @param [p.name] The value for the [sourceDocRef type p] attribute [if p.nullable](can be {@code null})[/if]
 [/for]
  * @return A new modifiable instance
  */
-public static [thisReturnType type] [type.names.create]([constructorParameters]) {
-  return new [type.names.typeModifiable]()[for v in type.constructorArguments]
+public static[type.generics.def] [thisReturnType type] [type.names.create]([constructorParameters]) {
+  return new [type.names.typeModifiable][type.generics.args]()[for v in type.constructorArguments]
     [if v.collectionType]
       .[v.names.addAll]([v.name])[else if v.mapType]
       .[v.names.putAll]([v.name])[else]
@@ -275,10 +277,11 @@ public static [thisReturnType type] [type.names.create]([constructorParameters])
 
 /**
  * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
+[im.javadocGenerics type]
  * @return A new modifiable instance
  */
-public static [thisReturnType type] [type.names.create]() {
-  return new [type.names.typeModifiable]();
+public static[type.generics.def] [thisReturnType type] [type.names.create]() {
+  return new [type.names.typeModifiable][type.generics.diamond]();
 }
 [/if]
 [/for]
@@ -326,7 +329,7 @@ private void from(Object object) {
 [else]
 
 /**
- * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relative]} instance.
+ * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relativeRaw]} instance.
  * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
  * Any of the instance's absent optional values will not be copied (will not override current values).
 [if type.hasSettableCollection or type.hasSettableMapping]
@@ -438,12 +441,12 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
  */
 [deprecation v]
 [varargsSafety v]
-public [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
+public final [thisReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
   for ([v.unwrappedElementType] element : elements) {
     [if v.unwrappedElementPrimitiveType]
-    [v.name].add(element);
+    [v.names.add](element);
     [else]
-    [v.name].add([im.requireNonNull type](element, "[v.name] element"));
+    [v.names.add]([im.requireNonNull type](element, "[v.name] element"));
     [/if]
   }
   [thisReturn type]
@@ -511,10 +514,10 @@ public [thisReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOp
  * @param values The values for [v.name]
  * @return {@code this} for use in a chained invocation
  */
+[varargsSafety v]
 [deprecation v]
-public [thisReturnType type] [v.names.put]([uK] key, [uV]... values) {
-  [v.name].putAll(key, [im.arrayAsListSecondary v 'values']);
-  [thisReturn type]
+public final [thisReturnType type] [v.names.put]([uK] key, [uV]... values) {
+  return [v.names.putAll](key, [im.arrayAsListSecondary v 'values']);
 }
 
 /**
@@ -582,7 +585,7 @@ public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect
  */
 [varargsSafety v]
 [deprecation v]
-public [thisReturnType type] [v.names.set]([v.elementType]... elements) {
+public final [thisReturnType type] [v.names.set]([v.elementType]... elements) {
   this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [mandatorySetter v]
   [thisReturn type]
@@ -814,13 +817,16 @@ public String toString() {
 [else if type.generateJdkOnly]
   return "[type.names.typeModifiable]{"
   [for v in type.equivalenceAttributes]
-    [if v.containerType]
-      + "[if not for.first], [/if][v.name]=" + [v.name]
+    [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
     [else if v.arrayType]
       + "[if not for.first], [/if][v.name]=" + ([if v.nullable][v.name] != null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
+    [else if v.generateDefault]
+      + "[if not for.first], [/if][v.name]="  + ([isSet v]() ? [v.name] : "?")
     [else if v.nullable]
       + "[if not for.first], [/if][v.name]=" + [v.name]
-    [else if not v.generateDerived]
+    [else if v.containerType]
+      + "[if not for.first], [/if][v.name]=" + [v.name]
+    [else]
       + "[if not for.first], [/if][v.name]="  + ([isSet v]() ? [v.name] : "?")
     [/if]
   [/for]
@@ -828,15 +834,18 @@ public String toString() {
 [else]
   return [type.typeMoreObjects].toStringHelper("[type.names.typeModifiable]")
 [for v in type.equivalenceAttributes]
-  [if v.containerType]
-      .add("[v.name]", [v.name])
-  [else if v.arrayType]
+    [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
+    [else if v.arrayType]
       .add("[v.name]", [if v.nullable][v.name] != null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
-  [else if v.nullable]
-      .add("[v.name]", [v.name])
-  [else if not v.generateDerived]
+    [else if v.generateDefault]
       .add("[v.name]", [isSet v]() ? [v.name] : "?")
-  [/if]
+    [else if v.nullable]
+      .add("[v.name]", [v.name])
+    [else if v.containerType]
+      .add("[v.name]", [v.name])
+    [else]
+      .add("[v.name]", [isSet v]() ? [v.name] : "?")
+    [/if]
 [/for]
       .toString();
 [/if]
@@ -882,11 +891,11 @@ import [starImport];
 
 [template thisReturn Type type]return this;[/template]
 
-[template thisReturnType Type type][type.names.typeModifiable][/template]
+[template thisReturnType Type type][type.names.typeModifiable][type.generics.args][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
-[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relativeRaw]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
@@ -906,4 +915,4 @@ import [starImport];
 
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
-[template varargsSafety Attribute a][if a.nonRawElementType]@SafeVarargs[/if][/template]
+[template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]

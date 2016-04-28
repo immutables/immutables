@@ -171,6 +171,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && super.isComparable();
   }
 
+  public boolean canUseNullAsUndefined() {
+    return !isPrimitive() && !isNullable();
+  }
+
   @Override
   public boolean isComparable() {
     return isNumberType()

@@ -20,6 +20,7 @@ import org.immutables.value.Value;
 import java.io.Serializable;
 import java.util.List;
 
+@Value.Modifiable
 @Value.Immutable
 public interface Firstie<T, V extends Runnable & Serializable> {
   T ref();

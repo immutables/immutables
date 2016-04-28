@@ -2859,7 +2859,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [/if]
 [/template]
 
-[template javadocGenerics Type type]
+[template public javadocGenerics Type type]
 [for p in type.generics.vars]
  * @param <[p]> generic parameter [p]
 [/for]

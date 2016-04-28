@@ -1,13 +1,14 @@
 package org.immutables.fixture.generics;
 
 import com.google.common.collect.Multimap;
-import java.util.Map;
+import org.immutables.value.Value;
+
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import org.immutables.value.Value;
 
+@Value.Modifiable
 @Value.Immutable
 public interface Secondie<T, V> {
 
