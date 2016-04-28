@@ -452,7 +452,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private String inferDefaultInterface() {
     if (isInterfaceDefaultMethod()) {
       if (containingType.element.getKind() == ElementKind.INTERFACE) {
-        return containingType.typeAbstract().relative();
+        return containingType.typeAbstract().relativeRaw();
       }
     }
     return "";
@@ -784,6 +784,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private int parameterOrder = Integer.MIN_VALUE;
   private AttributeTypeKind typeKind;
   public boolean anyGetter;
+  public boolean hasTypeVariables;
 
   int getConstructorParameterOrder() {
     boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
@@ -904,6 +905,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.rawTypeName = provider.rawTypeName();
     this.returnTypeName = provider.returnTypeName();
     this.typeParameters = provider.typeParameters();
+    this.hasTypeVariables = provider.hasTypeVariables;
   }
 
   private void initAttributeValueType() {

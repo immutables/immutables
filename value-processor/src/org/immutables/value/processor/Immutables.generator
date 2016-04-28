@@ -79,7 +79,7 @@ import [starImport];
 
 /**
  * {@code [type.typeEnclosing.simple]} contains immutable implementation classes generated from
- * abstract value types defined as nested inside {@link [type.typeAbstract.relative]}.
+ * abstract value types defined as nested inside {@link [type.typeAbstract.relativeRaw]}.
 [for v in type.nested]
  * @see [v.typeValue.relative]
 [/for]
@@ -108,7 +108,7 @@ import [starImport];
 
 [for setters = type.settableAttributes]
 /**
- * Immutable implementation of {@link [type.typeAbstract.relative]}.
+ * Immutable implementation of {@link [type.typeAbstract.relativeRaw]}.
  * <p>
  [if type.useBuilder]
  * Use the builder to create immutable instances:
@@ -147,18 +147,19 @@ import [starImport];
     [for parameters = type.builderParameters]
 
   /**
-   * Creates a builder for {@link [type.typeValue.relative] [type.typeValue.simple]}.
-[for p in parameters]
+   * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
+  [javadocGenerics type]
+  [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
-[/for]
+  [/for]
    * @return A new [type.typeValue.simple] builder
    */
-  public static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  public static[type.generics.def] [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilderImpl.relative]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
   [if parameters and (not type.kind.isFactory)]
 
-  static [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
+  static[type.generics.def] [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]() {
     return new [type.typeBuilderImpl.relative]();
   }
   [/if]
@@ -181,9 +182,9 @@ import [starImport];
 
 [template extendsImplements Type type]
 [if type.implementing]
-implements [type.typeAbstract][type.generics.args][if type.serial.shouldImplement], java.io.Serializable[/if] {
+implements [type.typeAbstract][if type.serial.shouldImplement], java.io.Serializable[/if] {
 [else]
-extends [type.typeAbstract][type.generics.args][if not type.serial.shouldImplement] {[else]
+extends [type.typeAbstract][if not type.serial.shouldImplement] {[else]
 implements java.io.Serializable {[/if]
 [/if]
 [/template]
@@ -494,7 +495,7 @@ private Object writeReplace() {
     public Domain() {}
 
     protected [type.typeAbstract] extractValue(InternProxy proxy, int ordinal) {
-      return new [type.typeImmutable.simple](proxy.instance, ordinal);
+      return new [type.typeImmutable.simple][type.generics.diamond](proxy.instance, ordinal);
     }
 
     @Override
@@ -555,7 +556,7 @@ private Object writeReplace() {
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+  public static [type.generics.def][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
@@ -608,15 +609,16 @@ private Object writeReplace() {
 [if type.useCopyConstructor and (not type.constitution.isImplementationHidden)]
 
 /**
- * Creates an immutable copy of a {@link [type.typeAbstract.relative]} value.
+ * Creates an immutable copy of a {@link [type.typeAbstract.relativeRaw]} value.
  * Uses accessors to get values to initialize the new immutable instance.
  * If an instance is already immutable, it is returned as is.
+[javadocGenerics type]
  * @param instance The instance to copy
  * @return A copied immutable [type.name] instance
  */
-[if not type.constitution.isImplementationPrimary]public [/if]static [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
-  if (instance instanceof [type.typeImmutable.relative]) {
-    return ([type.typeImmutable.simple]) instance;
+[if not type.constitution.isImplementationPrimary]public [/if]static[type.generics.def] [type.typeValue.relative] [type.factoryCopyOf.applied]([type.typeAbstract.relative] instance) {
+  if (instance instanceof [type.typeImmutable.relativeRaw][type.generics.unknown]) {
+    return ([type.typeImmutable.relative]) instance;
   }
 [if type.useBuilder]
   return [type.factoryBuilder.relative]()
@@ -700,7 +702,7 @@ private Object writeReplace() {
  * {@code [type.factoryOf](..)}.
  * Call the {@link #[type.names.build]()} method to get a result of type {@code [type.typeValue]}.
 [else]
- * Builds instances of type {@link [type.typeValue.relative] [type.typeValue.simple]}.
+ * Builds instances of type {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
  * Initialize attributes and then invoke the {@link #[type.names.build]()} method to create an
  * immutable instance.
 [/if]
@@ -742,7 +744,7 @@ private Object writeReplace() {
 [if type.kind.isFactory]
    * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
 [else]
-   * Creates a builder for {@link [type.typeValue.relative] [type.typeValue.simple]} instances.
+   * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
 [/if]
 [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
@@ -751,7 +753,7 @@ private Object writeReplace() {
   [/if]
   [if useFactoryMethod]private [else][type.typeBuilderImpl.access][/if][type.typeBuilderImpl.simple]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     [if type.innerBuilder.isExtending]
-    if (!(this instanceof [type.typeBuilder])) {
+    if (!(this instanceof [type.typeBuilder.relativeRaw][type.generics.unknown])) {
       throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
     }
     [/if]
@@ -776,7 +778,7 @@ private Object writeReplace() {
 
   [if useFactoryMethod]private [/if][type.typeBuilderImpl.simple]() {
     [if type.innerBuilder.isExtending]
-    if (!(this instanceof [type.typeBuilder])) {
+    if (!(this instanceof [type.typeBuilder.relativeRaw][type.generics.unknown])) {
       throw new UnsupportedOperationException("Use: [type.factoryBuilder.relative]()");
     }
     [/if]
@@ -789,11 +791,12 @@ private Object writeReplace() {
 [if type.kind.isFactory]
    * Creates a {@code [type.typeBuilderImpl.simple]} factory builder.
 [else]
-   * Creates a builder for {@link [type.typeValue.relative] [type.typeValue.simple]} instances.
+   * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
 [/if]
-[for p in parameters]
+  [javadocGenerics type]
+  [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
-[/for]
+  [/for]
    * @return A new builder
    */
   public static[type.generics.def] [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
@@ -1123,6 +1126,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [varargsSafety v]
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
     [if v.nullable]
@@ -1332,12 +1336,12 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
    * @return A result of type {@code [type.typeValue]}
   [else]
-   * Builds a new {@link [type.typeValue.relative] [type.typeValue.simple]}.
+   * Builds a new {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
    * @return An immutable instance of [type.name]
   [/if]
    * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
-[let returnType][if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if][/let]
+[let returnType][if type.constitution.isSimple][type.typeValue.simple][type.generics.args][else][type.typeValue][/if][/let]
 [if type.throwing or type.customizedThrowForInvalidImmutableState]
   public [returnType] [output.linesShortable][type.names.build]()
       throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {[/output.linesShortable]
@@ -1365,14 +1369,14 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    * @param exceptionSupplier used to create new exception from supplied error message
    * @return A result of type {@code [type.typeValue]}
   [else]
-   * Builds a new {@link [type.typeValue.relative] [type.typeValue.simple]}.
+   * Builds a new {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
    * @param <T> exception type
    * @param exceptionSupplier used to create new exception from supplied error message
    * @return An immutable instance of [type.name]
   [/if]
    * @throws T The supplied exception {@code T} if any required attributes are missing
    */
-  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
+  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][type.generics.args][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
       throws T[for t in type.throwing], [t][/for] {
     [if positions.longs]
     checkRequiredAttributesOrThrow(exceptionSupplier);
@@ -1648,7 +1652,7 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [if type.useCopyMethods]
 
   [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable]
-      [if type.synthCopyConstructor][type.typeImmutable.simple] original,
+      [if type.synthCopyConstructor][type.typeImmutable.simple] [disambiguateField type 'original'],
       [/if][for v in getters if not v.generateDerived][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [for v in getters if not v.generateDerived]
@@ -1808,13 +1812,14 @@ static final [output.linesShortable]class Json
 [/if]
 
 /**
+[javadocGenerics type]
  * @param json A JSON-bindable data structure
  * @return An immutable value type
  * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static [type.typeImmutable.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
+static[type.generics.def] [type.typeImmutable.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
 [let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
@@ -1922,13 +1927,13 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalToType][if type.annotationType][type.typeAbstract.relative][else][type.typeImmutable.simple][/if][/let]
+[let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.simple][/if][type.generics.unknown][/let]
 [for getters = type.equivalenceAttributes]
 [if type.useReferenceEquality or (not type.equalToDefined)]
 
 /**
 [if type.annotationType]
- * This instance is equal to any implementation of the {@link [type.typeAbstract.relative]} type with equal attribute values.
+ * This instance is equal to any implementation of the {@link [type.typeAbstract.relativeRaw]} type with equal attribute values.
 [else]
  * This instance is equal to all instances of {@code [type.typeImmutable.simple]} that have equal attribute values.
 [/if]
@@ -2127,7 +2132,7 @@ this.[disambiguateField type 'initShim'] = null;
 [/template]
 
 [template generateReturnCopy Type type Attribute modified String expression]
-return [validated type false]new [type.typeImmutable.simple]([output.linesShortable]
+return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([output.linesShortable]
     [if type.synthCopyConstructor]this,
     [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
     [/if][if a.name eq modified.name][expression][else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
@@ -2444,9 +2449,10 @@ private static <T> T cast(Object object) {
 
 /**
  * Returns a default immutable singleton value of [type.name].
+[javadocGenerics type]
  * @return An immutable instance of [type.name]
  */
-public static [type.typeValue.relative] [type.factoryInstance.simple]() {
+public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance.simple]() {
   return [type.typeImmutable.relative].[type.names.instance]();
 }
     [/if]
@@ -2455,24 +2461,26 @@ public static [type.typeValue.relative] [type.factoryInstance.simple]() {
 
 /**
  * Construct a new immutable {@code [type.name]} instance.
+[javadocGenerics type]
 [for v in type.constructorArguments]
  * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
  * @return An immutable [type.name] instance
  */
-public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
       [/if]
 
 /**
  * Construct a new immutable {@code [type.name]} instance.
+[javadocGenerics type]
 [for v in type.constructorArguments]
  * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
  * @return An immutable [type.name] instance
  */
-public static [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]
@@ -2851,6 +2859,12 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [/if]
 [/template]
 
+[template javadocGenerics Type type]
+[for p in type.generics.vars]
+ * @param <[p]> generic parameter [p]
+[/for]
+[/template]
+
 [template defineOrResetBuildingField Attribute v Boolean declare][defineOrResetBuildingFieldAlt v declare false][/template]
 
 [template defineOrResetBuildingFieldAlt Attribute v Boolean declare Boolean toNull]
@@ -2951,7 +2965,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [template invokeSuperQualified Attribute a][a.containingType.typeImmutable.simple].super[/template]
 
-[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relative]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relativeRaw]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
@@ -2971,7 +2985,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
-[template varargsSafety Attribute a][if a.nonRawElementType]@SafeVarargs[/if][/template]
+[template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
 

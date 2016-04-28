@@ -140,7 +140,7 @@ public abstract class Constitution {
 
       return ImmutableConstitution.NameForms.builder()
           .simple(NA_ERROR)
-          .relative(type)
+          .relativeRaw(type)
           .packageOf(NA_ERROR)
           .relativeAlreadyQualified(true)
           .visibility(protoclass().visibility())
@@ -205,7 +205,7 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(names().typeAbstract)
-        .relative(relative + generics().args())
+        .relativeRaw(relative)
         .packageOf(packageOf)
         .genericArgs(generics().args())
         .relativeAlreadyQualified(relativeAlreadyQualified)
@@ -444,7 +444,7 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
-        .relative(relative)
+        .relativeRaw(relative)
         .genericArgs(generics().args())
         .packageOf(implementationPackage())
         .visibility(visibility)
@@ -466,10 +466,17 @@ public abstract class Constitution {
     }
 
     @Override
+    public String relativeRaw() {
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + forms().relativeRaw())
+          : (forms().relativeRaw() + '.' + applied());
+    }
+
+    @Override
     public String relative() {
       return isNew()
-          ? (NEW_KEYWORD + ' ' + forms().relative() + genericArgs())
-          : (forms().relative() + '.' + genericArgs() + applied());
+          ? (NEW_KEYWORD + ' ' + forms().relativeRaw() + genericArgs())
+          : (forms().relativeRaw() + '.' + genericArgs() + applied());
     }
 
     @Value.Derived
@@ -485,6 +492,11 @@ public abstract class Constitution {
       return isNew()
           ? (NEW_KEYWORD + ' ' + qualifyWithPackage(forms().relative()) + genericArgs())
           : qualifyWithPackage(relative());
+    }
+
+    @Override
+    public String genericArgs() {
+      return forms().genericArgs();
     }
 
     @Override
@@ -510,7 +522,7 @@ public abstract class Constitution {
 
     public abstract String simple();
 
-    public abstract String relative();
+    public abstract String relativeRaw();
 
     public abstract String packageOf();
 
@@ -524,6 +536,10 @@ public abstract class Constitution {
     @Value.Default
     public boolean relativeAlreadyQualified() {
       return false;
+    }
+
+    public String relative() {
+      return relativeRaw() + genericArgs();
     }
 
     /**

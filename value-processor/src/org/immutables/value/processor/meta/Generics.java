@@ -31,18 +31,21 @@ public final class Generics implements Iterable<String> {
   private static final Parameter[] NO_PARAMETERS = new Parameter[0];
   public final String declaration;
   public final String arguments;
-  public final Parameter[] paramerters;
+  public final String unknown;
+  public final Parameter[] parameters;
   private final String[] vars;
 
   Generics(Protoclass protoclass, Element element) {
-    this.paramerters = computeParameters(protoclass, element);
-    this.vars = computeVars(paramerters);
-    if (this.paramerters != NO_PARAMETERS) {
-      this.declaration = formatParameters(paramerters, true);
-      this.arguments = formatParameters(paramerters, false);
+    this.parameters = computeParameters(protoclass, element);
+    this.vars = computeVars(parameters);
+    if (this.parameters != NO_PARAMETERS) {
+      this.declaration = formatParameters(parameters, true, false);
+      this.arguments = formatParameters(parameters, false, false);
+      this.unknown = formatParameters(parameters, false, true);
     } else {
       this.declaration = "";
       this.arguments = "";
+      this.unknown = "";
     }
   }
 
@@ -126,13 +129,13 @@ public final class Generics implements Iterable<String> {
     return vars;
   }
 
-  private static String formatParameters(Parameter[] paramerters, boolean outputBounds) {
+  private static String formatParameters(Parameter[] paramerters, boolean outputBounds, boolean unknown) {
     StringBuilder builder = new StringBuilder("<");
     for (Parameter p : paramerters) {
       if (builder.length() > 1) {
         builder.append(", ");
       }
-      builder.append(p.var);
+      builder.append(unknown ? "?" : p.var);
       if (outputBounds) {
         formatBoundsIfPresent(builder, p);
       }
@@ -165,7 +168,7 @@ public final class Generics implements Iterable<String> {
   }
 
   public boolean hasParameter(String var) {
-    for (Parameter p : paramerters) {
+    for (Parameter p : parameters) {
       if (p.var.equals(var)) {
         return true;
       }
@@ -174,7 +177,7 @@ public final class Generics implements Iterable<String> {
   }
 
   public boolean isEmpty() {
-    return this.paramerters == NO_PARAMETERS;
+    return this.parameters == NO_PARAMETERS;
   }
 
   public String args() {
