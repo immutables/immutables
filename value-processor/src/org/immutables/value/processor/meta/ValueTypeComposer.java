@@ -219,7 +219,7 @@ public final class ValueTypeComposer {
         || element.getModifiers().contains(Modifier.STATIC);
 
     boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
-    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
+//    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
 
     boolean publicOrPackageVisible =
         !element.getModifiers().contains(Modifier.PRIVATE)
@@ -233,9 +233,9 @@ public final class ValueTypeComposer {
       violations.add("must be non-final");
     }
 
-    if (!hasNoTypeParameters) {
-      violations.add("should have no type parameters");
-    }
+//    if (!hasNoTypeParameters) {
+//      violations.add("should have no type parameters");
+//    }
 
     if (!publicOrPackageVisible) {
       violations.add("should be public or package-visible");

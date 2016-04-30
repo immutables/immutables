@@ -689,7 +689,8 @@ public @interface Value {
      * favor of using additive only initializers. For regular attributes, initializers could be
      * called only once, subsequent reinitialization with throw exception.
      * Also, "from" method (named by {@link #from()}) will not be generated on builder: it
-     * becomes error-inviting to reinitialize builder values.
+     * becomes error-inviting to reinitialize builder values. {@code Nullable} and {@code Default}
+     * container attributes are not supported when {@code strictBuilder = true}.
      * <p>
      * Usage of strict builders helps to prevent initialization mistakes early on.
      * @return if strict builder enabled

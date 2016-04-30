@@ -13,17 +13,24 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.generics;
+package org.immutables.fixture;
 
+import java.util.List;
+import javax.annotation.Nullable;
 import org.immutables.value.Value;
 
-import java.io.Serializable;
-import java.util.List;
-
-@Value.Modifiable
+/**
+ * The Interface NoOriginalFieldCopyMethodConflict.
+ */
 @Value.Immutable
-public interface Firstie<T, V extends Runnable & Serializable> {
-  T ref();
+interface NoOriginalFieldCopyMethodConflict {
+  @Value.Parameter
+  int original();
 
-  List<V> commands();
+  @Value.Parameter
+  @Nullable
+  Integer hh();
+
+  @Value.Parameter
+  List<String> a();
 }

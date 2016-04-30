@@ -41,8 +41,8 @@ import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 
 /**
- * Encapsulates routines for get relevant strings for the raw types and type parameters,
- * while attempting to resolve unresolved types using source imports.
+ * Encapsulates routines and various hacks for get relevant strings for the raw types and type
+ * parameters, while attempting to resolve unresolved types using source imports.
  */
 class TypeStringProvider {
   private final TypeMirror startType;
@@ -51,6 +51,7 @@ class TypeStringProvider {
   private StringBuilder buffer;
   boolean unresolvedTypeHasOccured;
   boolean hasMaybeUnresolvedYetAfter;
+  boolean hasTypeVariables;
   private ImmutableMap<String, String> sourceClassesImports;
 
   private String rawTypeName;
@@ -270,6 +271,7 @@ class TypeStringProvider {
         TypeVariable typeVariable = (TypeVariable) type;
         String var = typeVariable.toString();// .asElement().getSimpleName().toString()
         if (Arrays.asList(allowedTypevars).contains(var)) {
+          hasTypeVariables = true;
           buffer.append(var);
           break;
         }
@@ -284,7 +286,7 @@ class TypeStringProvider {
         break;
       }
 
-      reporter.error("It is a compiler/annotation processing bug to receive type variables '%s' here."
+      reporter.error("It is a compiler/annotation processing bug to receive type variable '%s' here."
           + " To avoid it — do not use not yet generated types in %s attribute",
           type,
           element.getSimpleName());

@@ -140,7 +140,7 @@ public abstract class Constitution {
 
       return ImmutableConstitution.NameForms.builder()
           .simple(NA_ERROR)
-          .relative(type)
+          .relativeRaw(type)
           .packageOf(NA_ERROR)
           .relativeAlreadyQualified(true)
           .visibility(protoclass().visibility())
@@ -205,8 +205,9 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(names().typeAbstract)
-        .relative(relative)
+        .relativeRaw(relative)
         .packageOf(packageOf)
+        .genericArgs(generics().args())
         .relativeAlreadyQualified(relativeAlreadyQualified)
         .visibility(protoclass().visibility())
         .build();
@@ -248,7 +249,8 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
-        .relative(relative)
+        .relativeRaw(relative)
+        .genericArgs(generics().args())
         .packageOf(implementationPackage())
         .visibility(implementationVisibility())
         .build();
@@ -324,7 +326,8 @@ public abstract class Constitution {
     if (isFactory()) {
       return ImmutableConstitution.NameForms.builder()
           .simple(protoclass().declaringType().get().element().getSimpleName().toString())
-          .relative(protoclass().declaringType().get().name())
+          .relativeRaw(protoclass().declaringType().get().name())
+          .genericArgs(generics().args())
           .relativeAlreadyQualified(true)
           .packageOf(implementationPackage())
           .visibility(protoclass().visibility())
@@ -368,7 +371,7 @@ public abstract class Constitution {
     String enclosingSimpleName = typeImmutableEnclosingSimpleName();
     return ImmutableConstitution.NameForms.builder()
         .simple(enclosingSimpleName)
-        .relative(enclosingSimpleName)
+        .relativeRaw(enclosingSimpleName)
         .packageOf(implementationPackage())
         .visibility(protoclass().declaringVisibility())
         .build();
@@ -382,7 +385,7 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(name)
-        .relative(name)
+        .relativeRaw(name)
         .packageOf(implementationPackage())
         .visibility(implementationEnclosingVisibility())
         .build();
@@ -397,7 +400,7 @@ public abstract class Constitution {
     String simple = names().typeWith();
     NameForms typeImmutable = typeImmutable();
     return ImmutableConstitution.NameForms.copyOf(typeImmutable)
-        .withRelative(DOT_JOINER.join(typeImmutable.relative(), simple))
+        .withRelativeRaw(DOT_JOINER.join(typeImmutable.relativeRaw(), simple))
         .withSimple(simple);
   }
 
@@ -407,7 +410,7 @@ public abstract class Constitution {
     if (innerBuilder.isExtending) {
       NameForms typeAbstract = typeAbstract();
       return ImmutableConstitution.NameForms.copyOf(typeAbstract)
-          .withRelative(DOT_JOINER.join(typeAbstract.relative(), innerBuilder.simpleName))
+          .withRelativeRaw(DOT_JOINER.join(typeAbstract.relativeRaw(), innerBuilder.simpleName))
           .withSimple(innerBuilder.simpleName);
     }
     return typeImplementationBuilder();
@@ -441,7 +444,8 @@ public abstract class Constitution {
 
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
-        .relative(relative)
+        .relativeRaw(relative)
+        .genericArgs(generics().args())
         .packageOf(implementationPackage())
         .visibility(visibility)
         .build();
@@ -462,10 +466,17 @@ public abstract class Constitution {
     }
 
     @Override
+    public String relativeRaw() {
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + forms().relativeRaw())
+          : (forms().relativeRaw() + '.' + applied());
+    }
+
+    @Override
     public String relative() {
       return isNew()
-          ? (NEW_KEYWORD + ' ' + forms().relative())
-          : (forms().relative() + '.' + applied());
+          ? (NEW_KEYWORD + ' ' + forms().relativeRaw() + genericArgs())
+          : (forms().relativeRaw() + '.' + genericArgs() + applied());
     }
 
     @Value.Derived
@@ -479,8 +490,13 @@ public abstract class Constitution {
         return relative();
       }
       return isNew()
-          ? (NEW_KEYWORD + ' ' + qualifyWithPackage(forms().relative()))
+          ? (NEW_KEYWORD + ' ' + qualifyWithPackage(forms().relative()) + genericArgs())
           : qualifyWithPackage(relative());
+    }
+
+    @Override
+    public String genericArgs() {
+      return forms().genericArgs();
     }
 
     @Override
@@ -506,15 +522,24 @@ public abstract class Constitution {
 
     public abstract String simple();
 
-    public abstract String relative();
+    public abstract String relativeRaw();
 
     public abstract String packageOf();
 
     public abstract Visibility visibility();
 
     @Value.Default
+    public String genericArgs() {
+      return "";
+    }
+
+    @Value.Default
     public boolean relativeAlreadyQualified() {
       return false;
+    }
+
+    public String relative() {
+      return relativeRaw() + genericArgs();
     }
 
     /**
