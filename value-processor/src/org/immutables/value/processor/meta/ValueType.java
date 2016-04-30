@@ -571,8 +571,7 @@ public final class ValueType extends TypeIntrospectionBase {
         definingElements.add(attribute.element.getEnclosingElement());
       }
       if (definingElements.size() != 1) {
-        constitution.protoclass()
-            .report()
+        report()
             .error("Constructor parameters could not be defined on a different level of inheritance hierarchy, "
                 + " generated constructor API would be unstable."
                 + " To resolve, you can redeclare (override) each inherited"
@@ -1230,13 +1229,17 @@ public final class ValueType extends TypeIntrospectionBase {
   private String printType(Element element, TypeMirror type, DeclaringType declaringType) {
     TypeStringProvider provider =
         new TypeStringProvider(
-            constitution.protoclass().report(),
+            report(),
             element,
             type,
             declaringType,
             constitution.generics().vars());
     provider.process();
     return provider.returnTypeName();
+  }
+
+  public Reporter report() {
+    return constitution.protoclass().report();
   }
 
   /**

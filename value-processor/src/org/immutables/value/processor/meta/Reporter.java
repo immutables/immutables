@@ -26,7 +26,7 @@ import javax.tools.Diagnostic;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
-abstract class Reporter {
+public abstract class Reporter {
 
   @Value.Parameter
   abstract Messager messager();
@@ -35,19 +35,19 @@ abstract class Reporter {
 
   abstract Optional<AnnotationMirror> annotation();
 
-  abstract Reporter withAnnotation(AnnotationMirror mirror);
+  public abstract Reporter withAnnotation(AnnotationMirror mirror);
 
-  abstract Reporter withElement(Element mirror);
+  public abstract Reporter withElement(Element mirror);
 
   static Reporter from(ProcessingEnvironment processing) {
     return ImmutableReporter.of(processing.getMessager());
   }
 
-  Reporter forAnnotation(Class<? extends Annotation> annotationType) {
+  public Reporter forAnnotation(Class<? extends Annotation> annotationType) {
     return annotationNamed(annotationType.getSimpleName());
   }
 
-  Reporter annotationNamed(String simpleName) {
+  public Reporter annotationNamed(String simpleName) {
     if (element().isPresent()) {
       for (AnnotationMirror mirror : element().get().getAnnotationMirrors()) {
         if (mirror.getAnnotationType().asElement().getSimpleName().contentEquals(simpleName)) {
@@ -58,11 +58,11 @@ abstract class Reporter {
     return this;
   }
 
-  void error(String message, Object... parameters) {
+  public void error(String message, Object... parameters) {
     reportMessage(Diagnostic.Kind.ERROR, message, parameters);
   }
 
-  void warning(String message, Object... parameters) {
+  public void warning(String message, Object... parameters) {
     reportMessage(Diagnostic.Kind.MANDATORY_WARNING, message, parameters);
   }
 

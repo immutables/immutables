@@ -38,13 +38,23 @@ abstract class Gsons extends ValuesTemplate {
   @Value.Immutable
   public interface TypeAdapterTypes {
     AbstractDeclaring definedBy();
+
     String packageGenerated();
+
     List<ValueType> types();
   }
 
   public Iterable<TypeAdapterTypes> typeAdapters() {
     Multimap<AbstractDeclaring, ValueType> byDeclaring = HashMultimap.create();
     for (ValueType value : values().values()) {
+      if (!value.generics().isEmpty()) {
+        value.report()
+            .warning("Type %s%s and will be skipped for Gson TypeAdapter generation."
+                + " Currently generics are not supported with Gson",
+                value.name(),
+                value.generics().args());
+        continue;
+      }
       Protoclass protoclass = value.constitution.protoclass();
       if (protoclass.kind().isValue()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.typeAdaptersProvider();

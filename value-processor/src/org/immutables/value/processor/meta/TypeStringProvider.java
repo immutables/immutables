@@ -41,8 +41,8 @@ import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 
 /**
- * Encapsulates routines for get relevant strings for the raw types and type parameters,
- * while attempting to resolve unresolved types using source imports.
+ * Encapsulates routines and various hacks for get relevant strings for the raw types and type
+ * parameters, while attempting to resolve unresolved types using source imports.
  */
 class TypeStringProvider {
   private final TypeMirror startType;
