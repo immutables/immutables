@@ -1693,7 +1693,6 @@ private [v.type] [invokeSuperGet]() {
 
 [template generateJacksonMapped Type type]
 [if type.generateJacksonMapped and (classpath.available 'com.fasterxml.jackson.annotation.JsonCreator')]
-[if type.implementedAttributes]
 
 /**
  * Utility type used to correctly read immutable object from JSON representation.
@@ -1740,7 +1739,6 @@ static final [output.linesShortable]class Json
   [v.toSignature] { throw new UnsupportedOperationException(); }
 [/for]
 }
-[/if]
 
 /**
  * @param json A JSON-bindable data structure
@@ -1749,7 +1747,7 @@ static final [output.linesShortable]class Json
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static [type.typeImmutable.relative] fromJson([if type.settableAttributes]Json json[else]java.util.Map<String, Object> json[/if]) {
+static [type.typeImmutable.relative] fromJson(Json json) {
 [let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
