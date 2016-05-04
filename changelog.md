@@ -1,6 +1,10 @@
 Changelog
 ---------
 
+### 2.1.19 (2016-05-05)
+- Minor Hotfix, Thank you!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.19)
+
 ### 2.1.18 (2016-04-26)
 - Minor Bugfixes, Thank you!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.18)
