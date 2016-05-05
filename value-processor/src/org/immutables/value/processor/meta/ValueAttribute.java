@@ -1084,6 +1084,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
+  public boolean buildInitial() {
+    return isNullable()
+        || ((isMapType() || isCollectionType())
+            && isGenerateJdkOnly()
+            && !typeKind().isEnumKeyed());
+  }
+
   private void initMiscellaneous() {
     Elements elements = protoclass()
         .processing()
