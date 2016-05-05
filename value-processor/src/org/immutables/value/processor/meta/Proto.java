@@ -22,31 +22,28 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import com.google.common.collect.ObjectArrays;
+import org.immutables.generator.SourceExtraction;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import static com.google.common.base.Verify.verify;
 
 @Value.Nested
 public class Proto {
-  private Proto() {}
+  private Proto() {
+  }
 
   @Value.Immutable(builder = false)
   public static abstract class MetaAnnotated {
@@ -64,6 +61,16 @@ public class Proto {
     @Value.Auxiliary
     public Optional<StyleInfo> style() {
       return StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public Optional<String[]> depluralize() {
+      Optional<DepluralizeMirror> d = DepluralizeMirror.find(element());
+      if (d.isPresent()) {
+        return Optional.of(d.get().dictionary());
+      }
+      return Optional.absent();
     }
 
     @Value.Derived
@@ -116,10 +123,12 @@ public class Proto {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
 
-      @Nullable MetaAnnotated metaAnnotated = cache.get(element);
+      @Nullable
+      MetaAnnotated metaAnnotated = cache.get(element);
       if (metaAnnotated == null) {
         metaAnnotated = ImmutableProto.MetaAnnotated.of(element, environment);
-        @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
+        @Nullable
+        MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
         if (existing != null) {
           metaAnnotated = existing;
         }
@@ -130,7 +139,9 @@ public class Proto {
   }
 
   abstract static class Diagnosable {
-    /** Element suitable for reporting as a source of declaration which might causing problems. */
+    /**
+     * Element suitable for reporting as a source of declaration which might causing problems.
+     */
     @Value.Auxiliary
     abstract Element element();
 
@@ -162,7 +173,8 @@ public class Proto {
 
     @Value.Derived
     StyleInfo defaultStyles() {
-      @Nullable TypeElement element = findElement(StyleMirror.qualifiedName());
+      @Nullable
+      TypeElement element = findElement(StyleMirror.qualifiedName());
       if (element == null) {
         processing().getMessager()
             .printMessage(Diagnostic.Kind.MANDATORY_WARNING,
@@ -271,11 +283,13 @@ public class Proto {
      * Default type adapters should only be called if {@code Gson.TypeAdapters} annotation is
      * definitely in classpath. Currenlty, it is called by for mongo repository module,
      * which have {@code gson} module as a transitive dependency.
+     *
      * @return default type adapters
      */
     @Value.Lazy
     TypeAdaptersMirror defaultTypeAdapters() {
-      @Nullable TypeElement typeElement =
+      @Nullable
+      TypeElement typeElement =
           findElement(TypeAdaptersMirror.qualifiedName());
 
       Preconditions.checkState(typeElement != null,
@@ -293,7 +307,9 @@ public class Proto {
       return round().protoclassesFrom(elements);
     }
 
-    private @Nullable TypeElement findElement(String qualifiedName) {
+    private
+    @Nullable
+    TypeElement findElement(String qualifiedName) {
       try {
         TypeElement typeElement = processing()
             .getElementUtils()
@@ -335,7 +351,9 @@ public class Proto {
           : Optional.<DeclaringType>absent();
     }
 
-    /** used to intern packaged created internally */
+    /**
+     * used to intern packaged created internally
+     */
     @Value.Auxiliary
     abstract Round.Interning interner();
 
@@ -451,6 +469,26 @@ public class Proto {
     }
 
     @Value.Lazy
+    public Optional<String[]> depluralize() {
+      @Nullable
+      String[] dictionary = null;
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+        Optional<String[]> depluralize = metaAnnotated.depluralize();
+        if (depluralize.isPresent()) {
+          dictionary = concat(dictionary, depluralize.get());
+        }
+      }
+
+      Optional<DepluralizeMirror> depluralize = DepluralizeMirror.find(element());
+      if (depluralize.isPresent()) {
+        dictionary = concat(dictionary, depluralize.get().dictionary());
+      }
+
+      return Optional.fromNullable(dictionary);
+    }
+
+    @Value.Lazy
     public boolean isJacksonDeserializedAnnotated() {
       return Proto.isJacksonDeserializedAnnotated(element());
     }
@@ -494,6 +532,7 @@ public class Proto {
 
     /**
      * Name is the only equivalence attribute. Basically packages are interned by name.
+     *
      * @return package name
      */
     @Override
@@ -506,7 +545,8 @@ public class Proto {
     Optional<DeclaringPackage> namedParentPackage() {
       String parentPackageName = SourceNames.parentPackageName(element());
       if (!parentPackageName.isEmpty()) {
-        @Nullable PackageElement parentPackage =
+        @Nullable
+        PackageElement parentPackage =
             environment().processing()
                 .getElementUtils()
                 .getPackageElement(parentPackageName);
@@ -604,6 +644,25 @@ public class Proto {
       }
       return Optional.absent();
     }
+
+    @Override
+    @Value.Lazy
+    public Optional<String[]> depluralize() {
+      @Nullable
+      String[] dictionary = null;
+      Optional<DeclaringPackage> parent = namedParentPackage();
+      if (parent.isPresent()) {
+        Optional<String[]> depluralize = parent.get().depluralize();
+        if (depluralize.isPresent()) {
+          dictionary = concat(dictionary, depluralize.get());
+        }
+      }
+      Optional<String[]> depluralize = super.depluralize();
+      if (depluralize.isPresent()) {
+        dictionary = concat(dictionary, depluralize.get());
+      }
+      return Optional.fromNullable(dictionary);
+    }
   }
 
   @Value.Immutable
@@ -620,6 +679,7 @@ public class Proto {
 
     /**
      * returns this class if it's top level or enclosing top level type.
+     *
      * @return accossiated top level type.
      */
     public DeclaringType associatedTopLevel() {
@@ -806,6 +866,7 @@ public class Proto {
      * Source type elements stores type element which is used as a source of value type model.
      * It is the annotated class for {@code @Value.Immutable} or type referenced in
      * {@code @Value.Include}.
+     *
      * @return source element
      */
     @Value.Auxiliary
@@ -814,6 +875,7 @@ public class Proto {
     /**
      * Declaring package that defines value type (usually by import).
      * Or the package in which {@link #declaringType()} resides.
+     *
      * @return declaring package
      */
     public abstract DeclaringPackage packageOf();
@@ -821,6 +883,7 @@ public class Proto {
     /**
      * The class, which is annotated to be a {@code @Value.Immutable}, {@code @Value.Include} or
      * {@code @Value.Enclosing}.
+     *
      * @return declaring type
      */
     public abstract Optional<DeclaringType> declaringType();
@@ -845,9 +908,9 @@ public class Proto {
         } else {
           report().annotationNamed(RepositoryMirror.simpleName())
               .warning("@Mongo.%s types better have explicit @Gson.%s annotation"
-                  + " be placed on the class or enclosing package."
-                  + " It is also common to forget to generate type adapters"
-                  + " for nested document classes, which will fallback to reflective Gson adapter otherwise.",
+                      + " be placed on the class or enclosing package."
+                      + " It is also common to forget to generate type adapters"
+                      + " for nested document classes, which will fallback to reflective Gson adapter otherwise.",
                   RepositoryMirror.simpleName(),
                   TypeAdaptersMirror.simpleName());
         }
@@ -941,6 +1004,7 @@ public class Proto {
 
     /**
      * Kind of protoclass declaration, it specifies how exactly the protoclass was declared.
+     *
      * @return definition kind
      */
     public abstract Kind kind();
@@ -1052,7 +1116,44 @@ public class Proto {
 
     @Value.Lazy
     public Styles styles() {
-      return determineStyle().or(environment().defaultStyles()).getStyles();
+      StyleInfo styleInfo = determineStyle().or(environment().defaultStyles());
+      Optional<String[]> depluralize = depluralize();
+      if (depluralize.isPresent()) {
+        styleInfo = ImmutableStyleInfo.copyOf(styleInfo)
+            .withDepluralize(true)
+            .withDepluralizeDictionary(concat(styleInfo.depluralizeDictionary(), depluralize.get()));
+      }
+      return styleInfo.getStyles();
+    }
+
+    @Value.Lazy
+    public Optional<String[]> depluralize() {
+      @Nullable
+      String[] dictionary = null;
+
+      Optional<String[]> depluralize = packageOf().depluralize();
+      if (depluralize.isPresent()) {
+        dictionary = concat(dictionary, depluralize.get());
+      }
+
+      if (declaringType().isPresent()) {
+        DeclaringType type = declaringType().get();
+
+        if (type.enclosingTopLevel().isPresent()) {
+          depluralize = type.enclosingTopLevel().get().depluralize();
+
+          if (depluralize.isPresent()) {
+            dictionary = concat(dictionary, depluralize.get());
+          }
+        }
+
+        depluralize = type.depluralize();
+        if (depluralize.isPresent()) {
+          dictionary = concat(dictionary, depluralize.get());
+        }
+      }
+
+      return Optional.fromNullable(dictionary);
     }
 
     private Optional<StyleInfo> determineStyle() {
@@ -1128,59 +1229,59 @@ public class Proto {
 
       public boolean isNested() {
         switch (this) {
-        case INCLUDED_IN_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isIncluded() {
         switch (this) {
-        case INCLUDED_IN_PACKAGE:
-        case INCLUDED_IN_TYPE:
-        case INCLUDED_ON_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_PACKAGE:
+          case INCLUDED_IN_TYPE:
+          case INCLUDED_ON_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isEnclosing() {
         switch (this) {
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_ENCLOSING_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_ENCLOSING_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isValue() {
         switch (this) {
-        case INCLUDED_IN_PACKAGE:
-        case INCLUDED_ON_TYPE:
-        case INCLUDED_IN_TYPE:
-        case DEFINED_TYPE:
-        case DEFINED_TYPE_AND_COMPANION:
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case INCLUDED_IN_PACKAGE:
+          case INCLUDED_ON_TYPE:
+          case INCLUDED_IN_TYPE:
+          case DEFINED_TYPE:
+          case DEFINED_TYPE_AND_COMPANION:
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
       public boolean isDefinedValue() {
         switch (this) {
-        case DEFINED_TYPE:
-        case DEFINED_TYPE_AND_COMPANION:
-        case DEFINED_AND_ENCLOSING_TYPE:
-        case DEFINED_NESTED_TYPE:
-          return true;
-        default:
-          return false;
+          case DEFINED_TYPE:
+          case DEFINED_TYPE_AND_COMPANION:
+          case DEFINED_AND_ENCLOSING_TYPE:
+          case DEFINED_NESTED_TYPE:
+            return true;
+          default:
+            return false;
         }
       }
 
@@ -1243,6 +1344,7 @@ public class Proto {
 
   enum ElementToName implements Function<TypeElement, String> {
     FUNCTION;
+
     @Override
     public String apply(TypeElement input) {
       return input.getQualifiedName().toString();
@@ -1251,6 +1353,7 @@ public class Proto {
 
   enum DeclatedTypeToElement implements Function<DeclaredType, TypeElement> {
     FUNCTION;
+
     @Override
     public TypeElement apply(DeclaredType input) {
       return (TypeElement) input.asElement();
@@ -1259,6 +1362,7 @@ public class Proto {
 
   enum IsPublic implements Predicate<Element> {
     PREDICATE;
+
     @Override
     public boolean apply(Element input) {
       return input.getModifiers().contains(Modifier.PUBLIC);
@@ -1267,6 +1371,7 @@ public class Proto {
 
   enum ToImmutableInfo implements Function<ImmutableMirror, ValueImmutableInfo> {
     FUNCTION;
+
     @Override
     public ValueImmutableInfo apply(ImmutableMirror input) {
       return ImmutableValueImmutableInfo.theOf(
@@ -1281,6 +1386,7 @@ public class Proto {
 
   enum ToStyleInfo implements Function<StyleMirror, StyleInfo> {
     FUNCTION;
+
     @Override
     public StyleInfo apply(StyleMirror input) {
       return ImmutableStyleInfo.of(input.get(),
@@ -1371,6 +1477,14 @@ public class Proto {
       }
     }
     return false;
+  }
+
+  static
+  @Nullable
+  String[] concat(@Nullable String[] first, @Nullable String[] second) {
+    if (first == null) return second;
+    if (second == null) return first;
+    return ObjectArrays.concat(first, second, String.class);
   }
 
   static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";

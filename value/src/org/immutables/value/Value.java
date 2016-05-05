@@ -257,7 +257,7 @@ public @interface Value {
      * @return order
      */
     int order() default 0;
-    
+
     /**
      * Specify as {@code false} to cancel out parameter: an attribute would not be considered as a
      * parameter. This is useful to override the effect of {@link Style#allParameters()} flag.
@@ -984,6 +984,9 @@ public @interface Value {
      * </ul>
      * The default value is a {@code false}: feature is disabled, compatible with previous
      * versions.
+     * <p>
+     * Instead
+     * @see Depluralize
      * @return {@code true} if depluralization enabled.
      */
     boolean depluralize() default false;
@@ -996,7 +999,12 @@ public @interface Value {
      * camel case — only a last segment will be considered for depluralization when matching
      * dictionary. Uninterpretable pairs will be ignored. By default no dictionary is supplied and
      * depluralization performed only by mechanical "*s" trimming.
+     * <p>
+     * This attribute is semi-deprecated in favor of using {@link Depluralize#dictionary()}
+     * annotation which may be placed on a package, type or as meta-annotation. And dictionary will
+     * be merged accross all applicable definitions.
      * @see #depluralize()
+     * @see Depluralize#dictionary()
      * @return array of "singular:plural" pairs.
      */
     String[] depluralizeDictionary() default {};
@@ -1050,6 +1058,22 @@ public @interface Value {
        * Generated builder visibility is forced to be package-private.
        */
       PACKAGE
+    }
+
+    /**
+     * Enables depluratization and may provide depluralization dictionary.
+     * The annotation which may be placed on a package, type or as meta-annotation. And dictionary
+     * will be merged accross all applicable definitions.
+     * @see Style#depluralize()
+     */
+    @Target({ElementType.TYPE, ElementType.PACKAGE, ElementType.ANNOTATION_TYPE})
+    public @interface Depluralize {
+      /**
+       * Depluralization dictionary.
+       * @see Style#depluralizeDictionary()
+       * @return array of "singular:plural" pairs.
+       */
+      String[] dictionary() default {};
     }
   }
 }

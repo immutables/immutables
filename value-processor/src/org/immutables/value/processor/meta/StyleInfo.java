@@ -15,16 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.lang.annotation.Annotation;
-import org.immutables.value.Value;
 import com.google.common.collect.ImmutableSet;
+import org.immutables.value.Value;
+
+import java.lang.annotation.Annotation;
 
 /**
  * We copy styles to StyleInfo to safely cache styles between rounds etc and prevent any memory
  * leaks by unnecessary retaining compiler internal structures.
  */
 @SuppressWarnings("all")
-@Value.Immutable(intern = true, copy = false, builder = false)
+@Value.Immutable(intern = true, builder = false)
 public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Override

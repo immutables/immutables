@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.Value.Style;
 import java.lang.annotation.Annotation;
 import org.immutables.mirror.Mirror;
 
@@ -76,6 +77,11 @@ public final class ValueMirrors {
 
   @Mirror.Annotation("org.immutables.value.Value.Modifiable")
   public @interface Modifiable {}
+
+  @Mirror.Annotation("org.immutables.value.Value.Style.Depluralize")
+  public @interface Depluralize {
+    String[] dictionary() default {};
+  }
 
   @Mirror.Annotation("org.immutables.value.Value.Style")
   public @interface Style {
