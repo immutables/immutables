@@ -918,7 +918,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       Environment environment = protoclass().environment();
 
       for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-        if (p.kind().isDefinedValue() && canAccessImplementation(p)) {
+        if ((p.kind().isDefinedValue() || p.kind().isModifiable()) && canAccessImplementation(p)) {
           this.attributeValueType = environment.composeValue(p);
         }
         break;
@@ -932,6 +932,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && p.constitution().implementationPackage().equals(p.constitution().implementationPackage()));
   }
 
+  public String implementationModifiableType() {
+    if (isAttributeValueKindModifyFrom()) {
+      return attributeValueType.constitution.typeModifiable().toString();
+    }
+    return getType();
+  }
+
   public String implementationType() {
     if (isAttributeValueKindCopy()) {
       return attributeValueType.typeValue().toString();
@@ -942,7 +949,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isAttributeValueKindCopy() {
     return attributeValueType != null
         && typeKind.isRegular()
+        && attributeValueType.kind().isValue()
         && attributeValueType.isUseCopyConstructor();
+  }
+
+  public boolean isAttributeValueKindModifyFrom() {
+    return attributeValueType != null
+        && typeKind.isRegular()
+        && attributeValueType.kind().isModifiable()
+        && attributeValueType.isGenerateFilledFrom();
   }
 
   public Set<ValueAttribute> getConstructorParameters() {

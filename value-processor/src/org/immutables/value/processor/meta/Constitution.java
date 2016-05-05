@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import static com.google.common.base.Preconditions.checkState;
+import com.google.common.base.Preconditions;
 import org.immutables.value.processor.meta.Styles.PackageNaming;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -107,6 +109,24 @@ public abstract class Constitution {
           : typeImmutable();
     }
     return typeValue();
+  }
+
+  @Value.Lazy
+  public NameForms typeModifiable() {
+    checkState(protoclass().kind().isModifiable());
+    String simple = names().typeModifiable();
+    return ImmutableConstitution.NameForms.builder()
+        .simple(simple)
+        .relativeRaw(inPackage(simple))
+        .genericArgs(generics().args())
+        .packageOf(implementationPackage())
+        .visibility(implementationVisibility())
+        .build();
+  }
+
+  @Value.Lazy
+  public AppliedNameForms factoryCreate() {
+    return typeModifiable().applied(names().create());
   }
 
   private boolean isAbstractPrimary() {

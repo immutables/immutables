@@ -378,7 +378,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [/for]
 [deprecation v]
 @Override
-[v.access]final [v.atNullability][v.type] [v.names.get]() {
+[v.access]final [v.atNullability][v.implementationModifiableType] [v.names.get]() {
 [if v.mandatory]
   if (![isSet v]()) {[-- opportunistically reuse attributes check --]
     [disambiguateAccessor type 'checkRequiredAttributes']();
@@ -602,7 +602,9 @@ public final [thisReturnType type] [v.names.set]([v.elementType]... elements) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
-  [if v.primitive or v.nullable]
+  [if v.attributeValueKindModifyFrom]
+  this.[v.name] = [if v.nullable][v.name] == null ? null : [/if]([v.name] instanceof [v.attributeValueType.constitution.typeModifiable.relativeRaw] ? ([v.attributeValueType.constitution.typeModifiable.relative]) [v.name] : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]));
+  [else if v.primitive or v.nullable]
   this.[v.name] = [v.name];
   [else]
   this.[v.name] = [im.requireNonNull type]([v.name], "[v.name]");
@@ -660,7 +662,7 @@ private [v.type] [v.name] = [optionalEmpty v];
   [else if v.primitive]
 private [v.type] [v.name];
   [else]
-private [v.atNullability][v.type] [v.name];
+private [v.atNullability][v.implementationModifiableType] [v.name];
   [/if]
 [/template]
 
