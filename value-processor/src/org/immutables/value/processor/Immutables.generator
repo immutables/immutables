@@ -1800,7 +1800,7 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 @Deprecated
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
-static final [output.linesShortable]class Json
+static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
 [for v in type.settableAttributes if not v.anyGetter]
   [if v.optionalType]
@@ -1853,7 +1853,7 @@ static final [output.linesShortable]class Json
  */
 @Deprecated
 @com.fasterxml.jackson.annotation.JsonCreator
-static[type.generics.def] [type.typeImmutable.relative] fromJson(Json json) {
+static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.generics.args] json) {
 [let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
