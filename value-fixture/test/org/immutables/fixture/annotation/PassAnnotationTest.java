@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.annotation;
 
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Constructor;
 import nonimmutables.A1;
 import nonimmutables.A2;
 import nonimmutables.B1;
@@ -23,9 +25,12 @@ import static org.immutables.check.Checkers.*;
 
 public class PassAnnotationTest {
   @Test
-  public void passAnnotations() {
+  public void passAnnotations() throws Exception {
     check(ImmutableValForPass.class.getAnnotation(A1.class)).notNull();
     check(ImmutableValForPass.class.getAnnotation(A2.class)).notNull();
     check(ImmutableValForPass.class.getAnnotation(B1.class)).isNull();
+    Parameter parameter = ImmutableValForPass.class.getConstructor(int.class).getParameters()[0];
+    check(parameter.getAnnotation(A1.class)).notNull();
+    check(parameter.getAnnotation(A2.class)).notNull();
   }
 }

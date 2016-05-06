@@ -22,28 +22,18 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ExecutableType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
-import javax.lang.model.type.WildcardType;
-import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.generator.SourceOrdering.AccessorProvider;
 import org.immutables.generator.Templates;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.*;
+import javax.lang.model.type.*;
+import javax.lang.model.util.ElementFilter;
+import java.util.List;
+import java.util.Map;
 
 public final class Accessors extends Introspection {
   private static final String OPTIONAL_TYPE_SIMPLE_NAME = Optional.class.getSimpleName();

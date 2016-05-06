@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -285,6 +286,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         protoclass().styles().style().passAnnotationsNames(),
         false,
         ElementType.METHOD);
+  }
+
+  public CharSequence getConstructorParameterAnnotations() {
+    List<CharSequence> annotations =
+        Annotations.getAnnotationLines(element,
+            protoclass().styles().style().passAnnotationsNames(),
+            false,
+            ElementType.PARAMETER);
+
+    if (!annotations.isEmpty()) {
+      return Joiner.on(' ').join(annotations).concat(" ");
+    }
+
+    return "";
   }
 
   public List<CharSequence> getJacksonFieldsAnnotations() {

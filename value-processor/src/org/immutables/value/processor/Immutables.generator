@@ -1631,8 +1631,13 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [/if]
 [if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
 
-  [if type.factoryOf.new]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+  [if type.factoryOf.new]
+  public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
+  [else]
+  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
+  [/if]
   [for v in type.constructorArguments, n = v.name]
     this.[n] = [valueFromValue v n];
   [/for]
@@ -1676,10 +1681,16 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [/if]
 [if type.useCopyMethods]
 
-  [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]public[else]private[/if] [type.typeImmutable.simple]([output.linesShortable]
+  [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]
+  public [type.typeImmutable.simple]([output.linesShortable]
+      [for v in getters if not v.generateDerived][if not for.first],
+      [/if][v.constructorParameterAnnotations][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
+  [else]
+  private [type.typeImmutable.simple]([output.linesShortable]
       [if type.synthCopyConstructor][type.typeImmutable.simple] [disambiguateField type 'original'],
       [/if][for v in getters if not v.generateDerived][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
+  [/if]
   [for v in getters if not v.generateDerived]
     this.[v.name] = [v.name];
   [/for]
@@ -2490,7 +2501,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance
 [/for]
  * @return An immutable [type.name] instance
  */
-public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][v.type] [v.name][/for]) {
+public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
       [/if]
@@ -2503,7 +2514,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/for]
  * @return An immutable [type.name] instance
  */
-public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
     [/if]
