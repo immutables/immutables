@@ -392,7 +392,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   return [isSet v]()
       ? [v.name]
       : [invokeSuper v].[v.names.get]();
-[else if v.nullableCollector]
+[else if v.nullableCollector and (not v.nullable)]
   if ([v.name] == null) {
     [defineOrResetField v false]
   }
@@ -468,7 +468,13 @@ public final [thisReturnType type] [v.names.add]([v.unwrappedElementType]... ele
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> elements) {
+public [thisReturnType type] [v.names.set]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+  [if v.nullable]
+  if (elements == null) {
+    [v.name] = null;
+    [thisReturn type]
+  }
+  [/if]
   [if v.nullableCollector]
   if ([v.name] == null) {
     [defineOrResetField v false]
@@ -586,7 +592,13 @@ public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+public [thisReturnType type] [v.names.set]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [if v.nullable]
+  if (entries == null) {
+    [v.name] = null;
+    [thisReturn type]
+  }
+  [/if]
   [if v.nullableCollector]
   if ([v.name] == null) {
     [defineOrResetField v false]
