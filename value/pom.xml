@@ -98,7 +98,13 @@
                     <include>**</include>
                   </includes>
                   <excludes>
-                    <excludes>**/*.generator</excludes>
+                    <exclude>**/*.generator</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.google.guava:guava</artifact>
+                  <excludes>
+                    <exclude>META-INF/maven/**</exclude>
                   </excludes>
                 </filter>
               </filters>
