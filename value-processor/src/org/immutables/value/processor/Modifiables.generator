@@ -808,7 +808,7 @@ public int hashCode() {
 [if not type.toStringDefined]
 
 /**
- * Generates a string represetion of this {@code [type.typeAbstract.simple]}.
+ * Generates a string representation of this {@code [type.typeAbstract.simple]}.
  * If uninitialized, some attribute values may appear as question marks.
  * @return A string representation
  */

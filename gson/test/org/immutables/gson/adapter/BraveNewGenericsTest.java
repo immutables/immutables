@@ -13,27 +13,27 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jackson;
+package org.immutables.gson.adapter;
 
-import static org.immutables.check.Checkers.check;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.util.Arrays;
+import java.util.List;
+import org.immutables.gson.adapter.BraveNewGenerics.Top;
 import org.junit.Test;
+import static org.immutables.check.Checkers.check;
 
-public class JacksonGenericsTest {
-  static class Abc {
-    public ImmutableJacksonGenerics<Double> cba = ImmutableJacksonGenerics.<Double>builder()
-        .attr(1.0)
-        .nm("mn")
-        .build();
-  }
+public class BraveNewGenericsTest {
+
+  final Gson gson = new GsonBuilder()
+      .registerTypeAdapterFactory(new GsonAdaptersBraveNewGenerics())
+      .create();
 
   @Test
-  public void rountrip() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-    Abc abc = new Abc();
-    String json = mapper.writeValueAsString(abc);
-    Abc value = mapper.readValue(json, Abc.class);
-
-    check(value.cba).is(abc.cba);
+  public void roundtrip() {
+    Top t1 = BraveNewGenerics.createTop();
+    String json = gson.toJson(t1);
+    Top t2 = gson.fromJson(json, Top.class);
+    check(t2).is(t1);
   }
 }

@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.Value.Style;
 import java.lang.annotation.Annotation;
 import org.immutables.mirror.Mirror;
 

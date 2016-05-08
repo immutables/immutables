@@ -41,12 +41,14 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * It's pointless to refactor this mess until
@@ -54,6 +56,7 @@ import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisi
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
+  private static final WholeTypeVariable NON_WHOLE_TYPE_VARIABLE = new WholeTypeVariable(-1);
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
@@ -994,6 +997,49 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       ensureTypeIntrospected();
       typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
     }
+  }
+
+  public static class WholeTypeVariable {
+    public final boolean is;
+    public final boolean not;
+    public final int index;
+
+    WholeTypeVariable(int index) {
+      this.index = index;
+      this.is = index >= 0;
+      this.not = !is;
+    }
+  }
+
+  public WholeTypeVariable getWholeTypeVariable() {
+    return getWholeTypeVariable(false);
+  }
+
+  public WholeTypeVariable getSecondaryWholeTypeVariable() {
+    return getWholeTypeVariable(true);
+  }
+
+  private WholeTypeVariable getWholeTypeVariable(boolean secondary) {
+    if (!hasTypeVariables) {
+      return NON_WHOLE_TYPE_VARIABLE;
+    }
+    if (secondary && !isMapType()) {
+      return NON_WHOLE_TYPE_VARIABLE;
+    }
+
+    String typeString = secondary
+        ? getSecondaryElementType()
+        : getElementType();
+
+    if (!containingType.generics().isEmpty()) {
+      for (Parameter p : containingType.generics().parameters) {
+        if (p.var.equals(typeString)) {
+          return new WholeTypeVariable(p.index);
+        }
+      }
+    }
+
+    return NON_WHOLE_TYPE_VARIABLE;
   }
 
   private boolean hasEnumContainedElementType() {

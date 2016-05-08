@@ -15,14 +15,14 @@
 --]
 [template public generate]
   [for type in values.values if type.generateRepository]
-    [if type.kind.isValue]
+    [if type.kind.isValue and (not type.generics)]
 [output.java type.package (type.name 'Repository')]
 [type.sourceHeader]
 [generateRepository type]
 [/output.java]
     [else]
 [output.error]
-Use @Mongo.Repository to annotate @Value.Immutable abstract value types
+Use @Mongo.Repository to annotate @Value.Immutable abstract value types with no type variables
 [/output.error]
     [/if]
   [/for]

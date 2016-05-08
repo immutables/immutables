@@ -15,14 +15,15 @@
  */
 package org.immutables.fixture.generics;
 
+import org.immutables.gson.Gson;
 import com.google.common.collect.Multimap;
 import org.immutables.value.Value;
-
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@Gson.TypeAdapters
 @Value.Modifiable
 @Value.Immutable
 public interface Secondie<T, V> {

@@ -49,6 +49,7 @@ import [gson].reflect.*;
 
 import java.io.IOException;
 import java.lang.String;
+import java.lang.Object;
 [for t in allValues]
   [for starImport in t.requiredSourceStarImports]
 import [starImport];
@@ -69,12 +70,16 @@ import [starImport];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 public final class [typeAdaptersName] implements TypeAdapterFactory {
-  @SuppressWarnings("unchecked") // safe unchecked, type is verified by type token equality
+  @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
     [for v in allValues]
     if ([v.name]TypeAdapter.adapts(type)) {
+      [if v.generics]
+      return (TypeAdapter<T>) new [v.name]TypeAdapter(type, gson);
+      [else]
       return (TypeAdapter<T>) new [v.name]TypeAdapter(gson);
+      [/if]
     }
     [/for]
     return null;
@@ -87,6 +92,13 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
   [for v in allValues]
   [generateTypeAdapter v]
   [/for]
+  [for v in allValues if v.generics]
+  [if for.first]
+    [if classpath.unavailable 'org.immutables.gson.adapter.Types']
+[output.error]Please put full org.immutables:gson artifact it contain classes needed at runtime[/output.error]
+    [/if]
+  [/if]
+  [/for]
 }
 [/template]
 
@@ -94,15 +106,14 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 [checkAttributes type]
 [for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
 
-private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
-  private static final TypeToken<[t]> [toConstant type.name]_ABSTRACT = TypeToken.get([t].class);
-  private static final TypeToken<[im]> [toConstant type.name]_IMMUTABLE = TypeToken.get([im].class);
+@SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
+private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
-  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElementType or a.hasTypeAnnotations]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
+    [if a.requiresMarshalingAdapter and a.wholeTypeVariable.not]
+  private final [a.elementType] [a.name]TypeSample = null;
     [/if]
-    [if a.requiresMarshalingSecondaryAdapter]
-  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = [if a.nonRawSecondaryElementType or a.hasTypeAnnotations]new TypeToken<[a.secondaryElementType]>() {}[else]TypeToken.get([a.secondaryElementType].class)[/if];
+    [if a.requiresMarshalingSecondaryAdapter and a.secondaryWholeTypeVariable.not]
+  private final [a.secondaryElementType] [a.name]SecondaryTypeSample = null;
     [/if]
   [/for]
   [for a in allAttributes]
@@ -119,7 +130,10 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
   [/for]
 [/if]
 
-  [type.name]TypeAdapter(Gson gson) {[if not allAttributes]}[/if]
+  [type.name]TypeAdapter([if type.generics]TypeToken<?> type, [/if]Gson gson) {[if not allAttributes]}[/if]
+  [if type.generics]
+    java.lang.reflect.Type['[]'] typeArguments = ((java.lang.reflect.ParameterizedType) type.getType()).getActualTypeArguments();
+  [/if]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
     [getAdapterFromGson a false]
@@ -139,8 +153,8 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
   [if allAttributes]} [/if]
 
   static boolean adapts(TypeToken<?> type) {
-    return [toConstant type.name]_ABSTRACT.equals(type)
-        || [toConstant type.name]_IMMUTABLE.equals(type);
+    return [t.relativeRaw].class == type.getRawType()
+        || [im.relativeRaw].class == type.getRawType();
   }
 
   @Override
@@ -168,16 +182,41 @@ private static class [type.name]TypeAdapter extends TypeAdapter<[t]> {
 
 [template getAdapterFromGson Attribute a Boolean secondary]
 [for subs = a.expectedSubtypes,
-    Boolean supportedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind))]
-  [if subs and supportedSubs]
+    Boolean supportedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind)),
+    Boolean reallySupportsSubs = supportedSubs and (not a.hasTypeVariables)]
+  [if subs and reallySupportsSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
-    [toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN[for s in subs],
+    TypeToken.get([if secondary][a.unwrapperOrRawSecondaryElementType][else][a.unwrapperOrRawElementType][/if].class)[for s in subs],
     TypeToken.get([s].class)[/for]);
   [else]
-this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN);
+[if secondary]
+this.[a.name]SecondaryTypeAdapter = gson.getAdapter([if a.hasTypeVariables][getVariableTypeToken a true][else][if a.nonRawSecondaryElementType or a.hasTypeAnnotations]new TypeToken<[a.secondaryElementType]>() {}[else]TypeToken.get([a.secondaryElementType].class)[/if][/if]);
+[else]
+this.[a.name]TypeAdapter = gson.getAdapter([if a.hasTypeVariables][getVariableTypeToken a false][else][if a.nonRawElementType or a.hasTypeAnnotations]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if][/if]);
+[/if]
   [/if]
 [/for]
 [/template]
+
+[template getVariableTypeToken Attribute a Boolean secondary][output.trim]
+[if secondary]
+  [for tv = a.secondaryWholeTypeVariable]
+    [if tv.is]
+(TypeToken<[a.secondaryElementType]>) TypeToken.get(typeArguments['['][tv.index][']'])
+    [else]
+org.immutables.gson.adapter.Types.<[a.secondaryElementType]>tokenFor(getClass(), "[a.name]SecondaryTypeSample", typeArguments[for g in a.containingType.generics.vars], "[g]"[/for])
+    [/if]
+  [/for]
+[else]
+  [for tv = a.wholeTypeVariable]
+    [if tv.is]
+(TypeToken<[a.elementType]>) TypeToken.get(typeArguments['['][tv.index][']'])
+    [else]
+org.immutables.gson.adapter.Types.<[a.elementType]>tokenFor(getClass(), "[a.name]TypeSample", typeArguments[for g in a.containingType.generics.vars], "[g]"[/for])
+    [/if]
+  [/for]
+[/if]
+[/output.trim][/template]
 
 [template generateMarshalingMethods Type type]
 

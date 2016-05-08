@@ -69,17 +69,14 @@ public final class Generics implements Iterable<String> {
 
       Parameter[] create() {
         final Parameter[] parameters = new Parameter[typeParameters.size()];
-        int c = 0;
+        int i = 0;
         for (TypeParameterElement e : typeParameters) {
-          parameters[c++] = toParameter(e);
+          parameters[i] = new Parameter(i,
+              e.getSimpleName().toString(),
+              boundsFrom(e));
+          i++;
         }
         return parameters;
-      }
-
-      Parameter toParameter(TypeParameterElement e) {
-        return new Parameter(
-            e.getSimpleName().toString(),
-            boundsFrom(e));
       }
 
       String[] boundsFrom(TypeParameterElement e) {
@@ -155,9 +152,11 @@ public final class Generics implements Iterable<String> {
   public static final class Parameter {
     public final String var;
     public final String[] bounds;
+    public final int index;
 
-    Parameter(String var, String[] bounds) {
+    Parameter(int index, String var, String[] bounds) {
       this.var = var;
+      this.index = index;
       this.bounds = bounds;
     }
 

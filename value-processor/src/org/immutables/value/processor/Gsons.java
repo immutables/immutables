@@ -17,7 +17,16 @@ package org.immutables.value.processor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.AbstractDeclaring;
@@ -25,10 +34,6 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 @Generator.Template
 abstract class Gsons extends ValuesTemplate {
@@ -47,14 +52,6 @@ abstract class Gsons extends ValuesTemplate {
   public Iterable<TypeAdapterTypes> typeAdapters() {
     Multimap<AbstractDeclaring, ValueType> byDeclaring = HashMultimap.create();
     for (ValueType value : values().values()) {
-      if (!value.generics().isEmpty()) {
-        value.report()
-            .warning("Type %s%s and will be skipped for Gson TypeAdapter generation."
-                + " Currently generics are not supported with Gson",
-                value.name(),
-                value.generics().args());
-        continue;
-      }
       Protoclass protoclass = value.constitution.protoclass();
       if (protoclass.kind().isValue()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.typeAdaptersProvider();
