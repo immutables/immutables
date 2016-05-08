@@ -17,8 +17,6 @@ package org.immutables.gson.adapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Arrays;
-import java.util.List;
 import org.immutables.gson.adapter.BraveNewGenerics.Top;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;

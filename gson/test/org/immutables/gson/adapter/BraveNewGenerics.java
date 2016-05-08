@@ -21,21 +21,19 @@ import java.util.Map;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
-/**
- * Now you can serialize and deserialize
- * parametrized value objects using Gson
- */
 @Gson.TypeAdapters
 class BraveNewGenerics {
   @Value.Immutable
   interface Top {
     Params<String, Integer> stringAndInt();
+
     Params<Double, List<Integer>> doubleAndIntlist();
   }
 
   @Value.Immutable
   interface Params<T, V> {
     T t();
+
     Map<String, V> m();
   }
 
