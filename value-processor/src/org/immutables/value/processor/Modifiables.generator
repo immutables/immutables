@@ -392,6 +392,11 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   return [isSet v]()
       ? [v.name]
       : [invokeSuper v].[v.names.get]();
+[else if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  return [v.name];
 [else]
   return [v.name];
 [/if]
@@ -426,6 +431,11 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  [/if]
   [if v.unwrappedElementPrimitiveType]
   [v.name].add(element);
   [else]
@@ -459,7 +469,15 @@ public final [thisReturnType type] [v.names.add]([v.unwrappedElementType]... ele
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> elements) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  } else {
+    [v.name].clear();
+  }
+  [else]
   [v.name].clear();
+  [/if]
   return [v.names.addAll](elements);
 }
 
@@ -470,6 +488,11 @@ public [thisReturnType type] [v.names.set](Iterable<[v.consumedElementType]> ele
  */
 [deprecation v]
 public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  [/if]
   for ([v.unwrappedElementType] element : elements) {
     [if v.unwrappedElementPrimitiveType]
     [v.name].add(element);
@@ -528,6 +551,11 @@ public final [thisReturnType type] [v.names.put]([uK] key, [uV]... values) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  [/if]
   [v.name].putAll(key, values);
   [thisReturn type]
 }
@@ -541,6 +569,11 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  [/if]
   [v.name].put(
       [if not v.unwrappedElementPrimitiveType][im.requireNonNull type](key, "[v.name] key")[else]key[/if],
       [if not v.unwrappedSecondaryElementPrimitiveType][im.requireNonNull type](value, "[v.name] value")[else]value[/if]);
@@ -554,7 +587,15 @@ public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
  */
 [deprecation v]
 public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  } else {
+    [v.name].clear();
+  }
+  [else]
   [v.name].clear();
+  [/if]
   return [v.names.putAll](entries);
 }
 
@@ -565,6 +606,11 @@ public [thisReturnType type] [v.names.set]([if v.multimapType][guava].collect.Mu
  */
 [deprecation v]
 public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  [if v.nullableCollector]
+  if ([v.name] == null) {
+    [defineOrResetField v false]
+  }
+  [/if]
   for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
     [v.name].put(
         [im.requireNonNull type](entry.getKey(), "[v.name] key"),
@@ -631,45 +677,50 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [/output.trim][/template]
 
 [template defineField Attribute v]
+[defineOrResetField v true]
+[/template]
+
+[template defineOrResetField Attribute v Boolean declare]
+[let fn][if not v.nullableCollector] final[/if][/let]
   [if v.containerType and (not v.guavaImmutableDeclared)]
     [if v.generateEnumMap]
-private final java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class);
+[if declare]private[fn] java.util.EnumMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
     [else if v.generateSortedMap]
-private final java.util.TreeMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = new java.util.TreeMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([if v.hasReverseOrder]java.util.Collections.<[v.wrappedElementType]>reverseOrder()[/if]);
+[if declare]private[fn] java.util.TreeMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeMap[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.typeKind.biMap]
-private final [guava].collect.HashBiMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = [guava].collect.HashBiMap.create();
+[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create()[/if];
     [else if v.typeKind.setMultimap]
-private final [guava].collect.HashMultimap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = [guava].collect.HashMultimap.create();
+[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create()[/if];
     [else if v.typeKind.multimapKind]
-private final [guava].collect.ArrayListMultimap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = [guava].collect.ArrayListMultimap.create();
+[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create()[/if];
     [else if v.mapType]
-private final java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [v.name] = new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>();
+[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs]()[/if];
     [else if v.typeKind.multiset]
-private final [guava].collect.HashMultiset<[v.elementType]> [v.name] = [guava].collect.HashMultiset.create();
+[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create()[/if];
     [else if v.generateSortedSet]
-private final java.util.TreeSet<[v.wrappedElementType]> [v.name] = new java.util.TreeSet<[v.wrappedElementType]>([if v.hasReverseOrder]java.util.Collections.<[v.wrappedElementType]>reverseOrder()[/if]);
+[if declare]private[fn] java.util.TreeSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeSet[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.generateEnumSet]
-private final java.util.EnumSet<[v.elementType]> [v.name] = java.util.EnumSet.noneOf([v.elementType].class);
+[if declare]private[fn] java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
     [else if v.setType]
-private final java.util.LinkedHashSet<[v.elementType]> [v.name] = new java.util.LinkedHashSet<[v.elementType]>();
+[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]()[/if];
     [else if v.listType]
-private final java.util.ArrayList<[v.elementType]> [v.name] = new java.util.ArrayList<[v.elementType]>();
+[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
     [else if v.optionalType]
-private [v.type] [v.name] = [optionalEmpty v];
+[if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
     [else]
 [output.error]no field generation code for attribute of type [v.type][/output.error]
     [/if]
   [else if v.primitive]
-private [v.type] [v.name];
+[if declare]private [v.type] [v.name][else][clearField v][/if];
   [else]
-private [v.atNullability][v.implementationModifiableType] [v.name];
+[if declare]private [v.atNullability][v.implementationModifiableType] [v.name][else][clearField v][/if];
   [/if]
 [/template]
 
 [template clearField Attribute v]
   [if v.optionalType]
 [v.name] = [optionalEmpty v];
-  [else if v.containerType and (not v.guavaImmutableDeclared)]
+  [else if v.containerType and (not (v.guavaImmutableDeclared or v.nullableCollector))]
 [v.name].clear();
   [else if v.boolean]
 [v.name] = false;
@@ -735,6 +786,8 @@ private boolean equalTo([equalToType] another) {
   [v.type] [v.name] = [isSet v]()
       ? this.[v.name]
       : [invokeSuper v].[v.names.get]();
+  [else if v.nullableCollector and (not v.nullable)]
+  [v.type] [defineOrResetField v false]
   [/if]
 [/for]
   return [if not getters]true[/if][for v in getters][if not for.first]
@@ -774,7 +827,7 @@ private boolean equalTo([equalToType] another) {
 [else if v.primitive]
   [h] = [h] * 17 + [im.primitiveHashCode v];
 [else]
-  [h] = [h] * 17 + [v.name].hashCode();
+  [h] = [h] * 17 + [if v.nullableCollector]([v.name] == null ? [if v.typeKind.keyedKind]0[else]1[/if] : [v.name].hashCode())[else][v.name].hashCode()[/if];
 [/if]
 [/for]
   return [h];

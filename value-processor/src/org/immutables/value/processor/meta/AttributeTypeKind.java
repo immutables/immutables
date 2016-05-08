@@ -141,6 +141,7 @@ public enum AttributeTypeKind {
     case SET:
     case ENUM_SET:
     case SORTED_SET:
+    case MULTISET:
       return true;
     default:
       return false;
@@ -195,6 +196,10 @@ public enum AttributeTypeKind {
     default:
       return false;
     }
+  }
+
+  public boolean isKeyedKind() {
+    return isMappingKind() || isSetKind();
   }
 
   public boolean isJdkOnlyContainerKind() {

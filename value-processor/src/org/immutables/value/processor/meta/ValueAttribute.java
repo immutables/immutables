@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -1145,11 +1147,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
   }
 
-  public boolean buildInitial() {
-    return isNullable()
-        || ((isMapType() || isCollectionType())
-            && isGenerateJdkOnly()
-            && !typeKind().isEnumKeyed());
+  public boolean isNullableCollector() {
+    return (isCollectionType() || isMapType())
+        && (isNullable() || !containingType.isUseStrictBuilder());
   }
 
   private void initMiscellaneous() {
@@ -1252,13 +1252,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return containingType.constitution.protoclass();
   }
 
-  public String genericArguments() {
+  public String getGenericArgs() {
     String type = getType();
     int indexOfGenerics = type.indexOf('<');
     if (indexOfGenerics > 0) {
       return type.substring(indexOfGenerics);
     }
-    return "<>";
+    return "";
   }
 
   Reporter report() {

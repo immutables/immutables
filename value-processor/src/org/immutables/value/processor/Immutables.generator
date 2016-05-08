@@ -731,7 +731,7 @@ private Object writeReplace() {
 
   [/if]
   [for v in setters]
-  [defineOrResetBuildingFieldAlt v true v.buildInitial]
+  [defineOrResetBuildingFieldAlt v true v.nullableCollector]
   [/for]
   [if type.generateOrdinalValue]
   private Domain domain = Domain.get();
@@ -970,12 +970,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
-    [if v.nullable]
+    [if v.nullableCollector]
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1010,12 +1006,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [deprecation v]
   [varargsSafety v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
-    [if v.nullable]
+    [if v.nullableCollector]
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1066,14 +1058,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
-    [if v.nullable]
+    [if v.nullableCollector]
     [requireNonNull type](elements, "[v.name] element");
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    [requireNonNull type](elements, "[v.name] element");
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1181,12 +1168,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
-    [if v.nullable]
+    [if v.nullableCollector]
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1208,12 +1191,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
-    [if v.nullable]
+    [if v.nullableCollector]
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1257,12 +1236,8 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
    */
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
-    [if v.nullable]
+    [if v.nullableCollector]
     if (this.[v.name] == null) {
-      [defineOrResetBuildingFieldAlt v false false]
-    }
-    [else if v.buildInitial]
-    if (this.[v.name][isInitEmpty v]) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
@@ -1350,7 +1325,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [disambiguateField type 'optBits'][emptyIfZero l.index] = 0;
     [/for]
     [for v in setters]
-    [defineOrResetBuildingFieldAlt v false v.buildInitial]
+    [defineOrResetBuildingFieldAlt v false v.nullableCollector]
     [/for]
     return [builderReturnThis type];
   }
@@ -1534,13 +1509,19 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [if v.attributeValueKindCopy]
   [if v.nullable][expression] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expression])
 [else if v.collectionType or v.mapType]
-  [if v.nullable][expression] == null ? null : [/if][immutableCollectionBuild v][expression][/immutableCollectionBuild]
+  [if v.nullable]
+    [expression] == null ? null : [immutableCollectionBuild v expression]
+  [else if v.nullableCollector]
+    [expression] == null ? [emptyImmutableInstance v v.genericArgs] : [immutableCollectionBuild v expression]
+  [else]
+    [immutableCollectionBuild v expression]
+  [/if]
 [else]
   [expression]
 [/if]
 [/output.trim][/template]
 
-[template emptyImmutableInstanceInferred Type type Attribute v][output.trim]
+[template emptyImmutableInstance Attribute v String genericArgsOrEmpty][output.trim]
 [if v.jdkOptional or v.nullable]
   null
 [else if v.optionalType]
@@ -1548,22 +1529,24 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.mapType]
   [if v.generateJdkOnly]
     [if v.typeKind.isSortedMap]
-      [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType], [v.secondaryElementType]>emptyMap()[/immutableCollectionCopyOfSafe]
+      [immutableCollectionCopyOfSafe v false]java.util.Collections.[v.genericArgs]emptyMap()[/immutableCollectionCopyOfSafe]
     [else]
-      java.util.Collections.emptyMap()
+      java.util.Collections.[genericArgsOrEmpty]emptyMap()
     [/if]
   [else]
-    [guava].collect.Immutable[v.rawMapType].of()
+    [guava].collect.Immutable[v.rawMapType].[genericArgsOrEmpty]of()
   [/if]
 [else if v.collectionType]
-  [if v.generateJdkOnly]
+  [if v.generateOrdinalValueSet]
+    org.immutables.ordinal.ImmutableOrdinalSet.[genericArgsOrEmpty]of()
+  [else if v.generateJdkOnly]
     [if v.typeKind.isSortedSet]
-      [immutableCollectionCopyOfSafe v false]java.util.Collections.<[v.elementType]>emptyList()[/immutableCollectionCopyOfSafe]
+      [immutableCollectionCopyOfSafe v false]java.util.Collections.[v.genericArgs]emptyList()[/immutableCollectionCopyOfSafe]
     [else]
-      java.util.Collections.empty[v.rawCollectionType]()
+      java.util.Collections.[genericArgsOrEmpty]empty[v.rawCollectionType]()
     [/if]
   [else]
-    [guava].collect.Immutable[v.rawCollectionType].of()
+    [guava].collect.Immutable[v.rawCollectionType].[genericArgsOrEmpty]of()
   [/if]
 [else]
   null
@@ -1589,7 +1572,7 @@ this.[n] = null;
 
 [template generateConstructorDefaultAttributes Type type Attribute... attributes]
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
-this.[n] = [emptyImmutableInstanceInferred type v];
+this.[n] = [emptyImmutableInstance v ''];
 [/for]
 [for v in attributes if v.generateDefault or v.generateDerived, n = v.name]
 [if type.annotationType]
@@ -1806,7 +1789,7 @@ static final [output.linesShortable]class Json[type.generics]
   [if v.optionalType]
   [v.type] [v.name] = [optionalEmpty v];
   [else if v.collectionType]
-  [v.type] [v.name] = [emptyImmutableInstanceInferred type v];
+  [v.type] [v.name] = [emptyImmutableInstance v ''];
   [else]
   [atNullable][v.wrapperType] [v.name];
   [/if]
@@ -1815,7 +1798,7 @@ static final [output.linesShortable]class Json[type.generics]
   [/if]
 [/for]
 [for v in type.settableAttributes if v.anyGetter]
-  final [v.type] [v.name] = new java.util.HashMap[v.genericArguments]();
+  final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
 [for v in type.settableAttributes if not v.anyGetter]
   [for a in v.annotations]
@@ -2527,15 +2510,15 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [else if v.generateJdkOnly][-- for now jdk only will be the same --]
   [v.type]
 [else if v.generateOrdinalValueSet]
-  org.immutables.ordinal.ImmutableOrdinalSet<[v.elementType]>
+  org.immutables.ordinal.ImmutableOrdinalSet[v.genericArgs]
 [else if v.generateSortedSet]
-  [guava].collect.ImmutableSortedSet<[v.elementType]>
+  [guava].collect.ImmutableSortedSet[v.genericArgs]
 [else if v.collectionType]
-  [guava].collect.Immutable[v.rawCollectionType]<[v.elementType]>
+  [guava].collect.Immutable[v.rawCollectionType][v.genericArgs]
 [else if v.generateSortedMap]
-  [guava].collect.ImmutableSortedMap<[v.elementType], [v.secondaryElementType]>
+  [guava].collect.ImmutableSortedMap[v.genericArgs]
 [else if v.mapType]
-  [guava].collect.Immutable[v.rawMapType]<[v.elementType], [v.secondaryElementType]>
+  [guava].collect.Immutable[v.rawMapType][v.genericArgs]
 [else]
   [v.implementationType]
 [/if]
@@ -2923,22 +2906,22 @@ this.[v.name] = null;
     [if v.generateJdkOnly]
       [if v.optionalType]
 [if declare]private [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
-      [else if not (declare or v.buildInitial)]
+      [else if not (declare or v.nullableCollector)]
 this.[v.name].clear();
       [else if v.generateEnumMap]
 [if declare]private java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class)[/if];
       [else if v.mapType]
-[if declare]private java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull and v.nullable]null[else if toNull]java.util.Collections.emptyMap()[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
+[if declare]private java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
       [else if v.generateEnumSet]
-[if declare]private java.util.EnumSet<[v.elementType]> [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
+[if declare]private java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
       [else]
-[if declare]private java.util.List<[v.elementType]> [else]this.[/if][v.name] = [if toNull and v.nullable]null[else if toNull]java.util.Collections.emptyList()[else]new java.util.ArrayList<[v.elementType]>()[/if];
+[if declare]private java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
       [/if]
     [else]
       [if v.generateSortedSet]
-[if declare]private [guava].collect.ImmutableSortedSet.Builder<[v.elementType]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare]private [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.collectionType]
-[if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder<[v.elementType]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+[if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
       [else if v.optionalType]
 [if declare]private [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
@@ -2994,8 +2977,6 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/output.trim][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
-[template isInitEmpty Attribute v] == java.util.Collections.[v.genericArguments]empty[if v.mapType]Map[else]List[/if]()[/template]
-
 [template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
 
 [template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics.args]) [/if]this[/template]

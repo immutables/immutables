@@ -128,6 +128,7 @@ interface Companion {
     }
   }
 
+  @Value.Style(strictBuilder = true)
   @Value.Modifiable
   interface Extra {
     @Value.Parameter
