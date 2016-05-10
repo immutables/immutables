@@ -233,6 +233,36 @@ public final class ValueType extends TypeIntrospectionBase {
         : null;
   }
 
+  private List<CharSequence> constructorAnnotations;
+
+  public List<CharSequence> getConstructorAnnotations() {
+    if (constructorAnnotations == null) {
+      List<ExecutableElement> constructors = ElementFilter.constructorsIn(element.getEnclosedElements());
+      for (ExecutableElement c : constructors) {
+        if (c.getParameters().isEmpty()) {
+          Set<Modifier> modifiers = c.getModifiers();
+          if (modifiers.contains(Modifier.PRIVATE)) {
+            report()
+                .withElement(c)
+                .error("Constructor in an abstract value type should not be private");
+          }
+          constructorAnnotations =
+              Annotations.getAnnotationLines(
+                  c, Collections.<String>emptySet(), true, false, ElementType.METHOD);
+        }
+      }
+      if (constructorAnnotations == null) {
+        for (ExecutableElement c : constructors) {
+          report()
+              .withElement(c)
+              .error("Constructor should not have parameters in an abstract value type to be extended");
+        }
+        constructorAnnotations = ImmutableList.of();
+      }
+    }
+    return constructorAnnotations;
+  }
+
   private Long findSerialVersionUID() {
     for (VariableElement field : ElementFilter.fieldsIn(element.getEnclosedElements())) {
       if (field.getSimpleName().contentEquals(SERIAL_VERSION_FIELD_NAME)

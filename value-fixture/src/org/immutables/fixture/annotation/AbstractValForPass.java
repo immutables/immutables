@@ -27,9 +27,12 @@ import org.immutables.value.Value;
 @B1
 @Value.Immutable
 @Value.Style(passAnnotations = {A1.class, A2.class}, of = "new")
-interface AbstractValForPass {
+abstract class AbstractValForPass {
+  @B1
+  AbstractValForPass() {}
+
   @Value.Parameter
   @A1
   @A2
-  int p1();
+  abstract int p1();
 }

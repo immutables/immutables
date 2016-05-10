@@ -1615,6 +1615,15 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
 
   [if type.factoryOf.new]
+  /**
+   * Construct a new immutable {@code [type.name]} instance.
+  [for v in type.constructorArguments]
+   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
+  [/for]
+   */
+  [for ann in type.constructorAnnotations]
+  [ann]
+  [/for]
   public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [else]
@@ -1665,6 +1674,15 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [if type.useCopyMethods]
 
   [if type.factoryOf.new and type.generateConstructorUseCopyConstructor]
+  /**
+   * Construct a new immutable {@code [type.name]} instance.
+  [for v in type.constructorArguments]
+   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
+  [/for]
+   */
+  [for ann in type.constructorAnnotations]
+  [ann]
+  [/for]
   public [type.typeImmutable.simple]([output.linesShortable]
       [for v in getters if not v.generateDerived][if not for.first],
       [/if][v.constructorParameterAnnotations][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
@@ -2480,10 +2498,13 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance
  * Construct a new immutable {@code [type.name]} instance.
 [javadocGenerics type]
 [for v in type.constructorArguments]
- * @param [v.name] The value for the {@code [v.name]} attribute
+ * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
 [/for]
  * @return An immutable [type.name] instance
  */
+[for ann in type.constructorAnnotations]
+[ann]
+[/for]
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
@@ -2493,10 +2514,13 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
  * Construct a new immutable {@code [type.name]} instance.
 [javadocGenerics type]
 [for v in type.constructorArguments]
- * @param [v.name] The value for the {@code [v.name]} attribute
+ * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
 [/for]
  * @return An immutable [type.name] instance
  */
+[for ann in type.constructorAnnotations]
+[ann]
+[/for]
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }

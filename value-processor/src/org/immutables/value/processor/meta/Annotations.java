@@ -20,14 +20,11 @@ import java.lang.annotation.Target;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-
 import org.immutables.generator.AnnotationMirrors;
-
 import com.google.common.collect.Lists;
 
 final class Annotations {
@@ -50,13 +47,30 @@ final class Annotations {
       Set<String> includeAnnotations,
       boolean includeJacksonAnnotations,
       ElementType elementType) {
+    return getAnnotationLines(element,
+        includeAnnotations,
+        false,
+        includeJacksonAnnotations,
+        elementType);
+  }
+
+  static List<CharSequence> getAnnotationLines(
+      Element element,
+      Set<String> includeAnnotations,
+      boolean includeAllAnnotations,
+      boolean includeJacksonAnnotations,
+      ElementType elementType) {
     List<CharSequence> lines = Lists.newArrayList();
 
     Set<String> seenAnnotations = new HashSet<>();
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationTypeMatches(annotationElement, includeAnnotations, includeJacksonAnnotations, seenAnnotations)
+      if (annotationTypeMatches(annotationElement,
+          includeAnnotations,
+          includeAllAnnotations,
+          includeJacksonAnnotations,
+          seenAnnotations)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation));
       }
@@ -66,7 +80,8 @@ final class Annotations {
 
   private static boolean annotationTypeMatches(
       TypeElement annotationElement,
-      Set<String> includeAnnotations,
+      @Nullable Set<String> includeAnnotations,
+      boolean includeAllAnnotations,
       boolean includeJacksonAnnotations,
       Set<String> seenAnnotations) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
@@ -85,6 +100,10 @@ final class Annotations {
       return false;
     }
 
+    if (includeAllAnnotations) {
+      return true;
+    }
+
     if (qualifiedName.equals(PREFIX_JACKSON_IGNORE_PROPERTIES)) {
       // this is just very often used exception
       // but preferred way is to use additionalJsonAnnotations style attribute.
@@ -100,10 +119,13 @@ final class Annotations {
       return true;
     }
 
-    for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
-      TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
-      if (annotationTypeMatches(parentElement, includeAnnotations, includeJacksonAnnotations, seenAnnotations)) {
-        return true;
+    // This block of code can include annotation if it's parent annotation is included
+    if (includeJacksonAnnotations && !includeAnnotations.isEmpty()) {
+      for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
+        TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
+        if (annotationTypeMatches(parentElement, includeAnnotations, false, includeJacksonAnnotations, seenAnnotations)) {
+          return true;
+        }
       }
     }
     return false;

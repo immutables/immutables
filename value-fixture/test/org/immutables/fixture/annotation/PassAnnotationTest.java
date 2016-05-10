@@ -32,4 +32,9 @@ public class PassAnnotationTest {
     check(parameter.getAnnotation(A1.class)).notNull();
     check(parameter.getAnnotation(A2.class)).notNull();
   }
+
+  @Test
+  public void constructorPass() throws Exception {
+    check(ImmutableValForPass.class.getConstructor(int.class).getAnnotation(B1.class)).notNull();
+  }
 }
