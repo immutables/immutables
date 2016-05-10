@@ -692,6 +692,38 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [defineOrResetField v true]
 [/template]
 
+[template emptyImmutableCollectionType Attribute v][output.trim]
+[if v.multimapType]
+  [guava].collect.Multimap[v.genericArgs]
+[else if v.mapType]
+  java.util.Map[v.genericArgs]
+[else if v.multisetType]
+  [guava].collect.Multiset[v.genericArgs]
+[else if v.typeKind.setKind]
+  java.util.Set[v.genericArgs]
+[else if v.listType]
+  java.util.List[v.genericArgs]
+[else]
+  [output.error]Unsupported type [v.type] for 'emptyImmutableCollectionType' template[/output.error]
+[/if]
+[/output.trim][/template]
+
+[template emptyImmutableCollection Attribute v String genericsOrEmpty][output.trim]
+[if v.multimapType]
+  [guava].collect.ImmutableMultimap.[genericsOrEmpty]of()
+[else if v.mapType]
+  java.util.Collections.[genericsOrEmpty]emptyMap()
+[else if v.multisetType]
+  [guava].collect.ImmutableMultimap.[genericsOrEmpty]of()
+[else if v.typeKind.setKind]
+  java.util.Collections.[genericsOrEmpty]emptySet()
+[else if v.listType]
+  java.util.Collections.[genericsOrEmpty]emptyList()
+[else]
+  [output.error]Unsupported type [v.type] for 'emptyImmutableCollection' template[/output.error]
+[/if]
+[/output.trim][/template]
+
 [template defineOrResetField Attribute v Boolean declare]
 [let fn][if not v.nullableCollector] final[/if][/let]
   [if v.containerType and (not v.guavaImmutableDeclared)]
@@ -700,23 +732,23 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
     [else if v.generateSortedMap]
 [if declare]private[fn] java.util.TreeMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeMap[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.typeKind.biMap]
-[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create()[/if];
+[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create(0)[/if];
     [else if v.typeKind.setMultimap]
-[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create()[/if];
+[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create(0, 0)[/if];
     [else if v.typeKind.multimapKind]
-[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create()[/if];
+[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create(0, 0)[/if];
     [else if v.mapType]
-[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs]()[/if];
+[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs](0)[/if];
     [else if v.typeKind.multiset]
-[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create()[/if];
+[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create(0)[/if];
     [else if v.generateSortedSet]
 [if declare]private[fn] java.util.TreeSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeSet[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.generateEnumSet]
 [if declare]private[fn] java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
     [else if v.setType]
-[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]()[/if];
+[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs](0)[/if];
     [else if v.listType]
-[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
+[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs](0)[/if];
     [else if v.optionalType]
 [if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
     [else]
@@ -799,7 +831,9 @@ private boolean equalTo([equalToType] another) {
       ? this.[v.name]
       : [invokeSuper v].[v.names.get]();
   [else if v.nullableCollector and (not v.nullable)]
-  [v.type] [defineOrResetField v false]
+  [emptyImmutableCollectionType v] [v.name] = this.[v.name] != null
+      ? this.[v.name]
+      : [emptyImmutableCollection v v.genericArgs];
   [/if]
 [/for]
   return [if not getters]true[/if][for v in getters][if not for.first]
