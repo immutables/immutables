@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ForwardingListenableFuture.SimpleForwardingListenableFuture;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -27,7 +26,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Provides default wrapping implementation of {@link FluentFuture}
@@ -58,16 +57,16 @@ public final class FluentFutures {
     }
 
     @Override
-    public FluentFuture<V> withFallback(FutureFallback<V> fallback) {
-      return from(Futures.withFallback(this, fallback, executor));
+    public FluentFuture<V> catching(Function<Throwable, V> fallback) {
+      return from(Futures.catching(this, Throwable.class, fallback, executor));
     }
 
     @Override
     public FluentFuture<V> withFallbackValue(final V value) {
-      return withFallback(new FutureFallback<V>() {
+      return catching(new Function<Throwable, V>() {
         @Override
-        public ListenableFuture<V> create(Throwable t) throws Exception {
-          return Futures.immediateFuture(value);
+        public V apply(Throwable t) {
+          return value;
         }
       });
     }
@@ -79,7 +78,7 @@ public final class FluentFutures {
 
     @Override
     public <T> FluentFuture<T> asyncTransform(AsyncFunction<? super V, ? extends T> function) {
-      return from(Futures.transform(this, function, executor));
+      return from(Futures.transformAsync(this, function, executor));
     }
 
     @Override

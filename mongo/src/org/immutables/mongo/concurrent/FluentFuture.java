@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.ExecutionError;
 import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.UncheckedExecutionException;
@@ -56,15 +55,14 @@ public interface FluentFuture<V> extends ListenableFuture<V> {
 
   /**
    * With fallback that computes value.
-   * @see Futures#withFallback(ListenableFuture, FutureFallback)
+   * @see Futures#catching(ListenableFuture, Class, Function)
    * @param fallback the fallback
    * @return derived fluent future
    */
-  FluentFuture<V> withFallback(FutureFallback<V> fallback);
+  FluentFuture<V> catching(Function<Throwable, V> fallback);
 
   /**
    * With fallback value.
-   * @see Futures#withFallback(ListenableFuture, FutureFallback)
    * @see Futures#immediateFuture(Object)
    * @param value the value
    * @return derived fluent future
