@@ -16,7 +16,6 @@
 package org.immutables.fixture.modifiable;
 
 import org.junit.Test;
-
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.immutables.check.Checkers.check;
 
@@ -122,5 +121,21 @@ public class ModifiablesTest {
     check(m.defs()).is("a");
 
     check(m).asString().isNonEmpty();
+  }
+
+  @Test
+  public void deferedAllocationAndNullable() {
+    check(ModifiableNullableAndDefault.create()).is(ModifiableNullableAndDefault.create());
+    check(ModifiableNullableAndDefault.create().addLst()).is(ModifiableNullableAndDefault.create());
+    check(ModifiableNullableAndDefault.create().addLst("c")).not().is(ModifiableNullableAndDefault.create());
+    check(!ModifiableNullableAndDefault.create().lstIsSet());
+    check(ModifiableNullableAndDefault.create().addLst("d").lstIsSet());
+    check(ModifiableNullableAndDefault.create().str()).isNull();
+    check(!ModifiableNullableAndDefault.create().intsIsSet());
+    check(ModifiableNullableAndDefault.create().ints()).isOf(1);
+    ModifiableNullableAndDefault m = ModifiableNullableAndDefault.create();
+    m.lst().add("a");
+    m.lst().add("b");
+    check(m.lst()).isOf("a", "b");
   }
 }

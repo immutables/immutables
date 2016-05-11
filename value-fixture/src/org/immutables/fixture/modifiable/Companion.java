@@ -189,7 +189,7 @@ interface Companion {
 
     @Value.Default
     default Set<Integer> ints() {
-      return Collections.emptySet();
+      return Collections.singleton(1);
     }
 
     @Value.Default
