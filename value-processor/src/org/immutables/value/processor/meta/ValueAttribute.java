@@ -930,11 +930,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && containedTypeElement != null) {
       Environment environment = protoclass().environment();
 
-      for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-        if ((p.kind().isDefinedValue() || p.kind().isModifiable()) && canAccessImplementation(p)) {
-          this.attributeValueType = environment.composeValue(p);
+      // prevent recursion in case we have the same type
+      if (CachingElements.equals(containedTypeElement, containingType.element)) {
+        this.attributeValueType = containingType;
+      } else {
+        for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
+          if ((p.kind().isDefinedValue() || p.kind().isModifiable()) && canAccessImplementation(p)) {
+            this.attributeValueType = environment.composeValue(p);
+          }
+          break;
         }
-        break;
       }
     }
   }
