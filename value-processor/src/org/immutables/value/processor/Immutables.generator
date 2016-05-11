@@ -1495,7 +1495,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
-  [if v.nullable][v.name][else][v.name].clone()[/if]
+  [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
   [if v.nullable][expression] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expression])
 [else if v.collectionType or v.mapType]
