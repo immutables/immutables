@@ -122,6 +122,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return false;
   }
 
+  public boolean isDeferCollectionAllocation() {
+    return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
+  }
+  
   public boolean hasDerivedAttributes() {
     return derivedAttributesCount > 0;
   }
@@ -176,10 +180,6 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public NameForms typeEnclosing() {
     return constitution.typeEnclosing();
-  }
-
-  public NameForms typeWith() {
-    return constitution.typeWith();
   }
 
   public NameForms typePreferablyAbstract() {
@@ -375,10 +375,9 @@ public final class ValueType extends TypeIntrospectionBase {
   public List<CharSequence> passedAnnotations() {
     return Annotations.getAnnotationLines(
         element,
-        Sets.union(constitution.protoclass().styles().style().passAnnotationsNames(), constitution.protoclass()
-            .styles()
-            .style()
-            .additionalJsonAnnotationsNames()),
+        Sets.union(
+            constitution.style().passAnnotationsNames(),
+            constitution.style().additionalJsonAnnotationsNames()),
         false,
         ElementType.TYPE);
   }
@@ -776,24 +775,15 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseStrictBuilder() {
-    return constitution.protoclass()
-        .styles()
-        .style()
-        .strictBuilder();
+    return constitution.style().strictBuilder();
   }
 
   public boolean isGeneratePrivateNoargConstructor() {
-    return constitution.protoclass()
-        .styles()
-        .style()
-        .privateNoargConstructor();
+    return constitution.style().privateNoargConstructor();
   }
 
   public String getThrowForInvalidImmutableState() {
-    return constitution.protoclass()
-        .styles()
-        .style()
-        .throwForInvalidImmutableStateName();
+    return constitution.style().throwForInvalidImmutableStateName();
   }
 
   public boolean isCustomizedThrowForInvalidImmutableState() {
@@ -1144,7 +1134,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isGenerateSuppressAllWarnings() {
-    return constitution.protoclass().styles().style().generateSuppressAllWarnings()
+    return constitution.style().generateSuppressAllWarnings()
         || SuppressedWarnings.forElement(element).generated;
   }
 

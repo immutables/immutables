@@ -415,15 +415,6 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
-  public NameForms typeWith() {
-    String simple = names().typeWith();
-    NameForms typeImmutable = typeImmutable();
-    return ImmutableConstitution.NameForms.copyOf(typeImmutable)
-        .withRelativeRaw(DOT_JOINER.join(typeImmutable.relativeRaw(), simple))
-        .withSimple(simple);
-  }
-
-  @Value.Lazy
   public NameForms typeBuilder() {
     InnerBuilderDefinition innerBuilder = innerBuilder();
     if (innerBuilder.isExtending) {

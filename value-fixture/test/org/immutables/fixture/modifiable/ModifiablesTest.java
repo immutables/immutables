@@ -15,10 +15,10 @@
  */
 package org.immutables.fixture.modifiable;
 
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.immutables.check.Checkers.*;
-
 import org.junit.Test;
+
+import static org.hamcrest.core.IsEqual.equalTo;
+import static org.immutables.check.Checkers.check;
 
 public class ModifiablesTest {
 
@@ -35,6 +35,8 @@ public class ModifiablesTest {
     c1.setArrayStrings("a", "b", "c");
     check(c1.arrayStringsIsSet());
 
+    check(c1).asString().isNonEmpty();
+
     check(!c1.integerIsSet());
     c1.setInteger(1);
     check(c1.integerIsSet());
@@ -44,6 +46,8 @@ public class ModifiablesTest {
     check(c1.stringIsSet());
 
     check(c1.isInitialized());
+
+    check(c1).asString().isNonEmpty();
   }
 
   @Test
@@ -96,6 +100,8 @@ public class ModifiablesTest {
 
     check(c1).is(c1);
     check(c1).not().is(c2);
+
+    check(c1).asString().isNonEmpty();
   }
 
   @Test
@@ -114,5 +120,7 @@ public class ModifiablesTest {
     check(m.defs()).is("");
     m.setDefs("a");
     check(m.defs()).is("a");
+
+    check(m).asString().isNonEmpty();
   }
 }

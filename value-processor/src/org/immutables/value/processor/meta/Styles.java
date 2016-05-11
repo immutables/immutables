@@ -95,7 +95,6 @@ public final class Styles {
     Naming create = Naming.from(style.create());
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
-    Naming typeWith = Naming.from(style.typeWith());
   }
 
   public static class UsingName {
@@ -168,10 +167,6 @@ public final class Styles {
         return scheme.typeImmutableNested.apply(raw);
       }
 
-      public final String typeWith() {
-        return scheme.typeWith.apply(raw);
-      }
-
       public final String builder() {
         return scheme.builder.apply(raw);
       }
@@ -213,19 +208,19 @@ public final class Styles {
       private ForCollections coll = null;
 
       public String add() {
-        return collectionSpecific().add;
+        return collection().add;
       }
 
       public String put() {
-        return collectionSpecific().put;
+        return collection().put;
       }
 
       public String addAll() {
-        return collectionSpecific().addAll;
+        return collection().addAll;
       }
 
       public String putAll() {
-        return collectionSpecific().putAll;
+        return collection().putAll;
       }
 
       public String set() {
@@ -240,7 +235,7 @@ public final class Styles {
         return scheme.unset.apply(raw);
       }
 
-      private ForCollections collectionSpecific() {
+      private ForCollections collection() {
         return coll == null ? coll = new ForCollections() : coll;
       }
 
@@ -250,7 +245,6 @@ public final class Styles {
         final String put = scheme.put.apply(singular);
         final String addAll = scheme.addAll.apply(raw);
         final String putAll = scheme.putAll.apply(raw);
-
       }
     }
   }

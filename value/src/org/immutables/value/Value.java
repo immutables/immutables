@@ -634,14 +634,6 @@ public @interface Value {
      */
     String typeModifiable() default "Modifiable*";
 
-    /*
-     * Generated "with" interface name. Used to detect demand and generate "with" interface.
-     * @return naming template
-     * @deprecated not implemented / experimental. May be used or removed in the next versions
-     */
-    @Deprecated
-    String typeWith() default "With";
-
     /**
      * <p>
      * Naming template {@code packageGenerated} used to derive name of the package where the
@@ -847,6 +839,16 @@ public @interface Value {
      */
     boolean clearBuilder() default false;
 
+    /**
+     * When this optimisation in enabled then the processor tries to defer allocation of
+     * collection in builder and modifiable objects. The resulting code might somewhat be slower at
+     * a microbenchmark scale due to additional "if" checks.
+     * Does not work when is enabled {@link #strictBuilder()} is enabled.
+     * Disabled by default.
+     * @return {@code true} if defer collection allocation.
+     */
+    boolean deferCollectionAllocation() default false;
+    
     /**
      * Deep analysis of immutable types enables additional convenience features.
      * When enabled, each attribute is being analized and if it discovered to be an {@literal @}

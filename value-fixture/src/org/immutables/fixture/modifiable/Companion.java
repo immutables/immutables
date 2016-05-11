@@ -174,4 +174,45 @@ interface Companion {
     @Value.ReverseOrder
     NavigableSet<Integer> navs();
   }
+
+  @Value.Style(deferCollectionAllocation = true)
+  @Value.Modifiable
+  @Value.Immutable
+  interface NullableAndDefault {
+    List<String> lst();
+
+    @Value.Default
+    @Nullable
+    default List<String> str() {
+      return null;
+    }
+
+    @Value.Default
+    default Set<Integer> ints() {
+      return Collections.emptySet();
+    }
+
+    @Value.Default
+    default int[] arrayInts() {
+      return new int[0];
+    }
+
+    @Value.NaturalOrder
+    @Nullable
+    @Value.Default
+    default SortedSet<Integer> ords() {
+      return null;
+    }
+
+    @Value.Default
+    default Set<RetentionPolicy> pols() {
+      return EnumSet.noneOf(RetentionPolicy.class);
+    }
+
+    @Value.Default
+    @Value.ReverseOrder
+    default NavigableSet<Integer> navs() {
+      return Collections.emptyNavigableSet();
+    }
+  }
 }

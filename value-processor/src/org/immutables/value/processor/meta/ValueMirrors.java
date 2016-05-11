@@ -142,8 +142,6 @@ public final class ValueMirrors {
 
     String typeModifiable() default "Modifiable*";
 
-    String typeWith() default "With";
-
     String packageGenerated() default "*";
 
     Immutable defaults() default @Immutable;
@@ -175,6 +173,8 @@ public final class ValueMirrors {
     boolean unsafeDefaultAndDerived() default false;
 
     boolean clearBuilder() default false;
+
+    boolean deferCollectionAllocation() default false;
 
     boolean deepImmutablesDetection() default false;
 

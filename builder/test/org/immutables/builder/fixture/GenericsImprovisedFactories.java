@@ -3,7 +3,6 @@ package org.immutables.builder.fixture;
 import java.util.Set;
 import com.google.common.collect.Iterables;
 import java.util.List;
-import java.util.SortedSet;
 import javax.annotation.Nullable;
 import org.immutables.builder.Builder;
 import org.immutables.value.Value;

@@ -132,7 +132,9 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
   [/for]
-  [for v in type.implementedAttributes if v.generateDefault and v.canUseNullAsUndefined]
+  [for v in type.implementedAttributes]
+    [if v.generateDefault]
+      [if v.canUseNullAsUndefined]
 
   /**
    * Returns {@code true} if the default attribute [sourceDocRef type v] is set.
@@ -141,6 +143,18 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   public final boolean [isSet v]() {
     return [v.name] != null;
   }
+      [/if]
+    [else if v.deferCollectionAllocation]
+
+  /**
+   * Returns {@code true} if the [sourceDocRef type v] has not been initialized
+   * and will default to an empty [toLower v.rawCollectionType].
+   * @return {@code true} if set
+   */
+  public final boolean [isSet v]() {
+    return [v.name] != null;
+  }
+    [/if]
   [/for]
 
   /**
@@ -394,7 +408,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
       : [invokeSuper v].[v.names.get]();
 [else if v.nullableCollector and (not v.nullable)]
   if ([v.name] == null) {
-    [defineOrResetField v false]
+    [defineOrResetFieldAlt v false true]
   }
   return [v.name];
 [else]
@@ -441,6 +455,7 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
   [else]
   [v.name].add([im.requireNonNull type](element, "[v.name] element"));
   [/if]
+  [nondefaultSetter v]
   [thisReturn type]
 }
 
@@ -459,12 +474,13 @@ public final [thisReturnType type] [v.names.add]([v.unwrappedElementType]... ele
     [v.names.add]([im.requireNonNull type](element, "[v.name] element"));
     [/if]
   }
+  [nondefaultSetter v]
   [thisReturn type]
 }
 
 /**
  * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
- * @param elements An iterable of [v.name] elements
+ * @param elements An iterable of [v.name] elements[if v.nullable], can be {@code null}[/if]
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
@@ -472,6 +488,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability]Iterable<[v.consumed
   [if v.nullable]
   if (elements == null) {
     [v.name] = null;
+    [nondefaultSetter v]
     [thisReturn type]
   }
   [/if]
@@ -506,6 +523,7 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
     [v.name].add([im.requireNonNull type](element, "[v.name] element"));
     [/if]
   }
+  [nondefaultSetter v]
   [thisReturn type]
 }
 [else if v.optionalType]
@@ -563,6 +581,7 @@ public [thisReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
   }
   [/if]
   [v.name].putAll(key, values);
+  [nondefaultSetter v]
   [thisReturn type]
 }
     [/if]
@@ -583,12 +602,14 @@ public [thisReturnType type] [v.names.put]([uK] key, [uV] value) {
   [v.name].put(
       [if not v.unwrappedElementPrimitiveType][im.requireNonNull type](key, "[v.name] key")[else]key[/if],
       [if not v.unwrappedSecondaryElementPrimitiveType][im.requireNonNull type](value, "[v.name] value")[else]value[/if]);
+  [nondefaultSetter v]
   [thisReturn type]
 }
 
 /**
- * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map. Nulls are not permitted
- * @param entries The entries that will be added to the [v.name] map
+ * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map.
+ * Nulls are not permitted as keys or values.
+ * @param entries The entries that will be added to the [v.name] map[if v.nullable], can be {@code null}[/if]
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
@@ -596,6 +617,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability][if v.multimapType][
   [if v.nullable]
   if (entries == null) {
     [v.name] = null;
+    [nondefaultSetter v]
     [thisReturn type]
   }
   [/if]
@@ -612,7 +634,8 @@ public [thisReturnType type] [v.names.set]([v.atNullability][if v.multimapType][
 }
 
 /**
- * Put all mappings from the specified map as entries to the [sourceDocRef type v] map. Nulls are not permitted
+ * Put all mappings from the specified map as entries to the [sourceDocRef type v] map.
+ * Nulls are not permitted as keys or values.
  * @param entries to be added to [v.name] map
  * @return {@code this} for use in a chained invocation
  */
@@ -628,6 +651,7 @@ public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect
         [im.requireNonNull type](entry.getKey(), "[v.name] key"),
         [im.requireNonNull type](entry.getValue(), "[v.name] value"));
   }
+  [nondefaultSetter v]
   [thisReturn type]
 }
   [/for]
@@ -646,6 +670,7 @@ public [thisReturnType type] [v.names.putAll]([if v.multimapType][guava].collect
 public final [thisReturnType type] [v.names.set]([v.elementType]... elements) {
   this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [mandatorySetter v]
+  [nondefaultSetter v]
   [thisReturn type]
 }
 [else]
@@ -655,7 +680,7 @@ public final [thisReturnType type] [v.names.set]([v.elementType]... elements) {
 [if v.generateDefault]
  * <p><em>If not set, this attribute will have a default value returned by the initializer of [sourceDocRef type v].</em>
 [/if]
- * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
+ * @param [v.name] The value for [v.name][if v.nullable], can be {@code null}[/if]
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
@@ -692,6 +717,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [defineOrResetField v true]
 [/template]
 
+[-- ??? is it used --]
 [template emptyImmutableCollectionType Attribute v][output.trim]
 [if v.multimapType]
   [guava].collect.Multimap[v.genericArgs]
@@ -708,6 +734,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [/if]
 [/output.trim][/template]
 
+[-- ??? is it used --]
 [template emptyImmutableCollection Attribute v String genericsOrEmpty][output.trim]
 [if v.multimapType]
   [guava].collect.ImmutableMultimap.[genericsOrEmpty]of()
@@ -724,7 +751,9 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [/if]
 [/output.trim][/template]
 
-[template defineOrResetField Attribute v Boolean declare]
+[template defineOrResetField Attribute v Boolean declare][defineOrResetFieldAlt v declare false][/template]
+
+[template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation]
 [let fn][if not v.nullableCollector] final[/if][/let]
   [if v.containerType and (not v.guavaImmutableDeclared)]
     [if v.generateEnumMap]
@@ -732,23 +761,23 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
     [else if v.generateSortedMap]
 [if declare]private[fn] java.util.TreeMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeMap[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.typeKind.biMap]
-[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create(0)[/if];
+[if declare]private[fn] [guava].collect.HashBiMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashBiMap.create([if deferAllocation]0[/if])[/if];
     [else if v.typeKind.setMultimap]
-[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create(0, 0)[/if];
+[if declare]private[fn] [guava].collect.HashMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultimap.create([if deferAllocation]0, 0[/if])[/if];
     [else if v.typeKind.multimapKind]
-[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create(0, 0)[/if];
+[if declare]private[fn] [guava].collect.ArrayListMultimap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.ArrayListMultimap.create([if deferAllocation]0, 0[/if])[/if];
     [else if v.mapType]
-[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs](0)[/if];
+[if declare]private[fn] java.util.Map[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashMap[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.typeKind.multiset]
-[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create(0)[/if];
+[if declare]private[fn] [guava].collect.HashMultiset[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else][guava].collect.HashMultiset.create([if deferAllocation]0[/if])[/if];
     [else if v.generateSortedSet]
 [if declare]private[fn] java.util.TreeSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.TreeSet[v.genericArgs]([if v.hasReverseOrder]java.util.Collections.<[v.elementType]>reverseOrder()[/if])[/if];
     [else if v.generateEnumSet]
 [if declare]private[fn] java.util.EnumSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
     [else if v.setType]
-[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs](0)[/if];
+[if declare]private[fn] java.util.LinkedHashSet[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.LinkedHashSet[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.listType]
-[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs](0)[/if];
+[if declare]private[fn] java.util.ArrayList[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.ArrayList[v.genericArgs]([if deferAllocation]0[/if])[/if];
     [else if v.optionalType]
 [if declare]private [v.type] [/if][v.name] = [optionalEmpty v];
     [else]
@@ -810,13 +839,13 @@ if ([v.name]Value != null) {
 public boolean equals([atNullable]Object another) {
   if (this == another) return true;
   if (!(another instanceof [equalToType])) return false;
-  [equalToType] o = ([equalToType]) another;
+  [equalToType] other = ([equalToType]) another;
   [if type.mandatoryAttributes]
-  if (![isInitialized type]() || !o.[isInitialized type]()) {
+  if (![isInitialized type]() || !other.[isInitialized type]()) {
     return false;
   }
   [/if]
-  return equalTo(o);
+  return equalTo(other);
 }
 
 private boolean equalTo([equalToType] another) {
@@ -824,12 +853,8 @@ private boolean equalTo([equalToType] another) {
   return super.equals(another);
   [else]
 [for v in getters]
-  [if v.generateDerived]
-  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
-  [else if v.generateDefault]
-  [v.type] [v.name] = [isSet v]()
-      ? this.[v.name]
-      : [invokeSuper v].[v.names.get]();
+  [if v.generateDerived or v.generateDefault]
+  [v.type] [v.name] = [v.names.get]();
   [else if v.nullableCollector and (not v.nullable)]
   [emptyImmutableCollectionType v] [v.name] = this.[v.name] != null
       ? this.[v.name]
@@ -837,7 +862,7 @@ private boolean equalTo([equalToType] another) {
   [/if]
 [/for]
   return [if not getters]true[/if][for v in getters][if not for.first]
-      && [/if][im.equalsAttribute v (type.annotationType or (v.generateDerived or v.generateDefault))][/for];
+      && [/if][im.equalsAttribute v (type.annotationType or (v.generateDerived or (v.generateDefault or v.deferCollectionAllocation)))][/for];
   [/if]
 }
 [let computeHashCodeBody]
@@ -859,12 +884,8 @@ private boolean equalTo([equalToType] another) {
 [else]
   int [h] = 31;
 [for v in getters]
-  [if v.generateDerived]
-  [v.type] [v.name] = [invokeSuper v].[v.names.get]();
-  [else if v.generateDefault]
-  [v.type] [v.name] = [isSet v]()
-      ? this.[v.name]
-      : [invokeSuper v].[v.names.get]();
+  [if v.generateDerived or v.generateDefault]
+  [v.type] [v.name] = [v.names.get]();
   [/if]
 [if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
@@ -920,15 +941,13 @@ public String toString() {
   [for v in type.equivalenceAttributes]
     [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
     [else if v.arrayType]
-      + "[if not for.first], [/if][v.name]=" + ([if v.nullable][v.name] != null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
+      + "[if not for.first], [/if][v.name]=" + ([if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if])
     [else if v.generateDefault]
-      + "[if not for.first], [/if][v.name]="  + ([isSet v]() ? [v.name] : "?")
-    [else if v.nullable]
-      + "[if not for.first], [/if][v.name]=" + [v.name]
-    [else if v.containerType]
-      + "[if not for.first], [/if][v.name]=" + [v.name]
+      + "[if not for.first], [/if][v.name]=" + [v.names.get]()
+    [else if v.nullable or v.containerType]
+      + "[if not for.first], [/if][v.name]=" + [v.names.get]()
     [else]
-      + "[if not for.first], [/if][v.name]="  + ([isSet v]() ? [v.name] : "?")
+      + "[if not for.first], [/if][v.name]="  + ([isSet v]() ? [v.names.get]() : "?")
     [/if]
   [/for]
       + "}";
@@ -937,15 +956,13 @@ public String toString() {
 [for v in type.equivalenceAttributes]
     [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
     [else if v.arrayType]
-      .add("[v.name]", [if v.nullable][v.name] != null[else][isSet v]()[/if] ? java.util.Arrays.toString([v.name]) : "?")
+      .add("[v.name]", [if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if])
     [else if v.generateDefault]
-      .add("[v.name]", [isSet v]() ? [v.name] : "?")
-    [else if v.nullable]
-      .add("[v.name]", [v.name])
-    [else if v.containerType]
-      .add("[v.name]", [v.name])
+      .add("[v.name]", [v.names.get]())
+    [else if v.nullable or v.containerType]
+      .add("[v.name]", [v.names.get]())
     [else]
-      .add("[v.name]", [isSet v]() ? [v.name] : "?")
+      .add("[v.name]", [isSet v]() ? [v.names.get]() : "?")
     [/if]
 [/for]
       .toString();

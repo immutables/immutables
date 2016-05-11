@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -50,7 +48,6 @@ import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * It's pointless to refactor this mess until
@@ -175,10 +172,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isComparableKey() {
     return isContainerType()
         && super.isComparable();
-  }
-
-  public boolean canUseNullAsUndefined() {
-    return !isPrimitive() && !isNullable();
   }
 
   @Override
@@ -1148,8 +1141,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isNullableCollector() {
-    return (isCollectionType() || isMapType())
-        && (isNullable() || !containingType.isUseStrictBuilder());
+    return typeKind.isCollectionOrMapping()
+        && (isNullable() || containingType.isDeferCollectionAllocation());
+  }
+
+  public boolean isDeferCollectionAllocation() {
+    return typeKind.isCollectionOrMapping()
+        && containingType.isDeferCollectionAllocation();
   }
 
   private void initMiscellaneous() {
@@ -1203,12 +1201,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return builderSwitcherModel != null;
   }
 
+  public boolean canUseNullAsUndefined() {
+    return !isPrimitive() && !isNullable() && !typeKind.isCollectionOrMapping();
+  }
+
   public boolean requiresTrackIsSet() {
     if (isGenerateDefault && isPrimitive()) {
       // because privimitive cannot be null
       return true;
     }
-    if ((typeKind.isCollectionKind() || typeKind.isMappingKind()) && isGenerateDefault) {
+    if (typeKind.isCollectionOrMapping() && isGenerateDefault) {
       // becase builder/collector is used and have to distinguish non-default value is set
       return true;
     }
@@ -1218,7 +1220,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
     if (containingType.isUseStrictBuilder()
         && !isMandatory()
-        && !(typeKind.isCollectionKind() || typeKind.isMappingKind())) {
+        && !typeKind.isCollectionOrMapping()) {
       // non mandatory attributes without add/put methods
       // should be checked if it was already initialized
       // for a strict builder

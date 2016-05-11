@@ -279,6 +279,10 @@ public enum AttributeTypeKind {
     }
   }
 
+  public boolean isCollectionOrMapping() {
+    return isCollectionKind() || isMappingKind();
+  }
+
   public boolean isMultimapKind() {
     switch (this) {
     case MULTIMAP:
