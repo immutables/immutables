@@ -80,7 +80,7 @@ final class Annotations {
 
   private static boolean annotationTypeMatches(
       TypeElement annotationElement,
-      @Nullable Set<String> includeAnnotations,
+      Set<String> includeAnnotations,
       boolean includeAllAnnotations,
       boolean includeJacksonAnnotations,
       Set<String> seenAnnotations) {
@@ -94,7 +94,9 @@ final class Annotations {
       // also skip any we've already seen, since we're recursing.
       return false;
     }
+
     seenAnnotations.add(qualifiedName);
+
     if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
       // we expect to propagate nullability separately
       return false;
@@ -120,7 +122,7 @@ final class Annotations {
     }
 
     // This block of code can include annotation if it's parent annotation is included
-    if (includeJacksonAnnotations && !includeAnnotations.isEmpty()) {
+    if (includeJacksonAnnotations || !includeAnnotations.isEmpty()) {
       for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
         TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
         if (annotationTypeMatches(parentElement, includeAnnotations, false, includeJacksonAnnotations, seenAnnotations)) {
