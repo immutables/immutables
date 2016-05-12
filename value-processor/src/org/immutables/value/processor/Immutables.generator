@@ -1941,9 +1941,10 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
   [else]
 [v.access][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
-  return [disambiguateField type 'initShim'] != null
-      ? [disambiguateField type 'initShim'].[v.names.get]()
-      : [v.name];
+  InitShim shim = this.[disambiguateField type 'initShim'];
+  return shim != null
+      ? shim.[v.names.get]()
+      : this.[v.name];
 [else if v.arrayType]
   return [valueFromValue v v.name];
 [else]
