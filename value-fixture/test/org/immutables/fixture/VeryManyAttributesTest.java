@@ -169,4 +169,44 @@ public class VeryManyAttributesTest {
         .number1_69(1)
         .build();
   }
+  
+  @Test
+  public void noOccupationOverflow() {
+    ImmutableHugeOccupationOverflow.builder()
+        .number0(0)
+        .number1(1)
+        .number2(2)
+        .number3(3)
+        .number4(4)
+        .number5(5)
+        .number6(6)
+        .number7(7)
+        .number8(8)
+        .number9(9)
+        .number10(10)
+        .number11(11)
+        .number12(12)
+        .number13(13)
+        .number14(14)
+        .number15(15)
+        .number16(16)
+        .number17(17)
+        .number18(18)
+        .number19(19)
+        .number20(20)
+        .number21(21)
+        .number22(22)
+        .number23(23)
+        .number24(24)
+        .number25(25)
+        .number26(26)
+        .number27(27)
+        .number28(28)
+        .number29(29)
+        .number30(30)
+        .number31(31)
+        .number32(32)
+        .number33(33)
+        .build();
+  }
 }

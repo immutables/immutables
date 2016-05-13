@@ -88,7 +88,7 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
 
   public static final class LongSet {
     public final int index;
-    public final int occupation;
+    public final long occupation;
     public final Iterable<BitPosition> positions;
 
     LongSet(int index, Iterable<BitPosition> positions) {
@@ -97,8 +97,8 @@ public final class LongBits implements Function<Iterable<? extends Object>, Long
       this.occupation = computeOccupation();
     }
 
-    private int computeOccupation() {
-      int occupation = 0;
+    private long computeOccupation() {
+      long occupation = 0;
       for (BitPosition position : this.positions) {
         occupation |= position.mask;
       }
