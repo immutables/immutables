@@ -1,5 +1,7 @@
 package org.immutables.fixture.jdkonly;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import javax.annotation.Nullable;
 import org.immutables.value.Value;
 
@@ -10,9 +12,8 @@ public abstract class DefaultArray {
     return new int[0];
   }
 
-  @Nullable
   @Value.Default
-  int[] props() {
-    return new int[0];
+  ImmutableSet<Integer> ints() {
+    return ImmutableSortedSet.of();
   }
 }

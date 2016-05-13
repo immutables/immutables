@@ -1491,6 +1491,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
     [/if][valueFromBuilder v v.name][/for][/output.linesShortable]);
 [/template]
 
+[template valueFromSuper Attribute v String expression][if v.guavaImmutableDeclared][if not v.nullable][requireNonNull v.containingType]([expression], "[v.name]")[else][expression][/if][else][valueFromValue v expression][/if][/template]
+
 [template valueFromValue Attribute v String expression][output.trim]
 [if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
@@ -1665,7 +1667,7 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
   [else]
     this.[n] = [if v.requiresTrackIsSet]builder.[v.names.isSet]()[else]builder.[n] != null[/if]
         ? [valueFromBuilderAlt v v.requiresTrackIsSet]builder.[n][/valueFromBuilderAlt]
-        : [if type.annotationType]DEFAULT_VALUE_[toConstant v.name][else][valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue][/if];
+        : [if type.annotationType]DEFAULT_VALUE_[toConstant v.name][else][valueFromSuper v][invokeSuper v].[v.names.get]()[/valueFromSuper][/if];
   [/if]
 [/if]
 [/for]
@@ -1746,8 +1748,7 @@ private final class InitShim {
     if ([stage] == STAGE_INITIALIZING) throw new [type.throwForInvalidImmutableState](formatInitCycleMessage());
     if ([stage] == STAGE_UNINITIALIZED) {
       [stage] = STAGE_INITIALIZING;
-      [v.atNullabilityLocal][v.type] [v.name] = [if v.defaultInterface][invokeSuperGet][else][invokeSuperQualified v].[v.names.get][/if]();
-      this.[v.name] = [valueFromValue v][v.name][/valueFromValue];
+      this.[v.name] = [valueFromSuper v][if v.defaultInterface][invokeSuperGet][else][invokeSuperQualified v].[v.names.get][/if]()[/valueFromSuper];
       [stage] = STAGE_INITIALIZED;
     }
     return this.[v.name];
@@ -1942,9 +1943,15 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [v.access][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
   InitShim shim = this.[disambiguateField type 'initShim'];
+  [if v.arrayType and (not v.nullable)]
+  return shim != null
+    ? shim.[v.names.get]().clone()
+    : this.[v.name].clone();
+  [else]
   return shim != null
       ? shim.[v.names.get]()
       : this.[v.name];
+  [/if]
 [else if v.arrayType]
   return [valueFromValue v v.name];
 [else]
