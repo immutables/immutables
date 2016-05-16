@@ -71,6 +71,9 @@ import java.lang.Double;
   [for starImport in type.requiredSourceStarImports]
 import [starImport];
   [/for]
+  [for routine in type.immutableCopyOfRoutines]
+import static [routine].immutableCopyOf;
+  [/for]
 [/if]
 [/template]
 
@@ -1503,7 +1506,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.collectionType or v.mapType]
   [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else]
-  [maybeNonNullValue v expression]
+  [maybeNonNullValue v][maybeCopyOf v expression][/maybeNonNullValue]
 [/if]
 [/output.trim][/template]
 
@@ -2924,6 +2927,8 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/output.trim][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
+[template maybeCopyOf Attribute v String expression][if v.generateImmutableCopyOf]immutableCopyOf([expression])[else][expression][/if][/template]
+
 [template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
 
 [template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics.args]) [/if]this[/template]

@@ -17,7 +17,6 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.collect.ImmutableSet;
 import org.immutables.value.Value;
-
 import java.lang.annotation.Annotation;
 
 /**
@@ -246,6 +245,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
     throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
   }
 
+  @Override
+  public Class<?>[] immutableCopyOfRoutines() {
+    throw new UnsupportedOperationException("Use StyleInfo.immutableCopyOfRoutinesNames() instead");
+  }
+
   @Value.Parameter
   public abstract String throwForInvalidImmutableStateName();
 
@@ -256,6 +260,9 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract String[] depluralizeDictionary();
+
+  @Value.Parameter
+  public abstract ImmutableSet<String> immutableCopyOfRoutinesNames();
 
   @Value.Lazy
   public Styles getStyles() {

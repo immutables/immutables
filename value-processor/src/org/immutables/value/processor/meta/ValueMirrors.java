@@ -190,6 +190,8 @@ public final class ValueMirrors {
 
     String[] depluralizeDictionary() default {};
 
+    Class<?>[] immutableCopyOfRoutines() default {};
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

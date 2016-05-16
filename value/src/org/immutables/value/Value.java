@@ -848,7 +848,7 @@ public @interface Value {
      * @return {@code true} if defer collection allocation.
      */
     boolean deferCollectionAllocation() default false;
-    
+
     /**
      * Deep analysis of immutable types enables additional convenience features.
      * When enabled, each attribute is being analized and if it discovered to be an {@literal @}
@@ -1010,6 +1010,24 @@ public @interface Value {
      * @return array of "singular:plural" pairs.
      */
     String[] depluralizeDictionary() default {};
+
+    /**
+     * You can provide classes which must contain copyOf method with relevant overloads which should
+     * not have unambigous cases as it will be fully as subject to JLS rules of static imports and
+     * compile time overload resolution.
+     * <p>
+     * Tha major use case is custom validation and normalization of the attribute values by types.
+     * Validations specific to a value object or it's attributes could be performed using
+     * <p>
+     * <em>Note: This attribute-style is experimental and may be changed in near releases.
+     * The manner in which routines are applied
+     * </em>
+     * </p>
+     * @return classes, for which static imports like {@code import static ..Type.immutableCopyOf;}
+     *         will be generated along with corresponding invokations of {@code immutableCopyOf}
+     *         method when accepting parameters.
+     */
+    Class<?>[] immutableCopyOfRoutines() default {};
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

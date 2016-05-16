@@ -125,7 +125,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isDeferCollectionAllocation() {
     return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
-  
+
   public boolean hasDerivedAttributes() {
     return derivedAttributesCount > 0;
   }
@@ -1131,6 +1131,15 @@ public final class ValueType extends TypeIntrospectionBase {
     } else if (p.serialVersion().isPresent()) {
       serial = Serialization.SERIAL_VERSION;
     }
+  }
+
+  public Set<String> getImmutableCopyOfRoutines() {
+    Set<String> routines = new LinkedHashSet<>();
+    routines.addAll(constitution.style().immutableCopyOfRoutinesNames());
+    for (ValueType v : nested) {
+      routines.addAll(v.constitution.style().immutableCopyOfRoutinesNames());
+    }
+    return routines;
   }
 
   public boolean isGenerateSuppressAllWarnings() {

@@ -897,6 +897,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     validateTypeAndAnnotations();
 
     initAttributeValueType();
+    initImmutableCopyOf();
+  }
+
+  private void initImmutableCopyOf() {
+    ensureTypeIntrospected();
+    this.isGenerateImmutableCopyOf = containingType.kind().isValue()
+        && !containingType.constitution.style().immutableCopyOfRoutinesNames().isEmpty()
+        && typeKind.isRegular()
+        && !isPrimitiveOrWrapped(rawTypeName)
+        && !isStringType()
+        && attributeValueType == null;
   }
 
   private void initOrderKind() {
@@ -1233,6 +1244,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
     return false;
   }
+
+  public boolean isGenerateImmutableCopyOf;
 
   public Collection<TypeElement> getEnumElements() {
     if (isEnumType()) {
