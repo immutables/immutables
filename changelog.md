@@ -1,13 +1,14 @@
 Changelog
 ---------
 
-### 2.2-beta (2016-05-05)
+### 2.2 (2016-05-16)
 - Thanks to contributors and issue reporters!
-- Beta release to flesh out interactions between new features. Backward compatibility should be preserved.
-- Improvement
-  + Generic parameters support for Immutable objects! Modifiables are supported (likely). Gson Adapters are **not yet** compatible with generics.
+- Improvements
+  + Generic parameters support for Immutable objects! Modifiables are supported (likely).
+  + Jackson/Gson Adapters support for generics
   + Collections now can be nullable and/or also `@Value.Default`. Default attributes can be nullable, yet allowing arbitrary default values.
   + Depluralization dictionaries can be specified on multiple levels (type, package, meta-annotation). All applicable dictionary entries will be merged.
+- Backward compatibility should be preserved.
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2)
 
 ### 2.1.19 (2016-05-04)
