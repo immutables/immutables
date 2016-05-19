@@ -1068,7 +1068,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       typeKind = AttributeTypeKind.REGULAR;
       report()
           .annotationNamed(DefaultMirror.simpleName())
-          .warning("Generic wildcards are not supported, so the container attribute loosing its special treatment");
+          .warning("Generic wildcards are not supported, so the container attribute losing its special treatment");
     }
 
     if (isNullable()) {
