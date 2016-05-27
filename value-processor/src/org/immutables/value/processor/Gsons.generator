@@ -613,6 +613,16 @@ return value;
 
 private void readIn[toUpper a.name](JsonReader in, [type.typeBuilder] builder)
     throws IOException {
+[if type.gsonTypeAdapters.nullAsDefault]
+  [if not a.nullable]
+    [if not a.mandatory]
+  if (in.peek() == JsonToken.NULL) {
+    in.nextNull();
+    return;
+  }
+    [/if]
+  [/if]
+[/if]
   [if a.primitive]
   builder.[a.names.init]([simpleTypeNext a.type]);
   [else]

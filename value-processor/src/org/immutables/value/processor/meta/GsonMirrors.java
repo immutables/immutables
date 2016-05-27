@@ -25,6 +25,8 @@ public final class GsonMirrors {
     boolean fieldNamingStrategy() default false;
 
     boolean emptyAsNulls() default false;
+
+    boolean nullAsDefault() default false;
   }
 
   @Mirror.Annotation("org.immutables.gson.Gson.ExpectedSubtypes")

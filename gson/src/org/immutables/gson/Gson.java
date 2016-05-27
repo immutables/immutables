@@ -101,6 +101,14 @@ public @interface Gson {
      * @return {@code true} if enabled, by default is {@code false}
      */
     boolean emptyAsNulls() default false;
+
+    /**
+     * Enables treating {@code null} value as a marker that value is absent and default value should
+     * be used for default attributes. This workds during reading/deserialization. If default value
+     * is also nullable, then {@code null} will be set regardless of a default value.
+     * @return {@code true} if enabled, by default is {@code false}
+     */
+    boolean nullAsDefault() default false;
   }
 
   /**

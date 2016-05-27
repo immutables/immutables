@@ -15,6 +15,8 @@
  */
 package org.immutables.gson.adapter;
 
+import static org.immutables.check.Checkers.check;
+import org.immutables.gson.adapter.NullAsDefault.Val;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -37,6 +39,7 @@ public class GsonFeaturesTest {
   final Gson gsonDefault = new GsonBuilder()
       .registerTypeAdapterFactory(new GsonAdaptersSimple())
       .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
+      .registerTypeAdapterFactory(new GsonAdaptersNullAsDefault())
       .create();
 
   @Test
@@ -56,6 +59,13 @@ public class GsonFeaturesTest {
     Simple simple = ImmutableSimple.builder().build();
     JsonObject json = gsonWithOptions.toJsonTree(simple).getAsJsonObject();
     check(keysIn(json)).hasContentInAnyOrder("character_list", "optional_string", "_nullable_");
+  }
+
+  @Test
+  public void nullAsDefault() {
+    NullAsDefault.Val val = gsonDefault.fromJson("{\"a\":null,\"b\":null}", NullAsDefault.Val.class);
+    check(val.a()).is(-1);
+    check(val.b()).is("n/a");
   }
 
   @Test
