@@ -1331,7 +1331,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [disambiguateField type 'optBits'][emptyIfZero l.index] = 0;
     [/for]
     [for v in setters]
+    [if v.containerType and (v.generateJdkOnly and (v.nullableCollector and (not v.nullable)))][-- it's hard to push it down to defineOrResetBuildingFieldAlt --]
+    if ([v.name] != null) {
+      [v.name].clear();
+    }
+    [else]
     [defineOrResetBuildingFieldAlt v false v.nullableCollector]
+    [/if]
     [/for]
     return [builderReturnThis type];
   }

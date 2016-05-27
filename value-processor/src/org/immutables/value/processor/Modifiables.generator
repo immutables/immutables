@@ -203,7 +203,9 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
         .[type.names.from](this)
       [else]
         [for v in type.settableAttributes]
-          [if v.collectionType]
+          [if v.nullable]
+        .[v.names.init]([v.names.get]())
+          [else if v.collectionType]
         .[v.names.addAll]([v.names.get]())
           [else if v.mapType]
         .[v.names.putAll]([v.names.get]())
@@ -793,8 +795,14 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [template clearField Attribute v]
   [if v.optionalType]
 [v.name] = [optionalEmpty v];
-  [else if v.containerType and (not (v.guavaImmutableDeclared or v.nullableCollector))]
-[v.name].clear();
+  [else if v.containerType and (not (v.guavaImmutableDeclared or v.nullable))]
+    [if v.nullableCollector]
+  if ([v.name] != null) {
+    [v.name].clear();
+  }
+    [else]
+  [v.name].clear();
+    [/if]
   [else if v.boolean]
 [v.name] = false;
   [else if v.primitive]
