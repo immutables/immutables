@@ -19,13 +19,30 @@ import static org.immutables.check.Checkers.check;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-public class Jackson273Test {
+public class JacksonBugsTest {
   private static String SAMPLE_JSON = "{\"organizationId\": 172}";
+  ObjectMapper mapper = new ObjectMapper();
 
   @Test
-  public void serialize() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
+  public void serialize273() throws Exception {
     ProjectInformation info = mapper.readValue(SAMPLE_JSON, ProjectInformation.class);
     check(info.getOrganizationId()).is(172);
+  }
+
+  // we are testing generation for JsonProperty annotations and checking that they are read
+  // and writen the same way
+  @Test
+  public void roundtrip328() throws Exception {
+    String json = mapper.writeValueAsString(ImmutableAttributeIs.builder()
+        .isEmpty(false)
+        .empty(true)
+        .build());
+
+    System.out.println("!!!!");
+    System.out.println(json);
+
+    AttributeIs info = mapper.readValue(json, AttributeIs.class);
+    check(!info.isEmpty());
+    check(info.getEmpty());
   }
 }

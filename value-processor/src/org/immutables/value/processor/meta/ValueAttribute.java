@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.StringLiterals;
+import org.immutables.generator.Builtins.Literal;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -313,7 +315,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         elementType).isEmpty();
 
     if (dontHaveJsonPropetyAnnotationAlready) {
-      allAnnotations.add("@" + JsonPropertyMirror.qualifiedName());
+      String propertyAnnotation =
+          "@" + JsonPropertyMirror.qualifiedName() + "(" + StringLiterals.toLiteral(name()) + ")";
+
+      allAnnotations.add(propertyAnnotation);
     }
 
     allAnnotations.addAll(
