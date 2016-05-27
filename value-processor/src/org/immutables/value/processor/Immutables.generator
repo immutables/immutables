@@ -868,13 +868,16 @@ private Object writeReplace() {
   [/if]
       [/for]
 
-  private void from(Object object) {
 [for bs = type.buildFromTypes]
+[if bs.hasWildcards]
+  @SuppressWarnings("unchecked")
+[/if]
+  private void from(Object object) {
     [for l in bs.positions.longs]
     long bits[emptyIfZero l.index] = 0;
     [/for]
   [for s in bs.supertypes if s.attributes]
-    if (object instanceof [s.type]) {
+    if (object instanceof [s.wildcard]) {
       [s.type] instance = ([s.type]) object;
       [for v in s.attributes, BitPosition pos = bs.positions v.name]
       [if pos]
@@ -888,8 +891,8 @@ private Object writeReplace() {
       [/for]
     }
   [/for]
-[/for]
   }
+[/for]
     [else]
 
   /**

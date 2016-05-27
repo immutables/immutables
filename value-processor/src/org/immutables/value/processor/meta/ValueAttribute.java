@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.StringLiterals;
-import org.immutables.generator.Builtins.Literal;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -42,6 +40,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
+import org.immutables.generator.StringLiterals;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;

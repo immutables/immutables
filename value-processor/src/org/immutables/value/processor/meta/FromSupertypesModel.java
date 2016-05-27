@@ -17,18 +17,15 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.SetMultimap;
+import com.google.common.collect.*;
+import org.immutables.generator.SourceTypes;
+import org.immutables.value.processor.meta.LongBits.LongPositions;
+import javax.lang.model.element.TypeElement;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.lang.model.element.TypeElement;
-import org.immutables.value.processor.meta.LongBits.LongPositions;
 
 public final class FromSupertypesModel {
   public final ImmutableList<FromSupertypesModel.FromSupertype> supertypes;
@@ -37,10 +34,14 @@ public final class FromSupertypesModel {
 
   public final static class FromSupertype {
     public final String type;
+    public final String wildcard;
+    public final boolean hasWildcard;
     public final ImmutableList<ValueAttribute> attributes;
 
     FromSupertype(String type, Iterable<ValueAttribute> attribute) {
       this.type = type;
+      this.hasWildcard = type.indexOf('<') > 0;
+      this.wildcard = hasWildcard ? toRawWildcard(type) : type;
       this.attributes = ImmutableList.copyOf(attribute);
     }
 
@@ -109,7 +110,22 @@ public final class FromSupertypesModel {
     return typeElement.getTypeParameters().isEmpty();
   }
 
+  private static String toRawWildcard(String type) {
+    Entry<String, List<String>> withArgs = SourceTypes.extract(type);
+    return SourceTypes.stringify(Maps.immutableEntry(withArgs.getKey(),
+        Collections.nCopies(withArgs.getValue().size(), "?")));
+  }
+
   public boolean hasManySupertypes() {
     return supertypes.size() > 1;
+  }
+
+  public boolean hasWildcards() {
+    for (FromSupertype s : supertypes) {
+      if (s.hasWildcard) {
+        return true;
+      }
+    }
+    return false;
   }
 }
