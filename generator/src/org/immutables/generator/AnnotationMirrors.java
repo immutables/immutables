@@ -15,6 +15,8 @@
  */
 package org.immutables.generator;
 
+import javax.lang.model.element.Name;
+import java.util.Arrays;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import java.lang.annotation.Annotation;
@@ -259,18 +261,18 @@ public final class AnnotationMirrors {
       Map<? extends ExecutableElement, ? extends AnnotationValue> values = a.getElementValues();
       if (!values.isEmpty()) {
         builder.append('(');
-        if (Collections.singleton(ATTRIBUTE_VALUE).equals(values.keySet())) {
-          visitValue(values.get(ATTRIBUTE_VALUE));
-        } else {
-          boolean notFirst = false;
-          for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : values.entrySet()) {
-            if (notFirst) {
-              builder.append(", ");
-            }
-            notFirst = true;
-            builder.append(e.getKey().getSimpleName()).append(" = ");
-            visitValue(e.getValue());
+        boolean notFirst = false;
+        for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : values.entrySet()) {
+          if (notFirst) {
+            builder.append(", ");
           }
+          notFirst = true;
+          Name name = e.getKey().getSimpleName();
+          boolean onlyValue = values.size() == 1 && name.contentEquals(ATTRIBUTE_VALUE);
+          if (!onlyValue) {
+            builder.append(name).append(" = ");
+          }
+          visitValue(e.getValue());
         }
         builder.append(')');
       }
