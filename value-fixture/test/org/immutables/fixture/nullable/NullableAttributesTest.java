@@ -62,6 +62,21 @@ public class NullableAttributesTest {
   }
 
   @Test
+  public void fromNullCollection() {
+    ImmutableFromNullCollection nullCollection = ImmutableFromNullCollection.builder()
+        .freq(null)
+        .items(null)
+        .build();
+
+    ImmutableFromNullCollection fromNullCollection = ImmutableFromNullCollection.builder()
+        .from(nullCollection)
+        .build();
+
+    check(fromNullCollection.getItems()).isNull();
+    check(fromNullCollection.getFreq()).isNull();
+  }
+
+  @Test
   public void compactConstruction() {
     ImmutableNullableCompact c1 = ImmutableNullableCompact.builder()
         .build();

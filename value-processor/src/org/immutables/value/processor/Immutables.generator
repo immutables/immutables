@@ -1474,9 +1474,23 @@ if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type
 
 [template buildFromAttribute Attribute v]
   [if v.collectionType]
+    [if v.nullable]
+[v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.addAll]([v.name]Value);
+}
+    [else]
 [v.names.addAll](instance.[v.names.get]());
+    [/if]
   [else if v.mapType]
+    [if v.nullable]
+[v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.putAll]([v.name]Value);
+}
+    [else]
 [v.names.putAll](instance.[v.names.get]());
+    [/if]
   [else if v.optionalType]
 [v.type] [v.name]Optional = instance.[v.names.get]();
 if ([v.name]Optional.[optionalPresent v]) {
