@@ -68,7 +68,7 @@
 
   <profiles>
     <profile>
-      <id>pargen</id>
+      <id>sonatype-oss-release</id>
       <build>
         <plugins>
           <plugin>
@@ -84,7 +84,7 @@
                 <configuration>
                   <shadedArtifactAttached>true</shadedArtifactAttached>
                   <createSourcesJar>true</createSourcesJar>
-                  <shadedClassifierName>pargen</shadedClassifierName>
+                  <shadedClassifierName>luggage</shadedClassifierName>
 
                   <artifactSet>
                     <includes>
