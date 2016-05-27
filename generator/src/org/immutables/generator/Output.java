@@ -321,7 +321,9 @@ public final class Output {
           getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
         } else {
           getMessager().printMessage(Kind.ERROR, String.format(
-              "Generated source file name collission. Attempt to overwrite already generated file: %s, %s",
+              "Generated source file name colission. Attempt to overwrite already generated file: %s, %s."
+                  + " If this happens when using @Value.Immutable on same-named nested classes in the same package,"
+                  + " use can use @Value.Enclosing annotation to provide some sort of namespacing",
               key, ex));
         }
       } catch (IOException ex) {
