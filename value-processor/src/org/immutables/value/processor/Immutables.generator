@@ -44,11 +44,11 @@
 [else if type.hasDeprecatedAttributes]
 @SuppressWarnings("deprecation")
 [/if]
-[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
-@javax.annotation.ParametersAreNonnullByDefault
-[/if]
 [if classpath.available 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+[/if]
+[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+@javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if classpath.available 'javax.annotation.Generated']
 @javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relative]"})

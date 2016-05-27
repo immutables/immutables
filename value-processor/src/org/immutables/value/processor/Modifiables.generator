@@ -981,7 +981,14 @@ public String toString() {
 
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]
-[if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if type.generateSuppressAllWarnings]
+@SuppressWarnings([if type.hasDeprecatedAttributes]{"all", "deprecation"}[else]"all"[/if])
+[else if type.hasDeprecatedAttributes]
+@SuppressWarnings("deprecation")
+[/if]
+[if classpath.available 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
+@edu.umd.cs.findbugs.annotations.SuppressFBWarnings
+[/if]
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
