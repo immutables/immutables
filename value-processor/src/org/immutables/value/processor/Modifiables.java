@@ -15,9 +15,17 @@
  */
 package org.immutables.value.processor;
 
+import com.google.common.base.Predicate;
 import org.immutables.generator.Generator;
 
 @Generator.Template
 abstract class Modifiables extends ValuesTemplate {
   final Immutables im = new Generator_Immutables();
+  final Predicate<String> setTopLevelSimple = new Predicate<String>() {
+    @Override
+    public boolean apply(String input) {
+      im.topLevelSimple = input;
+      return true;
+    }
+  };
 }

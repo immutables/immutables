@@ -15,11 +15,15 @@
  */
 package org.immutables.value.processor;
 
+import javax.annotation.Nullable;
 import org.immutables.generator.Templates;
 import org.immutables.generator.Generator;
 
 @Generator.Template
 abstract class Immutables extends ValuesTemplate {
+  @Nullable
+  String topLevelSimple;
+
   abstract org.immutables.generator.Templates.Invokable arrayAsList();
 
   abstract Templates.Invokable arrayAsListSecondary();

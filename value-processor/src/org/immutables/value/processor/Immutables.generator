@@ -2649,11 +2649,11 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [template public objectsEqual Type type][output.trim]
 [if type.generateJdkOnly]
   [if classpath.available 'android.R']
-    [type.topSimple].equals
+    [topSimplePrefix type]equals
   [else if classpath.available 'java.util.Objects']
     java.util.Objects.equals
   [else]
-    [type.topSimple].equals
+    [topSimplePrefix type]equals
   [/if]
 [else]
   [guava].base.Objects.equal
@@ -2663,11 +2663,11 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [template public objectsHashCode Type type][output.trim]
 [if type.generateJdkOnly]
   [if classpath.available 'android.R']
-    [type.topSimple].hashCode
+    [topSimplePrefix type]hashCode
   [else if classpath.available 'java.util.Objects']
     java.util.Objects.hashCode
   [else]
-    [type.topSimple].hashCode
+    [topSimplePrefix type]hashCode
   [/if]
 [else]
   [guava].base.Objects.hashCode
@@ -2677,11 +2677,11 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [template public requireNonNull Type type][output.trim]
 [if type.generateJdkOnly]
   [if classpath.available 'android.R']
-    [type.topSimple].requireNonNull
+    [topSimplePrefix type]requireNonNull
   [else if classpath.available 'java.util.Objects']
     java.util.Objects.requireNonNull
   [else]
-    [type.topSimple].requireNonNull
+    [topSimplePrefix type]requireNonNull
   [/if]
 [else]
   [guava].base.Preconditions.checkNotNull
@@ -2950,6 +2950,8 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 [/output.trim][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
+[template topSimplePrefix Type type][if topLevelSimple][topLevelSimple].[else][type.topSimple].[/if][/template]
+
 [template maybeCopyOf Attribute v String expression][if v.generateImmutableCopyOf]immutableCopyOf([expression])[else][expression][/if][/template]
 
 [template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
