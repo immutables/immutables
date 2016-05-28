@@ -16,8 +16,6 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Optional;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.generator.SourceOrdering.AccessorProvider;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -36,11 +34,12 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
+import org.immutables.generator.SourceOrdering.AccessorProvider;
+import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 final class AccessorAttributesCollector {
-  private static final String ORDINAL_VALUE_INTERFACE_TYPE = TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE;
   private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
   private static final String ORDINAL_DOMAIN_ATTRIBUTE_NAME = "domain";
 
@@ -156,7 +155,7 @@ final class AccessorAttributesCollector {
     if (definitionType.equals(Object.class.getName())) {
       return false;
     }
-    if (definitionType.startsWith(ORDINAL_VALUE_INTERFACE_TYPE)) {
+    if (definitionType.equals(Proto.ORDINAL_VALUE_INTERFACE_TYPE)) {
       return false;
     }
     return true;
@@ -357,7 +356,7 @@ final class AccessorAttributesCollector {
           reporter,
           validationMethodCandidate,
           validationMethodCandidate.getReturnType(),
-          declaringType.get(),
+          declaringType.asSet(),
           protoclass.constitution().generics().vars());
       provider.process();
       String returnTypeName = provider.returnTypeName();

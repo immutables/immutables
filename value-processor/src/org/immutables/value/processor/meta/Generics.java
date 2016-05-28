@@ -102,7 +102,7 @@ public final class Generics implements Iterable<String> {
             protoclass.report(),
             element,
             type,
-            declaringType,
+            Collections.singleton(declaringType),
             vars);
       }
     }

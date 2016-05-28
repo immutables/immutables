@@ -70,7 +70,7 @@ public final class Intrinsics {
   public static Product $(Object... parameters) {
     return new Product(parameters);
   }
-  
+
   @SafeVarargs
   public static <T> Iterable<T> $(Iterable<? extends T>... iterables) {
     return Iterables.concat(iterables);

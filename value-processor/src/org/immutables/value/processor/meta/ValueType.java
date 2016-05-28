@@ -303,13 +303,13 @@ public final class ValueType extends TypeIntrospectionBase {
     if (constitution.protoclass().isJacksonJsonTypeInfo()) {
       return true;
     }
-    for (DeclaredType type : implementedInterfaces()) {
-      if (Proto.isJacksonJsonTypeInfoAnnotated(type.asElement())) {
+    for (TypeElement t : implementedInterfaces()) {
+      if (Proto.isJacksonJsonTypeInfoAnnotated(t)) {
         return true;
       }
     }
-    for (DeclaredType type : extendedClasses()) {
-      if (Proto.isJacksonJsonTypeInfoAnnotated(type.asElement())) {
+    for (TypeElement t : extendedClasses()) {
+      if (Proto.isJacksonJsonTypeInfoAnnotated(t)) {
         return true;
       }
     }
@@ -994,17 +994,35 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   @Override
-  protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
-    this.hierarchiCollector = super.collectTypeHierarchy(typeMirror);
+  protected TypeHierarchyCollector collectTypeHierarchy(final TypeMirror typeMirror) {
+    this.hierarchiCollector = createTypeHierarchyCollector(report(), element);
+    this.hierarchiCollector.collectFrom(typeMirror);
     return hierarchiCollector;
   }
 
-  ImmutableList<DeclaredType> extendedClasses() {
+  TypeHierarchyCollector createTypeHierarchyCollector(final Reporter reporter, final Element element) {
+    return new TypeHierarchyCollector() {
+      @Override
+      protected String stringify(DeclaredType input, TypevarContext context) {
+        TypeStringProvider provider = new TypeStringProvider(
+            reporter,
+            element,
+            input,
+            constitution.protoclass().declaringType().asSet(),
+            context.parameters.toArray(new String[0]),
+            context.arguments.toArray(new String[0]));
+        provider.process();
+        return provider.returnTypeName();
+      }
+    };
+  }
+
+  ImmutableList<TypeElement> extendedClasses() {
     ensureTypeIntrospected();
     return hierarchiCollector.extendedClasses();
   }
 
-  ImmutableSet<DeclaredType> implementedInterfaces() {
+  ImmutableSet<TypeElement> implementedInterfaces() {
     ensureTypeIntrospected();
     return hierarchiCollector.implementedInterfaces();
   }
@@ -1261,7 +1279,10 @@ public final class ValueType extends TypeIntrospectionBase {
             report(),
             element,
             type,
-            declaringType,
+            ImmutableList.<DeclaringType>builder()
+                .add(declaringType)
+                .addAll(constitution.protoclass().declaringType().asSet())
+                .build(),
             constitution.generics().vars());
     provider.process();
     return provider.returnTypeName();

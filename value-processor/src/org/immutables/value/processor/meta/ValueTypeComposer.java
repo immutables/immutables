@@ -18,7 +18,6 @@ package org.immutables.value.processor.meta;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import java.util.Collection;
@@ -28,7 +27,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import org.immutables.value.processor.meta.Proto.Protoclass;
@@ -157,14 +155,14 @@ public final class ValueTypeComposer {
   private static void scanAndReportInvalidInheritance(
       Protoclass protoclass,
       Element element,
-      Iterable<DeclaredType> supertypes) {
-    for (TypeElement supertype : Iterables.transform(supertypes, Proto.DeclatedTypeToElement.FUNCTION)) {
-      if (!CachingElements.equals(element, supertype) && ImmutableMirror.isPresent(supertype)) {
+      Iterable<TypeElement> supertypes) {
+    for (TypeElement s : supertypes) {
+      if (!CachingElements.equals(element, s) && ImmutableMirror.isPresent(s)) {
         protoclass.report()
             .error("Should not inherit %s which is a value type itself."
                 + " Avoid extending from another abstract value type."
                 + " Better to share common abstract class or interface which"
-                + " are not carrying @%s annotation", supertype, ImmutableMirror.simpleName());
+                + " are not carrying @%s annotation", s, ImmutableMirror.simpleName());
       }
     }
   }
@@ -219,7 +217,6 @@ public final class ValueTypeComposer {
         || element.getModifiers().contains(Modifier.STATIC);
 
     boolean nonFinal = !element.getModifiers().contains(Modifier.FINAL);
-//    boolean hasNoTypeParameters = ((TypeElement) element).getTypeParameters().isEmpty();
 
     boolean publicOrPackageVisible =
         !element.getModifiers().contains(Modifier.PRIVATE)
@@ -232,10 +229,6 @@ public final class ValueTypeComposer {
     if (!nonFinal) {
       violations.add("must be non-final");
     }
-
-//    if (!hasNoTypeParameters) {
-//      violations.add("should have no type parameters");
-//    }
 
     if (!publicOrPackageVisible) {
       violations.add("should be public or package-visible");

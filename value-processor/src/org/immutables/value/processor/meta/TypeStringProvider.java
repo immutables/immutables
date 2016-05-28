@@ -17,11 +17,13 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
@@ -39,6 +41,7 @@ import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Encapsulates routines and various hacks for get relevant strings for the raw types and type
@@ -52,30 +55,43 @@ class TypeStringProvider {
   boolean unresolvedTypeHasOccured;
   boolean hasMaybeUnresolvedYetAfter;
   boolean hasTypeVariables;
-  private ImmutableMap<String, String> sourceClassesImports;
+  private List<SourceExtraction.Imports> sourceClassesImports;
 
   private String rawTypeName;
   private String returnTypeName;
   private boolean ended;
-  @Nullable
-  private List<String> workaroundTypeParameters;
-  @Nullable
-  private String workaroundTypeString;
+
+  private @Nullable List<String> workaroundTypeParameters;
+  private @Nullable String workaroundTypeString;
   private final Reporter reporter;
-  private final DeclaringType declaringType;
+  private final Collection<DeclaringType> declaringType;
   private final String[] allowedTypevars;
+  private final @Nullable String[] typevarArguments;
 
   TypeStringProvider(
       Reporter reporter,
       Element element,
       TypeMirror startType,
-      DeclaringType declaringType,
-      String[] allowedTypevars) {
+      Collection<DeclaringType> declaringType,
+      String[] allowedTypevars,
+      @Nullable String[] typevarArguments) {
+
     this.reporter = reporter;
     this.declaringType = declaringType;
     this.startType = startType;
     this.element = element;
     this.allowedTypevars = allowedTypevars;
+    this.typevarArguments = typevarArguments;
+    checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length);
+  }
+
+  TypeStringProvider(
+      Reporter reporter,
+      Element element,
+      TypeMirror startType,
+      Collection<DeclaringType> declaringType,
+      String[] allowedTypevars) {
+    this(reporter, element, startType, declaringType, allowedTypevars, null);
   }
 
   String rawTypeName() {
@@ -164,11 +180,18 @@ class TypeStringProvider {
   @Nullable
   private String getFromSourceImports(String resolvable) {
     if (sourceClassesImports == null) {
-      sourceClassesImports = declaringType
-          .associatedTopLevel()
-          .sourceImports().classes;
+      sourceClassesImports = Lists.newArrayList();
+      for (DeclaringType t : declaringType) {
+        sourceClassesImports.add(t.associatedTopLevel().sourceImports());
+      }
     }
-    return sourceClassesImports.get(resolvable);
+    for (SourceExtraction.Imports imports : sourceClassesImports) {
+      @Nullable String resolved = imports.classes.get(resolvable);
+      if (resolved != null) {
+        return resolved;
+      }
+    }
+    return null;
   }
 
   private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
@@ -270,9 +293,14 @@ class TypeStringProvider {
       if (allowedTypevars.length != 0) {
         TypeVariable typeVariable = (TypeVariable) type;
         String var = typeVariable.toString();// .asElement().getSimpleName().toString()
-        if (Arrays.asList(allowedTypevars).contains(var)) {
-          hasTypeVariables = true;
-          buffer.append(var);
+        int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
+        if (indexOfVar >= 0) {
+          if (typevarArguments != null) {
+            buffer.append(typevarArguments[indexOfVar]);
+          } else {
+            hasTypeVariables = true;
+            buffer.append(var);
+          }
           break;
         }
         // If we don't have such parameter we consider this is the quirk
@@ -286,10 +314,11 @@ class TypeStringProvider {
         break;
       }
 
-      reporter.error("It is a compiler/annotation processing bug to receive type variable '%s' here."
-          + " To avoid it — do not use not yet generated types in %s attribute",
-          type,
-          element.getSimpleName());
+      reporter.withElement(element)
+          .error("It is a compiler/annotation processing bug to receive type variable '%s' here."
+              + " To avoid it — do not use not yet generated types in %s attribute",
+              type,
+              element.getSimpleName());
 
       // just append as toString whatever we have
       buffer.append(type);

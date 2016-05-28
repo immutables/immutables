@@ -41,6 +41,7 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
+import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
@@ -651,11 +652,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
               protected TypeMirror internalTypeMirror() {
                 return typeArgument;
               }
+
+              @Override
+              protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
+                TypeHierarchyCollector collector = containingType.createTypeHierarchyCollector(reporter, element);
+                collector.collectFrom(typeMirror);
+                return collector;
+              }
             }.isOrdinalValue();
           }
           if (isMapType()) {
             TypeMirror typeSecondArgument = typeArguments.get(1);
-
             if (typeSecondArgument.getKind() == TypeKind.DECLARED) {
               TypeElement typeElement = (TypeElement) ((DeclaredType) typeSecondArgument).asElement();
               this.containedSecondaryTypeElement = typeElement;
@@ -675,7 +682,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       this.containedTypeElement = typeElement;
     }
 
-    intospectTypeMirror(typeMirror);
+    introspectTypeMirror(typeMirror);
+    introspectSupertypes();
   }
 
   private String optionalSpecializedType() {
@@ -928,7 +936,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         reporter,
         element,
         returnType,
-        getDeclaringType(),
+        ImmutableList.<DeclaringType>builder()
+            .addAll(protoclass().declaringType().asSet())
+            .add(getDeclaringType())
+            .build(),
         protoclass().constitution().generics().vars());
 
     provider.process();

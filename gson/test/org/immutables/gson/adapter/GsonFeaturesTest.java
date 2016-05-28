@@ -15,8 +15,6 @@
  */
 package org.immutables.gson.adapter;
 
-import static org.immutables.check.Checkers.check;
-import org.immutables.gson.adapter.NullAsDefault.Val;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -26,7 +24,7 @@ import com.google.gson.JsonObject;
 import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class GsonFeaturesTest {
   final Gson gsonWithOptions = new GsonBuilder()

@@ -13,17 +13,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jackson;
+package org.immutables.fixture.generics;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.immutables.fixture.generics.bravo.ParentWithGeneric;
+import org.immutables.fixture.generics.alpha.ImmutableSpecificType;
 import org.immutables.value.Value;
 
+// Compilation test to correctly handle imports with generic inheritance and not yet generated types
+// from different packages.
 @Value.Immutable
-@JsonDeserialize(as = ImmutableAttributeIs.class)
-public interface AttributeIs {
-  boolean isEmpty();
-
-  @JsonProperty("empty")
-  boolean getEmpty();
-}
+public abstract class ChildWithGeneric extends ParentWithGeneric<ImmutableSpecificType> {}

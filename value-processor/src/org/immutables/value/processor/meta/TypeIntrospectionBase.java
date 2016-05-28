@@ -26,7 +26,9 @@ import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.TypeHierarchyCollector;
 
 public abstract class TypeIntrospectionBase {
-  static final String ORDINAL_VALUE_INTERFACE_TYPE = Proto.ORDINAL_VALUE_INTERFACE_TYPE;
+  private static final String COMPARABLE_INTERFACE_PREFIX = Comparable.class.getName();
+  private static final String ENUM_CLASS_PREFIX = Enum.class.getName();
+  private static final String ORDINAL_VALUE_INTERFACE_PREFIX = Proto.ORDINAL_VALUE_INTERFACE_TYPE;
 
   protected static final ImmutableBiMap<String, String> BOXED_TO_PRIMITIVE_TYPES;
 
@@ -62,6 +64,9 @@ public abstract class TypeIntrospectionBase {
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;
   protected ImmutableSet<String> implementedInterfacesNames;
+  private boolean isOrdinalValue;
+  private boolean isEnum;
+  private boolean isComparable;
 
   protected abstract TypeMirror internalTypeMirror();
 
@@ -84,17 +89,17 @@ public abstract class TypeIntrospectionBase {
 
   public boolean isComparable() {
     ensureTypeIntrospected();
-    return implementedInterfacesNames.contains(Comparable.class.getName());
+    return isComparable;
   }
 
   public boolean isOrdinalValue() {
     ensureTypeIntrospected();
-    return implementedInterfacesNames.contains(ORDINAL_VALUE_INTERFACE_TYPE);
+    return isOrdinalValue;
   }
 
   public boolean isEnumType() {
     ensureTypeIntrospected();
-    return extendedClassesNames.contains(Enum.class.getName());
+    return isEnum;
   }
 
   public boolean isSerializable() {
@@ -108,10 +113,26 @@ public abstract class TypeIntrospectionBase {
   }
 
   protected void introspectType() {
-    intospectTypeMirror(internalTypeMirror());
+    introspectTypeMirror(internalTypeMirror());
+    introspectSupertypes();
   }
 
-  protected void intospectTypeMirror(TypeMirror typeMirror) {
+  protected void introspectSupertypes() {
+    for (String t : extendedClassesNames) {
+      if (t.startsWith(ENUM_CLASS_PREFIX)) {
+        isEnum = true;
+      }
+    }
+    for (String t : implementedInterfacesNames) {
+      if (t.startsWith(ORDINAL_VALUE_INTERFACE_PREFIX)) {
+        isOrdinalValue = true;
+      } else if (t.startsWith(COMPARABLE_INTERFACE_PREFIX)) {
+        isComparable = true;
+      }
+    }
+  }
+
+  protected void introspectTypeMirror(TypeMirror typeMirror) {
     TypeHierarchyCollector collector = collectTypeHierarchy(typeMirror);
     this.extendedClassesNames = collector.extendedClassNames();
     this.implementedInterfacesNames = collector.implementedInterfaceNames();

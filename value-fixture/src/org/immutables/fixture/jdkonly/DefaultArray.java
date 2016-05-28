@@ -17,7 +17,6 @@ package org.immutables.fixture.jdkonly;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import javax.annotation.Nullable;
 import org.immutables.value.Value;
 
 @Value.Immutable

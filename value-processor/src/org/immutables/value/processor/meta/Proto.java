@@ -255,7 +255,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean hasOrdinalModule() {
-      return findElement(TypeIntrospectionBase.ORDINAL_VALUE_INTERFACE_TYPE) != null;
+      return findElement(ORDINAL_VALUE_INTERFACE_TYPE) != null;
     }
 
     @Value.Lazy
