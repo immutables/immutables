@@ -69,6 +69,7 @@ public @interface Gson {
    * used if {@code @TypeAdapters(fieldNamingStrategy=true)}. See {@link #fieldNamingStrategy()} for
    * more information.</li>
    * </ul>
+   * @see #metainfService()
    */
   @Documented
   @Target({ElementType.TYPE, ElementType.PACKAGE})
@@ -109,6 +110,12 @@ public @interface Gson {
      * @return {@code true} if enabled, by default is {@code false}
      */
     boolean nullAsDefault() default false;
+
+    /**
+     * You can set {@code metainfService = false} to disable generation of meta-inf services.
+     * @return {@code true} if metainf services are enabled, by default is {@code true}
+     */
+    boolean metainfService() default true;
   }
 
   /**

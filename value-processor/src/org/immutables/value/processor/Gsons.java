@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.GsonMirrors;
+import org.immutables.value.processor.meta.TypeAdaptersMirror;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
@@ -47,19 +49,26 @@ abstract class Gsons extends ValuesTemplate {
     String packageGenerated();
 
     List<ValueType> types();
+
+    GsonMirrors.TypeAdapters mirror();
   }
 
   public Iterable<TypeAdapterTypes> typeAdapters() {
+    Map<AbstractDeclaring, GsonMirrors.TypeAdapters> mirrors = Maps.newHashMap();
+
     Multimap<AbstractDeclaring, ValueType> byDeclaring = HashMultimap.create();
     for (ValueType value : values().values()) {
       Protoclass protoclass = value.constitution.protoclass();
       if (protoclass.kind().isValue()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.typeAdaptersProvider();
         if (typeAdaptersProvider.isPresent()) {
-          byDeclaring.put(typeAdaptersProvider.get(), value);
+          AbstractDeclaring key = typeAdaptersProvider.get();
+          mirrors.put(key, key.typeAdapters().get());
+          byDeclaring.put(key, value);
         } else if (protoclass.gsonTypeAdapters().isPresent()
             && protoclass.declaringType().isPresent()) {
           DeclaringType topLevel = protoclass.declaringType().get().associatedTopLevel();
+          mirrors.put(topLevel, protoclass.gsonTypeAdapters().get());
           byDeclaring.put(topLevel, value);
         }
       }
@@ -70,6 +79,7 @@ abstract class Gsons extends ValuesTemplate {
       String pack = Iterables.get(entry.getValue(), 0).$$package();
       builder.add(ImmutableTypeAdapterTypes.builder()
           .definedBy(entry.getKey())
+          .mirror(mirrors.get(entry.getKey()))
           .packageGenerated(pack)
           .addAllTypes(entry.getValue())
           .build());

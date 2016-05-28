@@ -30,10 +30,11 @@
 [generateTypeAdapters packageName simpleName typeAdaptersName adapters.types]
 [/output.java]
 
+    [if adapters.mirror.metainfService]
 [output.service serviceInterface]
 [if packageName][packageName].[/if][typeAdaptersName]
 [/output.service]
-
+    [/if]
   [/for]
 [/template]
 

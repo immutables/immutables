@@ -22,6 +22,8 @@ public final class GsonMirrors {
 
   @Mirror.Annotation("org.immutables.gson.Gson.TypeAdapters")
   public @interface TypeAdapters {
+    boolean metainfService() default true;
+
     boolean fieldNamingStrategy() default false;
 
     boolean emptyAsNulls() default false;

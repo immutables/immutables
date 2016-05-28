@@ -250,10 +250,10 @@ public final class Output {
     void complete() {
       try {
         writeFile();
-      } catch (FilerException ex) {
-        throw Throwables.propagate(ex);
-      } catch (IOException ex) {
-        throw Throwables.propagate(ex);
+      } catch (Exception ex) {
+        StaticEnvironment.processing().getMessager().printMessage(
+            Diagnostic.Kind.MANDATORY_WARNING,
+            "Cannot write service files: " + key + ex.toString());
       }
     }
 
