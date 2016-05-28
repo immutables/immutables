@@ -36,7 +36,7 @@ import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Generator;
-import org.immutables.generator.processor.Trees.Unit;
+import org.immutables.generator.processor.ImmutableTrees.Unit;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;

@@ -1022,6 +1022,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
       ensureTypeIntrospected();
       typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
+      if (typeKind().isContainerKind() && typeParameters.isEmpty()) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report().warning("Raw container types treated as regular attributes, nothing special generated."
+            + " It is better to avoid raw types at all times");
+      }
     }
   }
 
