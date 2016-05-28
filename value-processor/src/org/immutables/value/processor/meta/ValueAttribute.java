@@ -1241,12 +1241,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       // because privimitive cannot be null
       return true;
     }
-    if (typeKind.isCollectionOrMapping() && isGenerateDefault) {
-      // becase builder/collector is used and have to distinguish non-default value is set
+    if (isGenerateDefault && isNullable()) {
+      // nullable arrays should be able to distinguish null from default
       return true;
     }
-    if (typeKind.isArray() && isGenerateDefault && isNullable()) {
-      // nullable arrays should be able to distinguish null from default
+    if (typeKind.isCollectionOrMapping() && isGenerateDefault) {
+      // becase builder/collector is used and have to distinguish non-default value is set
       return true;
     }
     if (containingType.isUseStrictBuilder()

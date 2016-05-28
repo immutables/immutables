@@ -15,14 +15,13 @@
  */
 package org.immutables.generator.processor;
 
-import com.google.common.collect.Lists;
-import java.util.List;
-import javax.lang.model.element.Name;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -34,11 +33,10 @@ import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Generator;
-import org.immutables.generator.processor.ImmutableTrees.Unit;
+import org.immutables.generator.processor.Trees.Unit;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;

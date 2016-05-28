@@ -19,7 +19,7 @@ import static org.immutables.check.Checkers.check;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-public class JacksonBugsTest {
+public class BugsTest {
   private static String SAMPLE_JSON = "{\"organizationId\": 172}";
   ObjectMapper mapper = new ObjectMapper();
 
@@ -37,9 +37,6 @@ public class JacksonBugsTest {
         .isEmpty(false)
         .empty(true)
         .build());
-
-    System.out.println("!!!!");
-    System.out.println(json);
 
     AttributeIs info = mapper.readValue(json, AttributeIs.class);
     check(!info.isEmpty());

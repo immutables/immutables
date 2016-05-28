@@ -20,6 +20,7 @@ import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
 public class NullableAttributesTest {
+
   @Test
   public void defaultValues() {
     ImmutableNullableAttributes a1 = ImmutableNullableAttributes.builder()
@@ -43,6 +44,21 @@ public class NullableAttributesTest {
 
     check(a1.defArray()).isNull();
     check(a1.set()).isNull();
+  }
+
+  @Test
+  public void simpleNullableDefaultExplicit() {
+    ImmutableNullableDefault o1 = ImmutableNullableDefault.builder().build();
+    ImmutableNullableDefault o2 = ImmutableNullableDefault.builder()
+        .intr(null)
+        .str(null)
+        .build();
+
+    check(o1.intr()).is(-1);
+    check(o1.str()).is("def");
+
+    check(o2.intr()).isNull();
+    check(o2.str()).isNull();
   }
 
   @Test
