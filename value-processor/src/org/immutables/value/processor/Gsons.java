@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.GsonMirrors;
-import org.immutables.value.processor.meta.TypeAdaptersMirror;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
@@ -31,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
+import org.immutables.value.processor.meta.GsonMirrors;
 import org.immutables.value.processor.meta.Proto.AbstractDeclaring;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;

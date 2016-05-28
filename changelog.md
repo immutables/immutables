@@ -1,6 +1,14 @@
 Changelog
 ---------
 
+### 2.2.1 (2016-05-27)
+- Thanks to contributors and issue reporters!
+- Bugfixes and functionality refinements
+  + Can disable generation of META-INF/services for Gson adapters `Gson.TypeAdapters.metainfServices = false` 
+  + Gson Adapters may be configured to skip nulls in favor of default values. `Gson.TypeAdapters.nullAsDefault = true`
+  + Numerous bug fixes
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.1)
+
 ### 2.2 (2016-05-16)
 - Thanks to contributors and issue reporters!
 - Improvements
