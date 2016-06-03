@@ -919,6 +919,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && typeKind.isRegular()
         && !isPrimitiveOrWrapped(rawTypeName)
         && !isStringType()
+        && !isEnumType()
         && attributeValueType == null;
   }
 
