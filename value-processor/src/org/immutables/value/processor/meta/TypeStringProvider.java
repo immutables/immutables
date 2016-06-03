@@ -37,6 +37,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
+import org.immutables.generator.SourceExtraction.Imports;
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -145,6 +146,7 @@ class TypeStringProvider {
   private void appendResolved(DeclaredType type) {
     TypeElement typeElement = (TypeElement) type.asElement();
     String typeName = typeElement.getQualifiedName().toString();
+
     if (unresolvedTypeHasOccured) {
       boolean assumedUnqualified = Ascii.isUpperCase(typeName.charAt(0));
       if (assumedUnqualified) {
@@ -180,7 +182,10 @@ class TypeStringProvider {
     if (sourceClassesImports == null) {
       sourceClassesImports = Lists.newArrayList();
       for (DeclaringType t : declaringType) {
-        sourceClassesImports.add(t.associatedTopLevel().sourceImports());
+        Imports imports = t.associatedTopLevel().sourceImports();
+        if (!sourceClassesImports.contains(imports)) {
+          sourceClassesImports.add(imports);
+        }
       }
     }
     for (SourceExtraction.Imports imports : sourceClassesImports) {

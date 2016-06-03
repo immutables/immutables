@@ -17,14 +17,21 @@ package org.immutables.value.processor;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Multimap;
-import org.immutables.generator.AbstractGenerator;
-import org.immutables.metainf.Metainf;
-import org.immutables.value.processor.meta.*;
-import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import javax.annotation.processing.SupportedAnnotationTypes;
 import java.util.Set;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import org.immutables.generator.AbstractGenerator;
+import org.immutables.value.processor.meta.CustomImmutableAnnotations;
+import org.immutables.value.processor.meta.EnclosingMirror;
+import org.immutables.value.processor.meta.FactoryMirror;
+import org.immutables.value.processor.meta.ImmutableMirror;
+import org.immutables.value.processor.meta.ImmutableRound;
+import org.immutables.value.processor.meta.IncludeMirror;
+import org.immutables.value.processor.meta.ModifiableMirror;
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
+import org.immutables.value.processor.meta.Round;
+import org.immutables.value.processor.meta.ValueType;
+import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
-@Metainf.Service
 @SupportedAnnotationTypes({
     FactoryMirror.QUALIFIED_NAME,
     ImmutableMirror.QUALIFIED_NAME,

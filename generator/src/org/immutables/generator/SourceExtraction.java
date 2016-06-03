@@ -108,8 +108,7 @@ public final class SourceExtraction {
 
   public static Imports readImports(ProcessingEnvironment processing, TypeElement element) {
     try {
-      return PostprocessingMachine.collectImports(
-          extract(processing, element));
+      return PostprocessingMachine.collectImports(extract(processing, element));
     } catch (UnsupportedOperationException
         | IllegalArgumentException cannotReadSourceFile) {
       return Imports.empty();
@@ -139,7 +138,9 @@ public final class SourceExtraction {
     CharSequence extractReturnType(ExecutableElement executableElement);
   }
 
-  private static final SourceExtractor DEFAULT_EXTRACTOR = new SourceExtractor() {
+  private static final class DefaultExtractor implements SourceExtractor {
+    static final DefaultExtractor INSTANCE = new DefaultExtractor();
+
     @Override
     public CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
       try {
@@ -165,7 +166,7 @@ public final class SourceExtraction {
     public boolean claim(Element element) {
       return false;
     }
-  };
+  }
 
   private static final class JavacSourceExtractor implements SourceExtractor {
 
@@ -336,7 +337,7 @@ public final class SourceExtraction {
           return UNABLE_TO_EXTRACT;
         }
       }
-      return DEFAULT_EXTRACTOR.extract(environment, typeElement);
+      return DefaultExtractor.INSTANCE.extract(environment, typeElement);
     }
 
     @Override
@@ -354,7 +355,7 @@ public final class SourceExtraction {
           return UNABLE_TO_EXTRACT;
         }
       }
-      return DEFAULT_EXTRACTOR.extractReturnType(executableElement);
+      return DefaultExtractor.INSTANCE.extractReturnType(executableElement);
     }
   }
 
@@ -367,9 +368,12 @@ public final class SourceExtraction {
       if (Compiler.JAVAC.isPresent()) {
         extractors.add(new JavacSourceExtractor());
       }
+      if (extractors.size() == 1) {
+        return extractors.get(0);
+      }
       return new CompositeExtractor(extractors);
     }
-    return DEFAULT_EXTRACTOR;
+    return DefaultExtractor.INSTANCE;
   }
 
   private static final SourceExtractor EXTRACTOR = createExtractor();
