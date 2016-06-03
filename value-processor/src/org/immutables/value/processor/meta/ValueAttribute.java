@@ -1084,11 +1084,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void validateTypeAndAnnotations() {
     boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
-    if (hasWildcardInType && typeKind != AttributeTypeKind.ARRAY) {
-      typeKind = AttributeTypeKind.REGULAR;
-      report()
-          .annotationNamed(DefaultMirror.simpleName())
-          .warning("Generic wildcards are not supported, so the container attribute losing its special treatment");
+    if (hasWildcardInType && typeKind != AttributeTypeKind.REGULAR) {
+      if (hasNakedWildcardArguments()) {
+        typeKind = AttributeTypeKind.REGULAR;
+        report()
+            .annotationNamed(DefaultMirror.simpleName())
+            .warning("Wildcards are not supported as elements or key/values. Make it lose its special treatment");
+      }
     }
 
     if (isNullable()) {
@@ -1134,6 +1136,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           .annotationNamed(AuxiliaryMirror.simpleName())
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
+  }
+
+  private boolean hasNakedWildcardArguments() {
+    for (String t : typeParameters()) {
+      if (t.startsWith("?")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void initSpecialAnnotations() {
