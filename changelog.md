@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+### 2.2.2 (2016-06-03)
+- Thanks to contributors and issue reporters!
+- Bugfix release
+  + Running in Eclipse Neon RC due to APT classloading changes
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.2)
+
 ### 2.2.1 (2016-05-27)
 - Thanks to contributors and issue reporters!
 - Bugfixes and functionality refinements
