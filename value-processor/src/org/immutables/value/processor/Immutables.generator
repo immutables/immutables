@@ -2960,7 +2960,7 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][type.generics.args][/template]
 
-[template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relative].[/if]validate([expression])[else][expression][/if][/template]
+[template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 
 [template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else]public [/if][/template]
 
