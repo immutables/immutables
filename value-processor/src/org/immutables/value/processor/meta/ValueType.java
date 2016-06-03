@@ -187,7 +187,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseBuilder() {
-    return immutableFeatures.builder();
+    return immutableFeatures.builder() || constitution.innerBuilder().isExtending;
   }
 
   public boolean isImplementationHidden() {
