@@ -20,15 +20,23 @@ import org.immutables.value.Value;
 // Compilation test for qualified `validate` call during construction
 interface AbstractValidate<T> {
 
-  @Value.Immutable(intern = true)
+  @Value.Immutable
   static abstract class Concrete1<T> implements AbstractValidate<T> {
     @Value.Parameter
     abstract T reference();
+
+    @Value.Check
+    protected Concrete1<T> check() {
+      return this;
+    }
   }
 
-  @Value.Immutable(intern = true)
+  @Value.Immutable
   static abstract class Concrete2<T> implements AbstractValidate<T> {
     @Value.Parameter
     abstract T reference();
+
+    @Value.Check
+    protected void check() {}
   }
 }

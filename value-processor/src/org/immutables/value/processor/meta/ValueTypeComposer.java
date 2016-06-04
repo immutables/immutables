@@ -126,6 +126,14 @@ public final class ValueTypeComposer {
   }
 
   private void checkStyleConflicts(ValueType type, Protoclass protoclass) {
+    if (protoclass.features().singleton() || protoclass.features().intern()) {
+      if (!protoclass.constitution().generics().isEmpty()) {
+        protoclass.report()
+            .annotationNamed(ImmutableMirror.simpleName())
+            .warning("'singleton' or 'intern' features are automatically turned off when a type have generic parameters");
+      }
+    }
+
     if (protoclass.features().prehash()
         && protoclass.styles().style().privateNoargConstructor()) {
       protoclass.report()

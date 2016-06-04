@@ -463,13 +463,15 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseSingleton() {
-    return immutableFeatures.singleton()
-        || useAttributelessSingleton()
-        || useSingletonNoOtherWay();
+    return generics().isEmpty()
+        && (immutableFeatures.singleton()
+            || useAttributelessSingleton()
+            || useSingletonNoOtherWay());
   }
 
   public boolean isUseInterned() {
-    return immutableFeatures.intern()
+    return generics().isEmpty()
+        && immutableFeatures.intern()
         && !isUseSingletonOnly();
   }
 

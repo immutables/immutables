@@ -559,16 +559,16 @@ private Object writeReplace() {
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.generics.def][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
 [if type.useValidation]
 
-  private static [type.typeImmutable.simple] validate([type.typeImmutable.simple] instance) {
+  private static [type.generics.spaceAfter][type.typeImmutable.simple][type.generics.args] validate([type.typeImmutable.simple][type.generics.args] instance) {
 [if type.validationMethod]
   [if type.validationMethod.normalize]
-    instance = ([type.typeImmutable.simple]) instance.[type.validationMethod.name]();
+    instance = ([type.typeImmutable.simple][type.generics.args]) instance.[type.validationMethod.name]();
   [else]
     instance.[type.validationMethod.name]();
   [/if]
