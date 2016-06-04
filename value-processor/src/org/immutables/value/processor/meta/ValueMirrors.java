@@ -182,6 +182,8 @@ public final class ValueMirrors {
 
     boolean implementationNestedInBuilder() default false;
 
+    boolean forceJacksonPropertyNames() default true;
+
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;

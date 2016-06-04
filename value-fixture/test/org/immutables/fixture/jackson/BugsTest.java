@@ -16,6 +16,7 @@
 package org.immutables.fixture.jackson;
 
 import static org.immutables.check.Checkers.check;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
@@ -41,5 +42,20 @@ public class BugsTest {
     AttributeIs info = mapper.readValue(json, AttributeIs.class);
     check(!info.isEmpty());
     check(info.getEmpty());
+  }
+
+  @Test
+  public void roundtrip353() throws Exception {
+    ObjectMapper mapper = new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+    String json = mapper.writeValueAsString(ImmutableNamingStrategy.builder()
+        .abraCadabra(1)
+        .focusPocus(true)
+        .build());
+
+    NamingStrategy info = mapper.readValue(json, NamingStrategy.class);
+    check(info.abraCadabra()).is(1);
+    check(info.focusPocus());
+
+    check(json).is("{'abra_cadabra':1,'focus_pocus':true}".replace('\'', '"'));
   }
 }

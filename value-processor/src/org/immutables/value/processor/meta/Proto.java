@@ -1418,6 +1418,7 @@ public class Proto {
           input.deepImmutablesDetection(),
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
+          input.forceJacksonPropertyNames(),
           input.builderVisibility(),
           input.throwForInvalidImmutableStateName(),
           input.depluralize(),

@@ -315,8 +315,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         elementType).isEmpty();
 
     if (dontHaveJsonPropetyAnnotationAlready) {
-      String propertyAnnotation =
-          "@" + JsonPropertyMirror.qualifiedName() + "(" + StringLiterals.toLiteral(name()) + ")";
+      String propertyAnnotation = "@" + JsonPropertyMirror.qualifiedName();
+
+      if (protoclass().styles().style().forceJacksonPropertyNames()) {
+        propertyAnnotation += "(" + StringLiterals.toLiteral(name()) + ")";
+      }
 
       allAnnotations.add(propertyAnnotation);
     }

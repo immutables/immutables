@@ -945,6 +945,16 @@ public @interface Value {
     boolean implementationNestedInBuilder() default false;
 
     /**
+     * As there are some ambiguities with how certain field prefixes work ("get", "is") we by
+     * default force whatever is inferred by Immutables. Disable forcing Jackson property names if
+     * you use naming strategies. Also make sure you recognize both "get*" and "is*" as attribute
+     * name patterns as Jackson infers default names using JavaBean convention.
+     * @return {@code true} if force jackson property names. default it {@code true}, set
+     *         {@code false} to disable
+     */
+    boolean forceJacksonPropertyNames() default true;
+
+    /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
      * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).
