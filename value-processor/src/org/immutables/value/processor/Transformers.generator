@@ -38,7 +38,7 @@ package [transformerType.package];
 [if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeAbstract.access]abstract class [transformersClassname] {
+[transformerType.typeValue.access]abstract class [transformersClassname] {
   protected [transformersClassname]() {}
   [for cases = transformerType.cases,
        type in cases.implementedTypes,

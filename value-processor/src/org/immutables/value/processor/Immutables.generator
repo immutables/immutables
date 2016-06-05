@@ -88,7 +88,7 @@ import static [routine].immutableCopyOf;
  * {@code [type.typeEnclosing.simple]} contains immutable implementation classes generated from
  * abstract value types defined as nested inside {@link [type.typeAbstract.relativeRaw]}.
 [for v in type.nested]
- * @see [v.typeValue.relative]
+ * @see [v.typeValue.relativeRaw]
 [/for]
  */
 [annotationsWhenTopLevel type true]

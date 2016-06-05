@@ -52,7 +52,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
  * <p><em>[type.names.typeModifiable] is not thread-safe</em>
 [im.javadocGenerics type]
 [if type.kind.isValue]
- * @see [type.typeValue.relative]
+ * @see [type.typeValue.relativeRaw]
 [/if]
  */
 [/template]

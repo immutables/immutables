@@ -52,7 +52,7 @@ import [starImport];
 /**
  * A {@code JsonAdapter.Factory} that handles all of the immutable types generated under {@code [simpleName]}.
  [for v in allValues]
- * @see [v.typeValue.relative]
+ * @see [v.typeValue.relativeRaw]
  [/for]
  */
 @SuppressWarnings("all")
