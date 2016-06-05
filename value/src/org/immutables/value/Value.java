@@ -634,6 +634,12 @@ public @interface Value {
      */
     String typeModifiable() default "Modifiable*";
 
+    /*
+     * Generated "with" interface name. Used to detect a demand and generate "with" interface.
+     * @return naming template
+     */
+    String typeWith() default "With*";
+
     /**
      * <p>
      * Naming template {@code packageGenerated} used to derive name of the package where the

@@ -182,6 +182,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.typeEnclosing();
   }
 
+  public NameForms typeWith() {
+    return constitution.typeWith();
+  }
+
   public NameForms typePreferablyAbstract() {
     return constitution.typePreferablyAbstract();
   }
@@ -451,10 +455,15 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public ValueImmutableInfo immutableFeatures;
 
+  public boolean isGenerateWithInterface() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(typeWith().relative());
+  }
+
   public boolean isUseCopyMethods() {
-    return immutableFeatures.copy()
-        && !constitution.isImplementationHidden()
-        && !getSettableAttributes().isEmpty();
+    return !getSettableAttributes().isEmpty()
+        && (isGenerateWithInterface() || (immutableFeatures.copy()
+        && !constitution.isImplementationHidden()));
   }
 
   public boolean isUseCopyConstructor() {

@@ -38,7 +38,7 @@ package [transformerType.package];
 [if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeValue.access]abstract class [transformersClassname] {
+[transformerType.typeAbstract.access]abstract class [transformersClassname] {
   protected [transformersClassname]() {}
   [for cases = transformerType.cases,
        type in cases.implementedTypes,
@@ -49,7 +49,10 @@ package [transformerType.package];
   [if useCopy]
 
   public [t] to[s]([t] value) {
-    [if type.useCopyConstructor and type.useCopyMethods]
+    [if type.generateWithInterface]
+    return value[for a in type.settableAttributes]
+        .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
+    [else if type.useCopyConstructor and type.useCopyMethods]
       [if type.constitution.returnsAbstractValueType]
     [im] copy  = ([im]) [type.factoryCopyOf](value);
         [for a in type.settableAttributes]
@@ -141,15 +144,15 @@ package [transformerType.package];
     [/if]
   [for et = a.unwrappedValueElementType]
 
-  protected [et] as[s][toUpper a.name]([t] value, [et] element) {
+  protected [et] as[s][toUpper a.name]([t] value, [et] attribute) {
     [if cases.isImplementedType et]
-    return to[simplifyName et](element);
+    return to[simplifyName et](attribute);
     [else][for Type subtype in cases.knownSubtypes et]
-    if (element instanceof [subtype.typeValue]) {
-      return as[simplifyName et](([subtype.typeValue]) element);
+    if (attribute instanceof [subtype.typeValue]) {
+      return as[simplifyName et](([subtype.typeValue]) attribute);
     }
     [/for]
-    return element;
+    return attribute;
     [/if]
   }
   [/for]

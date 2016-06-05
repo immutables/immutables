@@ -285,30 +285,11 @@ public abstract class Round {
             .declaringType(declaringType)
             .kind(kind)
             .build()));
-      } else if (isAnnotatedByAdditonalImmutableAnnotation(declaringType)) {
-        builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
-            .environment(environment())
-            .packageOf(declaringType.packageOf())
-            .sourceElement(wrapElement(element))
-            .declaringType(declaringType)
-            .kind(Kind.DEFINED_TYPE)
-            .build()));
       } else if (declaringType.isTopLevel()) {
         for (TypeElement nested : ElementFilter.typesIn(declaringType.element().getEnclosedElements())) {
           collectIncludedAndDefinedBy(nested);
         }
       }
-    }
-
-    private boolean isAnnotatedByAdditonalImmutableAnnotation(DeclaringType declaringType) {
-      for (AnnotationMirror annotation : declaringType.element().getAnnotationMirrors()) {
-        TypeElement typeElement = (TypeElement) annotation.getAnnotationType().asElement();
-        String qualifiedName = typeElement.getQualifiedName().toString();
-        if (customImmutableAnnotations().contains(qualifiedName)) {
-          return true;
-        }
-      }
-      return false;
     }
 
     private Kind kindOfDefinedBy(DeclaringType declaringType) {

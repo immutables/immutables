@@ -122,7 +122,16 @@ public class TypeHierarchyCollector {
     }
 
     for (TypeMirror m : e.getInterfaces()) {
+      collectUnresolvedInterface(m, context);
       collectInterfacesMirrors(m, context);
+    }
+  }
+
+  private void collectUnresolvedInterface(TypeMirror typeMirror, TypevarContext context) {
+    if (typeMirror.getKind() == TypeKind.ERROR) {
+      DeclaredType declaredType = toDeclaredType(typeMirror);
+      String stringified = stringify(declaredType, context);
+      implementedInterfaceNames.add(stringified);
     }
   }
 

@@ -69,6 +69,7 @@ public final class Styles {
     Naming copyOf = Naming.from(style.copyOf());
     Naming instance = Naming.from(style.instance());
 
+    Naming typeWith = Naming.from(style.typeWith());
     Naming typeBuilder = Naming.from(style.typeBuilder());
     Naming typeInnerBuilder = Naming.from(style.typeInnerBuilder());
     Naming from = Naming.from(style.from());
@@ -158,6 +159,10 @@ public final class Styles {
       public final String copyOf = scheme.copyOf.apply(raw);
       public final String from = scheme.from.apply(raw);
       public final String build = scheme.build.apply(raw);
+
+      public final String typeWith() {
+        return scheme.typeWith.apply(raw);
+      }
 
       public final String typeImmutableEnclosing() {
         return scheme.typeImmutableEnclosing.apply(raw);

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Collections;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -23,19 +24,27 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ObjectArrays;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.value.Value;
-import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import org.immutables.generator.SourceExtraction;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
 
 @Value.Nested
@@ -719,7 +728,20 @@ public class Proto {
 
     @Value.Lazy
     public Optional<ValueImmutableInfo> features() {
-      return ImmutableMirror.find(element()).transform(ToImmutableInfo.FUNCTION);
+      Optional<ValueImmutableInfo> immutableAnnotation =
+          ImmutableMirror.find(element()).transform(ToImmutableInfo.FUNCTION);
+      
+      if (immutableAnnotation.isPresent()) {
+        return immutableAnnotation;
+      }
+      
+      if (isAnnotatedWith(
+          element(),
+          environment().round().customImmutableAnnotations())) {
+        return Optional.of(environment().defaultStyles().defaults());
+      }
+      
+      return Optional.absent();
     }
 
     @Value.Lazy
@@ -1142,13 +1164,15 @@ public class Proto {
 
         Optional<DeclaringType> enclosing = type.enclosingOf();
         if (enclosing.isPresent()) {
+          Optional<StyleInfo> enclosingStyle = enclosing.get().style();
           if (enclosing.get() != type) {
             Optional<StyleInfo> style = type.style();
-            if (style.isPresent()) {
+            if (style.isPresent()
+                && enclosingStyle.isPresent()
+                && !style.equals(enclosingStyle)) {
               warnAboutIncompatibleStyles();
             }
           }
-          Optional<StyleInfo> enclosingStyle = enclosing.get().style();
           if (enclosingStyle.isPresent()) {
             return enclosingStyle;
           }
@@ -1369,7 +1393,8 @@ public class Proto {
 
     @Override
     public StyleInfo apply(StyleMirror input) {
-      return ImmutableStyleInfo.of(input.get(),
+      return ImmutableStyleInfo.of(
+          input.get(),
           input.init(),
           input.with(),
           input.add(),
@@ -1398,6 +1423,7 @@ public class Proto {
           input.typeImmutableEnclosing(),
           input.typeImmutableNested(),
           input.typeModifiable(),
+          input.typeWith(),
           input.packageGenerated(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
@@ -1428,33 +1454,21 @@ public class Proto {
   }
 
   static boolean isJacksonSerializedAnnotated(Element element) {
-    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-    for (AnnotationMirror annotation : annotationMirrors) {
-      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (JACKSON_MAPPING_ANNOTATION_CLASSES.contains(annotationElement.getQualifiedName().toString())) {
-        return true;
-      }
-    }
-    return false;
+    return isAnnotatedWith(element, JACKSON_MAPPING_ANNOTATION_CLASSES);
   }
 
   static boolean isJacksonDeserializedAnnotated(Element element) {
-    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-    for (AnnotationMirror annotation : annotationMirrors) {
-      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (JACKSON_DESERIALIZE.equals(annotationElement.getQualifiedName()
-          .toString())) {
-        return true;
-      }
-    }
-    return false;
+    return isAnnotatedWith(element, Collections.singleton(JACKSON_DESERIALIZE));
   }
 
   static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
-    List<? extends AnnotationMirror> annotationMirrors = element.getAnnotationMirrors();
-    for (AnnotationMirror annotation : annotationMirrors) {
-      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (JACKSON_TYPE_INFO.equals(annotationElement.getQualifiedName().toString())) {
+    return isAnnotatedWith(element, Collections.singleton(JACKSON_TYPE_INFO));
+  }
+
+  static boolean isAnnotatedWith(Element element, Set<String> annotations) {
+    for (AnnotationMirror a : element.getAnnotationMirrors()) {
+      TypeElement e = (TypeElement) a.getAnnotationType().asElement();
+      if (annotations.contains(e.getQualifiedName().toString())) {
         return true;
       }
     }

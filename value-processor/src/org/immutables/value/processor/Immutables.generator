@@ -20,6 +20,11 @@
 [output.java type.package type.typeImmutable.simple]
 [generateImmutable type true]
 [/output.java]
+      [if type.generateWithInterface]
+[output.java type.package type.typeWith.simple]
+[generateWithInterface type true]
+[/output.java]
+      [/if]
     [/if]
     [if type.constitution.hasTopLevelBuilder]
 [-- Top level builder --]
@@ -30,7 +35,6 @@
     [if type.constitution.hasEnclosingNonvalue]
 [-- Enclosing non-value type --]
 [output.java type.package type.typeEnclosing.simple]
-[type.sourceHeader]
 [generateEnclosing type]
 [/output.java]
     [/if]
@@ -94,6 +98,9 @@ import static [routine].immutableCopyOf;
   [generateImmutable v false]
   [if v.constitution.isOutsideBuilder]
   [generateBuilder v false]
+  [/if]
+  [if v.generateWithInterface]
+  [generateWithInterface v false]
   [/if]
   [forwardingEnclosingFactoryMethods v]
 [/for]
@@ -172,6 +179,9 @@ import static [routine].immutableCopyOf;
 [/if]
 [for v in type.nested]
   [generateImmutable v false]
+  [if v.generateWithInterface]
+  [generateWithInterface v false]
+  [/if]
 [/for]
 [if topLevel and type.generateJdkOnly]
   [objectsUtility type]
@@ -444,6 +454,90 @@ private Object writeReplace() {
   return new SerialForm(this);
 }
 [/if]
+[/template]
+
+[template generateWithInterface Type type Boolean topLevel]
+[packageWhenTopLevel type topLevel]
+
+[annotationsWhenTopLevel type topLevel]
+[type.typeWith.access]interface [type.typeWith.simple][type.generics] {
+    [for v in type.settableAttributes]
+      [if v.arrayType]
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * The array is cloned before being saved as attribute values.
+   * @param elements The non-null elements for [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements);
+      [else if v.collectionType]
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * @param elements The elements to set
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements);
+
+  /**
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   * @param elements An iterable of [v.name] elements to set
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements);
+      [else if v.optionalType]
+
+  /**
+   * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+   * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value);
+
+  /**
+   * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+   * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
+   * @param optional A value for [v.name]
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional);
+      [else if v.mapType]
+      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+
+  /**
+   * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
+   * Nulls are not permitted as keys or values.
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   * @param entries The entries to be added to the [v.name] map
+   * @return A modified copy of {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
+      [/for]
+      [else]
+
+  /**
+   * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
+   [if v.primitive and (not v.floatType)]
+   * A value equality check is used to prevent copying of the same value by returning {@code this}.
+   [else if not v.primitive]
+   * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
+   [/if]
+   * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
+   * @return A modified copy of the {@code this} object
+   */
+  [deprecation v]
+  [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value);
+      [/if]
+    [/for]
+}
 [/template]
 
 [template generateInterning Type type]
@@ -1449,6 +1543,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   [/if]
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
+  [if type.generateWithInterface]
+  [generateWithInterface type false]
+  [/if]
 [/if]
 [if topLevel and type.generateJdkOnly]
   [objectsUtility type]
@@ -2232,7 +2329,7 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
  */
 [varargsSafety v]
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.elementType]... elements) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.elementType]... elements) {
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [generateReturnCopyContextual type v]
 }
@@ -2245,7 +2342,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.elem
  */
 [varargsSafety v]
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
   [if v.nullable]
   if (elements == null) {
     [generateReturnCopy type v 'null']
@@ -2270,7 +2367,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.unwr
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) return this;
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
@@ -2283,7 +2380,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability]Iterabl
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v] value) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([unwrappedOptionalType v] value) {
 [if v.jdkOptional]
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
@@ -2322,7 +2419,7 @@ public final [type.typeImmutable.simple] [v.names.with]([unwrappedOptionalType v
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
   [if v.hasSimpleScalarElementType]
@@ -2351,7 +2448,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.rawType][if not v.jdk
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
   if (this.[v.name] == [v.name]) return this;
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v v.name];
   [generateReturnCopyContextual type v]
@@ -2374,7 +2471,7 @@ public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][if v.m
  * @return A modified copy of the {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple] [v.names.with]([v.atNullability][v.type] [v.name]) {
+public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.type] [v.name]) {
     [if v.float]
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits([v.name])) return this;
     [else if v.double]
@@ -2956,9 +3053,9 @@ java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elem
 
 [template maybeNonNullValue Attribute v String expression][if v.primitive or v.nullable][expression][else][requireNonNull v.containingType]([expression], "[v.name]")[/if][/template]
 
-[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder][type.generics.args]) [/if]this[/template]
+[template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this[/template]
 
-[template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][/if][type.generics.args][/template]
+[template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][type.generics.args][/if][/template]
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 

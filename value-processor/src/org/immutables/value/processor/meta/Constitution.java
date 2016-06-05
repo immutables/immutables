@@ -415,6 +415,31 @@ public abstract class Constitution {
   }
 
   @Value.Lazy
+  public NameForms typeWith() {
+    String simple, relative;
+
+    if (protoclass().kind().isNested()) {
+      String enclosingSimpleName = typeImmutableEnclosingSimpleName();
+      simple = names().typeWith();
+      relative = inPackage(enclosingSimpleName, simple);
+    } else if (hasImmutableInBuilder()) {
+      simple = names().typeWith();
+      relative = inPackage(typeBuilderSimpleName(), simple);
+    } else {
+      simple = names().typeWith();
+      relative = inPackage(simple);
+    }
+
+    return ImmutableConstitution.NameForms.builder()
+        .simple(simple)
+        .relativeRaw(relative)
+        .genericArgs(generics().args())
+        .packageOf(implementationPackage())
+        .visibility(implementationVisibility())
+        .build();
+  }
+
+  @Value.Lazy
   public NameForms typeBuilder() {
     InnerBuilderDefinition innerBuilder = innerBuilder();
     if (innerBuilder.isExtending) {
@@ -673,13 +698,16 @@ public abstract class Constitution {
             }
 
             if (!((TypeElement) t).getTypeParameters().isEmpty()) {
-              protoclass
-                  .report()
-                  .withElement(t)
-                  .warning("Inner type %s is not supported as Builder extend/super type. Remove type parameters",
-                      t.getSimpleName());
+              if (!new Generics(protoclass, t).def().equals(generics().def())) {
+                protoclass
+                    .report()
+                    .withElement(t)
+                    .error("Inner type %s should have the same type parameters as abstract value type: %s",
+                        t.getSimpleName(),
+                        generics().def());
 
-              return null;
+                return null;
+              }
             }
 
             Set<Modifier> modifiers = t.getModifiers();
