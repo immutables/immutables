@@ -23,24 +23,29 @@ final class SuppressedWarnings {
   private static final String ALL = "all";
   private static final String IMMUTABLES = "immutables";
   private static final String GENERATED = "generated";
+  private static final String RAWTYPES = "rawtypes";
 
   final boolean all;
   final boolean immutables;
   final boolean generated;
+  final boolean rawtypes;
 
   private SuppressedWarnings(
       boolean all,
       boolean immutables,
-      boolean generated) {
+      boolean generated,
+      boolean rawtypes) {
     this.all = all;
     this.immutables = immutables;
     this.generated = generated;
+    this.rawtypes = rawtypes;
   }
 
   static SuppressedWarnings forElement(Element element) {
     boolean all = false;
     boolean immutables = false;
     boolean generated = false;
+    boolean rawtypes = false;
 
     outer: for (Element e = element; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
       @Nullable SuppressWarnings suppressWarnings = e.getAnnotation(SuppressWarnings.class);
@@ -51,6 +56,7 @@ final class SuppressedWarnings {
             all = true;
             immutables = true;
             generated = true;
+            rawtypes = true;
             break outer;
           case IMMUTABLES:
             immutables = true;
@@ -58,12 +64,15 @@ final class SuppressedWarnings {
           case GENERATED:
             generated = true;
             break;
+          case RAWTYPES:
+            rawtypes = true;
+            break;
           default:
             break;
           }
         }
       }
     }
-    return new SuppressedWarnings(all, immutables, generated);
+    return new SuppressedWarnings(all, immutables, generated, rawtypes);
   }
 }
