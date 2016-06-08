@@ -38,6 +38,7 @@ public class GsonFeaturesTest {
       .registerTypeAdapterFactory(new GsonAdaptersSimple())
       .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
       .registerTypeAdapterFactory(new GsonAdaptersNullAsDefault())
+      .registerTypeAdapterFactory(new GsonAdaptersDeserializeEmptyNullable())
       .create();
 
   @Test
@@ -64,6 +65,33 @@ public class GsonFeaturesTest {
     NullAsDefault.Val val = gsonDefault.fromJson("{\"a\":null,\"b\":null}", NullAsDefault.Val.class);
     check(val.a()).is(-1);
     check(val.b()).is("n/a");
+  }
+
+  @Test
+  public void deserializeEmptyNullableCollections() {
+    DeserializeEmptyNullable o =
+        gsonDefault.fromJson("{\"tags\":[],\"mm\":{},\"mp\":{},\"st\":[]}", DeserializeEmptyNullable.class);
+    check(o.tags()).isEmpty();
+    check(o.mm().entries()).isEmpty();
+    check(o.mp().entrySet()).isEmpty();
+    check(o.st()).isEmpty();
+  }
+
+  @Test
+  public void deserializeNullOrAbsentNullableCollections() {
+    DeserializeEmptyNullable o =
+        gsonDefault.fromJson("{\"tags\":null,\"mm\":null,\"mp\":null,\"st\":null}", DeserializeEmptyNullable.class);
+    check(o.tags()).isNull();
+    check(o.mm()).isNull();
+    check(o.mp()).isNull();
+    check(o.st()).isNull();
+
+    DeserializeEmptyNullable o2 =
+        gsonDefault.fromJson("{}", DeserializeEmptyNullable.class);
+    check(o2.tags()).isNull();
+    check(o2.mm()).isNull();
+    check(o2.mp()).isNull();
+    check(o2.st()).isNull();
   }
 
   @Test

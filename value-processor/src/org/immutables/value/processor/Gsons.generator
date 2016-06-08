@@ -657,7 +657,7 @@ return [variableName].build();
   [/if]
 [/template]
 
-[template collectionUnmarshalCaseNullSingleArray Invokable unmarshalCollectionElement]
+[template collectionUnmarshalCaseNullSingleArray Attribute a String emptyInitExpression Invokable unmarshalCollectionElement]
 if (in.peek() == JsonToken.BEGIN_ARRAY) {
   in.beginArray();
   while(in.hasNext()) {
@@ -666,16 +666,23 @@ if (in.peek() == JsonToken.BEGIN_ARRAY) {
   in.endArray();
 } else if (in.peek() == JsonToken.NULL) {
   in.nextNull();
+  [if a.nullable and (not a.containingType.useStrictBuilder)]
+
+  [/if]
 } else {
   [unmarshalCollectionElement]
 }
 [/template]
 
-[template generateMappingUnmarshalCode Type type Attribute a String collectorExpression]
+[template generateMappingUnmarshalCode Type type Attribute a String collectorExpression][generateMappingUnmarshalCodeAlt type a collectorExpression ''][/template]
+
+[template generateMappingUnmarshalCodeAlt Type type Attribute a String collectorExpression String emptyInitExpression]
+[for Boolean emptyInitHack = emptyInitExpression and (a.nullable or a.generateDefault)]
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
 } else {
   in.beginObject();
+  [if emptyInitHack]boolean empty = true;[/if]
   while(in.hasNext()) {
     String rawKey = in.nextName();
 [if a.unwrappedElementPrimitiveType]
@@ -695,30 +702,51 @@ if (in.peek() == JsonToken.NULL) {
       while(in.hasNext()) {
         [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
         [collectorExpression](key, value);
+        [if emptyInitHack]empty = false;[/if]
       }
       in.endArray();
     } else {
       [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
       [collectorExpression](key, value);
+      [if emptyInitHack]empty = false;[/if]
     }
   [else]
     [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
     [collectorExpression](key, value);
+    [if emptyInitHack]empty = false;[/if]
   [/if]
   }
+  [if emptyInitHack][-- We are empty but there was an beginArray, so we need to set an empty mapping --]
+  if (empty) {
+    [emptyInitExpression]([if a.typeKind.isMultimapKind][guava].collect.ImmutableMultimap.[a.genericArgs]of()[else]java.util.Collections.[a.genericArgs]emptyMap()[/if]);
+  }
+  [/if]
   in.endObject();
 }
+[/for]
 [/template]
 
-[template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression]
-[collectionUnmarshalCaseNullSingleArray]
+[template generateCollectionUnmarshalCode Type type Attribute a String collectorExpression][generateCollectionUnmarshalCodeAlt type a collectorExpression ''][/template]
+
+[template generateCollectionUnmarshalCodeAlt Type type Attribute a String collectorExpression String emptyInitExpression]
+[for Boolean emptyInitHack = emptyInitExpression and (a.nullable or a.generateDefault)]
+[if emptyInitHack]boolean empty = true;[/if]
+[collectionUnmarshalCaseNullSingleArray a emptyInitExpression]
   [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 [collectorExpression]([simpleTypeNext a.unwrappedElementType]);
+[if emptyInitHack]empty = false;[/if]
   [else]
 [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
 [collectorExpression](value);
+[if emptyInitHack]empty = false;[/if]
   [/if]
 [/collectionUnmarshalCaseNullSingleArray]
+[if emptyInitHack]
+if (empty) {
+  [emptyInitExpression](java.util.Collections.[a.genericArgs]emptyList());
+}
+[/if]
+[/for]
 [/template]
 
 [template generateComplexTypeUnmarshalAttribute Type type Attribute a]
@@ -741,8 +769,10 @@ if (in.peek() == JsonToken.NULL) {
   builder.[a.names.init](null);
   [/if]
 } else {
-  [generateMappingUnmarshalCode type a ('builder.' a.names.put)]
+  [generateMappingUnmarshalCodeAlt type a ('builder.' a.names.put) ('builder.' a.names.putAll)]
 }
+    [else if a.generateDefault]
+[generateMappingUnmarshalCodeAlt type a ('builder.' a.names.put) ('builder.' a.names.putAll)]
     [else]
 [generateMappingUnmarshalCode type a ('builder.' a.names.put)]
     [/if]
@@ -754,8 +784,10 @@ if (in.peek() == JsonToken.NULL) {
   builder.[a.names.init](null);
   [/if]
 } else {
-  [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
+  [generateCollectionUnmarshalCodeAlt type a ('builder.' a.names.add) ('builder.' a.names.addAll)]
 }
+    [else if a.generateDefault]
+[generateCollectionUnmarshalCodeAlt type a ('builder.' a.names.add) ('builder.' a.names.addAll)]
     [else]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
     [/if]
