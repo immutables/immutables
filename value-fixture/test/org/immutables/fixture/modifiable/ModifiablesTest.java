@@ -22,6 +22,15 @@ import static org.immutables.check.Checkers.check;
 public class ModifiablesTest {
 
   @Test
+  public void modifiableCollection() {
+    ModifiableUnit unit = ModifiableUnit.create();
+    unit.getPrices().add(1.0f);
+    unit.addPrices(2.0f);
+
+    check(unit.getPrices()).isOf(1.0f, 2.0f);
+  }
+
+  @Test
   public void isAttributesSet() {
     ModifiableCompanion c1 = ModifiableCompanion.create();
     check(!c1.isInitialized());
