@@ -697,17 +697,15 @@ public abstract class Constitution {
               return null;
             }
 
-            if (!((TypeElement) t).getTypeParameters().isEmpty()) {
-              if (!new Generics(protoclass, t).def().equals(generics().def())) {
-                protoclass
-                    .report()
-                    .withElement(t)
-                    .error("Inner type %s should have the same type parameters as abstract value type: %s",
-                        t.getSimpleName(),
-                        generics().def());
+            if (!new Generics(protoclass, t).def().equals(generics().def())) {
+              protoclass
+                  .report()
+                  .withElement(t)
+                  .error("Inner type %s should have the same type parameters as abstract value type: %s",
+                      t.getSimpleName(),
+                      generics().def());
 
-                return null;
-              }
+              return null;
             }
 
             Set<Modifier> modifiers = t.getModifiers();
