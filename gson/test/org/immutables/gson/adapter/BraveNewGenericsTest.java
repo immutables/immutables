@@ -25,6 +25,7 @@ public class BraveNewGenericsTest {
 
   final Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new GsonAdaptersBraveNewGenerics())
+      .registerTypeAdapterFactory(new GsonAdaptersSchool())
       .create();
 
   @Test
@@ -33,5 +34,13 @@ public class BraveNewGenericsTest {
     String json = gson.toJson(t1);
     Top t2 = gson.fromJson(json, Top.class);
     check(t2).is(t1);
+  }
+
+  @Test
+  public void schoolRoundtrip() {
+    School school = School.create();
+    String json = gson.toJson(school);
+    School school2 = gson.fromJson(json, School.class);
+    check(school).is(school2);
   }
 }

@@ -509,9 +509,7 @@ public abstract class Constitution {
 
     @Override
     public String relative() {
-      return isNew()
-          ? (NEW_KEYWORD + ' ' + forms().relativeRaw() + genericArgs())
-          : (forms().relativeRaw() + '.' + genericArgs() + applied());
+      return combineApplied(false);
     }
 
     @Value.Derived
@@ -524,9 +522,7 @@ public abstract class Constitution {
       if (relativeAlreadyQualified()) {
         return relative();
       }
-      return isNew()
-          ? (NEW_KEYWORD + ' ' + qualifyWithPackage(forms().relative()) + genericArgs())
-          : qualifyWithPackage(relative());
+      return combineApplied(true);
     }
 
     @Override
@@ -547,6 +543,16 @@ public abstract class Constitution {
     @Override
     public boolean relativeAlreadyQualified() {
       return forms().relativeAlreadyQualified();
+    }
+
+    private String combineApplied(boolean qualifyWithPackage) {
+      String base = forms().relativeRaw();
+      if (qualifyWithPackage) {
+        base = qualifyWithPackage(base);
+      }
+      return isNew()
+          ? (NEW_KEYWORD + ' ' + base + genericArgs())
+          : (base + '.' + genericArgs() + applied());
     }
   }
 

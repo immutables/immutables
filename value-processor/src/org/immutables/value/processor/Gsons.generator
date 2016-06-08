@@ -561,7 +561,7 @@ return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
     [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
 return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
-[generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+[generateReadAttributeValue type a a.wrappedElementType false]
 return [a.rawType].of(value);
     [/if]
   [else if a.mapType]
@@ -605,7 +605,7 @@ if (t == JsonToken.NULL) {
   return null;
 }
     [/if]
-[generateReadAttributeValue type a a.type a.rawType false]
+[generateReadAttributeValue type a a.type false]
 return value;
   [/if]
 [/template]
@@ -697,18 +697,18 @@ if (in.peek() == JsonToken.NULL) {
     if (in.peek() == JsonToken.BEGIN_ARRAY) {
       in.beginArray();
       while(in.hasNext()) {
-        [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+        [generateReadAttributeValue type a a.wrappedSecondaryElementType true]
         [collectorExpression](key, value);
         [if emptyInitHack]empty = false;[/if]
       }
       in.endArray();
     } else {
-      [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+      [generateReadAttributeValue type a a.wrappedSecondaryElementType true]
       [collectorExpression](key, value);
       [if emptyInitHack]empty = false;[/if]
     }
   [else]
-    [generateReadAttributeValue type a a.wrappedSecondaryElementType a.unwrapperOrRawSecondaryElementType true]
+    [generateReadAttributeValue type a a.wrappedSecondaryElementType true]
     [collectorExpression](key, value);
     [if emptyInitHack]empty = false;[/if]
   [/if]
@@ -733,7 +733,7 @@ if (in.peek() == JsonToken.NULL) {
 [collectorExpression]([simpleTypeNext a.unwrappedElementType]);
 [if emptyInitHack]empty = false;[/if]
   [else]
-[generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+[generateReadAttributeValue type a a.wrappedElementType false]
 [collectorExpression](value);
 [if emptyInitHack]empty = false;[/if]
   [/if]
@@ -754,7 +754,7 @@ if (in.peek() == JsonToken.NULL) {
     [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
-  [generateReadAttributeValue type a a.wrappedElementType a.unwrapperOrRawElementType false]
+  [generateReadAttributeValue type a a.wrappedElementType false]
   builder.[a.names.init](value);
     [/if]
 }
@@ -826,17 +826,17 @@ if (in.peek() == JsonToken.NULL) {
   builder.[a.names.init](null);
   [/if]
 } else {
-  [generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
+  [generateReadAttributeValue type a a.type false]
   builder.[a.names.init](value);
 }
     [else]
-[generateReadAttributeValue type a a.type a.unwrapperOrRawElementType false]
+[generateReadAttributeValue type a a.type false]
 builder.[a.names.init](value);
     [/if]
   [/if]
 [/template]
 
-[template generateReadAttributeValue Type type Attribute attribute String genericType String rawType Boolean secondary]
+[template generateReadAttributeValue Type type Attribute attribute String genericType Boolean secondary]
 [if secondary]
   [if attribute.requiresMarshalingSecondaryAdapter]
 [genericType] value = [attribute.name]SecondaryTypeAdapter.read(in);
