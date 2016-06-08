@@ -666,9 +666,6 @@ if (in.peek() == JsonToken.BEGIN_ARRAY) {
   in.endArray();
 } else if (in.peek() == JsonToken.NULL) {
   in.nextNull();
-  [if a.nullable and (not a.containingType.useStrictBuilder)]
-
-  [/if]
 } else {
   [unmarshalCollectionElement]
 }
