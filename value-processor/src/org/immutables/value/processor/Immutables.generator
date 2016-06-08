@@ -540,6 +540,36 @@ private Object writeReplace() {
 }
 [/template]
 
+[template generateJsonWithUnsupported Type type]
+[if type.generateWithInterface]
+[-- we actually don't need those implementation, signatures are good enough --]
+  [for v in type.settableAttributes]
+    [if v.arrayType]
+@Override
+public [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
+    [else if v.collectionType]
+@Override
+public [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements) { throw new UnsupportedOperationException(); }
+@Override
+public [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements) { throw new UnsupportedOperationException(); }
+    [else if v.optionalType]
+@Override
+public [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value) { throw new UnsupportedOperationException(); }
+@Override
+public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) { throw new UnsupportedOperationException(); }
+    [else if v.mapType]
+      [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+@Override
+public [type.typeAbstract.relative] [v.names.with]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) { throw new UnsupportedOperationException(); }
+      [/for]
+    [else]
+@Override
+public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] value) { throw new UnsupportedOperationException(); }
+    [/if]
+  [/for]
+[/if]
+[/template]
+
 [template generateInterning Type type]
 [if type.useInterned or type.generateOrdinalValue]
   [if not type.useSingletonOnly]
@@ -1969,6 +1999,7 @@ static final [output.linesShortable]class Json[type.generics]
   @Override[-- we actually don't need this implementation, signature is good enough --]
   [v.toSignature] { throw new UnsupportedOperationException(); }
 [/for]
+  [generateJsonWithUnsupported type]
 }
 
 /**
