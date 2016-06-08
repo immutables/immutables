@@ -229,7 +229,10 @@ private Object readResolve() throws java.io.ObjectStreamException {
  * data. Uses optional, nullable, and provides flexible handling of
  * collection attributes.
  */
-private static class SerialForm implements java.io.Serializable {
+[if type.generics]
+@SuppressWarnings("unchecked")
+[/if]
+private static class SerialForm[type.generics] implements java.io.Serializable {
 [for serialVersion = type.serialVersionUID, String arr = '[]', String arri = '[i]']
   private static final long serialVersionUID = [if serialVersion][literal serialVersion][else]0L[/if];
   private final String['[]'] names;
