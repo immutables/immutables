@@ -67,6 +67,13 @@ class TypeStringProvider {
   private final String[] allowedTypevars;
   private final @Nullable String[] typevarArguments;
 
+  @Nullable
+  String elementTypeAnnotations;
+
+  @Nullable
+  String secondaryElementTypeAnnotation;
+  boolean processNestedTypeUseAnnotations;
+
   TypeStringProvider(
       Reporter reporter,
       Element element,
@@ -337,6 +344,7 @@ class TypeStringProvider {
       buffer.append('<');
       boolean notFirst = false;
       for (TypeMirror argument : arguments) {
+        typeAnnotationHandle(argument, notFirst);
         if (notFirst) {
           buffer.append(',').append(' ');
         }
@@ -346,6 +354,21 @@ class TypeStringProvider {
         cutTypeArgument(type, mark);
       }
       buffer.append('>');
+    }
+  }
+  
+  private void typeAnnotationHandle(TypeMirror argument, boolean notFirst) {
+    if (!processNestedTypeUseAnnotations) {
+      return;
+    }
+    List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(argument);
+    if (!annotations.isEmpty()) {
+      String typeAnnotations = typeAnnotationsToBuffer(annotations).toString();
+      if (notFirst) {
+        secondaryElementTypeAnnotation = typeAnnotations;
+      } else {
+        elementTypeAnnotations = typeAnnotations;
+      }
     }
   }
 

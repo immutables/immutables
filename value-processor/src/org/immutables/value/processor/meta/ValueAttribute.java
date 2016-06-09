@@ -57,6 +57,8 @@ import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisi
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
+  private static final String EPHEMERAL_ANNOTATION_SKIP_NULLS = "SkipNulls";
+  private static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";
   private static final WholeTypeVariable NON_WHOLE_TYPE_VARIABLE = new WholeTypeVariable(-1);
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
@@ -493,7 +495,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getUnwrappedElementType() {
-    return isContainerType() ? unwrapType(containmentTypeName()) : getElementType();
+    return isContainerType() && (isMapType() || nullElements.ban())
+        ? unwrapType(containmentTypeName())
+        : getElementType();
   }
 
   public String getUnwrappedValueElementType() {
@@ -750,7 +754,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getUnwrappedSecondaryElementType() {
-    return unwrapType(secondTypeParameter());
+    return nullElements.ban()
+        ? unwrapType(secondTypeParameter())
+        : getSecondaryElementType();
   }
 
   public String getWrappedSecondaryElementType() {
@@ -946,6 +952,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .build(),
         protoclass().constitution().generics().vars());
 
+    provider.processNestedTypeUseAnnotations = true;
     provider.process();
 
     this.hasSomeUnresolvedTypes = provider.hasSomeUnresovedTypes();
@@ -953,6 +960,46 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.returnTypeName = provider.returnTypeName();
     this.typeParameters = provider.typeParameters();
     this.hasTypeVariables = provider.hasTypeVariables;
+    extractTypeAnnotationInfo(provider);
+  }
+
+  public NullElements nullElements = NullElements.BAN;
+
+  public enum NullElements {
+    BAN,
+    ALLOW,
+    SKIP;
+
+    public boolean ban() {
+      return this == BAN;
+    }
+
+    public boolean allow() {
+      return this == ALLOW;
+    }
+
+    public boolean skip() {
+      return this == SKIP;
+    }
+  }
+
+  private void extractTypeAnnotationInfo(TypeStringProvider provider) {
+    int paramsCount = this.typeParameters.size();
+    if (paramsCount == 1) {
+      assignElementNullness(provider.elementTypeAnnotations);
+    } else if (paramsCount == 2) {
+      assignElementNullness(provider.secondaryElementTypeAnnotation);
+    }
+  }
+
+  private void assignElementNullness(String annotationString) {
+    if (annotationString != null) {
+      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)) {
+        nullElements = NullElements.ALLOW;
+      } else if (annotationString.contains(EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
+        nullElements = NullElements.SKIP;
+      }
+    }
   }
 
   private void initAttributeValueType() {
@@ -962,10 +1009,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
-        this.attributeValueType = containingType;
+        // We don't propagate type arguments so we don't support it, sorry
+        if (containingType.generics().isEmpty()) {
+          this.attributeValueType = containingType;
+        }
       } else {
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-          if ((p.kind().isDefinedValue() || p.kind().isModifiable()) && canAccessImplementation(p)) {
+          if ((p.kind().isDefinedValue() || p.kind().isModifiable())
+              && canAccessImplementation(p)
+              && p.constitution().generics().isEmpty()) {
             this.attributeValueType = environment.composeValue(p);
           }
           break;
@@ -1141,6 +1193,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       report()
           .annotationNamed(AuxiliaryMirror.simpleName())
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
+    }
+
+    if (!isGenerateJdkOnly() && nullElements.allow()) {
+      report().warning("Guava collection implementation does not allow null elements, nullness annotation will be ignored."
+          + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
     }
   }
 

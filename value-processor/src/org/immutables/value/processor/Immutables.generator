@@ -1109,7 +1109,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     }
     [/if]
     [if v.generateJdkOnly and (not v.primitiveElement)]
+      [if v.nullElements.skip]
+    if (element != null) this.[v.name].add(element);
+      [else if v.nullElements.allow]
+    this.[v.name].add(element);
+      [else]
     this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+      [/if]
     [else]
     this.[v.name].add(element);
     [/if]
@@ -1146,8 +1152,10 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [/if]
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
-      [if v.primitiveElement]
+      [if v.primitiveElement or v.nullElements.allow]
       this.[v.name].add(element);
+      [else if v.nullElements.skip]
+      if (element != null) this.[v.name].add(element);
       [else]
       this.[v.name].add([requireNonNull type](element, "[v.name] element"));
       [/if]
@@ -1199,7 +1207,13 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [/if]
     [if v.generateJdkOnly]
     for ([v.unwrappedElementType] element : elements) {
+      [if v.nullElements.allow]
+      this.[v.name].add(element);
+      [else if v.nullElements.skip]
+      if (element != null) this.[v.name].add(element);
+      [else]
       this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+      [/if]
     }
     [else]
     this.[v.name].addAll(elements);
@@ -1307,9 +1321,15 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     }
     [/if]
     [if v.generateJdkOnly]
+      [if v.nullElements.allow]
+    this.[v.name].put(key, value);
+      [else if v.nullElements.skip]
+    if (value != null[if not v.primitiveElement] && key != null[/if]) this.[v.name].put(key, value);
+      [else]
     this.[v.name].put(
         [requireNonNull type](key, "[v.name] key"),
         [requireNonNull type](value, "[v.name] value"));
+      [/if]
     [else]
     this.[v.name].put(key, value);
     [/if]
@@ -1330,9 +1350,17 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     }
     [/if]
     [if v.generateJdkOnly]
+    [wK] k = entry.getKey();
+    [wV] v = entry.getValue();
+      [if v.nullElements.allow]
+    this.[v.name].put(k, v);
+      [else if v.nullElements.skip]
+    if (k != null && v != null) this.[v.name].put(k, v);
+      [else]
     this.[v.name].put(
-        [requireNonNull type](entry.getKey(), "[v.name] key"),
-        [requireNonNull type](entry.getValue(), "[v.name] value"));
+        [requireNonNull type](k, "[v.name] key"),
+        [requireNonNull type](v, "[v.name] value"));
+      [/if]
     [else]
     this.[v.name].put(entry);
     [/if]
@@ -1376,9 +1404,17 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     [/if]
     [if v.generateJdkOnly]
     for (java.util.Map.Entry<[gE], ? extends [wV]> entry : [v.name].entrySet()) {
+      [wK] k = entry.getKey();
+      [wV] v = entry.getValue();
+        [if v.nullElements.allow]
+      this.[v.name].put(k, v);
+        [else if v.nullElements.skip]
+      if (k != null && v != null) this.[v.name].put(k, v);
+        [else]
       this.[v.name].put(
-          [requireNonNull type](entry.getKey(), "[v.name] key"),
-          [requireNonNull type](entry.getValue(), "[v.name] value"));
+          [requireNonNull type](k, "[v.name] key"),
+          [requireNonNull type](v, "[v.name] value"));
+        [/if]
     }
     [else]
     this.[v.name].putAll([v.name]);
@@ -2633,7 +2669,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [template immutableCollectionBuild Attribute a String expression][output.trim]
 [if a.generateJdkOnly]
   [if a.generateSortedSet]
-    createUnmodifiableSortedSet([a.hasReverseOrder], createSafeList([expression]))
+    createUnmodifiableSortedSet([a.hasReverseOrder], createSafeList([expression], false, false))
   [else if a.generateEnumSet]
     createUnmodifiableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
@@ -2643,11 +2679,11 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if a.setType]
     createUnmodifiableSet([expression])
   [else if a.generateEnumMap]
-    createUnmodifiableEnumMap(false, [expression])
+    createUnmodifiableEnumMap(false, false, [expression])
   [else if a.generateSortedMap]
-    createUnmodifiableSortedMap([a.hasReverseOrder], false, [expression])
+    createUnmodifiableSortedMap([a.hasReverseOrder], false, false, [expression])
   [else if a.mapType]
-    createUnmodifiableMap(false, [expression])
+    createUnmodifiableMap(false, false, [expression])
   [/if]
 [else]
   [if a.generateOrdinalValueSet or (a.generateEnumSet or a.generateEnumMap)]
@@ -2662,7 +2698,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 
 [template immutableCollectionCopyOfSafe Attribute a Boolean safe String expression][output.trim]
 [if a.generateJdkOnly]
-[let safeList][if safe]createSafeList([expression])[else][expression][/if][/let]
+[let safeList][if safe]createSafeList([expression], [a.nullElements.ban], [a.nullElements.skip])[else][expression][/if][/let]
   [if a.generateSortedSet]
     createUnmodifiableSortedSet([a.hasReverseOrder], [safeList])
   [else if a.generateEnumSet]
@@ -2674,11 +2710,11 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if a.setType]
     createUnmodifiableSet([safeList])
   [else if a.generateEnumMap]
-    createUnmodifiableEnumMap([safe], [expression])
+    createUnmodifiableEnumMap([safe and a.nullElements.ban], [a.nullElements.skip], [expression])
   [else if a.generateSortedMap]
-    createUnmodifiableSortedMap([a.hasReverseOrder], [safe], [expression])
+    createUnmodifiableSortedMap([a.hasReverseOrder], [safe and a.nullElements.ban], [a.nullElements.skip], [expression])
   [else if a.mapType]
-    createUnmodifiableMap([safe], [expression])
+    createUnmodifiableMap([safe and a.nullElements.ban], [a.nullElements.skip], [expression])
   [else]
     [expression]
   [/if]
@@ -2845,7 +2881,7 @@ private static boolean equals(Object left, Object right) {
 [template public collectionUtility Type type]
 [if type.useListUtility or (type.useSetUtility or (type.useEnumSetUtility or type.useSortedSetUtility))]
 
-private static <T> java.util.List<T> createSafeList(Iterable<? extends T> iterable) {
+private static <T> java.util.List<T> createSafeList(Iterable<? extends T> iterable, boolean checkNulls, boolean skipNulls) {
   java.util.ArrayList<T> list;
   if (iterable instanceof java.util.Collection<?>) {
     int size = ((java.util.Collection<?>) iterable).size();
@@ -2855,7 +2891,9 @@ private static <T> java.util.List<T> createSafeList(Iterable<? extends T> iterab
     list = new java.util.ArrayList<T>();
   }
   for (T element : iterable) {
-    list.add([requireNonNull type](element, "element"));
+    if (skipNulls && element == null) continue;
+    if (checkNulls) [requireNonNull type](element, "element");
+    list.add(element);
   }
   return list;
 }
@@ -2898,7 +2936,7 @@ private static <T extends Enum<T>> java.util.Set<T> createUnmodifiableEnumSet(It
   if (iterable instanceof java.util.EnumSet<?>) {
     return java.util.Collections.unmodifiableSet(java.util.EnumSet.copyOf((java.util.EnumSet<T>) iterable));
   }
-  java.util.List<T> list = createSafeList(iterable);
+  java.util.List<T> list = createSafeList(iterable, true, false);
   switch(list.size()) {
   case 0: return java.util.Collections.emptySet();
   case 1: return java.util.Collections.singleton(list.get(0));
@@ -2925,7 +2963,7 @@ private static <T extends Comparable<T>> java.util.[unmodifiableSortedSetInterfa
 [/if]
 [if type.useMapUtility]
 
-private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
+private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNulls, boolean skipNulls, java.util.Map<? extends K, ? extends V> map) {
   switch (map.size()) {
   case 0: return java.util.Collections.emptyMap();
   case 1: {
@@ -2936,16 +2974,27 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
       [requireNonNull type](k, "key");
       [requireNonNull type](v, "value");
     }
+    if (skipNulls && (k == null || v == null)) {
+      return java.util.Collections.emptyMap();
+    }
     return java.util.Collections.singletonMap(k, v);
   }
   default: {
     java.util.Map<K, V> linkedMap = new java.util.LinkedHashMap<K, V>(map.size());
-    linkedMap.putAll(map);
-    if (checkNulls) {
-      for (java.util.Map.Entry<K, V> e : linkedMap.entrySet()) {
-        [requireNonNull type](e.getKey(), "key");
-        [requireNonNull type](e.getValue(), "value");
+    if (skipNulls || checkNulls) {
+      for (java.util.Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
+        K k = e.getKey();
+        V v = e.getValue();
+        if (skipNulls) {
+          if (k == null || v == null) continue;
+        } else if (checkNulls) {
+          [requireNonNull type](k, "key");
+          [requireNonNull type](v, "value");
+        }
+        linkedMap.put(k, v);
       }
+    } else {
+      linkedMap.putAll(map);
     }
     return java.util.Collections.unmodifiableMap(linkedMap);
   }
@@ -2954,11 +3003,17 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
 [/if]
 [if type.useEnumMapUtility]
 
-private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, java.util.Map<K, ? extends V> map) {
+private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, boolean skipNulls, java.util.Map<K, ? extends V> map) {
   java.util.EnumMap<K, V> enumMap = new java.util.EnumMap<K, V>(map);
-  if (checkNulls) {
-    for (V value : map.values()) {
-      [requireNonNull type](value, "value");
+  if (checkNulls || skipNulls) {
+    java.util.Iterator<? extends V> it = map.values().iterator();
+    while(it.hasNext()) {
+      V v = it.next();
+      if (checkNulls) {
+        [requireNonNull type](v, "value");
+      } else if (skipNulls) {
+        if (v == null) it.remove();
+      }
     }
   }
   return java.util.Collections.unmodifiableMap(enumMap);
@@ -2973,16 +3028,25 @@ private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnum
 [/if]
 [/output.trim][/let]
 
-private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, java.util.Map<? extends K, ? extends V> map) {
+private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInterface]<K, V> createUnmodifiableSortedMap(boolean reverse, boolean checkNulls, boolean skipNulls, java.util.Map<? extends K, ? extends V> map) {
   java.util.TreeMap<K, V> sortedMap = reverse
       ? new java.util.TreeMap<K, V>(java.util.Collections.reverseOrder())
       : new java.util.TreeMap<K, V>();
-  sortedMap.putAll(map);
-  if (checkNulls) {
+
+  if (checkNulls || skipNulls) {
     for (java.util.Map.Entry<K, V> e : sortedMap.entrySet()) {
-      [requireNonNull type](e.getKey(), "key");
-      [requireNonNull type](e.getValue(), "value");
+      K k = e.getKey();
+      V v = e.getValue();
+      if (skipNulls) {
+        if (k == null || v == null) continue;
+      } else if (checkNulls) {
+        [requireNonNull type](k, "key");
+        [requireNonNull type](v, "value");
+      }
+      sortedMap.put(k, v);
     }
+  } else {
+    sortedMap.putAll(map);
   }
   return java.util.Collections.unmodifiable[unmodifiableSortedMapInterface](sortedMap);
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.nullable;
 
+import java.util.Collections;
 import java.util.Arrays;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
@@ -115,5 +116,47 @@ public class NullableAttributesTest {
         .addAx("b", "c")
         .build().ax())
         .isOf("a", "b", "c");
+  }
+
+  @Test
+  public void skipNullElements() {
+    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+        .addSk((String) null)
+        .addSk("a")
+        .addSk((String) null)
+        .addSk(null, "b", null)
+        .addAllSk(Arrays.asList(null, "c", "d"))
+        .build();
+
+    check(elements.sk()).isOf("a", "b", "c", "d");
+
+    elements = elements.withSk("", null, "");
+
+    check(elements.sk()).isOf("", "");
+  }
+
+  @Test
+  public void skipNullValues() {
+    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+        .putSm("a", null)
+        .putSm("b", 1)
+        .putAllSm(Collections.singletonMap("c", null))
+        .build();
+
+    check(elements.sm()).hasToString("{b=1}");
+  }
+
+  @Test
+  public void allowNulls() {
+    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+        .addAl((Void) null)
+        .addAl(null, null, null)
+        .addAllAl(Arrays.asList((Void) null))
+        .putBl("a", null)
+        .putBl(null, 1) // this is questionable, but let it be
+        .build();
+
+    check(elements.al()).isOf(null, null, null, null, null);
+    check(elements.bl()).hasToString("{a=null, null=1}");
   }
 }

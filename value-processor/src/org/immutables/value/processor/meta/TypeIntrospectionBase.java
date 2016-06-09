@@ -35,6 +35,11 @@ public abstract class TypeIntrospectionBase {
   static {
     ImmutableBiMap.Builder<String, String> builder = ImmutableBiMap.builder();
     for (Class<?> primitive : Primitives.allPrimitiveTypes()) {
+      if (primitive == void.class) {
+        // we don't have any valid use for void or Void types, let them be treated like
+        // nothing special types
+        continue;
+      }
       builder.put(Primitives.wrap(primitive).getName(), primitive.getName());
     }
     BOXED_TO_PRIMITIVE_TYPES = builder.build();
