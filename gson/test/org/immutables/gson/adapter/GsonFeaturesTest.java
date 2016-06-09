@@ -16,14 +16,12 @@
 package org.immutables.gson.adapter;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
+import org.junit.Test;
+
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
+
 import static org.immutables.check.Checkers.check;
 
 public class GsonFeaturesTest {
@@ -39,6 +37,7 @@ public class GsonFeaturesTest {
       .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
       .registerTypeAdapterFactory(new GsonAdaptersNullAsDefault())
       .registerTypeAdapterFactory(new GsonAdaptersDeserializeEmptyNullable())
+      .registerTypeAdapterFactory(new GsonAdaptersNullableArray())
       .create();
 
   @Test
@@ -106,6 +105,20 @@ public class GsonFeaturesTest {
     Unsimple unsimple = ImmutableUnsimple.builder().build();
     JsonObject json = gsonDefault.toJsonTree(unsimple).getAsJsonObject();
     check(keysIn(json)).isOf("characterList");
+  }
+
+  @Test
+  public void nullableContainersNames() {
+    NullableArray a = ImmutableNullableArray.builder()
+        .array("_")
+        .addList("_")
+        .putMap(0, "_")
+        .build();
+
+    String json = gsonDefault.toJson(a);
+    check(json).contains("\"a\":");
+    check(json).contains("\"l\":");
+    check(json).contains("\"m\":");
   }
 
   private Set<String> keysIn(JsonObject json) {

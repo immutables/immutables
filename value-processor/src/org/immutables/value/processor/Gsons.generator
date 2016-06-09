@@ -403,6 +403,7 @@ if ([if a.nullable][a.name]Elements != null && [/if][if a.arrayType][a.name]Elem
 }
 [else if a.nullable]
 if ([a.name]Elements != null) {
+  out.name([serializedName a]);
   out.beginArray();
   for ([a.unwrappedElementType] e : [a.name]Elements) {
     [generateWriteAttributeValue type a 'e' false]
