@@ -634,17 +634,18 @@ private void readIn[toUpper a.name](JsonReader in, [type.typeBuilder] builder)
 
 [template createBuilderForCollection Type type Attribute a String variableName]
 [if a.mapType]
-[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
   [if type.generateJdkOnly or a.typeKind.isSortedKind]
-java.util.Map[mapParams] [variableName] = new java.util.LinkedHashMap[mapParams]();
+java.util.Map[a.genericArgs] [variableName] = new java.util.LinkedHashMap[a.genericArgs]();
   [else]
-[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder[mapParams] [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+[guava].collect.Immutable[a.rawMapType].Builder[a.genericArgs] [variableName] = [guava].collect.Immutable[a.rawMapType].builder();
   [/if]
 [else if a.collectionType]
-  [if type.generateJdkOnly or a.typeKind.isSortedKind]
-java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elementType]>();
+  [if a.customCollectionType]
+[a.rawType].Builder[a.genericArgs] [variableName] = [a.rawType].builder();
+  [else if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.genericArgs]();
   [else]
-[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder<[a.elementType]> [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+[guava].collect.Immutable[a.rawCollectionType].Builder[a.genericArgs] [variableName] = [guava].collect.Immutable[a.rawCollectionType].builder();
   [/if]
 [/if]
 [/template]

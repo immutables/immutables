@@ -495,7 +495,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String getUnwrappedElementType() {
-    return isContainerType() && (isMapType() || nullElements.ban())
+    return isContainerType() && nullElements.ban()
         ? unwrapType(containmentTypeName())
         : getElementType();
   }
@@ -610,7 +610,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateJdkOnly() {
     return containingType.isGenerateJdkOnly()
         && !typeKind.isGuavaContainerKind()
-        && !isGuavaImmutableDeclared();
+        && !isGuavaImmutableDeclared()
+        && !isCustomCollectionType();
   }
 
   public boolean isGenerateOrdinalValueSet() {
@@ -738,15 +739,19 @@ public final class ValueAttribute extends TypeIntrospectionBase {
    * @return the raw collection type
    */
   public String getRawCollectionType() {
-    return typeKind.rawSimpleName();
+    return typeKind.rawSimpleName(rawTypeName);
   }
 
   public boolean isMultisetType() {
     return typeKind.isMultiset();
   }
 
+  public boolean isCustomCollectionType() {
+    return typeKind.isCustomCollection();
+  }
+
   public String getRawMapType() {
-    return typeKind.rawSimpleName();
+    return typeKind.rawSimpleName(rawTypeName);
   }
 
   public String getSecondaryElementType() {

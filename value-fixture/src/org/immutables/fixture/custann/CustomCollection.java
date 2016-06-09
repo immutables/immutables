@@ -13,10 +13,20 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.nullable;
+package org.immutables.fixture.custann;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+import org.immutables.gson.Gson;
+import nonimmutables.CustColl;
+import org.immutables.value.Value;
 
-@Target(ElementType.TYPE_USE)
-public @interface NullableUse {}
+@Gson.TypeAdapters
+@Value.Immutable
+public interface CustomCollection<E> {
+
+  @Value.Parameter
+  CustColl<E> col();
+
+  CustColl<Integer> cint();
+
+  class Builder<E> extends ImmutableCustomCollection.Builder<E> {}
+}

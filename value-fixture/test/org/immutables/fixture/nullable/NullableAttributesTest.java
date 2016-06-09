@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.nullable;
 
+import com.google.common.base.Throwables;
+import org.immutables.fixture.nullable.ImmutableNullableElements.Builder;
 import java.util.Collections;
 import java.util.Arrays;
 import org.junit.Test;
@@ -158,5 +160,27 @@ public class NullableAttributesTest {
 
     check(elements.al()).isOf(null, null, null, null, null);
     check(elements.bl()).hasToString("{a=null, null=1}");
+  }
+
+  @Test
+  public void banNulls() {
+    ImmutableNullableElements.Builder b = ImmutableNullableElements.builder();
+    try {
+      b.addRg((String) null);
+      check(false);
+    } catch (NullPointerException ex) {
+    }
+
+    try {
+      b.addRg("a", null);
+      check(false);
+    } catch (NullPointerException ex) {
+    }
+
+    try {
+      b.addAllRg(Arrays.asList("b", null));
+      check(false);
+    } catch (NullPointerException ex) {
+    }
   }
 }

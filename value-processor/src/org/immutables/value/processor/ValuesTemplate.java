@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
@@ -44,7 +45,7 @@ abstract class ValuesTemplate extends AbstractTemplate {
   public abstract Templates.Invokable generate();
 
   public final String guava = UnshadeGuava.prefix();
-
+  
   public final LongBits longsFor = new LongBits();
 
   private Multimap<DeclaringPackage, ValueType> values;

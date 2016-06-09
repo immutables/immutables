@@ -13,10 +13,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.nullable;
+package org.immutables.value.processor.meta;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+import com.google.common.collect.ImmutableSet;
 
-@Target(ElementType.TYPE_USE)
-public @interface NullableUse {}
+public final class CustomImmutableCollections {
+  private CustomImmutableCollections() {}
+
+  private static final ImmutableSet<String> COLLECTIONS =
+      ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.collect");
+
+  public static ImmutableSet<String> collections() {
+    return COLLECTIONS;
+  }
+}

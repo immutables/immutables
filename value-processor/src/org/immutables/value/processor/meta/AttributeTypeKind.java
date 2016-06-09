@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.reflect.Reflection;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
@@ -82,7 +84,8 @@ public enum AttributeTypeKind {
       "io.atlassian.fugue.Option"),
   OPTION_JAVASLANG(
       "Option",
-      "javaslang.control.Option");
+      "javaslang.control.Option"),
+  CUSTOM_COLLECTION("", "");
 
   private final String[] rawTypes;
   private final String rawSimpleName;
@@ -92,7 +95,11 @@ public enum AttributeTypeKind {
     this.rawTypes = rawTypes;
   }
 
-  public String rawSimpleName() {
+  public String rawSimpleName(String rawType) {
+    if (isCustomCollection()) {
+      int lastDot = rawType.lastIndexOf('.');
+      return lastDot < 0 ? rawType : rawType.substring(lastDot + 1);
+    }
     return rawSimpleName;
   }
 
@@ -119,8 +126,14 @@ public enum AttributeTypeKind {
   static {
     ImmutableMap.Builder<String, AttributeTypeKind> builder = ImmutableMap.builder();
     for (AttributeTypeKind k : values()) {
-      for (String r : k.rawTypes) {
-        builder.put(r, k);
+      if (k.isCustomCollection()) {
+        for (String c : CustomImmutableCollections.collections()) {
+          builder.put(c, k);
+        }
+      } else {
+        for (String r : k.rawTypes) {
+          builder.put(r, k);
+        }
       }
     }
     rawTypeMapping = builder.build();
@@ -165,6 +178,7 @@ public enum AttributeTypeKind {
     case ENUM_SET:
     case SORTED_SET:
     case MULTISET:
+    case CUSTOM_COLLECTION:
       return true;
     default:
       return false;
@@ -292,6 +306,10 @@ public enum AttributeTypeKind {
     default:
       return false;
     }
+  }
+
+  public boolean isCustomCollection() {
+    return this == CUSTOM_COLLECTION;
   }
 
   public boolean isSet() {

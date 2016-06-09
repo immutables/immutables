@@ -1741,6 +1741,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
     [else]
       java.util.Collections.[genericArgsOrEmpty]empty[v.rawCollectionType]()
     [/if]
+  [else if v.customCollectionType]
+    [v.rawType].[genericArgsOrEmpty]of()
   [else]
     [guava].collect.Immutable[v.rawCollectionType].[genericArgsOrEmpty]of()
   [/if]
@@ -2655,6 +2657,8 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   org.immutables.ordinal.ImmutableOrdinalSet[v.genericArgs]
 [else if v.generateSortedSet]
   [guava].collect.ImmutableSortedSet[v.genericArgs]
+[else if v.customCollectionType]
+  [v.implementationType]
 [else if v.collectionType]
   [guava].collect.Immutable[v.rawCollectionType][v.genericArgs]
 [else if v.generateSortedMap]
@@ -2731,6 +2735,8 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
     [guava].collect.Sets.immutableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
     org.immutables.ordinal.ImmutableOrdinalSet.copyOf([expression])
+  [else if a.customCollectionType]
+    [a.rawType].from([expression])
   [else if a.collectionType]
     [guava].collect.Immutable[a.rawCollectionType].copyOf([expression])
   [else if a.generateSortedMap]
@@ -3088,14 +3094,16 @@ this.[v.name].clear();
     [else]
       [if v.generateSortedSet]
 [if declare]private [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+      [else if v.customCollectionType]
+[if declare]private [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]
 [if declare]private [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
       [else if v.optionalType]
 [if declare]private [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
-[if declare]private [guava].collect.ImmutableSortedMap.Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare]private [guava].collect.ImmutableSortedMap.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.mapType]
-[if declare]private [guava].collect.Immutable[v.rawMapType].Builder<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
+[if declare]private [guava].collect.Immutable[v.rawMapType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
       [/if]
     [/if]
   [else if v.primitive]
@@ -3117,17 +3125,18 @@ this.[v.name] = null;
 
 [template createBuilderForCollection Type type Attribute a String variableName]
 [if a.mapType]
-[let mapParams]<[a.wrappedElementType], [a.wrappedSecondaryElementType]>[/let]
   [if type.generateJdkOnly or a.typeKind.isSortedKind]
-java.util.Map[mapParams] [variableName] = new java.util.LinkedHashMap[mapParams]();
+java.util.Map[a.genericArgs] [variableName] = new java.util.LinkedHashMap[a.genericArgs]();
   [else]
-[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder[mapParams] [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+[guava].collect.Immutable[a.rawMapType].Builder[a.genericArgs] [variableName] = [guava].collect.Immutable[a.rawMapType].builder();
   [/if]
 [else if a.collectionType]
-  [if type.generateJdkOnly or a.typeKind.isSortedKind]
-java.util.List<[a.elementType]> [variableName] = new java.util.ArrayList<[a.elementType]>();
+  [if a.customCollectionType]
+[a.rawType].Builder[a.genericArgs] [variableName] = [a.rawType].builder();
+  [else if type.generateJdkOnly or a.typeKind.isSortedKind]
+java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.genericArgs]();
   [else]
-[guava].collect.Immutable[a.typeKind.rawSimpleName].Builder<[a.elementType]> [variableName] = [guava].collect.Immutable[a.typeKind.rawSimpleName].builder();
+[guava].collect.Immutable[a.rawCollectionType].Builder[a.genericArgs] [variableName] = [guava].collect.Immutable[a.rawCollectionType].builder();
   [/if]
 [/if]
 [/template]

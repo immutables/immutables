@@ -13,26 +13,26 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.generics;
+package org.immutables.fixture.custann;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import org.immutables.value.Value;
+import static org.immutables.check.Checkers.check;
+import java.util.Arrays;
+import org.junit.Test;
 
-// Compilation test (and warning for the raw types)
-@Value.Immutable
-@SuppressWarnings("rawtypes")
-@Value.Style(strictBuilder = true)
-public interface RawType {
-  Set set();
-
-  Map map();
-
-  static void use() {
-    ImmutableRawType.builder()
-        .set(Collections.emptySet())
-        .map(Collections.emptyMap())
+public class CustomCollectionTest {
+  @Test
+  public void creates() {
+    CustomCollection<String> s = new CustomCollection.Builder<String>()
+        .addCint(1, 2, 3)
+        .addCol("a", "b", "c")
         .build();
+
+    // actually check is that it was created, empty check is bogus
+    // because CustColl always empty
+    check(s.cint()).isEmpty();
+    check(s.col()).isEmpty();
+
+    CustomCollection<String> s2 = ImmutableCustomCollection.of(Arrays.asList(""));
+    check(s2.cint()).isEmpty();
   }
 }
