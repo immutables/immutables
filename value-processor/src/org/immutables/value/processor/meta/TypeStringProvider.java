@@ -37,7 +37,6 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
-import org.immutables.generator.SourceExtraction.Imports;
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import static com.google.common.base.Preconditions.checkArgument;
@@ -54,7 +53,6 @@ class TypeStringProvider {
   boolean unresolvedTypeHasOccured;
   boolean hasMaybeUnresolvedYetAfter;
   boolean hasTypeVariables;
-  private List<SourceExtraction.Imports> sourceClassesImports;
 
   private String rawTypeName;
   private String returnTypeName;
@@ -63,9 +61,9 @@ class TypeStringProvider {
   private @Nullable List<String> workaroundTypeParameters;
   private @Nullable String workaroundTypeString;
   private final Reporter reporter;
-  private final Collection<DeclaringType> declaringType;
   private final String[] allowedTypevars;
   private final @Nullable String[] typevarArguments;
+  private final ImportsTypeStringResolver importsResolver;
 
   @Nullable
   String elementTypeAnnotations;
@@ -83,11 +81,11 @@ class TypeStringProvider {
       @Nullable String[] typevarArguments) {
 
     this.reporter = reporter;
-    this.declaringType = declaringType;
     this.startType = startType;
     this.element = element;
     this.allowedTypevars = allowedTypevars;
     this.typevarArguments = typevarArguments;
+    importsResolver = new ImportsTypeStringResolver(declaringType);
     checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length);
   }
 
@@ -155,53 +153,13 @@ class TypeStringProvider {
     String typeName = typeElement.getQualifiedName().toString();
 
     if (unresolvedTypeHasOccured) {
-      boolean assumedUnqualified = Ascii.isUpperCase(typeName.charAt(0));
-      if (assumedUnqualified) {
-        typeName = qualifyImportedIfPossible(typeName);
-      }
+      typeName = importsResolver.apply(typeName);
+      hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
     }
     buffer.append(typeName);
     if (startType == type) {
       rawTypeName = typeName;
     }
-  }
-
-  private String qualifyImportedIfPossible(String typeName) {
-    int nestedTypeDotIndex = typeName.indexOf('.');
-
-    String resolvable = nestedTypeDotIndex > 0
-        ? typeName.substring(0, nestedTypeDotIndex)
-        : typeName;
-
-    @Nullable String resolvedImported = getFromSourceImports(resolvable);
-    if (resolvedImported != null) {
-      return nestedTypeDotIndex > 0
-          ? resolvedImported + typeName.substring(nestedTypeDotIndex)
-          : resolvedImported;
-    }
-
-    hasMaybeUnresolvedYetAfter = true;
-    return typeName;
-  }
-
-  @Nullable
-  private String getFromSourceImports(String resolvable) {
-    if (sourceClassesImports == null) {
-      sourceClassesImports = Lists.newArrayList();
-      for (DeclaringType t : declaringType) {
-        Imports imports = t.associatedTopLevel().sourceImports();
-        if (!sourceClassesImports.contains(imports)) {
-          sourceClassesImports.add(imports);
-        }
-      }
-    }
-    for (SourceExtraction.Imports imports : sourceClassesImports) {
-      @Nullable String resolved = imports.classes.get(resolvable);
-      if (resolved != null) {
-        return resolved;
-      }
-    }
-    return null;
   }
 
   private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
@@ -217,7 +175,7 @@ class TypeStringProvider {
     StringBuilder annotationBuffer = new StringBuilder(100);
     for (AnnotationMirror annotationMirror : annotations) {
       annotationBuffer
-          .append(AnnotationMirrors.toCharSequence(annotationMirror))
+          .append(AnnotationMirrors.toCharSequence(annotationMirror, importsResolver))
           .append(' ');
     }
     return annotationBuffer;
@@ -252,10 +210,9 @@ class TypeStringProvider {
 
   private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
     String typeName = sourceTypes.getKey();
-    boolean assumedNotQualified = Ascii.isUpperCase(typeName.charAt(0));
-    if (assumedNotQualified) {
-      typeName = qualifyImportedIfPossible(typeName);
-    }
+    typeName = importsResolver.apply(typeName);
+    hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
+
     List<String> typeArguments = Lists.newArrayListWithCapacity(sourceTypes.getValue().size());
     for (String typeArgument : sourceTypes.getValue()) {
       String resolvedTypeArgument = SourceTypes.stringify(resolveTypes(SourceTypes.extract(typeArgument)));

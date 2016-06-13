@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.reflect.Reflection;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.Collection;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -252,7 +253,12 @@ public final class ValueType extends TypeIntrospectionBase {
           }
           constructorAnnotations =
               Annotations.getAnnotationLines(
-                  c, Collections.<String>emptySet(), true, false, ElementType.METHOD);
+                  c,
+                  Collections.<String>emptySet(),
+                  true,
+                  false,
+                  ElementType.METHOD,
+                  newTypeStringResolver());
         }
       }
       if (constructorAnnotations == null) {
@@ -383,7 +389,12 @@ public final class ValueType extends TypeIntrospectionBase {
             constitution.style().passAnnotationsNames(),
             constitution.style().additionalJsonAnnotationsNames()),
         false,
-        ElementType.TYPE);
+        ElementType.TYPE,
+        newTypeStringResolver());
+  }
+
+  private Function<String, String> newTypeStringResolver() {
+    return ImportsTypeStringResolver.from(constitution.protoclass().declaringType());
   }
 
   public Iterable<ValueType> allValues() {

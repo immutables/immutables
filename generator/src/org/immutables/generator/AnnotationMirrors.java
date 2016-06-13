@@ -15,6 +15,10 @@
  */
 package org.immutables.generator;
 
+import com.sun.tools.javac.code.Attribute;
+import com.google.common.base.Functions;
+import com.google.common.base.Function;
+import javax.lang.model.type.TypeKind;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import java.lang.annotation.Annotation;
@@ -72,9 +76,11 @@ public final class AnnotationMirrors {
     return printer.builder;
   }
 
-  public static CharSequence toCharSequence(AnnotationValue value) {
-    PrintVisitor printer = new PrintVisitor();
-    printer.visitValue(value);
+  public static CharSequence toCharSequence(
+      AnnotationMirror value,
+      Function<String, String> unresovedImportsResolver) {
+    PrintVisitor printer = new PrintVisitor(unresovedImportsResolver);
+    printer.visitAnnotation(value, null);
     return printer.builder;
   }
 
@@ -163,6 +169,15 @@ public final class AnnotationMirrors {
     private static final String CONSTANT_POSITIVE_INFINITY = ".POSITIVE_INFINITY";
 
     final StringBuilder builder = new StringBuilder();
+    final Function<String, String> unresovedImportsResolver;
+
+    PrintVisitor() {
+      this(Functions.<String>identity());
+    }
+
+    PrintVisitor(Function<String, String> unresovedImportsResolver) {
+      this.unresovedImportsResolver = unresovedImportsResolver;
+    }
 
     void visitValue(AnnotationValue value) {
       value.accept(this, null);
@@ -218,9 +233,6 @@ public final class AnnotationMirrors {
 
     @Override
     public Void visitString(String s, Void p) {
-      // Known issue in javac is that unresolved class literal is being
-      // passes as "<error>" string literal here
-      // Current decision - do nothing, avoid annotation with unresolved classes
       builder.append(StringLiterals.toLiteral(s));
       return null;
     }
@@ -270,11 +282,21 @@ public final class AnnotationMirrors {
           if (!onlyValue) {
             builder.append(name).append(" = ");
           }
-          visitValue(e.getValue());
+          printValue(e.getValue());
         }
         builder.append(')');
       }
       return null;
+    }
+
+    private void printValue(AnnotationValue value) {
+      if (Compiler.JAVAC.isPresent() && value instanceof Attribute.UnresolvedClass) {
+        Attribute.UnresolvedClass unresolved = ((Attribute.UnresolvedClass) value);
+        String typeString = unresolved.classType.tsym.name.toString();
+        builder.append(unresovedImportsResolver.apply(typeString)).append(".class");
+      } else {
+        visitValue(value);
+      }
     }
 
     private void appendLiteral(float value) {

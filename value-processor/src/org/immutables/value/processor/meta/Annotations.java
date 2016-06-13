@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Functions;
+import com.google.common.base.Function;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.HashSet;
@@ -46,12 +48,14 @@ final class Annotations {
       Element element,
       Set<String> includeAnnotations,
       boolean includeJacksonAnnotations,
-      ElementType elementType) {
+      ElementType elementType,
+      Function<String, String> importsResolver) {
     return getAnnotationLines(element,
         includeAnnotations,
         false,
         includeJacksonAnnotations,
-        elementType);
+        elementType,
+        importsResolver);
   }
 
   static List<CharSequence> getAnnotationLines(
@@ -59,7 +63,8 @@ final class Annotations {
       Set<String> includeAnnotations,
       boolean includeAllAnnotations,
       boolean includeJacksonAnnotations,
-      ElementType elementType) {
+      ElementType elementType,
+      Function<String, String> importsResolver) {
     List<CharSequence> lines = Lists.newArrayList();
 
     Set<String> seenAnnotations = new HashSet<>();
@@ -72,7 +77,7 @@ final class Annotations {
           includeJacksonAnnotations,
           seenAnnotations)
           && annotationMatchesTarget(annotationElement, elementType)) {
-        lines.add(AnnotationMirrors.toCharSequence(annotation));
+        lines.add(AnnotationMirrors.toCharSequence(annotation, importsResolver));
       }
     }
     return lines;

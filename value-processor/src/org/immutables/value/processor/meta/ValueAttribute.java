@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -287,7 +288,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return Annotations.getAnnotationLines(element,
         protoclass().styles().style().passAnnotationsNames(),
         false,
-        ElementType.METHOD);
+        ElementType.METHOD,
+        ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports));
   }
 
   public CharSequence getConstructorParameterAnnotations() {
@@ -295,7 +297,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         Annotations.getAnnotationLines(element,
             protoclass().styles().style().passAnnotationsNames(),
             false,
-            ElementType.PARAMETER);
+            ElementType.PARAMETER,
+            ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports));
 
     if (!annotations.isEmpty()) {
       return Joiner.on(' ').join(annotations).concat(" ");
@@ -311,10 +314,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private List<CharSequence> extractAnnotationsForElement(ElementType elementType, Set<String> additionalAnnotations) {
     List<CharSequence> allAnnotations = Lists.newArrayListWithCapacity(1);
 
+    Function<String, String> importsResolver = ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports);
+
     boolean dontHaveJsonPropetyAnnotationAlready = Annotations.getAnnotationLines(element,
         Collections.singleton(JsonPropertyMirror.qualifiedName()),
         false,
-        elementType).isEmpty();
+        elementType,
+        importsResolver).isEmpty();
 
     if (dontHaveJsonPropetyAnnotationAlready) {
       String propertyAnnotation = "@" + JsonPropertyMirror.qualifiedName();
@@ -331,7 +337,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             Sets.union(additionalAnnotations,
                 protoclass().styles().style().additionalJsonAnnotationsNames()),
             true,
-            elementType));
+            elementType,
+            importsResolver));
 
     return allAnnotations;
   }
@@ -828,6 +835,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private AttributeTypeKind typeKind;
   public boolean anyGetter;
   public boolean hasTypeVariables;
+  private ImmutableList<DeclaringType> declaredTypeWhichMightContainImports;
 
   int getConstructorParameterOrder() {
     boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
@@ -947,14 +955,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeName() {
+    declaredTypeWhichMightContainImports = ImmutableList.<DeclaringType>builder()
+        .addAll(protoclass().declaringType().asSet())
+        .add(getDeclaringType())
+        .build();
+    
     TypeStringProvider provider = new TypeStringProvider(
         reporter,
         element,
         returnType,
-        ImmutableList.<DeclaringType>builder()
-            .addAll(protoclass().declaringType().asSet())
-            .add(getDeclaringType())
-            .build(),
+        declaredTypeWhichMightContainImports,
         protoclass().constitution().generics().vars());
 
     provider.processNestedTypeUseAnnotations = true;
