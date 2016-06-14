@@ -15,10 +15,8 @@
  */
 package org.immutables.fixture.nullable;
 
-import com.google.common.base.Throwables;
-import org.immutables.fixture.nullable.ImmutableNullableElements.Builder;
-import java.util.Collections;
 import java.util.Arrays;
+import java.util.Collections;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 

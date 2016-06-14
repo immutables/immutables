@@ -693,13 +693,13 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [if type.useValidation]
 
   private static [type.generics.spaceAfter][type.typeImmutable.simple][type.generics.args] validate([type.typeImmutable.simple][type.generics.args] instance) {
-[if type.validationMethod]
-  [if type.validationMethod.normalize]
-    instance = ([type.typeImmutable.simple][type.generics.args]) instance.[type.validationMethod.name]();
+[for vm in type.validationMethods]
+  [if vm.normalize]
+    instance = ([type.typeImmutable.simple][type.generics.args]) instance.[vm.name]();
   [else]
-    instance.[type.validationMethod.name]();
+    instance.[vm.name]();
   [/if]
-[/if]
+[/for]
 [if type.useSingletonOnly]
     return INSTANCE != null ? INSTANCE : instance;[-- may be null during initialization --]
 [else if type.generateOrdinalValue]

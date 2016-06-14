@@ -15,8 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Functions;
 import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 import java.util.HashSet;
@@ -27,7 +27,6 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import org.immutables.generator.AnnotationMirrors;
-import com.google.common.collect.Lists;
 
 final class Annotations {
   private Annotations() {}

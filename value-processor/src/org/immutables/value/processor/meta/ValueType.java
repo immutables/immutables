@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.Collection;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -284,7 +283,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseValidation() {
-    if (isGenerateOrdinalValue() || validationMethod != null) {
+    if (isGenerateOrdinalValue() || !validationMethods.isEmpty()) {
       return true;
     }
     if (isUseSingletonOnly()) {
@@ -419,8 +418,7 @@ public final class ValueType extends TypeIntrospectionBase {
     nested.enclosingValue = this;
   }
 
-  @Nullable
-  public ValidationMethod validationMethod;
+  public ImmutableList<ValidationMethod> validationMethods = ImmutableList.of();
 
   public static class ValidationMethod {
     public final String name;
@@ -433,7 +431,10 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   void addNormalizeMethod(String name, boolean normalize) {
-    validationMethod = new ValidationMethod(name, normalize);
+    validationMethods = ImmutableList.<ValidationMethod>builder()
+        .add(new ValidationMethod(name, normalize))
+        .addAll(validationMethods)
+        .build();
   }
 
   public boolean isImplementing() {

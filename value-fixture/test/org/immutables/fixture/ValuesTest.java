@@ -15,11 +15,11 @@
  */
 package org.immutables.fixture;
 
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Method;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
@@ -450,5 +450,19 @@ public class ValuesTest {
         .build()
         .withV1(2)
         .withV2(0.3);
+  }
+
+  public void multipleCheck0() {
+    ImmutableMultipleChecks.C.builder().a(1).b(1).build();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void multipleCheck1() {
+    ImmutableMultipleChecks.C.builder().a(0).b(1).build();
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void multipleCheck2() {
+    ImmutableMultipleChecks.C.builder().a(1).b(0).build();
   }
 }

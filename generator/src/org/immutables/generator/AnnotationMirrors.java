@@ -15,12 +15,11 @@
  */
 package org.immutables.generator;
 
-import com.sun.tools.javac.code.Attribute;
-import com.google.common.base.Functions;
 import com.google.common.base.Function;
-import javax.lang.model.type.TypeKind;
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.sun.tools.javac.code.Attribute;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.List;
