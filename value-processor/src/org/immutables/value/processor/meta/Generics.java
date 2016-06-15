@@ -188,7 +188,7 @@ public final class Generics implements Iterable<String> {
   }
 
   public String diamond() {
-    return isEmpty() ? "" : "<>";
+    return isEmpty() ? "" : args(); // could be "<>" if we stop to support java 6
   }
 
   public String def() {
