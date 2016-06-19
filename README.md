@@ -50,6 +50,10 @@ License
 Changelog
 ---------
 
+### 2.2.7 (2016-06-19)
+- Thanks to issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.7)
+
 ### 2.2.5 (2016-06-09)
 - Thanks to contributors and issue reporters!
 - Bugfix and minor enhancement release
