@@ -16,13 +16,22 @@
 package org.immutables.fixture.jackson;
 
 import static org.immutables.check.Checkers.check;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 public class BugsTest {
   private static String SAMPLE_JSON = "{\"organizationId\": 172}";
-  ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = new ObjectMapper().registerModule(new GuavaModule());
+
+  @Test
+  public void deserialize368() throws Exception {
+    DefaultCollection defc = mapper.readValue("{\"defnullable\":[0]}", DefaultCollection.class);
+    check(defc.defaults()).isOf("");
+    check(defc.nullable()).isNull();
+    check(defc.defnullable()).isOf(0);
+  }
 
   @Test
   public void serialize273() throws Exception {

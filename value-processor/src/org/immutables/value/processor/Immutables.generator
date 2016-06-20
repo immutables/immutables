@@ -2056,7 +2056,7 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
-  [if v.nullable and v.requiresTrackIsSet]
+  [if v.requiresTrackIsSet]
   if (json.[disambiguateField type (v.name 'IsSet')]) {
     builder.[v.names.init](json.[v.name]);
   }
