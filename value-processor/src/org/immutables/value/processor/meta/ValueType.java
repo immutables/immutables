@@ -202,6 +202,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().isTransformer();
   }
 
+  public boolean isGenerateVisitor() {
+    return constitution.protoclass().isVisitor();
+  }
+
   public boolean isGenerateAst() {
     return constitution.protoclass().isAst();
   }
@@ -360,9 +364,9 @@ public final class ValueType extends TypeIntrospectionBase {
     List<ValueType> values = Lists.newArrayList(nested);
 
     Environment environment = constitution.protoclass().environment();
-    Optional<TransformMirror> transform = constitution.protoclass().getTransform();
-    if (transform.isPresent()) {
-      for (Protoclass p : environment.protoclassesFrom(includedElements(transform.get()))) {
+    Optional<TreesIncludeMirror> include = constitution.protoclass().getTreesInclude();
+    if (include.isPresent()) {
+      for (Protoclass p : environment.protoclassesFrom(includedElements(include.get()))) {
         values.add(environment.composeValue(p));
       }
     }
@@ -370,10 +374,9 @@ public final class ValueType extends TypeIntrospectionBase {
     return values;
   }
 
-  private List<Element> includedElements(TransformMirror transform) {
+  private List<Element> includedElements(TreesIncludeMirror include) {
     List<Element> includedElements = Lists.newArrayList();
-    TypeMirror[] includeMirror = transform.includeMirror();
-    for (TypeMirror mirror : includeMirror) {
+    for (TypeMirror mirror : include.valueMirror()) {
       if (mirror.getKind() == TypeKind.DECLARED) {
         includedElements.add(((DeclaredType) mirror).asElement());
       }
@@ -1224,7 +1227,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getFunctionalAttributes() {
-    if (!constitution.protoclass().hasFunctionalModule()) {
+    if (!constitution.protoclass().environment().hasFunctionalModule()) {
       return ImmutableList.of();
     }
 
@@ -1252,7 +1255,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public List<ValueAttribute> getBuilderParameters() {
-    if (!constitution.protoclass().hasBuilderModule()) {
+    if (!constitution.protoclass().environment().hasBuilderModule()) {
       return ImmutableList.of();
     }
 

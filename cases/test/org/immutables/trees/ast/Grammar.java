@@ -15,6 +15,7 @@
  */
 package org.immutables.trees.ast;
 
+import org.immutables.trees.Trees.Visit;
 import com.google.common.base.Optional;
 import java.util.List;
 import org.immutables.trees.Trees.Ast;
@@ -28,6 +29,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 // some of the real world compilation test
 @Style(visibility = ImplementationVisibility.PUBLIC, overshadowImplementation = true, strictBuilder = true)
 @Ast
+@Visit
 @Transform
 @Enclosing
 public interface Grammar {

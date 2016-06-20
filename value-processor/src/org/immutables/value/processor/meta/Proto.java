@@ -253,7 +253,7 @@ public class Proto {
     }
 
     @Value.Lazy
-    public boolean hasTransformModule() {
+    public boolean hasTreesModule() {
       return findElement(TransformMirror.qualifiedName()) != null;
     }
 
@@ -838,17 +838,35 @@ public class Proto {
       return getTransform().isPresent();
     }
 
+    public boolean isVisitor() {
+      return getVisit().isPresent();
+    }
+
     @Value.Lazy
     public Optional<TransformMirror> getTransform() {
-      return environment().hasTransformModule()
+      return environment().hasTreesModule()
           ? TransformMirror.find(element())
           : Optional.<TransformMirror>absent();
     }
 
     @Value.Lazy
+    public Optional<TreesIncludeMirror> getTreesInclude() {
+      return environment().hasTreesModule()
+          ? TreesIncludeMirror.find(element())
+          : Optional.<TreesIncludeMirror>absent();
+    }
+
+    @Value.Lazy
+    public Optional<VisitMirror> getVisit() {
+      return environment().hasTreesModule()
+          ? VisitMirror.find(element())
+          : Optional.<VisitMirror>absent();
+    }
+
+    @Value.Lazy
     public boolean isAst() {
       // considering ast is still in tree module
-      return environment().hasTransformModule()
+      return environment().hasTreesModule()
           && AstMirror.isPresent(element());
     }
 
@@ -1324,10 +1342,27 @@ public class Proto {
           && declaringType().get().isTransformer();
     }
 
+    public boolean isVisitor() {
+      return declaringType().isPresent()
+          && declaringType().get().isVisitor();
+    }
+
     public Optional<TransformMirror> getTransform() {
       return declaringType().isPresent()
           ? declaringType().get().getTransform()
           : Optional.<TransformMirror>absent();
+    }
+
+    public Optional<VisitMirror> getVisit() {
+      return declaringType().isPresent()
+          ? declaringType().get().getVisit()
+          : Optional.<VisitMirror>absent();
+    }
+
+    public Optional<TreesIncludeMirror> getTreesInclude() {
+      return declaringType().isPresent()
+          ? declaringType().get().getTreesInclude()
+          : Optional.<TreesIncludeMirror>absent();
     }
 
     @Value.Lazy
@@ -1335,14 +1370,6 @@ public class Proto {
       return ImmutableConstitution.builder()
           .protoclass(this)
           .build();
-    }
-
-    public boolean hasFunctionalModule() {
-      return environment().hasFunctionalModule();
-    }
-
-    public boolean hasBuilderModule() {
-      return environment().hasBuilderModule();
     }
   }
 

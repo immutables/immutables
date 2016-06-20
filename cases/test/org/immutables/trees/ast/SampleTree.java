@@ -25,8 +25,10 @@ import org.immutables.value.Value;
  * Compilation test for Ast Tree generation.
  */
 @Trees.Ast
-@Trees.Transform(include = IncludedTree.class)
+@Trees.Transform
+@Trees.Visit
 @Value.Enclosing
+@Trees.Include(IncludedTree.class)
 public class SampleTree {
   interface Expression {}
 

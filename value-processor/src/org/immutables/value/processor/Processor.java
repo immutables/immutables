@@ -68,8 +68,9 @@ public final class Processor extends AbstractGenerator {
     if (round.environment().hasFuncModule()) {
       invoke(new Generator_Funcs().usingValues(values).generate());
     }
-    if (round.environment().hasTransformModule()) {
+    if (round.environment().hasTreesModule()) {
       invoke(new Generator_Transformers().usingValues(values).generate());
+      invoke(new Generator_Visitors().usingValues(values).generate());
     }
     if (round.environment().hasAstModule()) {
       invoke(new Generator_Asts().usingValues(values).generate());

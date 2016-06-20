@@ -1291,7 +1291,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initBuilderParamsIfApplicable() {
-    if (!protoclass().hasBuilderModule()) {
+    if (!protoclass().environment().hasBuilderModule()) {
       return;
     }
     isBuilderParameter = FParameterMirror.isPresent(element);

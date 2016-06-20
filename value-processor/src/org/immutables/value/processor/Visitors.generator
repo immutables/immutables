@@ -1,5 +1,5 @@
 [--
-   Copyright 2014-2016 Immutables Authors and Contributors
+   Copyright 2016 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -14,33 +14,33 @@
    limitations under the License.
 --]
 [template public generate]
-  [for type in values.values if type.generateTransformer]
+  [for type in values.values if type.generateVisitor]
     [if type.kind.isEnclosing and (not type.kind.isValue)]
-[for String transformersClassname = ((toUpper type.name) 'Transformer')]
-[output.java type.package transformersClassname]
+[for String visitorClassname = ((toUpper type.name) 'Visitor')]
+[output.java type.package visitorClassname]
 [type.sourceHeader]
-[generateTransformer type transformersClassname]
+[generateVisitor type visitorClassname]
 [/output.java]
 [/for]
     [else]
 [output.error]
-Use @Trees.Transform to annotate umbrella class with @Value.Enclosing, but not with @Value.Immutable alone
+Use @Trees.Visit to annotate umbrella class with @Value.Enclosing, but not with @Value.Immutable alone
 [/output.error]
     [/if]
   [/for]
 [/template]
 
-[template generateTransformer Type transformerType String transformersClassname]
-[if transformerType.package]
-package [transformerType.package];
+[template generateVisitor Type visitorType String visitorClassname]
+[if visitorType.package]
+package [visitorType.package];
 [/if]
 
-[if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if visitorType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
-[transformerType.typeValue.access]abstract class [transformersClassname] {
-  protected [transformersClassname]() {}
-  [for cases = transformerType.cases,
+@javax.annotation.Generated({"Transformers.generator", "[visitorType.name]"})
+[visitorType.typeValue.access]abstract class [visitorClassname] {
+  protected [visitorClassname]() {}
+  [for cases = visitorType.cases,
        type in cases.implementedTypes,
        t = type.typeValue,
        im = type.typeImmutable,
@@ -51,27 +51,27 @@ package [transformerType.package];
   public [t] to[s]([t] value) {
     [if type.generateWithInterface]
     return value[for a in type.settableAttributes]
-        .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
+        .[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()))[/for];
     [else if type.useCopyConstructor and type.useCopyMethods]
       [if type.constitution.returnsAbstractValueType]
     [im] copy  = ([im]) [type.factoryCopyOf](value);
         [for a in type.settableAttributes]
-    copy = ([im]) copy.[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()));
+    copy = ([im]) copy.[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()));
         [/for]
     return copy;
       [else]
     return [if t eq im]value[else][type.factoryCopyOf](value)[/if][for a in type.settableAttributes]
-        .[a.names.with](as[s][transformAttributeSuffix a](value, value.[a.names.get]()))[/for];
+        .[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()))[/for];
       [/if]
     [else if type.useBuilder]
     return [type.factoryBuilder.relative]()
         [for v in type.settableAttributes]
           [if v.collectionType]
-        .[v.names.addAll](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+        .[v.names.addAll](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
           [else if v.mapType]
-        .[v.names.putAll](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+        .[v.names.putAll](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
           [else]
-        .[v.names.init](as[s][transformAttributeSuffix v](value, value.[v.names.get]()))
+        .[v.names.init](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
           [/if]
         [/for]
         .[type.names.build]();
@@ -88,7 +88,7 @@ package [transformerType.package];
   [for a in type.settableAttributes if useCopy]
     [if a.nullable]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.atNullability][a.type] nullable) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.atNullability][a.type] nullable) {
     if (nullable != null) {
       return as[s][toUpper a.name](value, nullable);
     }
@@ -96,7 +96,7 @@ package [transformerType.package];
   }
     [else if a.optionalType]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] optional) {
+  protected [a.rawType]<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.type] optional) {
     if (optional.[optionalPresent a]) {
       [a.unwrappedElementType] original = optional.[optionalGet a];
       [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
@@ -106,7 +106,7 @@ package [transformerType.package];
   }
     [else if a.collectionType]
 
-  protected Iterable<[a.wrappedElementType]> as[s][transformAttributeSuffix a]([t] value, [a.type] elements) {
+  protected Iterable<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.type] elements) {
     java.util.Collection<[a.wrappedElementType]> changedElements = new java.util.ArrayList<>(elements.size());
     boolean haveChanged = false;
     for ([a.unwrappedElementType] original : elements) {
@@ -127,7 +127,7 @@ package [transformerType.package];
   [let mappingType][if a.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[wK], [wV]>[/let]
   [let mappingConstruct][if a.multimapType][guava].collect.ArrayListMultimap.create(entries.size(), 3)[else]new java.util.LinkedHashMap<[wK], [wV]>(entries.size())[/if][/let]
 
-  protected [mappingType] as[s][transformAttributeSuffix a]([t] value, [a.type] entries) {
+  protected [mappingType] as[s][visitAttributeSuffix a]([t] value, [a.type] entries) {
     [mappingType] changedEntries = [mappingConstruct];
     boolean haveChanged = false;
     for (java.util.Map.Entry<[wK], [wV]> entry : entries.[if a.multimapType]entries()[else]entrySet()[/if]) {
@@ -158,7 +158,7 @@ package [transformerType.package];
   [/for]
   [/for]
   [/for]
-  [for cases = transformerType.cases,
+  [for cases = visitorType.cases,
        e in cases.subtypeUsages.entries,
        k = e.key,
        v = e.value,
@@ -175,7 +175,7 @@ package [transformerType.package];
 }
 [/template]
 
-[template transformAttributeSuffix Attribute a][toUpper a.name][output.trim]
+[template visitAttributeSuffix Attribute a][toUpper a.name][output.trim]
 [if a.nullable]Nullable
 [else if a.fugueOptional]Option
 [else if a.optionalType]Optional

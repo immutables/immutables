@@ -23,12 +23,20 @@ import java.lang.annotation.Target;
 @Beta
 @Target({})
 public @interface Trees {
+  @Documented
+  @Target(ElementType.TYPE)
+  public @interface Include {
+    Class<?>[] value() default {};
+  }
+
   @Target(ElementType.TYPE)
   public @interface Ast {}
 
   @Documented
   @Target(ElementType.TYPE)
-  public @interface Transform {
-    Class<?>[] include() default {};
-  }
+  public @interface Transform {}
+
+  @Documented
+  @Target(ElementType.TYPE)
+  public @interface Visit {}
 }
