@@ -17,7 +17,10 @@ package org.immutables.gson.adapter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
 import org.immutables.gson.adapter.BraveNewGenerics.Top;
+import org.immutables.gson.adapter.CustomGenerics.Botts;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -26,6 +29,7 @@ public class BraveNewGenericsTest {
   final Gson gson = new GsonBuilder()
       .registerTypeAdapterFactory(new GsonAdaptersBraveNewGenerics())
       .registerTypeAdapterFactory(new GsonAdaptersSchool())
+      .registerTypeAdapterFactory(new GsonAdaptersCustomGenerics())
       .create();
 
   @Test
@@ -42,5 +46,14 @@ public class BraveNewGenericsTest {
     String json = gson.toJson(school);
     School school2 = gson.fromJson(json, School.class);
     check(school).is(school2);
+  }
+
+  @Test
+  public void customGenerics() {
+    Type t = new TypeToken<Botts<Integer>>() {}.getType();
+    Botts<Integer> t1 = CustomGenerics.createBotts();
+    String json = gson.toJson(t1, t);
+    Botts<Integer> t2 = gson.fromJson(json, t);
+    check(t2).is(t1);
   }
 }

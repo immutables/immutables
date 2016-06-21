@@ -96,8 +96,18 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
   [for v in allValues if v.generics]
   [if for.first]
     [if classpath.unavailable 'org.immutables.gson.adapter.Types']
-[output.error]Please put full org.immutables:gson artifact it contain classes needed at runtime[/output.error]
+[output.error]Please add full org.immutables:gson artifact to the classpath. It contain classes needed at runtime[/output.error]
     [/if]
+
+  private static java.lang.reflect.Type['[]'] getTypeArguments(TypeToken<?> type) {
+    if (type.getType() instanceof java.lang.reflect.ParameterizedType) {
+      return ((java.lang.reflect.ParameterizedType) type.getType()).getActualTypeArguments();
+    }
+    throw new IllegalStateException("Please supply Type with actual type parameters to serialize "
+        + type.getType() + " instance using method overloads like toJson(instance, type)."
+        + " Runtime raw type alone is not enough."
+        + " You can use TypeToken class or reflection to construct Type with type arguments");
+  }
   [/if]
   [/for]
 }
@@ -111,10 +121,10 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter and a.wholeTypeVariable.not]
-  private final [a.elementType] [a.name]TypeSample = null;
+  public final [a.elementType] [a.name]TypeSample = null;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter and a.secondaryWholeTypeVariable.not]
-  private final [a.secondaryElementType] [a.name]SecondaryTypeSample = null;
+  public final [a.secondaryElementType] [a.name]SecondaryTypeSample = null;
     [/if]
   [/for]
   [for a in allAttributes]
@@ -133,7 +143,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
 
   [type.name]TypeAdapter([if type.generics]TypeToken<?> type, [/if]Gson gson) {[if not allAttributes]}[/if]
   [if type.generics]
-    java.lang.reflect.Type['[]'] typeArguments = ((java.lang.reflect.ParameterizedType) type.getType()).getActualTypeArguments();
+    java.lang.reflect.Type['[]'] typeArguments = getTypeArguments(type);
   [/if]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
