@@ -46,49 +46,16 @@ package [visitorType.package];
        im = type.typeImmutable,
        s = type.name,
        Boolean useCopy = type.useBuilder or (type.useCopyConstructor and type.useCopyMethods)]
-  [if useCopy]
 
-  public [t] to[s]([t] value) {
-    [if type.generateWithInterface]
-    return value[for a in type.settableAttributes]
-        .[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()))[/for];
-    [else if type.useCopyConstructor and type.useCopyMethods]
-      [if type.constitution.returnsAbstractValueType]
-    [im] copy  = ([im]) [type.factoryCopyOf](value);
-        [for a in type.settableAttributes]
-    copy = ([im]) copy.[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()));
-        [/for]
-    return copy;
-      [else]
-    return [if t eq im]value[else][type.factoryCopyOf](value)[/if][for a in type.settableAttributes]
-        .[a.names.with](as[s][visitAttributeSuffix a](value, value.[a.names.get]()))[/for];
-      [/if]
-    [else if type.useBuilder]
-    return [type.factoryBuilder.relative]()
-        [for v in type.settableAttributes]
-          [if v.collectionType]
-        .[v.names.addAll](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
-          [else if v.mapType]
-        .[v.names.putAll](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
-          [else]
-        .[v.names.init](as[s][visitAttributeSuffix v](value, value.[v.names.get]()))
-          [/if]
-        [/for]
-        .[type.names.build]();
-    [else][-- unreachable --]
-    return value;
-    [/if]
+  public void case[s]([t] value) {
+    [for v in type.settableAttributes]
+    as[s][visitAttributeSuffix v](value, value.[v.names.get]());
+    [/for]
   }
-  [else]
-
-  public [t] to[s]([t] value) {
-    return value;
-  }
-  [/if]
-  [for a in type.settableAttributes if useCopy]
+  [for a in type.settableAttributes]
     [if a.nullable]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.atNullability][a.type] nullable) {
+  protected void as[s][visitAttributeSuffix a]([t] value, [a.atNullability][a.type] nullable) {
     if (nullable != null) {
       return as[s][toUpper a.name](value, nullable);
     }
@@ -96,27 +63,18 @@ package [visitorType.package];
   }
     [else if a.optionalType]
 
-  protected [a.rawType]<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.type] optional) {
+  protected void as[s][visitAttributeSuffix a]([t] value, [a.type] optional) {
     if (optional.[optionalPresent a]) {
-      [a.unwrappedElementType] original = optional.[optionalGet a];
-      [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
-      return changed != original ? [optionalOf a](changed) : optional;
+      as[s][toUpper a.name](value, optional.[optionalGet a]);
+      return;
     }
-    return [optionalEmpty a];
   }
     [else if a.collectionType]
 
-  protected Iterable<[a.wrappedElementType]> as[s][visitAttributeSuffix a]([t] value, [a.type] elements) {
-    java.util.Collection<[a.wrappedElementType]> changedElements = new java.util.ArrayList<>(elements.size());
-    boolean haveChanged = false;
-    for ([a.unwrappedElementType] original : elements) {
-      [a.unwrappedElementType] changed = as[s][toUpper a.name](value, original);
-      if (changed != original) {
-        haveChanged = true;
-      }
-      changedElements.add(changed);
+  protected void as[s][visitAttributeSuffix a]([t] value, [a.type] elements) {
+    for ([a.unwrappedElementType] e : elements) {
+      as[s][toUpper a.name](value, e);
     }
-    return haveChanged ? changedElements : elements;
   }
     [else if a.mapType]
       [for gE = a.consumedElementType,
@@ -127,32 +85,25 @@ package [visitorType.package];
   [let mappingType][if a.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[wK], [wV]>[/let]
   [let mappingConstruct][if a.multimapType][guava].collect.ArrayListMultimap.create(entries.size(), 3)[else]new java.util.LinkedHashMap<[wK], [wV]>(entries.size())[/if][/let]
 
-  protected [mappingType] as[s][visitAttributeSuffix a]([t] value, [a.type] entries) {
-    [mappingType] changedEntries = [mappingConstruct];
-    boolean haveChanged = false;
+  protected void as[s][visitAttributeSuffix a]([t] value, [a.type] entries) {
     for (java.util.Map.Entry<[wK], [wV]> entry : entries.[if a.multimapType]entries()[else]entrySet()[/if]) {
-      [uV] original = entry.getValue();
-      [uV] changed = as[s][toUpper a.name](value, original);
-      if (changed != original) {
-        haveChanged = true;
-      }
-      changedEntries.put(entry.getKey(), changed);
+      as[s][toUpper a.name](value, entry.getValue());
     }
-    return haveChanged ? changedEntries : entries;
   }
       [/for]
     [/if]
   [for et = a.unwrappedValueElementType]
 
-  protected [et] as[s][toUpper a.name]([t] value, [et] attribute) {
+  protected void as[s][toUpper a.name]([t] value, [et] attribute) {
     [if cases.isImplementedType et]
-    return to[simplifyName et](attribute);
-    [else][for Type subtype in cases.knownSubtypes et]
+    case[simplifyName et](attribute);
+    [else]
+      [for Type subtype in cases.knownSubtypes et]
     if (attribute instanceof [subtype.typeValue]) {
-      return as[simplifyName et](([subtype.typeValue]) attribute);
+      as[simplifyName et](([subtype.typeValue]) attribute);
+      return;
     }
-    [/for]
-    return attribute;
+      [/for]
     [/if]
   }
   [/for]
@@ -164,11 +115,9 @@ package [visitorType.package];
        v = e.value,
        t = v.typeValue]
 
-  protected [k] as[simplifyName e.key]([t] value) {
+  protected void as[simplifyName e.key]([t] value) {
   [if cases.isImplementedType t]
-    return to[v.name](value);
-  [else]
-    return value;
+    case[v.name](value);
   [/if]
   }
   [/for]
