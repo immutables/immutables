@@ -146,7 +146,7 @@ public @interface Value {
    * {@literal @}Value.Enclosing
    * class GraphPrimitives {
    *   {@literal @}Value.Immutable
-   *   interace Vertex {}
+   *   interface Vertex {}
    *   {@literal @}Value.Immutable
    *   static class Edge {}
    * }
