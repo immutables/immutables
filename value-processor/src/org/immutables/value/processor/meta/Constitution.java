@@ -632,6 +632,7 @@ public abstract class Constitution {
     public final boolean isInterface;
     public final Visibility visibility;
     public final @Nullable String simpleName;
+    public final @Nullable Generics generics;
 
     InnerBuilderDefinition() {
       @Nullable TypeElement builderElement = findBuilderElement();
@@ -642,16 +643,41 @@ public abstract class Constitution {
         this.isSuper = !isExtending;
         this.simpleName = builderElement.getSimpleName().toString();
         this.visibility = Visibility.of(builderElement);
+        this.generics = new Generics(protoclass(), builderElement);
         if (isExtending) {
           lateValidateExtending(builderElement);
+        }
+        if (isSuper) {
+          lateValidateSuper(builderElement);
         }
       } else {
         this.isPresent = false;
         this.isInterface = false;
         this.isExtending = false;
         this.isSuper = false;
-        this.simpleName = null;
         this.visibility = Visibility.PRIVATE;
+        this.simpleName = null;
+        this.generics = Generics.empty();
+      }
+    }
+
+    private void lateValidateSuper(TypeElement t) {
+      List<String> undeclaredParams = Lists.newArrayList();
+      for (String v : this.generics.vars()) {
+        if (!generics().hasParameter(v)) {
+          undeclaredParams.add(v);
+        }
+      }
+
+      if (!undeclaredParams.isEmpty()) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .error("Inner type %s%s uses generic parameter %s which are not present in value's declaration: %s",
+                t.getSimpleName(),
+                this.generics.args(),
+                Joiner.on(", ").join(undeclaredParams),
+                generics());
       }
     }
 
@@ -660,8 +686,17 @@ public abstract class Constitution {
         protoclass()
             .report()
             .withElement(t)
-            .error("Extending %s shouldn't be abstract, it need to be instantiable",
+            .error("Extending %s shouldn't be abstract, it has to be instantiable",
                 t.getSimpleName());
+      }
+
+      if (!this.generics.def().equals(generics().def())) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .error("Inner type %s should have the same type parameters as abstract value type: %s",
+                t.getSimpleName(),
+                generics().def());
       }
     }
 
@@ -699,17 +734,6 @@ public abstract class Constitution {
                   .warning("Inner type %s is %s - not supported as Builder extend/super type",
                       t.getSimpleName(),
                       kind.name().toLowerCase());
-
-              return null;
-            }
-
-            if (!new Generics(protoclass, t).def().equals(generics().def())) {
-              protoclass
-                  .report()
-                  .withElement(t)
-                  .error("Inner type %s should have the same type parameters as abstract value type: %s",
-                      t.getSimpleName(),
-                      generics().def());
 
               return null;
             }

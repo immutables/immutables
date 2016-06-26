@@ -27,7 +27,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 public final class Generics implements Iterable<String> {
-  private static final String[] NO_BOUNDS = new String[0];
+  private static final String[] NO_STRINGS = new String[0];
   private static final Parameter[] NO_PARAMETERS = new Parameter[0];
   public final String declaration;
   public final String arguments;
@@ -47,6 +47,18 @@ public final class Generics implements Iterable<String> {
       this.arguments = "";
       this.unknown = "";
     }
+  }
+
+  private Generics() {
+    this.parameters = NO_PARAMETERS;
+    this.vars = NO_STRINGS;
+    this.declaration = "";
+    this.arguments = "";
+    this.unknown = "";
+  }
+
+  public static Generics empty() {
+    return new Generics();
   }
 
   private static Parameter[] computeParameters(
@@ -82,7 +94,7 @@ public final class Generics implements Iterable<String> {
       String[] boundsFrom(TypeParameterElement e) {
         List<? extends TypeMirror> boundMirrors = e.getBounds();
         if (boundMirrors.isEmpty()) {
-          return NO_BOUNDS;
+          return NO_STRINGS;
         }
         String[] bounds = new String[boundMirrors.size()];
         int c = 0;
@@ -92,7 +104,7 @@ public final class Generics implements Iterable<String> {
           bounds[c++] = provider.returnTypeName();
         }
         if (bounds.length == 1 && bounds[0].equals(Object.class.getName())) {
-          return NO_BOUNDS;
+          return NO_STRINGS;
         }
         return bounds;
       }
@@ -119,6 +131,9 @@ public final class Generics implements Iterable<String> {
   }
 
   private static String[] computeVars(Parameter[] paramerters) {
+    if (paramerters == NO_PARAMETERS) {
+      return NO_STRINGS;
+    }
     String[] vars = new String[paramerters.length];
     for (int i = 0; i < paramerters.length; i++) {
       vars[i] = paramerters[i].var;
