@@ -475,7 +475,7 @@ final class PostprocessingMachine {
     void nextChar(char c, int i) {
       switch (state) {
       case UNDEFINED:
-        if (isLowerCaseAlphabetic(c)) {
+        if (isLowerCaseAlphabetic(c) || isUnderscore(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
           importFrom = i;
         } else if (isAlphabetic(c) || isDigit(c) || isUnderscore(c)) {
@@ -495,7 +495,7 @@ final class PostprocessingMachine {
         }
         break;
       case DOT:
-        if (isLowerCaseAlphabetic(c)) {
+        if (isLowerCaseAlphabetic(c) || isUnderscore(c)) {
           state = FullyQualifiedNameState.PACKAGE_PART_CANDIDATE;
         } else if (isUpperCaseAlphabetic(c)) {
           state = FullyQualifiedNameState.CLASS;

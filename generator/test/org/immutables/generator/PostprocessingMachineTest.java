@@ -479,6 +479,15 @@ public class PostprocessingMachineTest {
   }
 
   @Test
+  public void safelySkipPackagesStartsWithUnderscore() {
+    check(PostprocessingMachine.rewrite(
+        "class B { a_._b.STATUS_TYPE s; }"))
+        .hasToString(LINES.join(
+            "import a_._b.STATUS_TYPE;",
+            "class B { STATUS_TYPE s; }"));
+  }
+
+  @Test
   public void underscoreNamesImport() {
     check(PostprocessingMachine.rewrite(
         "class X { a.SET_OPT s; }"))

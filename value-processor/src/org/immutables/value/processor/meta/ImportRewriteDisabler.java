@@ -15,8 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Splitter;
 import com.google.common.base.Ascii;
+import com.google.common.base.Splitter;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
@@ -63,7 +63,7 @@ class ImportRewriteDisabler {
         return true;
       }
     }
-
+    
     for (ValueType nested : type.nested) {
       if (shouldDisableFor(nested)) {
         return true;
