@@ -636,11 +636,30 @@ public abstract class Constitution {
 
     InnerBuilderDefinition() {
       @Nullable TypeElement builderElement = findBuilderElement();
+      // The following series of checks designed
+      // to not validate inner builder if it's disabled,
+      // but at the same time we need such validation
+      // if we are using "extending" builder which is still allowed
+      // on demand even if builder feature is disabled
+      boolean extending = false;
+
+      if (builderElement != null) {
+        extending = isExtending(builderElement);
+      }
+
+      if (builderElement != null && !protoclass().features().builder() && !extending) {
+        builderElement = null;
+      }
+
+      if (builderElement != null && !isValidInnerBuilder(builderElement)) {
+        builderElement = null;
+      }
+
       if (builderElement != null) {
         this.isPresent = true;
         this.isInterface = builderElement.getKind() == ElementKind.INTERFACE;
-        this.isExtending = isExtending(builderElement);
-        this.isSuper = !isExtending;
+        this.isExtending = extending;
+        this.isSuper = !extending;
         this.simpleName = builderElement.getSimpleName().toString();
         this.visibility = Visibility.of(builderElement);
         this.generics = new Generics(protoclass(), builderElement);
@@ -725,48 +744,52 @@ public abstract class Constitution {
           Naming typeInnerBuilderNaming = names().namings.typeInnerBuilder;
 
           if (!typeInnerBuilderNaming.detect(simpleName).isEmpty()) {
-
-            if (kind != ElementKind.CLASS
-                && kind != ElementKind.INTERFACE) {
-              protoclass
-                  .report()
-                  .withElement(t)
-                  .warning("Inner type %s is %s - not supported as Builder extend/super type",
-                      t.getSimpleName(),
-                      kind.name().toLowerCase());
-
-              return null;
-            }
-
-            Set<Modifier> modifiers = t.getModifiers();
-
-            if (!modifiers.contains(Modifier.STATIC)
-                || modifiers.contains(Modifier.PRIVATE)) {
-              protoclass
-                  .report()
-                  .withElement(t)
-                  .warning("Inner type %s should be static non-private to be supported as Builder extend/super type",
-                      t.getSimpleName());
-
-              return null;
-            }
-
-            if (kind == ElementKind.CLASS
-                && !hasAccessibleConstructor(t)) {
-              protoclass()
-                  .report()
-                  .withElement(t)
-                  .warning("%s should have non-private no-argument constructor to be supported as Builder extend/super type",
-                      t.getSimpleName());
-
-              return null;
-            }
-
             return (TypeElement) t;
           }
         }
       }
       return null;
+    }
+
+    private boolean isValidInnerBuilder(Element t) {
+      ElementKind kind = t.getKind();
+      if (kind != ElementKind.CLASS
+          && kind != ElementKind.INTERFACE) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .warning("Inner type %s is %s - not supported as Builder extend/super type",
+                t.getSimpleName(),
+                kind.name().toLowerCase());
+
+        return false;
+      }
+
+      Set<Modifier> modifiers = t.getModifiers();
+
+      if (!modifiers.contains(Modifier.STATIC)
+          || modifiers.contains(Modifier.PRIVATE)) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .warning("Inner type %s should be static non-private to be supported as Builder extend/super type",
+                t.getSimpleName());
+
+        return false;
+      }
+
+      if (kind == ElementKind.CLASS
+          && !hasAccessibleConstructor(t)) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .warning("%s should have non-private no-argument constructor to be supported as Builder extend/super type",
+                t.getSimpleName());
+
+        return false;
+      }
+
+      return true;
     }
 
     private boolean hasAccessibleConstructor(Element type) {
