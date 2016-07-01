@@ -15,14 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Ascii;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -35,11 +34,16 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
+
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
-import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.base.Ascii;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Encapsulates routines and various hacks for get relevant strings for the raw types and type
@@ -86,7 +90,11 @@ class TypeStringProvider {
     this.allowedTypevars = allowedTypevars;
     this.typevarArguments = typevarArguments;
     importsResolver = new ImportsTypeStringResolver(declaringType);
-    checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length);
+    checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length,
+                  "Element %s, mismatching type variables, allowed: %s, given: %s",
+                  element.getSimpleName(),
+                  Arrays.asList(allowedTypevars),
+                  typevarArguments == null ? null : Arrays.asList(typevarArguments));
   }
 
   TypeStringProvider(
