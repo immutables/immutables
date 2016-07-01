@@ -119,10 +119,17 @@ public class Proto {
           && isJacksonJsonTypeInfoAnnotated(element());
     }
 
-    @Value.Default
+    @Value.Derived
+    @Value.Auxiliary
     public boolean isJsonQualifier() {
       return environment().hasOkJsonLib()
           && OkQualifierMirror.isPresent(element());
+    }
+
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isEnclosing() {
+      return EnclosingMirror.isPresent(element());
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
@@ -392,6 +399,15 @@ public class Proto {
     }
 
     @Value.Lazy
+    List<MetaAnnotated> metaAnnotated() {
+      ImmutableList.Builder<MetaAnnotated> builder = ImmutableList.builder();
+      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
+        builder.add(MetaAnnotated.from(mirror, environment()));
+      }
+      return builder.build();
+    }
+    
+    @Value.Lazy
     public Optional<StyleInfo> style() {
       Optional<StyleInfo> style = StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
 
@@ -399,9 +415,8 @@ public class Proto {
         return style;
       }
 
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
-        Optional<StyleInfo> metaStyle = metaAnnotated.style();
+      for (MetaAnnotated m : metaAnnotated()) {
+        Optional<StyleInfo> metaStyle = m.style();
         if (metaStyle.isPresent()) {
           return metaStyle;
         }
@@ -417,8 +432,7 @@ public class Proto {
         return Optional.of(version.get().value());
       }
 
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         Optional<Long> serialVersion = metaAnnotated.serialVersion();
         if (serialVersion.isPresent()) {
           return serialVersion;
@@ -441,8 +455,7 @@ public class Proto {
         // will not hurt much.
         return true;
       }
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         if (metaAnnotated.isJacksonSerialized()) {
           return true;
         }
@@ -458,8 +471,7 @@ public class Proto {
         // will not hurt much.
         return true;
       }
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         if (metaAnnotated.isJacksonDeserialized()) {
           return true;
         }
@@ -470,8 +482,7 @@ public class Proto {
     @Value.Lazy
     public Optional<String[]> depluralize() {
       @Nullable String[] dictionary = null;
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         Optional<String[]> depluralize = metaAnnotated.depluralize();
         if (depluralize.isPresent()) {
           dictionary = concat(dictionary, depluralize.get());
@@ -499,8 +510,7 @@ public class Proto {
         // will not hurt much.
         return true;
       }
-      for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        MetaAnnotated metaAnnotated = MetaAnnotated.from(mirror, environment());
+      for (MetaAnnotated metaAnnotated : metaAnnotated()) {
         if (metaAnnotated.isJacksonJsonTypeInfo()) {
           return true;
         }
@@ -755,7 +765,17 @@ public class Proto {
 
     @Value.Lazy
     public boolean isEnclosing() {
-      return EnclosingMirror.isPresent(element());
+      if (EnclosingMirror.isPresent(element())) {
+        return true;
+      }
+      if (isTopLevel()) {
+        for (MetaAnnotated metaAnnotated : metaAnnotated()) {
+          if (metaAnnotated.isEnclosing()) {
+            return true;
+          }
+        }
+      }
+      return false;
     }
 
     @Value.Lazy
