@@ -24,13 +24,13 @@ import java.util.Map.Entry;
 public class SourceTypes {
   private SourceTypes() {}
 
-  public static Entry<String, List<String>> extract(CharSequence returnTypeString) {
+  public static Entry<String, List<String>> extract(CharSequence typeString) {
     StringBuilder typeName = new StringBuilder();
     StringBuilder typeArgument = new StringBuilder();
     List<String> typeArguments = Lists.newArrayList();
     int anglesOpened = 0;
-    chars: for (int i = 0; i < returnTypeString.length(); i++) {
-      char c = returnTypeString.charAt(i);
+    chars: for (int i = 0; i < typeString.length(); i++) {
+      char c = typeString.charAt(i);
       switch (c) {
       case '<':
         if (++anglesOpened > 1) {

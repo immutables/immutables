@@ -31,6 +31,7 @@ import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
 import org.immutables.generator.SourceExtraction;
+import org.immutables.generator.SourceTypes;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
@@ -722,11 +723,10 @@ public abstract class Constitution {
     private boolean isExtending(TypeElement element) {
       if (element.getKind() == ElementKind.CLASS) {
         String superclassString = SourceExtraction.getSuperclassString(element);
+        String rawSuperclass = SourceTypes.extract(superclassString).getKey();
         // If we are extending yet to be generated builder, we detect it by having the same name
         // as relative name of builder type
-        if (superclassString.endsWith(typeImplementationBuilder().relative())) {
-          return true;
-        }
+        return rawSuperclass.endsWith(typeImplementationBuilder().relativeRaw());
       }
       return false;
     }
