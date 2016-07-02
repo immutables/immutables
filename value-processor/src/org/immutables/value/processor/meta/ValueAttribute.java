@@ -183,7 +183,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isComparable() {
     return isNumberType()
         || isStringType()
-        || (!isContainerType() && super.isComparable());
+        || (!(isCollectionType() || isMapType()) && super.isComparable());
   }
 
   private List<CharSequence> jsonQualifierAnnotations;
@@ -959,7 +959,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         .addAll(protoclass().declaringType().asSet())
         .add(getDeclaringType())
         .build();
-    
+
     TypeStringProvider provider = new TypeStringProvider(
         reporter,
         element,

@@ -70,7 +70,7 @@ import [starImport];
     this.serialization = new Serialization(getGson());
     this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
-  
+
   /**
    * Inserts a single document into the collection.
    * @param document The [toLower type.name] to insert
@@ -98,7 +98,7 @@ import [starImport];
   public Finder findAll() {
     return find(criteria());
   }
-  
+
  /**
   * Find documents by the criteria expressed as a JSON string. Use the returned {@link Finder} object to complete
   * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
@@ -122,7 +122,7 @@ import [starImport];
   public Finder findBy[toUpper a.name]([a.type] [a.name]) {
     return find(criteria().[a.name]([a.name]));
   }
-  
+
   /**
    * Update or insert a document, matched by the identifier value of the '[a.name]' attribute.
    * @param document The [toLower type.name] to upsert
@@ -169,11 +169,11 @@ public [tT] orderBy[toUpper a.name]Desceding() {
 }
   [/for]
   [for a in type.excludableAttributes]
- 
+
 /**
  * Exclude the {@link [type.name]#[a.names.get]() [a.name]} attribute from each document in the results.
  * @return {@code this} [toLower tT] for use in a chained invocation
- */    
+ */
 public [tT] exclude[toUpper a.name]() {
   exclusion = exclusion.equal(serialization.[a.name]Name, false, -1);
   return this;
@@ -552,7 +552,6 @@ public static final class Criteria extends Repositories.Criteria {
     this.constraint = constraint;
     this.serialization = serialization;
   }
-
 [for a in type.allMarshalingAttributes,
      wW = a.wrappedElementType,
      uU = a.unwrappedElementType]
@@ -657,7 +656,7 @@ public static final class Criteria extends Repositories.Criteria {
 [if a.optionalType]
 
   public Criteria [a.name]Present() {
-  [if a.forcedEmpty or type.useConstructorOnly]
+  [if type.useConstructorOnly]
     return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, true, null));
   [else]
     return new Criteria(serialization, constraint.present(serialization.[a.name]Name, false));
@@ -665,7 +664,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]Absent() {
-  [if a.forcedEmpty or type.useConstructorOnly]
+  [if type.useConstructorOnly]
     return new Criteria(serialization, constraint.equal(serialization.[a.name]Name, false, null));
   [else]
     return new Criteria(serialization, constraint.present(serialization.[a.name]Name, true));
@@ -704,6 +703,10 @@ public static final class Criteria extends Repositories.Criteria {
   @Override
   public Criteria or() {
     return new Criteria(serialization, constraint.disjunction());
+  }
+
+  public Criteria with(Criteria criteria) {
+    return new Criteria(serialization, criteria.constraint.accept(constraint));
   }
 
   @Override
