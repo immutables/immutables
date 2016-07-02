@@ -50,6 +50,14 @@ License
 Changelog
 ---------
 
+### 2.2.9 (2016-07-01)
+- Thanks to issue reporters and contributors!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.9)
+
+### 2.2.7 (2016-06-19)
+- Thanks to issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.7)
+
 ### 2.2.7 (2016-06-19)
 - Thanks to issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.7)
@@ -72,7 +80,7 @@ Changelog
 ### 2.2.1 (2016-05-27)
 - Thanks to contributors and issue reporters!
 - Bugfixes and functionality refinements
-  + Can disable generation of META-INF/services for Gson adapters `Gson.TypeAdapters.metainfServices = false` 
+  + Can disable generation of META-INF/services for Gson adapters `Gson.TypeAdapters.metainfServices = false`
   + Gson Adapters may be configured to skip nulls in favor of default values. `Gson.TypeAdapters.nullAsDefault = true`
   + Numerous bug fixes
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.1)
@@ -116,7 +124,7 @@ Changelog
 - Bugfix and minor changes release.
   + Findbugs' `SuppressFBWarnings` placed on immutable implementation if found in the classpath
   + Primitive wrapper types and strings have an `equals` comparison now in `with*` methods in short-circuiting check to `return this`.
-  + Fixed some Eclipse specific compilation bugs. 
+  + Fixed some Eclipse specific compilation bugs.
 - Thanks to contributors and issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.1.12)
 
