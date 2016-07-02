@@ -1997,6 +1997,7 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 @Deprecated
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
+@com.fasterxml.jackson.annotation.JsonAutoDetect(fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE)
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
 [for v in type.settableAttributes if not v.anyGetter]
@@ -2004,10 +2005,12 @@ static final [output.linesShortable]class Json[type.generics]
   [v.type] [v.name] = [optionalEmpty v];
   [else if v.collectionType]
   [v.type] [v.name] = [emptyImmutableInstance v ''];
+  [else if v.primitive]
+  [v.type] [v.name];
   [else]
   [atNullable][v.wrapperType] [v.name];
   [/if]
-  [if v.requiresTrackIsSet and (not v.anyGetter)]
+  [if v.primitive or (v.requiresTrackIsSet and (not v.anyGetter))]
   boolean [disambiguateField type (v.name 'IsSet')];
   [/if]
 [/for]
@@ -2020,7 +2023,7 @@ static final [output.linesShortable]class Json[type.generics]
   [/for]
   public void set[toUpper v.name]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
-    [if v.requiresTrackIsSet and (not v.anyGetter)]
+    [if v.primitive or (v.requiresTrackIsSet and (not v.anyGetter))]
     this.[disambiguateField type (v.name 'IsSet')] = true;
     [/if]
   }
@@ -2056,7 +2059,7 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
   [for v in type.settableAttributes]
-  [if v.requiresTrackIsSet]
+  [if v.requiresTrackIsSet or v.primitive]
   if (json.[disambiguateField type (v.name 'IsSet')]) {
     builder.[v.names.init](json.[v.name]);
   }
