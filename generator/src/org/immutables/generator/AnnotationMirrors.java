@@ -289,7 +289,9 @@ public final class AnnotationMirrors {
     }
 
     private void printValue(AnnotationValue value) {
-      if (Compiler.JAVAC.isPresent() && value instanceof Attribute.UnresolvedClass) {
+      // doing string comparison here because this class may not be available in Javac JDK7
+      if (Compiler.JAVAC.isPresent()
+          && "com.sun.tools.javac.code.Attribute.UnresolvedClass".equals(value.getClass().getCanonicalName())) {
         Attribute.UnresolvedClass unresolved = ((Attribute.UnresolvedClass) value);
         String typeString = unresolved.classType.tsym.name.toString();
         builder.append(unresovedImportsResolver.apply(typeString)).append(".class");
