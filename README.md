@@ -50,6 +50,10 @@ License
 Changelog
 ---------
 
+### 2.2.10 (2016-07-03)
+- Hotfix release. Thanks to issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.10)
+
 ### 2.2.9 (2016-07-01)
 - Thanks to issue reporters and contributors!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.9)
