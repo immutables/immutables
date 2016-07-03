@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -56,6 +57,13 @@ public abstract class Constitution {
 
   @Value.Derived
   public Visibility implementationVisibility() {
+    if (style().visibility() == ImplementationVisibility.PRIVATE && protoclass().features().builder() == false) {
+      protoclass()
+          .report()
+          .warning("effective Style.visibility cannot be PRIVATE when builder is disabled,"
+              + " automatically switching visibility to PACKAGE");
+      return Visibility.PACKAGE;
+    }
     return protoclass().visibility().forImplementation(style().visibility());
   }
 
