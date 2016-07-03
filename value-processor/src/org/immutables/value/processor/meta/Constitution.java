@@ -57,11 +57,13 @@ public abstract class Constitution {
 
   @Value.Derived
   public Visibility implementationVisibility() {
-    if (style().visibility() == ImplementationVisibility.PRIVATE && protoclass().features().builder() == false) {
+    if (style().visibility() == ImplementationVisibility.PRIVATE
+        && !protoclass().features().builder()
+        && !protoclass().kind().isNested()) {
       protoclass()
           .report()
-          .warning("effective Style.visibility cannot be PRIVATE when builder is disabled,"
-              + " automatically switching visibility to PACKAGE");
+          .warning("effective Style.visibility cannot be PRIVATE when builder is disabled and is not nested,"
+              + " automatically switching visibility to PACKAGE because top level implementation class is required");
       return Visibility.PACKAGE;
     }
     return protoclass().visibility().forImplementation(style().visibility());
