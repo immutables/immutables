@@ -39,7 +39,7 @@ public abstract class Reporter {
 
   public abstract Reporter withElement(Element mirror);
 
-  static Reporter from(ProcessingEnvironment processing) {
+  public static Reporter from(ProcessingEnvironment processing) {
     return ImmutableReporter.of(processing.getMessager());
   }
 

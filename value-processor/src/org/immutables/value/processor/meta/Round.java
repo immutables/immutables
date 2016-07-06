@@ -17,8 +17,6 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -50,25 +48,7 @@ public abstract class Round {
 
   public abstract Set<String> customImmutableAnnotations();
 
-  private final Interning interners = new Interning();
-
-  final static class Interning {
-    private final Interner<DeclaringPackage> packageInterner = Interners.newStrongInterner();
-    private final Interner<DeclaringType> typeInterner = Interners.newStrongInterner();
-    private final Interner<Protoclass> protoclassInterner = Interners.newStrongInterner();
-
-    DeclaringPackage forPackage(DeclaringPackage declaringPackage) {
-      return packageInterner.intern(declaringPackage);
-    }
-
-    DeclaringType forType(DeclaringType declaringType) {
-      return typeInterner.intern(declaringType);
-    }
-
-    Protoclass forProto(Protoclass protoclass) {
-      return protoclassInterner.intern(protoclass);
-    }
-  }
+  private final Proto.Interning interners = new Proto.Interning();
 
   @Value.Derived
   ValueTypeComposer composer() {

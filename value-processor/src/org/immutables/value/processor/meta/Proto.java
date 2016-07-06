@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.Collections;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -50,6 +52,59 @@ import static com.google.common.base.Verify.verify;
 @Value.Nested
 public class Proto {
   private Proto() {}
+
+  public final static class DeclaringFactory {
+    private final Interning interning = new Interning();
+    private final Environment environment;
+
+    public DeclaringFactory(final ProcessingEnvironment processing) {
+      this.environment = new Environment() {
+        @Override
+        Round round() {
+          throw new UnsupportedOperationException("declaring factory is used with no connection to Round");
+        }
+
+        @Override
+        ProcessingEnvironment processing() {
+          return processing;
+        }
+      };
+    }
+
+    public DeclaringPackage packageFor(PackageElement element) {
+      return interning.forPackage(ImmutableProto.DeclaringPackage.builder()
+          .environment(environment)
+          .interner(interning)
+          .element(CachingElements.asCaching(element))
+          .build());
+    }
+
+    public DeclaringType typeFor(TypeElement element) {
+      return interning.forType(ImmutableProto.DeclaringType.builder()
+          .environment(environment)
+          .interner(interning)
+          .element(CachingElements.asCaching(element))
+          .build());
+    }
+  }
+
+  final static class Interning {
+    private final Interner<DeclaringPackage> packageInterner = Interners.newStrongInterner();
+    private final Interner<DeclaringType> typeInterner = Interners.newStrongInterner();
+    private final Interner<Protoclass> protoclassInterner = Interners.newStrongInterner();
+
+    DeclaringPackage forPackage(DeclaringPackage declaringPackage) {
+      return packageInterner.intern(declaringPackage);
+    }
+
+    DeclaringType forType(DeclaringType declaringType) {
+      return typeInterner.intern(declaringType);
+    }
+
+    Protoclass forProto(Protoclass protoclass) {
+      return protoclassInterner.intern(protoclass);
+    }
+  }
 
   @Value.Immutable(builder = false)
   public static abstract class MetaAnnotated {
@@ -169,7 +224,7 @@ public class Proto {
       return element().getSimpleName().toString();
     }
 
-    protected Reporter report() {
+    public Reporter report() {
       return Reporter.from(processing()).withElement(element());
     }
   }
@@ -361,7 +416,7 @@ public class Proto {
      * used to intern packaged created internally
      */
     @Value.Auxiliary
-    abstract Round.Interning interner();
+    abstract Proto.Interning interner();
 
     @Value.Lazy
     public Optional<TypeAdaptersMirror> typeAdapters() {
@@ -406,7 +461,7 @@ public class Proto {
       }
       return builder.build();
     }
-    
+
     @Value.Lazy
     public Optional<StyleInfo> style() {
       Optional<StyleInfo> style = StyleMirror.find(element()).transform(ToStyleInfo.FUNCTION);
@@ -740,17 +795,17 @@ public class Proto {
     public Optional<ValueImmutableInfo> features() {
       Optional<ValueImmutableInfo> immutableAnnotation =
           ImmutableMirror.find(element()).transform(ToImmutableInfo.FUNCTION);
-      
+
       if (immutableAnnotation.isPresent()) {
         return immutableAnnotation;
       }
-      
+
       if (isAnnotatedWith(
           element(),
           environment().round().customImmutableAnnotations())) {
         return Optional.of(environment().defaultStyles().defaults());
       }
-      
+
       return Optional.absent();
     }
 
@@ -845,13 +900,27 @@ public class Proto {
     }
 
     @Value.Lazy
+    public CharSequence sourceCode() {
+      if (!isTopLevel()) {
+        return associatedTopLevel().sourceCode();
+      }
+      return SourceExtraction.extract(processing(), CachingElements.getDelegate(element()));
+    }
+
+    @Value.Lazy
     public CharSequence headerComments() {
-      return SourceExtraction.extractSourceHeader(processing(), CachingElements.getDelegate(element()));
+      if (!isTopLevel()) {
+        return associatedTopLevel().headerComments();
+      }
+      return SourceExtraction.headerFrom(sourceCode());
     }
 
     @Value.Lazy
     public SourceExtraction.Imports sourceImports() {
-      return SourceExtraction.readImports(processing(), CachingElements.getDelegate(element()));
+      if (!isTopLevel()) {
+        return associatedTopLevel().sourceImports();
+      }
+      return SourceExtraction.importsFrom(sourceCode());
     }
 
     public boolean isTransformer() {

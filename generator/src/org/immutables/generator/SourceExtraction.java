@@ -94,38 +94,34 @@ public final class SourceExtraction {
     }
   }
 
-  public static CharSequence extractSourceHeader(ProcessingEnvironment processing, TypeElement element) {
-    try {
-      return PostprocessingMachine.collectHeader(
-          SourceExtraction.extract(processing, element));
-    } catch (UnsupportedOperationException
-        | IllegalArgumentException
-        | IOException cannotReadSourceFile) {
-      cannotReadSourceFile.printStackTrace();
-      return "";
+  public static CharSequence headerFrom(CharSequence source) {
+    if (source.length() != 0) {
+      return PostprocessingMachine.collectHeader(source);
     }
+    return SourceExtractor.UNABLE_TO_EXTRACT;
   }
 
-  public static Imports readImports(ProcessingEnvironment processing, TypeElement element) {
+  public static Imports importsFrom(CharSequence source) {
+    if (source.length() != 0) {
+      return PostprocessingMachine.collectImports(source);
+    }
+    return Imports.empty();
+  }
+
+  public static CharSequence extract(ProcessingEnvironment processing, TypeElement element) {
     try {
-      return PostprocessingMachine.collectImports(extract(processing, element));
-    } catch (UnsupportedOperationException
-        | IllegalArgumentException cannotReadSourceFile) {
-      return Imports.empty();
+      return EXTRACTOR.extract(processing, element);
+    } catch (UnsupportedOperationException | IllegalArgumentException cannotReadSourceFile) {
+      return SourceExtractor.UNABLE_TO_EXTRACT;
     } catch (IOException cannotReadSourceFile) {
       processing.getMessager().printMessage(
           Diagnostic.Kind.MANDATORY_WARNING,
-          String.format("Could not read source files to collect imports for %s[%s.class]: %s",
+          String.format("Was unable to read source file for %s[%s.class]: %s",
               element,
               element.getClass().getName(),
               cannotReadSourceFile));
-
-      return Imports.empty();
     }
-  }
-
-  public static CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
-    return EXTRACTOR.extract(environment, element);
+    return SourceExtractor.UNABLE_TO_EXTRACT;
   }
 
   interface SourceExtractor {

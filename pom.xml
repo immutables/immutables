@@ -53,6 +53,7 @@
     <module>value-fixture</module>
     <module>serial</module>
     <module>cases</module>
+    <module>encode</module>
   </modules>
 
   <organization>

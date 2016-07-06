@@ -28,7 +28,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import org.immutables.generator.Generator.SupportedAnnotations;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Extend this abstract processor to propertly initalize and call templates.
@@ -52,6 +52,16 @@ public abstract class AbstractGenerator extends AbstractProcessor {
 
   protected final Set<TypeElement> annotations() {
     return StaticEnvironment.annotations();
+  }
+
+  protected final <T> T newTemplate(Class<T> type) {
+    String generatorClassname = type.getPackage().getName() + ".Generator_" + type.getSimpleName();
+    try {
+      Class<?> templateImplementationClass = type.getClassLoader().loadClass(generatorClassname);
+      return type.cast(templateImplementationClass.newInstance());
+    } catch (Exception ex) {
+      throw Throwables.propagate(ex);
+    }
   }
 
   protected final void invoke(Templates.Invokable invokable) {

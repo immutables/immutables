@@ -169,7 +169,7 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String toString() {
-      return Naming.class.getSimpleName() + ".identity()";
+      return NAME_PLACEHOLDER;
     }
   };
 
@@ -213,7 +213,7 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String toString() {
-      return Naming.class.getSimpleName() + ".from(" + name + ")";
+      return name;
     }
   }
 
@@ -276,7 +276,7 @@ public abstract class Naming implements Function<String, String> {
 
     @Override
     public String toString() {
-      return Naming.class.getSimpleName() + ".from(" + prefix + NAME_PLACEHOLDER + suffix + ")";
+      return prefix + NAME_PLACEHOLDER + suffix;
     }
   }
 }
