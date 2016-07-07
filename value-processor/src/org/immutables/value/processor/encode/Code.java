@@ -208,10 +208,11 @@ final class Code {
     }
   }
 
-  static abstract class Term {
+  static abstract class Term extends Eq<Term> {
     private final String string;
 
     Term(String string) {
+      super(string);
       this.string = string;
     }
 
@@ -237,19 +238,8 @@ final class Code {
     }
 
     @Override
-    public int hashCode() {
-      return string.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (obj == null) {
-        return false;
-      }
-      if (getClass() == obj.getClass()) {
-        return ((Term) obj).string.equals(string);
-      }
-      return true;
+    protected boolean eq(Term other) {
+      return string.equals(other.string);
     }
   }
 
