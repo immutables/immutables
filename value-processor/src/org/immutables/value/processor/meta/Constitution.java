@@ -41,7 +41,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
-@Value.Nested
+@Value.Enclosing
 @Value.Immutable
 public abstract class Constitution {
   private static final String NA_ERROR = "!should_not_be_used_in_generated_code!";
@@ -498,7 +498,7 @@ public abstract class Constitution {
   }
 
   @Value.Immutable
-  public static abstract class AppliedNameForms extends NameForms {
+  public static abstract class AppliedNameForms extends AbstractNameForms {
     public abstract NameForms forms();
 
     public abstract String applied();
@@ -566,9 +566,8 @@ public abstract class Constitution {
           : (base + '.' + genericArgs() + applied());
     }
   }
-
-  @Value.Immutable
-  public static abstract class NameForms {
+  
+  public static abstract class AbstractNameForms {
     private static final String PUBLIC_MODIFIER_PREFIX = "public ";
     private static final String PRIVATE_MODIFIER_PREFIX = "private ";
 
@@ -609,12 +608,13 @@ public abstract class Constitution {
       }
     }
 
-    public AppliedNameForms applied(String input) {
-      return ImmutableConstitution.AppliedNameForms.builder()
-          .forms(this)
-          .applied(input)
-          .build();
+    protected String qualifyWithPackage(String reference) {
+      return DOT_JOINER.join(Strings.emptyToNull(packageOf()), reference);
     }
+  }
+
+  @Value.Immutable
+  public static abstract class NameForms extends AbstractNameForms {
 
     /**
      * Fully qualified type name
@@ -626,8 +626,11 @@ public abstract class Constitution {
           : qualifyWithPackage(relative());
     }
 
-    protected String qualifyWithPackage(String reference) {
-      return DOT_JOINER.join(Strings.emptyToNull(packageOf()), reference);
+    public AppliedNameForms applied(String input) {
+      return ImmutableConstitution.AppliedNameForms.builder()
+          .forms(this)
+          .applied(input)
+          .build();
     }
   }
 

@@ -49,7 +49,7 @@ import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
 
-@Value.Nested
+@Value.Enclosing
 public class Proto {
   private Proto() {}
 
