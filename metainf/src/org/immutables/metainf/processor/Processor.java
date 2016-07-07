@@ -20,7 +20,8 @@ import org.immutables.generator.Generator;
 import org.immutables.metainf.Metainf;
 
 @Generator.SupportedAnnotations(Metainf.Service.class)
-@org.immutables.metainf.retrofit.Metainf.Service(javax.annotation.processing.Processor.class)
+@Metainf.Service(javax.annotation.processing.Processor.class)
+//@org.immutables.metainf.retrofit.Metainf.Service(javax.annotation.processing.Processor.class)
 public class Processor extends AbstractGenerator {
   @Override
   protected void process() {

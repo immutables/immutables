@@ -37,13 +37,14 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Generator;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
+import org.immutables.metainf.Metainf;
 import org.parboiled.Parboiled;
 import org.parboiled.errors.ErrorUtils;
 import org.parboiled.parserunners.ReportingParseRunner;
 import org.parboiled.support.ParsingResult;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-@org.immutables.metainf.retrofit.Metainf.Service(javax.annotation.processing.Processor.class)
+@Metainf.Service(javax.annotation.processing.Processor.class)
 public final class Processor extends AbstractProcessor {
 
   private final Parser parser = Parboiled.createParser(Parser.class);
