@@ -14,7 +14,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -99,6 +100,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- artifacts of retro version used for self-bootstrap complilation -->
+    <retro.version>2.2.10</retro.version>
   </properties>
 
   <build>
@@ -142,9 +145,11 @@
           <target>1.7</target>
           <useIncrementalCompilation>false</useIncrementalCompilation>
           <compilerArgs>
-            <!-- <arg>-Xlint:deprecation</arg> -->
             <arg>-Xlint:unchecked</arg>
           </compilerArgs>
+          <compilerArguments>
+            <Xmaxerrs>1000000</Xmaxerrs>
+          </compilerArguments>
         </configuration>
       </plugin>
     </plugins>

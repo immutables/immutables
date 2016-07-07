@@ -26,7 +26,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import org.immutables.generator.processor.ImmutableTrees.AccessExpression;
 import org.immutables.generator.processor.ImmutableTrees.ApplyExpression;
 import org.immutables.generator.processor.ImmutableTrees.AssignGenerator;
 import org.immutables.generator.processor.ImmutableTrees.BoundAccessExpression;
@@ -37,10 +36,12 @@ import org.immutables.generator.processor.ImmutableTrees.IterationGenerator;
 import org.immutables.generator.processor.ImmutableTrees.LetStatement;
 import org.immutables.generator.processor.ImmutableTrees.Parameter;
 import org.immutables.generator.processor.ImmutableTrees.ResolvedType;
+import org.immutables.generator.processor.ImmutableTrees.SimpleAccessExpression;
 import org.immutables.generator.processor.ImmutableTrees.Template;
 import org.immutables.generator.processor.ImmutableTrees.TransformGenerator;
 import org.immutables.generator.processor.ImmutableTrees.TypeDeclaration;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
+import org.immutables.generator.processor.Trees.AccessExpression;
 import org.immutables.generator.processor.Trees.Expression;
 import org.immutables.generator.processor.Trees.TemplatePart;
 import org.immutables.generator.processor.Trees.TypeDeclaration.Kind;
@@ -64,10 +65,9 @@ public final class TypeResolver {
   }
 
   public Unit resolve(Unit unit) {
-    return new Transformer()
-        .transform(new Scope(),
-            new ForIterationAccessTransformer()
-                .transform((Void) null, unit));
+    return new Transformer(new Scope())
+        .toUnit(new ForIterationAccessTransformer()
+            .toUnit(unit));
   }
 
   private enum InferencePurpose {
@@ -225,29 +225,34 @@ public final class TypeResolver {
     }
   }
 
-  private static final class ForIterationAccessTransformer extends TreesTransformer<Void> {
+  private static final class ForIterationAccessTransformer extends TreesTransformer {
     @Override
-    protected Expression transformExpression(Void context, ForIterationAccessExpression expression) {
-      return AccessExpression.builder()
+    protected Expression asExpression(ForIterationAccessExpression expression) {
+      return SimpleAccessExpression.builder()
           .addPath(Identifier.of(ITERATION_ACCESS_VARIABLE))
           .addAllPath(expression.access().path())
           .build();
     }
   }
 
-  private static final class Transformer extends TreesTransformer<Scope> {
+  private static final class Transformer extends TreesTransformer {
+    private final Scope scope;
 
-    @Override
-    public Unit transform(Scope scope, Unit unit) {
-      for (Template template : Iterables.filter(unit.parts(), Template.class)) {
-        scope.declareInvokable(template.declaration().name());
-      }
-      return super.transform(scope, unit);
+    public Transformer(Scope scope) {
+      this.scope = scope;
     }
 
     @Override
-    public AssignGenerator transform(Scope scope, AssignGenerator value) {
-      AssignGenerator generator = super.transform(scope, value);
+    public Unit toUnit(Unit unit) {
+      for (Template template : Iterables.filter(unit.parts(), Template.class)) {
+        scope.declareInvokable(template.declaration().name());
+      }
+      return super.toUnit(unit);
+    }
+
+    @Override
+    public AssignGenerator toAssignGenerator(AssignGenerator value) {
+      AssignGenerator generator = super.toAssignGenerator(value);
       return generator.withDeclaration(
           scope.inferType(
               generator.declaration(),
@@ -256,26 +261,26 @@ public final class TypeResolver {
     }
 
     @Override
-    protected TemplatePart transformTemplatePart(Scope scope, LetStatement statement) {
+    protected TemplatePart asTemplatePart(LetStatement statement) {
       scope.declareInvokable(statement.declaration().name());
-      return super.transformTemplatePart(scope, statement);
+      return super.asTemplatePart(statement);
     }
 
     @Override
-    public IterationGenerator transform(Scope scope, IterationGenerator value) {
-      IterationGenerator generator = super.transform(scope, value);
+    public IterationGenerator toIterationGenerator(IterationGenerator value) {
+      IterationGenerator generator = super.toIterationGenerator(value);
 
       return generator
           .withDeclaration(scope.inferType(
               generator.declaration(),
               generator.from(),
               InferencePurpose.ITERATE))
-          .withCondition(transformIterationGeneratorConditionAfterDeclaration(scope, generator, generator.condition()));
+          .withCondition(asIterationGeneratorConditionAfterDeclaration(generator, generator.condition()));
     }
 
     @Override
-    public TransformGenerator transform(Scope scope, TransformGenerator value) {
-      TransformGenerator generator = super.transform(scope, value);
+    public TransformGenerator toTransformGenerator(TransformGenerator value) {
+      TransformGenerator generator = super.toTransformGenerator(value);
 
       // first we resolve/inference type for intermetiate iteration var,
       // then we resolve condition and transform expressions
@@ -284,8 +289,8 @@ public final class TypeResolver {
               generator.varDeclaration(),
               generator.from(),
               InferencePurpose.ITERATE))
-          .withCondition(transformTransformGeneratorConditionAfterDeclaration(scope, generator, generator.condition()))
-          .withTransform(transformTransformGeneratorTransformAfterDeclaration(scope, generator, generator.transform()));
+          .withCondition(asTransformGeneratorConditionAfterDeclaration(generator, generator.condition()))
+          .withTransform(asTransformGeneratorTransformAfterDeclaration(generator, generator.transform()));
 
       // Only after transform expression is resolved, we could infer type for whole declaration
       return generator
@@ -295,39 +300,35 @@ public final class TypeResolver {
               InferencePurpose.COLLECT));
     }
 
-    private Optional<Expression> transformIterationGeneratorConditionAfterDeclaration(
-        Scope scope,
+    private Optional<Expression> asIterationGeneratorConditionAfterDeclaration(
         IterationGenerator generator,
         Optional<Expression> condition) {
       if (condition.isPresent()) {
         // Calling actual transformation
-        return Optional.of(super.transformIterationGeneratorCondition(scope, generator, condition.get()));
+        return Optional.of(super.asIterationGeneratorCondition(generator, condition.get()));
       }
       return Optional.absent();
     }
 
-    private Optional<Expression> transformTransformGeneratorConditionAfterDeclaration(
-        Scope scope,
+    private Optional<Expression> asTransformGeneratorConditionAfterDeclaration(
         TransformGenerator generator,
         Optional<Expression> condition) {
       if (condition.isPresent()) {
         // Calling actual transformation
-        return Optional.of(super.transformTransformGeneratorCondition(scope, generator, condition.get()));
+        return Optional.of(super.asTransformGeneratorCondition(generator, condition.get()));
       }
       return Optional.absent();
     }
 
-    private Expression transformTransformGeneratorTransformAfterDeclaration(
-        Scope scope,
+    private Expression asTransformGeneratorTransformAfterDeclaration(
         TransformGenerator generator,
         Expression condition) {
-      return super.transformTransformGeneratorTransform(scope, generator, condition);
+      return super.asTransformGeneratorTransform(generator, condition);
     }
 
     /** We prevent transformation here to manually do it after variable declaration is done. */
     @Override
-    protected Expression transformIterationGeneratorCondition(
-        Scope scope,
+    protected Expression asIterationGeneratorCondition(
         IterationGenerator value,
         Expression element) {
       return simplifyExpression(element);
@@ -335,8 +336,7 @@ public final class TypeResolver {
 
     /** We prevent transformation here to manually do it after variable declaration is done. */
     @Override
-    protected Expression transformTransformGeneratorCondition(
-        Scope context,
+    protected Expression asTransformGeneratorCondition(
         TransformGenerator value,
         Expression element) {
       return simplifyExpression(element);
@@ -344,15 +344,14 @@ public final class TypeResolver {
 
     /** We prevent transformation here to manually do it after variable declaration is done. */
     @Override
-    protected Expression transformTransformGeneratorTransform(
-        Scope context,
+    protected Expression asTransformGeneratorTransform(
         TransformGenerator value,
         Expression element) {
       return simplifyExpression(element);
     }
 
     @Override
-    public Parameter transform(Scope scope, Parameter parameter) {
+    public Parameter toParameter(Parameter parameter) {
       return parameter.withType(
           scope.declare(
               (Trees.TypeDeclaration) parameter.type(),
@@ -361,12 +360,13 @@ public final class TypeResolver {
 
     /** Overriden to specify order in which we process declaration first, and then parts. */
     @Override
-    public Template transform(Scope scope, Template template) {
+    public Template toTemplate(Template template) {
       try {
-        scope = scope.nest();
+        Scope nestedScope = scope.nest();
+        Transformer nested = new Transformer(nestedScope);
         return template
-            .withDeclaration(transformTemplateDeclaration(scope, template, template.declaration()))
-            .withParts(transformTemplateListParts(scope, template, template.parts()));
+            .withDeclaration(nested.asTemplateDeclaration(template, template.declaration()))
+            .withParts(nested.asTemplatePartsElements(template, template.parts()));
       } catch (RuntimeException ex) {
         throw new RuntimeException("In template " + template.declaration().name() + ": " + ex.getMessage(), ex);
       }
@@ -374,46 +374,51 @@ public final class TypeResolver {
 
     /** Overriden to specify order in which we process declaration first, and then parts. */
     @Override
-    public LetStatement transform(Scope scope, LetStatement statement) {
-      scope = scope.nest();
+    public LetStatement toLetStatement(LetStatement statement) {
+      Transformer nested = new Transformer(scope.nest());
       return statement
-          .withDeclaration(transformLetStatementDeclaration(scope, statement, statement.declaration()))
-          .withParts(transformLetStatementListParts(scope, statement, statement.parts()));
+          .withDeclaration(nested.asLetStatementDeclaration(statement, statement.declaration()))
+          .withParts(nested.asLetStatementPartsElements(statement, statement.parts()));
     }
 
     /** Overriden to specify order in which we process declaration first, and then parts. */
     @Override
-    public ForStatement transform(Scope scope, ForStatement statement) {
-      scope = scope.nest();
-      scope.declareForIterationAccess(Identifier.of(ITERATION_ACCESS_VARIABLE));
+    public ForStatement toForStatement(ForStatement statement) {
+      Scope nestedScope = scope.nest();
+      nestedScope.declareForIterationAccess(Identifier.of(ITERATION_ACCESS_VARIABLE));
+      Transformer nested = new Transformer(nestedScope);
       return statement
-          .withDeclaration(transformForStatementListDeclaration(scope, statement, statement.declaration()))
-          .withParts(transformForStatementListParts(scope, statement, statement.parts()));
+          .withDeclaration(nested.asForStatementDeclarationElements(statement, statement.declaration()))
+          .withParts(nested.asForStatementPartsElements(statement, statement.parts()));
     }
 
     @Override
-    protected Iterable<TemplatePart> transformForStatementListParts(
-        Scope context,
+    protected Iterable<TemplatePart> asForStatementPartsElements(
         ForStatement value,
         List<TemplatePart> collection) {
-      return super.transformForStatementListParts(context, value, collection);
+      return super.asForStatementPartsElements(value, collection);
     }
 
     /**
-     * Resolve accesors and types on {@link AccessExpression}, turning it into
+     * Resolve accesors and types on {@link SimpleAccessExpression}, turning it into
      * {@link BoundAccessExpression}
      */
     @Override
-    protected Trees.AccessExpression transformAccessExpression(Scope scope, AccessExpression value) {
+    protected AccessExpression asAccessExpression(SimpleAccessExpression value) {
       return scope.resolveAccess(value);
     }
 
     @Override
-    protected Trees.Expression transformExpression(Scope scope, ApplyExpression value) {
-      return simplifyExpression(super.transformExpression(scope, value));
+    protected Expression asExpression(ApplyExpression value) {
+      return simplifyExpression(super.asExpression(value));
     }
 
-    private Trees.Expression simplifyExpression(Trees.Expression expression) {
+    @Override
+    protected Expression asExpression(SimpleAccessExpression value) {
+      return scope.resolveAccess(value);
+    }
+
+    private Expression simplifyExpression(Trees.Expression expression) {
       if (expression instanceof ApplyExpression) {
         ImmutableList<Trees.Expression> params = ((ApplyExpression) expression).params();
         if (params.size() == 1) {

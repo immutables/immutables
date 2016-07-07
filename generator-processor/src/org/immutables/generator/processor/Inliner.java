@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.immutables.generator.processor.ImmutableTrees.AccessExpression;
+import org.immutables.generator.processor.ImmutableTrees.SimpleAccessExpression;
 import org.immutables.generator.processor.ImmutableTrees.AssignGenerator;
 import org.immutables.generator.processor.ImmutableTrees.ForStatement;
 import org.immutables.generator.processor.ImmutableTrees.Identifier;
@@ -47,11 +47,11 @@ final class Inliner {
   }
 
   private Unit inline(Unit unit) {
-    new Finder().transform((Void) null, unit);
-    return new Weaver().transform((Void) null, unit);
+    new Finder().toUnit(unit);
+    return new Weaver().toUnit(unit);
   }
 
-  private static class InlinedStatementCreator extends TreesTransformer<Void> {
+  private static class InlinedStatementCreator extends TreesTransformer {
     private final Template inlinable;
     private final int uniqueSuffix;
     private final Set<Trees.Identifier> remapped = Sets.newHashSet();
@@ -83,7 +83,7 @@ final class Inliner {
 
       addBodyIfNecessary(builder, params, bodyParts);
 
-      builder.addAllParts(transformTemplateListParts((Void) null, inlinable, inlinable.parts()));
+      builder.addAllParts(asTemplatePartsElements(inlinable, inlinable.parts()));
 
       return builder.build();
     }
@@ -119,17 +119,17 @@ final class Inliner {
     }
 
     @Override
-    public AccessExpression transform(Void context, AccessExpression value) {
+    public SimpleAccessExpression toSimpleAccessExpression(SimpleAccessExpression value) {
       final Trees.Identifier topAccessIdentifier = value.path().get(0);
       if (remapped.contains(topAccessIdentifier)) {
-        return new TreesTransformer<Void>() {
+        return new TreesTransformer() {
           @Override
-          public Identifier transform(Void context, Identifier value) {
+          public Identifier toIdentifier(Identifier value) {
             return topAccessIdentifier == value
                 ? remappedIdentifier(value)
                 : value;
           }
-        }.transform(context, value);
+        }.toSimpleAccessExpression(value);
       }
       return value;
     }
@@ -142,18 +142,18 @@ final class Inliner {
     }
   }
 
-  final class Finder extends TreesTransformer<Void> {
+  final class Finder extends TreesTransformer {
     private boolean inlinable;
 
     @Override
-    public Template transform(Void context, Template value) {
+    public Template toTemplate(Template value) {
       if (value.isPublic()) {
         return value;
       }
 
       inlinable = true;
 
-      transformTemplateListParts(context, value, value.parts());
+      asTemplatePartsElements(value, value.parts());
 
       if (inlinable) {
         inlinables.put(value.declaration().name(), new InlinedStatementCreator(value));
@@ -162,19 +162,19 @@ final class Inliner {
     }
 
     @Override
-    public InvokableDeclaration transform(Void context, InvokableDeclaration value) {
+    public InvokableDeclaration toInvokableDeclaration(InvokableDeclaration value) {
       inlinable = false;
       return value;
     }
 
     @Override
-    public ValueDeclaration transform(Void context, ValueDeclaration value) {
+    public ValueDeclaration toValueDeclaration(ValueDeclaration value) {
       inlinable = false;
       return value;
     }
 
     @Override
-    public TextLine transform(Void context, TextLine value) {
+    public TextLine toTextLine(TextLine value) {
       if (value.newline()) {
         inlinable = false;
       }
@@ -182,14 +182,14 @@ final class Inliner {
     }
   }
 
-  final class Weaver extends TreesTransformer<Void> {
+  final class Weaver extends TreesTransformer {
 
     @Override
-    protected Iterable<Trees.UnitPart> transformUnitListParts(Void context, Unit value, List<Trees.UnitPart> parts) {
+    protected Iterable<Trees.UnitPart> asUnitPartsElements(Unit value, List<Trees.UnitPart> parts) {
       // TODO decide if we need to remove inlined completely
       // could be referenced by outer templates
       // return super.transformUnitListParts(context, value, parts);
-      return super.transformUnitListParts(context, value, inlinedRemoved(parts));
+      return super.asUnitPartsElements(value, inlinedRemoved(parts));
     }
 
     private List<Trees.UnitPart> inlinedRemoved(List<Trees.UnitPart> parts) {
@@ -203,7 +203,7 @@ final class Inliner {
     }
 
     @Override
-    protected Trees.TemplatePart transformTemplatePart(Void context, InvokeStatement value) {
+    protected Trees.TemplatePart asTemplatePart(InvokeStatement value) {
       @Nullable InlinedStatementCreator creator = tryGetInlinable(value);
       if (creator != null) {
         return creator.inlined(value.params(), value.parts());
@@ -213,8 +213,8 @@ final class Inliner {
 
     private @Nullable InlinedStatementCreator tryGetInlinable(InvokeStatement invoke) {
       Trees.Expression access = invoke.access();
-      if (access instanceof AccessExpression) {
-        AccessExpression ref = (AccessExpression) access;
+      if (access instanceof SimpleAccessExpression) {
+        SimpleAccessExpression ref = (SimpleAccessExpression) access;
         if (ref.path().size() == 1) {
           Trees.Identifier identifier = ref.path().get(0);
           return inlinables.get(identifier);

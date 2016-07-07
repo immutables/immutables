@@ -29,15 +29,15 @@ import org.immutables.generator.processor.Trees.TextPart;
 /**
  * Spacing trimming and redistribution should be run before balancing
  */
-final class Spacing extends TreesTransformer<Void> {
+final class Spacing extends TreesTransformer {
   private Spacing() {}
 
   static Unit normalize(Unit unit) {
-    return new Spacing().transform((Void) null, unit);
+    return new Spacing().toUnit(unit);
   }
 
   @Override
-  public Template transform(Void context, final Template template) {
+  public Template toTemplate(final Template template) {
     final ArrayList<Trees.TemplatePart> results = Lists.newArrayList();
     class Normalizer {
       private @Nullable TextFragment fragment;

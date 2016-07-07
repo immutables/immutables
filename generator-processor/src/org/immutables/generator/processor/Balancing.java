@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
 import javax.annotation.Nullable;
-import org.immutables.generator.processor.ImmutableTrees.Block;
+import org.immutables.generator.processor.ImmutableTrees.SimpleBlock;
 import org.immutables.generator.processor.ImmutableTrees.ConditionalBlock;
 import org.immutables.generator.processor.ImmutableTrees.Else;
 import org.immutables.generator.processor.ImmutableTrees.ElseIf;
@@ -44,15 +44,13 @@ final class Balancing {
   private Balancing() {}
 
   public static Unit balance(Unit unit) {
-    return TRANSFORMER.transform((Void) null, unit);
+    return new TreesTransformer() {
+      @Override
+      public Template toTemplate(Template template) {
+        return new TemplateScope(template).balance();
+      }
+    }.toUnit(unit);
   }
-
-  private static final TreesTransformer<Void> TRANSFORMER = new TreesTransformer<Void>() {
-    @Override
-    public Template transform(Void context, Template template) {
-      return new TemplateScope(template).balance();
-    }
-  };
 
   private static abstract class Scope {
     List<Trees.TemplatePart> parts = Lists.newArrayList();
@@ -336,7 +334,7 @@ final class Balancing {
 
     private void flushBlock() {
       if (currentElse != null) {
-        builder.otherwise(Block.builder()
+        builder.otherwise(SimpleBlock.builder()
             .addAllParts(parts)
             .build());
       } else if (currentElseIf != null) {

@@ -15,36 +15,37 @@
  */
 package org.immutables.generator.processor;
 
-import org.immutables.generator.processor.ParboiledTrees.AccessExpression;
-import org.immutables.generator.processor.ParboiledTrees.ApplyExpression;
-import org.immutables.generator.processor.ParboiledTrees.AssignGenerator;
-import org.immutables.generator.processor.ParboiledTrees.Comment;
-import org.immutables.generator.processor.ParboiledTrees.Else;
-import org.immutables.generator.processor.ParboiledTrees.ElseIf;
-import org.immutables.generator.processor.ParboiledTrees.For;
-import org.immutables.generator.processor.ParboiledTrees.ForEnd;
-import org.immutables.generator.processor.ParboiledTrees.ForIterationAccessExpression;
-import org.immutables.generator.processor.ParboiledTrees.Identifier;
-import org.immutables.generator.processor.ParboiledTrees.If;
-import org.immutables.generator.processor.ParboiledTrees.IfEnd;
-import org.immutables.generator.processor.ParboiledTrees.InvokableDeclaration;
-import org.immutables.generator.processor.ParboiledTrees.Invoke;
-import org.immutables.generator.processor.ParboiledTrees.InvokeEnd;
-import org.immutables.generator.processor.ParboiledTrees.InvokeString;
-import org.immutables.generator.processor.ParboiledTrees.IterationGenerator;
-import org.immutables.generator.processor.ParboiledTrees.Let;
-import org.immutables.generator.processor.ParboiledTrees.LetEnd;
-import org.immutables.generator.processor.ParboiledTrees.Newline;
-import org.immutables.generator.processor.ParboiledTrees.Parameter;
-import org.immutables.generator.processor.ParboiledTrees.StringLiteral;
-import org.immutables.generator.processor.ParboiledTrees.Template;
-import org.immutables.generator.processor.ParboiledTrees.TextBlock;
-import org.immutables.generator.processor.ParboiledTrees.TextFragment;
-import org.immutables.generator.processor.ParboiledTrees.TransformGenerator;
-import org.immutables.generator.processor.ParboiledTrees.TypeDeclaration;
-import org.immutables.generator.processor.ParboiledTrees.TypeIdentifier;
-import org.immutables.generator.processor.ParboiledTrees.Unit;
-import org.immutables.generator.processor.ParboiledTrees.ValueDeclaration;
+import org.immutables.trees.ast.Extractions;
+import org.immutables.generator.processor.TreesAst.SimpleAccessExpression;
+import org.immutables.generator.processor.TreesAst.ApplyExpression;
+import org.immutables.generator.processor.TreesAst.AssignGenerator;
+import org.immutables.generator.processor.TreesAst.Comment;
+import org.immutables.generator.processor.TreesAst.Else;
+import org.immutables.generator.processor.TreesAst.ElseIf;
+import org.immutables.generator.processor.TreesAst.For;
+import org.immutables.generator.processor.TreesAst.ForEnd;
+import org.immutables.generator.processor.TreesAst.ForIterationAccessExpression;
+import org.immutables.generator.processor.TreesAst.Identifier;
+import org.immutables.generator.processor.TreesAst.If;
+import org.immutables.generator.processor.TreesAst.IfEnd;
+import org.immutables.generator.processor.TreesAst.InvokableDeclaration;
+import org.immutables.generator.processor.TreesAst.Invoke;
+import org.immutables.generator.processor.TreesAst.InvokeEnd;
+import org.immutables.generator.processor.TreesAst.InvokeString;
+import org.immutables.generator.processor.TreesAst.IterationGenerator;
+import org.immutables.generator.processor.TreesAst.Let;
+import org.immutables.generator.processor.TreesAst.LetEnd;
+import org.immutables.generator.processor.TreesAst.Newline;
+import org.immutables.generator.processor.TreesAst.Parameter;
+import org.immutables.generator.processor.TreesAst.StringLiteral;
+import org.immutables.generator.processor.TreesAst.Template;
+import org.immutables.generator.processor.TreesAst.TextBlock;
+import org.immutables.generator.processor.TreesAst.TextFragment;
+import org.immutables.generator.processor.TreesAst.TransformGenerator;
+import org.immutables.generator.processor.TreesAst.TypeDeclaration;
+import org.immutables.generator.processor.TreesAst.TypeIdentifier;
+import org.immutables.generator.processor.TreesAst.Unit;
+import org.immutables.generator.processor.TreesAst.ValueDeclaration;
 import org.parboiled.BaseParser;
 import org.parboiled.Rule;
 import org.parboiled.annotations.DontLabel;
@@ -170,11 +171,11 @@ public class Parser extends BaseParser<Object> {
   }
 
   Rule AccessExpression() {
-    return Sequence(AccessExpression.builder(),
-        Identifier(), AccessExpression.addPath(),
+    return Sequence(SimpleAccessExpression.builder(),
+        Identifier(), SimpleAccessExpression.addPath(),
         ZeroOrMore(Sequence(DOT,
-            Identifier(), AccessExpression.addPath())),
-        AccessExpression.build());
+            Identifier(), SimpleAccessExpression.addPath())),
+        SimpleAccessExpression.build());
   }
 
   Rule GeneratorDeclaration() {

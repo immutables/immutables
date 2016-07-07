@@ -14,7 +14,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
@@ -39,15 +40,20 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-standalone</artifactId>
-      <version>1.0.1</version>
+      <artifactId>value</artifactId>
+      <version>${retro.version}</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>cases</artifactId>
+      <version>${retro.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>metainf</artifactId>
-      <version>2.2.10</version>
+      <version>${retro.version}</version>
       <classifier>standalone</classifier>
       <optional>true</optional>
       <scope>provided</scope>
