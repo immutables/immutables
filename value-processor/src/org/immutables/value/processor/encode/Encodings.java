@@ -12,6 +12,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
+import org.immutables.generator.Naming;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.Reporter;
@@ -36,6 +37,8 @@ public abstract class Encodings extends AbstractTemplate {
 
 	class Encoding {
 		private final CharSequence source;
+		private final Type.Factory types = new Type.Producer();
+		private final TypeExtractor typesReader;
 
 		private Object impl;
 
@@ -46,8 +49,10 @@ public abstract class Encodings extends AbstractTemplate {
 			source = SourceExtraction.extract(processing(), type);
 			if (source.length() == 0) {
 				reporter.withElement(type)
-						.error("No source code can be extracted @Encoding. Probably, compilation mode is not supported");
+						.error("No source code can be extracted for @Encoding class. Unsupported compilation mode");
 			}
+
+			this.typesReader = new TypeExtractor(types, type);
 
 			for (Element e : type.getEnclosedElements()) {
 				processMember(e);
@@ -56,16 +61,13 @@ public abstract class Encodings extends AbstractTemplate {
 
 		private void processMember(Element member) {
 			if (member.getKind() == ElementKind.FIELD) {
-				if (processField((VariableElement) member))
-					return;
+				if (processField((VariableElement) member)) return;
 			}
 			if (member.getKind() == ElementKind.METHOD) {
-				if (processMethod((ExecutableElement) member))
-					return;
+				if (processMethod((ExecutableElement) member)) return;
 			}
 			if (member.getKind() == ElementKind.CLASS) {
-				if (processClass((TypeElement) member))
-					return;
+				if (processClass((TypeElement) member)) return;
 			}
 
 			reporter.withElement(member)
@@ -90,6 +92,12 @@ public abstract class Encodings extends AbstractTemplate {
 							field.getSimpleName());
 					return true;
 				}
+
+				new EncodedElement.Builder()
+						.name(field.getSimpleName().toString())
+						.type(typesReader.get(field.asType()))
+						.naming(Naming.identity())
+						.build();
 			}
 			return false;
 		}
@@ -99,12 +107,6 @@ public abstract class Encodings extends AbstractTemplate {
 
 			}
 			return false;
-		}
-	}
-
-	class Impl {
-		Impl() {
-
 		}
 	}
 }
