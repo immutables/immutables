@@ -260,7 +260,7 @@ public final class ValueType extends TypeIntrospectionBase {
                   Collections.<String>emptySet(),
                   true,
                   false,
-                  ElementType.METHOD,
+                  ElementType.CONSTRUCTOR,
                   newTypeStringResolver());
         }
       }
