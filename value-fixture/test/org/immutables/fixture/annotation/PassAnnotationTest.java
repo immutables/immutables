@@ -19,6 +19,8 @@ import java.lang.reflect.Parameter;
 import nonimmutables.A1;
 import nonimmutables.A2;
 import nonimmutables.B1;
+import nonimmutables.C1;
+
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -36,5 +38,6 @@ public class PassAnnotationTest {
   @Test
   public void constructorPass() throws Exception {
     check(ImmutableValForPass.class.getConstructor(int.class).getAnnotation(B1.class)).notNull();
+    check(ImmutableValForPass.class.getConstructor(int.class).getAnnotation(C1.class)).notNull();
   }
 }

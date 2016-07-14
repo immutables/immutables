@@ -18,6 +18,8 @@ package org.immutables.fixture.annotation;
 import nonimmutables.A1;
 import nonimmutables.A2;
 import nonimmutables.B1;
+import nonimmutables.C1;
+
 import org.immutables.value.Value;
 
 // Should copy @A1 and @A2, but not other annotations
@@ -29,6 +31,7 @@ import org.immutables.value.Value;
 @Value.Style(passAnnotations = {A1.class, A2.class}, of = "new")
 abstract class AbstractValForPass {
   @B1
+  @C1
   AbstractValForPass() {}
 
   @Value.Parameter
