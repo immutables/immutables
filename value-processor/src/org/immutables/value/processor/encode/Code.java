@@ -1,7 +1,9 @@
 package org.immutables.value.processor.encode;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,8 +27,27 @@ final class Code {
 
 		List<Term> resolve(List<Term> terms) {
 			List<Term> result = new ArrayList<>();
+			resolve(terms.iterator(), result, false);
+			return result;
+		}
+
+		private void resolve(Iterator<Term> it, List<Term> result, boolean untilGenericsClose) {
 			State state = State.NONE;
-			for (Term t : terms) {
+			while (it.hasNext()) {
+				Term t = it.next();
+				// On matching close we return to
+				if (untilGenericsClose && t.is(">")) {
+					result.add(t);
+					return;
+				}
+				// this is to handle generics when invoking methods like
+				// ImmutableList.<String>builder()
+				// we don't want 'builder' to be considered to identifier
+				if ((state == State.DOT || untilGenericsClose) && t.is("<")) {
+					result.add(t);
+					resolve(it, result, true);
+					t = it.next();
+				}
 				state = state.next(t);
 				if (state.isTopIdent()) {
 					String iden = t.toString();
@@ -42,7 +63,6 @@ final class Code {
 					result.add(t);
 				}
 			}
-			return result;
 		}
 
 		enum State {
@@ -68,7 +88,11 @@ final class Code {
 						&& !isThis
 						&& IDENTIFIER_START.matches(t.toString().charAt(0));
 
-				if (isDot) {
+				boolean isNothing = t.isWhitespace() || t.isComment();
+
+				if (isNothing) {
+					return this;
+				} else if (isDot) {
 					switch (this) {
 					case THIS:
 						return THIS_DOT;
@@ -91,6 +115,10 @@ final class Code {
 				}
 			}
 		}
+	}
+
+	static String join(List<Term> terms) {
+		return Joiner.on("").join(terms);
 	}
 
 	static List<Term> termsFrom(String input) {
@@ -202,6 +230,13 @@ final class Code {
 			this.string = string;
 		}
 
+		char charOf() {
+			if (string.length() == 1) {
+				return string.charAt(0);
+			}
+			throw new IllegalStateException("'" + this + "' term is not single character");
+		}
+
 		boolean isWordOrNumber() {
 			return false;
 		}
@@ -215,6 +250,10 @@ final class Code {
 		}
 
 		boolean isBinding() {
+			return false;
+		}
+
+		boolean isComment() {
 			return false;
 		}
 
@@ -269,6 +308,11 @@ final class Code {
 	private static final class Other extends Term {
 		Other(String value) {
 			super(value);
+		}
+
+		@Override
+		boolean isComment() {
+			return toString().charAt(0) == '/';
 		}
 	}
 

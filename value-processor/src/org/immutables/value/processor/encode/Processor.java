@@ -9,6 +9,6 @@ import org.immutables.metainf.Metainf;
 public class Processor extends AbstractGenerator {
   @Override
   protected void process() {
-    invoke(newTemplate(Encodings.class).generate());
+		invoke(newTemplate(Encodings.class).generate());
   }
 }

@@ -1,3 +1,33 @@
 [template public generate]
-[-- TODO --]
+[for enc in encodings]
+[output.java enc.package (enc.name 'Enabled')]
+[generateEncoding enc]
+[/output.java]
+[/for]
+[/template]
+
+[template generateEncoding Encoding enc]
+package [enc.package];
+
+@org.immutables.encode.EncodingMetadata(
+  name = "[enc.package].[enc.name]",
+  imports = {
+[for imp in enc.nonlinkedImports][if not for.first],[/if]
+    [literal.string imp][/for]
+  },
+  typeParams = {[for p in enc.typeParams][if not for.first], [/if][literal p][/for]},
+  elements = {
+[for el in enc.allElements][if not for.first],[/if]
+    @org.immutables.encode.EncodingMetadata.Element(
+      name = [literal.string el.name],
+      tags = {[for t in el.tags][if not for.first], [/if][literal.string t][/for]},
+      type = [literal.string el.type],
+      naming = [literal.string el.naming],
+      params = {[for p in el.params][if not for.first], [/if][literal.string p][/for]},
+      typeParams = {[for t in el.typeParams][if not for.first], [/if][literal.string t][/for]},
+      code = [for String l = enc.linkage el][literal.string l][/for]
+    )[/for]
+  }
+)
+public @interface [enc.name]Enabled {}
 [/template]

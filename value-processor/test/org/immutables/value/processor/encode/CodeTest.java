@@ -1,6 +1,5 @@
 package org.immutables.value.processor.encode;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
@@ -31,15 +30,32 @@ public class CodeTest {
 
 	@Test
 	public void bind() {
-		List<Code.Term> terms = Code.termsFrom("this.aa(CARNIVORE.aa, HERBIVORE.bb).and(My.class)");
+		List<Code.Term> terms =
+				Code.termsFrom("this.aa(OPA.aa, CARNIVORE./* */aa, HERBIVORE. bb, UNIVORE. <My> aa).and(My.class)");
 
 		Code.Linker binder =
 				new Code.Linker(
 						ImmutableMap.of("My", "xx.My"),
 						ImmutableSet.of("aa", "HERBIVORE"));
 
-		String joined = Joiner.on("").join(binder.resolve(terms));
+		String joined = Code.join(binder.resolve(terms));
 
-		check(joined).is("this.@@aa(CARNIVORE.aa, @@HERBIVORE.bb).and(xx.My.class)");
+		check(joined).is("this.@@aa(OPA.aa, CARNIVORE./* */aa, @@HERBIVORE. bb, UNIVORE. <xx.My> aa).and(xx.My.class)");
+	}
+
+	@Test
+	public void structurize() {
+		SourceMapper m1 = new SourceMapper(""
+				+ "import z;\n"
+				+ "import o;\n"
+				+ "class A {\n"
+				+ "int f /* */ = 1   +2;\n"
+				+ "@Deprecated class B {  static {} int u =1; @Nonnull(when = When.ALWAYS) String k= abc.a(); \n}"
+				+ " @Override String h() throws java.lang.Exception { return \"xxx\"; }"
+				+ "\n}");
+
+		check(Code.join(m1.getExpression("A.f"))).hasToString(" 1   +2;");
+		check(Code.join(m1.getBlock("A.h"))).hasToString("{ return \"xxx\"; }");
+		check(Code.join(m1.getExpression("A.B.u"))).hasToString("1;");
 	}
 }

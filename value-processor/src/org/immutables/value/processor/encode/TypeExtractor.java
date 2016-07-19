@@ -1,8 +1,10 @@
 package org.immutables.value.processor.encode;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+import javax.lang.model.element.Parameterizable;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.type.ArrayType;
@@ -24,16 +26,35 @@ import org.immutables.value.processor.encode.Type.Parameters;
 import org.immutables.value.processor.encode.Type.Reference;
 
 final class TypeExtractor {
-	private final Factory factory;
-	private final Parameters parameters;
+	final Factory factory;
+	final Parameters parameters;
 	private final TypeConverter converter = new TypeConverter();
 
-	TypeExtractor(Type.Factory factory, TypeElement context) {
+	TypeExtractor(Type.Factory factory, Parameterizable context) {
 		this.factory = factory;
 		this.parameters = initParameters(context);
 	}
 
-	private Parameters initParameters(TypeElement context) {
+	private TypeExtractor(Type.Factory factory, Parameters parameters) {
+		this.factory = factory;
+		this.parameters = parameters;
+	}
+
+	TypeExtractor withParameter(String name, Iterable<? extends Defined> bounds) {
+		return new TypeExtractor(
+				factory,
+				parameters.introduce(name, bounds));
+	}
+
+	ImmutableList<Defined> getDefined(Iterable<? extends TypeMirror> bounds) {
+		ImmutableList.Builder<Defined> builder = ImmutableList.builder();
+		for (TypeMirror b : bounds) {
+			builder.add((Defined) get(b));
+		}
+		return builder.build();
+	}
+
+	private Parameters initParameters(Parameterizable context) {
 		Parameters parameters = factory.parameters();
 
 		for (TypeParameterElement p : context.getTypeParameters()) {

@@ -12,37 +12,37 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Encoding {
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Init {
-    boolean builder() default true;
+	@Target(ElementType.FIELD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Impl {}
 
-    boolean wither() default true;
-  }
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Naming {
+		String value();
+	}
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Naming {
-    String value();
-  }
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Expose {}
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Derive {}
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Init {}
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Expose {}
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Copy {}
 
-  @Target(ElementType.FIELD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Impl {}
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Stringify {}
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Copy {}
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Builder {}
 
-  @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
-  public @interface Stringify {}
+	@Target(ElementType.METHOD)
+	@Retention(RetentionPolicy.SOURCE)
+	public @interface Build {}
 }

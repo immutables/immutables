@@ -434,7 +434,7 @@ private static class [toUpper a.name]Extractor extends SimpleAnnotationValueVisi
     for (int i = 0; i < values.length; i++) {
       mirrors['[i]'] = [mirrorType a].from(values['[i]']).get();
     }
-    return names;
+    return mirrors;
   }
   [/if]
 [else]

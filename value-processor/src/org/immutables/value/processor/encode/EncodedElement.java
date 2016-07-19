@@ -1,6 +1,8 @@
 package org.immutables.value.processor.encode;
 
+import com.google.common.base.Joiner;
 import java.util.List;
+import java.util.Set;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Enclosing;
@@ -9,20 +11,45 @@ import org.immutables.value.processor.encode.Code.Term;
 
 @Immutable
 @Enclosing
-interface EncodedElement {
-	String name();
-	Type type();
-	Naming naming();
-	List<Param> params();
-	List<Term> code();
+abstract class EncodedElement {
+	abstract String name();
+	abstract Type type();
+	abstract Naming naming();
+	abstract List<Param> params();
+	abstract List<TypeParam> typeParams();
+	abstract List<Term> code();
+	abstract List<Type> thrown();
+	abstract Set<String> tags();
 
-	class Builder extends ImmutableEncodedElement.Builder {}
+	static class Builder extends ImmutableEncodedElement.Builder {}
 
 	@Immutable
-	interface Param {
+	abstract static class Param {
 		@Value.Parameter
-		String name();
+		abstract String name();
 		@Value.Parameter
-		Type type();
+		abstract Type type();
+
+		@Override
+		public String toString() {
+			return name() + ": " + type();
+		}
+
+		static Param of(String name, Type type) {
+			return ImmutableEncodedElement.Param.of(name, type);
+		}
+	}
+
+	@Immutable
+	abstract static class TypeParam {
+		abstract String name();
+		abstract List<Type> bounds();
+
+		@Override
+		public String toString() {
+			return name() + ": " + Joiner.on(" & ").join(bounds());
+		}
+
+		static class Builder extends ImmutableEncodedElement.TypeParam.Builder {}
 	}
 }

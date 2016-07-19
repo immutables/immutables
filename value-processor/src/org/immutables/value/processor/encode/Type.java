@@ -34,6 +34,7 @@ import org.immutables.value.processor.encode.Code.Term;
  */
 public interface Type {
 	Reference OBJECT = new Reference(Object.class.getName(), true);
+	Reference STRING = new Reference(String.class.getName(), true);
 
 	<V> V accept(Visitor<V> visitor);
 
@@ -340,9 +341,10 @@ public interface Type {
 			}
 		};
 
-		private static final Map<String, Reference> RESOLVED_TYPES = new HashMap<>(32);
+		private final Map<String, Reference> resolvedTypes = new HashMap<>(32);
 		{
-			RESOLVED_TYPES.put(Type.OBJECT.name, Type.OBJECT);
+			resolvedTypes.put(Type.OBJECT.name, Type.OBJECT);
+			resolvedTypes.put(Type.STRING.name, Type.STRING);
 		}
 
 		@Override
@@ -354,10 +356,10 @@ public interface Type {
 
 		@Override
 		public Reference reference(String name) {
-			Reference type = RESOLVED_TYPES.get(name);
+			Reference type = resolvedTypes.get(name);
 			if (type == null) {
 				type = new Reference(name, true);
-				RESOLVED_TYPES.put(name, type);
+				resolvedTypes.put(name, type);
 			}
 			return type;
 		}
