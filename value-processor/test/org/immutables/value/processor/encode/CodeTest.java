@@ -38,7 +38,7 @@ public class CodeTest {
 						ImmutableMap.of("My", "xx.My"),
 						ImmutableSet.of("aa", "HERBIVORE"));
 
-		String joined = Code.join(binder.resolve(terms));
+		String joined = Code.join(binder.bind(terms));
 
 		check(joined).is("this.@@aa(OPA.aa, CARNIVORE./* */aa, @@HERBIVORE. bb, UNIVORE. <xx.My> aa).and(xx.My.class)");
 	}

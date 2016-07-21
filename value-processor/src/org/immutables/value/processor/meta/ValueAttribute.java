@@ -43,7 +43,6 @@ import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
-import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
@@ -1234,34 +1233,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           && annotationElement.getQualifiedName().toString().equals(Annotations.JACKSON_ANY_GETTER)) {
         anyGetter = typeKind.isMap();
       }
-    }
-  }
-
-  @Value.Immutable(intern = true, builder = false)
-  static abstract class NullabilityAnnotationInfo {
-    @Value.Parameter
-    @Value.Auxiliary
-    abstract TypeElement element();
-
-    @Value.Derived
-    String qualifiedName() {
-      return element().getQualifiedName().toString();
-    }
-
-    @Value.Lazy
-    String asPrefix() {
-      return "@" + qualifiedName() + " ";
-    }
-
-    @Value.Lazy
-    String asLocalPrefix() {
-      boolean applicableToLocal = Annotations.annotationMatchesTarget(
-          element(),
-          ElementType.LOCAL_VARIABLE);
-
-      return applicableToLocal
-          ? asPrefix()
-          : "";
     }
   }
 
