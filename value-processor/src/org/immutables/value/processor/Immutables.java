@@ -16,15 +16,20 @@
 package org.immutables.value.processor;
 
 import javax.annotation.Nullable;
-import org.immutables.generator.Templates;
 import org.immutables.generator.Generator;
+import org.immutables.generator.Templates;
+import org.immutables.value.processor.encode.Generator_Renderers;
+import org.immutables.value.processor.encode.Renderers;
 
 @Generator.Template
 abstract class Immutables extends ValuesTemplate {
+  // renderers for encoding elements
+  final Renderers rr = new Generator_Renderers();
+
   @Nullable
   String topLevelSimple;
 
-  abstract org.immutables.generator.Templates.Invokable arrayAsList();
+  abstract Templates.Invokable arrayAsList();
 
   abstract Templates.Invokable arrayAsListSecondary();
 

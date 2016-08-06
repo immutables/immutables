@@ -34,9 +34,7 @@ public final class Templates {
 
   public interface Invokable {
     @Nullable
-    Invokable invoke(Invokation parentInvokation, Object... parameters);
-
-    int arity();
+    Invokable invoke(Invokation invokation, Object... parameters);
   }
 
   static class CharConsumer {
@@ -235,7 +233,6 @@ public final class Templates {
       this.arity = arity;
     }
 
-    @Override
     public int arity() {
       return arity;
     }

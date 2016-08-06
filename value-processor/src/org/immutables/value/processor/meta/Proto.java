@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.encode.EncodingInfo;
 import java.util.Collection;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -52,7 +53,6 @@ import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.encode.EncMetadataMirror;
 import org.immutables.value.processor.encode.Inflater;
-import org.immutables.value.processor.encode.Inflater.EncodingInfo;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;

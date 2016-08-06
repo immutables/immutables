@@ -2,10 +2,12 @@ package org.immutables.value.processor.encode;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Set;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.processor.encode.Code.Term;
@@ -14,7 +16,24 @@ import org.immutables.value.processor.encode.Code.Term;
 @Enclosing
 public abstract class EncodedElement {
   enum Tag {
-    IMPL, EXPOSE, BUILDER, STATIC, PRIVATE, FINAL, BUILD, INIT, HELPER, FIELD, TO_STRING, HASH_CODE, EQUALS, COPY
+    IMPL,
+    EXPOSE,
+    BUILDER,
+    STATIC,
+    PRIVATE,
+    PROTECTED,
+    PUBLIC,
+    FINAL,
+    BUILD,
+    INIT,
+    FROM,
+    HELPER,
+    FIELD,
+    TO_STRING,
+    HASH_CODE,
+    EQUALS,
+    COPY,
+    SYNTH
   }
 
   abstract String name();
@@ -35,12 +54,170 @@ public abstract class EncodedElement {
 
   abstract List<TypeParam> typeParams();
 
-  public boolean has(Tag tag) {
-    return tags().contains(tag);
+  @Derived
+  boolean isToString() {
+    return tags().contains(Tag.TO_STRING);
   }
 
-  public boolean not(Tag tag) {
-    return !tags().contains(tag);
+  @Derived
+  boolean isHashCode() {
+    return tags().contains(Tag.HASH_CODE);
+  }
+
+  @Derived
+  boolean isEquals() {
+    return tags().contains(Tag.EQUALS);
+  }
+
+  @Derived
+  boolean isFrom() {
+    return tags().contains(Tag.FROM);
+  }
+
+  @Derived
+  boolean isBuild() {
+    return tags().contains(Tag.BUILD);
+  }
+
+  @Derived
+  boolean isInit() {
+    return tags().contains(Tag.INIT);
+  }
+
+  @Derived
+  boolean isCopy() {
+    return tags().contains(Tag.COPY)
+        && !inBuilder();
+  }
+
+  @Derived
+  boolean isBuilderCopy() {
+    return tags().contains(Tag.COPY)
+        && inBuilder();
+  }
+
+  @Derived
+  boolean isExpose() {
+    return tags().contains(Tag.EXPOSE);
+  }
+
+  @Derived
+  boolean inBuilder() {
+    return tags().contains(Tag.BUILDER);
+  }
+
+  @Derived
+  boolean isStatic() {
+    return tags().contains(Tag.STATIC);
+  }
+
+  @Derived
+  boolean isFinal() {
+    return tags().contains(Tag.FINAL);
+  }
+
+  @Derived
+  boolean isPrivate() {
+    return tags().contains(Tag.PRIVATE);
+  }
+
+  @Derived
+  boolean isPublic() {
+    return tags().contains(Tag.PUBLIC);
+  }
+
+  @Derived
+  boolean isProtected() {
+    return tags().contains(Tag.PROTECTED);
+  }
+
+  @Derived
+  boolean isSynthetic() {
+    return tags().contains(Tag.SYNTH);
+  }
+
+  @Derived
+  boolean isImplField() {
+    return tags().contains(Tag.IMPL);
+  }
+
+  @Derived
+  boolean isValueField() {
+    return tags().contains(Tag.FIELD)
+        && !tags().contains(Tag.IMPL)
+        && !inBuilder()
+        && !isStatic();
+  }
+
+  @Derived
+  boolean isStaticField() {
+    return tags().contains(Tag.FIELD)
+        && !inBuilder()
+        && isStatic();
+  }
+
+  @Derived
+  boolean isBuilderField() {
+    return tags().contains(Tag.FIELD)
+        && inBuilder()
+        && !isStatic();
+  }
+
+  @Derived
+  boolean isStaticMethod() {
+    return tags().contains(Tag.HELPER)
+        && isStatic()
+        && !inBuilder();
+  }
+
+  @Derived
+  boolean isValueMethod() {
+    return tags().contains(Tag.HELPER)
+        && !isStatic()
+        && !inBuilder();
+  }
+
+  @Derived
+  boolean isBuilderMethod() {
+    return tags().contains(Tag.HELPER)
+        && inBuilder();
+  }
+
+  @Derived
+  boolean isBuilderStaticField() {
+    return tags().contains(Tag.FIELD)
+        && inBuilder()
+        && isStatic();
+  }
+
+  @Derived
+  ImmutableList<Term> oneLiner() {
+    return isInlinable() && typeParams().isEmpty()
+        ? ImmutableList.copyOf(Code.oneLiner(code()))
+        : ImmutableList.<Term>of();
+  }
+
+  @Derived
+  boolean isInlinable() {
+    return isEquals()
+        || isToString()
+        || isHashCode()
+        || isFrom()
+        || isCopy();
+  }
+
+  @Derived
+  String visibilityPrefix() {
+    if (isPublic()) {
+      return "public ";
+    }
+    if (isProtected()) {
+      return "protected ";
+    }
+    if (isPrivate()) {
+      return "private ";
+    }
+    return "";
   }
 
   static class Builder extends ImmutableEncodedElement.Builder {}

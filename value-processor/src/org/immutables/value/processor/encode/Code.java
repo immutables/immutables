@@ -1,11 +1,14 @@
 package org.immutables.value.processor.encode;
 
-import com.google.common.base.Function;
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,22 +20,28 @@ final class Code {
   private static final CharMatcher LETTER_OR_DIGIT = CharMatcher.javaLetterOrDigit().or(CharMatcher.anyOf("$_"));
   private static final CharMatcher IDENTIFIER_START = CharMatcher.javaLetter().or(CharMatcher.anyOf("$_"));
 
-  static class Interpolator {
-    private final Function<String, String> substitute;
+  static class Interpolator implements Function<List<Term>, List<Term>> {
+    private final Function<String, String> members;
+    private final Function<String, String> tops;
 
-    Interpolator(Function<String, String> substitute) {
-      this.substitute = substitute;
+    Interpolator(Function<String, String> members, Function<String, String> tops) {
+      this.members = members;
+      this.tops = tops;
     }
 
-    List<Term> bind(List<Term> terms) {
+    @Override
+    public List<Term> apply(List<Term> terms) {
       List<Term> result = new ArrayList<>(terms.size());
       for (Term t : terms) {
         if (t.isBinding()) {
-          String identifier = ((Binding) t).identifier();
-          String value = substitute.apply(identifier);
+          Binding binding = (Binding) t;
+          String identifier = binding.identifier();
+          String value = binding.isTop()
+              ? tops.apply(identifier)
+              : members.apply(identifier);
           if (value == null) {
-            throw new IllegalStateException(
-                "Cannot bind '" + identifier + "' subtitution in: " + Code.join(terms));
+            // if no substitution, falling back to the identifier itself
+            value = identifier;
           }
           result.add(new WordOrNumber(value));
         } else {
@@ -43,16 +52,18 @@ final class Code {
     }
   }
 
-  static class Linker {
+  static class Binder {
     private final Map<String, String> imports;
     private final Set<String> members;
+    private final Set<String> tops;
 
-    Linker(Map<String, String> imports, Set<String> members) {
+    Binder(Map<String, String> imports, Set<String> members, Set<String> tops) {
       this.imports = imports;
       this.members = members;
+      this.tops = tops;
     }
 
-    List<Term> bind(List<Term> terms) {
+    List<Term> apply(List<Term> terms) {
       List<Term> result = new ArrayList<>();
       resolve(terms.iterator(), result, false);
       return result;
@@ -77,11 +88,13 @@ final class Code {
         }
         state = state.next(t);
         if (state.isTopIdent()) {
-          String iden = t.toString();
-          if (members.contains(iden)) {
-            result.add(Binding.newImpl(iden));
-          } else if (imports.containsKey(iden)) {
-            String qualifiedName = imports.get(iden);
+          String identifier = t.toString();
+          if (state == State.TOP_IDENT && tops.contains(identifier)) {
+            result.add(Binding.newTop(identifier));
+          } else if (members.contains(identifier)) {
+            result.add(Binding.newMember(identifier));
+          } else if (imports.containsKey(identifier)) {
+            String qualifiedName = imports.get(identifier);
             result.addAll(termsFrom(qualifiedName));
           } else {
             result.add(t);
@@ -115,9 +128,7 @@ final class Code {
             && !isThis
             && IDENTIFIER_START.matches(t.toString().charAt(0));
 
-        boolean isNothing = t.isWhitespace() || t.isComment();
-
-        if (isNothing) {
+        if (t.isIgnorable()) {
           return this;
         } else if (isDot) {
           switch (this) {
@@ -175,7 +186,7 @@ final class Code {
         } else if (c == '\'' || c == '"') {
           int end = quotedLiteral(p + 1, c);
           terms.add(new Other(get(p, p = end)));
-        } else if (c == '@' && get(p + 1) == '@') {
+        } else if (c == '@' && Binding.chars(c, get(p + 1))) {
           int end = whileMatches(p + 2, LETTER_OR_DIGIT);
           terms.add(new Binding(get(p, p = end)));
         } else if (DELIMITER.matches(c)) {
@@ -248,8 +259,84 @@ final class Code {
     }
   }
 
+  static List<Term> replaceReturn(List<Term> code, String replacement) {
+    ArrayList<Term> result = new ArrayList<>(code);
+    ListIterator<Term> it = result.listIterator();
+    boolean wasReturn = false;
+    while (it.hasNext()) {
+      Term t = it.next();
+      if (t.isWordOrNumber() && t.is("return")) {
+        it.set(new Other(replacement));
+        wasReturn = true;
+      }
+    }
+    if (!wasReturn) {
+      ListIterator<Term> revIt = Lists.reverse(result).listIterator();
+      if (nextNonBlankIs(revIt, "}")) {
+        nextNonBlankIs(revIt, ";");
+        revIt.add(new Other(replacement));
+        revIt.add(new Delimiter(";"));
+      }
+    }
+    return result;
+  }
+
+  static List<Term> oneLiner(List<Term> code) {
+    if (!code.isEmpty()) {
+      // TODO improve visual quality
+      Iterator<Term> it = code.iterator();
+      if (nextNonBlankIs(it, "{") && nextNonBlankIs(it, "return")) {
+        List<Term> line = new ArrayList<>();
+        while (it.hasNext()) {
+          Term t = it.next();
+          if (line.isEmpty() && t.isIgnorable()) {
+            // skip leading whitespace
+            continue;
+          }
+          line.add(t);
+        }
+        if (line.size() > 2) {
+          // just to not bother with something awkward
+          ListIterator<Term> revIt = Lists.reverse(line).listIterator();
+          if (nextNonBlankIs(revIt, "}") && nextNonBlankIs(revIt, ";")) {
+            // skip traling whitespace
+            while (revIt.hasNext()) {
+              Term t = revIt.next();
+              if (t.isIgnorable()) {
+                revIt.remove();
+              } else {
+                break;
+              }
+            }
+            // step back
+            if (revIt.hasPrevious()) {
+              revIt.previous();
+            }
+            // remove everything after
+            while (revIt.hasPrevious()) {
+              revIt.previous();
+              revIt.remove();
+            }
+            return ImmutableList.copyOf(line);
+          }
+        }
+      }
+    }
+    return ImmutableList.of();
+  }
+
+  private static boolean nextNonBlankIs(Iterator<Term> terms, String string) {
+    while (terms.hasNext()) {
+      Term t = terms.next();
+      if (!t.isIgnorable()) {
+        return t.is(string);
+      }
+    }
+    return false;
+  }
+
   // TODO maybe change to CharSequence reference with start/end?
-  static abstract class Term extends Eq<Term> {
+  static abstract class Term extends Eq<Term> implements CharSequence {
     private final String string;
 
     Term(String string) {
@@ -270,6 +357,10 @@ final class Code {
 
     boolean isDelimiter() {
       return false;
+    }
+
+    boolean isIgnorable() {
+      return isWhitespace() || isComment();
     }
 
     boolean isWhitespace() {
@@ -297,9 +388,24 @@ final class Code {
     protected boolean eq(Term other) {
       return string.equals(other.string);
     }
+
+    @Override
+    public int length() {
+      return string.length();
+    }
+
+    @Override
+    public char charAt(int index) {
+      return string.charAt(index);
+    }
+
+    @Override
+    public CharSequence subSequence(int start, int end) {
+      return string.subSequence(start, end);
+    }
   }
 
-  private static final class WordOrNumber extends Term {
+  static final class WordOrNumber extends Term {
     WordOrNumber(String string) {
       super(string);
     }
@@ -343,7 +449,7 @@ final class Code {
     }
   }
 
-  private static final class Binding extends Term {
+  static final class Binding extends Term {
     Binding(String string) {
       super(string);
     }
@@ -352,13 +458,25 @@ final class Code {
       return toString().substring(2);
     }
 
+    boolean isTop() {
+      return charAt(1) == '^';
+    }
+
     @Override
     boolean isBinding() {
       return true;
     }
 
-    static Binding newImpl(String member) {
+    static Binding newMember(String member) {
       return new Binding("@@" + member);
+    }
+
+    static Binding newTop(String top) {
+      return new Binding("@^" + top);
+    }
+
+    static boolean chars(char c0, char c1) {
+      return c0 == '@' && (c1 == '@' || c1 == '^');
     }
   }
 }

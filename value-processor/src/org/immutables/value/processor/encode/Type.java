@@ -1,7 +1,8 @@
 package org.immutables.value.processor.encode;
 
-import javax.annotation.concurrent.ThreadSafe;
+import java.util.Iterator;
 import com.google.common.base.Ascii;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -15,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.value.processor.encode.Code.Term;
 
 /**
@@ -82,18 +84,21 @@ public interface Type {
 
   class Array extends Eq<Array> implements Nonprimitive {
     public final Type element;
+    public final boolean varargs;
 
-    Array(Type element) {
-      super(element);
+    Array(Type element, boolean varargs) {
+      super(element, varargs);
       if (element instanceof Wildcard) {
         throw new IllegalArgumentException("Wildcard as array element is not allowed: " + element);
       }
       this.element = element;
+      this.varargs = varargs;
     }
 
     @Override
     protected boolean eq(Array other) {
-      return element.equals(other.element);
+      return element.equals(other.element)
+          && varargs == other.varargs;
     }
 
     @Override
@@ -256,6 +261,8 @@ public interface Type {
 
     Array array(Type element);
 
+    Array varargs(Type element);
+
     Wildcard.Super superWildcard(Defined lowerBound);
 
     Wildcard.Extends extendsWildcard(Defined upperBound);
@@ -300,7 +307,7 @@ public interface Type {
     @Override
     public StringBuilder array(Array array) {
       array.element.accept(this);
-      return builder.append("[]");
+      return builder.append(array.varargs ? "..." : "[]");
     }
 
     @Override
@@ -346,7 +353,7 @@ public interface Type {
       PRIMITIVE_TYPES = primitives.build();
     }
 
-    private static final Parameters INITIAL_PARAMETERS = new Parameters() {
+    private static final Parameters EMPTY_PARAMETERS = new Parameters() {
       @Override
       public Variable variable(String name) {
         throw new IllegalArgumentException("no such type parameter '" + name + "' defined in " + this);
@@ -367,6 +374,10 @@ public interface Type {
         return "";
       }
     };
+
+    static Parameters emptyParameters() {
+      return EMPTY_PARAMETERS;
+    }
 
     private final Map<String, Reference> resolvedTypes = new HashMap<>(64);
     {
@@ -407,7 +418,12 @@ public interface Type {
 
     @Override
     public Array array(Type element) {
-      return new Array(element);
+      return new Array(element, false);
+    }
+
+    @Override
+    public Array varargs(Type element) {
+      return new Array(element, true);
     }
 
     @Override
@@ -422,7 +438,7 @@ public interface Type {
 
     @Override
     public Parameters parameters() {
-      return INITIAL_PARAMETERS;
+      return EMPTY_PARAMETERS;
     }
 
     static final class DefinedParameters implements Parameters {
@@ -521,7 +537,7 @@ public interface Type {
 
     @Override
     public Type array(Array array) {
-      return new Array(array.accept(this));
+      return new Array(array.accept(this), array.varargs);
     }
 
     @Override
@@ -535,7 +551,7 @@ public interface Type {
     }
   }
 
-  class VariableResolver extends Transformer {
+  class VariableResolver extends Transformer implements Function<Type, Type> {
     private static final VariableResolver EMPTY = new VariableResolver(new Variable[0], new Nonprimitive[0]);
 
     public static VariableResolver empty() {
@@ -569,7 +585,21 @@ public interface Type {
       return variable;
     }
 
-    public VariableResolver resolve(Variable variable, Nonprimitive substitution) {
+    @Override
+    public Type apply(Type type) {
+      return type.accept(this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder b = new StringBuilder(getClass().getSimpleName()).append("{");
+      for (Variable v : variables) {
+        b.append("\n  ").append(v).append(" -> ").append(variable(v));
+      }
+      return b.append("\n}").toString();
+    }
+
+    public VariableResolver bind(Variable variable, Nonprimitive substitution) {
       Variable[] variables = Arrays.copyOf(this.variables, this.variables.length + 1);
       variables[variables.length - 1] = variable;
 
@@ -640,8 +670,17 @@ public interface Type {
             if (t != null) {
               if (t.is("<")) {
                 type = arguments(type);
-              } else if (t.is("[")) {
-                type = array(type);
+              }
+              while (!terms.isEmpty()) {
+                t = terms.peek();
+                if (t.is("[")) {
+                  type = array(type);
+                } else {
+                  break;
+                }
+              }
+              if (t.is(".")) {
+                type = varargs(type);
               }
             }
             return type;
@@ -669,14 +708,14 @@ public interface Type {
         Type array(Type element) {
           expect(terms.poll(), "[");
           expect(terms.poll(), "]");
+          return factory.array(element);
+        }
 
-          Type type = factory.array(element);
-
-          if (!terms.isEmpty() && terms.peek().is("[")) {
-            return array(type);
-          }
-
-          return type;
+        Type varargs(Type element) {
+          expect(terms.poll(), ".");
+          expect(terms.poll(), ".");
+          expect(terms.poll(), ".");
+          return factory.varargs(element);
         }
 
         Type arguments(Type reference) {
@@ -709,6 +748,14 @@ public interface Type {
             segments.add(t.toString());
 
             if (!terms.isEmpty() && terms.peek().is(".")) {
+              if (terms.size() >= 2) {
+                // case when varargs may be so more than one dot
+                // but we handle rest of it elsewhere
+                Iterator<Term> it = terms.iterator();
+                if (it.next().is(".") && it.next().is(".")) {
+                  break;
+                }
+              }
               terms.poll();
             } else {
               break;
@@ -789,7 +836,7 @@ public interface Type {
             return true;
           }
           if (type instanceof Nonprimitive) {
-            holder[0] = holder[0].resolve(variable, (Nonprimitive) type);
+            holder[0] = holder[0].bind(variable, (Nonprimitive) type);
             return true;
           }
           return false;

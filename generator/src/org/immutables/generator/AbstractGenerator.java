@@ -28,7 +28,6 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import org.immutables.generator.Generator.SupportedAnnotations;
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Extend this abstract processor to propertly initalize and call templates.
@@ -65,7 +64,6 @@ public abstract class AbstractGenerator extends AbstractProcessor {
   }
 
   protected final void invoke(Templates.Invokable invokable) {
-    checkArgument(invokable.arity() == 0, "Entry template fragment should not have parameters");
     invokable.invoke(Templates.Invokation.initial());
   }
 

@@ -61,11 +61,6 @@ public final class Output {
       StaticEnvironment.processing().getMessager().printMessage(Diagnostic.Kind.ERROR, message);
       return null;
     }
-
-    @Override
-    public int arity() {
-      return 1;
-    }
   };
 
   public final Templates.Invokable system = new Templates.Invokable() {
@@ -73,13 +68,9 @@ public final class Output {
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
       String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
+      // this is not a debug line, we are printing to system out
       System.out.println(message);
       return null;
-    }
-
-    @Override
-    public int arity() {
-      return 1;
     }
   };
 
@@ -89,11 +80,6 @@ public final class Output {
     public Invokable invoke(Invokation invokation, Object... parameters) {
       invokation.out(parameters[0].toString().length());
       return null;
-    }
-
-    @Override
-    public int arity() {
-      return 1;
     }
   };
 
@@ -178,11 +164,6 @@ public final class Output {
       javaFile.complete();
       return null;
     }
-
-    @Override
-    public int arity() {
-      return 3;
-    }
   };
 
   public final Templates.Invokable service = new Templates.Invokable() {
@@ -197,11 +178,6 @@ public final class Output {
       AppendServiceFile servicesFile = getFiles().appendResourceFiles.get(key);
       body.invoke(new Invokation(servicesFile.consumer));
       return null;
-    }
-
-    @Override
-    public int arity() {
-      return 3;
     }
   };
 

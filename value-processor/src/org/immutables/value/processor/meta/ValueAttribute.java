@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.encode.Instantiation;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
@@ -43,6 +44,7 @@ import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
+import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
@@ -836,6 +838,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean hasTypeVariables;
   private ImmutableList<DeclaringType> declaredTypeWhichMightContainImports;
 
+  public @Nullable Instantiation instantiation;
+
   int getConstructorParameterOrder() {
     boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
 
@@ -909,6 +913,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return AuxiliaryMirror.isPresent(element);
   }
 
+  public boolean isEncoding() {
+    return typeKind == AttributeTypeKind.ENCODING;
+  }
+
   private boolean isMarkedAsMongoId() {
     return IdMirror.isPresent(element);
   }
@@ -918,9 +926,20 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
-  /** Initialized Validates things that were not validated otherwise */
-  void initAndValidate() {
+  /**
+   * Initialized Validates things that were not validated otherwise
+   * @param instantiationCreator can instantiate encodings
+   */
+  void initAndValidate(@Nullable InstantiationCreator instantiationCreator) {
     initTypeName();
+
+    if (instantiationCreator != null
+        && !isGenerateLazy
+        && !isGenerateDefault
+        && !isGenerateDerived) {
+      this.instantiation = instantiationCreator.tryInstantiateFor(reporter, returnTypeName, names);
+    }
+
     initTypeKind();
     initOrderKind();
     initBuilderParamsIfApplicable();
@@ -1082,7 +1101,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeKind() {
-    if (isGenerateDerived) {
+    if (instantiation != null) {
+      typeKind = AttributeTypeKind.ENCODING;
+    } else if (isGenerateDerived) {
       typeKind = AttributeTypeKind.REGULAR;
       ensureTypeIntrospected();
     } else if (returnType.getKind() == TypeKind.ARRAY) {
@@ -1368,5 +1389,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   @Override
   public String toString() {
     return "Attribute[" + name() + "]";
+  }
+
+  public boolean supportsInternalImplConstructor() {
+    return !isEncoding() || instantiation.supportsInternalImplConstructor();
   }
 }

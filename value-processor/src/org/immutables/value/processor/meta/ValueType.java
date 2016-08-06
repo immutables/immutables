@@ -895,11 +895,26 @@ public final class ValueType extends TypeIntrospectionBase {
     return Iterables.any(getSettableAttributes(), predicate);
   }
 
+  private @Nullable Set<String> additionalImports;
+
+  public void additionalImports(Set<String> imports) {
+    if (!imports.isEmpty()) {
+      this.additionalImports = imports;
+    }
+  }
+
   public Set<String> getRequiredSourceStarImports() {
     if (!hasSomeUnresolvedTypes()) {
-      return Collections.emptySet();
+      return additionalImports != null
+          ? additionalImports
+          : ImmutableSet.<String>of();
     }
+
     Set<String> starImports = Sets.newLinkedHashSet();
+
+    if (additionalImports != null) {
+      starImports.addAll(additionalImports);
+    }
 
     for (ValueType n : FluentIterable.from(nested).append(this)) {
       for (ValueAttribute a : n.attributes) {
@@ -989,7 +1004,7 @@ public final class ValueType extends TypeIntrospectionBase {
       if (c.hasConstructorParameterCustomOrder()) {
         return false;
       }
-      if (!c.typeKind().isRegular() || (!c.isPrimitive() && !c.isNullable())) {
+      if (!c.typeKind().isRegular() || !(c.isPrimitive() || c.isNullable())) {
         return false;
       }
     }
@@ -1005,8 +1020,18 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isGenerateBuilderUseCopyConstructor() {
     return isUseBuilder()
         && isUseCopyMethods()
+        && allAttributesSupportsThis()
         && !isOrdinalValue()
         && getDefaultAttributes().isEmpty();
+  }
+
+  private boolean allAttributesSupportsThis() {
+    for (ValueAttribute a : implementedAttributes) {
+      if (!a.supportsInternalImplConstructor()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   public boolean isGenerateBuilderConstructor() {

@@ -49,8 +49,8 @@ public class TypeTest {
     Type map = parser.parse("java.util.Map<A, B>");
 
     Type.VariableResolver resolver = Type.VariableResolver.empty()
-        .resolve(parameters.variable("A"), Type.OBJECT)
-        .resolve(parameters.variable("B"), parameters.introduce("C", NO_BOUNDS).variable("C"));
+        .bind(parameters.variable("A"), Type.OBJECT)
+        .bind(parameters.variable("B"), parameters.introduce("C", NO_BOUNDS).variable("C"));
 
     Type substituted = map.accept(resolver);
 
@@ -63,6 +63,8 @@ public class TypeTest {
     check(parser.parse("void")).is(Type.Primitive.VOID);
     check(parser.parse("java.lang.Object")).same(Type.OBJECT);
     check(parser.parse("java.util.List")).same(parser.parse("java.util.List"));
+    check(parser.parse("boolean...")).is(factory.varargs(Type.Primitive.BOOLEAN));
+    check(parser.parse("java.lang.Object...")).is(factory.varargs(Type.OBJECT));
     check(parser.parse("boolean[][]")).is(
         factory.array(
             factory.array(
@@ -76,6 +78,22 @@ public class TypeTest {
             factory.reference("java.util.List"),
             ImmutableList.of(
                 factory.reference("String"))));
+
+    check(parser.parse("java.util.Vector<Integer>..."))
+        .is(factory.varargs(
+            factory.parameterized(
+                factory.reference("java.util.Vector"),
+                ImmutableList.of(
+                    factory.reference("Integer")))));
+
+    check(parser.parse("java.util.Vector<Integer>[][]..."))
+        .is(factory.varargs(
+            factory.array(
+                factory.array(
+                    factory.parameterized(
+                        factory.reference("java.util.Vector"),
+                        ImmutableList.of(
+                            factory.reference("Integer")))))));
 
     check(parser.parse("java.util.Map<A, B>")).is(
         factory.parameterized(
@@ -115,6 +133,11 @@ public class TypeTest {
   @Test(expected = IllegalArgumentException.class)
   public void cantParseArgumentToVariable() {
     parser.parse("A<B>");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void cantParseNonLastVarargs() {
+    parser.parse("A<B>...[]");
   }
 
   @Test(expected = IllegalArgumentException.class)

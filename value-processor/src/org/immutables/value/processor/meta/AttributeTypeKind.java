@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableMap;
 
 public enum AttributeTypeKind {
   REGULAR(""),
+  // TODO support encoding which might count as collection
+  // or do this only for marshalers
+  ENCODING(""),
   ARRAY(""),
   LIST("List",
       java.util.List.class.getName(),
@@ -162,6 +165,7 @@ public enum AttributeTypeKind {
   public boolean isContainerKind() {
     switch (this) {
     case REGULAR:
+    case ENCODING:
     case ARRAY:
       return false;
     default:
@@ -349,6 +353,10 @@ public enum AttributeTypeKind {
 
   public boolean isRegular() {
     return this == REGULAR;
+  }
+
+  public boolean isEncoding() {
+    return this == ENCODING;
   }
 
   public boolean isMultiset() {

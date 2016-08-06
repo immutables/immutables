@@ -100,6 +100,19 @@ public class Builtins {
         }
       };
 
+  public final Templates.Binary<Object, Object, Boolean> eqref =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return left == right;
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".eq";
+        }
+      };
+
   public final Templates.Binary<Object, Object, Boolean> ne =
       new Templates.Binary<Object, Object, Boolean>() {
         @Override

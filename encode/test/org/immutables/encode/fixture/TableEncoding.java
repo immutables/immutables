@@ -1,3 +1,18 @@
+/*
+   Copyright 2016 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
 package org.immutables.encode.fixture;
 
 import com.google.common.collect.ImmutableSet;
@@ -8,9 +23,11 @@ import org.immutables.encode.Encoding;
 
 @Encoding
 class TableEncoding<R, C, V> {
+  public static final Void SMART_NULL = null;
+  private static final String SILLY_CONSTANT = "{T}";
 
   @Encoding.Impl
-  ImmutableTable<R, C, V> value = ImmutableTable.of();
+  private final ImmutableTable<R, C, V> value = ImmutableTable.of();
 
   @Encoding.Expose
   Table<R, C, V> accessor() {
@@ -19,19 +36,20 @@ class TableEncoding<R, C, V> {
 
   @Override
   public String toString() {
-    return value.toString();
+    String actuallyInvolvedToString = value.toString() + SILLY_CONSTANT;
+    return actuallyInvolvedToString;
   }
 
   @Override
   public int hashCode() {
-    return value.hashCode();
+    return value.hashCode() + 1;
   }
 
   boolean equals(TableEncoding<R, C, V> other) {
     return value.equals(other.value);
   }
 
-  private static <V extends Object & Serializable> V helper(V param) throws java.lang.Exception, java.lang.Error {
+  static <T extends Object & Serializable> T helper(T param) throws java.lang.Exception, java.lang.Error {
     return param;
   }
 
@@ -42,7 +60,7 @@ class TableEncoding<R, C, V> {
 
   @Encoding.Copy
   @Encoding.Naming("with*Put")
-  Table<R, C, V> withPut(R row, C column, V value) {
+  ImmutableTable<R, C, V> withPut(R row, C column, V value) {
     return ImmutableTable.<R, C, V>builder()
         .put(row, column, value)
         .build();
@@ -55,20 +73,21 @@ class TableEncoding<R, C, V> {
 
   @Encoding.Builder
   static class Builder<R, C, V> {
-    ImmutableTable.Builder<R, C, V> builder = ImmutableTable.<R, C, V>builder();
+    private static final Object DILLY_CONSTANT = "{D}";
+    private final ImmutableTable.Builder<R, C, V> builder = ImmutableTable.<R, C, V>builder();
 
     @Encoding.Naming("put*")
     @Encoding.Init
-    Builder<R, C, V> put(R row, C column, V value) {
+    void put(R row, C column, V value) {
       builder.put(row, column, value);
-      return this;
     }
 
     @Encoding.Naming("putAll*")
     @Encoding.Init
-    Builder<R, C, V> putAll(Table<R, C, V> table) {
+    @Encoding.Copy
+    void putAll(Table<R, C, V> table) {
       builder.putAll(table);
-      return this;
+      DILLY_CONSTANT.toString();// just reference constant
     }
 
     @Encoding.Build

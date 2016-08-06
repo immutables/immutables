@@ -15,12 +15,16 @@
  */
 package org.immutables.value.processor.encode;
 
+import com.google.common.base.Ascii;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -28,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
@@ -46,9 +51,11 @@ import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Preference;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.Templates;
+import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.Tag;
+import org.immutables.value.processor.encode.Type.Array;
 import org.immutables.value.processor.encode.Type.Defined;
 import org.immutables.value.processor.encode.Type.Primitive;
 import org.immutables.value.processor.meta.Reporter;
@@ -95,7 +102,7 @@ public abstract class Encodings extends AbstractTemplate {
     EncodedElement equals;
 
     @Nullable
-    EncodedElement init;
+    EncodedElement from;
 
     @Nullable
     EncodedElement build;
@@ -118,6 +125,7 @@ public abstract class Encodings extends AbstractTemplate {
     final Iterable<EncodedElement> allElements;
     final Set<String> nonlinkedImports;
     private final Type encodingSelfType;
+    private String builderInitCopy;
 
     Encoding(TypeElement type) {
       if (type.getKind() != ElementKind.CLASS || type.getNestingKind() != NestingKind.TOP_LEVEL) {
@@ -145,12 +153,14 @@ public abstract class Encodings extends AbstractTemplate {
         processMember(e);
       }
 
+      postValidate();
+
       this.allElements = Iterables.concat(
           Arrays.asList(
               Iterables.filter(
                   Arrays.asList(
                       impl,
-                      init,
+                      from,
                       toString,
                       hashCode,
                       equals,
@@ -165,6 +175,14 @@ public abstract class Encodings extends AbstractTemplate {
 
       this.linkage = new Linkage();
       this.nonlinkedImports = nonlinkedImports();
+    }
+
+    private void postValidate() {
+      for (EncodedElement e : copy) {
+        if (!e.type().equals(impl.type())) {
+          reporter.error("@Encoding.Copy methods must be declared to return implementation field type");
+        }
+      }
     }
 
     private Set<String> nonlinkedImports() {
@@ -198,7 +216,7 @@ public abstract class Encodings extends AbstractTemplate {
             .warning("Duplicate member name '%s'. Encoding has limitation so that any duplicate method names are not supported,"
                 + " even when allowed by JLS: methods cannot have overloads here."
                 + " @Encoding.Naming annotation could be used so that actually generated methods might have the same name"
-                + " if they are not conflicting as per JLS overload rules.",
+                + " if they are not conflicting as per JLS overload rules",
                 member.getSimpleName());
         return;
       }
@@ -208,6 +226,11 @@ public abstract class Encodings extends AbstractTemplate {
           return;
       }
       if (member.getKind() == ElementKind.METHOD) {
+        if (!Ascii.isLowerCase(member.getSimpleName().charAt(0))) {
+          reporter.withElement(member)
+              .warning("Methods not starting with lowercase ascii letter might not work properly",
+                  member.getSimpleName());
+        }
         if (processMethod((ExecutableElement) member))
           return;
       }
@@ -275,6 +298,14 @@ public abstract class Encodings extends AbstractTemplate {
         return true;
       }
 
+      if (!field.getModifiers().contains(Modifier.PRIVATE)) {
+        reporter.withElement(field)
+            .error("@Encoding.Impl field '%s' must be private. Other auxiliary fields may be of whatever visibility,"
+                + " but primary implementation field should be private",
+                field.getSimpleName());
+        return true;
+      }
+
       if (NamingMirror.isPresent(field)) {
         reporter.withElement(field)
             .annotationNamed(NamingMirror.simpleName())
@@ -312,7 +343,7 @@ public abstract class Encodings extends AbstractTemplate {
         return processCopyMethod(method);
       }
       if (InitMirror.isPresent(method)) {
-        return processInitMethod(method);
+        return processFromMethod(method);
       }
       return processHelperMethod(method);
     }
@@ -324,16 +355,21 @@ public abstract class Encodings extends AbstractTemplate {
     private boolean processCopyMethod(ExecutableElement method) {
       if (method.getModifiers().contains(Modifier.STATIC)) {
         reporter.withElement(method)
-            .error("@Encoding.Expose method '%s' cannot be static",
+            .error("@Encoding.Copy method '%s' cannot be static",
                 method.getSimpleName());
 
         return true;
       }
+      if (impl != null && !typesReader.get(method.getReturnType()).equals(impl.type())) {
+        reporter.withElement(method)
+            .error("@Encoding.Copy method '%s' should be declared to return implementation field's type",
+                method.getSimpleName());
+      }
       return processGenericEncodedMethod(method, copy, Tag.COPY);
     }
 
-    private boolean processInitMethod(ExecutableElement method) {
-      if (init != null) {
+    private boolean processFromMethod(ExecutableElement method) {
+      if (from != null) {
         reporter.withElement(method)
             .error("@Encoding.Init duplicate method '%s'. Cannot have more than one init method",
                 method.getSimpleName());
@@ -344,16 +380,26 @@ public abstract class Encodings extends AbstractTemplate {
           || !method.getModifiers().contains(Modifier.STATIC)) {
         reporter.withElement(method)
             .error("@Encoding.Init method '%s' should be static with"
-                + " the same type parameters as encoding type: %s.",
+                + " the same type parameters as encoding type: %s",
                 method.getSimpleName(),
                 typesReader.parameters);
 
         return true;
       }
 
+      if (method.getParameters().size() != 1) {
+        reporter.withElement(method)
+            .error("@Encoding.Init method '%s' should take a single parameter"
+                + " return type assignable to implementation field",
+                method.getSimpleName());
+        return true;
+      }
+
+      VariableElement parameter = method.getParameters().get(0);
+
       if (!method.getThrownTypes().isEmpty()) {
         reporter.withElement(method)
-            .error("@Encoding.Init method '%s' cannot have throws declaration.",
+            .error("@Encoding.Init method '%s' cannot have throws declaration",
                 method.getSimpleName());
         return true;
       }
@@ -362,15 +408,16 @@ public abstract class Encodings extends AbstractTemplate {
         reporter.withElement(method)
             .annotationNamed(NamingMirror.simpleName())
             .warning("@Encoding.Init method '%s' have naming annotation which is ignored."
-                + " Init is not exposed as a standalone method.",
+                + " Init is not exposed as a standalone method",
                 method.getSimpleName());
       }
 
-      this.init = new EncodedElement.Builder()
+      this.from = new EncodedElement.Builder()
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .addTags(Tag.PRIVATE, Tag.INIT, Tag.STATIC)
+          .addTags(Tag.PRIVATE, Tag.FROM, Tag.STATIC)
           .naming(Naming.identity())
+          .addParams(Param.of(parameter.getSimpleName().toString(), typesReader.get(parameter.asType())))
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
@@ -428,7 +475,7 @@ public abstract class Encodings extends AbstractTemplate {
           .type(Primitive.BOOLEAN)
           .addParams(Param.of(parameter.getSimpleName().toString(), encodingSelfType))
           .addTags(Tag.PRIVATE, Tag.EQUALS)
-          .naming(Naming.identity())
+          .naming(inferNaming(method))
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
@@ -454,7 +501,7 @@ public abstract class Encodings extends AbstractTemplate {
           .name(method.getSimpleName().toString())
           .type(Primitive.INT)
           .addTags(Tag.PRIVATE, Tag.HASH_CODE)
-          .naming(Naming.identity())
+          .naming(inferNaming(method))
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
@@ -480,7 +527,7 @@ public abstract class Encodings extends AbstractTemplate {
           .name(method.getSimpleName().toString())
           .type(Type.STRING)
           .addTags(Tag.PRIVATE, Tag.TO_STRING)
-          .naming(Naming.identity())
+          .naming(inferNaming(method))
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
@@ -583,12 +630,22 @@ public abstract class Encodings extends AbstractTemplate {
       return typesReader;
     }
 
-    private List<Param> getParameters(TypeExtractor typesReader, ExecutableElement method) {
+    private List<Param> getParameters(final TypeExtractor typesReader, ExecutableElement method) {
       List<Param> result = new ArrayList<>();
       for (VariableElement v : method.getParameters()) {
         result.add(Param.of(
             v.getSimpleName().toString(),
             typesReader.get(v.asType())));
+      }
+      if (!result.isEmpty() && method.isVarArgs()) {
+        Param last = Iterables.getLast(result);
+        Type type = last.type().accept(new Type.Transformer() {
+          @Override
+          public Type array(Array array) {
+            return typesReader.factory.varargs(array.element);
+          }
+        });
+        result.set(result.size() - 1, Param.of(last.name(), type));
       }
       return result;
     }
@@ -598,11 +655,17 @@ public abstract class Encodings extends AbstractTemplate {
       if (namingAnnotation.isPresent()) {
         return Naming.from(namingAnnotation.get().value());
       }
-      String simpleName = field.getSimpleName().toString();
+      boolean isConstant = field.getModifiers().contains(Modifier.STATIC)
+          && field.getModifiers().contains(Modifier.FINAL);
+
+      String base = field.getSimpleName().toString();
+
       if (field.getModifiers().contains(Modifier.PRIVATE)) {
-        return Naming.from(name + "_" + simpleName).requireNonConstant(Preference.SUFFIX);
+        String extraPrefix = isConstant ? CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, name) : name + "_";
+        base = extraPrefix + base;
       }
-      return Naming.from(simpleName).requireNonConstant(Preference.SUFFIX);
+
+      return Naming.from(base).requireNonConstant(Preference.SUFFIX);
     }
 
     private Naming inferNaming(ExecutableElement method) {
@@ -687,7 +750,7 @@ public abstract class Encodings extends AbstractTemplate {
       builderFields.add(new EncodedElement.Builder()
           .type(typesReader.get(field.asType()))
           .name(field.getSimpleName().toString())
-          .naming(Naming.identity())
+          .naming(inferNaming(field))
           .typeParameters(typesReader.parameters)
           .addAllTags(inferTags(field, Tag.FIELD, Tag.BUILDER))
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
@@ -748,8 +811,8 @@ public abstract class Encodings extends AbstractTemplate {
       this.build = new EncodedElement.Builder()
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .addTags(Tag.BUILDER, Tag.BUILD)
-          .naming(Naming.identity())
+          .addTags(Tag.BUILDER, Tag.BUILD, Tag.PRIVATE)
+          .naming(inferNaming(method))
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
@@ -758,7 +821,45 @@ public abstract class Encodings extends AbstractTemplate {
     }
 
     private boolean processBuilderInitMethod(ExecutableElement method) {
-      return processGenericEncodedMethod(method, builderInits, Tag.INIT, Tag.BUILDER);
+      if (method.getModifiers().contains(Modifier.PRIVATE)) {
+        reporter.withElement(method)
+            .error("@Encoding.Init method '%s' cannot be private",
+                method.getSimpleName());
+        return true;
+      }
+
+      if (typesReader.get(method.getReturnType()) != Type.Primitive.VOID) {
+        reporter.withElement(method)
+            .error("@Encoding.Init method '%s' should be declared void."
+                + " During instantiation, void return type will be replaced with builder type"
+                + " and 'return this' used for chained invokation",
+                method.getSimpleName());
+        return true;
+      }
+
+      if (!method.getTypeParameters().isEmpty()) {
+        reporter.withElement(method)
+            .error("@Encoding.Init method '%s' cannot have type parameters",
+                method.getSimpleName());
+        return true;
+      }
+
+      Tag[] additionalTags = {Tag.INIT, Tag.BUILDER};
+
+      if (CopyMirror.isPresent(method)) {
+        if (builderInitCopy != null) {
+          reporter.withElement(method)
+              .error("@Encoding.Init @Encoding.Copy method '%s' is duplicating another copy method '%s'."
+                  + " There should be only one initialized defined as copy-initializer",
+                  method.getSimpleName(),
+                  builderInitCopy);
+          return true;
+        }
+        builderInitCopy = method.getSimpleName().toString();
+        additionalTags = ObjectArrays.concat(additionalTags, Tag.COPY);
+      }
+
+      return processGenericEncodedMethod(method, builderInits, additionalTags);
     }
 
     private boolean processBuilderHelperMethod(ExecutableElement method) {
@@ -772,6 +873,12 @@ public abstract class Encodings extends AbstractTemplate {
       }
       if (member.getModifiers().contains(Modifier.PRIVATE)) {
         tags.add(Tag.PRIVATE);
+      }
+      if (member.getModifiers().contains(Modifier.PROTECTED)) {
+        tags.add(Tag.PROTECTED);
+      }
+      if (member.getModifiers().contains(Modifier.PUBLIC)) {
+        tags.add(Tag.PUBLIC);
       }
       if (member.getModifiers().contains(Modifier.FINAL)) {
         tags.add(Tag.FINAL);
@@ -803,7 +910,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       private void addBuilderMembers(Set<String> context) {
         for (EncodedElement e : allElements) {
-          if (e.tags().contains("builder")) {
+          if (e.tags().contains(Tag.BUILDER)) {
             context.add(e.name());
           }
         }
@@ -811,7 +918,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       private void addInstanceMembers(Set<String> context) {
         for (EncodedElement e : allElements) {
-          if (!e.tags().contains("static") && !e.tags().contains("builder")) {
+          if (!e.tags().contains(Tag.STATIC) && !e.tags().contains(Tag.BUILDER)) {
             context.add(e.name());
           }
         }
@@ -819,7 +926,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       private void addStaticMembers(Set<String> context) {
         for (EncodedElement e : allElements) {
-          if (e.tags().contains("static")) {
+          if (e.tags().contains(Tag.STATIC)) {
             context.add(e.name());
           }
         }
@@ -827,18 +934,24 @@ public abstract class Encodings extends AbstractTemplate {
 
       @Override
       public String apply(EncodedElement element) {
-        Code.Linker linker = linkerFor(element);
-        return Code.join(linker.bind(element.code()));
+        Code.Binder linker = linkerFor(element);
+        return Code.join(applyBinder(element, linker));
       }
 
-      private Code.Linker linkerFor(EncodedElement element) {
+      private Code.Binder linkerFor(EncodedElement element) {
+        ImmutableSet.Builder<String> topsBuilder = ImmutableSet.builder();
+        for (Param p : element.params()) {
+          topsBuilder.add(p.name());
+        }
+        Set<String> tops = topsBuilder.build();
+
         if (element.tags().contains(Tag.BUILDER)) {
-          return new Code.Linker(imports.classes, builderContext);
+          return new Code.Binder(imports.classes, builderContext, tops);
         }
         if (element.tags().contains(Tag.STATIC)) {
-          return new Code.Linker(imports.classes, staticContext);
+          return new Code.Binder(imports.classes, staticContext, tops);
         }
-        return new Code.Linker(imports.classes, instanceContext);
+        return new Code.Binder(imports.classes, instanceContext, tops);
       }
     }
 
@@ -848,6 +961,50 @@ public abstract class Encodings extends AbstractTemplate {
         names.add(p.getSimpleName().toString());
       }
       return names;
+    }
+
+    private List<Term> applyBinder(EncodedElement element, Code.Binder binder) {
+      List<Term> result = binder.apply(element.code());
+      for (Param p : element.params()) {
+        // trick to interpolate members on the self-type parameter (for equals etc)
+        if (p.type().equals(encodingSelfType)) {
+          result = interpolateSelfEncodingParameter(binder, result, p.name());
+        }
+      }
+      return result;
+    }
+
+    private List<Term> interpolateSelfEncodingParameter(Code.Binder binder, List<Term> result, String param) {
+      Term thisSubstitute = new Code.Term("$$$") {};
+      Code.WordOrNumber thisToken = new Code.WordOrNumber("this");
+
+      ListIterator<Term> it = result.listIterator();
+      while (it.hasNext()) {
+        Term t = it.next();
+        if (t.is("this")) {
+          it.set(thisSubstitute);
+        } else if (t.isBinding()) {
+          Code.Binding b = (Binding) t;
+          if (b.isTop() && b.identifier().equals(param)) {
+            it.set(thisToken);
+          }
+        }
+      }
+
+      // rebind using new this
+      result = binder.apply(result);
+
+      // put "this" back
+      it = result.listIterator();
+      while (it.hasNext()) {
+        Term t = it.next();
+        if (t == thisToken) {
+          it.set(Code.Binding.newTop(param));
+        } else if (t == thisSubstitute) {
+          it.set(thisToken);
+        }
+      }
+      return result;
     }
   }
 }

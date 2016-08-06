@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.annotation.Nullable;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
@@ -26,6 +27,7 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.Parameterizable;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
@@ -35,6 +37,8 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceOrdering;
 import org.immutables.generator.SourceOrdering.AccessorProvider;
+import org.immutables.value.processor.encode.Instantiator;
+import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
@@ -91,8 +95,16 @@ final class AccessorAttributesCollector {
           protoclass.name());
     }
 
+    Instantiator encodingInstantiator = protoclass.encodingInstantiator();
+    @Nullable InstantiationCreator instantiationCreator =
+        encodingInstantiator.creatorFor((Parameterizable) type.element);
+
     for (ValueAttribute attribute : attributes) {
-      attribute.initAndValidate();
+      attribute.initAndValidate(instantiationCreator);
+    }
+
+    if (instantiationCreator != null) {
+      type.additionalImports(instantiationCreator.imports);
     }
 
     type.attributes.addAll(attributes);

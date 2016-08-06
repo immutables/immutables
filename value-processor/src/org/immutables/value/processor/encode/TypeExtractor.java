@@ -127,6 +127,11 @@ final class TypeExtractor {
     }
 
     @Override
+    public Type visitNoType(NoType t, Type.Parameters p) {
+      return Type.Primitive.VOID;
+    }
+
+    @Override
     public Type visitError(ErrorType t, Type.Parameters p) {
       throw new UnsupportedOperationException("ErrorType type not supported");
     }
@@ -134,11 +139,6 @@ final class TypeExtractor {
     @Override
     public Type visitExecutable(ExecutableType t, Type.Parameters p) {
       throw new UnsupportedOperationException("ExecutableType type not supported");
-    }
-
-    @Override
-    public Type visitNoType(NoType t, Type.Parameters p) {
-      throw new UnsupportedOperationException("NoType type not supported");
     }
 
     @Override

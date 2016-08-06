@@ -739,9 +739,11 @@ public @interface Value {
 
     /**
      * Enable if you needed to copy header comments from an originating source file with abstract
-     * types to generated (derived) implementation classes. It is off by default because not often
-     * needed (as generated files are transient and not stored in version control), but adds up to
-     * the processing time.
+     * types to generated (derived) implementation classes. Header comments are comments preceeding
+     * package declaration statement. It could be used to copy license headers or even special
+     * pragma comments (such as {@code //-no-import-rewrite}).
+     * It is off by default because not often needed (as generated files are transient and not
+     * stored in version control), but adds up to the processing time.
      * @return if copy header comments to generated classes.
      */
     boolean headerComments() default false;

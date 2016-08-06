@@ -145,6 +145,9 @@ import static [routine].immutableCopyOf;
 [if type.annotationType]
   [defaultAnnotationValues type]
 [/if]
+[if not type.constitution.outsideBuilder]
+  [rr.staticFields type.implementedAttributes]
+[/if]
 [generateImmutableMembers type]
 [generateLazyValues type]
 [generateInterning type]
@@ -152,6 +155,7 @@ import static [routine].immutableCopyOf;
 [generateConstruction type]
   [generateImmutableCopyOf type]
   [generateSerialization type]
+  [rr.valueHelperMethods type.implementedAttributes]
 [if type.useBuilder and (not type.constitution.isOutsideBuilder)]
   [if not type.factoryBuilder.isNew]
     [for parameters = type.builderParameters]
@@ -176,6 +180,9 @@ import static [routine].immutableCopyOf;
     [/for]
   [/if]
   [generateBuilder type false]
+[/if]
+[if not type.constitution.outsideBuilder]
+  [rr.staticMethods type.implementedAttributes]
 [/if]
 [for v in type.nested]
   [generateImmutable v false]
@@ -845,12 +852,17 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/if]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple][type.generics] [if type.innerBuilder.isSuper]
     [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args] {[else]{[/if]
+[if type.constitution.outsideBuilder]
+  [rr.staticFields setters]
+  [rr.staticMethods setters]
+[/if]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
   private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
+  [rr.builderStaticFields setters]
   [for l in positions.longs]
   private long [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
@@ -860,7 +872,8 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
 
   [/if]
-  [for v in setters]
+  [rr.builderFields setters]
+  [for v in setters if not v.encoding]
   [defineOrResetBuildingFieldAlt v true v.nullableCollector]
   [/for]
   [if type.generateOrdinalValue]
@@ -1093,7 +1106,9 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   }
     [/for]
   [/if]
-  [if v.collectionType]
+  [if v.encoding]
+  [rr.builderInit v]
+  [else if v.collectionType]
     [if not v.isBuilderParameter]
 
   /**
@@ -1610,6 +1625,7 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
   [/if]
+  [rr.builderHelperMethods setters]
 [if type.constitution.hasImmutableInBuilder]
   [generateImmutable type false]
   [if type.generateWithInterface]
@@ -1645,7 +1661,9 @@ if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type
 [/template]
 
 [template buildFromAttribute Attribute v]
-  [if v.collectionType]
+  [if v.encoding]
+[rr.builderCopyFrom v]instance.[v.names.get]()[/rr.builderCopyFrom]
+  [else if v.collectionType]
     [if v.nullable]
 [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
 if ([v.name]Value != null) {
@@ -1680,13 +1698,15 @@ if ([v.name]Value != null) {
 
 [template returnFactoryBuild Type type]
 return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes][if not for.first],
-    [/if][valueFromBuilder v v.name][/for][/output.linesShortable]);
+    [/if][valueFromBuilder v ''][/for][/output.linesShortable]);
 [/template]
 
 [template valueFromSuper Attribute v String expression][if v.guavaImmutableDeclared][if not v.nullable][requireNonNull v.containingType]([expression], "[v.name]")[else][expression][/if][else][valueFromValue v expression][/if][/template]
 
 [template valueFromValue Attribute v String expression][output.trim]
-[if v.jdkOptional]
+[if v.encoding]
+  [rr.from v expression]
+[else if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
@@ -1699,21 +1719,23 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
-[template valueFromBuilder Attribute v String expression][valueFromBuilderAlt v true expression][/template]
+[template valueFromBuilder Attribute v String expressionPrefix][valueFromBuilderAlt v true expressionPrefix][/template]
 
-[template valueFromBuilderAlt Attribute v Boolean mayBeNull String expression][output.trim]
-[if v.attributeValueKindCopy]
-  [if v.nullable][expression] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expression])
+[template valueFromBuilderAlt Attribute v Boolean mayBeNull String expressionPrefix][output.trim]
+[if v.encoding]
+    [expressionPrefix][rr.fromBuild v]
+[else if v.attributeValueKindCopy]
+  [if v.nullable][expressionPrefix][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expressionPrefix][v.name])
 [else if v.collectionType or v.mapType]
   [if v.nullable]
-    [expression] == null ? null : [immutableCollectionBuild v expression]
+    [expressionPrefix][v.name] == null ? null : [immutableCollectionBuild v (expressionPrefix v.name)]
   [else if v.nullableCollector and mayBeNull]
-    [expression] == null ? [emptyImmutableInstance v v.genericArgs] : [immutableCollectionBuild v expression]
+    [expressionPrefix][v.name] == null ? [emptyImmutableInstance v v.genericArgs] : [immutableCollectionBuild v (expressionPrefix v.name)]
   [else]
-    [immutableCollectionBuild v expression]
+    [immutableCollectionBuild v (expressionPrefix v.name)]
   [/if]
 [else]
-  [expression]
+  [expressionPrefix][v.name]
 [/if]
 [/output.trim][/template]
 
@@ -1788,7 +1810,11 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [template generateImmutableMembers Type type]
 [for setters = type.settableAttributes, getters = type.implementedAttributes]
 [for v in getters]
+  [if v.encoding]
+  [rr.declareFields v]
+  [else]
   private final [v.atNullability][immutableImplementationType v] [v.name];
+  [/if]
 [/for]
 [if type.usePrehashed]
   private final int hashCode;
@@ -1844,13 +1870,13 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 
   private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
   [for v in getters if not (v.generateDerived or v.generateDefault), n = v.name]
-    this.[n] = [valueFromBuilder v]builder.[n][/valueFromBuilder];
+    this.[n] = [valueFromBuilder v]builder.[/valueFromBuilder];
   [/for]
 [-- Generate default values comes after required values]
 [if type.generateSafeDerived]
   [for v in getters if v.generateDefault, n = v.name]
     if ([if v.requiresTrackIsSet]builder.[v.names.isSet]()[else]builder.[n] != null[/if]) {
-      [disambiguateField type 'initShim'].[v.names.init]([valueFromBuilderAlt v v.requiresTrackIsSet]builder.[n][/valueFromBuilderAlt]);
+      [disambiguateField type 'initShim'].[v.names.init]([valueFromBuilderAlt v v.requiresTrackIsSet]builder.[/valueFromBuilderAlt]);
     }
   [/for]
 [/if]
@@ -1860,7 +1886,7 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
     this.[n] = [disambiguateField type 'initShim'].[v.names.get]();
   [else]
     this.[n] = [if v.requiresTrackIsSet]builder.[v.names.isSet]()[else]builder.[n] != null[/if]
-        ? [valueFromBuilderAlt v v.requiresTrackIsSet]builder.[n][/valueFromBuilderAlt]
+        ? [valueFromBuilderAlt v v.requiresTrackIsSet]builder.[/valueFromBuilderAlt]
         : [if type.annotationType]DEFAULT_VALUE_[toConstant v.name][else][valueFromSuper v][invokeSuper v].[v.names.get]()[/valueFromSuper][/if];
   [/if]
 [/if]
@@ -2128,7 +2154,9 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/for]
 [deprecation v]
 @Override
-  [if v.jdkOptional]
+  [if v.encoding]
+[rr.accessor v]
+  [else if v.jdkOptional]
 [v.access][v.type] [v.names.get]() {
 [if v.jdkSpecializedOptional]
   return [v.name] != null
@@ -2137,6 +2165,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [else]
   return [v.rawType].ofNullable([v.name]);
 [/if]
+}
   [else]
 [v.access][v.atNullability][immutableImplementationType v] [v.names.get]() {
 [if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
@@ -2155,8 +2184,8 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [else]
   return [v.name];
 [/if]
-  [/if]
 }
+  [/if]
   [/for]
   [if type.generateOrdinalValue]
 
@@ -2226,7 +2255,9 @@ private boolean equalTo([equalToType] another) {
 [else]
   int [h] = 31;
 [for v in getters]
-[if v.arrayType]
+[if v.encoding]
+  [h] = [h] * 17 + ([rr.hash v]);
+[else if v.arrayType]
   [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
 [else if v.nullable or v.jdkOptional]
   [h] = [h] * 17 + [objectsHashCode type]([v.name]);
@@ -2303,7 +2334,10 @@ public String toString() {
   java.lang.StringBuilder builder = new java.lang.StringBuilder([if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]);
   [let startLen][output.length][if type.annotationType]@[type.name]([else][type.name]{[/if][/output.length][/let]
   [for v in type.equivalenceAttributes]
-    [if v.arrayType]
+    [if v.encoding]
+  [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
+  builder.append("[v.name]=").append([rr.string v]);
+    [else if v.arrayType]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
   builder.append("[v.name]=").append(java.util.Arrays.toString([v.name]));
     [else if v.jdkOptional or v.nullable]
@@ -2337,7 +2371,9 @@ public String toString() {
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
       .omitNullValues()
   [for v in type.equivalenceAttributes]
-  [if v.arrayType]
+  [if v.encoding]
+      .add("[v.name]", [rr.string v])
+  [else if v.arrayType]
       .add("[v.name]", java.util.Arrays.toString([v.name]))
   [else if v.jdkOptional]
       .add("[v.name]", [v.name])
@@ -2388,13 +2424,17 @@ return [validated type false]new [type.typeImmutable.simple][type.generics.diamo
 return [validated type true]new [type.typeImmutable.relative]([output.linesShortable]
     [if type.synthCopyConstructor]null,
     [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
-    [/if][valueFromBuilder v v.name][/for][/output.linesShortable])[/validated];
+    [/if][valueFromBuilder v ''][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateCopyMethods Type type]
 [if type.useCopyMethods]
   [for v in type.settableAttributes]
-    [if v.arrayType]
+    [if v.encoding]
+[rr.copyMethods v]
+[generateReturnCopyContextual type v]
+[/rr.copyMethods]
+    [else if v.arrayType]
 
 /**
  * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
@@ -2652,7 +2692,9 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/template]
 
 [template immutableImplementationType Attribute v][output.trim]
-[if v.jdkOptional][-- need to watch out that here atNullable goes inside! --]
+[if v.encoding]
+  [rr.implType v]
+[else if v.jdkOptional][-- need to watch out that here atNullable goes inside! --]
   [atNullable][v.wrappedElementType]
 [else if v.generateJdkOnly][-- for now jdk only will be the same --]
   [v.type]
@@ -2761,7 +2803,9 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 
 [template public equalsAttribute Attribute a Boolean useAccessor][output.trim]
 [let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
-[if a.float]
+[if a.encoding]
+  [rr.equals a]another[/rr.equals]
+[else if a.float]
   Float.floatToIntBits([a.name]) == Float.floatToIntBits([getOther])
 [else if a.double]
   Double.doubleToLongBits([a.name]) == Double.doubleToLongBits([getOther])

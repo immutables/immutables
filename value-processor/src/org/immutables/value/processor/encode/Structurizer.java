@@ -140,6 +140,7 @@ final class Structurizer {
 	}
 
 	private void expressionUntilSemicolon(Statement.Builder builder) {
+    terms.peek();
 		whitespaces.on();
 		try {
 			List<Term> result = new ArrayList<>();

@@ -4,20 +4,17 @@ import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Parameterizable;
-import org.immutables.value.processor.encode.Inflater.EncodingInfo;
 import org.immutables.value.processor.encode.Type.Parameterized;
 import org.immutables.value.processor.encode.Type.Variable;
 import org.immutables.value.processor.encode.Type.VariableResolver;
 import org.immutables.value.processor.encode.Type.Wildcard;
 import org.immutables.value.processor.meta.Reporter;
+import org.immutables.value.processor.meta.Styles;
 
 public final class Instantiator {
   private final Type.Factory typeFactory;
@@ -27,15 +24,25 @@ public final class Instantiator {
     this.typeFactory = typeFactory;
 
     for (EncodingInfo encoding : encodings) {
-      for (EncodedElement exposedElement : encoding.expose()) {
-        Type raw = getRaw(exposedElement);
-        anchors.put(raw, new TemplateAnchor(encoding, exposedElement));
+      for (EncodedElement e : encoding.element()) {
+        if (e.isExpose()) {
+          Type raw = getRaw(e.type());
+          this.anchors.put(raw, new TemplateAnchor(encoding, e));
+        }
       }
     }
   }
 
-  private Type getRaw(EncodedElement exposedElement) {
-    return exposedElement.type().accept(new Type.Transformer() {
+  public boolean isEmpty() {
+    return anchors.isEmpty();
+  }
+
+  public @Nullable InstantiationCreator creatorFor(Parameterizable element) {
+    return !isEmpty() ? new InstantiationCreator(element) : null;
+  }
+
+  private Type getRaw(Type type) {
+    return type.accept(new Type.Transformer() {
       @Override
       public Type parameterized(Parameterized parameterized) {
         return parameterized.reference;
@@ -75,24 +82,28 @@ public final class Instantiator {
     }
   }
 
-  public final class InstantiationCollector {
+  public final class InstantiationCreator {
+    public final Set<String> imports = new LinkedHashSet<>();
     private final TypeExtractor typeExtractor;
-    private final Set<String> imports = new LinkedHashSet<>();
-    private final Map<String, Instantiation> instantiations = new LinkedHashMap<>();
 
-    public InstantiationCollector(Parameterizable parameterizable) {
+    InstantiationCreator(Parameterizable parameterizable) {
       this.typeExtractor = new TypeExtractor(typeFactory, parameterizable);
     }
 
-    Optional<Instantiation> tryInstantiateFor(Reporter reporter, String name, String typeString) {
+    public @Nullable Instantiation tryInstantiateFor(
+        Reporter reporter,
+        String typeString,
+        Styles.UsingName.AttributeNames names) {
+
       // we use parse/string here to reuse all cryptic logic to extract type strings
       // when resolving not-yet-generated types and othe complex cases
+      // the alternative would be just to read TypeMirror directly
       Type type = typeExtractor.parser.parse(typeString);
       @Nullable List<TemplateAnchor> contenders = null;
       @Nullable TemplateAnchor winner = null;
       @Nullable VariableResolver winnerResolver = null;
 
-      for (TemplateAnchor anchor : anchors.get(type)) {
+      for (TemplateAnchor anchor : anchors.get(getRaw(type))) {
         Optional<VariableResolver> match = anchor.template.match(type);
         if (match.isPresent()) {
           if (winner == null) {
@@ -111,72 +122,22 @@ public final class Instantiator {
         if (contenders != null) {
           reporter.warning(
               "Encoding conflict for attribute '%s', the winning match: %s. Other applicable: %s",
-              name, winner, contenders);
+              names.raw, winner, contenders);
         }
 
-        Instantiation instantiation =
-            new Instantiation(
-                reporter,
-                typeExtractor,
-                winner.encoding,
-                winner.exposedElement,
-                type,
-                name,
-                winnerResolver);
-
-        instantiations.put(name, instantiation);
-
         imports.addAll(winner.encoding.imports());
+
+        System.err.println("!!!!!ENC: " + type + " " + names.raw + ": " + winnerResolver);
+
+        return new Instantiation(
+            winner.encoding,
+            winner.exposedElement,
+            type,
+            names,
+            winnerResolver);
       }
 
-      return Optional.absent();
+      return null;
     }
-  }
-
-  public class Instantiation {
-    private final Reporter reporter;
-    private final TypeExtractor typeExtractor;
-    private final EncodingInfo encoding;
-    private final EncodedElement exposedAs;
-    private final VariableResolver winnerResolver;
-    private final Type actualType;
-    private final String name;
-
-    Instantiation(
-        Reporter reporter,
-        TypeExtractor typeExtractor,
-        EncodingInfo encoding,
-        EncodedElement exposedElement,
-        Type actualType,
-        String name,
-        VariableResolver resolver) {
-      this.reporter = reporter;
-      this.typeExtractor = typeExtractor;
-      this.encoding = encoding;
-      this.exposedAs = exposedElement;
-      this.actualType = actualType;
-      this.name = name;
-      this.winnerResolver = resolver;
-    }
-
-    void generate() {
-      Map<String, String> generatedNames = new HashMap<>(encoding.element().size());
-
-      for (EncodedElement e : encoding.element()) {
-        generatedNames.put(e.name(), e.naming().apply(name));
-      }
-    }
-
-    @Override
-    public String toString() {
-      return actualType + "(by " + encoding.name() + ")";
-    }
-//
-//    static class AccessTrackingFunction implements Function<String, String> {
-//      AccessTrackingFunction
-//      AccessTracker(Map<String, String>) {
-//
-//      }
-//    }
   }
 }

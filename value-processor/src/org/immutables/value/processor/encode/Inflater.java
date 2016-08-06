@@ -1,56 +1,20 @@
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.Value.Auxiliary;
 import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import java.util.List;
 import java.util.Set;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value.Enclosing;
-import org.immutables.value.Value.Immutable;
-import org.immutables.value.Value.Lazy;
 import org.immutables.value.processor.encode.EncodedElement.Tag;
 import org.immutables.value.processor.encode.Mirrors.EncElement;
 import org.immutables.value.processor.encode.Mirrors.EncMetadata;
 
 @Enclosing
-public final class Inflater implements Function<EncMetadata, Inflater.EncodingInfo> {
+public final class Inflater implements Function<EncMetadata, EncodingInfo> {
   private final Type.Factory typeFactory = new Type.Producer();
 
   public Instantiator instantiatorFor(Set<EncodingInfo> encodinds) {
     return new Instantiator(typeFactory, encodinds);
-  }
-
-  @Immutable
-  public abstract static class EncodingInfo {
-    abstract String name();
-
-    @Auxiliary
-    abstract Set<String> imports();
-
-    @Auxiliary
-    abstract Type.Parameters typeParameters();
-
-    @Auxiliary
-    abstract Type.Factory typeFactory();
-
-    @Auxiliary
-    abstract List<EncodedElement> element();
-
-    static class Builder extends ImmutableInflater.EncodingInfo.Builder {}
-
-    @Lazy
-    public Iterable<EncodedElement> expose() {
-      return Tagged.with(Tag.EXPOSE).filter(element());
-    }
-
-    @Lazy
-    public Optional<EncodedElement> impl() {
-      return Tagged.with(Tag.IMPL).find(element());
-    }
   }
 
   @Override
@@ -100,53 +64,5 @@ public final class Inflater implements Function<EncMetadata, Inflater.EncodingIn
     }
 
     return builder.build();
-  }
-
-  static class Tagged implements Predicate<EncodedElement> {
-    private final Tag[] tags;
-    private final boolean isAndOtherwiseOr;
-
-    private Tagged(Tag[] tags, boolean isAndOtherwiseOr) {
-      this.tags = tags;
-      this.isAndOtherwiseOr = isAndOtherwiseOr;
-    }
-
-    static Tagged with(Tag tag) {
-      return or(tag);
-    }
-
-    static Tagged and(Tag... tags) {
-      return new Tagged(tags, true);
-    }
-
-    static Tagged or(Tag... tags) {
-      return new Tagged(tags, false);
-    }
-
-    ImmutableList<EncodedElement> filter(Iterable<EncodedElement> elements) {
-      return ImmutableList.copyOf(Iterables.filter(elements, this));
-    }
-
-    Optional<EncodedElement> find(Iterable<EncodedElement> elements) {
-      return Iterables.tryFind(elements, this);
-    }
-
-    @Override
-    public boolean apply(EncodedElement input) {
-      if (isAndOtherwiseOr) {
-        for (Tag t : tags) {
-          if (!input.tags().contains(t)) {
-            return false;
-          }
-        }
-        return true;
-      }
-      for (Tag t : tags) {
-        if (input.tags().contains(t)) {
-          return true;
-        }
-      }
-      return false;
-    }
   }
 }

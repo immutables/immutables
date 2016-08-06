@@ -20,9 +20,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
 final class FactoryMethodAttributesCollector {
@@ -58,9 +60,19 @@ final class FactoryMethodAttributesCollector {
       attributes.add(attribute);
     }
 
+    // Not supported currently for factory builders until well tested
+    @Nullable InstantiationCreator instantiationCreator = null;
+//    Instantiator encodingInstantiator = protoclass.encodingInstantiator();
+//    @Nullable InstantiationCreator instantiationCreator =
+//        encodingInstantiator.creatorFor((Parameterizable) type.element);
+
     for (ValueAttribute attribute : attributes) {
-      attribute.initAndValidate();
+      attribute.initAndValidate(instantiationCreator);
     }
+
+//    if (instantiationCreator != null) {
+//      type.additionalImports(instantiationCreator.imports);
+//    }
 
     type.attributes.addAll(attributes);
     type.throwing = extractThrowsClause(factoryMethodElement);
