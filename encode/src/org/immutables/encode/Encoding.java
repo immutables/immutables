@@ -6,7 +6,15 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
 /**
- * Encoding defines set of template methods and fields which describes how type is embedded.
+ * Encoding defines set of template methods and fields which describes how attributes of specific
+ * types are implemented in generated value class. {@code Encoding} annotation is processed by the
+ * annotation processor (the same as used for value objects) and generates annotation named
+ * {@code *Enabled} in the same package, inserting encoding simple class name in placeholder.
+ * Encoding class consists of special fields methods, builder inner static class with it's own
+ * fields and methods.
+ * <p>
+ * When programming the encoding class, remember that code analyser is not akin full-fledged java
+ * compiler, but a set of simplified routines which cannot possibly
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
@@ -21,7 +29,21 @@ public @interface Encoding {
 
   /**
    * Many elements (but not all) supports customized naming patterns.
+   * Use single asterisk symbol in a name to denote a placeholder where attribute name would be
+   * insterted.
+   * We call namings of form {@code "*"} as identity naming, and the ones which have no placeholder,
+   * as in {@code "set"} - constant namings.
    * Like "with*Added" for copy with addition method.
+   * Elements that can have customized naming:
+   * <ul>
+   * <li>Helper fields and methods</li>
+   * </ul>
+   * <p>
+   * <em>
+   * Please note, that with customized naming it is possible (but in general, not recommended) to put
+   * constant naming (without {@code "*"} placeholder) on elements. But when you do this it can result
+   * in name clashes in generated code.
+   * </em>
    */
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)

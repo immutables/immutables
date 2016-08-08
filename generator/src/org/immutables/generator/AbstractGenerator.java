@@ -53,16 +53,6 @@ public abstract class AbstractGenerator extends AbstractProcessor {
     return StaticEnvironment.annotations();
   }
 
-  protected final <T> T newTemplate(Class<T> type) {
-    String generatorClassname = type.getPackage().getName() + ".Generator_" + type.getSimpleName();
-    try {
-      Class<?> templateImplementationClass = type.getClassLoader().loadClass(generatorClassname);
-      return type.cast(templateImplementationClass.newInstance());
-    } catch (Exception ex) {
-      throw Throwables.propagate(ex);
-    }
-  }
-
   protected final void invoke(Templates.Invokable invokable) {
     invokable.invoke(Templates.Invokation.initial());
   }
