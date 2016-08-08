@@ -75,7 +75,7 @@ public final class Instantiation {
     if (element.isExpose()) {
       return names.get;
     }
-    if (element.isSynthetic()) {
+    if (element.naming().isIdentity()) {
       if (element.isCopy()) {
         return names.with;
       }
@@ -84,7 +84,7 @@ public final class Instantiation {
       }
     }
     String raw = names.raw;
-    if (element.isStatic() && element.isFinal()) {
+    if (element.isStaticField() && element.isFinal()) {
       raw = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, raw);
     }
     return element.naming().apply(raw);

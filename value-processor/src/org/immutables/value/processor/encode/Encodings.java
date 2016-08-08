@@ -210,6 +210,15 @@ public abstract class Encodings extends AbstractTemplate {
               .error("@Encoding.Builder must have no arg method @Encoding.Build."
                   + " It is used to describe how to get built instance of ");
         }
+
+        if (builderInitCopy == null) {
+          reporter.withElement(typeBuilder)
+              .error("One of builder init methods should be a copy method,"
+                  + " i.e. it should be annotated @Encoding.Init @Encoding.Copy"
+                  + " and be able to accept values of type which exposed accessor returns");
+
+          return false;
+        }
       }
 
       return true;
@@ -635,7 +644,7 @@ public abstract class Encodings extends AbstractTemplate {
       collection.add(builder
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .naming(inferNaming(method))
+          .naming(inferNaming(method, additionalTags))
           .addAllTags(inferTags(method, additionalTags))
           .addAllParams(getParameters(typesReader, method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
@@ -708,7 +717,7 @@ public abstract class Encodings extends AbstractTemplate {
       return Naming.from("*_" + encodedName);
     }
 
-    private Naming inferNaming(ExecutableElement method) {
+    private Naming inferNaming(ExecutableElement method, Tag... additionalTags) {
       Optional<NamingMirror> namingAnnotation = NamingMirror.find(method);
       if (namingAnnotation.isPresent()) {
         try {
@@ -717,6 +726,11 @@ public abstract class Encodings extends AbstractTemplate {
           reporter.withElement(method)
               .annotationNamed(NamingMirror.simpleName())
               .error(ex.getMessage());
+        }
+      }
+      for (Tag tag : additionalTags) {
+        if (tag == Tag.INIT || tag == Tag.COPY) {
+          return Naming.identity();
         }
       }
       String encodedMethodName = method.getSimpleName().toString();

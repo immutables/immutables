@@ -51,11 +51,7 @@ private [inst.typer el.type] with_[inst.namer el.name]([for p in el.params][if n
 [/for]
 [/template]
 
-[template public builderCopyFrom Attribute a String expression]
-  [if a.instantiation.encoding.builderCopy]
-[a.instantiation.namer a.instantiation.encoding.builderCopy.name]([expression]);
-  [/if]
-[/template]
+[template public builderCopyFrom Attribute a][a.instantiation.namer a.instantiation.encoding.builderCopy.name][/template]
 
 [template public builderInit Attribute a]
 [for inst = a.instantiation, el in inst.encoding.element if el.init]

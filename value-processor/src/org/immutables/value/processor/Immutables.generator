@@ -763,7 +763,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
       .[type.names.from](instance)
     [else]
       [for v in type.settableAttributes]
-        [if v.nullable]
+        [if v.encoding]
+      .[rr.builderCopyFrom v](instance.[v.names.get]())
+        [else if v.nullable]
       .[v.names.init](instance.[v.names.get]())
         [else if v.collectionType]
       .[v.names.addAll](instance.[v.names.get]())
@@ -1662,7 +1664,7 @@ if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type
 
 [template buildFromAttribute Attribute v]
   [if v.encoding]
-[rr.builderCopyFrom v]instance.[v.names.get]()[/rr.builderCopyFrom]
+[rr.builderCopyFrom v](instance.[v.names.get]());
   [else if v.collectionType]
     [if v.nullable]
 [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
@@ -2093,7 +2095,9 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
   }
   [else]
   if (json.[v.name] != null) {
-    [if v.collectionType]
+    [if v.encoding]
+    builder.[rr.builderCopyFrom v](json.[v.name]);
+    [else if v.collectionType]
     builder.[v.names.addAll](json.[v.name]);
     [else if v.mapType]
     builder.[v.names.putAll](json.[v.name]);
