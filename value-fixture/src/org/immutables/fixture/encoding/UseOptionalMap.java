@@ -12,11 +12,6 @@ import org.immutables.value.Value;
 @OptionalMapEnabled
 @Value.Immutable
 public interface UseOptionalMap<V> {
-  // @Value.Parameter
+  @Value.Parameter
   Optional<Map<String, V>> maybeMap();
-
-  @Value.Default
-  default @Nullable List<String> strings() {
-    return null;
-  }
 }
