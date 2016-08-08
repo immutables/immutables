@@ -21,8 +21,6 @@ public abstract class EncodedElement {
     BUILDER,
     STATIC,
     PRIVATE,
-    PROTECTED,
-    PUBLIC,
     FINAL,
     BUILD,
     INIT,
@@ -122,16 +120,6 @@ public abstract class EncodedElement {
   }
 
   @Derived
-  boolean isPublic() {
-    return tags().contains(Tag.PUBLIC);
-  }
-
-  @Derived
-  boolean isProtected() {
-    return tags().contains(Tag.PROTECTED);
-  }
-
-  @Derived
   boolean isSynthetic() {
     return tags().contains(Tag.SYNTH);
   }
@@ -143,7 +131,7 @@ public abstract class EncodedElement {
 
   @Derived
   boolean isValueField() {
-    return tags().contains(Tag.FIELD)
+    return isField()
         && !tags().contains(Tag.IMPL)
         && !inBuilder()
         && !isStatic();
@@ -151,14 +139,19 @@ public abstract class EncodedElement {
 
   @Derived
   boolean isStaticField() {
-    return tags().contains(Tag.FIELD)
+    return isField()
         && !inBuilder()
         && isStatic();
   }
 
   @Derived
+  boolean isField() {
+    return tags().contains(Tag.FIELD);
+  }
+
+  @Derived
   boolean isBuilderField() {
-    return tags().contains(Tag.FIELD)
+    return isField()
         && inBuilder()
         && !isStatic();
   }
@@ -185,7 +178,7 @@ public abstract class EncodedElement {
 
   @Derived
   boolean isBuilderStaticField() {
-    return tags().contains(Tag.FIELD)
+    return isField()
         && inBuilder()
         && isStatic();
   }
@@ -204,20 +197,6 @@ public abstract class EncodedElement {
         || isHashCode()
         || isFrom()
         || isCopy();
-  }
-
-  @Derived
-  String visibilityPrefix() {
-    if (isPublic()) {
-      return "public ";
-    }
-    if (isProtected()) {
-      return "protected ";
-    }
-    if (isPrivate()) {
-      return "private ";
-    }
-    return "";
   }
 
   static class Builder extends ImmutableEncodedElement.Builder {}

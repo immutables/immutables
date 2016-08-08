@@ -23,8 +23,10 @@ final class Code {
   static class Interpolator implements Function<List<Term>, List<Term>> {
     private final Function<String, String> members;
     private final Function<String, String> tops;
+    private final String name;
 
-    Interpolator(Function<String, String> members, Function<String, String> tops) {
+    Interpolator(String name, Function<String, String> members, Function<String, String> tops) {
+      this.name = name;
       this.members = members;
       this.tops = tops;
     }
@@ -34,21 +36,26 @@ final class Code {
       List<Term> result = new ArrayList<>(terms.size());
       for (Term t : terms) {
         if (t.isBinding()) {
-          Binding binding = (Binding) t;
-          String identifier = binding.identifier();
-          String value = binding.isTop()
-              ? tops.apply(identifier)
-              : members.apply(identifier);
-          if (value == null) {
-            // if no substitution, falling back to the identifier itself
-            value = identifier;
-          }
-          result.add(new WordOrNumber(value));
+          result.add(dereference((Binding) t));
+        } else if (t.isString()) {
+          result.add(((Other) t).replace("<name>", name));
         } else {
           result.add(t);
         }
       }
       return result;
+    }
+
+    Term dereference(Binding binding) {
+      String identifier = binding.identifier();
+      String value = binding.isTop()
+          ? tops.apply(identifier)
+          : members.apply(identifier);
+      if (value == null) {
+        // if no substitution, falling back to the identifier itself
+        value = identifier;
+      }
+      return new WordOrNumber(value);
     }
   }
 
@@ -65,7 +72,11 @@ final class Code {
 
     List<Term> apply(List<Term> terms) {
       List<Term> result = new ArrayList<>();
-      resolve(terms.iterator(), result, false);
+      try {
+        resolve(terms.iterator(), result, false);
+      } catch (Exception ex) {
+        throw new RuntimeException("Cannot bind: " + Code.join(terms), ex);
+      }
       return result;
     }
 
@@ -84,7 +95,7 @@ final class Code {
         if ((state == State.DOT || untilGenericsClose) && t.is("<")) {
           result.add(t);
           resolve(it, result, true);
-          t = it.next();
+          continue;
         }
         state = state.next(t);
         if (state.isTopIdent()) {
@@ -105,6 +116,39 @@ final class Code {
       }
     }
 
+    List<Term> parameterAsThis(List<Term> result, String param) {
+      Term thisSubstitute = Binding.newTop("this");
+      WordOrNumber thisToken = new WordOrNumber("this");
+
+      ListIterator<Term> it = result.listIterator();
+      while (it.hasNext()) {
+        Term t = it.next();
+        if (t.is("this")) {
+          it.set(thisSubstitute);
+        } else if (t.isBinding()) {
+          Binding b = (Binding) t;
+          if (b.isTop() && b.identifier().equals(param)) {
+            it.set(thisToken);
+          }
+        }
+      }
+
+      // rebind using new this
+      result = apply(result);
+
+      // put "this" back
+      it = result.listIterator();
+      while (it.hasNext()) {
+        Term t = it.next();
+        if (t == thisToken) {
+          it.set(Binding.newTop(param));
+        } else if (t == thisSubstitute) {
+          it.set(thisToken);
+        }
+      }
+      return result;
+    }
+
     enum State {
       NONE,
       DOT,
@@ -119,9 +163,7 @@ final class Code {
       }
 
       State next(Term t) {
-        boolean isDot = t.isDelimiter()
-            && t.is(".");
-
+        boolean isDot = t.isDelimiter() && t.is(".");
         boolean isThis = t.isWordOrNumber() && t.is("this");
 
         boolean isIdent = t.isWordOrNumber()
@@ -230,7 +272,7 @@ final class Code {
       for (;;) {
         char c = get(p++);
         if (c == '\0' || c == '\n') {
-          return p;
+          return p - 1;
         }
       }
     }
@@ -259,6 +301,22 @@ final class Code {
     }
   }
 
+  static List<Term> trimLeadingIndent(List<Term> code) {
+    ArrayList<Term> result = new ArrayList<>(code);
+    ListIterator<Term> it = result.listIterator();
+    while (it.hasNext()) {
+      Term t = it.next();
+      if (t.isWhitespace()) {
+        String whitespace = t.toString();
+        int indexOf = whitespace.indexOf('\n');
+        if (indexOf >= 0) {
+          it.set(new Whitespace(whitespace.substring(0, indexOf + 1)));
+        }
+      }
+    }
+    return result;
+  }
+
   static List<Term> replaceReturn(List<Term> code, String replacement) {
     ArrayList<Term> result = new ArrayList<>(code);
     ListIterator<Term> it = result.listIterator();
@@ -274,8 +332,10 @@ final class Code {
       ListIterator<Term> revIt = Lists.reverse(result).listIterator();
       if (nextNonBlankIs(revIt, "}")) {
         nextNonBlankIs(revIt, ";");
-        revIt.add(new Other(replacement));
+        revIt.previous();
         revIt.add(new Delimiter(";"));
+        revIt.add(new Other(replacement));
+        revIt.add(new Whitespace("\n"));
       }
     }
     return result;
@@ -348,7 +408,7 @@ final class Code {
       if (string.length() == 1) {
         return string.charAt(0);
       }
-      throw new IllegalStateException("'" + this + "' term is not single character");
+      throw new IllegalStateException("'" + this + "' term is not a single character");
     }
 
     boolean isWordOrNumber() {
@@ -373,6 +433,14 @@ final class Code {
 
     boolean isComment() {
       return false;
+    }
+
+    boolean isString() {
+      return false;
+    }
+
+    boolean is(char c) {
+      return length() == 1 && charAt(0) == c;
     }
 
     boolean is(String string) {
@@ -427,7 +495,7 @@ final class Code {
     }
   }
 
-  private static final class Whitespace extends Term {
+  static final class Whitespace extends Term {
     Whitespace(String value) {
       super(value);
     }
@@ -443,9 +511,24 @@ final class Code {
       super(value);
     }
 
+    Other replace(String search, String replacement) {
+      StringBuilder builder = new StringBuilder(this);
+      int index = builder.indexOf(search);
+      if (index < 0) {
+        return this;
+      }
+      builder.replace(index, index + search.length(), replacement);
+      return new Other(builder.toString());
+    }
+
     @Override
     boolean isComment() {
-      return toString().charAt(0) == '/';
+      return charAt(0) == '/';
+    }
+
+    @Override
+    boolean isString() {
+      return charAt(0) == '"';
     }
   }
 

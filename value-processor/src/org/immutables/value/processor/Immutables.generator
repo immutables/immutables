@@ -1740,7 +1740,9 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/output.trim][/template]
 
 [template emptyImmutableInstance Attribute v String genericArgsOrEmpty][output.trim]
-[if v.jdkOptional or v.nullable]
+[if v.encoding]
+  [rr.defaultValue v]
+[else if v.jdkOptional or v.nullable]
   null
 [else if v.optionalType]
   [optionalEmpty v]
@@ -2361,6 +2363,8 @@ public String toString() {
     [for v in type.equivalenceAttributes]
       [if v.arrayType]
       + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
+      [else if v.encoding]
+      + "[if not for.first], [/if][v.name]=" + ([rr.string v])
       [else]
       + "[if not for.first], [/if][v.name]=" + [v.name]
       [/if]
@@ -2392,6 +2396,7 @@ public String toString() {
 [/template]
 
 [template generateAfterConstruction Type type Boolean usingBuilder]
+[rr.assignDefaultFields type.implementedAttributes]
   [if type.usePrehashed]
 this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateAccessor type 'computeHashCode']()[/if];
   [/if]

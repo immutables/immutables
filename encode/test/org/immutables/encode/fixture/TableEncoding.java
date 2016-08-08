@@ -28,10 +28,15 @@ class TableEncoding<R, C, V> {
 
   @Encoding.Impl
   private final ImmutableTable<R, C, V> value = ImmutableTable.of();
+  private final int tableSize = value.size();
 
   @Encoding.Expose
   Table<R, C, V> accessor() {
     return value;
+  }
+
+  int getTableSize() {
+    return tableSize;
   }
 
   @Override
@@ -60,14 +65,14 @@ class TableEncoding<R, C, V> {
 
   @Encoding.Copy
   @Encoding.Naming("with*Put")
-  ImmutableTable<R, C, V> withPut(R row, C column, V value) {
+  public ImmutableTable<R, C, V> withPut(R row, C column, V value) {
     return ImmutableTable.<R, C, V>builder()
         .put(row, column, value)
         .build();
   }
 
   @Encoding.Naming("*CellSet")
-  ImmutableSet<Table.Cell<R, C, V>> cellSet() {
+  public ImmutableSet<Table.Cell<R, C, V>> cellSet() {
     return value.cellSet();
   }
 

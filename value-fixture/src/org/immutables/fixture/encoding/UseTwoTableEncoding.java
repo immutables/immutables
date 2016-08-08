@@ -4,10 +4,11 @@ import com.google.common.collect.Table;
 import org.immutables.encode.fixture.TableEncodingEnabled;
 import org.immutables.value.Value;
 
-@Value.Immutable(singleton = true)
+@Value.Immutable
+@Value.Style(jdkOnly = true)
 @TableEncodingEnabled
-public abstract class UseTableEncoding {
+public abstract class UseTwoTableEncoding<T, V> {
+  abstract Table<V, Integer, T> it();
 
-  abstract Table<String, Integer, Void> getIt();
-
+  abstract Table<T, V, String> wit();
 }

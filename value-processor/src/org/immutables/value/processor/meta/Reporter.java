@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.tools.Diagnostic.Kind;
 import com.google.common.base.Optional;
 import java.lang.annotation.Annotation;
 import javax.annotation.processing.Messager;
@@ -23,6 +22,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)

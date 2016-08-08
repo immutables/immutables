@@ -25,7 +25,7 @@ public class CodeTest {
     }
 
     check(sb).hasToString("|O|/* comment */|S| |W|and|D|.|W|it|D|.|W|is|D|(|O|'a'|D|,|S| |W|a|S| |D|+|S| |W|1|D|)"
-        + "|S| |W|so|S| |O|// distant\n|S| |O|\"aaaa\"|D|.|W|ex|D|(|D|)|S| |D|{|D|}");
+        + "|S| |W|so|S| |O|// distant|S|\n |O|\"aaaa\"|D|.|W|ex|D|(|D|)|S| |D|{|D|}");
   }
 
   @Test
@@ -45,6 +45,21 @@ public class CodeTest {
   }
 
   @Test
+  public void bindWithNestedGenerics() {
+    List<Code.Term> terms =
+        Code.termsFrom("Optional.<Map<K, V>>fromNullable(null)");
+
+    Code.Binder binder =
+        new Code.Binder(
+            ImmutableMap.<String, String>of(),
+            ImmutableSet.of("K", "V"),
+            ImmutableSet.<String>of());
+
+    String joined = Code.join(binder.apply(terms));
+    check(joined).is("Optional.<Map<@@K, @@V>>fromNullable(null)");
+  }
+
+  @Test
   public void structurize() {
     SourceMapper m1 = new SourceMapper(""
         + "import z;\n"
@@ -55,9 +70,9 @@ public class CodeTest {
         + " @Override String h() throws java.lang.Exception { return \"xxx\"; }"
         + "\n}");
 
-    check(Code.join(m1.getExpression("A.f"))).hasToString("1   +2;");
+    check(Code.join(m1.getExpression("A.f"))).hasToString("1   +2");
     check(Code.join(m1.getBlock("A.h"))).hasToString("{ return \"xxx\"; }");
-    check(Code.join(m1.getExpression("A.B.u"))).hasToString("1;");
+    check(Code.join(m1.getExpression("A.B.u"))).hasToString("1");
   }
 
   @Test
@@ -70,5 +85,11 @@ public class CodeTest {
 
     check(Code.oneLiner(Code.termsFrom("{ for (;;) { return 1 + 1; } }"))).isEmpty();
     check(Code.oneLiner(Code.termsFrom("{}"))).isEmpty();
+  }
+
+  @Test
+  public void trimLeadingIndent() {
+    check(Code.join(Code.trimLeadingIndent(Code.termsFrom("{ \n return 1 + 1 ;// returns \n }"))))
+        .is("{ \nreturn 1 + 1 ;// returns \n}");
   }
 }

@@ -4,6 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,9 @@ import javax.annotation.Nullable;
 import org.immutables.generator.Templates;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
+import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
+import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.TypeParam;
 import org.immutables.value.processor.encode.Type.Defined;
 import org.immutables.value.processor.encode.Type.Parameters;
@@ -33,6 +36,8 @@ public final class Instantiation {
   final Code.Interpolator coder;
   final Function<String, String> namer;
 
+  private final String name;
+
   Instantiation(
       EncodingInfo encoding,
       EncodedElement expose,
@@ -43,29 +48,34 @@ public final class Instantiation {
     this.expose = expose;
     this.type = exposedType;
     this.typer = resolver;
+    this.name = names.raw;
 
     this.generatedNames = new HashMap<>(encoding.element().size());
     for (EncodedElement e : encoding.element()) {
-      if (!e.isExpose()) {
-        this.generatedNames.put(e.name(), generateProperName(e, names));
-      }
+      this.generatedNames.put(e.name(), generateProperName(e, names));
     }
-    this.generatedNames.put(expose.name(), names.get);
 
     for (Variable v : resolver.variables()) {
       this.generatedNames.put(v.name, resolver.apply(v).toString());
     }
 
     this.namer = Functions.forMap(generatedNames);
-    this.coder = new Code.Interpolator(namer, NO_SUBSTITUTIONS);
+    this.coder = new Code.Interpolator(name, namer, NO_SUBSTITUTIONS);
   }
 
   public boolean supportsInternalImplConstructor() {
     return encoding.build().type().equals(encoding.impl().type());
   }
 
+  public boolean supportsDefaultValue() {
+    return !encoding.impl().code().isEmpty();
+  }
+
   private String generateProperName(EncodedElement element, Styles.UsingName.AttributeNames names) {
-    if (!element.isInlinable() && element.isSynthetic()) {
+    if (element.isExpose()) {
+      return names.get;
+    }
+    if (element.isSynthetic()) {
       if (element.isCopy()) {
         return names.with;
       }
@@ -84,12 +94,12 @@ public final class Instantiation {
     @Override
     public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
       final EncodedElement el = (EncodedElement) parameters[0];
-      final String param = parameters.length > 1 ? parameters[1].toString() : "";
-
       Code.Interpolator interpolator = coder;
-      if (el.params().size() == 1) {
+      if (el.params().size() == 1 && parameters.length > 1) {
         final String name = el.params().get(0).name();
-        interpolator = new Code.Interpolator(namer, new Function<String, String>() {
+        final String param = parameters[1].toString();
+
+        interpolator = new Code.Interpolator(name, namer, new Function<String, String>() {
           @Override
           public String apply(String input) {
             return input.equals(name) ? param : null;
@@ -103,7 +113,17 @@ public final class Instantiation {
           invokation.out(t);
         }
       } else {
-        invokation.out(namer.apply(el.name())).out("(").out(param).out(")");
+        invokation.out(namer.apply(el.name())).out("(");
+        boolean notFirst = false;
+        for (Param p : el.params()) {
+          if (notFirst) {
+            invokation.out(", ");
+          }
+          notFirst = true;
+          Binding binding = Code.Binding.newTop(p.name());
+          invokation.out(interpolator.dereference(binding));
+        }
+        invokation.out(")");
       }
       return null;
     }
@@ -118,25 +138,87 @@ public final class Instantiation {
         String returnReplacement = parameters[1].toString();
         code = Code.replaceReturn(code, returnReplacement);
       }
-      for (Code.Term t : coder.apply(code)) {
+      printWithIndentation(invokation, coder.apply(code));
+      return null;
+    }
+
+    private void printWithIndentation(Invokation invokation, List<Term> terms) {
+      int indentLevel = 0;
+      int indentWrap = 0;
+      boolean nextNewline = false;
+
+      for (Code.Term t : terms) {
+        if (t.isWhitespace() && t.is('\n')) {
+          nextNewline = true;
+          continue;
+        }
+        // decrease indent level before writing a newline
+        if (t.isDelimiter() && t.is('}')) {
+          indentLevel--;
+        }
+
+        if (nextNewline) {
+          nextNewline = false;
+          invokation.ln();
+          for (int i = 0; i < indentLevel + indentWrap; i++) {
+            invokation.out("  ");
+          }
+          // auto-increase indent wrap unless semicolon will return it back
+          indentWrap = 2;
+        }
+
+        if (t.isDelimiter() && (t.is(';') || t.is('}') || t.is('{'))) {
+          indentWrap = 0;
+        }
+        // increase indent level after writing a newline
+        if (t.isDelimiter() && t.is('{')) {
+          indentLevel++;
+        }
+        // outputing actual token after any indents
         invokation.out(t);
       }
-      return null;
     }
   };
 
-  final Function<EncodedElement, Type.Parameters> ownTypeParams =
-      new Function<EncodedElement, Type.Parameters>() {
+  final Function<EncodedElement, String> ownTypeParams =
+      new Function<EncodedElement, String>() {
         @Override
-        public Type.Parameters apply(EncodedElement input) {
+        public String apply(EncodedElement input) {
           Parameters parameters = Type.Producer.emptyParameters();
-          for (TypeParam p : input.typeParams()) {
-            parameters = parameters.introduce(p.name(), FluentIterable.from(p.bounds())
-                .transform(typer)
-                .filter(Defined.class)
-                .toList());
+
+          if (input.isFrom()) {
+            // our from method have the same type parameters as
+            // encoding in general, when instantiating it for specific
+            // attribute, some may resolve to concrete types, some
+            // may end up value-type specific type parameter
+            // we need to write only type-specific type parameters omiting those
+            // which resolves to specific type.
+            // note that often 'from' method is inlined so this is not needed
+            // then, it is only needed when non-inlined references are present.
+            for (Variable v : typer.variables()) {
+              Type t = typer.apply(v);
+              if (t instanceof Type.Variable) {
+                Type.Variable var = (Type.Variable) t;
+                parameters = parameters.introduce(var.name, transformBounds(var.upperBounds));
+              }
+            }
+          } else {
+            for (TypeParam p : input.typeParams()) {
+              parameters = parameters.introduce(p.name(), transformBounds(p.bounds()));
+            }
           }
-          return parameters;
+
+          if (parameters.names().isEmpty()) {
+            return "";
+          }
+          return parameters + " ";
+        }
+
+        private ImmutableList<Defined> transformBounds(List<Defined> bounds) {
+          return FluentIterable.from(bounds)
+              .transform(typer)
+              .filter(Defined.class)
+              .toList();
         }
       };
 

@@ -135,7 +135,7 @@ public final class Templates {
       this.consumer = consumer;
       this.params = checkNotNull(params);
     }
-
+    
     public int arity() {
       return params.length;
     }

@@ -87,7 +87,7 @@ final class Structurizer {
 			Term t = terms.peek();
 			if (t.is("=")) {
 				terms.next();
-				expressionUntilSemicolon(builder);
+				expressionUpToSemicolon(builder);
 				return builder.build();
 			} else if (t.is("(") && !wasParameters) {
 				builder.addAllParameters(collectUntilMatching(")"));
@@ -139,7 +139,7 @@ final class Structurizer {
 		}
 	}
 
-	private void expressionUntilSemicolon(Statement.Builder builder) {
+	private void expressionUpToSemicolon(Statement.Builder builder) {
     terms.peek();
 		whitespaces.on();
 		try {
@@ -153,11 +153,11 @@ final class Structurizer {
 				} else if (t.is("[")) {
 					doCollectMatching(result, "[", "]");
 				} else {
-					result.add(terms.next());
-					if (t.is(";")) {
-						builder.addAllExpression(result);
-						return;
-					}
+          if (t.is(";")) {
+            builder.addAllExpression(result);
+            return;
+          }
+          result.add(terms.next());
 				}
 			}
 		} finally {

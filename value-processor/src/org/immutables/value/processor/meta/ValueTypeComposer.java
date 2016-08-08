@@ -114,13 +114,11 @@ public final class ValueTypeComposer {
     }
     if (type.isUseSingleton() && !type.getMandatoryAttributes().isEmpty()) {
       for (ValueAttribute a : type.getMandatoryAttributes()) {
-        if (a.isMandatory()) {
-          a.report()
-              .error("Attribute '%s' is mandatory and cannot be used with singleton enabled."
-                  + " Singleton instance require all attributes to have default value, otherwise"
-                  + " default instance could not be created",
-                  a.name());
-        }
+        a.report()
+            .error("Attribute '%s' is mandatory and cannot be used with singleton enabled."
+                + " Singleton instance require all attributes to have default value, otherwise"
+                + " default instance could not be created",
+                a.name());
       }
     }
   }

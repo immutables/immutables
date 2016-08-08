@@ -585,6 +585,15 @@ public interface Type {
       return variable;
     }
 
+    public @Nullable Variable byName(String named) {
+      for (int i = 0; i < variables.length; i++) {
+        if (variables[i].name.equals(named)) {
+          return variables[i];
+        }
+      }
+      return null;
+    }
+
     @Override
     public Type apply(Type type) {
       return type.accept(this);

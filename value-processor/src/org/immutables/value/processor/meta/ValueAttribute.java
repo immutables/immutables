@@ -164,6 +164,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isGenerateDefault // is the case for defaulted abstract annotation attribute
         && !isContainerType()
         && !isNullable()
+        && !isEncoding()
         && !hasBuilderSwitcherDefault();
   }
 

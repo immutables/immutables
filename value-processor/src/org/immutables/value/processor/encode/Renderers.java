@@ -30,6 +30,8 @@ public abstract class Renderers extends AbstractTemplate {
 
   public abstract Templates.Invokable declareFields();
 
+  public abstract Templates.Invokable defaultValue();
+
   public abstract Templates.Invokable assignDefaultFields();
 
   public abstract Templates.Invokable staticFields();
