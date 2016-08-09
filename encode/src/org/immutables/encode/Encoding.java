@@ -44,11 +44,23 @@ public @interface Encoding {
    * constant naming (without {@code "*"} placeholder) on elements. But when you do this it can result
    * in name clashes in generated code.
    * </em>
+   * @see #depluralize()
    */
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Naming {
+    /**
+     * Naming pattern for element.
+     * @return naming pattern
+     */
     String value();
+
+    /**
+     * Set to {@code true} if depluralizer needs to kick in and
+     * try to convert attribute name to a singular form before applying pattern ({@link #value()}).
+     * @return if depluralized attribute name
+     */
+    boolean depluralize() default false;
   }
 
   /**

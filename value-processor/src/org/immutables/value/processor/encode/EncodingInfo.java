@@ -1,11 +1,10 @@
 package org.immutables.value.processor.encode;
 
-import javax.annotation.Nullable;
-import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.immutables.value.Value.Auxiliary;
 import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
@@ -108,15 +107,14 @@ public abstract class EncodingInfo {
 
   @Derived
   @Auxiliary
-  ImmutableSet<String> crossReferencedMembers() {
+  ImmutableSet<String> crossReferencedMethods() {
     Set<String> referenced = new HashSet<>();
     for (EncodedElement e : element()) {
       for (Term t : e.code()) {
         if (t.isBinding()) {
-          String identifier = ((Code.Binding) t).identifier();
-          boolean mayBeMethod = Ascii.isLowerCase(identifier.charAt(0));
-          if (mayBeMethod) {
-            referenced.add(identifier);
+          Code.Binding b = (Code.Binding) t;
+          if (b.isMethod()) {
+            referenced.add(b.identifier());
           }
         }
       }

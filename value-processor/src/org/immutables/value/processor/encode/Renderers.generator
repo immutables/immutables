@@ -2,9 +2,9 @@
 [for inst = a.instantiation,
       enc = inst.encoding,
 			impl = enc.impl]
-private final [inst.typer impl.type] [inst.namer impl.name];
+private final [inst.typer impl.type] [inst.namer impl];
 [for el in enc.element if el.valueField]
-[if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el.name];
+[if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el];
 [/for]
 [/for]
 [/template]
@@ -29,7 +29,7 @@ Could not generate constructor. Attribute '[a.name]' does not have default value
     inst = a.instantiation,
     el in inst.encoding.element if el.valueField]
 [if el.code]
-this.[inst.namer el.name] = [inst.codeOf el];
+this.[inst.namer el] = [inst.codeOf el];
 [/if]
 [/for]
 [/template]
@@ -39,27 +39,24 @@ this.[inst.namer el.name] = [inst.codeOf el];
     inst = a.instantiation,
     el in inst.encoding.element if el.copy]
 
-[if el.private]private [else]public [/if][if el.final]final [/if][type.typeImmutable.simple][type.generics.args] [inst.namer el.name]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] {
-  [inst.typer el.type] newValue = [if el.oneLiner][inst.fragmentOf el][else]with_[inst.namer el.name]([for p in el.params][if not for.first], [/if][p.name][/for])[/if];
+[if el.private]private [else]public [/if][if el.final]final [/if][type.typeImmutable.simple][type.generics.args] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] {
+  [inst.typer el.type] newValue = [if el.oneLiner][inst.fragmentOf el][else]with_[inst.namer el]([for p in el.params][if not for.first], [/if][p.name][/for])[/if];
   if (this.[a.name] == newValue) return this;
   [returnCopy]
 }
 [if not el.oneLiner]
 
-private [inst.typer el.type] with_[inst.namer el.name]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
+private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
 [/if]
 [/for]
 [/template]
 
-[template public builderCopyFrom Attribute a][a.instantiation.namer a.instantiation.encoding.builderCopy.name][/template]
+[template public builderCopyFrom Attribute a][a.instantiation.namer a.instantiation.encoding.builderCopy][/template]
 
 [template public builderInit Attribute a]
 [for inst = a.instantiation, el in inst.encoding.element if el.init]
 
-[if not el.private]
-/** [el.name]. */
-[/if]
-[if el.private]private [else]public [/if][if el.final]final [/if][builderReturnType a] [inst.namer el.name]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]return [builderReturnThis a][/inst.codeOf]
+[if el.private]private [else]public [/if][if el.final]final [/if][builderReturnType a] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]return [builderReturnThis a][/inst.codeOf]
 [/for]
 [/template]
 
@@ -153,11 +150,11 @@ private [inst.typer el.type] with_[inst.namer el.name]([for p in el.params][if n
 [template public fromBuild Attribute a][a.instantiation.fragmentOf a.instantiation.encoding.build][/a.instantiation.fragmentOf][/template]
 
 [template declareAuxiliaryField Inst inst Elem el]
-[if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el.name][if el.code] = [inst.codeOf el][/if];
+[if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el][if el.code] = [inst.codeOf el][/if];
 [/template]
 
 [template declareHelperMethod Inst inst Elem el]
-[if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.ownTypeParams el][inst.typer el.type] [inst.namer el.name]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
+[if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.ownTypeParams el][inst.typer el.type] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
 [/template]
 
 [template throwsClause Inst inst Elem el][if el.thrown]throws [for t in el.thrown][if not for.first], [/if][inst.typer t][/for][/if][/template]

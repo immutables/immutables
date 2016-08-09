@@ -2,9 +2,9 @@ package org.immutables.value.processor.encode;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
-import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +21,11 @@ import org.immutables.value.processor.encode.Type.Parameters;
 import org.immutables.value.processor.encode.Type.Variable;
 import org.immutables.value.processor.encode.Type.VariableResolver;
 import org.immutables.value.processor.meta.Styles;
+import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
-// The bulk of this could have possibly be coded in templates,
-// but let it be for now as it is
 public final class Instantiation {
-  private final Map<String, String> generatedNames;
+  private final Map<Binding, String> bindings;
+  private final Map<Binding, String> builderBindings;
 
   final Type type;
   final EncodingInfo encoding;
@@ -33,10 +33,9 @@ public final class Instantiation {
 
   // these exist as functions that can be applied from a template
   final VariableResolver typer;
-  final Code.Interpolator coder;
-  final Function<String, String> namer;
+  final Function<EncodedElement, String> namer;
 
-  private final String name;
+  private final AttributeNames names;
 
   Instantiation(
       EncodingInfo encoding,
@@ -47,20 +46,53 @@ public final class Instantiation {
     this.encoding = encoding;
     this.expose = expose;
     this.type = exposedType;
+    this.names = names;
     this.typer = resolver;
-    this.name = names.raw;
 
-    this.generatedNames = new HashMap<>(encoding.element().size());
+    this.bindings = new HashMap<>(encoding.element().size());
+    this.builderBindings = new HashMap<>(encoding.element().size());
+
+    populateBindings(resolver);
+
+    this.namer = new Function<EncodedElement, String>() {
+      @Override
+      public String apply(EncodedElement input) {
+        return input.inBuilder()
+            ? builderBindings.get(input.asBinding())
+            : bindings.get(input.asBinding());
+      }
+    };
+  }
+
+  private void populateBindings(VariableResolver resolver) {
     for (EncodedElement e : encoding.element()) {
-      this.generatedNames.put(e.name(), generateProperName(e, names));
+      if (e.isStatic()) {
+        if (e.inBuilder()) {
+          builderBindings.put(e.asBinding(), generateProperName(e));
+        } else {
+          // statics from value are visible in builder
+          builderBindings.put(e.asBinding(), generateProperName(e));
+          bindings.put(e.asBinding(), generateProperName(e));
+        }
+      }
+    }
+
+    for (EncodedElement e : encoding.element()) {
+      if (!e.isStatic()) {
+        if (e.inBuilder()) {
+          builderBindings.put(e.asBinding(), generateProperName(e));
+        } else {
+          bindings.put(e.asBinding(), generateProperName(e));
+        }
+      }
     }
 
     for (Variable v : resolver.variables()) {
-      this.generatedNames.put(v.name, resolver.apply(v).toString());
+      Binding binding = Binding.newTop(v.name);
+      String value = resolver.apply(v).toString();
+      bindings.put(binding, value);
+      builderBindings.put(binding, value);
     }
-
-    this.namer = Functions.forMap(generatedNames);
-    this.coder = new Code.Interpolator(name, namer, NO_SUBSTITUTIONS);
   }
 
   public boolean supportsInternalImplConstructor() {
@@ -71,7 +103,7 @@ public final class Instantiation {
     return !encoding.impl().code().isEmpty();
   }
 
-  private String generateProperName(EncodedElement element, Styles.UsingName.AttributeNames names) {
+  private String generateProperName(EncodedElement element) {
     if (element.isExpose()) {
       return names.get;
     }
@@ -83,7 +115,7 @@ public final class Instantiation {
         return names.init;
       }
     }
-    String raw = names.raw;
+    String raw = element.depluralize() ? names.singular() : names.raw;
     if (element.isStaticField() && element.isFinal()) {
       raw = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, raw);
     }
@@ -94,26 +126,25 @@ public final class Instantiation {
     @Override
     public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
       final EncodedElement el = (EncodedElement) parameters[0];
-      Code.Interpolator interpolator = coder;
-      if (el.params().size() == 1 && parameters.length > 1) {
-        final String name = el.params().get(0).name();
-        final String param = parameters[1].toString();
 
-        interpolator = new Code.Interpolator(name, namer, new Function<String, String>() {
-          @Override
-          public String apply(String input) {
-            return input.equals(name) ? param : null;
-          }
-        });
+      @Nullable Map<Binding, String> overrideBindings = null;
+      if (el.params().size() == 1 && parameters.length > 1) {
+        overrideBindings = ImmutableMap.of(
+            Binding.newTop(el.params().get(0).name()),
+            parameters[1].toString());
       }
 
+      Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
+      Code.Interpolator interpolator =
+          new Code.Interpolator(names.raw, contextBindings, overrideBindings);
+
       if (!el.oneLiner().isEmpty()
-          && !encoding.crossReferencedMembers().contains(el.name())) {
+          && !encoding.crossReferencedMethods().contains(el.name())) {
         for (Code.Term t : interpolator.apply(el.oneLiner())) {
           invokation.out(t);
         }
       } else {
-        invokation.out(namer.apply(el.name())).out("(");
+        invokation.out(contextBindings.get(el.asBinding())).out("(");
         boolean notFirst = false;
         for (Param p : el.params()) {
           if (notFirst) {
@@ -138,7 +169,13 @@ public final class Instantiation {
         String returnReplacement = parameters[1].toString();
         code = Code.replaceReturn(code, returnReplacement);
       }
-      printWithIndentation(invokation, coder.apply(code));
+
+      Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
+
+      Code.Interpolator interpolator =
+          new Code.Interpolator(names.raw, contextBindings, null);
+
+      printWithIndentation(invokation, interpolator.apply(code));
       return null;
     }
 
@@ -152,6 +189,7 @@ public final class Instantiation {
           nextNewline = true;
           continue;
         }
+
         // decrease indent level before writing a newline
         if (t.isDelimiter() && t.is('}')) {
           indentLevel--;
@@ -160,6 +198,7 @@ public final class Instantiation {
         if (nextNewline) {
           nextNewline = false;
           invokation.ln();
+
           for (int i = 0; i < indentLevel + indentWrap; i++) {
             invokation.out("  ");
           }
@@ -170,10 +209,12 @@ public final class Instantiation {
         if (t.isDelimiter() && (t.is(';') || t.is('}') || t.is('{'))) {
           indentWrap = 0;
         }
+
         // increase indent level after writing a newline
         if (t.isDelimiter() && t.is('{')) {
           indentLevel++;
         }
+
         // outputing actual token after any indents
         invokation.out(t);
       }
@@ -226,11 +267,4 @@ public final class Instantiation {
   public String toString() {
     return type + "(by " + encoding.name() + ")";
   }
-
-  private static final Function<String, String> NO_SUBSTITUTIONS = new Function<String, String>() {
-    @Override
-    public String apply(String input) {
-      return null;
-    }
-  };
 }

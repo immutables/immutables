@@ -1,6 +1,6 @@
-package org.immutables.encode.fixture;
+package org.immutables.fixture.encoding.defs;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -16,13 +16,13 @@ class OptionalMap<K, V> {
   // Expose (and detect) the field as Optional of Map
   @Encoding.Expose
   public Optional<Map<K, V>> get() {
-    return Optional.<Map<K, V>>fromNullable(map);
+    return Optional.<Map<K, V>>ofNullable(map);
   }
 
   // alternatively it can be exposed as Optional of ImmutableMap
   @Encoding.Expose
   public Optional<ImmutableMap<K, V>> getImmutable() {
-    return Optional.fromNullable(map);
+    return Optional.ofNullable(map);
   }
 
   // as field is nullable, so null-safe hashcode required

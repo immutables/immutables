@@ -15,14 +15,12 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.generator.Naming.Usage;
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
@@ -48,8 +46,10 @@ import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Naming;
+import org.immutables.generator.Naming.Usage;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.Templates;
+import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.Tag;
@@ -286,10 +286,16 @@ public abstract class Encodings extends AbstractTemplate {
         if (processClass((TypeElement) member))
           return;
       }
-      if (member.getKind() != ElementKind.INSTANCE_INIT) {
-        reporter.withElement(member)
-            .warning("Unrecognized encoding member '%s' will be ignored", member.getSimpleName());
+      if (member.getKind() == ElementKind.INSTANCE_INIT) {
+        return;
       }
+
+      if (member.getSimpleName().contentEquals("<init>")) {
+        return;
+      }
+
+      reporter.withElement(member)
+          .warning("Unrecognized encoding member '%s' will be ignored", member.getSimpleName());
     }
 
     private boolean processField(VariableElement field) {
@@ -319,12 +325,14 @@ public abstract class Encodings extends AbstractTemplate {
                 field.getSimpleName());
       }
 
+      EnumSet<Tag> tags = EnumSet.of(Tag.FIELD);
+
       fields.add(new EncodedElement.Builder()
           .name(field.getSimpleName().toString())
           .type(typesReader.get(field.asType()))
-          .naming(inferNaming(field))
+          .naming(inferNaming(field, tags))
           .typeParameters(typesReader.parameters)
-          .addAllTags(inferTags(field, Tag.FIELD))
+          .addAllTags(inferTags(field, tags))
           .addAllCode(expression)
           .build());
 
@@ -641,11 +649,16 @@ public abstract class Encodings extends AbstractTemplate {
       EncodedElement.Builder builder = new EncodedElement.Builder();
       TypeExtractor typesReader = processTypeParameters(method, builder);
 
+      EnumSet<Tag> tags = EnumSet.noneOf(Tag.class);
+      for (Tag t : additionalTags) {
+        tags.add(t);
+      }
+
       collection.add(builder
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .naming(inferNaming(method, additionalTags))
-          .addAllTags(inferTags(method, additionalTags))
+          .naming(inferNaming(method, tags))
+          .addAllTags(inferTags(method, tags))
           .addAllParams(getParameters(typesReader, method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .addAllThrown(typesReader.getDefined(method.getThrownTypes()))
@@ -698,42 +711,33 @@ public abstract class Encodings extends AbstractTemplate {
       return result;
     }
 
-    private Naming inferNaming(VariableElement field) {
-      Optional<NamingMirror> namingAnnotation = NamingMirror.find(field);
-      if (namingAnnotation.isPresent()) {
-        try {
-          return Naming.from(namingAnnotation.get().value());
-        } catch (IllegalArgumentException ex) {
-          reporter.withElement(field)
-              .annotationNamed(NamingMirror.simpleName())
-              .error(ex.getMessage());
-        }
-      }
-
-      return helperNaming(field.getSimpleName());
-    }
-
     private Naming helperNaming(CharSequence encodedName) {
       return Naming.from("*_" + encodedName);
     }
 
-    private Naming inferNaming(ExecutableElement method, Tag... additionalTags) {
-      Optional<NamingMirror> namingAnnotation = NamingMirror.find(method);
+    private Naming inferNaming(Element element, EnumSet<Tag> tags) {
+      Optional<NamingMirror> namingAnnotation = NamingMirror.find(element);
       if (namingAnnotation.isPresent()) {
         try {
-          return Naming.from(namingAnnotation.get().value());
+          NamingMirror mirror = namingAnnotation.get();
+          Naming naming = Naming.from(mirror.value());
+          if (mirror.depluralize()) {
+            tags.add(Tag.DEPLURALIZE);
+          }
+          return naming;
         } catch (IllegalArgumentException ex) {
-          reporter.withElement(method)
+          reporter.withElement(element)
               .annotationNamed(NamingMirror.simpleName())
               .error(ex.getMessage());
         }
       }
-      for (Tag tag : additionalTags) {
-        if (tag == Tag.INIT || tag == Tag.COPY) {
-          return Naming.identity();
-        }
+      if (element.getKind() == ElementKind.FIELD) {
+        return helperNaming(element.getSimpleName());
       }
-      String encodedMethodName = method.getSimpleName().toString();
+      if (tags.contains(Tag.INIT) || tags.contains(Tag.COPY)) {
+        return Naming.identity();
+      }
+      String encodedMethodName = element.getSimpleName().toString();
       return Naming.from("*" + Naming.Usage.CAPITALIZED.apply(encodedMethodName));
     }
 
@@ -785,10 +789,16 @@ public abstract class Encodings extends AbstractTemplate {
               continue;
           }
 
-          if (member.getKind() != ElementKind.INSTANCE_INIT) {
-            reporter.withElement(member)
-                .warning("Unrecognized Builder member '%s' will be ignored", member.getSimpleName());
+          if (member.getKind() == ElementKind.INSTANCE_INIT) {
+            continue;
           }
+
+          if (member.getSimpleName().contentEquals("<init>")) {
+            continue;
+          }
+
+          reporter.withElement(member)
+              .warning("Unrecognized Builder member '%s' will be ignored", member.getSimpleName());
         }
         return true;
       }
@@ -804,12 +814,14 @@ public abstract class Encodings extends AbstractTemplate {
                 field.getSimpleName());
       }
 
+      EnumSet<Tag> tags = EnumSet.of(Tag.FIELD, Tag.BUILDER);
+
       builderFields.add(new EncodedElement.Builder()
-          .type(typesReader.get(field.asType()))
           .name(field.getSimpleName().toString())
-          .naming(helperNaming(field.getSimpleName()))
+          .type(typesReader.get(field.asType()))
+          .naming(inferNaming(field, tags))
           .typeParameters(typesReader.parameters)
-          .addAllTags(inferTags(field, Tag.FIELD, Tag.BUILDER))
+          .addAllTags(inferTags(field, tags))
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
           .build());
 
@@ -856,12 +868,14 @@ public abstract class Encodings extends AbstractTemplate {
         return true;
       }
 
+      EnumSet<Tag> tags = EnumSet.of(Tag.BUILDER, Tag.BUILD, Tag.PRIVATE);
+
       this.build = new EncodedElement.Builder()
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .addTags(Tag.BUILDER, Tag.BUILD, Tag.PRIVATE)
-          .naming(inferNaming(method))
+          .naming(inferNaming(method, tags))
           .typeParameters(typesReader.parameters)
+          .addAllTags(tags)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
 
@@ -914,8 +928,7 @@ public abstract class Encodings extends AbstractTemplate {
       return processGenericEncodedMethod(method, builderFields, Tag.HELPER, Tag.BUILDER);
     }
 
-    private Set<Tag> inferTags(Element member, Tag... additionalTags) {
-      EnumSet<Tag> tags = EnumSet.noneOf(Tag.class);
+    private Set<Tag> inferTags(Element member, EnumSet<Tag> tags) {
       if (member.getModifiers().contains(Modifier.STATIC)) {
         tags.add(Tag.STATIC);
       }
@@ -924,9 +937,6 @@ public abstract class Encodings extends AbstractTemplate {
       }
       if (member.getModifiers().contains(Modifier.FINAL)) {
         tags.add(Tag.FINAL);
-      }
-      for (Tag t : additionalTags) {
-        tags.add(t);
       }
       return tags;
     }
@@ -1023,7 +1033,7 @@ public abstract class Encodings extends AbstractTemplate {
             .addTags(Tag.PRIVATE, Tag.BUILD, Tag.BUILDER, Tag.SYNTH)
             .addAllCode(Code.termsFrom("{\n"
                 + "if (" + fieldElementName + " == null)"
-                + " throw new IllegalStateException(\"'<name>' is not initialized\");\n"
+                + " throw new IllegalStateException(\"'<*>' is not initialized\");\n"
                 + "return " + fieldElementName + ";\n"
                 + "}"))
             .build();
@@ -1045,9 +1055,9 @@ public abstract class Encodings extends AbstractTemplate {
     }
 
     class Linkage implements Function<EncodedElement, String> {
-      private final Set<String> staticContext = new LinkedHashSet<>();
-      private final Set<String> instanceContext = new LinkedHashSet<>();
-      private final Set<String> builderContext = new LinkedHashSet<>();
+      private final Set<Binding> staticContext = new LinkedHashSet<>();
+      private final Set<Binding> instanceContext = new LinkedHashSet<>();
+      private final Set<Binding> builderContext = new LinkedHashSet<>();
 
       Linkage() {
         addStaticMembers(staticContext);
@@ -1055,34 +1065,37 @@ public abstract class Encodings extends AbstractTemplate {
         addStaticMembers(builderContext);
         addTypeParameters(instanceContext);
         addTypeParameters(builderContext);
+        addTypeParameters(staticContext);
         addInstanceMembers(instanceContext);
         addBuilderMembers(builderContext);
       }
 
-      private void addTypeParameters(Set<String> context) {
-        context.addAll(typeParams);
+      private void addTypeParameters(Set<Binding> context) {
+        for (String p : typeParams) {
+          context.add(Binding.newTop(p));
+        }
       }
 
-      private void addBuilderMembers(Set<String> context) {
+      private void addBuilderMembers(Set<Binding> context) {
         for (EncodedElement e : allElements) {
-          if (e.tags().contains(Tag.BUILDER)) {
-            context.add(e.name());
+          if (e.inBuilder()) {
+            context.add(e.asBinding());
           }
         }
       }
 
-      private void addInstanceMembers(Set<String> context) {
+      private void addInstanceMembers(Set<Binding> context) {
         for (EncodedElement e : allElements) {
-          if (!e.tags().contains(Tag.STATIC) && !e.tags().contains(Tag.BUILDER)) {
-            context.add(e.name());
+          if (!e.inBuilder() && !e.isStatic()) {
+            context.add(e.asBinding());
           }
         }
       }
 
-      private void addStaticMembers(Set<String> context) {
+      private void addStaticMembers(Set<Binding> context) {
         for (EncodedElement e : allElements) {
-          if (e.tags().contains(Tag.STATIC)) {
-            context.add(e.name());
+          if (!e.inBuilder() && e.isStatic()) {
+            context.add(e.asBinding());
           }
         }
       }
@@ -1095,19 +1108,18 @@ public abstract class Encodings extends AbstractTemplate {
       }
 
       private Code.Binder linkerFor(EncodedElement element) {
-        ImmutableSet.Builder<String> topsBuilder = ImmutableSet.builder();
-        for (Param p : element.params()) {
-          topsBuilder.add(p.name());
-        }
-        Set<String> tops = topsBuilder.build();
-
+        Set<Binding> bindings = new LinkedHashSet<>();
         if (element.tags().contains(Tag.BUILDER)) {
-          return new Code.Binder(imports.classes, builderContext, tops);
+          bindings.addAll(builderContext);
+        } else if (element.tags().contains(Tag.STATIC)) {
+          bindings.addAll(staticContext);
+        } else {
+          bindings.addAll(instanceContext);
         }
-        if (element.tags().contains(Tag.STATIC)) {
-          return new Code.Binder(imports.classes, staticContext, tops);
+        for (Param p : element.params()) {
+          bindings.add(Binding.newTop(p.name()));
         }
-        return new Code.Binder(imports.classes, instanceContext, tops);
+        return new Code.Binder(imports.classes, bindings);
       }
     }
 

@@ -381,7 +381,7 @@ public class Proto {
 
     private final Map<Set<EncodingInfo>, Instantiator> instantiators = new HashMap<>();
 
-    Instantiator instantiatorFrom(Set<EncodingInfo> encodings) {
+    Instantiator instantiatorFor(Set<EncodingInfo> encodings) {
       @Nullable Instantiator instantiator = instantiators.get(encodings);
       if (instantiator == null) {
         instantiator = ENCODING_INFLATER.instantiatorFor(encodings);
@@ -1493,12 +1493,11 @@ public class Proto {
     @Value.Lazy
     public Instantiator encodingInstantiator() {
       List<EncodingInfo> results = new ArrayList<>();
+      packageOf().collectEncodings(results);
       if (declaringType().isPresent()) {
         declaringType().get().collectEncodings(results);
-      } else {
-        packageOf().collectEncodings(results);
       }
-      return environment().instantiatorFrom(FluentIterable.from(results).toSet());
+      return environment().instantiatorFor(FluentIterable.from(results).toSet());
     }
   }
 

@@ -240,12 +240,16 @@ public final class Styles {
         return scheme.unset.apply(raw);
       }
 
+      public String singular() {
+        return depluralizer.depluralize(raw);
+      }
+
       private ForCollections collection() {
         return coll == null ? coll = new ForCollections() : coll;
       }
 
       public class ForCollections {
-        final String singular = depluralizer.depluralize(raw);
+        final String singular = singular();
         final String add = scheme.add.apply(singular);
         final String put = scheme.put.apply(singular);
         final String addAll = scheme.addAll.apply(raw);

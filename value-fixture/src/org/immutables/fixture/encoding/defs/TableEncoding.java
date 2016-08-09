@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.encode.fixture;
+package org.immutables.fixture.encoding.defs;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;

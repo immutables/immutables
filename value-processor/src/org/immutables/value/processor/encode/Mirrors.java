@@ -12,6 +12,8 @@ interface Mirrors {
   @Mirror.Annotation("org.immutables.encode.Encoding.Naming")
   @interface Naming {
     String value();
+
+    boolean depluralize() default false;
   }
 
   @Mirror.Annotation("org.immutables.encode.Encoding.Expose")

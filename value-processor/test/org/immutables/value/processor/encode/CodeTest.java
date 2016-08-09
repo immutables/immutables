@@ -1,5 +1,6 @@
 package org.immutables.value.processor.encode;
 
+import org.immutables.value.processor.encode.Code.Binding;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
@@ -31,17 +32,28 @@ public class CodeTest {
   @Test
   public void bind() {
     List<Code.Term> terms =
-        Code.termsFrom("this.aa(OPA.aa, CARNIVORE./* */aa, HERBIVORE. bb, UNIVORE. <My> aa).and(My.class);this.HERBIVORE");
+        Code.termsFrom("this.aa(OPA.aa, CARNIVORE./* */aa, HERBIVORE. bb, UNIVORE. <My> aa()).and(My.class);this.HERBIVORE");
 
-    Code.Binder binder =
-        new Code.Binder(
-            ImmutableMap.of("My", "xx.My"),
-            ImmutableSet.of("aa"),
-            ImmutableSet.of("HERBIVORE"));
+    Code.Binder binder = new Code.Binder(
+        ImmutableMap.of("My", "xx.My"),
+        ImmutableSet.of(Binding.newTop("HERBIVORE"), Binding.newMethod("aa")));
 
     String joined = Code.join(binder.apply(terms));
 
-    check(joined).is("this.@@aa(OPA.aa, CARNIVORE./* */aa, @^HERBIVORE. bb, UNIVORE. <xx.My> aa).and(xx.My.class);this.HERBIVORE");
+    check(joined).is("this.@:aa(OPA.aa, CARNIVORE./* */aa, @^HERBIVORE. bb, UNIVORE. <xx.My> aa()).and(xx.My.class);this.HERBIVORE");
+  }
+
+  @Test
+  public void bind2() {
+    List<Code.Term> terms = Code.termsFrom("this.aa\n(this\n.aa, this :: aa)");
+
+    Code.Binder binder = new Code.Binder(
+        ImmutableMap.<String, String>of(),
+        ImmutableSet.of(Binding.newMethod("aa"), Binding.newField("aa")));
+
+    String joined = Code.join(binder.apply(terms));
+
+    check(joined).is("this.@:aa\n(this\n.@@aa, this :: @:aa)");
   }
 
   @Test
@@ -49,14 +61,12 @@ public class CodeTest {
     List<Code.Term> terms =
         Code.termsFrom("Optional.<Map<K, V>>fromNullable(null)");
 
-    Code.Binder binder =
-        new Code.Binder(
-            ImmutableMap.<String, String>of(),
-            ImmutableSet.of("K", "V"),
-            ImmutableSet.<String>of());
+    Code.Binder binder = new Code.Binder(
+        ImmutableMap.<String, String>of(),
+        ImmutableSet.of(Binding.newTop("K"), Binding.newTop("V")));
 
     String joined = Code.join(binder.apply(terms));
-    check(joined).is("Optional.<Map<@@K, @@V>>fromNullable(null)");
+    check(joined).is("Optional.<Map<@^K, @^V>>fromNullable(null)");
   }
 
   @Test

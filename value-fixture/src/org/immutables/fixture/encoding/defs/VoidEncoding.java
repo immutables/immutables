@@ -1,4 +1,4 @@
-package org.immutables.encode.fixture;
+package org.immutables.fixture.encoding.defs;
 
 import org.immutables.encode.Encoding;
 

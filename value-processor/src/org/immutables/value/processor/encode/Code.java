@@ -1,5 +1,6 @@
 package org.immutables.value.processor.encode;
 
+import javax.annotation.Nullable;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -21,14 +22,14 @@ final class Code {
   private static final CharMatcher IDENTIFIER_START = CharMatcher.javaLetter().or(CharMatcher.anyOf("$_"));
 
   static class Interpolator implements Function<List<Term>, List<Term>> {
-    private final Function<String, String> members;
-    private final Function<String, String> tops;
     private final String name;
+    private final Map<Binding, String> bindings;
+    private final @Nullable Map<Binding, String> overrides;
 
-    Interpolator(String name, Function<String, String> members, Function<String, String> tops) {
+    Interpolator(String name, Map<Binding, String> bindings, @Nullable Map<Binding, String> overrides) {
       this.name = name;
-      this.members = members;
-      this.tops = tops;
+      this.bindings = bindings;
+      this.overrides = overrides;
     }
 
     @Override
@@ -38,7 +39,7 @@ final class Code {
         if (t.isBinding()) {
           result.add(dereference((Binding) t));
         } else if (t.isString()) {
-          result.add(((Other) t).replace("<name>", name));
+          result.add(((Other) t).replace("<*>", name));
         } else {
           result.add(t);
         }
@@ -47,13 +48,16 @@ final class Code {
     }
 
     Term dereference(Binding binding) {
-      String identifier = binding.identifier();
-      String value = binding.isTop()
-          ? tops.apply(identifier)
-          : members.apply(identifier);
+      @Nullable String value = null;
+      if (overrides != null) {
+        value = overrides.get(binding);
+      }
+      if (value == null) {
+        value = bindings.get(binding);
+      }
       if (value == null) {
         // if no substitution, falling back to the identifier itself
-        value = identifier;
+        value = binding.identifier();
       }
       return new WordOrNumber(value);
     }
@@ -61,26 +65,24 @@ final class Code {
 
   static class Binder {
     private final Map<String, String> imports;
-    private final Set<String> members;
-    private final Set<String> tops;
+    private final Set<Binding> bindings;
 
-    Binder(Map<String, String> imports, Set<String> members, Set<String> tops) {
+    Binder(Map<String, String> imports, Set<Binding> bindings) {
       this.imports = imports;
-      this.members = members;
-      this.tops = tops;
+      this.bindings = bindings;
     }
 
     List<Term> apply(List<Term> terms) {
       List<Term> result = new ArrayList<>();
       try {
-        resolve(terms.iterator(), result, false);
+        resolve(terms, terms.listIterator(), result, false);
       } catch (Exception ex) {
         throw new RuntimeException("Cannot bind: " + Code.join(terms), ex);
       }
       return result;
     }
 
-    private void resolve(Iterator<Term> it, List<Term> result, boolean untilGenericsClose) {
+    private void resolve(List<Term> inputTerms, ListIterator<Term> it, List<Term> result, boolean untilGenericsClose) {
       State state = State.NONE;
       while (it.hasNext()) {
         Term t = it.next();
@@ -92,21 +94,35 @@ final class Code {
         // this is to handle generics when invoking methods like
         // ImmutableList.<String>builder()
         // we don't want 'builder' to be considered to identifier
-        if ((state == State.DOT || untilGenericsClose) && t.is("<")) {
+        if ((state == State.DOT
+            || state == State.THIS_DOT
+            || untilGenericsClose)
+            && t.is("<")) {
           result.add(t);
-          resolve(it, result, true);
+          resolve(inputTerms, it, result, true);
           continue;
         }
-        state = state.next(t);
-        if (state.isTopIdent()) {
+
+        state = state.next(t, inputTerms, it.nextIndex());
+
+        if (state.isValue()) {
           String identifier = t.toString();
-          if (state == State.TOP_IDENT && tops.contains(identifier)) {
-            result.add(Binding.newTop(identifier));
-          } else if (members.contains(identifier)) {
-            result.add(Binding.newMember(identifier));
-          } else if (imports.containsKey(identifier)) {
+          Binding top = Binding.newTop(identifier);
+          Binding field = Binding.newField(identifier);
+          if (state == State.TOP_VALUE && bindings.contains(top)) {
+            result.add(top);
+          } else if (bindings.contains(field)) {
+            result.add(field);
+          } else if (state == State.TOP_VALUE && imports.containsKey(identifier)) {
             String qualifiedName = imports.get(identifier);
             result.addAll(termsFrom(qualifiedName));
+          } else {
+            result.add(t);
+          }
+        } else if (state.isMethod()) {
+          Binding method = Binding.newMethod(t.toString());
+          if (bindings.contains(method)) {
+            result.add(method);
           } else {
             result.add(t);
           }
@@ -154,16 +170,28 @@ final class Code {
       DOT,
       THIS,
       THIS_DOT,
-      TOP_IDENT,
-      THIS_TOP_IDENT;
+      THIS_1COLON,
+      THIS_2COLONS,
+      TOP_VALUE,
+      TOP_METHOD,
+      THIS_VALUE,
+      THIS_METHOD,
+      THIS_METHOD_REFERENCE;
 
-      boolean isTopIdent() {
-        return this == TOP_IDENT
-            || this == THIS_TOP_IDENT;
+      boolean isValue() {
+        return this == TOP_VALUE
+            || this == THIS_VALUE;
       }
 
-      State next(Term t) {
+      boolean isMethod() {
+        return this == TOP_METHOD
+            || this == THIS_METHOD
+            || this == THIS_METHOD_REFERENCE;
+      }
+
+      State next(Term t, List<Term> inputTerms, int nextIndex) {
         boolean isDot = t.isDelimiter() && t.is(".");
+        boolean isColon = t.isDelimiter() && t.is(":");
         boolean isThis = t.isWordOrNumber() && t.is("this");
 
         boolean isIdent = t.isWordOrNumber()
@@ -179,16 +207,34 @@ final class Code {
           default:
             return DOT;
           }
+        } else if (isColon) {
+          switch (this) {
+          case THIS:
+            return THIS_1COLON;
+          case THIS_1COLON:
+            return THIS_2COLONS;
+          default:
+            return NONE;
+          }
         } else if (isThis) {
           return THIS;
         } else if (isIdent) {
           switch (this) {
+          case THIS_2COLONS:
+            return THIS_METHOD_REFERENCE;
           case THIS_DOT:
-            return THIS_TOP_IDENT;
+            if (nextNonBlankIs(inputTerms.listIterator(nextIndex), "(")) {
+              return THIS_METHOD;
+            }
+            return THIS_VALUE;
+          case THIS:
           case DOT:
             return NONE;
           default:
-            return TOP_IDENT;
+            if (nextNonBlankIs(inputTerms.listIterator(nextIndex), "(")) {
+              return THIS_METHOD;
+            }
+            return TOP_VALUE;
           }
         } else {
           return NONE;
@@ -496,6 +542,8 @@ final class Code {
   }
 
   static final class Whitespace extends Term {
+    static final Whitespace EMPTY = new Whitespace("");
+
     Whitespace(String value) {
       super(value);
     }
@@ -545,21 +593,33 @@ final class Code {
       return charAt(1) == '^';
     }
 
+    boolean isField() {
+      return charAt(1) == '@';
+    }
+
+    boolean isMethod() {
+      return charAt(1) == ':';
+    }
+
     @Override
     boolean isBinding() {
       return true;
     }
 
-    static Binding newMember(String member) {
-      return new Binding("@@" + member);
+    static Binding newField(String identifier) {
+      return new Binding("@@" + identifier);
     }
 
-    static Binding newTop(String top) {
-      return new Binding("@^" + top);
+    static Binding newMethod(String identifier) {
+      return new Binding("@:" + identifier);
+    }
+
+    static Binding newTop(String identifier) {
+      return new Binding("@^" + identifier);
     }
 
     static boolean chars(char c0, char c1) {
-      return c0 == '@' && (c1 == '@' || c1 == '^');
+      return c0 == '@' && (c1 == '@' || c1 == '^' || c1 == ':');
     }
   }
 }

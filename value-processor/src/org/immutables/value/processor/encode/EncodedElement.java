@@ -31,6 +31,7 @@ public abstract class EncodedElement {
     HASH_CODE,
     EQUALS,
     COPY,
+    DEPLURALIZE,
     SYNTH
   }
 
@@ -51,6 +52,13 @@ public abstract class EncodedElement {
   abstract Type.Parameters typeParameters();
 
   abstract List<TypeParam> typeParams();
+
+  @Derived
+  Code.Binding asBinding() {
+    return isField()
+        ? Code.Binding.newField(name())
+        : Code.Binding.newMethod(name());
+  }
 
   @Derived
   boolean isToString() {
@@ -197,6 +205,10 @@ public abstract class EncodedElement {
         || isHashCode()
         || isFrom()
         || isCopy();
+  }
+
+  boolean depluralize() {
+    return tags().contains(Tag.DEPLURALIZE);
   }
 
   static class Builder extends ImmutableEncodedElement.Builder {}
