@@ -138,6 +138,13 @@ public class ObjectMappedTest {
   }
 
   @Test
+  public void propertyOrder2() throws Exception {
+    String json = "{\"lat\":0.1,\"lon\":2.3}";
+    GeoPoint2 value = OBJECT_MAPPER.readValue(json, GeoPoint2.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
   public void anyGetterSetter() throws Exception {
     String json = "{\"A\":1,\"B\":true}";
     AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);

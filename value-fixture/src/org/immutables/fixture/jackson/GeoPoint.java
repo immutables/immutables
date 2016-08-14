@@ -29,7 +29,9 @@ import org.immutables.value.Value;
 @JsonSerialize(as = ImmutableGeoPoint.class)
 @Value.Immutable
 public abstract class GeoPoint {
-	public abstract double longitude();
-	public abstract double latitude();
-	public abstract double altitude();
+  public abstract double altitude();
+
+  public abstract double longitude();
+
+  public abstract double latitude();
 }
