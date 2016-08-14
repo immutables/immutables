@@ -1239,7 +1239,8 @@ public final class ValueType extends TypeIntrospectionBase {
 
       for (ExecutableElement m : ElementFilter.methodsIn(members)) {
         if (!m.getParameters().isEmpty()
-            || m.getSimpleName().contentEquals(AccessorAttributesCollector.HASH_CODE_METHOD)) {
+            || m.getSimpleName().contentEquals(AccessorAttributesCollector.HASH_CODE_METHOD)
+            || m.getSimpleName().contentEquals(AccessorAttributesCollector.TO_STRING_METHOD)) {
 
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
             signatures.add(toSignature(m));

@@ -229,7 +229,7 @@ final class AccessorAttributesCollector {
           report(originalType)
               .warning("Type inherits non-default 'toString' method but have some non-inherited attributes."
                   + " Please override 'toString' with abstract method to have generate it. Otherwise override"
-                  + " with calling super implemtation to use custom implementation");
+                  + " with calling super implementation to use custom implementation");
         }
       }
       return;
