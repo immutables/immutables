@@ -91,7 +91,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean hasEnumFirstTypeParameter;
 
   @Nullable
-  private TypeElement containedTypeElement;
+  TypeElement containedTypeElement;
   @Nullable
   private TypeElement containedSecondaryTypeElement;
 

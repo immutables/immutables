@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.ArrayList;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -30,6 +29,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -88,21 +88,26 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().gsonTypeAdapters().get();
   }
 
-  public CharSequence sourceHeader() {
-    String noImportsPragma = ImportRewriteDisabler.shouldDisableFor(this)
-        ? Output.NO_IMPORTS
-        : "";
+  private @Nullable CharSequence sourceHeader;
 
-    if (constitution.style().headerComments()) {
-      Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
-      if (declaringType.isPresent()) {
-        CharSequence headerComments = declaringType.get().associatedTopLevel().headerComments();
-        return !noImportsPragma.isEmpty()
-            ? new StringBuilder(noImportsPragma).append('\n').append(headerComments)
-            : headerComments;
+  public CharSequence sourceHeader() {
+    if (this.sourceHeader == null) {
+      String noImportsPragma = ImportRewriteDisabler.shouldDisableFor(this)
+          ? Output.NO_IMPORTS
+          : "";
+
+      if (constitution.style().headerComments()) {
+        Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+        if (declaringType.isPresent()) {
+          CharSequence headerComments = declaringType.get().associatedTopLevel().headerComments();
+          return !noImportsPragma.isEmpty()
+              ? new StringBuilder(noImportsPragma).append('\n').append(headerComments)
+              : headerComments;
+        }
       }
+      this.sourceHeader = noImportsPragma;
     }
-    return noImportsPragma;
+    return sourceHeader;
   }
 
   @Nullable
