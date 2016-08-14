@@ -23,4 +23,6 @@ public final class FuncMirrors {
   @Mirror.Annotation("org.immutables.func.Functional")
   public @interface Functional {}
 
+  @Mirror.Annotation("org.immutables.func.Functional.BindParameters")
+  public @interface BindParams {}
 }

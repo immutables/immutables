@@ -25,4 +25,39 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.CLASS)
-public @interface Functional {}
+public @interface Functional {
+  /**
+   * Place on non-accessor methods of abstract value type to
+   * generate function to which parameters can be bound.
+   * 
+   * <pre>
+   * &#064;Value.Immutable
+   * &#064;Functional
+   * public abstract class Entity {
+   *   &#064;Value.Parameter
+   *   public abstract String getX();
+   * 
+   *   &#064;Functional.BindParams
+   *   public String computeZ(final String y) {
+   *     return getX() + y;
+   *   }
+   * }
+   * ...
+   * public static Function<Entity, String> computeZ(final String y) {
+   *   return new Function<Entity, String>() {
+   *     &#064;Override
+   *     public String apply(final Entity input) {
+   *       return input.computeZ(y);
+   *     }
+   *     &#064;Override
+   *     public String toString() {
+   *       return "EntityFunctions.computeZ(y)";
+   *     }
+   *   }
+   * }
+   * </pre>
+   */
+  @Target({ElementType.METHOD})
+  @Retention(RetentionPolicy.CLASS)
+  public @interface BindParameters {}
+}

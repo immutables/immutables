@@ -15,7 +15,11 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.ValueType;
 import org.immutables.generator.Generator;
 
 @Generator.Template
-abstract class Funcs extends ValuesTemplate {}
+abstract class Funcs extends ValuesTemplate {
+  @Generator.Typedef
+  ValueType.FuncData Func;
+}

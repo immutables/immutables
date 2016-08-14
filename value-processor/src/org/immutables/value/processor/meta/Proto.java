@@ -325,11 +325,6 @@ public class Proto {
     }
 
     @Value.Lazy
-    public boolean hasFunctionalModule() {
-      return findElement(FunctionalMirror.qualifiedName()) != null;
-    }
-
-    @Value.Lazy
     public boolean hasBuilderModule() {
       return findElement(FactoryMirror.qualifiedName()) != null;
     }

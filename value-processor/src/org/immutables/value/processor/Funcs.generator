@@ -15,17 +15,17 @@
 --]
 [template public generate]
   [for type in values.values if type.kind.isValue,
-       attrs = type.functionalAttributes]
-    [if attrs]
+       func = type.functionalData]
+    [if func.is]
 [output.java type.package (type.name 'Functions')]
 [type.sourceHeader]
-[generateFunctions type attrs]
+[generateFunctions type func]
 [/output.java]
     [/if]
   [/for]
 [/template]
 
-[template generateFunctions Type type Attribute... attrs]
+[template generateFunctions Type type Func func]
 [if type.package]
 package [type.package];
 [/if]
@@ -46,21 +46,36 @@ package [type.package];
 [/if]
 [type.typePreferablyAbstract.access]final class [type.name]Functions {
   private [type.name]Functions() {}
-  [generateHelpers type attrs]
+  [generateAttributes type func]
+  [generateBoundElements type func]
 }
 [/template]
 
-[template generateHelpers Type type Attribute... attrs]
-[for h in attrs]
+[template generateAttributes Type type Func func]
+[for h in func.functionalAttributes]
 [if h.boolean]
 
 /**
  * Predicate on instance of [type.name] that tests attribute [sourceDocRef type h].
  * @return {@code [h.name]} predicate instance
  */
-public static [guava].base.Predicate<[type.typePreferablyAbstract]> [h.names.get]() {
+[h.access]static[type.generics.def] [guava].base.Predicate<[type.typePreferablyAbstract]> [h.names.get]() {
+  [if type.generics]
+  return new [guava].base.Predicate<[type.typePreferablyAbstract]>() {
+    @Override
+    public boolean apply([type.typePreferablyAbstract] input) {
+      return input.[h.names.get]();
+    }
+    @Override
+    public java.lang.String toString() {
+      return "[type.name]Functions.[h.names.get]()";
+    }
+  };
+  [else]
   return [toUpper h.name]Predicate.INSTANCE;
+  [/if]
 }
+  [if not type.generics]
 
 private enum [toUpper h.name]Predicate implements [guava].base.Predicate<[type.typePreferablyAbstract]> {
   INSTANCE;
@@ -73,15 +88,30 @@ private enum [toUpper h.name]Predicate implements [guava].base.Predicate<[type.t
     return "[type.name]Functions.[h.names.get]()";
   }
 }
+  [/if]
 [else]
 
 /**
  * Projection function from instance of [type.name] to attribute [sourceDocRef type h].
  * @return {@code [h.name]} function instance
  */
-public static [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]> [h.names.get]() {
+[h.access]static[type.generics.def] [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]> [h.names.get]() {
+  [if type.generics]
+  return new [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]>() {
+    @Override
+    public [h.atNullability][h.wrapperType] apply([type.typePreferablyAbstract] input) {
+      return input.[h.names.get]();
+    }
+    @Override
+    public java.lang.String toString() {
+      return "[type.name]Functions.[h.names.get]()";
+    }
+  };
+  [else]
   return [toUpper h.name]Function.INSTANCE;
+  [/if]
 }
+  [if not type.generics]
 
 private enum [toUpper h.name]Function implements [guava].base.Function<[type.typePreferablyAbstract], [h.wrapperType]> {
   INSTANCE;
@@ -93,6 +123,49 @@ private enum [toUpper h.name]Function implements [guava].base.Function<[type.typ
   public java.lang.String toString() {
     return "[type.name]Functions.[h.names.get]()";
   }
+}
+  [/if]
+[/if]
+[/for]
+[/template]
+
+[template generateBoundElements Type type Func func]
+[for h in func.boundElements]
+[if h.type.toString eq 'boolean']
+
+/**
+ * Predicate from instance of [type.name] to a bound call to {@code [h.name][h.arguments]}.
+ * @return {@code [h.name]} predicate instance
+ */
+[h.access]static[type.generics.def] [guava].base.Predicate<[type.typePreferablyAbstract]> [h.name][h.parameters] {
+  return new [guava].base.Predicate<[type.typePreferablyAbstract]>() {
+    @Override
+    public boolean apply([type.typePreferablyAbstract] input) {
+      return input.[h.name][h.arguments];
+    }
+    @Override
+    public java.lang.String toString() {
+      return "[type.name]Functions.[h.name][h.arguments]";
+    }
+  };
+}
+[else]
+
+/**
+ * Function from instance of [type.name] to a bound call to {@code [h.name]}.
+ * @return {@code [h.name]} function instance
+ */
+[h.access]static[type.generics.def] [guava].base.Function<[type.typePreferablyAbstract], [h.type]> [h.name][h.parameters] {
+  return new [guava].base.Function<[type.typePreferablyAbstract], [h.type]>() {
+    @Override
+    public [h.type] apply([type.typePreferablyAbstract] input) {
+      return input.[h.name][h.arguments];
+    }
+    @Override
+    public java.lang.String toString() {
+      return "[type.name]Functions.[h.name][h.arguments]";
+    }
+  };
 }
 [/if]
 [/for]

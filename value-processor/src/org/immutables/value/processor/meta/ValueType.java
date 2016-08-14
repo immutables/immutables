@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.ArrayList;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -1251,32 +1252,76 @@ public final class ValueType extends TypeIntrospectionBase {
     return Collections.emptySet();
   }
 
-  public List<ValueAttribute> getFunctionalAttributes() {
-    if (!constitution.protoclass().environment().hasFunctionalModule()) {
-      return ImmutableList.of();
-    }
+  public FuncData getFunctionalData() {
+    return new FuncData();
+  }
 
-    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+  public class FuncData {
+    public final List<ValueAttribute> functionalAttributes = new ArrayList<>();
+    public final List<BoundElement> boundElements = new ArrayList<>();
 
-    if (declaringType.isPresent()) {
-      if (FunctionalMirror.isPresent(declaringType.get().element())) {
-        return getAllAccessibleAttributes();
+    FuncData() {
+      List<ValueAttribute> allAccessibleAttributes = getAllAccessibleAttributes();
+
+      if (constitution.protoclass().declaringType().isPresent()) {
+        if (FunctionalMirror.isPresent(constitution.protoclass().declaringType().get().element())) {
+          functionalAttributes.addAll(allAccessibleAttributes);
+        }
+      }
+      if (functionalAttributes.isEmpty() && FunctionalMirror.isPresent(element)) {
+        functionalAttributes.addAll(allAccessibleAttributes);
+      }
+
+      if (functionalAttributes.isEmpty()) {
+        for (ValueAttribute a : getAllAccessibleAttributes()) {
+          if (FunctionalMirror.isPresent(a.element)) {
+            functionalAttributes.add(a);
+          }
+        }
+      }
+
+      if (element.getKind().isClass() || element.getKind().isInterface()) {
+        List<ExecutableElement> methods =
+            ElementFilter.methodsIn(
+                constitution.protoclass()
+                    .environment()
+                    .processing()
+                    .getElementUtils()
+                    .getAllMembers(CachingElements.getDelegate((TypeElement) element)));
+
+        for (ExecutableElement m : methods) {
+          if (BindParamsMirror.isPresent(m)
+              && !m.getModifiers().contains(Modifier.STATIC)
+              && !m.getModifiers().contains(Modifier.PRIVATE)
+              && !m.getParameters().isEmpty()) {
+            this.boundElements.add(new FuncData.BoundElement(m));
+          }
+        }
       }
     }
 
-    if (FunctionalMirror.isPresent(element)) {
-      return getAllAccessibleAttributes();
+    public boolean is() {
+      return !functionalAttributes.isEmpty() || !boundElements.isEmpty();
     }
 
-    List<ValueAttribute> params = Lists.newArrayList();
+    public class BoundElement {
+      public final CharSequence access;
+      public final CharSequence name;
+      public final CharSequence type;
+      public final CharSequence parameters;
+      public final CharSequence arguments;
 
-    for (ValueAttribute a : getAllAccessibleAttributes()) {
-      if (FunctionalMirror.isPresent(a.element)) {
-        params.add(a);
+      BoundElement(ExecutableElement method) {
+        DeclaringType declaringType = inferDeclaringType(method);
+        this.access = appendAccessModifier(method, new StringBuilder());
+        this.name = method.getSimpleName();
+        this.type = method.getReturnType().getKind().isPrimitive()
+            ? wrapType(method.getReturnType().toString())
+            : appendReturnType(method, new StringBuilder(), declaringType);
+        this.parameters = appendParameters(method, new StringBuilder(), declaringType, true, true);
+        this.arguments = appendParameters(method, new StringBuilder(), declaringType, false, false);
       }
     }
-
-    return params;
   }
 
   public List<ValueAttribute> getBuilderParameters() {
@@ -1296,18 +1341,35 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   private String toSignature(ExecutableElement m) {
-    StringBuilder signature = new StringBuilder();
-
-    if (m.getModifiers().contains(Modifier.PUBLIC)) {
-      signature.append("public ");
-    } else if (m.getModifiers().contains(Modifier.PROTECTED)) {
-      signature.append("protected ");
-    }
-
     DeclaringType declaringType = inferDeclaringType(m);
-
-    signature.append(printType(m, m.getReturnType(), declaringType));
+    StringBuilder signature = new StringBuilder();
+    appendAccessModifier(m, signature);
+    appendReturnType(m, signature, declaringType);
     signature.append(" ").append(m.getSimpleName());
+    appendParameters(m, signature, declaringType, true, false);
+    return signature.toString();
+  }
+
+  private CharSequence appendAccessModifier(ExecutableElement m, StringBuilder signature) {
+    if (m.getModifiers().contains(Modifier.PUBLIC)) {
+      return signature.append("public ");
+    }
+    if (m.getModifiers().contains(Modifier.PROTECTED)) {
+      return signature.append("protected ");
+    }
+    return signature;
+  }
+
+  private CharSequence appendReturnType(ExecutableElement m, StringBuilder signature, DeclaringType declaringType) {
+    return signature.append(printType(m, m.getReturnType(), declaringType));
+  }
+
+  private CharSequence appendParameters(
+      ExecutableElement m,
+      StringBuilder signature,
+      DeclaringType declaringType,
+      boolean withTypes,
+      boolean allFinal) {
     signature.append("(");
 
     boolean notFirst = false;
@@ -1315,13 +1377,18 @@ public final class ValueType extends TypeIntrospectionBase {
       if (notFirst) {
         signature.append(", ");
       }
-      signature.append(printType(p, p.asType(), declaringType));
-      signature.append(" ").append(p.getSimpleName());
+      if (allFinal) {
+        signature.append("final ");
+      }
+      if (withTypes) {
+        signature.append(printType(p, p.asType(), declaringType));
+        signature.append(" ");
+      }
+      signature.append(p.getSimpleName());
       notFirst = true;
     }
 
-    signature.append(")");
-    return signature.toString();
+    return signature.append(")");
   }
 
   private String printType(Element element, TypeMirror type, DeclaringType declaringType) {
