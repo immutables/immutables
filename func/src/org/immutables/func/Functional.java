@@ -33,28 +33,32 @@ public @interface Functional {
    * <pre>
    * &#064;Value.Immutable
    * &#064;Functional
-   * public abstract class Entity {
+   * public abstract class Xyz {
    *   &#064;Value.Parameter
    *   public abstract String getX();
    * 
-   *   &#064;Functional.BindParams
-   *   public String computeZ(final String y) {
+   *   &#064;Functional.BindParameters
+   *   public String computeZ(String y) {
    *     return getX() + y;
    *   }
    * }
    * ...
-   * public static Function<Entity, String> computeZ(final String y) {
-   *   return new Function<Entity, String>() {
+   * // Generated function
+   * public static Function<Xyz, String> computeZ(String y) {
+   *   return new Function<Xyz, String>() {
    *     &#064;Override
-   *     public String apply(final Entity input) {
+   *     public String apply(Xyz input) {
    *       return input.computeZ(y);
    *     }
    *     &#064;Override
    *     public String toString() {
-   *       return "EntityFunctions.computeZ(y)";
+   *       return "XyzFunctions.computeZ(y)";
    *     }
    *   }
    * }
+   * ...
+   * // Use as
+   * Function<Xyz, String> fn = XyzFunctions.computeZ("Y");
    * </pre>
    */
   @Target({ElementType.METHOD})
