@@ -68,7 +68,7 @@ public abstract class Reporter {
 
   private void reportMessage(Diagnostic.Kind messageKind, String message, Object... parameters) {
     if (messageKind == Kind.WARNING || messageKind == Kind.MANDATORY_WARNING) {
-      SuppressedWarnings suppressed = SuppressedWarnings.forElement(getElement());
+      SuppressedWarnings suppressed = SuppressedWarnings.forElement(getElement(), false, false);
       if (suppressed.immutables) {
         return;
       }

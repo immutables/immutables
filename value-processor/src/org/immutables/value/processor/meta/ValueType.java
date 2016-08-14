@@ -1121,7 +1121,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean hasDeprecatedAttributes() {
-    for (ValueAttribute a : getImplementedAttributes()) {
+    for (ValueAttribute a : getAllAccessibleAttributes()) {
       if (a.deprecated) {
         return true;
       }
@@ -1212,9 +1212,25 @@ public final class ValueType extends TypeIntrospectionBase {
     return routines;
   }
 
+  private SuppressedWarnings suppressedWarnings;
+
+  public Set<String> generatedSuppressWarnings() {
+    return getSuppressedWarnings().generatedSuppressions;
+  }
+
+  private SuppressedWarnings getSuppressedWarnings() {
+    if (suppressedWarnings == null) {
+      suppressedWarnings =
+          SuppressedWarnings.forElement(
+              element,
+              constitution.style().generateSuppressAllWarnings(),
+              hasDeprecatedAttributes());
+    }
+    return suppressedWarnings;
+  }
+
   public boolean isGenerateSuppressAllWarnings() {
-    return constitution.style().generateSuppressAllWarnings()
-        || SuppressedWarnings.forElement(element).generated;
+    return getSuppressedWarnings().generated;
   }
 
   public boolean isUseCompactBuilder() {

@@ -33,10 +33,8 @@ package [type.package];
 /**
  * Projection functions and predicates that corresponds to attributes of {@link [type.typeAbstract.relative]}.
  */
-[if type.generateSuppressAllWarnings]
-@SuppressWarnings([if type.hasDeprecatedAttributes]{"all", "deprecation"}[else]"all"[/if])
-[else if type.hasDeprecatedAttributes]
-@SuppressWarnings("deprecation")
+[if type.generatedSuppressWarnings]
+@SuppressWarnings({[for k in type.generatedSuppressWarnings][if not for.first], [/if][literal k][/for]})
 [/if]
 [if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault

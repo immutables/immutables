@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -24,30 +26,40 @@ final class SuppressedWarnings {
   private static final String IMMUTABLES = "immutables";
   private static final String GENERATED = "generated";
   private static final String RAWTYPES = "rawtypes";
+  private static final String DEPRECATION = "deprecation";
 
   final boolean all;
   final boolean immutables;
   final boolean generated;
   final boolean rawtypes;
+  final Set<String> generatedSuppressions;
 
   private SuppressedWarnings(
       boolean all,
       boolean immutables,
       boolean generated,
-      boolean rawtypes) {
+      boolean rawtypes,
+      Set<String> generatedSuppressions) {
     this.all = all;
     this.immutables = immutables;
     this.generated = generated;
     this.rawtypes = rawtypes;
+    this.generatedSuppressions = generatedSuppressions;
   }
 
-  static SuppressedWarnings forElement(Element element) {
+  static SuppressedWarnings forElement(
+      Element element,
+      boolean generateSuppressAllWarning,
+      boolean hasDeprecatedMembers) {
     boolean all = false;
     boolean immutables = false;
-    boolean generated = false;
+    boolean generated = generateSuppressAllWarning;
     boolean rawtypes = false;
+    boolean deprecated = hasDeprecatedMembers;
 
-    outer: for (Element e = element; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
+    Set<String> generatedSuppressions = new LinkedHashSet<>();
+
+    for (Element e = element; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
       @Nullable SuppressWarnings suppressWarnings = e.getAnnotation(SuppressWarnings.class);
       if (suppressWarnings != null) {
         for (String w : suppressWarnings.value()) {
@@ -57,7 +69,7 @@ final class SuppressedWarnings {
             immutables = true;
             generated = true;
             rawtypes = true;
-            break outer;
+            break;
           case IMMUTABLES:
             immutables = true;
             break;
@@ -66,13 +78,30 @@ final class SuppressedWarnings {
             break;
           case RAWTYPES:
             rawtypes = true;
+            generatedSuppressions.add(w);
+            break;
+          case DEPRECATION:
+            deprecated = true;
             break;
           default:
+            generatedSuppressions.add(w);
             break;
           }
         }
       }
     }
-    return new SuppressedWarnings(all, immutables, generated, rawtypes);
+
+    if (generated) {
+      generatedSuppressions.add(ALL);
+    }
+    if (deprecated) {
+      generatedSuppressions.add(DEPRECATION);
+    }
+    return new SuppressedWarnings(
+        all,
+        immutables,
+        generated,
+        rawtypes,
+        generatedSuppressions);
   }
 }
