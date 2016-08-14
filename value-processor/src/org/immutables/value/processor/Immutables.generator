@@ -593,7 +593,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
     @Override
     public boolean equals([atNullable]Object another) {
-      return instance.equalTo(((InternProxy) another).instance);
+      return another != null && instance.equalTo(((InternProxy) another).instance);
     }
 
     @Override
