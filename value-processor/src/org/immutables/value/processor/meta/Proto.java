@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.AnnotationValue;
 import org.immutables.value.processor.encode.EncodingInfo;
 import java.util.Collection;
 import com.google.common.base.Function;
@@ -823,6 +824,25 @@ public class Proto {
       }
 
       return Optional.absent();
+    }
+
+    @Override
+    @Value.Lazy
+    public boolean isJacksonDeserializedAnnotated() {
+      for (AnnotationMirror a : element().getAnnotationMirrors()) {
+        TypeElement e = (TypeElement) a.getAnnotationType().asElement();
+        if (e.getQualifiedName().toString().equals(JACKSON_DESERIALIZE)) {
+          for (ExecutableElement attr : a.getElementValues().keySet()) {
+            if (attr.getSimpleName().contentEquals("builder")) {
+              // If builder attribute is specified, we don't consider this as
+              // our, immutables, business to generate anything.
+              return false;
+            }
+          }
+          return true;
+        }
+      }
+      return false;
     }
 
     @Value.Lazy
