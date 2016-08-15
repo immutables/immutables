@@ -583,9 +583,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [if not type.useSingletonOnly]
 
   private static class InternProxy {
-    final [type.typeImmutable.simple] instance;
+    final [type.typeImmutable.relativeRaw] instance;
 
-    InternProxy([type.typeImmutable.simple] instance) {
+    InternProxy([type.typeImmutable.relativeRaw] instance) {
       this.instance = instance;
     }
 
@@ -607,7 +607,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * Copy constructor used for interning of objects implementing
    * {@link org.immutables.ordinal.OrdinalValue}
    */
-  private [type.typeImmutable.simple]([type.typeImmutable.simple] instance, int ordinal) {
+  private [type.typeImmutable.simple]([type.typeImmutable.relative] instance, int ordinal) {
   [for v in type.implementedAttributes]
     this.[v.name] = instance.[v.name];
   [/for]
@@ -630,7 +630,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     public Domain() {}
 
     protected [type.typeAbstract] extractValue(InternProxy proxy, int ordinal) {
-      return new [type.typeImmutable.simple][type.generics.diamond](proxy.instance, ordinal);
+      return new [type.typeImmutable.relative][type.generics.diamond](proxy.instance, ordinal);
     }
 
     @Override
@@ -2202,7 +2202,8 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.simple][/if][type.generics.unknown][/let]
+[let equalToTypeRaw][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relativeRaw][type.generics.unknown][/if][/let]
+[let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relative][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if type.useReferenceEquality or (not type.equalToDefined)]
 
@@ -2218,13 +2219,14 @@ public int ordinal() {
 [/if]
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
+[if type.generics]@SuppressWarnings("unchecked")[/if]
 @Override
 public boolean equals([atNullable]Object another) {
   [if type.useReferenceEquality]
   return this == another;
   [else]
   if (this == another) return true;
-  return another instanceof [equalToType]
+  return another instanceof [equalToTypeRaw]
       && equalTo(([equalToType]) another);
   [/if]
 }
@@ -2417,7 +2419,7 @@ this.[disambiguateField type 'initShim'] = null;
 [/template]
 
 [template generateReturnCopy Type type Attribute modified String expression]
-return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([output.linesShortable]
+return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([output.linesShortable]
     [if type.synthCopyConstructor]this,
     [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
     [/if][if a.name eq modified.name][expression][else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
@@ -2428,7 +2430,7 @@ return [validated type false]new [type.typeImmutable.simple][type.generics.diamo
 [/template]
 
 [template generateReturnBuilderConstructed Type type]
-return [validated type true]new [type.typeImmutable.relative]([output.linesShortable]
+return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.diamond]([output.linesShortable]
     [if type.synthCopyConstructor]null,
     [/if][for v in type.implementedAttributes if not v.generateDerived][if not for.first],
     [/if][valueFromBuilder v ''][/for][/output.linesShortable])[/validated];
@@ -2451,7 +2453,7 @@ return [validated type true]new [type.typeImmutable.relative]([output.linesShort
  */
 [varargsSafety v]
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.elementType]... elements) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.elementType]... elements) {
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [generateReturnCopyContextual type v]
 }
@@ -2464,7 +2466,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.a
  */
 [varargsSafety v]
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.unwrappedElementType]... elements) {
   [if v.nullable]
   if (elements == null) {
     [generateReturnCopy type v 'null']
@@ -2489,7 +2491,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.a
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
   if (this.[v.name] == elements) return this;
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [if v.nullable]elements == null ? null : [/if][immutableCollectionCopyOf v 'elements'];
   [generateReturnCopyContextual type v]
@@ -2502,7 +2504,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.a
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([unwrappedOptionalType v] value) {
+public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType v] value) {
 [if v.jdkOptional]
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
@@ -2541,7 +2543,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([unw
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
+public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
   [if v.hasSimpleScalarElementType]
@@ -2570,7 +2572,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.r
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
   if (this.[v.name] == [v.name]) return this;
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v v.name];
   [generateReturnCopyContextual type v]
@@ -2593,7 +2595,7 @@ public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.a
  * @return A modified copy of the {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.simple][type.generics.args] [v.names.with]([v.atNullability][v.type] [v.name]) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] [v.name]) {
     [if v.float]
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits([v.name])) return this;
     [else if v.double]
