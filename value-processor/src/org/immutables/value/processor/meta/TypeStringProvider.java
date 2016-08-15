@@ -15,13 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+import com.google.common.base.Ascii;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -34,16 +34,10 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.WildcardType;
-
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-
-import com.google.common.base.Ascii;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Encapsulates routines and various hacks for get relevant strings for the raw types and type
@@ -75,12 +69,13 @@ class TypeStringProvider {
   @Nullable
   String secondaryElementTypeAnnotation;
   boolean processNestedTypeUseAnnotations;
+  boolean forAttribute = false;
 
   TypeStringProvider(
       Reporter reporter,
       Element element,
       TypeMirror startType,
-      Collection<DeclaringType> declaringType,
+      ImportsTypeStringResolver importsResolver,
       String[] allowedTypevars,
       @Nullable String[] typevarArguments) {
 
@@ -89,21 +84,12 @@ class TypeStringProvider {
     this.element = element;
     this.allowedTypevars = allowedTypevars;
     this.typevarArguments = typevarArguments;
-    importsResolver = new ImportsTypeStringResolver(declaringType);
+    this.importsResolver = importsResolver;
     checkArgument(typevarArguments == null || allowedTypevars.length == typevarArguments.length,
-                  "Element %s, mismatching type variables, allowed: %s, given: %s",
-                  element.getSimpleName(),
-                  Arrays.asList(allowedTypevars),
-                  typevarArguments == null ? null : Arrays.asList(typevarArguments));
-  }
-
-  TypeStringProvider(
-      Reporter reporter,
-      Element element,
-      TypeMirror startType,
-      Collection<DeclaringType> declaringType,
-      String[] allowedTypevars) {
-    this(reporter, element, startType, declaringType, allowedTypevars, null);
+        "Element %s, mismatching type variables, allowed: %s, given: %s",
+        element.getSimpleName(),
+        Arrays.asList(allowedTypevars),
+        typevarArguments == null ? null : Arrays.asList(typevarArguments));
   }
 
   String rawTypeName() {
@@ -161,9 +147,16 @@ class TypeStringProvider {
     String typeName = typeElement.getQualifiedName().toString();
 
     if (unresolvedTypeHasOccured) {
-      typeName = importsResolver.apply(typeName);
+      if (type == startType && forAttribute) {
+        // special routine for top level type, opportunistically
+        // resolving not yet generated type assumit it
+        typeName = importsResolver.resolveTopForAttribute(typeName);
+      } else {
+        typeName = importsResolver.apply(typeName);
+      }
       hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
     }
+
     buffer.append(typeName);
     if (startType == type) {
       rawTypeName = typeName;
@@ -321,7 +314,7 @@ class TypeStringProvider {
       buffer.append('>');
     }
   }
-  
+
   private void typeAnnotationHandle(TypeMirror argument, boolean notFirst) {
     if (!processNestedTypeUseAnnotations) {
       return;

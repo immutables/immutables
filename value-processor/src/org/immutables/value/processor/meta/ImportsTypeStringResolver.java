@@ -15,65 +15,89 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.Collections;
-import com.google.common.base.Optional;
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-import java.util.Collection;
-import java.util.List;
 import javax.annotation.Nullable;
 import org.immutables.generator.SourceExtraction;
-import org.immutables.generator.SourceExtraction.Imports;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 
 class ImportsTypeStringResolver implements Function<String, String> {
-  private final Collection<DeclaringType> declaringTypes;
-  private List<SourceExtraction.Imports> sourceClassesImports;
-
   boolean unresolved;
+  private final @Nullable DeclaringType usingType;
+  private final @Nullable DeclaringType originType;
 
-  ImportsTypeStringResolver(Collection<DeclaringType> declaringTypes) {
-    this.declaringTypes = declaringTypes;
+  ImportsTypeStringResolver(@Nullable DeclaringType usingType, @Nullable DeclaringType originType) {
+    this.usingType = usingType == null ? null : usingType.associatedTopLevel();
+    this.originType = originType == null ? null : originType.associatedTopLevel();
   }
 
   @Override
   public String apply(String input) {
     boolean assumedUnqualified = Ascii.isUpperCase(input.charAt(0));
     if (assumedUnqualified) {
-      input = qualifyImportedIfPossible(input);
+      input = qualifyImportedIfPossible(input, false);
+    }
+    return input;
+  }
+
+  public String resolveTopForAttribute(String input) {
+    boolean assumedUnqualified = Ascii.isUpperCase(input.charAt(0));
+    if (assumedUnqualified) {
+      input = qualifyImportedIfPossible(input, true);
     }
     return input;
   }
 
   @Nullable
-  private String getFromSourceImports(String resolvable) {
-    if (sourceClassesImports == null) {
-      sourceClassesImports = Lists.newArrayList();
-      for (DeclaringType t : declaringTypes) {
-        Imports imports = t.associatedTopLevel().sourceImports();
-        if (!sourceClassesImports.contains(imports)) {
-          sourceClassesImports.add(imports);
-        }
-      }
-    }
-    for (SourceExtraction.Imports imports : sourceClassesImports) {
+  private String getFromSourceImports(String resolvable, boolean notTypeArgument) {
+    SourceExtraction.Imports[] importsSet = usingType == null && originType == null
+        ? new SourceExtraction.Imports[] {}
+        : usingType == null
+            ? new SourceExtraction.Imports[] {originType.sourceImports()}
+            : originType == null || usingType == originType
+                ? new SourceExtraction.Imports[] {usingType.sourceImports()}
+                : new SourceExtraction.Imports[] {originType.sourceImports(), usingType.sourceImports()};
+
+    for (SourceExtraction.Imports imports : importsSet) {
       @Nullable String resolved = imports.classes.get(resolvable);
       if (resolved != null) {
         return resolved;
       }
     }
+
+    // where types are present and are different
+    if (notTypeArgument && originType != null) {
+      if (resolvable.equals("ImmutableDelta")) {
+        System.out.println("Origin " + originType + "\nUsing " + usingType);
+      }
+      if (!hasStarImports(importsSet)) {
+        // Strongly assuming it comes from originating type's package
+        return originType.packageOf().name() + "." + resolvable;
+      }
+    }
+
     return null;
   }
 
-  private String qualifyImportedIfPossible(String typeName) {
+  private boolean hasStarImports(SourceExtraction.Imports... importsSet) {
+    for (SourceExtraction.Imports imports : importsSet) {
+      for (String statement : imports.all) {
+        if (statement.endsWith(".*")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private String qualifyImportedIfPossible(String typeName, boolean notTypeArgument) {
     int nestedTypeDotIndex = typeName.indexOf('.');
 
     String resolvable = nestedTypeDotIndex > 0
         ? typeName.substring(0, nestedTypeDotIndex)
         : typeName;
 
-    @Nullable String resolvedImported = getFromSourceImports(resolvable);
+    @Nullable String resolvedImported = getFromSourceImports(resolvable, notTypeArgument);
     if (resolvedImported != null) {
       return nestedTypeDotIndex > 0
           ? resolvedImported + typeName.substring(nestedTypeDotIndex)
@@ -82,17 +106,5 @@ class ImportsTypeStringResolver implements Function<String, String> {
 
     unresolved = true;
     return typeName;
-  }
-
-  public static Function<String, String> from(Optional<DeclaringType> optional) {
-    return new ImportsTypeStringResolver(optional.asSet());
-  }
-
-  public static Function<String, String> from(Collection<DeclaringType> types) {
-    return new ImportsTypeStringResolver(types);
-  }
-
-  public static Function<String, String> from(DeclaringType type) {
-    return new ImportsTypeStringResolver(Collections.singleton(type));
   }
 }

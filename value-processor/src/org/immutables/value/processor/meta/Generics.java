@@ -114,8 +114,9 @@ public final class Generics implements Iterable<String> {
             protoclass.report(),
             element,
             type,
-            Collections.singleton(declaringType),
-            vars);
+            new ImportsTypeStringResolver(declaringType, declaringType),
+            vars,
+            null);
       }
     }
     return new Creator().create();

@@ -15,9 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.AnnotationValue;
-import org.immutables.value.processor.encode.EncodingInfo;
-import java.util.Collection;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -29,6 +26,7 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +51,7 @@ import javax.tools.Diagnostic;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.encode.EncMetadataMirror;
+import org.immutables.value.processor.encode.EncodingInfo;
 import org.immutables.value.processor.encode.Inflater;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;

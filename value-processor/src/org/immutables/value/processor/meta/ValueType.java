@@ -401,8 +401,9 @@ public final class ValueType extends TypeIntrospectionBase {
         newTypeStringResolver());
   }
 
-  private Function<String, String> newTypeStringResolver() {
-    return ImportsTypeStringResolver.from(constitution.protoclass().declaringType());
+  private ImportsTypeStringResolver newTypeStringResolver() {
+    @Nullable DeclaringType type = constitution.protoclass().declaringType().orNull();
+    return new ImportsTypeStringResolver(type, type);
   }
 
   public Iterable<ValueType> allValues() {
@@ -1065,7 +1066,7 @@ public final class ValueType extends TypeIntrospectionBase {
             reporter,
             element,
             input,
-            constitution.protoclass().declaringType().asSet(),
+            newTypeStringResolver(),
             context.parameters.toArray(new String[0]),
             context.arguments.toArray(new String[0]));
         provider.process();
@@ -1419,11 +1420,9 @@ public final class ValueType extends TypeIntrospectionBase {
             report(),
             element,
             type,
-            ImmutableList.<DeclaringType>builder()
-                .add(declaringType)
-                .addAll(constitution.protoclass().declaringType().asSet())
-                .build(),
-            constitution.generics().vars());
+            new ImportsTypeStringResolver(constitution.protoclass().declaringType().orNull(), declaringType),
+            constitution.generics().vars(),
+            null);
     provider.process();
     return provider.returnTypeName();
   }

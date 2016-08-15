@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.encode.Instantiation;
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -44,6 +42,7 @@ import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
+import org.immutables.value.processor.encode.Instantiation;
 import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
@@ -291,7 +290,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         protoclass().styles().style().passAnnotationsNames(),
         false,
         ElementType.METHOD,
-        ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports));
+        importsResolver);
   }
 
   public CharSequence getConstructorParameterAnnotations() {
@@ -300,7 +299,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             protoclass().styles().style().passAnnotationsNames(),
             false,
             ElementType.PARAMETER,
-            ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports));
+            importsResolver);
 
     if (!annotations.isEmpty()) {
       return Joiner.on(' ').join(annotations).concat(" ");
@@ -315,8 +314,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private List<CharSequence> extractAnnotationsForElement(ElementType elementType, Set<String> additionalAnnotations) {
     List<CharSequence> allAnnotations = Lists.newArrayListWithCapacity(1);
-
-    Function<String, String> importsResolver = ImportsTypeStringResolver.from(declaredTypeWhichMightContainImports);
 
     boolean dontHaveJsonPropetyAnnotationAlready = Annotations.getAnnotationLines(element,
         Collections.singleton(JsonPropertyMirror.qualifiedName()),
@@ -837,7 +834,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private AttributeTypeKind typeKind;
   public boolean anyGetter;
   public boolean hasTypeVariables;
-  private ImmutableList<DeclaringType> declaredTypeWhichMightContainImports;
+  private ImportsTypeStringResolver importsResolver;
 
   public @Nullable Instantiation instantiation;
 
@@ -974,18 +971,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initTypeName() {
-    declaredTypeWhichMightContainImports = ImmutableList.<DeclaringType>builder()
-        .addAll(protoclass().declaringType().asSet())
-        .add(getDeclaringType())
-        .build();
+    this.importsResolver = new ImportsTypeStringResolver(protoclass().declaringType().orNull(), getDeclaringType());
 
     TypeStringProvider provider = new TypeStringProvider(
         reporter,
         element,
         returnType,
-        declaredTypeWhichMightContainImports,
-        protoclass().constitution().generics().vars());
+        importsResolver,
+        protoclass().constitution().generics().vars(),
+        null);
 
+    provider.forAttribute = true;
     provider.processNestedTypeUseAnnotations = true;
     provider.process();
 
