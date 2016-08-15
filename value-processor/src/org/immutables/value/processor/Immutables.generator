@@ -1555,19 +1555,19 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
   /**
   [if type.kind.isFactory]
    * Invokes {@code [type.factoryOf](..)} using the collected parameters and returns the result of the invocation
-   * @param <T> exception type
+   * @param <BOT> exception type
    * @param exceptionSupplier used to create new exception from supplied error message
    * @return A result of type {@code [type.typeValue]}
   [else]
    * Builds a new {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
-   * @param <T> exception type
+   * @param <BOT> exception type
    * @param exceptionSupplier used to create new exception from supplied error message
    * @return An immutable instance of [type.name]
   [/if]
-   * @throws T The supplied exception {@code T} if any required attributes are missing
+   * @throws BOT The supplied exception {@code BOT} if any required attributes are missing
    */
-  public <T extends Exception> [if type.constitution.isSimple][type.typeValue.simple][type.generics.args][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, T> exceptionSupplier)
-      throws T[for t in type.throwing], [t][/for] {
+  public <BOT extends Exception> [if type.constitution.isSimple][type.typeValue.simple][type.generics.args][else][type.typeValue][/if] [type.names.buildOrThrow]([functionClass]<String, BOT> exceptionSupplier)
+      throws BOT[for t in type.throwing], [t][/for] {
     [if positions.longs]
     checkRequiredAttributesOrThrow(exceptionSupplier);
     [/if]
