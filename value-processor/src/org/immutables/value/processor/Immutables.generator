@@ -2568,13 +2568,13 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
  * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
  * Nulls are not permitted as keys or values.
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
- * @param [v.name] The entries to be added to the [v.name] map
+ * @param entries The entries to be added to the [v.name] map
  * @return A modified copy of {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
-  if (this.[v.name] == [v.name]) return this;
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v v.name];
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
+  if (this.[v.name] == entries) return this;
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'entries'];
   [generateReturnCopyContextual type v]
 }
     [/for]
@@ -2591,31 +2591,31 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
  [else]
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  [/if]
- * @param [v.name] A new value for [v.name][if v.nullable] (can be {@code null})[/if]
+ * @param value A new value for [v.name][if v.nullable] (can be {@code null})[/if]
  * @return A modified copy of the {@code this} object
  */
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] [v.name]) {
+public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] value) {
     [if v.float]
-  if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits([v.name])) return this;
+  if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
-  if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits([v.name])) return this;
+  if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
     [else if v.stringType or v.primitiveWrapperType]
       [if v.nullable]
-  if ([objectsEqual type](this.[v.name], [v.name])) return this;
+  if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
-  if (this.[v.name].equals([v.name])) return this;
+  if (this.[v.name].equals(value)) return this;
       [/if]
     [else]
-  if (this.[v.name] == [v.name]) return this;
+  if (this.[v.name] == value) return this;
     [/if]
     [if v.attributeValueType and v.typeKind.isRegular]
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v v.name];
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
   [generateReturnCopyContextual type v]
     [else if v.nullable or v.primitive]
   [generateReturnCopy type v v.name]
     [else]
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v v.name];
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
   [generateReturnCopyContextual type v]
     [/if]
 }
