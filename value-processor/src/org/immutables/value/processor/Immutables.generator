@@ -2613,7 +2613,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
   [generateReturnCopyContextual type v]
     [else if v.nullable or v.primitive]
-  [generateReturnCopy type v v.name]
+  [generateReturnCopy type v 'value']
     [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
   [generateReturnCopyContextual type v]
