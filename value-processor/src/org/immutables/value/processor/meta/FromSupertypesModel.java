@@ -15,6 +15,10 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.annotation.Nullable;
+import javax.lang.model.util.ElementFilter;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Element;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.*;
@@ -62,7 +66,7 @@ public final class FromSupertypesModel {
       String name = a.name();
       ImmutableList<TypeElement> elements = accessorMapping.get(a.names.get);
       for (TypeElement t : elements) {
-        String type = isEligibleFromType(t)
+        String type = isEligibleFromType(t, a)
             ? t.getQualifiedName().toString()
             : abstractTypeName;
 
@@ -106,8 +110,25 @@ public final class FromSupertypesModel {
     this.positions = new LongBits().apply(repeating);
   }
 
-  private boolean isEligibleFromType(TypeElement typeElement) {
-    return typeElement.getTypeParameters().isEmpty();
+  private boolean isEligibleFromType(TypeElement typeElement, ValueAttribute attr) {
+    if (!typeElement.getTypeParameters().isEmpty()) {
+      return false;
+    }
+    @Nullable ExecutableElement accessor = findMethod(typeElement, attr.names.get);
+    if (accessor == null) {
+      // it (null) should never happen in theory
+      return false;
+    }
+    return accessor.getReturnType().equals(attr.returnType);
+  }
+
+  private @Nullable ExecutableElement findMethod(TypeElement typeElement, String getter) {
+    for (ExecutableElement m : ElementFilter.methodsIn(typeElement.getEnclosedElements())) {
+      if (m.getSimpleName().contentEquals(getter)) {
+        return m;
+      }
+    }
+    return null;
   }
 
   private static String toRawWildcard(String type) {

@@ -67,9 +67,6 @@ class ImportsTypeStringResolver implements Function<String, String> {
 
     // where types are present and are different
     if (notTypeArgument && originType != null) {
-      if (resolvable.equals("ImmutableDelta")) {
-        System.out.println("Origin " + originType + "\nUsing " + usingType);
-      }
       if (!hasStarImports(importsSet)) {
         // Strongly assuming it comes from originating type's package
         return originType.packageOf().name() + "." + resolvable;
