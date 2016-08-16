@@ -972,6 +972,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void initTypeName() {
     this.importsResolver = new ImportsTypeStringResolver(protoclass().declaringType().orNull(), getDeclaringType());
+    this.importsResolver.hierarchyTraversalForUnresolvedTypes(
+        protoclass().environment().round(),
+        this.containingType.extendedClasses(),
+        this.containingType.implementedInterfaces());
 
     TypeStringProvider provider = new TypeStringProvider(
         reporter,

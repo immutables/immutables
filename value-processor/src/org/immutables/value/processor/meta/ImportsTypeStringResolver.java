@@ -17,7 +17,10 @@ package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import javax.annotation.Nullable;
+import javax.lang.model.element.TypeElement;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 
@@ -25,10 +28,22 @@ class ImportsTypeStringResolver implements Function<String, String> {
   boolean unresolved;
   private final @Nullable DeclaringType usingType;
   private final @Nullable DeclaringType originType;
+  private @Nullable ImmutableList<TypeElement> extendedClasses;
+  private @Nullable ImmutableSet<TypeElement> implementedInterfaces;
+  private Round round;
 
   ImportsTypeStringResolver(@Nullable DeclaringType usingType, @Nullable DeclaringType originType) {
     this.usingType = usingType == null ? null : usingType.associatedTopLevel();
     this.originType = originType == null ? null : originType.associatedTopLevel();
+  }
+
+  public void hierarchyTraversalForUnresolvedTypes(
+      Round round,
+      ImmutableList<TypeElement> extendedClasses,
+      ImmutableSet<TypeElement> implementedInterfaces) {
+    this.round = round;
+    this.extendedClasses = extendedClasses;
+    this.implementedInterfaces = implementedInterfaces;
   }
 
   @Override
@@ -62,6 +77,25 @@ class ImportsTypeStringResolver implements Function<String, String> {
       @Nullable String resolved = imports.classes.get(resolvable);
       if (resolved != null) {
         return resolved;
+      }
+    }
+
+    if (extendedClasses != null)
+      for (TypeElement type : extendedClasses) {
+        DeclaringType top = round.declaringTypeFrom(type).associatedTopLevel();
+        @Nullable String resolved = top.sourceImports().classes.get(resolvable);
+        if (resolved != null) {
+          return resolved;
+        }
+      }
+
+    if (implementedInterfaces != null) {
+      for (TypeElement type : implementedInterfaces) {
+        DeclaringType top = round.declaringTypeFrom(type).associatedTopLevel();
+        @Nullable String resolved = top.sourceImports().classes.get(resolvable);
+        if (resolved != null) {
+          return resolved;
+        }
       }
     }
 
