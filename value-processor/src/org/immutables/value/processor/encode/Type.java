@@ -552,7 +552,7 @@ public interface Type {
 
     @Override
     public Type array(Array array) {
-      return new Array(array.accept(this), array.varargs);
+      return new Array(array.element.accept(this), array.varargs);
     }
 
     @Override
