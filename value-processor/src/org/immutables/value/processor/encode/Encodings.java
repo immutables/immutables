@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.encode;
 
+import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -326,11 +327,13 @@ public abstract class Encodings extends AbstractTemplate {
       }
 
       EnumSet<Tag> tags = EnumSet.of(Tag.FIELD);
+      AtomicReference<StandardNaming> standardNaming = new AtomicReference<>(StandardNaming.NONE);
 
       fields.add(new EncodedElement.Builder()
           .name(field.getSimpleName().toString())
           .type(typesReader.get(field.asType()))
-          .naming(inferNaming(field, tags))
+          .naming(inferNaming(field, tags, standardNaming))
+          .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(inferTags(field, tags))
           .addAllCode(expression)
@@ -648,6 +651,7 @@ public abstract class Encodings extends AbstractTemplate {
         Tag... additionalTags) {
       EncodedElement.Builder builder = new EncodedElement.Builder();
       TypeExtractor typesReader = processTypeParameters(method, builder);
+      AtomicReference<StandardNaming> standardNaming = new AtomicReference<>(StandardNaming.NONE);
 
       EnumSet<Tag> tags = EnumSet.noneOf(Tag.class);
       for (Tag t : additionalTags) {
@@ -657,7 +661,8 @@ public abstract class Encodings extends AbstractTemplate {
       collection.add(builder
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .naming(inferNaming(method, tags))
+          .naming(inferNaming(method, tags, standardNaming))
+          .standardNaming(standardNaming.get())
           .addAllTags(inferTags(method, tags))
           .addAllParams(getParameters(typesReader, method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
@@ -715,7 +720,7 @@ public abstract class Encodings extends AbstractTemplate {
       return Naming.from("*_" + encodedName);
     }
 
-    private Naming inferNaming(Element element, EnumSet<Tag> tags) {
+    private Naming inferNaming(Element element, EnumSet<Tag> tags, AtomicReference<StandardNaming> standardNaming) {
       Optional<NamingMirror> namingAnnotation = NamingMirror.find(element);
       if (namingAnnotation.isPresent()) {
         try {
@@ -724,6 +729,7 @@ public abstract class Encodings extends AbstractTemplate {
           if (mirror.depluralize()) {
             tags.add(Tag.DEPLURALIZE);
           }
+          standardNaming.set(mirror.standard());
           return naming;
         } catch (IllegalArgumentException ex) {
           reporter.withElement(element)
@@ -816,10 +822,13 @@ public abstract class Encodings extends AbstractTemplate {
 
       EnumSet<Tag> tags = EnumSet.of(Tag.FIELD, Tag.BUILDER);
 
+      AtomicReference<StandardNaming> standardNaming = new AtomicReference<>(StandardNaming.NONE);
+
       builderFields.add(new EncodedElement.Builder()
           .name(field.getSimpleName().toString())
           .type(typesReader.get(field.asType()))
-          .naming(inferNaming(field, tags))
+          .naming(inferNaming(field, tags, standardNaming))
+          .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(inferTags(field, tags))
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
@@ -870,10 +879,13 @@ public abstract class Encodings extends AbstractTemplate {
 
       EnumSet<Tag> tags = EnumSet.of(Tag.BUILDER, Tag.BUILD, Tag.PRIVATE);
 
+      AtomicReference<StandardNaming> standardNaming = new AtomicReference<>(StandardNaming.NONE);
+
       this.build = new EncodedElement.Builder()
           .name(method.getSimpleName().toString())
           .type(typesReader.get(method.getReturnType()))
-          .naming(inferNaming(method, tags))
+          .naming(inferNaming(method, tags, standardNaming))
+          .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(tags)
           .addAllCode(sourceMapper.getBlock(memberPath(method)))

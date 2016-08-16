@@ -1,5 +1,6 @@
 package org.immutables.value.processor.encode;
 
+import org.immutables.value.Value.Default;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -52,6 +53,11 @@ public abstract class EncodedElement {
   abstract Type.Parameters typeParameters();
 
   abstract List<TypeParam> typeParams();
+
+  @Default
+  StandardNaming standardNaming() {
+    return StandardNaming.NONE;
+  }
 
   @Derived
   Code.Binding asBinding() {

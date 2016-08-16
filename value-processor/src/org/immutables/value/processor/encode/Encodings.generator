@@ -22,6 +22,7 @@ package [enc.package];
       name = [literal.string el.name],
       tags = {[for t in el.tags][if not for.first], [/if][literal.string t][/for]},
       naming = [literal.string el.naming],
+      stdNaming = [literal.string el.standardNaming],
       type = [literal.string el.type],
       typeParams = {[for t in el.typeParams][if not for.first], [/if][literal.string t][/for]},
       params = {[for p in el.params][if not for.first], [/if][literal.string p][/for]},

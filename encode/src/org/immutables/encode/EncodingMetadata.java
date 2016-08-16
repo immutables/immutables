@@ -25,6 +25,8 @@ public @interface EncodingMetadata {
 
     String naming();
 
+    String stdNaming();
+
     String[] tags();
 
     String[] typeParams();

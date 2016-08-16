@@ -107,7 +107,34 @@ public final class Instantiation {
     if (element.isExpose()) {
       return names.get;
     }
-    if (element.naming().isIdentity()) {
+
+    if (element.standardNaming() != StandardNaming.NONE) {
+      switch (element.standardNaming()) {
+      case GET:
+        return names.get;
+      case INIT:
+        return names.init;
+      case ADD:
+        return names.add();
+      case ADD_ALL:
+        return names.addAll();
+      case PUT:
+        return names.put();
+      case PUT_ALL:
+        return names.putAll();
+      case WITH:
+        return names.with;
+      case IS_SET:
+        return names.isSet();
+      case SET:
+        return names.set();
+      case UNSET:
+        return names.unset();
+      default:
+      }
+    }
+
+    if (isDefaultUnspecifiedValue(element)) {
       if (element.isCopy()) {
         return names.with;
       }
@@ -115,11 +142,16 @@ public final class Instantiation {
         return names.init;
       }
     }
+
     String raw = element.depluralize() ? names.singular() : names.raw;
     if (element.isStaticField() && element.isFinal()) {
       raw = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, raw);
     }
     return element.naming().apply(raw);
+  }
+
+  private boolean isDefaultUnspecifiedValue(EncodedElement element) {
+    return element.naming().isIdentity() && !element.depluralize();
   }
 
   final Templates.Invokable fragmentOf = new Templates.Invokable() {

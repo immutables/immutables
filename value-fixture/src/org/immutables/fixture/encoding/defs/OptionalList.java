@@ -1,5 +1,6 @@
 package org.immutables.fixture.encoding.defs;
 
+import org.immutables.encode.Encoding.StandardNaming;
 import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,13 +42,13 @@ final class OptionalList<T> {
 
     private List<T> list = null;
 
-    @Encoding.Naming(value = "add*", depluralize = true)
+    @Encoding.Naming(standard = StandardNaming.ADD)
     @Encoding.Init
     void add(T element) {
       getOrCreate().add(element);
     }
 
-    @Encoding.Naming("addAll*")
+    @Encoding.Naming(standard = StandardNaming.ADD_ALL)
     @Encoding.Init
     void addAll(List<? extends T> elements) {
       getOrCreate().addAll(elements);

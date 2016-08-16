@@ -52,6 +52,7 @@ public final class Inflater implements Function<EncMetadata, EncodingInfo> {
     builder.typeParameters(typeParameters)
         .name(e.name())
         .naming(Naming.from(e.naming()))
+        .standardNaming(StandardNaming.valueOf(e.stdNaming()))
         .type(parser.parse(e.type()))
         .addAllCode(Code.termsFrom(e.code()));
 

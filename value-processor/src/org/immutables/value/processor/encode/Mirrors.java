@@ -14,6 +14,8 @@ interface Mirrors {
     String value();
 
     boolean depluralize() default false;
+
+    StandardNaming standard() default StandardNaming.NONE;
   }
 
   @Mirror.Annotation("org.immutables.encode.Encoding.Expose")
@@ -49,6 +51,8 @@ interface Mirrors {
     String type();
 
     String naming();
+
+    String stdNaming();
 
     String[] tags();
 
