@@ -313,9 +313,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isJacksonDeserialized() {
-    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
-    return declaringType.isPresent()
-        && declaringType.get().isJacksonDeserializedAnnotated();
+    return constitution.protoclass().isJacksonDeserialized();
   }
 
   public boolean isJacksonJsonTypeInfo() {

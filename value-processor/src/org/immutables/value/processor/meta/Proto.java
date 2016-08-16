@@ -505,7 +505,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonSerialized() {
-      if (isJacksonSerializedAnnotated(element())) {
+      if (isJacksonSerializedAnnotated()) {
         // while DeclaringPackage cannot have those annotations
         // directly, just checking them as a general computation path
         // will not hurt much.
@@ -517,6 +517,11 @@ public class Proto {
         }
       }
       return false;
+    }
+
+    @Value.Lazy
+    public boolean isJacksonSerializedAnnotated() {
+      return Proto.isJacksonSerializedAnnotated(element());
     }
 
     @Value.Lazy
@@ -825,12 +830,16 @@ public class Proto {
       return Optional.absent();
     }
 
-    @Override
     @Value.Lazy
-    public boolean isJacksonDeserializedAnnotated() {
+    @Override
+    public boolean isJacksonSerializedAnnotated() {
+      boolean wasJacksonSerialize = false;
       for (AnnotationMirror a : element().getAnnotationMirrors()) {
         TypeElement e = (TypeElement) a.getAnnotationType().asElement();
-        if (e.getQualifiedName().toString().equals(JACKSON_DESERIALIZE)) {
+        if (!wasJacksonSerialize && e.getQualifiedName().contentEquals(JACKSON_SERIALIZE)) {
+          wasJacksonSerialize = true;
+        }
+        if (e.getQualifiedName().contentEquals(JACKSON_DESERIALIZE)) {
           for (ExecutableElement attr : a.getElementValues().keySet()) {
             if (attr.getSimpleName().contentEquals("builder")) {
               // If builder attribute is specified, we don't consider this as
@@ -841,7 +850,7 @@ public class Proto {
           return true;
         }
       }
-      return false;
+      return wasJacksonSerialize;
     }
 
     @Value.Lazy
@@ -1241,6 +1250,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonDeserialized() {
+      System.out.println("!!!!BBBB");
       if (declaringType().isPresent()) {
         DeclaringType t = declaringType().get();
         if (t.isJacksonDeserialized()) {
