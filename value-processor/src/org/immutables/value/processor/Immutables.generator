@@ -3096,7 +3096,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
       : new java.util.TreeMap<K, V>();
 
   if (checkNulls || skipNulls) {
-    for (java.util.Map.Entry<K, V> e : map.entrySet()) {
+    for (java.util.Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
       K k = e.getKey();
       V v = e.getValue();
       if (skipNulls) {

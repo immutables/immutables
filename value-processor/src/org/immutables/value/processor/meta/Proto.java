@@ -1251,7 +1251,6 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonDeserialized() {
-      System.out.println("!!!!BBBB");
       if (declaringType().isPresent()) {
         DeclaringType t = declaringType().get();
         if (t.isJacksonDeserialized()) {
