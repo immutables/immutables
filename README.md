@@ -1,3 +1,8 @@
+Read full documentation at http://immutables.org
+
+[![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
+
+
 ```java
 // Define abstract value type using interface, abstract class or annotation
 @Value.Immutable
@@ -24,10 +29,6 @@ ValueObject v =
 v = v.withName("Doe");
 ```
 
-Read full documentation at http://immutables.org
-
-[![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
-
 License
 ---------
 
@@ -49,6 +50,11 @@ License
 
 Changelog
 ---------
+
+### 2.2.11 (2016-08-16)
+- Bugfixes! Thanks to issue reporters!
+- Early preview of "encodings" functionality to support custom collections and other custom types/containers!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.11)
 
 ### 2.2.10 (2016-07-03)
 - Hotfix release. Thanks to issue reporters!
