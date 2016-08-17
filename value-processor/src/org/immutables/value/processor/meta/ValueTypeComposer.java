@@ -84,7 +84,8 @@ public final class ValueTypeComposer {
     for (ValueAttribute a : type.attributes) {
       if (!ATTRIBUTE_NAME_CHARS.matchesAllOf(a.name())) {
         a.report()
-            .error("Name '%s' contains some unsupported or reserved characters, please use only A-Z, a-z, 0-9 and _ chars",
+            .warning("Name '%s' contains some unsupported characters (a-z,A-Z,0-9,_ are ok),"
+                + " name formatting might not work as expected",
                 a.name());
       }
     }

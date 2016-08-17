@@ -15,27 +15,31 @@
  */
 package org.immutables.generator;
 
-import org.immutables.extgenerator.GeneratedImportsModifier;
-import com.google.common.collect.ImmutableList;
-import java.util.ServiceLoader;
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
+import org.immutables.extgenerator.GeneratedImportsModifier;
 import org.immutables.generator.SourceExtraction.Imports;
 
 final class PostprocessingMachine {
+  private static final char ASCII_MAX = '\u007f';
+
   private static final Joiner JOINER = Joiner.on("");
 
   private static final ImmutableList<GeneratedImportsModifier> importsModifiers =
@@ -45,17 +49,29 @@ final class PostprocessingMachine {
   private PostprocessingMachine() {}
 
   static CharSequence rewrite(CharSequence content) {
-    return rewrite(content, new ImportsBuilder(), ScanAtMost.ALL);
+    try {
+      return rewrite(content, new ImportsBuilder(), ScanAtMost.ALL);
+    } catch (UnsupportedEncodingException ex) {
+      return content;
+    }
   }
 
   static CharSequence collectHeader(CharSequence content) {
-    return rewrite(content, new ImportsBuilder(), ScanAtMost.HEADER);
+    try {
+      return rewrite(content, new ImportsBuilder(), ScanAtMost.HEADER);
+    } catch (UnsupportedEncodingException ex) {
+      return "";
+    }
   }
 
   static Imports collectImports(CharSequence content) {
-    ImportsBuilder importsBuilder = new ImportsBuilder();
-    rewrite(content, importsBuilder, ScanAtMost.IMPORTS);
-    return Imports.of(importsBuilder.imports, importsBuilder.originalImports);
+    try {
+      ImportsBuilder importsBuilder = new ImportsBuilder();
+      rewrite(content, importsBuilder, ScanAtMost.IMPORTS);
+      return Imports.of(importsBuilder.imports, importsBuilder.originalImports);
+    } catch (UnsupportedEncodingException ex) {
+      return Imports.empty();
+    }
   }
 
   private enum ScanAtMost {
@@ -64,7 +80,8 @@ final class PostprocessingMachine {
     ALL
   }
 
-  private static CharSequence rewrite(CharSequence content, ImportsBuilder importsBuilder, ScanAtMost scanAtMost) {
+  private static CharSequence rewrite(CharSequence content, ImportsBuilder importsBuilder, ScanAtMost scanAtMost)
+      throws UnsupportedEncodingException {
     String currentPackage = "";
 
     State state = State.UNDEFINED;
@@ -92,6 +109,12 @@ final class PostprocessingMachine {
 
       if (commentMachine.isInComment()) {
         continue;
+      }
+
+      // non-ascii characters outside of comments or string literals
+      // will cancel source-rewriting or imports parsing.
+      if (c > ASCII_MAX) {
+        throw new UnsupportedEncodingException();
       }
 
       if (header == null && state.pastHeader()) {
