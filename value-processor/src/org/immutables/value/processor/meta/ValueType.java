@@ -1264,16 +1264,10 @@ public final class ValueType extends TypeIntrospectionBase {
 
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
             TypeMirror returnType = m.getReturnType();
-            String r = returnType.toString();
             if (!AccessorAttributesCollector.isEclipseImplementation(m)) {
               returnType = AccessorAttributesCollector.asInheritedMemberReturnType(
                   constitution.protoclass().processing(),
                   CachingElements.getDelegate((TypeElement) element), m);
-
-              System.out.println("!!! YYY " + returnType);
-            }
-            if (!returnType.toString().equals(r)) {
-              System.out.println("!!! MMMM " + m + " : " + returnType);
             }
             signatures.add(toSignature(m, returnType));
           }

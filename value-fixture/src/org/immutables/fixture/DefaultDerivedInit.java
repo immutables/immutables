@@ -22,7 +22,7 @@ import org.immutables.value.Value;
 public abstract class DefaultDerivedInit {
   @Value.Derived
   public String index() {
-    return uuid() + "!!!";
+    return uuid() + "<>";
   }
 
   @Value.Parameter
