@@ -402,31 +402,39 @@ final class AccessorAttributesCollector {
   }
 
   private TypeMirror resolveReturnType(ExecutableElement method) {
+    TypeElement typeElement = getTypeElement();
+    if (isEclipseImplementation) {
+      return method.getReturnType();
+    }
+    return resolveReturnType(processing, method, typeElement);
+  }
+
+  static TypeMirror resolveReturnType(
+      ProcessingEnvironment processing,
+      ExecutableElement method,
+      TypeElement typeElement) {
     method = CachingElements.getDelegate(method);
     TypeMirror returnType = method.getReturnType();
-
-    if (isEclipseImplementation) {
-      return returnType;
-    }
 
     // We do not support parametrized accessor methods,
     // but we do support inheriting parametrized accessors, which
     // we supposedly parametrized with actual type parameters as
     // our target class could not define formal type parameters also.
     if (returnType.getKind() == TypeKind.TYPEVAR) {
-      return asInheritedMemberReturnType(method);
+      return asInheritedMemberReturnType(processing, typeElement, method);
     } else if (returnType.getKind() == TypeKind.DECLARED
         || returnType.getKind() == TypeKind.ERROR) {
       if (!((DeclaredType) returnType).getTypeArguments().isEmpty()) {
-        return asInheritedMemberReturnType(method);
+        return asInheritedMemberReturnType(processing, typeElement, method);
       }
     }
     return returnType;
   }
 
-  private TypeMirror asInheritedMemberReturnType(ExecutableElement method) {
-    TypeElement typeElement = getTypeElement();
-
+  static TypeMirror asInheritedMemberReturnType(
+      ProcessingEnvironment processing,
+      TypeElement typeElement,
+      ExecutableElement method) {
     ExecutableType asMethodOfType =
         (ExecutableType) processing.getTypeUtils()
             .asMemberOf((DeclaredType) typeElement.asType(), method);
@@ -460,7 +468,7 @@ final class AccessorAttributesCollector {
     return Reporter.from(protoclass.processing()).withElement(type);
   }
 
-  private static boolean isEclipseImplementation(Element element) {
+  static boolean isEclipseImplementation(Element element) {
     return CachingElements.getDelegate(element).getClass().getCanonicalName().startsWith(ORG_ECLIPSE);
   }
 }

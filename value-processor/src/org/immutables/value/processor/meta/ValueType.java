@@ -1263,7 +1263,19 @@ public final class ValueType extends TypeIntrospectionBase {
             || m.getSimpleName().contentEquals(AccessorAttributesCollector.TO_STRING_METHOD)) {
 
           if (m.getModifiers().contains(Modifier.ABSTRACT)) {
-            signatures.add(toSignature(m));
+            TypeMirror returnType = m.getReturnType();
+            String r = returnType.toString();
+            if (!AccessorAttributesCollector.isEclipseImplementation(m)) {
+              returnType = AccessorAttributesCollector.asInheritedMemberReturnType(
+                  constitution.protoclass().processing(),
+                  CachingElements.getDelegate((TypeElement) element), m);
+
+              System.out.println("!!! YYY " + returnType);
+            }
+            if (!returnType.toString().equals(r)) {
+              System.out.println("!!! MMMM " + m + " : " + returnType);
+            }
+            signatures.add(toSignature(m, returnType));
           }
         }
       }
@@ -1338,7 +1350,7 @@ public final class ValueType extends TypeIntrospectionBase {
         this.name = method.getSimpleName();
         this.type = method.getReturnType().getKind().isPrimitive()
             ? wrapType(method.getReturnType().toString())
-            : appendReturnType(method, new StringBuilder(), declaringType);
+            : appendReturnType(method, new StringBuilder(), declaringType, method.getReturnType());
         this.parameters = appendParameters(method, new StringBuilder(), declaringType, true, true);
         this.arguments = appendParameters(method, new StringBuilder(), declaringType, false, false);
       }
@@ -1361,11 +1373,11 @@ public final class ValueType extends TypeIntrospectionBase {
     return params;
   }
 
-  private String toSignature(ExecutableElement m) {
+  private String toSignature(ExecutableElement m, TypeMirror returnType) {
     DeclaringType declaringType = inferDeclaringType(m);
     StringBuilder signature = new StringBuilder();
     appendAccessModifier(m, signature);
-    appendReturnType(m, signature, declaringType);
+    appendReturnType(m, signature, declaringType, returnType);
     signature.append(" ").append(m.getSimpleName());
     appendParameters(m, signature, declaringType, true, false);
     return signature.toString();
@@ -1381,8 +1393,12 @@ public final class ValueType extends TypeIntrospectionBase {
     return signature;
   }
 
-  private CharSequence appendReturnType(ExecutableElement m, StringBuilder signature, DeclaringType declaringType) {
-    return signature.append(printType(m, m.getReturnType(), declaringType));
+  private CharSequence appendReturnType(
+      ExecutableElement m,
+      StringBuilder signature,
+      DeclaringType declaringType,
+      TypeMirror returnType) {
+    return signature.append(printType(m, returnType, declaringType));
   }
 
   private CharSequence appendParameters(
