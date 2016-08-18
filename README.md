@@ -51,6 +51,10 @@ License
 Changelog
 ---------
 
+### 2.2.12 (2016-08-18)
+- Bugfixes! Thanks to issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.12)
+
 ### 2.2.11 (2016-08-16)
 - Bugfixes! Thanks to issue reporters!
 - Early preview of "encodings" functionality to support custom collections and other custom types/containers!
