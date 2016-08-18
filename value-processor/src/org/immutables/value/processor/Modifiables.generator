@@ -158,6 +158,30 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     [/if]
   [/for]
 
+  [for m in mandatories, BitPosition pos = positions m]
+
+  /**
+   * Reset an attribute to its initial value.
+   * @return {@code this} for use in a chained invocation
+   */
+    public final [thisReturnType type] [unset m]() {
+      [disambiguateField type 'initBits'][emptyIfZero pos.index] |= INIT_BIT_[toConstant m.name];
+      [clearField m true]
+      [thisReturn type]
+    }
+    [/for]
+    [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
+  /**
+   * Reset an attribute to its initial value.
+   * @return {@code this} for use in a chained invocation
+   */
+    public final [thisReturnType type] [unset p]() {
+      [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
+      [clearField p true]
+      [thisReturn type]
+    }
+    [/for]
+
   /**
    * Returns {@code true} if all required attributes are set, indicating that the object is initialized.
    * @return {@code true} if set
@@ -1020,6 +1044,8 @@ import [starImport];
 [template isInitialized Type t][disambiguateAccessor t t.names.isInitialized][/template]
 
 [template isSet Attribute a][disambiguateAccessor a.containingType a.names.isSet][/template]
+
+[template unset Attribute a][disambiguateAccessor a.containingType a.names.unset][/template]
 
 [template thisReturn Type type]return this;[/template]
 
