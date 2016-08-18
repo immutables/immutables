@@ -79,6 +79,37 @@ public class ModifiablesTest {
   }
 
   @Test
+  public void unset() {
+    ModifiableCompanion c1 = ModifiableCompanion.create();
+    check(!c1.isInitialized());
+    c1.setArrayInts(1);
+    c1.setArrayStrings("a", "b", "c");
+    c1.setInteger(1);
+    c1.setString("_");
+
+    check(c1.stringIsSet());
+    check(c1.isInitialized());
+
+    c1.unsetArrayInts();
+    c1.unsetString();
+
+    check(!c1.isInitialized());
+    check(c1.arrayStringsIsSet());
+    check(c1.integerIsSet());
+    check(!c1.arrayIntsIsSet());
+    check(!c1.stringIsSet());
+
+    c1.unsetArrayStrings();
+    c1.unsetInteger();
+
+    check(!c1.isInitialized());
+    check(!c1.arrayStringsIsSet());
+    check(!c1.integerIsSet());
+    check(!c1.arrayIntsIsSet());
+    check(!c1.stringIsSet());
+  }
+
+  @Test
   public void mutatingEquals() {
     ModifiableExtra c1 = ModifiableExtra.create();
     ModifiableExtra c2 = ModifiableExtra.create();
