@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.encode;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -139,12 +140,6 @@ public final class Instantiation {
         return names.putAll();
       case WITH:
         return names.with;
-      case IS_SET:
-        return names.isSet();
-      case SET:
-        return names.set();
-      case UNSET:
-        return names.unset();
       default:
       }
     }
@@ -249,12 +244,13 @@ public final class Instantiation {
           for (int i = 0; i < indentLevel + indentWrap; i++) {
             invokation.out("  ");
           }
-          // auto-increase indent wrap unless semicolon will return it back
-          indentWrap = 2;
         }
 
         if (t.isDelimiter() && (t.is(';') || t.is('}') || t.is('{'))) {
           indentWrap = 0;
+        } else if (!t.isIgnorable()) {
+          // auto-increase indent wrap unless semicolon will return it back
+          indentWrap = 2;
         }
 
         // increase indent level after writing a newline
@@ -274,32 +270,50 @@ public final class Instantiation {
         public String apply(EncodedElement input) {
           Parameters parameters = Type.Producer.emptyParameters();
 
+          // if our method have the same named type parameters as
+          // encoding, when instantiating it for specific
+          // attribute, some may resolve to concrete types, some
+          // may end up value-type specific type parameter
+          // we need to write only type-specific type parameters omiting those
+          // which resolves to specific type.
+          // note that some methods are to be inlined, so this is not needed
+          // then, it is only needed when non-inlined references are present.
+
           if (input.isFrom()) {
-            // our from method have the same type parameters as
-            // encoding in general, when instantiating it for specific
-            // attribute, some may resolve to concrete types, some
-            // may end up value-type specific type parameter
-            // we need to write only type-specific type parameters omiting those
-            // which resolves to specific type.
-            // note that often 'from' method is inlined so this is not needed
-            // then, it is only needed when non-inlined references are present.
+            // from has implied type parameters, the same as encoding
             for (Variable v : typer.variables()) {
-              Type t = typer.apply(v);
-              if (t instanceof Type.Variable) {
-                Type.Variable var = (Type.Variable) t;
-                parameters = parameters.introduce(var.name, transformBounds(var.upperBounds));
-              }
+              parameters = introduceAsEncodingVar(parameters, v);
             }
           } else {
             for (TypeParam p : input.typeParams()) {
-              parameters = parameters.introduce(p.name(), transformBounds(p.bounds()));
+              @Nullable Variable encodingVar = typer.byName(p.name());
+              if (encodingVar != null) {
+                parameters = introduceAsEncodingVar(parameters, encodingVar);
+              } else {
+                parameters = parameters.introduce(p.name(), transformBounds(p.bounds()));
+              }
             }
           }
 
           if (parameters.names().isEmpty()) {
             return "";
           }
+
           return parameters + " ";
+        }
+
+        private Parameters introduceAsEncodingVar(Parameters parameters, Variable encodingVar) {
+          Type t = typer.apply(encodingVar);
+          final Parameters[] pHolder = new Parameters[] {parameters};
+          t.accept(new Type.Transformer() {
+            @Override
+            public Type variable(Variable v) {
+              pHolder[0] = pHolder[0].introduce(v.name, transformBounds(v.upperBounds));
+              return v;
+            }
+          });
+          parameters = pHolder[0];
+          return parameters;
         }
 
         private ImmutableList<Defined> transformBounds(List<Defined> bounds) {

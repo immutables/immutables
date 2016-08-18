@@ -79,11 +79,11 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
       el in a.instantiation.encoding.element]
 [if el.builderMethod]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
 [else if el.build]
   [if not el.oneLiner]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
   [/if]
 [/if]
   [/for]
@@ -94,15 +94,15 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
       el in a.instantiation.encoding.element]
 [if el.valueMethod]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
 [else if not el.static]
   [if el.inlinable and (not el.oneLiner)]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
   [/if]
 [else if el.from]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
 [/if]
   [/for]
 [/template]
@@ -121,11 +121,11 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
       el in a.instantiation.encoding.element]
 [if el.staticMethod]
 
-[declareHelperMethod a.instantiation el]
-[else if el.static]
+[declareMethod a.instantiation el]
+[else if el.static and (not el.from)]
   [if el.inlinable and (not el.oneLiner)]
 
-[declareHelperMethod a.instantiation el]
+[declareMethod a.instantiation el]
   [/if]
 [/if]
   [/for]
@@ -153,7 +153,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el][if el.code] = [inst.codeOf el][/if];
 [/template]
 
-[template declareHelperMethod Inst inst Elem el]
+[template declareMethod Inst inst Elem el]
 [if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.ownTypeParams el][inst.typer el.type] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
 [/template]
 

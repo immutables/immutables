@@ -6,7 +6,7 @@ import org.immutables.value.Value;
 import org.immutables.fixture.encoding.defs.OptionalList2Enabled;
 
 @Value.Style(depluralize = true)
-//@OptionalList2Enabled
+@OptionalList2Enabled
 @Value.Immutable
 public interface UseOptionalCollections2<V> {
 

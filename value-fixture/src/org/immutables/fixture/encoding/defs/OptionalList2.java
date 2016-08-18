@@ -77,8 +77,8 @@ final class OptionalList2<T> {
 //        return elements == null ? null : createSafeList(iterable);
 //    }
 
-  private static <G> List<G> createSafeList(Iterable<G> iterable) {
-    List<G> list = StreamSupport.stream(iterable.spliterator(), false)
+  private static <T> List<T> createSafeList(Iterable<T> iterable) {
+    List<T> list = StreamSupport.stream(iterable.spliterator(), false)
         .map(element -> Objects.requireNonNull(element, "element"))
         .collect(Collectors.toList());
 

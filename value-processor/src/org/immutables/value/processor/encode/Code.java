@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.encode;
 
+import org.immutables.value.processor.encode.Code.Term;
 import javax.annotation.Nullable;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;

@@ -187,16 +187,7 @@ public @interface Encoding {
     PUT("put*", true),
 
     /** builder put all method. */
-    PUT_ALL("putAll*"),
-
-    /** builder is set method. */
-    IS_SET("*IsSet"),
-
-    /** Auxiliary set method. */
-    SET("set*"),
-
-    /** Auxiliary unset method. */
-    UNSET("unset*");
+    PUT_ALL("putAll*");
 
     public final String pattern;
     public final boolean depluralize;

@@ -23,10 +23,7 @@ public enum StandardNaming {
   ADD("add*", true),
   ADD_ALL("addAll*"),
   PUT("put*", true),
-  PUT_ALL("putAll*"),
-  IS_SET("*IsSet"),
-  SET("set*"),
-  UNSET("unset*");
+  PUT_ALL("putAll*");
 
   public final String pattern;
   public final boolean depluralize;
