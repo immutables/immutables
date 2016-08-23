@@ -58,7 +58,7 @@ class TableEncoding<R, C, V> {
     return param;
   }
 
-  @Encoding.Init
+  @Encoding.Of
   static <R, C, V> ImmutableTable<R, C, V> init(Table<? extends R, ? extends C, ? extends V> table) {
     return ImmutableTable.copyOf(table);
   }

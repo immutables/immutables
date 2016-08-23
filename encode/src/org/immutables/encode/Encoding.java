@@ -40,7 +40,9 @@ public @interface Encoding {
    */
   @Target(ElementType.FIELD)
   @Retention(RetentionPolicy.SOURCE)
-  public @interface Impl {}
+  public @interface Impl {
+    boolean virtual() default false;
+  }
 
   /**
    * Expose describes how type matches to the encoding via return type.
@@ -53,6 +55,10 @@ public @interface Encoding {
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
   public @interface Expose {}
+
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface Of {}
 
   /**
    * Builder init method template. Can be as simple as {@code .setValue(1)} to {@code .addVal},

@@ -2,7 +2,9 @@
 [for inst = a.instantiation,
       enc = inst.encoding,
 			impl = enc.impl]
+[if not impl.virtual]
 private final [inst.typer impl.type] [inst.namer impl];
+[/if]
 [for el in enc.element if el.valueField]
 [if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el];
 [/for]
@@ -24,15 +26,33 @@ Could not generate constructor. Attribute '[a.name]' does not have default value
 [/for]
 [/template]
 
-[template public assignDefaultFields Attribute... as]
+[template public assignDefaultFields Attribute... as Boolean pureCopy]
 [for a in as if a.encoding,
     inst = a.instantiation,
     el in inst.encoding.element if el.valueField]
 [if el.code]
+  [if pureCopy or (not inst.virtualNotOfSameType)]
 this.[inst.namer el] = [inst.codeOf el];
+  [else]
+this.[inst.namer el] = [inst.codeOfAuxFieldVirtualDecorated el];
+  [/if]
 [/if]
 [/for]
 [/template]
+
+[template public constructorAcceptType Attribute a][a.instantiation.typer a.instantiation.encoding.from.firstParam.type][/template]
+
+[template public virtualImpl Attribute a][output.trim]
+[for inst = a.instantiation,
+      enc = inst.encoding,
+			impl = enc.impl]
+[if inst.virtualNotOfSameType]
+[inst.typer impl.type] [a.instantiation.decoratedImplFieldName]
+[else]
+[a.instantiation.namer a.instantiation.encoding.impl]
+[/if]
+[/for]
+[/output.trim][/template]
 
 [template public copyMethods Attribute a Invokable returnCopy]
 [for type = a.containingType,
@@ -41,7 +61,9 @@ this.[inst.namer el] = [inst.codeOf el];
 
 [if el.private]private [else]public [/if][if el.final]final [/if][type.typeImmutable.simple][type.generics.args] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] {
   [inst.typer el.type] newValue = [if el.oneLiner][inst.fragmentOf el][else]with_[inst.namer el]([for p in el.params][if not for.first], [/if][p.name][/for])[/if];
+  [if not inst.encoding.impl.virtual]
   if (this.[a.name] == newValue) return this;
+  [/if]
   [returnCopy]
 }
 [if not el.oneLiner]
@@ -95,7 +117,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [if el.valueMethod]
 
 [declareMethod a.instantiation el]
-[else if not el.static]
+[else if not (el.static or el.inBuilder)]
   [if el.inlinable and (not el.oneLiner)]
 
 [declareMethod a.instantiation el]

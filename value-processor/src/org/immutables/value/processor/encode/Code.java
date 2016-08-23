@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.processor.encode.Code.Term;
-import javax.annotation.Nullable;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -28,6 +26,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 
 final class Code {
   private Code() {}

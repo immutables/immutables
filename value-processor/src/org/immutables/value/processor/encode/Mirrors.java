@@ -21,9 +21,6 @@ interface Mirrors {
   @Mirror.Annotation("org.immutables.encode.Encoding")
   @interface Encoding {}
 
-  @Mirror.Annotation("org.immutables.encode.Encoding.Init")
-  @interface Init {}
-
   @Mirror.Annotation("org.immutables.encode.Encoding.Naming")
   @interface Naming {
     String value();
@@ -33,14 +30,22 @@ interface Mirrors {
     StandardNaming standard() default StandardNaming.NONE;
   }
 
+  @Mirror.Annotation("org.immutables.encode.Encoding.Of")
+  @interface Of {}
+
   @Mirror.Annotation("org.immutables.encode.Encoding.Expose")
   @interface Expose {}
 
   @Mirror.Annotation("org.immutables.encode.Encoding.Impl")
-  @interface Impl {}
+  @interface Impl {
+    boolean virtual() default false;
+  }
 
   @Mirror.Annotation("org.immutables.encode.Encoding.Copy")
   @interface Copy {}
+
+  @Mirror.Annotation("org.immutables.encode.Encoding.Init")
+  @interface Init {}
 
   @Mirror.Annotation("org.immutables.encode.Encoding.Builder")
   @interface Builder {}

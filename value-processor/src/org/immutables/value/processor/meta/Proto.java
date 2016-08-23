@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.encode.Type;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;

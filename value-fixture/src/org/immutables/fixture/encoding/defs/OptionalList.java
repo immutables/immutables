@@ -33,7 +33,7 @@ final class OptionalList<T> {
     return Optional.ofNullable(this.list);
   }
 
-  @Encoding.Init
+  @Encoding.Of
   static <T> List<T> init(Optional<? extends List<T>> lst) {
     return lst.<List<T>>map(ArrayList<T>::new).orElse(null);
   }

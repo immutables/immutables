@@ -55,7 +55,7 @@ class OptionalMap<K, V> {
     return java.util.Objects.equals(this.map, obj.map);
   }
 
-  @Encoding.Init
+  @Encoding.Of
   static @Nullable <K, V> ImmutableMap<K, V> init(Optional<? extends Map<K, V>> map) {
     return map.isPresent()
         ? ImmutableMap.copyOf(map.get())

@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -40,6 +39,7 @@ import org.immutables.value.processor.meta.Styles;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 public final class Instantiation {
+  private static final String BUILDER_RESERVED_IN_CONSTRUCTOR = "builder";
   private final Map<Binding, String> bindings;
   private final Map<Binding, String> builderBindings;
 
@@ -111,6 +111,26 @@ public final class Instantiation {
     }
   }
 
+  public boolean isVirtualNotOfSameType() {
+    return hasVirtualImpl()
+        && (!encoding.from().firstParam().type().equals(encoding.impl().type())
+        || names.var.equals(BUILDER_RESERVED_IN_CONSTRUCTOR));
+  }
+
+  public boolean isTrivialOf() {
+    return isInlined(encoding.from())
+        && encoding.from().oneLiner().equals(
+            ImmutableList.of(Binding.newTop(encoding.from().firstParam().name())));
+  }
+
+  public String getDecoratedImplFieldName() {
+    return bindings.get(encoding.impl().asBinding()) + "$impl";
+  }
+
+  public boolean hasVirtualImpl() {
+    return encoding.impl().isVirtual();
+  }
+
   public boolean supportsInternalImplConstructor() {
     return encoding.build().type().equals(encoding.impl().type());
   }
@@ -160,6 +180,11 @@ public final class Instantiation {
     return element.naming().apply(raw);
   }
 
+  private boolean isInlined(EncodedElement el) {
+    return !el.oneLiner().isEmpty()
+        && !encoding.crossReferencedMethods().contains(el.name());
+  }
+
   private boolean isDefaultUnspecifiedValue(EncodedElement element) {
     return element.naming().isIdentity() && !element.depluralize();
   }
@@ -172,7 +197,7 @@ public final class Instantiation {
       @Nullable Map<Binding, String> overrideBindings = null;
       if (el.params().size() == 1 && parameters.length > 1) {
         overrideBindings = ImmutableMap.of(
-            Binding.newTop(el.params().get(0).name()),
+            Binding.newTop(el.firstParam().name()),
             parameters[1].toString());
       }
 
@@ -180,11 +205,8 @@ public final class Instantiation {
       Code.Interpolator interpolator =
           new Code.Interpolator(names.raw, contextBindings, overrideBindings);
 
-      if (!el.oneLiner().isEmpty()
-          && !encoding.crossReferencedMethods().contains(el.name())) {
-        for (Code.Term t : interpolator.apply(el.oneLiner())) {
-          invokation.out(t);
-        }
+      if (isInlined(el)) {
+        printWithIndentation(invokation, interpolator.apply(el.oneLiner()));
       } else {
         invokation.out(contextBindings.get(el.asBinding())).out("(");
         boolean notFirst = false;
@@ -200,19 +222,22 @@ public final class Instantiation {
       }
       return null;
     }
+
   };
 
   final Templates.Invokable codeOf = new Templates.Invokable() {
     @Override
     public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
       EncodedElement el = (EncodedElement) parameters[0];
-      List<Term> code = el.code();
-      if (parameters.length >= 2) {
-        String returnReplacement = parameters[1].toString();
-        code = Code.replaceReturn(code, returnReplacement);
-      }
 
       Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
+
+      List<Term> code = el.code();
+
+      if (parameters.length >= 2) {
+        String param = parameters[1].toString();
+        code = Code.replaceReturn(code, param);
+      }
 
       Code.Interpolator interpolator =
           new Code.Interpolator(names.raw, contextBindings, null);
@@ -220,49 +245,70 @@ public final class Instantiation {
       printWithIndentation(invokation, interpolator.apply(code));
       return null;
     }
+  };
 
-    private void printWithIndentation(Invokation invokation, List<Term> terms) {
-      int indentLevel = 0;
-      int indentWrap = 0;
-      boolean nextNewline = false;
+  // for aux fields we can override impl field binding
+  final Templates.Invokable codeOfAuxFieldVirtualDecorated = new Templates.Invokable() {
+    @Override
+    public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
+      EncodedElement el = (EncodedElement) parameters[0];
 
-      for (Code.Term t : terms) {
-        if (t.isWhitespace() && t.is('\n')) {
-          nextNewline = true;
-          continue;
-        }
+      Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
+      Map<Binding, String> overrideBindings =
+          ImmutableMap.of(Binding.newField(encoding.impl().name()), getDecoratedImplFieldName());
 
-        // decrease indent level before writing a newline
-        if (t.isDelimiter() && t.is('}')) {
-          indentLevel--;
-        }
+      Code.Interpolator interpolator =
+          new Code.Interpolator(
+              names.raw,
+              contextBindings,
+              overrideBindings);
 
-        if (nextNewline) {
-          nextNewline = false;
-          invokation.ln();
-
-          for (int i = 0; i < indentLevel + indentWrap; i++) {
-            invokation.out("  ");
-          }
-        }
-
-        if (t.isDelimiter() && (t.is(';') || t.is('}') || t.is('{'))) {
-          indentWrap = 0;
-        } else if (!t.isIgnorable()) {
-          // auto-increase indent wrap unless semicolon will return it back
-          indentWrap = 2;
-        }
-
-        // increase indent level after writing a newline
-        if (t.isDelimiter() && t.is('{')) {
-          indentLevel++;
-        }
-
-        // outputing actual token after any indents
-        invokation.out(t);
-      }
+      printWithIndentation(invokation, interpolator.apply(el.code()));
+      return null;
     }
   };
+
+  private static void printWithIndentation(Invokation invokation, List<Term> terms) {
+    int indentLevel = 0;
+    int indentWrap = 0;
+    boolean nextNewline = false;
+
+    for (Code.Term t : terms) {
+      if (t.isWhitespace() && t.is('\n')) {
+        nextNewline = true;
+        continue;
+      }
+
+      // decrease indent level before writing a newline
+      if (t.isDelimiter() && t.is('}')) {
+        indentLevel--;
+      }
+
+      if (nextNewline) {
+        nextNewline = false;
+        invokation.ln();
+
+        for (int i = 0; i < indentLevel + indentWrap; i++) {
+          invokation.out("  ");
+        }
+      }
+
+      if (t.isDelimiter() && (t.is(';') || t.is('}') || t.is('{'))) {
+        indentWrap = 0;
+      } else if (!t.isIgnorable()) {
+        // auto-increase indent wrap unless semicolon will return it back
+        indentWrap = 2;
+      }
+
+      // increase indent level after writing a newline
+      if (t.isDelimiter() && t.is('{')) {
+        indentLevel++;
+      }
+
+      // outputing actual token after any indents
+      invokation.out(t);
+    }
+  }
 
   final Function<EncodedElement, String> ownTypeParams =
       new Function<EncodedElement, String>() {

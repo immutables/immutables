@@ -207,6 +207,7 @@ public final class Styles {
 
     public class AttributeNames {
       public final String raw = detectRawFromGet();
+      public final String var = raw; // TODO use var everywhere
       public final String get = name;
       public final String init = scheme.init.apply(raw);
       public final String with = scheme.with.apply(raw);

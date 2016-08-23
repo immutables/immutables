@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.encode;
 
+import org.immutables.value.processor.encode.Type.Reference;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.immutables.value.processor.encode.Type.Defined;
@@ -48,14 +49,14 @@ public class TypeTest {
 
   @Test
   public void templateMoreMatches() {
-    check(!new Type.Template(Type.STRING).match(Type.OBJECT).isPresent());
-    check(new Type.Template(parser.parse("A")).match(Type.OBJECT).isPresent());
-    check(new Type.Template(parser.parse("B")).match(Type.STRING).isPresent());
+    check(!new Type.Template(Reference.STRING).match(Reference.OBJECT).isPresent());
+    check(new Type.Template(parser.parse("A")).match(Reference.OBJECT).isPresent());
+    check(new Type.Template(parser.parse("B")).match(Reference.STRING).isPresent());
 
     VariableResolver nestedMatch =
         new Type.Template(parser.parse("Map<A, List<B>>")).match(parser.parse("Map<java.lang.String, List<D>>")).get();
 
-    check(nestedMatch.variable(parameters.variable("A"))).is(Type.STRING);
+    check(nestedMatch.variable(parameters.variable("A"))).is(Reference.STRING);
     check(nestedMatch.variable(parameters.variable("B"))).is(parameters.variable("D"));
   }
 

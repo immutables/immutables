@@ -52,8 +52,7 @@ import org.immutables.value.processor.encode.Code.Term;
  * might occur in java code.
  */
 public interface Type {
-  Reference OBJECT = new Reference(Object.class.getName(), true);
-  Reference STRING = new Reference(String.class.getName(), true);
+  Reference OBJECT = Reference.OBJECT;
 
   <V> V accept(Visitor<V> visitor);
 
@@ -78,6 +77,19 @@ public interface Type {
   interface Defined extends Nonprimitive {}
 
   class Reference implements Defined {
+    public static final Reference OBJECT = new Reference(Object.class.getName(), true);
+    public static final Reference STRING = new Reference(String.class.getName(), true);
+
+    public static final Reference BYTE = new Reference(Short.class.getName(), true);
+    public static final Reference SHORT = new Reference(Short.class.getName(), true);
+    public static final Reference INTEGER = new Reference(Integer.class.getName(), true);
+    public static final Reference LONG = new Reference(Long.class.getName(), true);
+    public static final Reference DOUBLE = new Reference(Double.class.getName(), true);
+    public static final Reference FLOAT = new Reference(Float.class.getName(), true);
+    public static final Reference CHARACTER = new Reference(Character.class.getName(), true);
+    public static final Reference BOOLEAN = new Reference(Boolean.class.getName(), true);
+    public static final Reference VOID = new Reference(Void.class.getName(), true);
+
     public final String name;
     public final boolean resolved;
 
@@ -230,20 +242,24 @@ public interface Type {
   }
 
   enum Primitive implements Type {
-    BOOLEAN,
-    BYTE,
-    SHORT,
-    INT,
-    LONG,
-    CHAR,
-    FLOAT,
-    DOUBLE,
-    VOID;
+    BOOLEAN(Reference.BOOLEAN, "false"),
+    BYTE(Reference.BYTE, "0"),
+    SHORT(Reference.SHORT, "0"),
+    INT(Reference.INTEGER, "0"),
+    LONG(Reference.LONG, "0L"),
+    CHAR(Reference.CHARACTER, "'\0'"),
+    FLOAT(Reference.FLOAT, "0F"),
+    DOUBLE(Reference.DOUBLE, "0D"),
+    VOID(Reference.VOID, "");
 
     final String typename;
+    final Reference wrapper;
+    final String defaultValue;
 
-    Primitive() {
+    Primitive(Reference wrapper, String defaultValue) {
+      this.wrapper = wrapper;
       this.typename = Ascii.toLowerCase(name());
+      this.defaultValue = defaultValue;
     }
 
     @Override
@@ -254,6 +270,13 @@ public interface Type {
     @Override
     public String toString() {
       return typename;
+    }
+
+    public static Nonprimitive asNonprimitive(Type type) {
+      if (type instanceof Primitive) {
+        return ((Primitive) type).wrapper;
+      }
+      return (Nonprimitive) type;
     }
   }
 
@@ -397,8 +420,17 @@ public interface Type {
     private final Map<String, Reference> resolvedTypes = new HashMap<>(64);
     {
       synchronized (resolvedTypes) {
-        resolvedTypes.put(Type.OBJECT.name, Type.OBJECT);
-        resolvedTypes.put(Type.STRING.name, Type.STRING);
+        resolvedTypes.put(Reference.OBJECT.name, Reference.OBJECT);
+        resolvedTypes.put(Reference.STRING.name, Reference.STRING);
+        resolvedTypes.put(Reference.BYTE.name, Reference.BYTE);
+        resolvedTypes.put(Reference.SHORT.name, Reference.SHORT);
+        resolvedTypes.put(Reference.INTEGER.name, Reference.INTEGER);
+        resolvedTypes.put(Reference.LONG.name, Reference.LONG);
+        resolvedTypes.put(Reference.DOUBLE.name, Reference.DOUBLE);
+        resolvedTypes.put(Reference.FLOAT.name, Reference.FLOAT);
+        resolvedTypes.put(Reference.CHARACTER.name, Reference.CHARACTER);
+        resolvedTypes.put(Reference.BOOLEAN.name, Reference.BOOLEAN);
+        resolvedTypes.put(Reference.VOID.name, Reference.VOID);
       }
     }
 

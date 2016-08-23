@@ -187,6 +187,14 @@ public abstract class Encodings extends AbstractTemplate {
         return false;
       }
 
+      if (isPrimitiveExpose()
+          && (toString == null || hashCode == null || equals == null)) {
+        reporter.withElement(typeEncoding)
+            .error("Encoding implemented or exposed via primitive type must define explicitly encoded 'toString', 'hashCode' and 'equals'."
+                + " For reference types default routines are assumed via Object.toString(), Object.hashCode() and Object.equals()");
+        return false;
+      }
+
       for (EncodedElement e : copy) {
         if (!e.type().equals(impl.type())) {
           reporter.withElement(findEnclosedByName(typeEncoding, e.name()))
@@ -223,6 +231,19 @@ public abstract class Encodings extends AbstractTemplate {
       }
 
       return true;
+    }
+
+    private boolean isPrimitiveExpose() {
+      if (!expose.isEmpty()) {
+        for (EncodedElement e : expose) {
+          if (e.type() instanceof Type.Primitive) {
+            return true;
+          }
+        }
+      } else if (impl.type() instanceof Type.Primitive) {
+        return true;
+      }
+      return false;
     }
 
     private Element findEnclosedByName(Element enclosing, String name) {
@@ -262,7 +283,7 @@ public abstract class Encodings extends AbstractTemplate {
           || member.getKind() == ElementKind.METHOD)
           && !memberNames.add(memberPath(member))) {
         reporter.withElement(member)
-            .warning("Duplicate member name '%s'. Encoding has limitation so that any duplicate method names are not supported,"
+            .error("Duplicate member name '%s'. Encoding has limitation so that any duplicate method names are not supported,"
                 + " even when allowed by JLS: methods cannot have overloads here."
                 + " @Encoding.Naming annotation could be used so that actually generated methods might have the same name"
                 + " if they are not conflicting as per JLS overload rules",
@@ -343,6 +364,8 @@ public abstract class Encodings extends AbstractTemplate {
     }
 
     private boolean processImplField(VariableElement field) {
+      boolean virtual = ImplMirror.find(field).get().virtual();
+
       if (impl != null) {
         reporter.withElement(field)
             .error("@Encoding.Impl duplicate field '%s'. Cannot have more than one implementation field",
@@ -376,7 +399,7 @@ public abstract class Encodings extends AbstractTemplate {
       this.impl = new EncodedElement.Builder()
           .name(field.getSimpleName().toString())
           .type(typesReader.get(field.asType()))
-          .addTags(Tag.IMPL, Tag.FINAL, Tag.PRIVATE, Tag.FIELD)
+          .addTags(Tag.IMPL, Tag.FINAL, Tag.PRIVATE, virtual ? Tag.VIRTUAL : Tag.FIELD)
           .naming(Naming.identity())
           .typeParameters(typesReader.parameters)
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
@@ -401,7 +424,7 @@ public abstract class Encodings extends AbstractTemplate {
       if (CopyMirror.isPresent(method)) {
         return processCopyMethod(method);
       }
-      if (InitMirror.isPresent(method)) {
+      if (OfMirror.isPresent(method)) {
         return processFromMethod(method);
       }
       return processHelperMethod(method);
@@ -430,7 +453,7 @@ public abstract class Encodings extends AbstractTemplate {
     private boolean processFromMethod(ExecutableElement method) {
       if (from != null) {
         reporter.withElement(method)
-            .error("@Encoding.Init duplicate method '%s'. Cannot have more than one init method",
+            .error("@Encoding.Of duplicate method '%s'. Cannot have more than one init method",
                 method.getSimpleName());
         return true;
       }
@@ -438,7 +461,7 @@ public abstract class Encodings extends AbstractTemplate {
       if (!typeParams.equals(getTypeParameterNames(method))
           || !method.getModifiers().contains(Modifier.STATIC)) {
         reporter.withElement(method)
-            .error("@Encoding.Init method '%s' should be static with"
+            .error("@Encoding.Of method '%s' should be static with"
                 + " the same type parameters as encoding type: %s",
                 method.getSimpleName(),
                 typesReader.parameters);
@@ -448,7 +471,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       if (method.getParameters().size() != 1) {
         reporter.withElement(method)
-            .error("@Encoding.Init method '%s' should take a single parameter"
+            .error("@Encoding.Of method '%s' should take a single parameter"
                 + " return type assignable to implementation field",
                 method.getSimpleName());
         return true;
@@ -458,7 +481,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       if (!method.getThrownTypes().isEmpty()) {
         reporter.withElement(method)
-            .error("@Encoding.Init method '%s' cannot have throws declaration",
+            .error("@Encoding.Of method '%s' cannot have throws declaration",
                 method.getSimpleName());
         return true;
       }
@@ -466,7 +489,7 @@ public abstract class Encodings extends AbstractTemplate {
       if (NamingMirror.isPresent(method)) {
         reporter.withElement(method)
             .annotationNamed(NamingMirror.simpleName())
-            .warning("@Encoding.Init method '%s' have naming annotation which is ignored."
+            .warning("@Encoding.Of method '%s' have naming annotation which is ignored."
                 + " Init is not exposed as a standalone method",
                 method.getSimpleName());
       }
@@ -584,7 +607,7 @@ public abstract class Encodings extends AbstractTemplate {
 
       this.toString = new EncodedElement.Builder()
           .name(method.getSimpleName().toString())
-          .type(Type.STRING)
+          .type(Type.Reference.STRING)
           .addTags(Tag.PRIVATE, Tag.TO_STRING)
           .naming(helperNaming(method.getSimpleName()))
           .typeParameters(typesReader.parameters)
@@ -737,7 +760,9 @@ public abstract class Encodings extends AbstractTemplate {
               .error(ex.getMessage());
         }
       }
-      if (element.getKind() == ElementKind.FIELD) {
+      if (element.getKind() == ElementKind.FIELD
+          || (element.getKind() == ElementKind.METHOD
+          && (element.getModifiers().contains(Modifier.PRIVATE) || tags.contains(Tag.PRIVATE)))) {
         return helperNaming(element.getSimpleName());
       }
       if (tags.contains(Tag.INIT) || tags.contains(Tag.COPY)) {
@@ -752,7 +777,9 @@ public abstract class Encodings extends AbstractTemplate {
       for (Element e = member; e.getKind() != ElementKind.PACKAGE; e = e.getEnclosingElement()) {
         names.addFirst(e.getSimpleName().toString());
       }
-      return Joiner.on('.').join(names);
+      String path = Joiner.on('.').join(names);
+      String suffix = member.getKind() == ElementKind.METHOD ? "()" : "";
+      return path + suffix;
     }
 
     private boolean processClass(TypeElement type) {
@@ -775,7 +802,7 @@ public abstract class Encodings extends AbstractTemplate {
               || member.getKind() == ElementKind.METHOD)
               && !memberNames.add(memberPath(member))) {
             reporter.withElement(member)
-                .warning(memberPath(member)
+                .error(memberPath(member)
                     + ": Duplicate builder member name '%s'."
                     + " Encoding has limitation so that any duplicate method names are not supported,"
                     + " even when allowed by JLS: methods cannot have overloads here."
@@ -841,7 +868,7 @@ public abstract class Encodings extends AbstractTemplate {
       if (BuildMirror.isPresent(method)) {
         return processBuilderBuildMethod(method);
       }
-      if (InitMirror.isPresent(method)) {
+      if (InitMirror.isPresent(method) || CopyMirror.isPresent(method)) {
         return processBuilderInitMethod(method);
       }
       return processBuilderHelperMethod(method);
@@ -923,8 +950,8 @@ public abstract class Encodings extends AbstractTemplate {
       if (CopyMirror.isPresent(method)) {
         if (builderInitCopy != null) {
           reporter.withElement(method)
-              .error("@Encoding.Init @Encoding.Copy method '%s' is duplicating another copy method '%s'."
-                  + " There should be only one initialized defined as copy-initializer",
+              .error("@Encoding.Copy method '%s' is duplicating another builder copy method '%s'."
+                  + " There should be only one builder initializer defined as copy-initializer",
                   method.getSimpleName(),
                   builderInitCopy);
           return true;
@@ -963,7 +990,7 @@ public abstract class Encodings extends AbstractTemplate {
             .naming(helperNaming("from"))
             .addParams(Param.of("value", impl.type()))
             .typeParameters(typesReader.parameters)
-            .addAllCode(Code.termsFrom("{\nreturn java.util.Objects.requireNonNull(value);\n}"))
+            .addAllCode(Code.termsFrom("{\nreturn value;\n}"))
             .build();
       }
 
@@ -978,6 +1005,8 @@ public abstract class Encodings extends AbstractTemplate {
             .build());
       }
 
+      String exposeName = expose.get(0).name();
+
       if (hashCode == null) {
         this.hashCode = new EncodedElement.Builder()
             .name("hashCode")
@@ -985,30 +1014,30 @@ public abstract class Encodings extends AbstractTemplate {
             .naming(helperNaming("hashCode"))
             .typeParameters(typesReader.parameters)
             .addTags(Tag.PRIVATE, Tag.HASH_CODE, Tag.SYNTH)
-            .addAllCode(Code.termsFrom("{\nreturn " + impl.name() + ".hashCode();\n}"))
+            .addAllCode(Code.termsFrom("{\nreturn " + exposeName + "().hashCode();\n}"))
             .build();
       }
 
       if (toString == null) {
         this.toString = new EncodedElement.Builder()
             .name("toString")
-            .type(Type.STRING)
+            .type(Type.Reference.STRING)
             .naming(helperNaming("toString"))
             .addTags(Tag.PRIVATE, Tag.TO_STRING, Tag.SYNTH)
             .typeParameters(typesReader.parameters)
-            .addAllCode(Code.termsFrom("{\nreturn " + impl.name() + ".toString();\n}"))
+            .addAllCode(Code.termsFrom("{\nreturn " + exposeName + "().toString();\n}"))
             .build();
       }
 
       if (equals == null) {
         this.equals = new EncodedElement.Builder()
             .name("equals")
-            .type(Type.STRING)
+            .type(Type.Reference.STRING)
             .addTags(Tag.PRIVATE, Tag.EQUALS, Tag.SYNTH)
             .naming(helperNaming("equals"))
             .typeParameters(typesReader.parameters)
             .addParams(Param.of("other", encodingSelfType))
-            .addAllCode(Code.termsFrom("{\nreturn this." + impl.name() + ".equals(other." + impl.name() + ")\n;}"))
+            .addAllCode(Code.termsFrom("{\nreturn this." + exposeName + "().equals(other." + exposeName + "())\n;}"))
             .build();
       }
 
@@ -1030,7 +1059,7 @@ public abstract class Encodings extends AbstractTemplate {
         String fieldElementName = synthName("builder");
 
         builderFields.add(new EncodedElement.Builder()
-            .type(impl.type())
+            .type(Primitive.asNonprimitive(impl.type()))
             .name(fieldElementName)
             .naming(helperNaming("builder"))
             .typeParameters(typesReader.parameters)
@@ -1043,11 +1072,12 @@ public abstract class Encodings extends AbstractTemplate {
             .naming(helperNaming("build"))
             .typeParameters(typesReader.parameters)
             .addTags(Tag.PRIVATE, Tag.BUILD, Tag.BUILDER, Tag.SYNTH)
-            .addAllCode(Code.termsFrom("{\n"
-                + "if (" + fieldElementName + " == null)"
-                + " throw new IllegalStateException(\"'<*>' is not initialized\");\n"
-                + "return " + fieldElementName + ";\n"
-                + "}"))
+            .addAllCode(
+                Code.termsFrom("{\n"
+                    + "if (" + fieldElementName + " == null)"
+                    + " throw new IllegalStateException(\"'<*>' is not initialized\");\n"
+                    + "return " + fieldElementName + ";\n"
+                    + "}"))
             .build();
 
         builderInits.add(new EncodedElement.Builder()

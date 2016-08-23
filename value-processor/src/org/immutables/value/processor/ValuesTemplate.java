@@ -44,7 +44,7 @@ abstract class ValuesTemplate extends AbstractTemplate {
   public abstract Templates.Invokable generate();
 
   public final String guava = UnshadeGuava.prefix();
-  
+
   public final LongBits longsFor = new LongBits();
 
   private Multimap<DeclaringPackage, ValueType> values;
@@ -58,7 +58,7 @@ abstract class ValuesTemplate extends AbstractTemplate {
     return values;
   }
 
-  Flag flag = new Flag();
+  final Flag flag = new Flag();
 
   static class Flag {
     boolean is;

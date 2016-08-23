@@ -1829,13 +1829,13 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 
   private [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorDefaultAttributes type type.implementedAttributes]
-    [generateAfterConstruction type false]
+    [generateAfterConstruction type false true]
   [/output.collapsible]}
 [else if type.generatePrivateNoargConstructor]
 
   private [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorNoAttributes type type.implementedAttributes]
-    [generateAfterConstruction type false]
+    [generateAfterConstruction type false true]
   [/output.collapsible]}
 [/if]
 [if type.useConstructor and (not type.generateConstructorUseCopyConstructor)]
@@ -1857,7 +1857,13 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [/if]
   [for v in type.constructorArguments, n = v.name]
+    [if v.hasVirtualImpl]
+      [if not v.instantiation.trivialOf]
+    [rr.virtualImpl v] = [valueFromValue v n];
+      [/if]
+    [else]
     this.[n] = [valueFromValue v n];
+    [/if]
   [/for]
 [if type.generateSafeDerived]
   [for v in type.constructorArguments if v.generateDefault]
@@ -1865,14 +1871,18 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
   [/for]
 [/if]
     [generateConstructorDefaultAttributes type type.constructorOmited]
-    [generateAfterConstruction type false]
+    [generateAfterConstruction type false false]
   }
 [/if]
 [if type.generateBuilderConstructor]
 
   private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
   [for v in getters if not (v.generateDerived or v.generateDefault), n = v.name]
+    [if v.hasVirtualImpl]
+    [rr.virtualImpl v] = [valueFromBuilder v]builder.[/valueFromBuilder];
+    [else]
     this.[n] = [valueFromBuilder v]builder.[/valueFromBuilder];
+    [/if]
   [/for]
 [-- Generate default values comes after required values]
 [if type.generateSafeDerived]
@@ -1894,7 +1904,7 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
 [/if]
 [/for]
     [generateDerivedConstruction type]
-    [generateAfterConstruction type true]
+    [generateAfterConstruction type true false]
   }
 [/if]
 [if type.useCopyMethods]
@@ -1919,7 +1929,9 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [/if]
   [for v in getters if not v.generateDerived]
+    [if not v.hasVirtualImpl]
     this.[v.name] = [v.name];
+    [/if]
   [/for]
   [if type.generateSafeDerived and type.hasDerivedAttributes]
   [for v in getters if v.generateDefault]
@@ -1927,7 +1939,7 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
   [/for]
   [/if]
     [generateDerivedConstruction type]
-    [generateAfterConstruction type false]
+    [generateAfterConstruction type false true]
   }
 [/if]
 [if type.generateSafeDerived]
@@ -2004,7 +2016,9 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 [/template]
 
 [template constructorAcceptType Attribute a][output.trim]
-[if a.typeKind.isMultimapKind]
+[if a.encoding]
+  [rr.constructorAcceptType a]
+[else if a.typeKind.isMultimapKind]
   [guava].collect.Multimap<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isMapKind]
   java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
@@ -2399,8 +2413,8 @@ public String toString() {
 [/if]
 [/template]
 
-[template generateAfterConstruction Type type Boolean usingBuilder]
-[rr.assignDefaultFields type.implementedAttributes]
+[template generateAfterConstruction Type type Boolean usingBuilder Boolean pureCopy]
+[rr.assignDefaultFields type.implementedAttributes pureCopy]
   [if type.usePrehashed]
 this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateAccessor type 'computeHashCode']()[/if];
   [/if]
@@ -2422,7 +2436,7 @@ this.[disambiguateField type 'initShim'] = null;
 return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([output.linesShortable]
     [if type.synthCopyConstructor]this,
     [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
-    [/if][if a.name eq modified.name][expression][else]this.[a.name][/if][/for][/output.linesShortable])[/validated];
+    [/if][if a.name eq modified.name][expression][else]this.[if a.hasVirtualImpl][a.names.get]()[else][a.name][/if][/if][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateReturnCopyContextual Type type Attribute modified]

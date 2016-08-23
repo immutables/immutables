@@ -24,35 +24,36 @@ import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.Structurizer.Statement;
 
 final class SourceMapper {
-	private static final Statement EMPTY_STATEMENT = new Statement.Builder().build();
+  private static final Statement EMPTY_STATEMENT = new Statement.Builder().build();
 
-	final Map<String, Statement> definitions = new LinkedHashMap<>();
-	final Function<String, Statement> get = Functions.forMap(definitions, EMPTY_STATEMENT);
+  final Map<String, Statement> definitions = new LinkedHashMap<>();
+  final Function<String, Statement> get = Functions.forMap(definitions, EMPTY_STATEMENT);
 
-	SourceMapper(CharSequence source) {
-		List<Term> terms = Code.termsFrom(source.toString());
-		mapDefinitions("", new Structurizer(terms).structurize());
-	}
+  SourceMapper(CharSequence source) {
+    List<Term> terms = Code.termsFrom(source.toString());
+    mapDefinitions("", new Structurizer(terms).structurize());
+  }
 
-	private void mapDefinitions(String prefix, List<Statement> statements) {
-		for (Statement statement : statements) {
-			if (statement.isClass()) {
-				mapDefinitions(prefix + statement.name().get() + ".", statement.definitions());
-			} else if (statement.name().isPresent()) {
-				definitions.put(prefix + statement.name().get(), statement);
-			}
-		}
-	}
+  private void mapDefinitions(String prefix, List<Statement> statements) {
+    for (Statement statement : statements) {
+      if (statement.isClass()) {
+        mapDefinitions(prefix + statement.name().get() + ".", statement.definitions());
+      } else if (statement.name().isPresent()) {
+        String suffix = statement.block().isEmpty() ? "" : "()";
+        definitions.put(prefix + statement.name().get() + suffix, statement);
+      }
+    }
+  }
 
-	List<Term> getExpression(String path) {
-		return get.apply(path).expression();
-	}
+  List<Term> getExpression(String path) {
+    return get.apply(path).expression();
+  }
 
-	List<Term> getBlock(String path) {
-		return get.apply(path).block();
-	}
+  List<Term> getBlock(String path) {
+    return get.apply(path).block();
+  }
 
-	List<Term> getAnnotations(String path) {
-		return get.apply(path).annotations();
-	}
+  List<Term> getAnnotations(String path) {
+    return get.apply(path).annotations();
+  }
 }

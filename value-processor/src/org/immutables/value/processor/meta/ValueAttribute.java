@@ -500,6 +500,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isEnumMap();
   }
 
+  public boolean hasVirtualImpl() {
+    return isEncoding() && instantiation.hasVirtualImpl();
+  }
+
   public String getUnwrappedElementType() {
     return isContainerType() && nullElements.ban()
         ? unwrapType(containmentTypeName())

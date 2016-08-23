@@ -48,7 +48,10 @@ public abstract class EncodedElement {
     EQUALS,
     COPY,
     DEPLURALIZE,
-    SYNTH
+    // syntethic element which is automatically inserted
+    SYNTH,
+    // applies to impl field
+    VIRTUAL
   }
 
   abstract String name();
@@ -69,14 +72,22 @@ public abstract class EncodedElement {
 
   abstract List<TypeParam> typeParams();
 
+  Param firstParam() {
+    return params().get(0);
+  }
+
   @Default
   StandardNaming standardNaming() {
     return StandardNaming.NONE;
   }
 
+  boolean isVirtual() {
+    return tags().contains(Tag.VIRTUAL);
+  }
+
   @Derived
   Code.Binding asBinding() {
-    return isField()
+    return isField() || isImplField()
         ? Code.Binding.newField(name())
         : Code.Binding.newMethod(name());
   }
@@ -225,7 +236,8 @@ public abstract class EncodedElement {
         || isToString()
         || isHashCode()
         || isFrom()
-        || isCopy();
+        || isCopy()
+        || isBuild();
   }
 
   boolean depluralize() {

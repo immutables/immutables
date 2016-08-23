@@ -96,7 +96,7 @@ public class CodeTest {
         + "\n}");
 
     check(Code.join(m1.getExpression("A.f"))).hasToString("1   +2");
-    check(Code.join(m1.getBlock("A.h"))).hasToString("{ return \"xxx\"; }");
+    check(Code.join(m1.getBlock("A.h()"))).hasToString("{ return \"xxx\"; }");
     check(Code.join(m1.getExpression("A.B.u"))).hasToString("1");
   }
 

@@ -52,7 +52,7 @@ final class OptionalList2<T> {
     return Objects.toString(this.list);
   }
 
-  @Encoding.Init
+  @Encoding.Of
   static <T> List<T> initFromOptional(Optional<List<T>> optional) {
     Objects.requireNonNull(optional, "optional"); // TODO: Adding this line causes methods to be
 // created twice in generated code
