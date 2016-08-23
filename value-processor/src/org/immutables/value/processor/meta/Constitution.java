@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.Proto.Protoclass.Kind;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
@@ -52,7 +53,10 @@ public abstract class Constitution {
 
   @Value.Lazy
   public Generics generics() {
-    return new Generics(protoclass(), protoclass().sourceElement());
+    return new Generics(protoclass(),
+        protoclass().kind() == Kind.DEFINED_CONSTRUCTOR
+            ? protoclass().sourceElement().getEnclosingElement()
+            : protoclass().sourceElement());
   }
 
   @Value.Derived
@@ -165,6 +169,17 @@ public abstract class Constitution {
           : typeImmutable();
     }
     if (isFactory()) {
+      if (protoclass().kind() == Kind.DEFINED_CONSTRUCTOR) {
+        return ImmutableConstitution.NameForms.builder()
+            .simple(protoclass().declaringType().get().element().getSimpleName().toString())
+            .relativeRaw(protoclass().declaringType().get().name())
+            .genericArgs(generics().args())
+            .relativeAlreadyQualified(true)
+            .packageOf(implementationPackage())
+            .visibility(protoclass().visibility())
+            .build();
+      }
+
       ExecutableElement method = (ExecutableElement) protoclass().sourceElement();
       String type = method.getReturnType().toString();
 
@@ -220,6 +235,10 @@ public abstract class Constitution {
    */
   @Value.Lazy
   public NameForms typeAbstract() {
+    if (protoclass().kind() == Kind.DEFINED_CONSTRUCTOR) {
+      return typeValue();
+    }
+
     List<String> classSegments = Lists.newArrayListWithExpectedSize(2);
     Element e = SourceNames.collectClassSegments(protoclass().sourceElement(), classSegments);
     verify(e instanceof PackageElement);
@@ -354,6 +373,10 @@ public abstract class Constitution {
   @Value.Lazy
   public AppliedNameForms factoryOf() {
     if (isFactory()) {
+      String invoke = protoclass().kind() == Kind.DEFINED_CONSTRUCTOR
+          ? "new"
+          : protoclass().sourceElement().getSimpleName().toString();
+
       return ImmutableConstitution.NameForms.builder()
           .simple(protoclass().declaringType().get().element().getSimpleName().toString())
           .relativeRaw(protoclass().declaringType().get().name())
@@ -362,8 +385,9 @@ public abstract class Constitution {
           .packageOf(implementationPackage())
           .visibility(protoclass().visibility())
           .build()
-          .applied(protoclass().sourceElement().getSimpleName().toString());
+          .applied(invoke);
     }
+
     return applyFactoryNaming(names().namings.of);
   }
 
@@ -566,7 +590,7 @@ public abstract class Constitution {
           : (base + '.' + genericArgs() + applied());
     }
   }
-  
+
   public static abstract class AbstractNameForms {
     private static final String PUBLIC_MODIFIER_PREFIX = "public ";
     private static final String PRIVATE_MODIFIER_PREFIX = "private ";

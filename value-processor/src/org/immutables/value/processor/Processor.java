@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.FConstructorMirror;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Multimap;
 import java.util.Set;
@@ -33,12 +34,13 @@ import org.immutables.value.processor.meta.ValueType;
 import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
 @SupportedAnnotationTypes({
-    FactoryMirror.QUALIFIED_NAME,
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
     IncludeMirror.QUALIFIED_NAME,
     ModifiableMirror.QUALIFIED_NAME,
-    ValueUmbrellaMirror.QUALIFIED_NAME
+    ValueUmbrellaMirror.QUALIFIED_NAME,
+    FactoryMirror.QUALIFIED_NAME,
+    FConstructorMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
   @Override

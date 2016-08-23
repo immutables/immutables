@@ -56,6 +56,29 @@ public @interface Builder {
   public @interface Factory {}
 
   /**
+   * The same as {@link Factory}, but for constructors rather than static methods.
+   * 
+   * <pre>
+   * class Sum {
+   *   {@literal @}Builder.Constructor
+   *    Sum(int a, int b) {
+   *      return a + b;
+   *   }
+   * }
+   * ... // use generated builder
+   * Sum sum = new SumBuilder()
+   *    .a(111)
+   *    .b(222)
+   *    .build();
+   * </pre>
+   * <p>
+   * Class level and package level style annotations fully supported (see {@link Style}).
+   */
+  @Documented
+  @Target(ElementType.CONSTRUCTOR)
+  public @interface Constructor {}
+
+  /**
    * Factory method parameter might be turned into builder parameter using this annotation.
    * 
    * <pre>

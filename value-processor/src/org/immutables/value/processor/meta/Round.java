@@ -186,6 +186,7 @@ public abstract class Round {
         collectIncludedAndDefinedBy((TypeElement) element);
         break;
       case METHOD:
+      case CONSTRUCTOR:
         collectDefinedBy((ExecutableElement) element);
         break;
       case PACKAGE:
@@ -208,6 +209,16 @@ public abstract class Round {
             .sourceElement(wrapElement(element))
             .declaringType(declaringType)
             .kind(Kind.DEFINED_FACTORY)
+            .build()));
+      }
+
+      if (declaringType.verifiedConstructor(element)) {
+        builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
+            .environment(environment())
+            .packageOf(declaringType.packageOf())
+            .sourceElement(wrapElement(element))
+            .declaringType(declaringType)
+            .kind(Kind.DEFINED_CONSTRUCTOR)
             .build()));
       }
     }

@@ -900,6 +900,7 @@ public class Proto {
         return false;
       }
       if (!isTopLevel()
+          || element.getKind() != ElementKind.METHOD
           || element.getReturnType().getKind() == TypeKind.VOID
           || element.getModifiers().contains(Modifier.PRIVATE)
           || !element.getModifiers().contains(Modifier.STATIC)) {
@@ -907,6 +908,24 @@ public class Proto {
             .annotationNamed(FactoryMirror.simpleName())
             .error("@%s method '%s' should be static, non-private, non-void and enclosed in top level type",
                 FactoryMirror.simpleName(),
+                element.getSimpleName());
+        return false;
+      }
+
+      return true;
+    }
+
+    boolean verifiedConstructor(ExecutableElement element) {
+      if (!FConstructorMirror.isPresent(element)) {
+        return false;
+      }
+      if (!isTopLevel()
+          || element.getKind() != ElementKind.CONSTRUCTOR
+          || element.getModifiers().contains(Modifier.PRIVATE)) {
+        report().withElement(element)
+            .annotationNamed(FConstructorMirror.simpleName())
+            .error("@%s annotated element should be non-private constructor in a top level type",
+                FConstructorMirror.simpleName(),
                 element.getSimpleName());
         return false;
       }
@@ -1375,7 +1394,11 @@ public class Proto {
     }
 
     TypeNames createTypeNames() {
-      return styles().forType(sourceElement().getSimpleName().toString());
+      Element sourceElement = sourceElement();
+      if (sourceElement.getKind() == ElementKind.CONSTRUCTOR) {
+        sourceElement = sourceElement.getEnclosingElement();
+      }
+      return styles().forType(sourceElement.getSimpleName().toString());
     }
 
     public enum Kind {
@@ -1383,6 +1406,7 @@ public class Proto {
       INCLUDED_ON_TYPE,
       INCLUDED_IN_TYPE,
       DEFINED_FACTORY,
+      DEFINED_CONSTRUCTOR,
       DEFINED_TYPE,
       DEFINED_TYPE_AND_COMPANION,
       DEFINED_COMPANION,
@@ -1454,7 +1478,8 @@ public class Proto {
       }
 
       public boolean isFactory() {
-        return this == DEFINED_FACTORY;
+        return this == DEFINED_FACTORY
+            || this == DEFINED_CONSTRUCTOR;
       }
 
       public boolean isEnclosingOnly() {

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ElementKind;
 import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -22,8 +23,10 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Parameterizable;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 
@@ -43,6 +46,9 @@ final class FactoryMethodAttributesCollector {
 
   void collect() {
     ExecutableElement factoryMethodElement = (ExecutableElement) protoclass.sourceElement();
+    Parameterizable element = (Parameterizable) (factoryMethodElement.getKind() == ElementKind.CONSTRUCTOR
+        ? factoryMethodElement.getEnclosingElement()
+        : type.element);
 
     for (VariableElement parameter : factoryMethodElement.getParameters()) {
       TypeMirror returnType = parameter.asType();
@@ -60,19 +66,18 @@ final class FactoryMethodAttributesCollector {
       attributes.add(attribute);
     }
 
-    // Not supported currently for factory builders until well tested
-    @Nullable InstantiationCreator instantiationCreator = null;
-//    Instantiator encodingInstantiator = protoclass.encodingInstantiator();
-//    @Nullable InstantiationCreator instantiationCreator =
-//        encodingInstantiator.creatorFor((Parameterizable) type.element);
+    Instantiator encodingInstantiator = protoclass.encodingInstantiator();
+
+    @Nullable InstantiationCreator instantiationCreator =
+        encodingInstantiator.creatorFor(element);
 
     for (ValueAttribute attribute : attributes) {
       attribute.initAndValidate(instantiationCreator);
     }
 
-//    if (instantiationCreator != null) {
-//      type.additionalImports(instantiationCreator.imports);
-//    }
+    if (instantiationCreator != null) {
+      type.additionalImports(instantiationCreator.imports);
+    }
 
     type.attributes.addAll(attributes);
     type.throwing = extractThrowsClause(factoryMethodElement);
