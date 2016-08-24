@@ -54,7 +54,7 @@ public abstract class Constitution {
   @Value.Lazy
   public Generics generics() {
     return new Generics(protoclass(),
-        protoclass().kind() == Kind.DEFINED_CONSTRUCTOR
+        protoclass().kind().isConstructor()
             ? protoclass().sourceElement().getEnclosingElement()
             : protoclass().sourceElement());
   }
@@ -169,13 +169,16 @@ public abstract class Constitution {
           : typeImmutable();
     }
     if (isFactory()) {
-      if (protoclass().kind() == Kind.DEFINED_CONSTRUCTOR) {
+
+      if (protoclass().kind().isConstructor()) {
+        TypeElement enclosingType = (TypeElement) protoclass().sourceElement().getEnclosingElement();
+
         return ImmutableConstitution.NameForms.builder()
-            .simple(protoclass().declaringType().get().element().getSimpleName().toString())
-            .relativeRaw(protoclass().declaringType().get().name())
+            .simple(enclosingType.getSimpleName().toString())
+            .relativeRaw(enclosingType.getQualifiedName().toString())
             .genericArgs(generics().args())
             .relativeAlreadyQualified(true)
-            .packageOf(implementationPackage())
+            .packageOf(NA_ERROR)
             .visibility(protoclass().visibility())
             .build();
       }
@@ -235,7 +238,7 @@ public abstract class Constitution {
    */
   @Value.Lazy
   public NameForms typeAbstract() {
-    if (protoclass().kind() == Kind.DEFINED_CONSTRUCTOR) {
+    if (protoclass().kind().isConstructor()) {
       return typeValue();
     }
 
@@ -373,16 +376,18 @@ public abstract class Constitution {
   @Value.Lazy
   public AppliedNameForms factoryOf() {
     if (isFactory()) {
-      String invoke = protoclass().kind() == Kind.DEFINED_CONSTRUCTOR
+      TypeElement enclosingType = (TypeElement) protoclass().sourceElement().getEnclosingElement();
+
+      String invoke = protoclass().kind().isConstructor()
           ? "new"
           : protoclass().sourceElement().getSimpleName().toString();
 
       return ImmutableConstitution.NameForms.builder()
-          .simple(protoclass().declaringType().get().element().getSimpleName().toString())
-          .relativeRaw(protoclass().declaringType().get().name())
+          .simple(enclosingType.getSimpleName().toString())
+          .relativeRaw(enclosingType.getQualifiedName().toString())
           .genericArgs(generics().args())
           .relativeAlreadyQualified(true)
-          .packageOf(implementationPackage())
+          .packageOf(NA_ERROR)
           .visibility(protoclass().visibility())
           .build()
           .applied(invoke);

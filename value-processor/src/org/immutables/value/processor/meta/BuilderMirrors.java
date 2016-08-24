@@ -26,6 +26,11 @@ public final class BuilderMirrors {
   @Mirror.Annotation("org.immutables.builder.Builder.Constructor")
   public @interface FConstructor {}
 
+  @Mirror.Annotation("org.immutables.builder.Builder.Include")
+  public @interface FInclude {
+    Class<?>[] value();
+  }
+
   @Mirror.Annotation("org.immutables.builder.Builder.Parameter")
   public @interface FParameter {}
 

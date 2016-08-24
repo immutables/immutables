@@ -93,6 +93,7 @@
 
                   <artifactSet>
                     <includes>
+                      <include>org.immutables:cases</include>
                       <include>org.immutables:generator</include>
                       <include>org.immutables:generator-processor</include>
                       <include>org.parboiled:parboiled-java</include>

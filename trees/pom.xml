@@ -21,10 +21,10 @@
     <groupId>org.immutables</groupId>
     <version>2.2.13-SNAPSHOT</version>
   </parent>
-  <artifactId>cases</artifactId>
+  <artifactId>trees</artifactId>
 
   <name>${project.groupId}.${project.artifactId}</name>
-  <description>Experimental and incomplete stuff goes here.</description>
+  <description>Stuff related to immutable object trees, including parboiled as and transformers.</description>
 
   <dependencies>
     <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
@@ -66,25 +66,7 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.atlassian.fugue</groupId>
-      <artifactId>fugue</artifactId>
-      <version>2.6.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.atlassian.fugue</groupId>
-      <artifactId>fugue</artifactId>
-      <version>3.0.0</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>spring-milestones</id>
-      <url>http://repo.spring.io/libs-milestone/</url>
-    </repository>
-  </repositories>
   <profiles>
     <profile>
       <id>lint-javadoc</id>

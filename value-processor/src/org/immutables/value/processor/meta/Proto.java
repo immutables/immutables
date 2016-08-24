@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.meta.BuilderMirrors.FInclude;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -399,8 +400,9 @@ public class Proto {
       return IncludeMirror.find(element());
     }
 
-    public boolean hasInclude() {
-      return include().isPresent();
+    @Value.Lazy
+    protected Optional<FIncludeMirror> builderInclude() {
+      return FIncludeMirror.find(element());
     }
 
     public String asPrefix() {
@@ -430,8 +432,33 @@ public class Proto {
     }
 
     @Value.Lazy
-    public List<TypeElement> includedTypes() {
+    List<TypeElement> includedTypes() {
       Optional<IncludeMirror> includes = include();
+
+      ImmutableList<TypeMirror> typeMirrors = includes.isPresent()
+          ? ImmutableList.copyOf(includes.get().valueMirror())
+          : ImmutableList.<TypeMirror>of();
+
+      FluentIterable<TypeElement> typeElements = FluentIterable.from(typeMirrors)
+          .filter(DeclaredType.class)
+          .transform(DeclatedTypeToElement.FUNCTION);
+
+      ImmutableSet<String> uniqueTypeNames = typeElements
+          .filter(IsPublic.PREDICATE)
+          .transform(ElementToName.FUNCTION)
+          .toSet();
+
+      if (uniqueTypeNames.size() != typeMirrors.size()) {
+        report().annotationNamed(IncludeMirror.simpleName())
+            .warning("Some types were ignored, non-supported for inclusion: duplicates, non declared reference types, non-public");
+      }
+
+      return typeElements.toList();
+    }
+
+    @Value.Lazy
+    List<TypeElement> builderIncludedTypes() {
+      Optional<FIncludeMirror> includes = builderInclude();
 
       ImmutableList<TypeMirror> typeMirrors = includes.isPresent()
           ? ImmutableList.copyOf(includes.get().valueMirror())
@@ -896,14 +923,7 @@ public class Proto {
     }
 
     boolean verifiedFactory(ExecutableElement element) {
-      if (!FactoryMirror.isPresent(element)) {
-        return false;
-      }
-      if (!isTopLevel()
-          || element.getKind() != ElementKind.METHOD
-          || element.getReturnType().getKind() == TypeKind.VOID
-          || element.getModifiers().contains(Modifier.PRIVATE)
-          || !element.getModifiers().contains(Modifier.STATIC)) {
+      if (!isTopLevel() || !suitableForBuilderFactory(element)) {
         report().withElement(element)
             .annotationNamed(FactoryMirror.simpleName())
             .error("@%s method '%s' should be static, non-private, non-void and enclosed in top level type",
@@ -916,12 +936,7 @@ public class Proto {
     }
 
     boolean verifiedConstructor(ExecutableElement element) {
-      if (!FConstructorMirror.isPresent(element)) {
-        return false;
-      }
-      if (!isTopLevel()
-          || element.getKind() != ElementKind.CONSTRUCTOR
-          || element.getModifiers().contains(Modifier.PRIVATE)) {
+      if (!isTopLevel() || !suitableForBuilderConstructor(element)) {
         report().withElement(element)
             .annotationNamed(FConstructorMirror.simpleName())
             .error("@%s annotated element should be non-private constructor in a top level type",
@@ -929,8 +944,19 @@ public class Proto {
                 element.getSimpleName());
         return false;
       }
-
       return true;
+    }
+
+    static boolean suitableForBuilderConstructor(ExecutableElement element) {
+      return element.getKind() == ElementKind.CONSTRUCTOR
+          && !element.getModifiers().contains(Modifier.PRIVATE);
+    }
+
+    static boolean suitableForBuilderFactory(ExecutableElement element) {
+      return element.getKind() == ElementKind.METHOD
+          && element.getReturnType().getKind() != TypeKind.VOID
+          && !element.getModifiers().contains(Modifier.PRIVATE)
+          && element.getModifiers().contains(Modifier.STATIC);
     }
 
     /**
@@ -938,10 +964,15 @@ public class Proto {
      */
     @Value.Check
     protected void validate() {
-      if (hasInclude() && !isTopLevel()) {
+      if (include().isPresent() && !isTopLevel()) {
         report()
             .annotationNamed(IncludeMirror.simpleName())
             .error("@%s could not be used on nested types.", IncludeMirror.simpleName());
+      }
+      if (builderInclude().isPresent() && !isTopLevel()) {
+        report()
+            .annotationNamed(FIncludeMirror.simpleName())
+            .error("@%s could not be used on nested types.", FIncludeMirror.simpleName());
       }
       if (isEnclosing() && !isTopLevel()) {
         report()
@@ -1404,6 +1435,10 @@ public class Proto {
     public enum Kind {
       INCLUDED_IN_PACKAGE,
       INCLUDED_ON_TYPE,
+      INCLUDED_FACTORY_IN_PACKAGE,
+      INCLUDED_FACTORY_ON_TYPE,
+      INCLUDED_CONSTRUCTOR_IN_PACKAGE,
+      INCLUDED_CONSTRUCTOR_ON_TYPE,
       INCLUDED_IN_TYPE,
       DEFINED_FACTORY,
       DEFINED_CONSTRUCTOR,
@@ -1477,9 +1512,29 @@ public class Proto {
             || this == DEFINED_COMPANION;
       }
 
+      public boolean isConstructor() {
+        switch (this) {
+        case DEFINED_CONSTRUCTOR:
+        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+        case INCLUDED_CONSTRUCTOR_ON_TYPE:
+          return true;
+        default:
+          return false;
+        }
+      }
+
       public boolean isFactory() {
-        return this == DEFINED_FACTORY
-            || this == DEFINED_CONSTRUCTOR;
+        switch (this) {
+        case DEFINED_FACTORY:
+        case INCLUDED_FACTORY_IN_PACKAGE:
+        case INCLUDED_FACTORY_ON_TYPE:
+        case DEFINED_CONSTRUCTOR:
+        case INCLUDED_CONSTRUCTOR_IN_PACKAGE:
+        case INCLUDED_CONSTRUCTOR_ON_TYPE:
+          return true;
+        default:
+          return false;
+        }
       }
 
       public boolean isEnclosingOnly() {

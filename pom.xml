@@ -52,7 +52,7 @@
     <module>value-processor</module>
     <module>value-fixture</module>
     <module>serial</module>
-    <module>cases</module>
+    <module>trees</module>
     <module>encode</module>
   </modules>
 
@@ -100,7 +100,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- artifacts of retro version used for self-bootstrap complilation -->
-    <retro.version>2.2.10</retro.version>
+    <retro.version>2.2.12</retro.version>
   </properties>
 
   <build>

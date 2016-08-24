@@ -78,6 +78,12 @@ public @interface Builder {
   @Target(ElementType.CONSTRUCTOR)
   public @interface Constructor {}
 
+  @Documented
+  @Target({ElementType.TYPE, ElementType.PACKAGE})
+  public @interface Include {
+    Class<?>[] value();
+  }
+
   /**
    * Factory method parameter might be turned into builder parameter using this annotation.
    * 

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.List;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
@@ -202,7 +203,8 @@ public abstract class Round {
     void collectDefinedBy(ExecutableElement element) {
       DeclaringType declaringType = declaringTypeFrom((TypeElement) element.getEnclosingElement());
 
-      if (declaringType.verifiedFactory(element)) {
+      if (FactoryMirror.isPresent(element)
+          && declaringType.verifiedFactory(element)) {
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
@@ -212,7 +214,8 @@ public abstract class Round {
             .build()));
       }
 
-      if (declaringType.verifiedConstructor(element)) {
+      if (FConstructorMirror.isPresent(element)
+          && declaringType.verifiedConstructor(element)) {
         builder.add(interners.forProto(ImmutableProto.Protoclass.builder()
             .environment(environment())
             .packageOf(declaringType.packageOf())
@@ -230,7 +233,7 @@ public abstract class Round {
           .element(wrapElement(element))
           .build());
 
-      if (declaringPackage.hasInclude()) {
+      if (declaringPackage.include().isPresent()) {
         for (TypeElement sourceElement : declaringPackage.includedTypes()) {
           builder.add(interners.forProto(
               ImmutableProto.Protoclass.builder()
@@ -241,12 +244,45 @@ public abstract class Round {
                   .build()));
         }
       }
+
+      if (declaringPackage.builderInclude().isPresent()) {
+        for (TypeElement includedType : declaringPackage.builderIncludedTypes()) {
+          for (ExecutableElement m : ElementFilter.methodsIn(includedType.getEnclosedElements())) {
+            if (DeclaringType.suitableForBuilderFactory(m)) {
+              builder.add(interners.forProto(
+                  ImmutableProto.Protoclass.builder()
+                      .environment(environment())
+                      .packageOf(declaringPackage)
+                      .sourceElement(wrapElement(m))
+                      .kind(Kind.INCLUDED_FACTORY_IN_PACKAGE)
+                      .build()));
+            }
+          }
+          for (ExecutableElement c : ElementFilter.constructorsIn(includedType.getEnclosedElements())) {
+            if (DeclaringType.suitableForBuilderConstructor(c)) {
+              builder.add(interners.forProto(
+                  ImmutableProto.Protoclass.builder()
+                      .environment(environment())
+                      .packageOf(declaringPackage)
+                      .sourceElement(wrapElement(c))
+                      .kind(Kind.INCLUDED_CONSTRUCTOR_IN_PACKAGE)
+                      .build()));
+              // stop on first suitable
+              // don't have any good idea how to handle multiple
+              // constructor. CBuilder, C2Builder, C3Builder for
+              // class C seems even more crazy than stop on first suitable
+              // but this is debatable
+              break;
+            }
+          }
+        }
+      }
     }
 
     void collectIncludedAndDefinedBy(TypeElement element) {
       DeclaringType declaringType = declaringTypeFrom(element);
 
-      if (declaringType.hasInclude()) {
+      if (declaringType.include().isPresent()) {
         Kind kind = declaringType.isEnclosing()
             ? Kind.INCLUDED_IN_TYPE
             : Kind.INCLUDED_ON_TYPE;
@@ -259,6 +295,41 @@ public abstract class Round {
               .declaringType(declaringType)
               .kind(kind)
               .build()));
+        }
+      }
+
+      if (declaringType.builderInclude().isPresent()) {
+        for (TypeElement includedType : declaringType.builderIncludedTypes()) {
+          for (ExecutableElement m : ElementFilter.methodsIn(includedType.getEnclosedElements())) {
+            if (DeclaringType.suitableForBuilderFactory(m)) {
+              builder.add(interners.forProto(
+                  ImmutableProto.Protoclass.builder()
+                      .environment(environment())
+                      .packageOf(declaringType.packageOf())
+                      .declaringType(declaringType)
+                      .sourceElement(wrapElement(m))
+                      .kind(Kind.INCLUDED_FACTORY_ON_TYPE)
+                      .build()));
+            }
+          }
+          for (ExecutableElement c : ElementFilter.constructorsIn(includedType.getEnclosedElements())) {
+            if (DeclaringType.suitableForBuilderConstructor(c)) {
+              builder.add(interners.forProto(
+                  ImmutableProto.Protoclass.builder()
+                      .environment(environment())
+                      .packageOf(declaringType.packageOf())
+                      .declaringType(declaringType)
+                      .sourceElement(wrapElement(c))
+                      .kind(Kind.INCLUDED_CONSTRUCTOR_ON_TYPE)
+                      .build()));
+              // stop on first suitable
+              // don't have any good idea how to handle multiple
+              // constructor. CBuilder, C2Builder, C3Builder for
+              // class C seems even more crazy than stop on first suitable
+              // but this is debatable
+              break;
+            }
+          }
         }
       }
 

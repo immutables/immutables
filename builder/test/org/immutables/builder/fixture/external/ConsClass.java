@@ -13,29 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.builder.fixture;
+package org.immutables.builder.fixture.external;
 
-import java.lang.annotation.RetentionPolicy;
-import org.immutables.builder.Builder;
+public class ConsClass {
+  final String c;
+  final boolean d;
 
-public class Pogo {
-  final int a;
-  final String b;
-  final RetentionPolicy policy;
-
-  @Builder.Constructor
-  public Pogo(@Builder.Parameter int a, String b, @Builder.Switch RetentionPolicy policy) {
-    this.a = a;
-    this.b = b;
-    this.policy = policy;
+  public ConsClass(String c, boolean d) {
+    this.c = c;
+    this.d = d;
   }
 
-  void use() {
-    Pogo pogo = new PogoBuilder(1)
-        .b("a")
-        .runtimePolicy()
-        .build();
-
-    pogo.toString();
+  public static String createConsClass(int a, int b) {
+    return "CONS" + a + ":" + b;
   }
 }

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor;
 
+import org.immutables.value.processor.meta.FIncludeMirror;
 import org.immutables.value.processor.meta.FConstructorMirror;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Multimap;
@@ -40,7 +41,8 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     ModifiableMirror.QUALIFIED_NAME,
     ValueUmbrellaMirror.QUALIFIED_NAME,
     FactoryMirror.QUALIFIED_NAME,
-    FConstructorMirror.QUALIFIED_NAME
+    FConstructorMirror.QUALIFIED_NAME,
+    FIncludeMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
   @Override

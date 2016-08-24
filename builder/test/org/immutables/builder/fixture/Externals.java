@@ -13,19 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.cases;
+package org.immutables.builder.fixture;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+import org.immutables.builder.Builder;
+import org.immutables.builder.fixture.external.ConsClass;
 
-/**
- * Umbrella annotation which groups nested annotation for generation of visitor-like constructs for
- * ADT-like case classes.
- */
-@Target({})
-public @interface Cases {
-  @Target({ElementType.PACKAGE, ElementType.TYPE})
-  public @interface Chain {
+@Builder.Include(ConsClass.class)
+public class Externals {
+  void use() {
+    ConsClassBuilder consBuilder = new ConsClassBuilder();
+    consBuilder.c("c").d(true).build();
 
+    CreateConsClassBuilder createBuilder = new CreateConsClassBuilder();
+    createBuilder.a(1).b(2).build();
   }
 }
