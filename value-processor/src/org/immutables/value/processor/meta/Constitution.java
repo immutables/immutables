@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Proto.Protoclass.Kind;
-import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -39,6 +37,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.PackageNaming;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
