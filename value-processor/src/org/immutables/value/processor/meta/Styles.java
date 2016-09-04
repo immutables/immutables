@@ -111,10 +111,6 @@ public final class Styles {
       this.forcedRaw = forcedRaw;
     }
 
-    private String detectRawFromGet() {
-      return Keywords.safeIdentifier(detectRawFrom(name), name);
-    }
-
     private String detectRawFrom(String name) {
       if (!forcedRaw.isEmpty()) {
         return forcedRaw;
@@ -205,56 +201,81 @@ public final class Styles {
       }
     }
 
-    public class AttributeNames {
-      public final String raw = detectRawFromGet();
-      public final String var = raw; // TODO use var everywhere
+    public final class AttributeNames {
+      public final String raw = detectRawFrom(name);
+      private final boolean rawIsKeyword = Keywords.is(raw);
+
       public final String get = name;
-      public final String init = scheme.init.apply(raw);
-      public final String with = scheme.with.apply(raw);
-      private ForCollections coll = null;
+      public final String var = apply(Naming.identity(), false);
+      public final String init = apply(scheme.init, false);
+      public final String with = apply(scheme.with, false);
 
       public String add() {
-        return collection().add;
+        return forCollection().add;
       }
 
       public String put() {
-        return collection().put;
+        return forCollection().put;
       }
 
       public String addAll() {
-        return collection().addAll;
+        return forCollection().addAll;
       }
 
       public String putAll() {
-        return collection().putAll;
+        return forCollection().putAll;
       }
 
       public String set() {
-        return scheme.set.apply(raw);
+        return apply(scheme.set, false);
       }
 
       public String isSet() {
-        return scheme.isSet.apply(raw);
+        return apply(scheme.isSet, false);
       }
 
       public String unset() {
-        return scheme.unset.apply(raw);
+        return apply(scheme.unset, false);
       }
 
-      public String singular() {
-        return depluralizer.depluralize(raw);
+      public String beanSet() {
+        return apply(BEAN_SET, false);
       }
 
-      private ForCollections collection() {
+      public final class ForCollections {
+        private final String singular = depluralizer.depluralize(raw);
+        private final boolean singularIsKeyword = Keywords.is(singular);
+
+        final String add = applySingular(scheme.add);
+        final String put = applySingular(scheme.put);
+        final String addAll = applyRegular(scheme.addAll);
+        final String putAll = applyRegular(scheme.putAll);
+
+        String applySingular(Naming naming) {
+          if (singularIsKeyword && naming.isIdentity()) {
+            return applyRegular(naming);
+          }
+          return naming.apply(singular);
+        }
+      }
+
+      private String applyRegular(Naming naming) {
+        if (rawIsKeyword && naming.isIdentity()) {
+          return name;
+        }
+        return naming.apply(raw);
+      }
+
+      public String apply(Naming naming, boolean depluralize) {
+        return depluralize
+            ? forCollection().applySingular(naming)
+            : applyRegular(naming);
+      }
+
+      private ForCollections coll = null;
+
+      private ForCollections forCollection() {
         return coll == null ? coll = new ForCollections() : coll;
-      }
-
-      public class ForCollections {
-        final String singular = singular();
-        final String add = scheme.add.apply(singular);
-        final String put = scheme.put.apply(singular);
-        final String addAll = scheme.addAll.apply(raw);
-        final String putAll = scheme.putAll.apply(raw);
       }
     }
   }
@@ -264,7 +285,7 @@ public final class Styles {
    * compilcate things. So here we're creating separate ad-hoc dead-simple naming pattern formatter
    * for package name templates.
    */
-  static class PackageNaming {
+  static final class PackageNaming {
     private final String template;
 
     PackageNaming(String template) {
@@ -284,4 +305,6 @@ public final class Styles {
       return template;
     }
   }
+
+  private static final Naming BEAN_SET = Naming.from("set*");
 }

@@ -104,7 +104,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private String rawTypeName;
 
   public String name() {
-    return names.raw;
+    return names.var;
   }
 
   public boolean isBoolean() {
@@ -263,7 +263,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (!serializedName.isEmpty()) {
       return serializedName;
     }
-    return name();
+    return names.raw;
   }
 
   public boolean isForcedEmpty() {
@@ -325,7 +325,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       String propertyAnnotation = "@" + JsonPropertyMirror.qualifiedName();
 
       if (protoclass().styles().style().forceJacksonPropertyNames()) {
-        propertyAnnotation += "(" + StringLiterals.toLiteral(name()) + ")";
+        propertyAnnotation += "(" + StringLiterals.toLiteral(names.raw) + ")";
       }
 
       allAnnotations.add(propertyAnnotation);
@@ -1305,7 +1305,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         report().annotationNamed(SwitchMirror.simpleName())
             .error("@%s annotation applicable only to enum parameters", SwitchMirror.simpleName());
       } else {
-        builderSwitcherModel = new SwitcherModel(switcher.get(), name(), containedTypeElement);
+        builderSwitcherModel = new SwitcherModel(switcher.get(), names, containedTypeElement);
       }
     }
   }

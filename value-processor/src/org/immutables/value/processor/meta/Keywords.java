@@ -32,8 +32,4 @@ class Keywords {
   static boolean is(String identifier) {
     return keywords.contains(identifier);
   }
-
-  static String safeIdentifier(String identifier, String fallback) {
-    return is(identifier) ? fallback : identifier;
-  }
 }

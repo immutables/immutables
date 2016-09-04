@@ -140,6 +140,10 @@ public final class Instantiation {
   }
 
   private String generateProperName(EncodedElement element) {
+    if (element.isImplField()) {
+      return names.var;
+    }
+
     if (element.isExpose()) {
       return names.get;
     }
@@ -173,11 +177,16 @@ public final class Instantiation {
       }
     }
 
-    String raw = element.depluralize() ? names.singular() : names.raw;
     if (element.isStaticField() && element.isFinal()) {
-      raw = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, raw);
+      String base = CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_UNDERSCORE, rawName());
+      return element.naming().apply(base);
     }
-    return element.naming().apply(raw);
+
+    return names.apply(element.naming(), element.depluralize());
+  }
+
+  private String rawName() {
+    return names.raw;
   }
 
   private boolean isInlined(EncodedElement el) {
@@ -203,7 +212,7 @@ public final class Instantiation {
 
       Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
       Code.Interpolator interpolator =
-          new Code.Interpolator(names.raw, contextBindings, overrideBindings);
+          new Code.Interpolator(rawName(), contextBindings, overrideBindings);
 
       if (isInlined(el)) {
         printWithIndentation(invokation, interpolator.apply(el.oneLiner()));
@@ -240,7 +249,7 @@ public final class Instantiation {
       }
 
       Code.Interpolator interpolator =
-          new Code.Interpolator(names.raw, contextBindings, null);
+          new Code.Interpolator(rawName(), contextBindings, null);
 
       printWithIndentation(invokation, interpolator.apply(code));
       return null;
@@ -259,7 +268,7 @@ public final class Instantiation {
 
       Code.Interpolator interpolator =
           new Code.Interpolator(
-              names.raw,
+              rawName(),
               contextBindings,
               overrideBindings);
 

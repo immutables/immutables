@@ -137,7 +137,7 @@ public final class Instantiator {
         if (contenders != null) {
           reporter.warning(
               "Encoding conflict for attribute '%s', the winning match: %s. Other applicable: %s",
-              names.raw, winner, contenders);
+              names.var, winner, contenders);
         }
 
         imports.addAll(winner.encoding.imports());

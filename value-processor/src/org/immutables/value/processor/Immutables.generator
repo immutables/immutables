@@ -1077,7 +1077,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [-- Being called from builder initializer methods --]
 [let checkNotIsSet Attribute v]
 [if v.containingType.useStrictBuilder]
-checkNotIsSet([v.names.isSet](), "[v.name]");
+checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [/if]
 [/let]
 [-- Being called from builder initializer methods --]
@@ -1615,11 +1615,11 @@ checkNotIsSet([v.names.isSet](), "[v.name]");
     java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [if type.useCompactBuilder]
       [for m in mandatories, BitPosition pos = positions m]
-    if (([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) != 0) attributes.add("[m.name]");
+    if (([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) != 0) attributes.add("[m.names.raw]");
       [/for]
     [else]
       [for m in mandatories]
-    if (![m.names.isSet]()) attributes.add("[m.name]");
+    if (![m.names.isSet]()) attributes.add("[m.names.raw]");
       [/for]
     [/if]
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
@@ -2063,7 +2063,7 @@ static final [output.linesShortable]class Json[type.generics]
   [for a in v.annotations]
   [a]
   [/for]
-  public void set[toUpper v.name]([v.atNullability][v.type] [v.name]) {
+  public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
     [if v.primitive or (v.requiresTrackIsSet and (not v.anyGetter))]
     this.[disambiguateField type (v.name 'IsSet')] = true;
@@ -2262,11 +2262,11 @@ private boolean equalTo([equalToType] another) {
   int [h] = 0;
 [for v in getters]
 [if v.arrayType]
-  [h] += 127 * "[v.name]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
+  [h] += 127 * "[v.names.get]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
 [else if v.primitive]
-  [h] += 127 * "[v.name]".hashCode() ^ [primitiveHashCode v];
+  [h] += 127 * "[v.names.get]".hashCode() ^ [primitiveHashCode v];
 [else]
-  [h] += 127 * "[v.name]".hashCode() ^ [v.name].hashCode();
+  [h] += 127 * "[v.names.get]".hashCode() ^ [v.name].hashCode();
 [/if]
 [/for]
   return [h];
@@ -2356,23 +2356,23 @@ public String toString() {
   [for v in type.equivalenceAttributes]
     [if v.encoding]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.name]=").append([rr.string v]);
+  builder.append("[v.names.raw]=").append([rr.string v]);
     [else if v.arrayType]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.name]=").append(java.util.Arrays.toString([v.name]));
+  builder.append("[v.names.raw]=").append(java.util.Arrays.toString([v.name]));
     [else if v.jdkOptional or v.nullable]
   if ([v.name] != null) {
     [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
-    builder.append("[v.name]=").append([v.name]);
+    builder.append("[v.names.raw]=").append([v.name]);
   }
     [else if v.optionalType]
   if ([v.name].[optionalPresent v]) {
     [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
-    builder.append("[v.name]=").append([v.name].[optionalGet v]);
+    builder.append("[v.names.raw]=").append([v.name].[optionalGet v]);
   }
     [else]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.name]=").append([v.name]);
+  builder.append("[v.names.raw]=").append([v.name]);
     [/if]
   [/for]
   return builder.append([if type.annotationType]")"[else]"}"[/if]).toString();
@@ -2380,11 +2380,11 @@ public String toString() {
   return [if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]
     [for v in type.equivalenceAttributes]
       [if v.arrayType]
-      + "[if not for.first], [/if][v.name]=" + java.util.Arrays.toString([v.name])
+      + "[if not for.first], [/if][v.names.raw]=" + java.util.Arrays.toString([v.name])
       [else if v.encoding]
-      + "[if not for.first], [/if][v.name]=" + ([rr.string v])
+      + "[if not for.first], [/if][v.names.raw]=" + ([rr.string v])
       [else]
-      + "[if not for.first], [/if][v.name]=" + [v.name]
+      + "[if not for.first], [/if][v.names.raw]=" + [v.name]
       [/if]
     [/for]
       + [if type.annotationType]")"[else]"}"[/if];
@@ -2394,17 +2394,17 @@ public String toString() {
       .omitNullValues()
   [for v in type.equivalenceAttributes]
   [if v.encoding]
-      .add("[v.name]", [rr.string v])
+      .add("[v.names.raw]", [rr.string v])
   [else if v.arrayType]
-      .add("[v.name]", java.util.Arrays.toString([v.name]))
+      .add("[v.names.raw]", java.util.Arrays.toString([v.name]))
   [else if v.jdkOptional]
-      .add("[v.name]", [v.name])
+      .add("[v.names.raw]", [v.name])
   [else if v.guavaOptional]
-      .add("[v.name]", [v.name].orNull())
+      .add("[v.names.raw]", [v.name].orNull())
   [else if v.optionalType]
-      .add("[v.name]", [v.name].[optionalPresent v] ? [v.name].[optionalGet v] : null)
+      .add("[v.names.raw]", [v.name].[optionalPresent v] ? [v.name].[optionalGet v] : null)
   [else]
-      .add("[v.name]", [v.name])
+      .add("[v.names.raw]", [v.name])
   [/if]
   [/for]
       .toString();

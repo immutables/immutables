@@ -15,6 +15,7 @@
  */
 package org.immutables.generator.processor;
 
+import com.google.common.base.Throwables;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
@@ -140,17 +141,25 @@ public final class TypeResolver {
         return (BoundAccessExpression) expression;
       }
 
-      BoundAccessExpression.Builder builder =
-          BoundAccessExpression.builder()
-              .addAllPath(expression.path());
+      try {
 
-      Accessors.BoundAccess accessor = null;
-      for (Trees.Identifier identifier : expression.path()) {
-        accessor = bindAccess(accessor, identifier.value());
-        builder.addAccessor(accessor);
+        BoundAccessExpression.Builder builder =
+            BoundAccessExpression.builder()
+                .addAllPath(expression.path());
+
+        Accessors.BoundAccess accessor = null;
+        for (Trees.Identifier identifier : expression.path()) {
+          accessor = bindAccess(accessor, identifier.value());
+          builder.addAccessor(accessor);
+        }
+
+        return builder.build();
+
+      } catch (Exception ex) {
+        RuntimeException exception = new RuntimeException("Path " + expression.path() + ": " + ex.getMessage());
+        exception.setStackTrace(ex.getStackTrace());
+        throw exception;
       }
-
-      return builder.build();
     }
 
     Accessors.BoundAccess bindAccess(@Nullable Accessors.BoundAccess previous, String name) {
