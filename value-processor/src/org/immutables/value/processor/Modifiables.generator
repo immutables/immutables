@@ -822,11 +822,11 @@ public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
 [v.name] = [optionalEmpty v];
   [else if v.containerType and (not (v.guavaImmutableDeclared or v.nullable))]
     [if v.nullableCollector]
-  if ([v.name] != null) {
-    [v.name].clear();
-  }
-    [else]
+if ([v.name] != null) {
   [v.name].clear();
+}
+    [else]
+[v.name].clear();
     [/if]
   [else if v.boolean]
 [v.name] = false;
