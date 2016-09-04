@@ -692,15 +692,15 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][constructorAcceptType v] [v.name][/for]) {
-    return [validated type false]new [type.typeImmutable.simple][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
+    return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
 [if type.useValidation]
 
-  private static [type.generics.spaceAfter][type.typeImmutable.simple][type.generics.args] validate([type.typeImmutable.simple][type.generics.args] instance) {
+  private static [type.generics.spaceAfter][type.typeImmutable.simple][type.generics.args] validate([type.typeImmutable.relative] instance) {
 [for vm in type.validationMethods]
   [if vm.normalize]
-    instance = ([type.typeImmutable.simple][type.generics.args]) instance.[vm.name]();
+    instance = ([type.typeImmutable.relative]) instance.[vm.name]();
   [else]
     instance.[vm.name]();
   [/if]
@@ -708,10 +708,10 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [if type.useSingletonOnly]
     return INSTANCE != null ? INSTANCE : instance;[-- may be null during initialization --]
 [else if type.generateOrdinalValue]
-    return ([type.typeImmutable.simple]) instance.domain.internOrdinal(new InternProxy(instance));
+    return ([type.typeImmutable.relative]) instance.domain.internOrdinal(new InternProxy(instance));
 [else if type.useInterned]
   [if type.generateJdkOnly]
-    [atNullable][type.typeImmutable.simple] interned = INTERNER.putIfAbsent(new InternProxy(instance), instance);
+    [atNullable][type.typeImmutable.relative] interned = INTERNER.putIfAbsent(new InternProxy(instance), instance);
     return interned != null ? interned : instance;
   [else]
     return INTERNER.intern(new InternProxy(instance)).instance;
@@ -728,7 +728,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [template generateSingletonInstance Type type]
 [if type.useSingleton]
 
-  private static final [type.typeImmutable.simple] INSTANCE = [validated type false]new [type.typeImmutable.simple]()[/validated];
+  private static final [type.typeImmutable.simple] INSTANCE = [validated type false]new [type.typeImmutable.relativeRaw]()[/validated];
 
   /**
    * Returns the default immutable singleton value of {@code [type.name]}

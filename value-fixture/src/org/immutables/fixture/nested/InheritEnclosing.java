@@ -13,26 +13,30 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture.jackson;
+package org.immutables.fixture.nested;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.List;
 import org.immutables.value.Value;
 
-@Value.Immutable
-@Value.Style(get = {"get*", "is*"}, init = "set*", forceJacksonPropertyNames = false)
-@JsonDeserialize(as = ImmutableKeywordNames.class)
-public interface KeywordNames {
-  long getLong();
+@Value.Enclosing
+public interface InheritEnclosing {
+  @Value.Immutable
+  interface Impl extends InheritEnclosing {
+    int value();
+  }
 
-  boolean isDefault();
+  @Value.Immutable
+  interface Impl2 extends InheritEnclosing {
+    @Value.Parameter
+    int value();
+  }
 
-  default void use() {
-    ImmutableKeywordNames names = ImmutableKeywordNames.builder()
-        .setDefault(true)
-        .setLong(1L)
-        .build();
+  @Value.Immutable
+  interface Impl3 extends InheritEnclosing {
+    @Value.Parameter
+    int value();
 
-    names.getLong();
-    names.isDefault();
+    @Value.Parameter
+    List<Boolean> bools();
   }
 }
