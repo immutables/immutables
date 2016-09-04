@@ -124,7 +124,7 @@ public final class FromSupertypesModel {
       // it (null) should never happen in theory
       return false;
     }
-    return accessor.getReturnType().equals(attr.returnType);
+    return accessor.getReturnType().toString().equals(attr.returnType.toString());
   }
 
   private @Nullable ExecutableElement findMethod(TypeElement typeElement, String getter) {

@@ -59,3 +59,31 @@ abstract class BuildFromRegression2 implements Supertype2 {
         .build();
   }
 }
+
+interface Supertype3 {
+  String getFoo();
+
+  List<String> getFoos();
+}
+
+
+@Value.Immutable
+@Value.Style(visibility = Value.Style.ImplementationVisibility.PUBLIC)
+abstract class BuildFromRegression3 implements Supertype3 {
+  @Override
+  public abstract List<String> getFoos();
+
+  public ImmutableBuildFromRegression3 append(ImmutableBuildFromRegression3 that) {
+    return ImmutableBuildFromRegression3.builder()
+        .from(this)
+        .addAllFoos(that.getFoos())
+        .build();
+  }
+
+  public ImmutableBuildFromRegression3 append(Supertype3 that) {
+    return ImmutableBuildFromRegression3.builder()
+        .from(this)
+        .from(that)
+        .build();
+  }
+}
