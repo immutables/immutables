@@ -51,6 +51,14 @@ License
 Changelog
 ---------
 
+### 2.3 (2016-09-06)
+- Minor change and bugfix release. Thanks to issue reporters!
+- Things to be aware of
+  + Generated naming changed when inferred attribute name clashes with keyword. Previously for `isDefault` accessor, corresponding initializer `setIsDefault` would be generated for `"set*"` pattern. Now it `setDefault` will be the name of generated method. JSON name `default` would be also derived.
+  + `org.immutables:trees` module is renamed from the old `cases` module
+  + While still experimental, encodings are taking more shape now. `@Encoding.Init` on value replaced with separate `@Encoding.Of` annotation to better express purpose, for builders `@Encoding.Init` serve the same role as before.  
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.3)
+
 ### 2.2.12 (2016-08-18)
 - Bugfixes! Thanks to issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.2.12)
