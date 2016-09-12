@@ -39,4 +39,7 @@ public interface InheritEnclosing {
     @Value.Parameter
     List<Boolean> bools();
   }
+
+  @Value.Immutable(singleton = true)
+  interface Impl4 {}
 }

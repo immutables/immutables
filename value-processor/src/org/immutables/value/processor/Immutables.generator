@@ -697,7 +697,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/if]
 [if type.useValidation]
 
-  private static [type.generics.spaceAfter][type.typeImmutable.simple][type.generics.args] validate([type.typeImmutable.relative] instance) {
+  private static [type.generics.spaceAfter][type.typeImmutable.relative] validate([type.typeImmutable.relative] instance) {
 [for vm in type.validationMethods]
   [if vm.normalize]
     instance = ([type.typeImmutable.relative]) instance.[vm.name]();
@@ -728,7 +728,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [template generateSingletonInstance Type type]
 [if type.useSingleton]
 
-  private static final [type.typeImmutable.simple] INSTANCE = [validated type false]new [type.typeImmutable.relativeRaw]()[/validated];
+  private static final [type.typeImmutable.relative] INSTANCE = [validated type false]new [type.typeImmutable.relativeRaw]()[/validated];
 
   /**
    * Returns the default immutable singleton value of {@code [type.name]}
