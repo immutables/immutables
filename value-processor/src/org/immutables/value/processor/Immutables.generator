@@ -2095,7 +2095,7 @@ static final [output.linesShortable]class Json[type.generics]
  * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
-@com.fasterxml.jackson.annotation.JsonCreator
+@com.fasterxml.jackson.annotation.JsonCreator(mode = com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING)
 static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.generics.args] json) {
 [let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
