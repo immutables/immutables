@@ -51,6 +51,10 @@ License
 Changelog
 ---------
 
+### 2.3.2 (2016-09-27)
+- Really minor change and bugfix release. Thanks to issue reporters!
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.3.2)
+
 ### 2.3 (2016-09-06)
 - Minor change and bugfix release. Thanks to issue reporters!
 - Things to be aware of
