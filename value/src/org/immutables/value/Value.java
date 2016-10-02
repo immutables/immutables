@@ -580,7 +580,7 @@ public @interface Value {
     String create() default "create";
 
     /**
-     * Method to convert to instanse of modifiable type to "canonical" immutable instance.
+     * Method to convert to instance of modifiable type to "canonical" immutable instance.
      * @return naming template
      */
     String toImmutable() default "toImmutable";
@@ -634,7 +634,7 @@ public @interface Value {
      */
     String typeModifiable() default "Modifiable*";
 
-    /*
+    /**
      * Generated "with" interface name. Used to detect a demand and generate "with" interface.
      * @return naming template
      */
