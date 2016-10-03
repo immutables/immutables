@@ -46,7 +46,7 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>cases</artifactId>
+      <artifactId>trees</artifactId>
       <version>${retro.version}</version>
     </dependency>
     <dependency>

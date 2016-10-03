@@ -37,6 +37,7 @@ import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
+import org.immutables.value.processor.meta.ValueAttribute.NullElements;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -70,6 +71,7 @@ class TypeStringProvider {
   String secondaryElementTypeAnnotation;
   boolean processNestedTypeUseAnnotations;
   boolean forAttribute = false;
+  NullElements nullElements = NullElements.BAN;
 
   TypeStringProvider(
       Reporter reporter,
@@ -260,7 +262,7 @@ class TypeStringProvider {
     case TYPEVAR:
       if (allowedTypevars.length != 0) {
         TypeVariable typeVariable = (TypeVariable) type;
-        String var = typeVariable.toString();// .asElement().getSimpleName().toString()
+        String var = typeVariable.toString();
         int indexOfVar = Arrays.asList(allowedTypevars).indexOf(var);
         if (indexOfVar >= 0) {
           if (typevarArguments != null) {
@@ -302,7 +304,7 @@ class TypeStringProvider {
       buffer.append('<');
       boolean notFirst = false;
       for (TypeMirror argument : arguments) {
-        typeAnnotationHandle(argument, notFirst);
+        typeAnnotationHandle(argument);
         if (notFirst) {
           buffer.append(',').append(' ');
         }
@@ -315,17 +317,23 @@ class TypeStringProvider {
     }
   }
 
-  private void typeAnnotationHandle(TypeMirror argument, boolean notFirst) {
+  private void typeAnnotationHandle(TypeMirror argument) {
     if (!processNestedTypeUseAnnotations) {
       return;
     }
     List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(argument);
     if (!annotations.isEmpty()) {
       String typeAnnotations = typeAnnotationsToBuffer(annotations).toString();
-      if (notFirst) {
-        secondaryElementTypeAnnotation = typeAnnotations;
-      } else {
-        elementTypeAnnotations = typeAnnotations;
+      assignElementNullness(typeAnnotations);
+    }
+  }
+
+  private void assignElementNullness(String annotationString) {
+    if (annotationString != null) {
+      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)) {
+        nullElements = NullElements.ALLOW;
+      } else if (annotationString.contains(EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
+        nullElements = NullElements.SKIP;
       }
     }
   }
@@ -335,4 +343,7 @@ class TypeStringProvider {
       typeParameterStrings.add(buffer.substring(mark));
     }
   }
+
+  static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";
+  static final String EPHEMERAL_ANNOTATION_SKIP_NULLS = "SkipNulls";
 }

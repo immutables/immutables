@@ -120,7 +120,7 @@ public class NullableAttributesTest {
 
   @Test
   public void skipNullElements() {
-    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+    ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
         .addSk((String) null)
         .addSk("a")
         .addSk((String) null)
@@ -137,7 +137,7 @@ public class NullableAttributesTest {
 
   @Test
   public void skipNullValues() {
-    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+    ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
         .putSm("a", null)
         .putSm("b", 1)
         .putAllSm(Collections.singletonMap("c", null))
@@ -148,7 +148,7 @@ public class NullableAttributesTest {
 
   @Test
   public void allowNulls() {
-    ImmutableNullableElements elements = ImmutableNullableElements.builder()
+    ImmutableNullablyElements elements = ImmutableNullablyElements.builder()
         .addAl((Void) null)
         .addAl(null, null, null)
         .addAllAl(Arrays.asList((Void) null))
@@ -162,7 +162,7 @@ public class NullableAttributesTest {
 
   @Test
   public void banNulls() {
-    ImmutableNullableElements.Builder b = ImmutableNullableElements.builder();
+    ImmutableNullablyElements.Builder b = ImmutableNullablyElements.builder();
     try {
       b.addRg((String) null);
       check(false);

@@ -58,8 +58,6 @@ import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisi
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
 public final class ValueAttribute extends TypeIntrospectionBase {
-  private static final String EPHEMERAL_ANNOTATION_SKIP_NULLS = "SkipNulls";
-  private static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";
   private static final WholeTypeVariable NON_WHOLE_TYPE_VARIABLE = new WholeTypeVariable(-1);
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
@@ -998,7 +996,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.returnTypeName = provider.returnTypeName();
     this.typeParameters = provider.typeParameters();
     this.hasTypeVariables = provider.hasTypeVariables;
-    extractTypeAnnotationInfo(provider);
+    this.nullElements = provider.nullElements;
   }
 
   public NullElements nullElements = NullElements.BAN;
@@ -1018,25 +1016,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
     public boolean skip() {
       return this == SKIP;
-    }
-  }
-
-  private void extractTypeAnnotationInfo(TypeStringProvider provider) {
-    int paramsCount = this.typeParameters.size();
-    if (paramsCount == 1) {
-      assignElementNullness(provider.elementTypeAnnotations);
-    } else if (paramsCount == 2) {
-      assignElementNullness(provider.secondaryElementTypeAnnotation);
-    }
-  }
-
-  private void assignElementNullness(String annotationString) {
-    if (annotationString != null) {
-      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)) {
-        nullElements = NullElements.ALLOW;
-      } else if (annotationString.contains(EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
-        nullElements = NullElements.SKIP;
-      }
     }
   }
 

@@ -25,7 +25,7 @@ import org.immutables.value.Value;
  */
 @Value.Style(jdkOnly = true)
 @Value.Immutable
-public interface NullableElements {
+public interface NullablyElements {
   List<@NullableUse Void> al();
 
   List<@SkipNulls String> sk();

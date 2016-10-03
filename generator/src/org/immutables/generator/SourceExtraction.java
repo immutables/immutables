@@ -188,7 +188,7 @@ public final class SourceExtraction {
 
 		@Override
 		public CharSequence extractReturnType(ExecutableElement executableElement) {
-			return UNABLE_TO_EXTRACT;
+      return UNABLE_TO_EXTRACT;
 		}
 	}
 

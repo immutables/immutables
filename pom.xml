@@ -54,6 +54,7 @@
     <module>serial</module>
     <module>trees</module>
     <module>encode</module>
+    <module>encode-sample</module>
   </modules>
 
   <organization>
@@ -99,8 +100,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- artifacts of retro version used for self-bootstrap complilation -->
-    <retro.version>2.2.12</retro.version>
+    <retro.version>2.3.2</retro.version>
   </properties>
 
   <build>
