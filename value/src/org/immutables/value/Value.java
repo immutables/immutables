@@ -1048,6 +1048,18 @@ public @interface Value {
     Class<?>[] immutableCopyOfRoutines() default {};
 
     /**
+     * Staged (aka telescopic) builders are a special flavor of builders which provides compile-time
+     * safety to a staged building. Providing proposals to insert mandatory attributes one by one,
+     * and then allowing adding any optional or collection attributes in any order before calling
+     * the build method. This option also implies {@link #strictBuilder()} is automatically enabled.
+     * <p>
+     * <em>Note: this functionality is experimental and may not play well with other functionality.
+     * </em>
+     * @return if telescopic builders are used, {@code false} by default
+     */
+    boolean stagedBuilder() default false;
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.

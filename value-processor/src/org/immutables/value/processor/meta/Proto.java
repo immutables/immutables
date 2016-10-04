@@ -1706,7 +1706,8 @@ public class Proto {
           input.throwForInvalidImmutableStateName(),
           input.depluralize(),
           input.depluralizeDictionary(),
-          ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()));
+          ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),
+          input.stagedBuilder());
     }
   }
 

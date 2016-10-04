@@ -272,6 +272,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   public abstract ImmutableSet<String> immutableCopyOfRoutinesNames();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean stagedBuilder();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);

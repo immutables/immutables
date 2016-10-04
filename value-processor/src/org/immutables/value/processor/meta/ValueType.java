@@ -806,7 +806,23 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   public boolean isUseStrictBuilder() {
-    return constitution.style().strictBuilder();
+    return constitution.style().strictBuilder()
+        || constitution.style().stagedBuilder();
+  }
+
+  private @Nullable TelescopicBuild telescopicBuild;
+
+  public @Nullable TelescopicBuild getTelescopicBuild() {
+    if (telescopicBuild == null) {
+      if (constitution.style().stagedBuilder()
+          && !getMandatoryAttributes().isEmpty()) {
+        TelescopicBuild tb = TelescopicBuild.from(getSettableAttributes());
+        if (!tb.stages.isEmpty()) {
+          telescopicBuild = tb;
+        }
+      }
+    }
+    return telescopicBuild;
   }
 
   public boolean isGeneratePrivateNoargConstructor() {

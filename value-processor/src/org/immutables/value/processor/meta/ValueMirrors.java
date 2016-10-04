@@ -196,6 +196,8 @@ public final class ValueMirrors {
 
     Class<?>[] immutableCopyOfRoutines() default {};
 
+    boolean stagedBuilder() default false;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

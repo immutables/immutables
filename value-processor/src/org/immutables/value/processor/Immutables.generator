@@ -166,7 +166,7 @@ import static [routine].immutableCopyOf;
   [/for]
    * @return A new [type.typeValue.simple] builder
    */
-  public static[type.generics.def] [type.typeBuilderImpl.relative] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  public static[type.generics.def] [factoryBuildStageBuilderType type] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilderImpl.relative]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
   [if parameters and (not type.kind.isFactory)]
@@ -292,7 +292,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
 
   Object readResolve() {
 [if type.useBuilder]
-    [type.typeBuilder] builder = [type.factoryBuilder.relative]();
+    [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
 
     for (int i = 0; i < names.length; i++) {
       switch (names['[i]']) {
@@ -756,7 +756,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     return ([type.typeImmutable.relative]) instance;
   }
 [if type.useBuilder]
-  return [type.factoryBuilder.relative]()
+  return [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder]
     [if type.generateBuilderFrom]
       .[type.names.from](instance)
     [else]
@@ -824,6 +824,161 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
 [/template]
 
+[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
+
+[template factoryBuildStageBuilderType Type type][for tb = type.telescopicBuild][if tb][toUpper tb.firstStage.attribute.name]BuildStage[type.generics.args][else][type.typeBuilderImpl.relative][/if][/for][/template]
+
+[template telescopicBuilderImplementInterfaces Type type][for tb = type.telescopicBuild][if tb][for nt in tb.stages, v = nt.attribute][toUpper v.name]BuildStage[type.generics.args], [/for]BuildFinal[type.generics.args][/if][/for][/template]
+
+[template generateTelescopicBuilderInterfaces Type type]
+[for tb = type.telescopicBuild]
+[if tb]
+[for nt in tb.stages, v = nt.attribute]
+[let builderReturn][if nt.next][toUpper nt.next.attribute.name]BuildStage[type.generics.args][else]BuildFinal[type.generics.args][/if][/let]
+
+public interface [toUpper v.name]BuildStage[type.generics] {
+  /**
+   * Initializes the value for the [sourceDocRef type v] attribute.
+   * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  [builderReturn] [v.names.init]([v.type] [v.name]);
+}
+[/for]
+
+public interface BuildFinal[type.generics] {
+[for v in tb.finals]
+[if v.encoding]
+  [-- not implemented --]
+[else if v.collectionType]
+
+  /**
+   * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param element A [v.name] element
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.add]([v.unwrappedElementType] element);
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements An array of [v.name] elements
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.add]([v.unwrappedElementType]... elements);
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements An iterable of [v.name] elements
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.addAll](Iterable<[v.consumedElementType]> elements);
+[else if v.optionalType]
+
+  /**
+   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
+   * @return {@code this} builder for chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.init]([unwrappedOptionalType v] [v.name]);
+
+  /**
+   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * @param [v.name] The value for [v.name]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]);
+[else if v.mapType]
+  [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
+    [if v.multimapType]
+
+  /**
+   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key The key for [v.name]
+   * @param values The values for [v.name]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.put]([uK] key, [uV]... values);
+
+  /**
+   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * @param key The key for [v.name]
+   * @param values The values for [v.name]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.putAll]([uK] key, Iterable<[wV]> values);
+    [/if]
+
+  /**
+   * Put one entry to the [sourceDocRef type v] map.
+   * @param key The key in the [v.name] map
+   * @param value The associated value in the [v.name] map
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.put]([uK] key, [uV] value);
+
+  /**
+   * Put one entry to the [sourceDocRef type v] map. Nulls are not permitted
+   * @param entry The key and value entry
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry);
+
+  /**
+   * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+   * @param [v.name] The entries that will be added to the [v.name] map
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]);
+  [/for]
+[else if v.arrayType]
+
+  /**
+   * Initializes the value for the [sourceDocRef type v] attribute.
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
+  [/if]
+   * @param [v.name] The elements for [v.name]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.init]([v.elementType]... [v.name]);
+[else]
+
+  /**
+   * Initializes the value for the [sourceDocRef type v] attribute.
+  [if v.generateDefault]
+   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef type v].</em>
+  [/if]
+   * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [deprecation v]
+  BuildFinal[type.generics.args] [v.names.init]([v.atNullability][v.type] [v.name]);
+[/if]
+[/for]
+
+  /**
+   * Builds a new {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
+   * @return An immutable instance of [type.name]
+   * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
+   */
+  [type.typeValue.relative] [type.names.build]();
+}
+[/if]
+[/for]
+[/template]
+
 [template generateBuilder Type type Boolean topLevel]
 [packageWhenTopLevel type topLevel]
 [for setters = type.settableAttributes,
@@ -851,7 +1006,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple][type.generics] [if type.innerBuilder.isSuper]
-    [if type.innerBuilder.isInterface]implements[else]extends[/if] [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args] {[else]{[/if]
+    [if type.innerBuilder.isInterface]implements[if type.telescopicBuild][telescopicBuilderImplementInterfaces type][/if][else]extends[/if] [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args] {[else if type.telescopicBuild]implements [telescopicBuilderImplementInterfaces type] {[else]{[/if]
 [if type.constitution.outsideBuilder]
   [rr.staticFields setters]
   [rr.staticMethods setters]
@@ -1639,6 +1794,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [collectionUtility type]
 [/if]
 }
+[if type.telescopicBuild and (not topLevel)]
+[generateTelescopicBuilderInterfaces type]
+[/if]
 [/for]
 [/template]
 
@@ -1973,7 +2131,7 @@ private transient volatile InitShim [disambiguateField type 'initShim'] = new In
 
 private final class InitShim {
 [for v in deriveds]
-  [let stage][disambiguateField type][v.name]Stage[/disambiguateField][/let]
+  [let stage][disambiguateField type][v.name]BuildStage[/disambiguateField][/let]
   [let invokeSuperGet][disambiguateAccessor type][v.names.get]Initialize[/disambiguateAccessor][/let]
   private [immutableImplementationType v] [v.name];
   private int [stage];
@@ -1999,7 +2157,7 @@ private final class InitShim {
   private String formatInitCycleMessage() {
     java.util.ArrayList<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
     [for v in deriveds]
-    [let stage][disambiguateField type][v.name]Stage[/disambiguateField][/let]
+    [let stage][disambiguateField type][v.name]BuildStage[/disambiguateField][/let]
     if ([stage] == STAGE_INITIALIZING) attributes.add("[v.name]");
     [/for]
     return "Cannot build [type.name], attribute initializers form cycle" + attributes;
@@ -2099,7 +2257,7 @@ static final [output.linesShortable]class Json[type.generics]
 static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.generics.args] json) {
 [let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
-  [type.typeBuilder.relative] builder = [type.factoryBuilder.relative]();
+  [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
   [for v in type.settableAttributes]
   [if v.requiresTrackIsSet or v.primitive]
   if (json.[disambiguateField type (v.name 'IsSet')]) {
