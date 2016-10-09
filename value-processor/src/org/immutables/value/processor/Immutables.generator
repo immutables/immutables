@@ -135,6 +135,9 @@ import static [routine].immutableCopyOf;
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
+[if classpath.available 'javax.annotation.CheckReturnValue' and classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue']
+@javax.annotation.CheckReturnValue
+[/if]
 [for a in type.passedAnnotations]
 [a]
 [/for]
@@ -1116,6 +1119,7 @@ public interface BuildFinal[type.generics] {
    * Specify a non-default {@link Domain} for ordinal values.
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public final [builderReturnType type] domain(Domain domain) {
     this.domain = [requireNonNull type](domain, "domain");
     return [builderReturnThis type];
@@ -1132,6 +1136,7 @@ public interface BuildFinal[type.generics] {
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public final [builderReturnType type] [type.names.from]([type.typeImmutable.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
@@ -1143,6 +1148,7 @@ public interface BuildFinal[type.generics] {
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
@@ -1155,6 +1161,7 @@ public interface BuildFinal[type.generics] {
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public final [builderReturnType type] [type.names.from]([s.type] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
@@ -1210,6 +1217,7 @@ public interface BuildFinal[type.generics] {
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     [for v in setters]
@@ -1218,6 +1226,7 @@ public interface BuildFinal[type.generics] {
     return [builderReturnThis type];
   }
   [else]
+  [atCanIgnoreReturnValue]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     [for v in setters]
@@ -1271,6 +1280,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param element A [v.name] element
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.nullableCollector]
@@ -1312,6 +1322,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param elements An array of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [varargsSafety v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
@@ -1347,6 +1358,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
     [if v.nullable]
@@ -1367,6 +1379,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
     [if v.nullableCollector]
@@ -1399,6 +1412,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
     [checkNotIsSet v]
@@ -1421,6 +1435,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
@@ -1443,6 +1458,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [varargsSafety v]
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
@@ -1462,6 +1478,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [if v.nullable]
@@ -1483,6 +1500,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param value The associated value in the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.nullableCollector]
@@ -1512,6 +1530,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param entry The key and value entry
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.nullableCollector]
@@ -1544,6 +1563,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
     [if v.nullable]
@@ -1565,6 +1585,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
     [if v.nullableCollector]
@@ -1603,6 +1624,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [varargsSafety v]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.elementType]... [v.name]) {
@@ -1636,6 +1658,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
@@ -1656,6 +1679,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * Clear the builder to the initial state.
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public [builderReturnType type] [type.names.clear]() {
     [for l in positions.longs]
     [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
@@ -3411,6 +3435,8 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 [template optionalPresent Attribute a][if a.fugueOptional or a.javaslangOptional]isDefined[else]isPresent[/if]()[/template]
 
 [template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
+
+[template atCanIgnoreReturnValue][if classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue [/if][/template]
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
