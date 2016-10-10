@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.Name;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -1232,8 +1233,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initSpecialAnnotations() {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
-      if (annotationElement.getSimpleName().contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
+      Name simpleName = annotationElement.getSimpleName();
+      if (simpleName.contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
         nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
+      } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
+        nullElements = NullElements.ALLOW;
+      } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
+        nullElements = NullElements.SKIP;
       } else if (containingType.isGenerateJacksonMapped()
           && annotationElement.getQualifiedName().toString().equals(Annotations.JACKSON_ANY_GETTER)) {
         anyGetter = typeKind.isMap();

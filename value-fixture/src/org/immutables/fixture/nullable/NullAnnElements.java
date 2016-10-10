@@ -20,19 +20,30 @@ import java.util.Map;
 import java.util.Set;
 import org.immutables.value.Value;
 
+@interface Inn {
+  @interface SkipNulls {}
+
+  @interface AllowNulls {}
+}
+
 /**
- * Compilation and runtime test for allowing and skipping nulls.
+ * Compilation and runtime test for allowing and skipping nulls
  */
 @Value.Style(jdkOnly = true)
 @Value.Immutable
-public interface NullablyElements {
-  List<@AllowNulls Void> al();
+public interface NullAnnElements {
 
-  List<@SkipNulls String> sk();
+  @Inn.AllowNulls
+  List<Void> al();
 
-  Map<String, @AllowNulls Integer> bl();
+  @Inn.SkipNulls
+  List<String> sk();
 
-  Map<String, @SkipNulls Integer> sm();
+  @Inn.AllowNulls
+  Map<String, Integer> bl();
+
+  @Inn.SkipNulls
+  Map<String, Integer> sm();
 
   Set<String> rg();
 }

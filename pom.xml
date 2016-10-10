@@ -54,7 +54,6 @@
     <module>serial</module>
     <module>trees</module>
     <module>encode</module>
-    <module>encode-sample</module>
   </modules>
 
   <organization>

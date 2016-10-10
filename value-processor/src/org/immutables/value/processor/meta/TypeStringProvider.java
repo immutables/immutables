@@ -330,7 +330,8 @@ class TypeStringProvider {
 
   private void assignElementNullness(String annotationString) {
     if (annotationString != null) {
-      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)) {
+      if (annotationString.contains(EPHEMERAL_ANNOTATION_NULLABLE)
+          || annotationString.contains(EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;
       } else if (annotationString.contains(EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
         nullElements = NullElements.SKIP;
@@ -345,5 +346,6 @@ class TypeStringProvider {
   }
 
   static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";
+  static final String EPHEMERAL_ANNOTATION_ALLOW_NULLS = "AllowNulls";
   static final String EPHEMERAL_ANNOTATION_SKIP_NULLS = "SkipNulls";
 }
