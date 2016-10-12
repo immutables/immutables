@@ -1612,16 +1612,7 @@ public class Proto {
 
     public boolean isJacksonProperties() {
       if (declaringType().isPresent()) {
-        JacksonMode mode = declaringType().get().jacksonSerializeMode();
-        if (mode == JacksonMode.DELEGATED) {
-          return true;
-        }
-        if (mode == JacksonMode.BUILDER) {
-          if (styles().style().builder().equals("new")) {
-            return true;
-          }
-        }
-        return false;
+        return declaringType().get().jacksonSerializeMode() != JacksonMode.NONE;
       }
       return isJacksonSerialized();
     }

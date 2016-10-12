@@ -279,7 +279,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getAnnotations() {
-    if (containingType.isGenerateJacksonMapped()) {
+    if (containingType.isGenerateJacksonProperties()) {
       return extractAnnotationsForElement(
           ElementType.METHOD,
           protoclass().styles().style().passAnnotationsNames());
