@@ -15,13 +15,18 @@
  */
 package org.immutables.fixture.jackson;
 
+import java.util.List;
+import javax.annotation.Nullable;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.immutables.value.Value;
 
 @Value.Immutable
+@Value.Style(builder = "new")
 @JsonDeserialize(builder = ImmutableCustomBuilderDeserialize.Builder.class)
 public abstract class CustomBuilderDeserialize {
   public abstract int a();
 
-  public abstract int b();
+  public abstract @Nullable String s();
+
+  public abstract List<Boolean> l();
 }

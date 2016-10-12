@@ -311,6 +311,30 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return extractAnnotationsForElement(ElementType.FIELD, Collections.<String>emptySet());
   }
 
+  private CharSequence jacksonPropertyAnnotation() {
+    StringBuilder propertyAnnotation = new StringBuilder("@").append(JsonPropertyMirror.qualifiedName());
+    if (protoclass().styles().style().forceJacksonPropertyNames()) {
+      propertyAnnotation.append('(').append(StringLiterals.toLiteral(names.raw)).append(')');
+    }
+    return propertyAnnotation;
+  }
+
+  public List<CharSequence> getBuilderAttributeAnnotation() {
+    if (containingType.isGenerateJacksonProperties()) {
+      List<CharSequence> jacksonPropertyAnnotation = Annotations.getAnnotationLines(element,
+          Collections.singleton(JsonPropertyMirror.qualifiedName()),
+          false,
+          ElementType.METHOD,
+          importsResolver);
+
+      if (jacksonPropertyAnnotation.isEmpty()) {
+        return ImmutableList.<CharSequence>of(jacksonPropertyAnnotation());
+      }
+      return jacksonPropertyAnnotation;
+    }
+    return ImmutableList.of();
+  }
+
   private List<CharSequence> extractAnnotationsForElement(ElementType elementType, Set<String> additionalAnnotations) {
     List<CharSequence> allAnnotations = Lists.newArrayListWithCapacity(1);
 
@@ -321,13 +345,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         importsResolver).isEmpty();
 
     if (dontHaveJsonPropetyAnnotationAlready) {
-      String propertyAnnotation = "@" + JsonPropertyMirror.qualifiedName();
-
-      if (protoclass().styles().style().forceJacksonPropertyNames()) {
-        propertyAnnotation += "(" + StringLiterals.toLiteral(names.raw) + ")";
-      }
-
-      allAnnotations.add(propertyAnnotation);
+      allAnnotations.add(jacksonPropertyAnnotation());
     }
 
     allAnnotations.addAll(

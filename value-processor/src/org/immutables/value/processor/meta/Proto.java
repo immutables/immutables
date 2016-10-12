@@ -531,7 +531,7 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonSerialized() {
-      if (isJacksonSerializedAnnotated()) {
+      if (jacksonSerializeMode() == JacksonMode.DELEGATED) {
         // while DeclaringPackage cannot have those annotations
         // directly, just checking them as a general computation path
         // will not hurt much.
@@ -546,8 +546,10 @@ public class Proto {
     }
 
     @Value.Lazy
-    public boolean isJacksonSerializedAnnotated() {
-      return Proto.isJacksonSerializedAnnotated(element());
+    public JacksonMode jacksonSerializeMode() {
+      return Proto.isJacksonSerializedAnnotated(element())
+          ? JacksonMode.DELEGATED
+          : JacksonMode.NONE;
     }
 
     @Value.Lazy
@@ -610,6 +612,10 @@ public class Proto {
       }
       return false;
     }
+  }
+
+  public enum JacksonMode {
+    NONE, DELEGATED, BUILDER;
   }
 
   @Value.Immutable
@@ -858,7 +864,7 @@ public class Proto {
 
     @Value.Lazy
     @Override
-    public boolean isJacksonSerializedAnnotated() {
+    public JacksonMode jacksonSerializeMode() {
       boolean wasJacksonSerialize = false;
       for (AnnotationMirror a : element().getAnnotationMirrors()) {
         TypeElement e = (TypeElement) a.getAnnotationType().asElement();
@@ -870,13 +876,15 @@ public class Proto {
             if (attr.getSimpleName().contentEquals("builder")) {
               // If builder attribute is specified, we don't consider this as
               // our, immutables, business to generate anything.
-              return false;
+              return JacksonMode.BUILDER;
             }
           }
-          return true;
+          return JacksonMode.DELEGATED;
         }
       }
-      return wasJacksonSerialize;
+      return wasJacksonSerialize
+          ? JacksonMode.DELEGATED
+          : JacksonMode.NONE;
     }
 
     @Value.Lazy
@@ -1600,6 +1608,22 @@ public class Proto {
         declaringType().get().collectEncodings(results);
       }
       return environment().instantiatorFor(FluentIterable.from(results).toSet());
+    }
+
+    public boolean isJacksonProperties() {
+      if (declaringType().isPresent()) {
+        JacksonMode mode = declaringType().get().jacksonSerializeMode();
+        if (mode == JacksonMode.DELEGATED) {
+          return true;
+        }
+        if (mode == JacksonMode.BUILDER) {
+          if (styles().style().builder().equals("new")) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return isJacksonSerialized();
     }
   }
 

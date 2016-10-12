@@ -178,10 +178,19 @@ public class ObjectMappedTest {
 
   @Test
   public void packageHiddenInsideBuilder() throws Exception {
-    ObjectMapper objectMapper = new ObjectMapper();
-    String json = "{\"strings\":[\"asd\"]}"; // Passes the test.
-    PackageHidden example = objectMapper.readValue(json, PackageHidden.class);
-
+    String json = "{\"strings\":[\"asd\"]}";
+    PackageHidden example = OBJECT_MAPPER.readValue(json, PackageHidden.class);
     check(example.getStrings()).isOf("asd");
+  }
+
+  @Test
+  public void customBuilderDeserialize() throws Exception {
+    String json = "{\"a\":1,\"s\":\"abc\",\"l\":[true,false]}";
+    CustomBuilderDeserialize o = OBJECT_MAPPER.readValue(json, CustomBuilderDeserialize.class);
+    check(o.a()).is(1);
+    check(o.s()).is("abc");
+    check(o.l()).isOf(true, false);
+
+    check(OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(o), CustomBuilderDeserialize.class)).is(o);
   }
 }

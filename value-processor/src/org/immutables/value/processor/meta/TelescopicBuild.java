@@ -1,10 +1,8 @@
 package org.immutables.value.processor.meta;
 
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Collections;
 import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
 

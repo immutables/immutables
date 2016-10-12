@@ -135,8 +135,11 @@ import static [routine].immutableCopyOf;
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
-[if classpath.available 'javax.annotation.CheckReturnValue' and classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue']
+[if classpath.available 'javax.annotation.CheckReturnValue']
+  [-- only enable if both on/off annotations are available --]
+  [if classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue']
 @javax.annotation.CheckReturnValue
+  [/if]
 [/if]
 [for a in type.passedAnnotations]
 [a]
@@ -1359,6 +1362,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue]
+  [builderInitAnnotations v]
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
     [if v.nullable]
@@ -1436,6 +1440,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue]
+  [builderInitAnnotations v]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
@@ -1564,6 +1569,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue]
+  [builderInitAnnotations v]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
     [if v.nullable]
@@ -1626,6 +1632,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [atCanIgnoreReturnValue]
   [varargsSafety v]
+  [builderInitAnnotations v]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.elementType]... [v.name]) {
     [checkNotIsSet v]
@@ -1659,6 +1666,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue]
+  [builderInitAnnotations v]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
@@ -1821,6 +1829,12 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if type.telescopicBuild and (not topLevel)]
 [generateTelescopicBuilderInterfaces type]
 [/if]
+[/for]
+[/template]
+
+[template builderInitAnnotations Attribute v]
+[for a in v.builderAttributeAnnotation]
+[a]
 [/for]
 [/template]
 
