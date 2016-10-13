@@ -1293,14 +1293,14 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
     [if v.generateJdkOnly and (not v.primitiveElement)]
       [if v.nullElements.skip]
-    if (element != null) this.[v.name].add(element);
+    if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
       [else if v.nullElements.allow]
-    this.[v.name].add(element);
+    this.[v.name].add([elementFactoryCopyOf v](element));
       [else]
-    this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+    this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
       [/if]
     [else]
-    this.[v.name].add(element);
+    this.[v.name].add([elementFactoryCopyOf v](element));
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
@@ -1339,14 +1339,18 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [if v.primitiveElement or v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
-      if (element != null) this.[v.name].add(element);
+      if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
       [else]
-      this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+      this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
       [/if]
     }
     [else]
       [if v.wrapArrayToIterable]
     this.[v.name].addAll([arrayAsList v 'elements']);
+      [else if v.hasAttributeValue]
+    for ([v.unwrappedElementType] element : elements) {
+      this.[v.name].add([elementFactoryCopyOf v](element));
+    }
       [else]
     this.[v.name].add(elements);
       [/if]
@@ -1397,10 +1401,14 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [if v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
-      if (element != null) this.[v.name].add(element);
+      if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
       [else]
-      this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+      this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
       [/if]
+    }
+    [else if v.hasAttributeValue]
+    for ([v.unwrappedElementType] element : elements) {
+      this.[v.name].add([elementFactoryCopyOf v](element));
     }
     [else]
     this.[v.name].addAll(elements);
@@ -1912,6 +1920,13 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else]
   [maybeNonNullValue v][maybeCopyOf v expression][/maybeNonNullValue]
+[/if]
+[/output.trim][/template]
+
+[template elementFactoryCopyOf Attribute v][output.trim]
+[if v.hasAttributeValue]
+[v.attributeValueType.factoryCopyOf]
+[else]
 [/if]
 [/output.trim][/template]
 
