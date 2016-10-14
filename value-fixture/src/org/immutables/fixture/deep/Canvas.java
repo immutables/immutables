@@ -21,6 +21,7 @@ import org.immutables.value.Value;
 @Value.Style(deepImmutablesDetection = true, depluralize = true)
 public interface Canvas {
 
+  @Value.Modifiable
   @Value.Immutable
   public interface Color {
     @Value.Parameter
@@ -33,6 +34,7 @@ public interface Canvas {
     double blue();
   }
 
+  @Value.Modifiable
   @Value.Immutable
   public interface Line {
     List<Point> points();
@@ -40,6 +42,7 @@ public interface Canvas {
     Color color();
   }
 
+  @Value.Modifiable
   @Value.Immutable
   public interface Point {
     @Value.Parameter

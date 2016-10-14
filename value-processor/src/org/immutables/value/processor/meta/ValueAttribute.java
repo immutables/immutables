@@ -1082,6 +1082,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return getType();
   }
 
+  public boolean hasAttributeValue() {
+    return attributeValueType != null;
+  }
+
   public boolean isAttributeValueKindCopy() {
     return attributeValueType != null
         && typeKind.isRegular()
