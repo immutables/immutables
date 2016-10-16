@@ -1291,6 +1291,9 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonSerialized() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
       if (declaringType().isPresent()) {
         DeclaringType t = declaringType().get();
         if (t.isJacksonSerialized()) {
@@ -1307,6 +1310,9 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonDeserialized() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
       if (declaringType().isPresent()) {
         DeclaringType t = declaringType().get();
         if (t.isJacksonDeserialized()) {
@@ -1551,6 +1557,9 @@ public class Proto {
 
     @Value.Lazy
     public boolean isJacksonJsonTypeInfo() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
       if (declaringType().isPresent()) {
         DeclaringType type = declaringType().get();
         if (type.isJacksonJsonTypeInfo()) {
@@ -1611,8 +1620,13 @@ public class Proto {
     }
 
     public boolean isJacksonProperties() {
+      if (!styles().style().jacksonIntegration()) {
+        return false;
+      }
       if (declaringType().isPresent()) {
-        return declaringType().get().jacksonSerializeMode() != JacksonMode.NONE;
+        if (declaringType().get().jacksonSerializeMode() != JacksonMode.NONE) {
+          return true;
+        }
       }
       return isJacksonSerialized();
     }
@@ -1717,6 +1731,7 @@ public class Proto {
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
           input.forceJacksonPropertyNames(),
+          input.jacksonIntegration(),
           input.builderVisibility(),
           input.throwForInvalidImmutableStateName(),
           input.depluralize(),

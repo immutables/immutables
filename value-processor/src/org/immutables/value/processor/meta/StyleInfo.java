@@ -236,6 +236,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean jacksonIntegration();
+
+  @Value.Parameter
+  @Override
   public abstract BuilderVisibility builderVisibility();
 
   @Override

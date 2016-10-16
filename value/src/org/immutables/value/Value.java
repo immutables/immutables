@@ -963,6 +963,19 @@ public @interface Value {
     boolean forceJacksonPropertyNames() default true;
 
     /**
+     * Setting this to {@code false} would disable any special jackson integration capabilities.
+     * While out-of-the-box Jackson readiness is a good things in the most cases, for some cases
+     * it might get in the way of highly customized Jackson infrastructure. When disabled, there are
+     * no any special stuff generated such as {@code JsonProperty} annotations or internal
+     * {@code Json} delegate class together with {@code JsonCreator} method. This allows to place
+     * {@code JsonSerialialize/JsonDeserialialize} annotations on the value types without redundand
+     * support code being generated.
+     * @return {@code true} if generate special Jackson code when encountered
+     *         {@code JsonSerialialize/JsonDeserialialize}. Default is {@code true}.
+     */
+    boolean jacksonIntegration() default true;
+
+    /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
      * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).
