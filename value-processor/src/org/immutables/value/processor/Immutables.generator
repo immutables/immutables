@@ -796,6 +796,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
+  [jsonIgnore type]
   private [if type.serial.simple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
@@ -804,6 +805,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
+  [jsonIgnore type]
   private [if type.serial.simple]transient [/if][l.type] [l.name];
 
   /**
@@ -2026,14 +2028,18 @@ this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullVal
   [if v.encoding]
   [rr.declareFields v]
   [else]
+  [jsonIgnore type]
   private final [v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
 [if type.usePrehashed]
+  [jsonIgnore type]
   private final int hashCode;
 [/if]
 [if type.generateOrdinalValue]
+  [jsonIgnore type]
   private final int ordinal;
+  [jsonIgnore type]
   private final Domain domain;
 [/if]
 [if type.useSingleton]
@@ -3486,3 +3492,5 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 [template overrideJsonDeserialize Type type][if type.jacksonDeserialized]@com.fasterxml.jackson.databind.annotation.JsonDeserialize[/if][/template]
 
 [template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]
+
+[template jsonIgnore Type type][if type.generateJacksonProperties]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
