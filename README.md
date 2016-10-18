@@ -51,6 +51,15 @@ License
 Changelog
 ---------
 
+### 2.3.6 (2016-10-18)
+- Enhancement and bugfix release. Thanks to issue reporters!
+  + `@AllowNulls and @SkipNulls` BYOA annotations supported for Collections and Maps when `@Style(jdkOnly = true)`
+  + `@JsonDeserialize(builder = ImmutableVal.Builder.class)` is now supported when using builder with constructor `@Value.Style(builder = "new")` or `class Builder extends ImmutableVal.Builder`
+  + `@JsonIgnore` on fields to avoid potential conflicts with attributes annotated with `@JsonProperty`
+  + Disable automatic Jackson integration via `@Style(jacksonIntegration = false)` for fully custom mappings using `@JsonSerialize/@JsonDeserialize` annotations
+  + Staged/Telescopic builder is generated when `@Style(stagedBuilder = true)`
+- [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.3.6)
+
 ### 2.3.2 (2016-09-27)
 - Really minor change and bugfix release. Thanks to issue reporters!
 - [Issues](https://github.com/immutables/immutables/issues?q=milestone%3A2.3.2)
