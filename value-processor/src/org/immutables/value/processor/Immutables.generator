@@ -1294,15 +1294,21 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     }
     [/if]
     [if v.generateJdkOnly and (not v.primitiveElement)]
+      [if v.hasAttributeValue]
+    [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
+      [/if]
       [if v.nullElements.skip]
-    if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
+    if (element != null) this.[v.name].add(element);
       [else if v.nullElements.allow]
-    this.[v.name].add([elementFactoryCopyOf v](element));
+    this.[v.name].add(element);
       [else]
-    this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
+    this.[v.name].add([requireNonNull type](element, "[v.name] element"));
       [/if]
     [else]
-    this.[v.name].add([elementFactoryCopyOf v](element));
+    [if v.hasAttributeValue]
+    element = [deepCopyOf v]element[/deepCopyOf];
+    [/if]
+    this.[v.name].add(element);
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
@@ -1336,23 +1342,22 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
-    [if v.generateJdkOnly]
+    [if v.generateJdkOnly or v.hasAttributeValue]
     for ([v.unwrappedElementType] element : elements) {
+      [if v.hasAttributeValue]
+      [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
+      [/if]
       [if v.primitiveElement or v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
-      if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
+      if (element != null) this.[v.name].add(element);
       [else]
-      this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
+      this.[v.name].add([requireNonNull type](element, "[v.name] element"));
       [/if]
     }
     [else]
       [if v.wrapArrayToIterable]
     this.[v.name].addAll([arrayAsList v 'elements']);
-      [else if v.hasAttributeValue]
-    for ([v.unwrappedElementType] element : elements) {
-      this.[v.name].add([elementFactoryCopyOf v](element));
-    }
       [else]
     this.[v.name].add(elements);
       [/if]
@@ -1398,19 +1403,18 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
-    [if v.generateJdkOnly]
+    [if v.generateJdkOnly or v.hasAttributeValue]
     for ([v.unwrappedElementType] element : elements) {
+      [if v.hasAttributeValue]
+      [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
+      [/if]
       [if v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
-      if (element != null) this.[v.name].add([elementFactoryCopyOf v](element));
+      if (element != null) this.[v.name].add(element);
       [else]
-      this.[v.name].add([elementFactoryCopyOf v]([requireNonNull type](element, "[v.name] element")));
+      this.[v.name].add([requireNonNull type](element, "[v.name] element"));
       [/if]
-    }
-    [else if v.hasAttributeValue]
-    for ([v.unwrappedElementType] element : elements) {
-      this.[v.name].add([elementFactoryCopyOf v](element));
     }
     [else]
     this.[v.name].addAll(elements);
@@ -1917,7 +1921,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
-  [if v.nullable][expression] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expression])
+  [if v.nullable][expression] == null ? null : [/if][deepCopyOf v][expression][/deepCopyOf]
 [else if v.collectionType or v.mapType]
   [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else]
@@ -1925,12 +1929,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
-[template elementFactoryCopyOf Attribute v][output.trim]
-[if v.hasAttributeValue]
-[v.attributeValueType.factoryCopyOf]
-[else]
-[/if]
-[/output.trim][/template]
+[template deepCopyOf Attribute v String expression][v.attributeValueType.factoryCopyOf]([expression])[/template]
 
 [template valueFromBuilder Attribute v String expressionPrefix][valueFromBuilderAlt v true expressionPrefix][/template]
 
@@ -1938,7 +1937,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [if v.encoding]
     [expressionPrefix][rr.fromBuild v]
 [else if v.attributeValueKindCopy]
-  [if v.nullable][expressionPrefix][v.name] == null ? null : [/if][v.attributeValueType.factoryCopyOf]([expressionPrefix][v.name])
+  [if v.nullable][expressionPrefix][v.name] == null ? null : [/if][deepCopyOf v][expressionPrefix][v.name][/deepCopyOf]
 [else if v.collectionType or v.mapType]
   [if v.nullable]
     [expressionPrefix][v.name] == null ? null : [immutableCollectionBuild v (expressionPrefix v.name)]
