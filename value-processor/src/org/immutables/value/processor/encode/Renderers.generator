@@ -3,9 +3,11 @@
       enc = inst.encoding,
 			impl = enc.impl]
 [if not impl.virtual]
+[jsonIgnore a]
 private final [inst.typer impl.type] [inst.namer impl];
 [/if]
 [for el in enc.element if el.valueField]
+[jsonIgnore a]
 [if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el];
 [/for]
 [/for]
@@ -184,3 +186,5 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [template builderReturnThis Attribute a][if a.containingType.innerBuilder.isExtending]([a.containingType.typeBuilder]) [/if]this[/template]
 
 [template builderReturnType Attribute a][if a.containingType.innerBuilder.isExtending][a.containingType.typeBuilder][else][a.containingType.typeBuilder.simple][a.containingType.generics.args][/if][/template]
+
+[template jsonIgnore Attribute a][if a.containingType.generateJacksonProperties]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
