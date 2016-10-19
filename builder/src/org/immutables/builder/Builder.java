@@ -60,9 +60,11 @@ public @interface Builder {
    * 
    * <pre>
    * class Sum {
+   *   final int result;
+   * 
    *   {@literal @}Builder.Constructor
-   *    Sum(int a, int b) {
-   *      return a + b;
+   *   Sum(int a, int b) {
+   *      this.result = a + b;
    *   }
    * }
    * ... // use generated builder
