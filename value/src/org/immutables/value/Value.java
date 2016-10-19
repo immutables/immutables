@@ -301,12 +301,11 @@ public @interface Value {
    * There's additional variant of using this annotation to compute normalized value. This should be
    * a last-resort solution as implementation might be brittle and error-prone. If you declare
    * return type of validation method with return type specified as abstract value type, this
-   * validation method will also be able to return substitute instance. Substitute instance should
-   * always be immutable implementations type, otherwise {@link ClassCastException} will occur
-   * during construction.
-   * <em>Be warned that it's easy introduce unresolvable recusion if normalization is implemented without
-   * proper or conflicting guarding checks. Always return {@code this} if value do not require normalization
-   * when using normalization.</em>
+   * validation method will also be able to return substitute instance. Normalized instance should
+   * always be of the immutable implementations type, otherwise {@link ClassCastException} will
+   * occur during construction.
+   * <em>Be warned that it's easy introduce unresolvable recursion if normalization is implemented without
+   * proper or with conflicting checks. Always return {@code this} if value do not require normalization.</em>
    * </p>
    * 
    * <pre>
