@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.fixture.deep.Canvas.Line;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 
 import static org.immutables.check.Checkers.check;
@@ -80,6 +81,44 @@ public class DeepImmutablesDetectionTest {
         for (Canvas.Point point : line.points()) {
             check(point).isA(ImmutablePoint.class);
             check(point).is(IMMUTABLE_POINT);
+        }
+    }
+
+    @Test
+    public void immutableFieldIsConvertedInModifiableFrom() {
+        Line line = ImmutableLine.builder()
+                .color(IMMUTABLE_COLOR)
+                .addPoint(IMMUTABLE_POINT)
+                .build();
+
+        ModifiableLine modifiableLine = ModifiableLine.create().from(line);
+
+        check(modifiableLine.color()).isA(ModifiableColor.class);
+        check(modifiableLine.color()).is(MODIFIABLE_COLOR);
+    }
+
+    @Test
+    public void immutableFieldIsConvertedInModifiableSetter() {
+        ModifiableLine modifiableLine = ModifiableLine.create().setColor(IMMUTABLE_COLOR);
+
+        check(modifiableLine.color()).isA(ModifiableColor.class);
+        check(modifiableLine.color()).is(MODIFIABLE_COLOR);
+    }
+
+    @Test
+    public void immutableCollectionFieldIsConvertedInModifiableSetter() {
+        ModifiableLine modifiableLine = ModifiableLine.create()
+                .setPoints(Collections.singleton(IMMUTABLE_POINT))
+                .addPoint(IMMUTABLE_POINT)
+                .addPoint(IMMUTABLE_POINT, IMMUTABLE_POINT)
+                .addAllPoints(Collections.singleton(IMMUTABLE_POINT));
+
+        check(modifiableLine.points()).isA(ArrayList.class);
+        check(modifiableLine.points()).hasSize(5);
+
+        for (Canvas.Point point : modifiableLine.points()) {
+            check(point).isA(ModifiablePoint.class);
+            check(point).is(MODIFIABLE_POINT);
         }
     }
 }
