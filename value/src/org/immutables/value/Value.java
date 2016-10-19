@@ -858,16 +858,16 @@ public @interface Value {
 
     /**
      * Deep analysis of immutable types enables additional convenience features.
-     * When enabled, each attribute is being analized and if it discovered to be an {@literal @}
+     * When enabled, each attribute is analyzed and if it is discovered to be an {@literal @}
      * {@code Value.Immutable} object (either abstract value type or generated implementation type),
      * then some special handling will be applied to it. As of now following functionality is
      * applied:
      * <ul>
-     * <li>Accessors in a generated immutable type will be implemented with covariant return type of
-     * immutable implementation of the abstract value type of the declared attribute. This have no
-     * effect on collection/container attributes to not interfere with invariant generic types.
-     * Derived and Default attributes also not supported as of now to avoid excessive complexity</li>
-     * <li>Builder initializers will have an overload consuming parameters of attribute value
+     * <li>Accessors in a generated immutable type will be implemented with a covariant return type of
+     * the immutable implementation of the abstract value type of the declared attribute. This has no
+     * effect on the collection/container attributes to not interfere with invariant generic types.
+     * Derived and Default attributes are also not supported as of now to avoid excessive complexity</li>
+     * <li>Builder initializers will have overloaded variants with parameters of the attribute value
      * object's constructor (if it has constructor as opposed to the ones which only have builder).
      * Effectively this is a shortcut to initialize value object in a more consice way. This works
      * for regular and collection attributes (but not for maps or arrays to avoid complex and
