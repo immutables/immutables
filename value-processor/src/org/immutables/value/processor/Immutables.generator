@@ -3492,4 +3492,4 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 
 [template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]
 
-[template jsonIgnore Type type][if type.generateJacksonProperties]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
+[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]

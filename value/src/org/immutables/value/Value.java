@@ -963,6 +963,11 @@ public @interface Value {
     boolean forceJacksonPropertyNames() default true;
 
     /**
+     * @return if put {@code JsonIngore} on fields. default {@code false}
+     */
+    boolean forceJacksonIgnoreFields() default false;
+
+    /**
      * Setting this to {@code false} would disable any special jackson integration capabilities.
      * While out-of-the-box Jackson readiness is a good things in the most cases, for some cases
      * it might get in the way of highly customized Jackson infrastructure. When disabled, there are
@@ -974,6 +979,7 @@ public @interface Value {
      *         {@code JsonSerialialize/JsonDeserialialize}. Default is {@code true}.
      */
     boolean jacksonIntegration() default true;
+
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value

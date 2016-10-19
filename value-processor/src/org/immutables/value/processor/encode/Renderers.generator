@@ -187,4 +187,4 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 [template builderReturnType Attribute a][if a.containingType.innerBuilder.isExtending][a.containingType.typeBuilder][else][a.containingType.typeBuilder.simple][a.containingType.generics.args][/if][/template]
 
-[template jsonIgnore Attribute a][if a.containingType.generateJacksonProperties]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
+[template jsonIgnore Attribute a][if a.containingType.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]

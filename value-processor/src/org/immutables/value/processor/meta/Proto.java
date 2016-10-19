@@ -1731,6 +1731,7 @@ public class Proto {
           input.overshadowImplementation(),
           input.implementationNestedInBuilder(),
           input.forceJacksonPropertyNames(),
+          input.forceJacksonIgnoreFields(),
           input.jacksonIntegration(),
           input.builderVisibility(),
           input.throwForInvalidImmutableStateName(),

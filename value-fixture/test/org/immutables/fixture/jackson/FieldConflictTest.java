@@ -15,6 +15,7 @@ import java.lang.annotation.Target;
 import org.immutables.value.Value;
 import org.junit.Test;
 
+@Value.Style(forceJacksonIgnoreFields = true)
 public final class FieldConflictTest {
   @JsonSerialize
   @JsonDeserialize

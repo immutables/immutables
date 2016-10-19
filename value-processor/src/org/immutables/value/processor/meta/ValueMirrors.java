@@ -186,6 +186,8 @@ public final class ValueMirrors {
 
     boolean forceJacksonPropertyNames() default true;
 
+    boolean forceJacksonIgnoreFields() default false;
+
     boolean jacksonIntegration() default true;
 
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;

@@ -316,6 +316,11 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().isJacksonProperties();
   }
 
+  public boolean isGenerateJacksonIngoreFields() {
+    return isGenerateJacksonProperties()
+        && constitution.style().forceJacksonIgnoreFields();
+  }
+
   public boolean isJacksonDeserialized() {
     return constitution.protoclass().isJacksonDeserialized();
   }
