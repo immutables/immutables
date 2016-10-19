@@ -1086,6 +1086,13 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return attributeValueType != null;
   }
 
+  public boolean attributeValueKindIsCollectionOfModifiable() {
+    return attributeValueType != null
+            && typeKind.isCollectionKind()
+            && attributeValueType.kind().isModifiable()
+            && attributeValueType.isGenerateFilledFrom();
+  }
+
   public boolean isAttributeValueKindCopy() {
     return attributeValueType != null
         && typeKind.isRegular()

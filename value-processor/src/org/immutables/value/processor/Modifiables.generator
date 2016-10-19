@@ -480,7 +480,12 @@ public [thisReturnType type] [v.names.add]([v.unwrappedElementType] element) {
   [if v.unwrappedElementPrimitiveType]
   [v.name].add(element);
   [else]
-  [v.name].add([im.requireNonNull type](element, "[v.name] element"));
+  [v.unwrappedElementType] nonNullElement = [im.requireNonNull type](element, "[v.name] element");
+  [if v.attributeValueKindIsCollectionOfModifiable]
+  [v.name].add(element instanceof [v.attributeValueType.constitution.typeModifiable.relativeRaw] ? element : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from](element));
+  [else]
+  [v.name].add(nonNullElement);
+  [/if]
   [/if]
   [nondefaultSetter v]
   [thisReturn type]
@@ -544,11 +549,7 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
   }
   [/if]
   for ([v.unwrappedElementType] element : elements) {
-    [if v.unwrappedElementPrimitiveType]
-    [v.name].add(element);
-    [else]
-    [v.name].add([im.requireNonNull type](element, "[v.name] element"));
-    [/if]
+    [v.names.add](element);
   }
   [nondefaultSetter v]
   [thisReturn type]
