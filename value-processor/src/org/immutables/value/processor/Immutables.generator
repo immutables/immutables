@@ -116,20 +116,26 @@ import static [routine].immutableCopyOf;
 
 [for setters = type.settableAttributes]
 /**
+  [if type.docComment]
+[for d in type.docComment]
+ *[d][-- no space before doc line!]
+[/for]
+  [else]
  * Immutable implementation of {@link [type.typeAbstract.relativeRaw]}.
  * <p>
- [if type.useBuilder]
+[if type.useBuilder]
  * Use the builder to create immutable instances:
  * {@code [type.factoryBuilder.relative]()}.
- [/if]
- [if type.useConstructor]
+[/if]
+[if type.useConstructor]
  * Use the static factory method to create immutable instances:
  * {@code [type.factoryOf.relative]()}.
- [/if]
- [if type.useSingleton]
+[/if]
+[if type.useSingleton]
  * Use the static factory method to get the default singleton instance:
  * {@code [type.factoryInstance.relative]()}.
- [/if]
+[/if]
+  [/if]
  */
 [annotationsWhenTopLevel type topLevel]
 [if classpath.available 'javax.annotation.concurrent.Immutable']

@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Splitter;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -1269,6 +1270,33 @@ public final class ValueType extends TypeIntrospectionBase {
         && getThrowForInvalidImmutableState().equals(IllegalStateException.class.getName());
   }
 
+  public ImmutableList<String> extractDocComment(Element element) {
+    // Only extract for generated type which is public
+    if (constitution.implementationVisibility().isPublic()) {
+      @Nullable String docComment = constitution
+          .protoclass()
+          .processing()
+          .getElementUtils()
+          .getDocComment(CachingElements.getDelegate(element));
+
+      if (docComment != null) {
+        return ImmutableList.copyOf(DOC_COMMENT_LINE_SPLITTER.split(docComment));
+      }
+    }
+    return ImmutableList.of();
+  }
+
+  private ImmutableList<String> docComment;
+
+  public ImmutableList<String> getDocComment() {
+    if (docComment == null) {
+      this.docComment = constitution.isImplementationPrimary()
+          ? extractDocComment(element)
+          : ImmutableList.<String>of();
+    }
+    return docComment;
+  }
+
   DeclaringType inferDeclaringType(Element element) {
     return constitution.protoclass().environment().round().inferDeclaringTypeFor(element);
   }
@@ -1476,4 +1504,6 @@ public final class ValueType extends TypeIntrospectionBase {
   public String toString() {
     return "Type[" + name() + "]";
   }
+
+  private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
 }

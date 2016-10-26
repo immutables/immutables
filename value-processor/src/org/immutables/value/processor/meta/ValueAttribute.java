@@ -65,7 +65,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private static final String GUAVA_IMMUTABLE_PREFIX = UnshadeGuava.typeString("collect.Immutable");
   private static final String VALUE_ATTRIBUTE_NAME = "value";
   private static final String ID_ATTRIBUTE_NAME = "_id";
-  private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
   private static final String[] EMPTY_SERIALIZED_NAMES = {};
 
   public AttributeNames names;
@@ -1287,18 +1286,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initMiscellaneous() {
-    Elements elements = protoclass()
+    this.deprecated = protoclass()
         .processing()
-        .getElementUtils();
+        .getElementUtils().isDeprecated(element);
 
-    this.deprecated = elements.isDeprecated(element);
-
-    if (containingType.constitution.implementationVisibility().isPublic()) {
-      @Nullable String docComment = elements.getDocComment(element);
-      if (docComment != null) {
-        this.docComment = ImmutableList.copyOf(DOC_COMMENT_LINE_SPLITTER.split(docComment));
-      }
-    }
+    this.docComment = containingType.extractDocComment(element);
   }
 
   private void initBuilderParamsIfApplicable() {
