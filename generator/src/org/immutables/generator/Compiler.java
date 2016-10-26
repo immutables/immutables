@@ -15,6 +15,8 @@
  */
 package org.immutables.generator;
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import java.util.EnumSet;
 import org.eclipse.jdt.internal.compiler.apt.model.ElementImpl;
@@ -26,9 +28,9 @@ enum Compiler {
     return COMPILERS.contains(this);
   }
 
-  private static final EnumSet<Compiler> COMPILERS = detectCompilers();
+  private static final ImmutableSet<Compiler> COMPILERS = detectCompilers();
 
-  private static EnumSet<Compiler> detectCompilers() {
+  private static ImmutableSet<Compiler> detectCompilers() {
     EnumSet<Compiler> compilers = EnumSet.noneOf(Compiler.class);
     try {
       // Specific method is not essential, we just
@@ -43,6 +45,6 @@ enum Compiler {
       compilers.add(Compiler.ECJ);
     } catch (Throwable ex) {
     }
-    return compilers;
+    return Sets.immutableEnumSet(compilers);
   }
 }

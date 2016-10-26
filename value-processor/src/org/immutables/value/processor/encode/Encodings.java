@@ -71,8 +71,10 @@ public abstract class Encodings extends AbstractTemplate {
 
   Encodings() {
     for (TypeElement a : annotations()) {
-      for (TypeElement t : ElementFilter.typesIn(round().getElementsAnnotatedWith(a))) {
-        encodings.add(new Encoding(t));
+      if (a.getQualifiedName().contentEquals(EncodingMirror.qualifiedName())) {
+        for (TypeElement t : ElementFilter.typesIn(round().getElementsAnnotatedWith(a))) {
+          encodings.add(new Encoding(t));
+        }
       }
     }
   }

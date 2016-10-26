@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.encode.EncodingMirror;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -332,6 +333,11 @@ public class Proto {
     @Value.Lazy
     public boolean hasFuncModule() {
       return findElement(FunctionalMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasEncodeModule() {
+      return findElement(EncodingMirror.qualifiedName()) != null;
     }
 
     /**

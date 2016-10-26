@@ -15,15 +15,17 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.value.processor.meta.FIncludeMirror;
-import org.immutables.value.processor.meta.FConstructorMirror;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Multimap;
 import java.util.Set;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import org.immutables.generator.AbstractGenerator;
+import org.immutables.value.processor.encode.EncodingMirror;
+import org.immutables.value.processor.encode.Generator_Encodings;
 import org.immutables.value.processor.meta.CustomImmutableAnnotations;
 import org.immutables.value.processor.meta.EnclosingMirror;
+import org.immutables.value.processor.meta.FConstructorMirror;
+import org.immutables.value.processor.meta.FIncludeMirror;
 import org.immutables.value.processor.meta.FactoryMirror;
 import org.immutables.value.processor.meta.ImmutableMirror;
 import org.immutables.value.processor.meta.ImmutableRound;
@@ -42,7 +44,8 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     ValueUmbrellaMirror.QUALIFIED_NAME,
     FactoryMirror.QUALIFIED_NAME,
     FConstructorMirror.QUALIFIED_NAME,
-    FIncludeMirror.QUALIFIED_NAME
+    FIncludeMirror.QUALIFIED_NAME,
+    EncodingMirror.QUALIFIED_NAME,
 })
 public final class Processor extends AbstractGenerator {
   @Override
@@ -60,9 +63,6 @@ public final class Processor extends AbstractGenerator {
     invoke(new Generator_Immutables().usingValues(values).generate());
     invoke(new Generator_Modifiables().usingValues(values).generate());
 
-//    if (round.environment().hasOkJsonLib()) {
-//      invoke(new Generator_OkJsons().usingValues(values).generate());
-//    }
     if (round.environment().hasGsonLib()) {
       invoke(new Generator_Gsons().usingValues(values).generate());
     }
@@ -78,6 +78,9 @@ public final class Processor extends AbstractGenerator {
     }
     if (round.environment().hasAstModule()) {
       invoke(new Generator_Asts().usingValues(values).generate());
+    }
+    if (round.environment().hasEncodeModule()) {
+      invoke(new Generator_Encodings().generate());
     }
   }
 

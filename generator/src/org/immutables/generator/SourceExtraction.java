@@ -53,344 +53,344 @@ import org.eclipse.jdt.internal.compiler.lookup.SourceTypeBinding;
 import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
 
 public final class SourceExtraction {
-	private SourceExtraction() {}
+  private SourceExtraction() {}
 
-	public static final class Imports {
-		private static final Imports EMPTY = new Imports(
-				ImmutableSet.<String>of(),
-				ImmutableMap.<String, String>of());
+  public static final class Imports {
+    private static final Imports EMPTY = new Imports(
+        ImmutableSet.<String>of(),
+        ImmutableMap.<String, String>of());
 
-		public final ImmutableSet<String> all;
-		public final ImmutableMap<String, String> classes;
+    public final ImmutableSet<String> all;
+    public final ImmutableMap<String, String> classes;
 
-		private Imports(Set<String> all, Map<String, String> classes) {
-			this.all = ImmutableSet.copyOf(all);
-			this.classes = ImmutableMap.copyOf(classes);
-		}
+    private Imports(Set<String> all, Map<String, String> classes) {
+      this.all = ImmutableSet.copyOf(all);
+      this.classes = ImmutableMap.copyOf(classes);
+    }
 
-		public static Imports of(Set<String> all, Map<String, String> classes) {
-			if (all.isEmpty() && classes.isEmpty()) {
-				return EMPTY;
-			}
-			if (!all.containsAll(classes.values())) {
-				// This check initially appeared as some imports might be skipped,
-				// but all classes imported are tracked, but it should be not a problem
-			}
-			return new Imports(all, classes);
-		}
+    public static Imports of(Set<String> all, Map<String, String> classes) {
+      if (all.isEmpty() && classes.isEmpty()) {
+        return EMPTY;
+      }
+      if (!all.containsAll(classes.values())) {
+        // This check initially appeared as some imports might be skipped,
+        // but all classes imported are tracked, but it should be not a problem
+      }
+      return new Imports(all, classes);
+    }
 
-		public static Imports empty() {
-			return EMPTY;
-		}
+    public static Imports empty() {
+      return EMPTY;
+    }
 
-		public boolean isEmpty() {
-			return this == EMPTY;
-		}
+    public boolean isEmpty() {
+      return this == EMPTY;
+    }
 
-		@Override
-		public String toString() {
-			return MoreObjects.toStringHelper(this)
-					.add("all", all)
-					.add("classes", classes)
-					.toString();
-		}
-	}
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("all", all)
+          .add("classes", classes)
+          .toString();
+    }
+  }
 
-	public static CharSequence headerFrom(CharSequence source) {
-		if (source.length() != 0) {
-			return PostprocessingMachine.collectHeader(source);
-		}
-		return SourceExtractor.UNABLE_TO_EXTRACT;
-	}
+  public static CharSequence headerFrom(CharSequence source) {
+    if (source.length() != 0) {
+      return PostprocessingMachine.collectHeader(source);
+    }
+    return SourceExtractor.UNABLE_TO_EXTRACT;
+  }
 
-	public static Imports importsFrom(CharSequence source) {
-		if (source.length() != 0) {
-			return PostprocessingMachine.collectImports(source);
-		}
-		return Imports.empty();
-	}
+  public static Imports importsFrom(CharSequence source) {
+    if (source.length() != 0) {
+      return PostprocessingMachine.collectImports(source);
+    }
+    return Imports.empty();
+  }
 
-	public static CharSequence extract(ProcessingEnvironment processing, TypeElement element) {
-		try {
-			return EXTRACTOR.extract(processing, element);
-		} catch (UnsupportedOperationException | IllegalArgumentException cannotReadSourceFile) {
-			return SourceExtractor.UNABLE_TO_EXTRACT;
-		} catch (IOException cannotReadSourceFile) {
-			processing.getMessager().printMessage(
-					Diagnostic.Kind.MANDATORY_WARNING,
-					String.format("Was unable to read source file for %s[%s.class]: %s",
-							element,
-							element.getClass().getName(),
-							cannotReadSourceFile));
-		}
-		return SourceExtractor.UNABLE_TO_EXTRACT;
-	}
+  public static CharSequence extract(ProcessingEnvironment processing, TypeElement element) {
+    try {
+      return EXTRACTOR.extract(processing, element);
+    } catch (UnsupportedOperationException | IllegalArgumentException cannotReadSourceFile) {
+    } catch (IOException cannotReadSourceFile) {
+      processing.getMessager().printMessage(
+          Diagnostic.Kind.MANDATORY_WARNING,
+          String.format("Was unable to read source file for %s[%s.class]: %s",
+              element,
+              element.getClass().getName(),
+              cannotReadSourceFile));
+    }
+    return SourceExtractor.UNABLE_TO_EXTRACT;
+  }
 
-	interface SourceExtractor {
-		CharSequence UNABLE_TO_EXTRACT = "";
+  interface SourceExtractor {
+    CharSequence UNABLE_TO_EXTRACT = "";
 
-		boolean claim(Element element);
+    boolean claim(Element element);
 
-		CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException;
+    CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException;
 
-		CharSequence extractReturnType(ExecutableElement executableElement);
-	}
+    CharSequence extractReturnType(ExecutableElement executableElement);
+  }
 
-	private static final class DefaultExtractor implements SourceExtractor {
-		static final DefaultExtractor INSTANCE = new DefaultExtractor();
+  private static final class DefaultExtractor implements SourceExtractor {
+    static final DefaultExtractor INSTANCE = new DefaultExtractor();
 
-		@Override
-		public CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
-			try {
-				FileObject resource = environment.getFiler().getResource(
-						StandardLocation.SOURCE_PATH, "", toFilename(element));
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
+      try {
+        FileObject resource = environment.getFiler().getResource(
+            StandardLocation.SOURCE_PATH, "", toFilename(element));
 
-				return resource.getCharContent(true);
-			} catch (UnsupportedOperationException | IllegalArgumentException ex) {
-				return UNABLE_TO_EXTRACT;
-			}
-		}
+        return resource.getCharContent(true);
+      } catch (UnsupportedOperationException | IllegalArgumentException ex) {
 
-		private String toFilename(TypeElement element) {
-			return element.getQualifiedName().toString().replace('.', '/') + ".java";
-		}
+        return UNABLE_TO_EXTRACT;
+      }
+    }
 
-		@Override
-		public CharSequence extractReturnType(ExecutableElement executableElement) {
-			return UNABLE_TO_EXTRACT;
-		}
+    private String toFilename(TypeElement element) {
+      return element.getQualifiedName().toString().replace('.', '/') + ".java";
+    }
 
-		@Override
-		public boolean claim(Element element) {
-			return false;
-		}
-	}
-
-	private static final class JavacSourceExtractor implements SourceExtractor {
-
-		@Override
-		public boolean claim(Element element) {
-			return element instanceof ClassSymbol
-					|| element instanceof MethodSymbol
-					|| element instanceof VarSymbol;
-		}
-
-		@Override
-		public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
-			if (typeElement instanceof ClassSymbol) {
-				ClassSymbol classSymbol = (ClassSymbol) typeElement;
-				if (classSymbol.sourcefile != null) {
-					return classSymbol.sourcefile.getCharContent(true);
-				}
-			}
-			return UNABLE_TO_EXTRACT;
-		}
-
-		@Override
-		public CharSequence extractReturnType(ExecutableElement executableElement) {
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
       return UNABLE_TO_EXTRACT;
-		}
-	}
+    }
 
-	private static final class EclipseSourceExtractor implements SourceExtractor {
-		private static final Splitter DECLARATION_SPLITTER =
-				Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')))
-						.omitEmptyStrings()
-						.trimResults();
+    @Override
+    public boolean claim(Element element) {
+      return false;
+    }
+  }
 
-		@Override
-		public boolean claim(Element element) {
-			return element instanceof ElementImpl;
-		}
+  private static final class JavacSourceExtractor implements SourceExtractor {
 
-		@Override
-		public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
-			if (typeElement instanceof ElementImpl) {
-				Binding binding = ((ElementImpl) typeElement)._binding;
-				if (binding instanceof SourceTypeBinding) {
-					CompilationUnitDeclaration unit = ((SourceTypeBinding) binding).scope.referenceCompilationUnit();
-					char[] contents = unit.compilationResult.compilationUnit.getContents();
-					return CharBuffer.wrap(contents);
-				}
-			}
-			return UNABLE_TO_EXTRACT;
-		}
+    @Override
+    public boolean claim(Element element) {
+      return element instanceof ClassSymbol
+          || element instanceof MethodSymbol
+          || element instanceof VarSymbol;
+    }
 
-		@Override
-		public CharSequence extractReturnType(ExecutableElement executableElement) {
-			if (executableElement instanceof ExecutableElementImpl) {
-				Binding binding = ((ExecutableElementImpl) executableElement)._binding;
-				if (binding instanceof MethodBinding) {
-					MethodBinding methodBinding = (MethodBinding) binding;
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
+      if (typeElement instanceof ClassSymbol) {
+        ClassSymbol classSymbol = (ClassSymbol) typeElement;
+        if (classSymbol.sourcefile != null) {
+          return classSymbol.sourcefile.getCharContent(true);
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
 
-					@Nullable AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
-					if (sourceMethod != null) {
-						CharSequence rawType = getRawType(methodBinding);
-						char[] content = sourceMethod.compilationResult.compilationUnit.getContents();
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      return UNABLE_TO_EXTRACT;
+    }
+  }
 
-						int sourceEnd = methodBinding.sourceStart();// intentionaly
-						int sourceStart = scanForTheSourceStart(content, sourceEnd);
+  private static final class EclipseSourceExtractor implements SourceExtractor {
+    private static final Splitter DECLARATION_SPLITTER =
+        Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')))
+            .omitEmptyStrings()
+            .trimResults();
 
-						char[] methodTest = Arrays.copyOfRange(content, sourceStart, sourceEnd);
+    @Override
+    public boolean claim(Element element) {
+      return element instanceof ElementImpl;
+    }
 
-						Entry<String, List<String>> extracted =
-								SourceTypes.extract(String.valueOf(methodTest));
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
+      if (typeElement instanceof ElementImpl) {
+        Binding binding = ((ElementImpl) typeElement)._binding;
+        if (binding instanceof SourceTypeBinding) {
+          CompilationUnitDeclaration unit = ((SourceTypeBinding) binding).scope.referenceCompilationUnit();
+          char[] contents = unit.compilationResult.compilationUnit.getContents();
+          return CharBuffer.wrap(contents);
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
 
-						return SourceTypes.stringify(
-								Maps.immutableEntry(rawType.toString(), extracted.getValue()));
-					}
-				}
-			}
-			return UNABLE_TO_EXTRACT;
-		}
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      if (executableElement instanceof ExecutableElementImpl) {
+        Binding binding = ((ExecutableElementImpl) executableElement)._binding;
+        if (binding instanceof MethodBinding) {
+          MethodBinding methodBinding = (MethodBinding) binding;
 
-		private int scanForTheSourceStart(char[] content, int sourceEnd) {
-			int i = sourceEnd;
-			for (; i >= 0; i--) {
-				char c = content[i];
-				// FIXME how else I can scan?
-				if (c == '\n') {
-					return i;
-				}
-			}
-			return i;
-		}
+          @Nullable AbstractMethodDeclaration sourceMethod = methodBinding.sourceMethod();
+          if (sourceMethod != null) {
+            CharSequence rawType = getRawType(methodBinding);
+            char[] content = sourceMethod.compilationResult.compilationUnit.getContents();
 
-		private static CharSequence extractSuperclass(SourceTypeBinding binding) {
-			CharSequence declaration = readSourceDeclaration(binding);
-			Iterator<String> iterator = DECLARATION_SPLITTER.split(declaration).iterator();
-			while (iterator.hasNext()) {
-				String token = iterator.next();
-				if (token.equals("extends")) {
-					return readSourceSuperclass(iterator);
-				}
-			}
-			return UNABLE_TO_EXTRACT;
-		}
+            int sourceEnd = methodBinding.sourceStart();// intentionaly
+            int sourceStart = scanForTheSourceStart(content, sourceEnd);
 
-		private static CharSequence readSourceSuperclass(Iterator<String> declarationParts) {
-			StringBuilder superclass = new StringBuilder();
-			while (declarationParts.hasNext()) {
-				String part = declarationParts.next();
-				if (superclass.length() == 0
-						|| part.charAt(0) == '.'
-						|| superclass.charAt(superclass.length() - 1) == '.') {
-					superclass.append(part);
-				} else {
-					break;
-				}
-			}
-			return superclass;
-		}
+            char[] methodTest = Arrays.copyOfRange(content, sourceStart, sourceEnd);
 
-		private static CharSequence readSourceDeclaration(SourceTypeBinding binding) {
-			TypeDeclaration referenceContext = binding.scope.referenceContext;
-			char[] content = referenceContext.compilationResult.compilationUnit.getContents();
-			int start = referenceContext.declarationSourceStart;
-			int end = referenceContext.declarationSourceEnd;
+            Entry<String, List<String>> extracted =
+                SourceTypes.extract(String.valueOf(methodTest));
 
-			StringBuilder declaration = new StringBuilder();
-			for (int p = start; p <= end; p++) {
-				char c = content[p];
-				if (c == '{') {
-					break;
-				}
-				declaration.append(c);
-			}
-			return declaration;
-		}
+            return SourceTypes.stringify(
+                Maps.immutableEntry(rawType.toString(), extracted.getValue()));
+          }
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
 
-		private static CharSequence getRawType(MethodBinding methodBinding) {
-			TypeBinding returnType = methodBinding.returnType;
-			char[] sourceName = returnType.sourceName();
-			if (sourceName == null) {
-				sourceName = new char[] {};
-			}
-			return CharBuffer.wrap(sourceName);
-		}
-	}
+    private int scanForTheSourceStart(char[] content, int sourceEnd) {
+      int i = sourceEnd;
+      for (; i >= 0; i--) {
+        char c = content[i];
+        // FIXME how else I can scan?
+        if (c == '\n') {
+          return i;
+        }
+      }
+      return i;
+    }
 
-	private static final class CompositeExtractor implements SourceExtractor {
-		private final SourceExtractor[] extractors;
+    private static CharSequence extractSuperclass(SourceTypeBinding binding) {
+      CharSequence declaration = readSourceDeclaration(binding);
+      Iterator<String> iterator = DECLARATION_SPLITTER.split(declaration).iterator();
+      while (iterator.hasNext()) {
+        String token = iterator.next();
+        if (token.equals("extends")) {
+          return readSourceSuperclass(iterator);
+        }
+      }
+      return UNABLE_TO_EXTRACT;
+    }
 
-		CompositeExtractor(List<SourceExtractor> extractors) {
-			this.extractors = extractors.toArray(new SourceExtractor[extractors.size()]);
-		}
+    private static CharSequence readSourceSuperclass(Iterator<String> declarationParts) {
+      StringBuilder superclass = new StringBuilder();
+      while (declarationParts.hasNext()) {
+        String part = declarationParts.next();
+        if (superclass.length() == 0
+            || part.charAt(0) == '.'
+            || superclass.charAt(superclass.length() - 1) == '.') {
+          superclass.append(part);
+        } else {
+          break;
+        }
+      }
+      return superclass;
+    }
 
-		@Override
-		public boolean claim(Element element) {
-			return false;
-		}
+    private static CharSequence readSourceDeclaration(SourceTypeBinding binding) {
+      TypeDeclaration referenceContext = binding.scope.referenceContext;
+      char[] content = referenceContext.compilationResult.compilationUnit.getContents();
+      int start = referenceContext.declarationSourceStart;
+      int end = referenceContext.declarationSourceEnd;
 
-		@Override
-		public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
-			for (SourceExtractor extractor : extractors) {
-				CharSequence source = extractor.extract(environment, typeElement);
-				if (!source.equals(UNABLE_TO_EXTRACT)) {
-					return source;
-				}
-				if (extractor.claim(typeElement)) {
-					// cannot extract, but an extractor knows for sure
-					// that it was his case which it may claim, then no
-					// need to consult other extractors, which actually might
-					// cause additional trouble.
-					return UNABLE_TO_EXTRACT;
-				}
-			}
-			return DefaultExtractor.INSTANCE.extract(environment, typeElement);
-		}
+      StringBuilder declaration = new StringBuilder();
+      for (int p = start; p <= end; p++) {
+        char c = content[p];
+        if (c == '{') {
+          break;
+        }
+        declaration.append(c);
+      }
+      return declaration;
+    }
 
-		@Override
-		public CharSequence extractReturnType(ExecutableElement executableElement) {
-			for (SourceExtractor extractor : extractors) {
-				CharSequence source = extractor.extractReturnType(executableElement);
-				if (!source.equals(UNABLE_TO_EXTRACT)) {
-					return source;
-				}
-				if (extractor.claim(executableElement)) {
-					// cannot extract, but an extractor knows for sure
-					// that it was his case which it may claim, then no
-					// need to consult other extractors, which actually might
-					// cause additional trouble.
-					return UNABLE_TO_EXTRACT;
-				}
-			}
-			return DefaultExtractor.INSTANCE.extractReturnType(executableElement);
-		}
-	}
+    private static CharSequence getRawType(MethodBinding methodBinding) {
+      TypeBinding returnType = methodBinding.returnType;
+      char[] sourceName = returnType.sourceName();
+      if (sourceName == null) {
+        sourceName = new char[] {};
+      }
+      return CharBuffer.wrap(sourceName);
+    }
+  }
 
-	private static SourceExtractor createExtractor() {
-		if (Compiler.ECJ.isPresent() || Compiler.JAVAC.isPresent()) {
-			List<SourceExtractor> extractors = Lists.newArrayListWithCapacity(2);
-			if (Compiler.ECJ.isPresent()) {
-				extractors.add(new EclipseSourceExtractor());
-			}
-			if (Compiler.JAVAC.isPresent()) {
-				extractors.add(new JavacSourceExtractor());
-			}
-			if (extractors.size() == 1) {
-				return extractors.get(0);
-			}
-			return new CompositeExtractor(extractors);
-		}
-		return DefaultExtractor.INSTANCE;
-	}
+  private static final class CompositeExtractor implements SourceExtractor {
+    private final SourceExtractor[] extractors;
 
-	private static final SourceExtractor EXTRACTOR = createExtractor();
+    CompositeExtractor(List<SourceExtractor> extractors) {
+      this.extractors = extractors.toArray(new SourceExtractor[extractors.size()]);
+    }
 
-	public static CharSequence getReturnTypeString(ExecutableElement method) {
-		return EXTRACTOR.extractReturnType(method);
-	}
+    @Override
+    public boolean claim(Element element) {
+      return false;
+    }
 
-	public static String getSuperclassString(TypeElement element) {
-		if (Compiler.ECJ.isPresent()) {
-			if (element instanceof TypeElementImpl) {
-				TypeElementImpl elementImpl = ((TypeElementImpl) element);
-				if (elementImpl._binding instanceof SourceTypeBinding) {
-					return EclipseSourceExtractor.extractSuperclass((SourceTypeBinding) elementImpl._binding).toString();
-				}
-			}
-		}
-		return element.getSuperclass().toString();
-	}
+    @Override
+    public CharSequence extract(ProcessingEnvironment environment, TypeElement typeElement) throws IOException {
+      for (SourceExtractor extractor : extractors) {
+        CharSequence source = extractor.extract(environment, typeElement);
+        if (!source.equals(UNABLE_TO_EXTRACT)) {
+          return source;
+        }
+        if (extractor.claim(typeElement)) {
+          // cannot extract, but an extractor knows for sure
+          // that it was his case which it may claim, then no
+          // need to consult other extractors, which actually might
+          // cause additional trouble.
+          return UNABLE_TO_EXTRACT;
+        }
+      }
+      return DefaultExtractor.INSTANCE.extract(environment, typeElement);
+    }
+
+    @Override
+    public CharSequence extractReturnType(ExecutableElement executableElement) {
+      for (SourceExtractor extractor : extractors) {
+        CharSequence source = extractor.extractReturnType(executableElement);
+        if (!source.equals(UNABLE_TO_EXTRACT)) {
+          return source;
+        }
+        if (extractor.claim(executableElement)) {
+          // cannot extract, but an extractor knows for sure
+          // that it was his case which it may claim, then no
+          // need to consult other extractors, which actually might
+          // cause additional trouble.
+          return UNABLE_TO_EXTRACT;
+        }
+      }
+      return DefaultExtractor.INSTANCE.extractReturnType(executableElement);
+    }
+  }
+
+  private static SourceExtractor createExtractor() {
+    if (Compiler.ECJ.isPresent() || Compiler.JAVAC.isPresent()) {
+      List<SourceExtractor> extractors = Lists.newArrayListWithCapacity(2);
+      if (Compiler.ECJ.isPresent()) {
+        extractors.add(new EclipseSourceExtractor());
+      }
+      if (Compiler.JAVAC.isPresent()) {
+        extractors.add(new JavacSourceExtractor());
+      }
+      if (extractors.size() == 1) {
+        return extractors.get(0);
+      }
+      return new CompositeExtractor(extractors);
+    }
+    return DefaultExtractor.INSTANCE;
+  }
+
+  private static final SourceExtractor EXTRACTOR = createExtractor();
+
+  public static CharSequence getReturnTypeString(ExecutableElement method) {
+    return EXTRACTOR.extractReturnType(method);
+  }
+
+  public static String getSuperclassString(TypeElement element) {
+    if (Compiler.ECJ.isPresent()) {
+      if (element instanceof TypeElementImpl) {
+        TypeElementImpl elementImpl = ((TypeElementImpl) element);
+        if (elementImpl._binding instanceof SourceTypeBinding) {
+          return EclipseSourceExtractor.extractSuperclass((SourceTypeBinding) elementImpl._binding).toString();
+        }
+      }
+    }
+    return element.getSuperclass().toString();
+  }
 }
