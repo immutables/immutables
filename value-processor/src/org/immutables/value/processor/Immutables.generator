@@ -1452,6 +1452,21 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
   }
+  [if v.constructorParameters]
+
+  /**
+   * Constructs and initializes the optional value for the [sourceDocRef type v] attribute.
+  [for c in v.constructorParameters]
+   * @param [c.name] The value for {@code [v.name].[c.name]} [if c.nullable](can be {@code null})[/if]
+  [/for]
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [atCanIgnoreReturnValue]
+  [deprecation v]
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
+    return [v.names.init]([v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]));
+  }
+  [/if]
     [/if]
 
   /**
@@ -1671,6 +1686,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
    * @return {@code this} builder for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
     return [v.names.init]([v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]));

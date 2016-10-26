@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.deep;
 
+import java.util.Optional;
 import java.util.List;
 import org.immutables.value.Value;
 
@@ -40,6 +41,8 @@ public interface Canvas {
     List<Point> points();
 
     Color color();
+
+    Optional<Color> shadow();
   }
 
   @Value.Modifiable
@@ -65,6 +68,7 @@ public interface Canvas {
     ImmutableLine.builder()
         .addAllPoints(line.points())
         .color(color)
+        .shadow(0.2, 0.2, 0.2)
         .build();
   }
 }
