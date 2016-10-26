@@ -1291,6 +1291,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public ImmutableList<String> getDocComment() {
     if (docComment == null) {
       this.docComment = constitution.isImplementationPrimary()
+          || constitution.style().getStyles().isImmutableIdentityNaming()
           ? extractDocComment(element)
           : ImmutableList.<String>of();
     }

@@ -43,6 +43,10 @@ public final class Styles {
     return style;
   }
 
+  public boolean isImmutableIdentityNaming() {
+    return scheme.typeImmutable.isIdentity();
+  }
+
   PackageNaming packageGenerated() {
     return scheme.packageGenerated;
   }
