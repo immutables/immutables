@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.SourceVersion;
 import com.google.common.base.CaseFormat;
 import org.immutables.generator.Naming;
 
@@ -207,7 +208,7 @@ public final class Styles {
 
     public final class AttributeNames {
       public final String raw = detectRawFrom(name);
-      private final boolean rawIsKeyword = Keywords.is(raw);
+      private final boolean rawIsKeyword = SourceVersion.isKeyword(raw);
 
       public final String get = name;
       public final String var = apply(Naming.identity(), false);
@@ -248,7 +249,7 @@ public final class Styles {
 
       public final class ForCollections {
         private final String singular = depluralizer.depluralize(raw);
-        private final boolean singularIsKeyword = Keywords.is(singular);
+        private final boolean singularIsKeyword = SourceVersion.isKeyword(singular);
 
         final String add = applySingular(scheme.add);
         final String put = applySingular(scheme.put);
