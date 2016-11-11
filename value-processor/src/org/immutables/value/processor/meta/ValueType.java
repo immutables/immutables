@@ -1270,6 +1270,14 @@ public final class ValueType extends TypeIntrospectionBase {
         && getThrowForInvalidImmutableState().equals(IllegalStateException.class.getName());
   }
 
+  public boolean isDeprecated() {
+    return constitution
+        .protoclass()
+        .processing()
+        .getElementUtils()
+        .isDeprecated(CachingElements.getDelegate(element));
+  }
+
   public ImmutableList<String> extractDocComment(Element element) {
     // Only extract for generated type which is public
     if (constitution.implementationVisibility().isPublic()) {

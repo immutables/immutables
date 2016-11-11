@@ -1289,7 +1289,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initMiscellaneous() {
     this.deprecated = protoclass()
         .processing()
-        .getElementUtils().isDeprecated(element);
+        .getElementUtils()
+        .isDeprecated(CachingElements.getDelegate(element));
 
     this.docComment = containingType.extractDocComment(element);
   }

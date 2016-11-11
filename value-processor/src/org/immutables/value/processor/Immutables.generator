@@ -138,6 +138,7 @@ import static [routine].immutableCopyOf;
   [/if]
  */
 [annotationsWhenTopLevel type topLevel]
+[typeDeprecation type]
 [if classpath.available 'javax.annotation.concurrent.Immutable']
 @javax.annotation.concurrent.Immutable
 [/if]
@@ -3505,6 +3506,8 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
 
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
+
+[template typeDeprecation Type t][if t.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
 
