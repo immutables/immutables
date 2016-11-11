@@ -641,11 +641,19 @@ public final class ValueType extends TypeIntrospectionBase {
         definingElements.add(attribute.element.getEnclosingElement());
       }
       if (definingElements.size() != 1) {
-        report()
-            .error("Constructor parameters could not be defined on a different level of inheritance hierarchy, "
-                + " generated constructor API would be unstable."
-                + " To resolve, you can redeclare (override) each inherited"
-                + " constuctor parameter in this abstract value type.");
+        if (constitution.style().allParameters()) {
+          report()
+              .warning("Constructor parameters should be better defined on the same level of inheritance hierarchy, "
+                  + " otherwise generated constructor API would be unstable."
+                  + " It is better redeclare (override) each inherited"
+                  + " attribute parameter in this abstract value type.");
+        } else {
+          report()
+              .error("Constructor parameters could not be defined on a different level of inheritance hierarchy, "
+                  + " generated constructor API would be unstable."
+                  + " To resolve, you can redeclare (override) each inherited"
+                  + " constuctor parameter in this abstract value type.");
+        }
       }
     }
   }
