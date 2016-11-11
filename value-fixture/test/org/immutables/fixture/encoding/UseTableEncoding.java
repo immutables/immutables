@@ -15,10 +15,12 @@
  */
 package org.immutables.fixture.encoding;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.collect.Table;
 import org.immutables.fixture.encoding.defs.TableEncodingEnabled;
 import org.immutables.value.Value;
 
+@JsonDeserialize(builder = ImmutableUseTableEncoding.Builder.class)
 @Value.Immutable(singleton = true)
 @TableEncodingEnabled
 public abstract class UseTableEncoding {
