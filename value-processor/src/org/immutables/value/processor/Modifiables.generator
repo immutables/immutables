@@ -119,6 +119,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Returns {@code true} if the required attribute [sourceDocRef type m] is set.
    * @return {@code true} if set
    */
+  [jsonIgnore type]
   public final boolean [isSet m]() {
     return ([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) == 0;
   }
@@ -129,6 +130,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Returns {@code true} if the [if p.generateDefault]default[else]non-required[/if] attribute [sourceDocRef type p] is set.
    * @return {@code true} if set
    */
+  [jsonIgnore type]
   public final boolean [isSet p]() {
     return ([disambiguateField type 'optBits'][emptyIfZero pos.index] & OPT_BIT_[toConstant p.name]) != 0;
   }
@@ -164,28 +166,29 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
-    public final [thisReturnType type] [unset m]() {
-      [disambiguateField type 'initBits'][emptyIfZero pos.index] |= INIT_BIT_[toConstant m.name];
-      [clearField m true]
-      [thisReturn type]
-    }
-    [/for]
-    [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
+  public final [thisReturnType type] [unset m]() {
+    [disambiguateField type 'initBits'][emptyIfZero pos.index] |= INIT_BIT_[toConstant m.name];
+    [clearField m true]
+    [thisReturn type]
+  }
+  [/for]
+  [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
   /**
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
-    public final [thisReturnType type] [unset p]() {
-      [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
-      [clearField p true]
-      [thisReturn type]
-    }
-    [/for]
+  public final [thisReturnType type] [unset p]() {
+    [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
+    [clearField p true]
+    [thisReturn type]
+  }
+  [/for]
 
   /**
    * Returns {@code true} if all required attributes are set, indicating that the object is initialized.
    * @return {@code true} if set
    */
+  [jsonIgnore type]
   public final boolean [isInitialized type]() {
     [if positions.longs]
     return [for l in positions.longs][if not for.first]
@@ -1075,3 +1078,5 @@ import [starImport];
 [template deprecation Attribute a][if a.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
+
+[template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
