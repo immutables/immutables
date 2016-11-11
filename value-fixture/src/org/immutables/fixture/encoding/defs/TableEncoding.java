@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.encoding.defs;
 
+import org.immutables.encode.Encoding.StandardNaming;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
@@ -81,13 +82,13 @@ class TableEncoding<R, C, V> {
     private static final Object DILLY_CONSTANT = "{D}";
     private final ImmutableTable.Builder<R, C, V> builder = ImmutableTable.<R, C, V>builder();
 
-    @Encoding.Naming("put*")
+    @Encoding.Naming(standard = StandardNaming.PUT)
     @Encoding.Init
     void put(R row, C column, V value) {
       builder.put(row, column, value);
     }
 
-    @Encoding.Naming("putAll*")
+    @Encoding.Naming(standard = StandardNaming.PUT_ALL)
     @Encoding.Init
     @Encoding.Copy
     void putAll(Table<R, C, V> table) {
