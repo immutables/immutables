@@ -72,6 +72,7 @@ class TypeStringProvider {
   boolean processNestedTypeUseAnnotations;
   boolean forAttribute = false;
   NullElements nullElements = NullElements.BAN;
+  boolean nullableTypeAnnotation;
 
   TypeStringProvider(
       Reporter reporter,
@@ -177,8 +178,12 @@ class TypeStringProvider {
   private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations) {
     StringBuilder annotationBuffer = new StringBuilder(100);
     for (AnnotationMirror annotationMirror : annotations) {
+      CharSequence sequence = AnnotationMirrors.toCharSequence(annotationMirror, importsResolver);
+      if (!nullableTypeAnnotation && sequence.toString().endsWith(EPHEMERAL_ANNOTATION_NULLABLE)) {
+        this.nullableTypeAnnotation = true;
+      }
       annotationBuffer
-          .append(AnnotationMirrors.toCharSequence(annotationMirror, importsResolver))
+          .append(sequence)
           .append(' ');
     }
     return annotationBuffer;

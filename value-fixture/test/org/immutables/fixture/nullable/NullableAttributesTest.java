@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.nullable;
 
+import org.immutables.fixture.nullable.ImmutableNullableTypeUseJdtAccepted.Builder;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;
@@ -244,5 +245,16 @@ public class NullableAttributesTest {
       check(false);
     } catch (NullPointerException ex) {
     }
+  }
+
+  @Test
+  public void typeUseNullable() {
+    ImmutableNullableTypeUseJdtAccepted r = ImmutableNullableTypeUseJdtAccepted.builder()
+        .i1(null)
+        .l2(null)
+        .build();
+
+    check(r.i1()).isNull();
+    check(r.l2()).isNull();
   }
 }

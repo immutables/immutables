@@ -45,4 +45,26 @@ abstract class NullabilityAnnotationInfo {
         ? asPrefix()
         : "";
   }
+
+  /** Ad-hoc implementation for type-use level nullable annotation. */
+  static NullabilityAnnotationInfo forTypeUse() {
+    return new NullabilityAnnotationInfo() {
+      @Override
+      TypeElement element() {
+        throw new UnsupportedOperationException("expecting this will not be accessed");
+      }
+
+      /** Empty as we expect type string extraction to handle this for us where possible. */
+      @Override
+      String asLocalPrefix() {
+        return "";
+      }
+
+      /** Empty as we expect type string extraction to handle this for us where possible. */
+      @Override
+      String asPrefix() {
+        return "";
+      }
+    };
+  }
 }

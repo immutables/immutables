@@ -15,11 +15,9 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.Name;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -34,12 +32,12 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
@@ -126,11 +124,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public String atNullability() {
-    return isNullable() ? nullability.asPrefix() : "";
+    return nullability != null ? nullability.asPrefix() : "";
   }
 
   public String atNullabilityLocal() {
-    return isNullable() ? nullability.asLocalPrefix() : "";
+    return nullability != null ? nullability.asLocalPrefix() : "";
   }
 
   public boolean isSimpleLiteralType() {
@@ -1015,6 +1013,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.typeParameters = provider.typeParameters();
     this.hasTypeVariables = provider.hasTypeVariables;
     this.nullElements = provider.nullElements;
+    if (provider.nullableTypeAnnotation) {
+      this.nullability = NullabilityAnnotationInfo.forTypeUse();
+    }
   }
 
   public NullElements nullElements = NullElements.BAN;
@@ -1087,9 +1088,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public boolean attributeValueKindIsCollectionOfModifiable() {
     return attributeValueType != null
-            && typeKind.isCollectionKind()
-            && attributeValueType.kind().isModifiable()
-            && attributeValueType.isGenerateFilledFrom();
+        && typeKind.isCollectionKind()
+        && attributeValueType.kind().isModifiable()
+        && attributeValueType.isGenerateFilledFrom();
   }
 
   public boolean isAttributeValueKindCopy() {
