@@ -3123,7 +3123,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if v.float]
     Float.floatToIntBits([v.name])
   [else if v.double][-- Microbenchmark showed that it's ok to new Double, probably due escape analysis --]
-    new Double([v.name]).hashCode()
+    Double.valueOf([v.name]).hashCode()
   [else]
     (int) [v.name]
   [/if]
