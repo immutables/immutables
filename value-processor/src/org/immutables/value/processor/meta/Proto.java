@@ -98,10 +98,12 @@ public class Proto {
     @Value.Auxiliary
     public Set<EncodingInfo> encodings() {
       if (element().getSimpleName().toString().endsWith("Enabled")) {
-        return EncMetadataMirror.find(element()).transform(ENCODING_INFLATER).asSet();
-      }
-      // trying to find it as meta-meta annotation on style meta-annotated annotatation
-      if (style().isPresent()) {
+        // See if it is encoding enabled itself
+        Optional<EncodingInfo> encoding = EncMetadataMirror.find(element()).transform(ENCODING_INFLATER);
+        if (encoding.isPresent()) {
+          return encoding.asSet();
+        }
+        // trying to find it as meta-meta annotation
         List<EncodingInfo> result = new ArrayList<>();
         for (AnnotationMirror m : element().getAnnotationMirrors()) {
           MetaAnnotated metaAnnotated = MetaAnnotated.from(m, environment());

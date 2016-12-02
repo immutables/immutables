@@ -219,7 +219,7 @@ public abstract class Encodings extends AbstractTemplate {
         } else {
           reporter.withElement(typeBuilder)
               .error("@Encoding.Builder must have no arg method @Encoding.Build."
-                  + " It is used to describe how to get built instance of ");
+                  + " It is used to describe how to get built fully built instance");
         }
 
         if (builderInitCopy == null) {

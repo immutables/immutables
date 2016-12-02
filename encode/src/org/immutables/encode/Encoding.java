@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 public @interface Encoding {
 
   /**
-   * Implementation field must be annotated, it also must be private;
+   * Implementation field must be annotated, it also must be private.
    */
   @Target(ElementType.FIELD)
   @Retention(RetentionPolicy.SOURCE)
