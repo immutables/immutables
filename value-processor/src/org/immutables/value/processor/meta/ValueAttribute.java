@@ -1041,8 +1041,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initAttributeValueType() {
     if (containingType.constitution.style().deepImmutablesDetection()
         && containedTypeElement != null) {
-      Environment environment = protoclass().environment();
-
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
         // We don't propagate type arguments so we don't support it, sorry
@@ -1050,6 +1048,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           this.attributeValueType = containingType;
         }
       } else {
+        Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
           if ((p.kind().isDefinedValue() || p.kind().isModifiable())
               && canAccessImplementation(p)

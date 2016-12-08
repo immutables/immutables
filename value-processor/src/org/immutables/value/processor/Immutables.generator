@@ -221,13 +221,8 @@ implements java.io.Serializable {[/if]
 [/template]
 
 [template generateSerialization Type type]
+[serialVersionUID type]
 [if type.serial.simple]
-  [for serialVersion = type.serialVersionUID]
-    [if serialVersion]
-
-private static final long serialVersionUID = [literal serialVersion];
-    [/if]
-  [/for]
   [if type.useSimpleReadResolve]
 
 private Object readResolve() throws java.io.ObjectStreamException {
@@ -319,7 +314,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         }
         [/if]
         for (Object e : toArray(values[arri])) {
-          builder.[v.names.add](([v.wrappedElementType]) e);
+          builder.[v.names.add]([castObject v.wrappedElementType]e);
         }
       [else if v.mapType]
         [if v.nullable]
@@ -332,22 +327,22 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         if (entries != null) {
           for (int j = 0; j < entries.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
-            builder.[v.names.put](([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
+            builder.[v.names.put]([castObject v.wrappedElementType]entries[j], [castObject v.wrappedSecondaryElementType]entries[j1]);
           [/for]
           }
         }
       [else if v.optionalType]
         if (values[arri] != null) {
-          builder.[v.names.init](([v.wrappedElementType]) values[arri]);
+          builder.[v.names.init]([castObject v.wrappedElementType]values[arri]);
         }
       [else if v.nullable]
         if (values[arri] != null) {
-          builder.[v.names.init](([v.type]) values[arri]);
+          builder.[v.names.init]([castObject v.wrapperType]values[arri]);
         }
       [else if v.arrayType]
-        builder.[v.names.init](([v.type]) values[arri]);
+        builder.[v.names.init]([castObject v.wrapperType]values[arri]);
       [else]
-        builder.[v.names.init](([v.wrapperType]) toSingle("[v.name]", values[arri]));
+        builder.[v.names.init]([castObject v.wrapperType]toSingle("[v.name]", values[arri]));
       [/if]
       } break;
     [/for]
@@ -379,7 +374,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         }
         [/if]
         for (Object e : toArray(values[arri])) {
-          [v.name]Builder.add(([v.wrappedElementType]) e);
+          [v.name]Builder.add([castObject v.wrappedElementType]e);
         }
       [else if v.mapType]
         [if v.nullable]
@@ -392,18 +387,18 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         if (entries != null) {
           for (int j = 0; j < entries.length; j += 2) {
           [for String j = '[j]', String j1 = '[j + 1]']
-            [v.name]Builder.put(([v.wrappedElementType]) entries[j], ([v.wrappedSecondaryElementType]) entries[j1]);
+            [v.name]Builder.put([castObject v.wrappedElementType]entries[j], [castObject v.wrappedSecondaryElementType]entries[j1]);
           [/for]
           }
         }
       [else if v.optionalType]
         if (values[arri] != null) {
-          [v.name]Value = [optionalOf v](([v.wrappedElementType]) values[arri]);
+          [v.name]Value = [optionalOf v]([castObject v.wrappedElementType]values[arri]);
         }
       [else if v.nullable or v.arrayType]
-        [v.name]Value = ([v.wrapperType]) values[arri];
+        [v.name]Value = [castObject v.wrapperType]values[arri];
       [else]
-        [v.name]Value = ([v.wrapperType]) toSingle("[v.name]", values[arri]);
+        [v.name]Value = [castObject v.wrapperType]toSingle("[v.name]", values[arri]);
       [/if]
       } break;
     [/for]
@@ -2281,6 +2276,7 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 @com.fasterxml.jackson.annotation.JsonAutoDetect(fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE)
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
+  [serialVersionUID type]
 [for v in type.settableAttributes if not v.anyGetter]
   [if v.optionalType]
   [v.type] [v.name] = [optionalEmpty v];
@@ -3466,6 +3462,15 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 [/if]
 [/output.trim][/template]
 
+[template serialVersionUID Type type]
+[for serialVersion = type.serialVersionUID]
+  [if serialVersion]
+
+private static final long serialVersionUID = [literal serialVersion];
+  [/if]
+[/for]
+[/template]
+
 [-- templates below are one-liners so they auto-inlined --]
 [template topSimplePrefix Type type][if topLevelSimple][topLevelSimple].[else][type.topSimple].[/if][/template]
 
@@ -3518,3 +3523,5 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
 [template overrideJsonTypeInfo Type type][if type.jacksonJsonTypeInfo]@com.fasterxml.jackson.annotation.JsonTypeInfo(use=com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NONE)[/if][/template]
 
 [template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
+
+[template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
