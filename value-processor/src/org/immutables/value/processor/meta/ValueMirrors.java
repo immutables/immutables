@@ -150,6 +150,8 @@ public final class ValueMirrors {
 
     boolean strictBuilder() default false;
 
+    boolean disableRequiredAttributes() default false;
+
     boolean allParameters() default false;
 
     boolean defaultAsDefault() default false;

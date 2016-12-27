@@ -160,7 +160,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isContainerType()
         && !isNullable()
         && !isEncoding()
-        && !hasBuilderSwitcherDefault();
+        && !hasBuilderSwitcherDefault()
+        && !protoclass().styles().style().disableRequiredAttributes();
   }
 
   public boolean isNullable() {
