@@ -1021,6 +1021,9 @@ public interface BuildFinal[type.generics] {
   [rr.staticFields setters]
   [rr.staticMethods setters]
 [/if]
+[if type.useJavaValidationApi]
+  private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+[/if]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
   [/for]
@@ -1767,9 +1770,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
   [/if]
 [if type.useJavaValidationApi]
-    [returnType] bean = _[type.names.build]();
-    javax.validation.Validator validator = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
-    java.util.Set<javax.validation.ConstraintViolation<[returnType]>> constraintViolations = validator.validate(bean);
+    [returnType] bean = [type.names.build]Unvalidated();
+    java.util.Set<javax.validation.ConstraintViolation<[returnType]>> constraintViolations = [disambiguateField type 'validator'].validate(bean);
     if (!constraintViolations.isEmpty()) {
       throw new javax.validation.ConstraintViolationException(constraintViolations);
     }    
@@ -1779,11 +1781,11 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [/if]
   }
 [if type.useJavaValidationApi]
-  private [returnType] _[type.names.build]() {
+
+  private [returnType] [type.names.build]Unvalidated() {
     [builderReturnValue type]
   }
 [/if]
-  
   [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 or (not type.generateJdkOnly)]
 
