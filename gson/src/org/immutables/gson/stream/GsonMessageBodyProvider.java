@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.stream;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -359,7 +360,8 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     public abstract List<MediaType> mediaTypes();
   }
 
-  private static class StreamingOptions {
+  @VisibleForTesting
+  final static class StreamingOptions {
     final boolean lenient;
     final boolean serializeNulls;
     final boolean htmlSafe;
@@ -374,9 +376,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
 
     private static boolean accessField(Gson gson, String name, boolean defaultValue) {
       try {
-        Field field = Gson.class.getField(name);
+        Field field = Gson.class.getDeclaredField(name);
         field.setAccessible(true);
-        return field.get(gson) == Boolean.TRUE;
+        return (Boolean) field.get(gson);
       } catch (Exception ex) {
         return defaultValue;
       }

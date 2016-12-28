@@ -16,7 +16,12 @@
 package org.immutables.gson.stream;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
@@ -28,10 +33,11 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.immutables.gson.stream.GsonMessageBodyProvider.StreamingOptions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class JaxrsTest {
 
@@ -95,5 +101,27 @@ public class JaxrsTest {
         .post(Entity.text(Collections.singletonList("11")), new GenericType<List<String>>() {});
 
     check(result).isOf("x", "y", "[11]");
+  }
+
+  @Test
+  public void propagateGsonAttributes() {
+    Gson gson = new GsonBuilder()
+        .serializeNulls()
+        .disableHtmlEscaping()
+        .setPrettyPrinting()
+        .create();
+
+    StreamingOptions options = new GsonMessageBodyProvider.StreamingOptions(gson, true);
+    JsonReader reader = new JsonReader(new StringReader(""));
+    options.setReaderOptions(reader);
+
+    check(reader.isLenient());
+
+    JsonWriter writer = new JsonWriter(new StringWriter());
+    options.setWriterOptions(writer);
+
+    check(writer.isLenient());
+    check(!writer.isHtmlSafe());
+    check(writer.getSerializeNulls());
   }
 }
