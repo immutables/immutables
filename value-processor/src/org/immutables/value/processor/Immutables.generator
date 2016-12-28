@@ -705,7 +705,17 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/if]
 [if type.useValidation]
 
+[if type.useJavaValidationApi]
+  private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+[/if]
+
   private static [type.generics.spaceAfter][type.typeImmutable.relative] validate([type.typeImmutable.relative] instance) {
+[if type.useJavaValidationApi]
+    java.util.Set<javax.validation.ConstraintViolation<[type.typeImmutable.relative]>> constraintViolations = [disambiguateField type 'validator'].validate(instance);
+    if (!constraintViolations.isEmpty()) {
+      throw new javax.validation.ConstraintViolationException(constraintViolations);
+    }
+[/if]
 [for vm in type.validationMethods]
   [if vm.normalize]
     instance = ([type.typeImmutable.relative]) instance.[vm.name]();
@@ -1020,9 +1030,6 @@ public interface BuildFinal[type.generics] {
 [if type.constitution.outsideBuilder]
   [rr.staticFields setters]
   [rr.staticMethods setters]
-[/if]
-[if type.useJavaValidationApi]
-  private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
 [/if]
   [for m in mandatories, BitPosition pos = positions m]
   private static final long INIT_BIT_[toConstant m.name] = [literal.hex pos.mask];
@@ -1769,23 +1776,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     checkRequiredAttributes();
     [/if]
   [/if]
-[if type.useJavaValidationApi]
-    [returnType] bean = [type.names.build]Unvalidated();
-    java.util.Set<javax.validation.ConstraintViolation<[returnType]>> constraintViolations = [disambiguateField type 'validator'].validate(bean);
-    if (!constraintViolations.isEmpty()) {
-      throw new javax.validation.ConstraintViolationException(constraintViolations);
-    }    
-    return bean;
-[else]  
-    [builderReturnValue type]
-[/if]
-  }
-[if type.useJavaValidationApi]
-
-  private [returnType] [type.names.build]Unvalidated() {
     [builderReturnValue type]
   }
-[/if]
   [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 or (not type.generateJdkOnly)]
 

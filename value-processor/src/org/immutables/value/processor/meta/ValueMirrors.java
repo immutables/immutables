@@ -150,7 +150,7 @@ public final class ValueMirrors {
 
     boolean strictBuilder() default false;
 
-    BuilderValidationMethod builderValidationMethod() default BuilderValidationMethod.SIMPLE;
+    ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
 
     boolean allParameters() default false;
 
@@ -218,7 +218,7 @@ public final class ValueMirrors {
       PACKAGE
     }
     
-    public enum BuilderValidationMethod {
+    public enum ValidationMethod {
       NONE,
       SIMPLE,
       VALIDATION_API

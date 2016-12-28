@@ -697,7 +697,7 @@ public @interface Value {
     /**
       * When {@code true} @mdash; disables check that all required attributes have been provided to a builder.
       */
-    BuilderValidationMethod builderValidationMethod() default BuilderValidationMethod.SIMPLE;
+    ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
 
     /**
      * <p>
@@ -1133,7 +1133,7 @@ public @interface Value {
       PACKAGE
     }
 
-    public enum BuilderValidationMethod {
+    public enum ValidationMethod {
       /**
        * No validation of attributes
        */

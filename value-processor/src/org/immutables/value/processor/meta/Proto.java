@@ -1721,7 +1721,7 @@ public class Proto {
           input.packageGenerated(),
           ToImmutableInfo.FUNCTION.apply(input.defaults()),
           input.strictBuilder(),
-          input.builderValidationMethod(),
+          input.validationMethod(),
           input.allParameters(),
           input.defaultAsDefault(),
           input.headerComments(),
