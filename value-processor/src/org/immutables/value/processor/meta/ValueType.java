@@ -60,6 +60,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderValidationMethod;
 
 /**
  * It's pointless to refactor this mess until
@@ -819,6 +820,10 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isUseStrictBuilder() {
     return constitution.style().strictBuilder()
         || constitution.style().stagedBuilder();
+  }
+  
+  public boolean isUseJavaValidationApi() {
+	  return constitution.style().builderValidationMethod() == BuilderValidationMethod.VALIDATION_API; 
   }
 
   private @Nullable TelescopicBuild telescopicBuild;

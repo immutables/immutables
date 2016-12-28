@@ -697,7 +697,7 @@ public @interface Value {
     /**
       * When {@code true} @mdash; disables check that all required attributes have been provided to a builder.
       */
-    boolean disableRequiredAttributes() default false;
+    BuilderValidationMethod builderValidationMethod() default BuilderValidationMethod.SIMPLE;
 
     /**
      * <p>
@@ -1131,6 +1131,21 @@ public @interface Value {
        * Generated builder visibility is forced to be package-private.
        */
       PACKAGE
+    }
+
+    public enum BuilderValidationMethod {
+      /**
+       * No validation of attributes
+       */
+      NONE,
+      /**
+       * Simple validation, verifying that non-null attributes have been provided
+       */
+      SIMPLE,
+      /**
+       * Validation using Java Validation API
+       */
+      VALIDATION_API
     }
 
     /**

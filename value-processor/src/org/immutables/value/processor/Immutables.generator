@@ -1766,8 +1766,24 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     checkRequiredAttributes();
     [/if]
   [/if]
+[if type.useJavaValidationApi]
+    [returnType] bean = _[type.names.build]();
+    javax.validation.Validator validator = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+    java.util.Set<javax.validation.ConstraintViolation<[returnType]>> constraintViolations = validator.validate(bean);
+    if (!constraintViolations.isEmpty()) {
+      throw new javax.validation.ConstraintViolationException(constraintViolations);
+    }    
+    return bean;
+[else]  
+    [builderReturnValue type]
+[/if]
+  }
+[if type.useJavaValidationApi]
+  private [returnType] _[type.names.build]() {
     [builderReturnValue type]
   }
+[/if]
+  
   [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 or (not type.generateJdkOnly)]
 
