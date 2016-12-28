@@ -150,6 +150,8 @@ public final class ValueMirrors {
 
     boolean strictBuilder() default false;
 
+    ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
+
     boolean allParameters() default false;
 
     boolean defaultAsDefault() default false;
@@ -214,6 +216,12 @@ public final class ValueMirrors {
       PUBLIC,
       SAME,
       PACKAGE
+    }
+    
+    public enum ValidationMethod {
+      NONE,
+      SIMPLE,
+      VALIDATION_API
     }
   }
 

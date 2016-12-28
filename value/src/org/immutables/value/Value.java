@@ -695,6 +695,11 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
+      * When {@code true} @mdash; disables check that all required attributes have been provided to a builder.
+      */
+    ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
+
+    /**
      * <p>
      * When {@code true} &mdash; all settable attributes are considered as they are annotated with
      * {@link Value.Parameter}. Use {@code Value.Parameter(false)} annotation on an attribute to
@@ -1126,6 +1131,21 @@ public @interface Value {
        * Generated builder visibility is forced to be package-private.
        */
       PACKAGE
+    }
+
+    public enum ValidationMethod {
+      /**
+       * No validation of attributes
+       */
+      NONE,
+      /**
+       * Simple validation, verifying that non-null attributes have been provided
+       */
+      SIMPLE,
+      /**
+       * Validation using Java Validation API
+       */
+      VALIDATION_API
     }
 
     /**

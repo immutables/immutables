@@ -166,6 +166,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract ValidationMethod validationMethod();
+
+  @Value.Parameter
+  @Override
   public abstract boolean allParameters();
 
   @Value.Parameter

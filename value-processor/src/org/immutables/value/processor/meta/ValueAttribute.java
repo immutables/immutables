@@ -49,6 +49,7 @@ import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 
 /**
@@ -160,7 +161,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isContainerType()
         && !isNullable()
         && !isEncoding()
-        && !hasBuilderSwitcherDefault();
+        && !hasBuilderSwitcherDefault()
+        && protoclass().styles().style().validationMethod() == ValidationMethod.SIMPLE;
   }
 
   public boolean isNullable() {

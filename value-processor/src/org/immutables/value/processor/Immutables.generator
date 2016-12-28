@@ -705,7 +705,17 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/if]
 [if type.useValidation]
 
+[if type.useJavaValidationApi]
+  private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+[/if]
+
   private static [type.generics.spaceAfter][type.typeImmutable.relative] validate([type.typeImmutable.relative] instance) {
+[if type.useJavaValidationApi]
+    java.util.Set<javax.validation.ConstraintViolation<[type.typeImmutable.relative]>> constraintViolations = [disambiguateField type 'validator'].validate(instance);
+    if (!constraintViolations.isEmpty()) {
+      throw new javax.validation.ConstraintViolationException(constraintViolations);
+    }
+[/if]
 [for vm in type.validationMethods]
   [if vm.normalize]
     instance = ([type.typeImmutable.relative]) instance.[vm.name]();
