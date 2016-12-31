@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.encode;
 
+import org.immutables.value.processor.meta.ValueType;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -108,7 +109,8 @@ public final class Instantiator {
     public @Nullable Instantiation tryInstantiateFor(
         Reporter reporter,
         String typeString,
-        Styles.UsingName.AttributeNames names) {
+        Styles.UsingName.AttributeNames names,
+        ValueType containingType) {
 
       // we use parse/string here to reuse all cryptic logic to extract type strings
       // when resolving not-yet-generated types and othe complex cases
@@ -141,14 +143,14 @@ public final class Instantiator {
         }
 
         imports.addAll(winner.encoding.imports());
-//        System.err.println("!!!!!ENC: " + type + " " + names.raw + ": " + winnerResolver);
 
         return new Instantiation(
             winner.encoding,
             winner.exposedElement,
             type,
             names,
-            winnerResolver);
+            winnerResolver,
+            containingType);
       }
 
       return null;

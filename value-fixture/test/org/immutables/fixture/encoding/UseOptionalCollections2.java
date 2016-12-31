@@ -30,4 +30,10 @@ public interface UseOptionalCollections2<V> {
 
   @Value.Parameter
   Optional<List<V>> bs();
+
+  // just to generate builder constructor
+  @Value.Default
+  default boolean def() {
+    return true;
+  }
 }

@@ -110,7 +110,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 [declareMethod a.instantiation el]
 [else if el.build]
-  [if not el.oneLiner]
+  [if not (a.instantiation.isInlined el)]
 
 [declareMethod a.instantiation el]
   [/if]

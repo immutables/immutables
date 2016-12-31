@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.encode;
 
+import com.google.common.base.Predicate;
+import org.immutables.value.processor.meta.ValueType;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
@@ -52,18 +54,21 @@ public final class Instantiation {
   final Function<EncodedElement, String> namer;
 
   private final AttributeNames names;
+  private final ValueType containingType;
 
   Instantiation(
       EncodingInfo encoding,
       EncodedElement expose,
       Type exposedType,
       Styles.UsingName.AttributeNames names,
-      VariableResolver resolver) {
+      VariableResolver resolver,
+      ValueType containingType) {
     this.encoding = encoding;
     this.expose = expose;
     this.type = exposedType;
     this.names = names;
     this.typer = resolver;
+    this.containingType = containingType;
 
     this.bindings = new HashMap<>(encoding.element().size());
     this.builderBindings = new HashMap<>(encoding.element().size());
@@ -189,9 +194,21 @@ public final class Instantiation {
     return names.raw;
   }
 
+  final Predicate<EncodedElement> isInlined = new Predicate<EncodedElement>() {
+    @Override
+    public boolean apply(EncodedElement input) {
+      return isInlined(input);
+    }
+  };
+
   private boolean isInlined(EncodedElement el) {
     return !el.oneLiner().isEmpty()
-        && !encoding.crossReferencedMethods().contains(el.name());
+        && !encoding.crossReferencedMethods().contains(el.name())
+        && !entangledBuildMethod(el);
+  }
+
+  private boolean entangledBuildMethod(EncodedElement el) {
+    return el.isBuild() && containingType.isGenerateBuilderConstructor();
   }
 
   private boolean isDefaultUnspecifiedValue(EncodedElement element) {

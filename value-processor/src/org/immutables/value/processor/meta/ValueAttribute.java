@@ -955,7 +955,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isGenerateLazy
         && !isGenerateDefault
         && !isGenerateDerived) {
-      this.instantiation = instantiationCreator.tryInstantiateFor(reporter, returnTypeName, names);
+      this.instantiation =
+          instantiationCreator.tryInstantiateFor(reporter, returnTypeName, names, containingType);
     }
 
     initTypeKind();
