@@ -414,13 +414,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isSortedMap();
   }
 
+  public boolean isGenerateSortedMultiset() {
+    return typeKind.isSortedMultiset();
+  }
+
   private void checkOrderAnnotations() {
     Optional<NaturalOrderMirror> naturalOrderAnnotation = NaturalOrderMirror.find(element);
     Optional<ReverseOrderMirror> reverseOrderAnnotation = ReverseOrderMirror.find(element);
 
     if (naturalOrderAnnotation.isPresent() && reverseOrderAnnotation.isPresent()) {
       report()
-          .error("@Value.Natural and @Value.Reverse annotations could not be used on the same attribute");
+          .error("@Value.Natural and @Value.Reverse annotations cannot be used on the same attribute");
     } else if (naturalOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
         if (isComparableKey()) {
@@ -428,12 +432,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         } else {
           report()
               .annotationNamed(NaturalOrderMirror.simpleName())
-              .error("@Value.Natural should used on a set of Comparable elements (map keys)");
+              .error("@Value.Natural requires that a (multi)set's elements or a map's key are Comparable");
         }
       } else {
         report()
             .annotationNamed(NaturalOrderMirror.simpleName())
-            .error("@Value.Natural should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
+            .error("@Value.Natural can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
       }
     } else if (reverseOrderAnnotation.isPresent()) {
       if (typeKind.isSortedKind()) {
@@ -442,12 +446,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         } else {
           report()
               .annotationNamed(ReverseOrderMirror.simpleName())
-              .error("@Value.Reverse should used with a set of Comparable elements");
+              .error("@Value.Reverse requires that a (multi)set's elements or a map's key are Comparable");
         }
       } else {
         report()
             .annotationNamed(ReverseOrderMirror.simpleName())
-            .error("@Value.Reverse should specify order for SortedSet, SortedMap, NavigableSet or NavigableMap attributes");
+            .error("@Value.Reverse can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
       }
     }
   }
@@ -769,7 +773,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isMultisetType() {
-    return typeKind.isMultiset();
+    return typeKind.isMultisetKind();
   }
 
   public boolean isCustomCollectionType() {

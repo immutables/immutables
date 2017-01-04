@@ -49,6 +49,10 @@ public enum AttributeTypeKind {
       "Multiset",
       UnshadeGuava.typeString("collect.Multiset"),
       UnshadeGuava.typeString("collect.ImmutableMultiset")),
+  SORTED_MULTISET(
+      "SortedMultiset",
+      UnshadeGuava.typeString("collect.SortedMultiset"),
+      UnshadeGuava.typeString("collect.ImmutableSortedMultiset")),
   MULTIMAP(
       "Multimap",
       UnshadeGuava.typeString("collect.Multimap"),
@@ -144,6 +148,7 @@ public enum AttributeTypeKind {
     switch (this) {
     case SORTED_MAP:
     case SORTED_SET:
+    case SORTED_MULTISET:
       return true;
     default:
       return false;
@@ -156,6 +161,7 @@ public enum AttributeTypeKind {
     case ENUM_SET:
     case SORTED_SET:
     case MULTISET:
+    case SORTED_MULTISET:
       return true;
     default:
       return false;
@@ -180,6 +186,7 @@ public enum AttributeTypeKind {
     case ENUM_SET:
     case SORTED_SET:
     case MULTISET:
+    case SORTED_MULTISET:
     case CUSTOM_COLLECTION:
       return true;
     default:
@@ -233,6 +240,7 @@ public enum AttributeTypeKind {
   public boolean isGuavaContainerKind() {
     switch (this) {
     case MULTISET:
+    case SORTED_MULTISET:
     case MULTIMAP:
     case LIST_MULTIMAP:
     case SET_MULTIMAP:
@@ -299,6 +307,16 @@ public enum AttributeTypeKind {
     return isCollectionKind() || isMappingKind();
   }
 
+  public boolean isMultisetKind() {
+    switch (this) {
+    case MULTISET:
+    case SORTED_MULTISET:
+      return true;
+    default:
+      return false;
+    }
+  }
+
   public boolean isMultimapKind() {
     switch (this) {
     case MULTIMAP:
@@ -363,6 +381,10 @@ public enum AttributeTypeKind {
     return this == MULTISET;
   }
 
+  public boolean isSortedMultiset() {
+    return this == SORTED_MULTISET;
+  }
+
   public boolean isMultimap() {
     return this == MULTIMAP;
   }
@@ -372,7 +394,7 @@ public enum AttributeTypeKind {
   }
 
   public boolean isListMultimap() {
-    return this == SET_MULTIMAP;
+    return this == LIST_MULTIMAP;
   }
 
   public boolean isEnumMap() {

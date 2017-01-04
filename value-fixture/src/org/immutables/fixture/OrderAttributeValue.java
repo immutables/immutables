@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture;
 
+import com.google.common.collect.SortedMultiset;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.SortedMap;
@@ -34,4 +35,11 @@ public abstract class OrderAttributeValue {
 
   @Value.NaturalOrder
   public abstract NavigableMap<Integer, String> navigableMap();
+
+  @Value.NaturalOrder
+  public abstract SortedMultiset<Integer> naturalMultiset();
+
+  @Value.ReverseOrder
+  public abstract SortedMultiset<String> reverseMultiset();
+
 }

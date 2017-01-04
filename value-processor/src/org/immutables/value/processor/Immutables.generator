@@ -3052,6 +3052,14 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
     [guava].collect.Sets.immutableEnumSet([expression])
   [else if a.generateOrdinalValueSet]
     org.immutables.ordinal.ImmutableOrdinalSet.copyOf([expression])
+  [else if a.generateSortedMultiset]
+    [guava].collect.ImmutableSortedMultiset.copyOf(
+      [if a.hasNaturalOrder]
+        [guava].collect.Ordering.<[a.elementType]>natural(),
+      [else]
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse(),
+      [/if]
+        [expression])
   [else if a.customCollectionType]
     [a.rawType].from([expression])
   [else if a.collectionType]
@@ -3413,6 +3421,8 @@ this.[v.name].clear();
     [else]
       [if v.generateSortedSet]
 [if declare]private [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+      [else if v.generateSortedMultiset]
+[if declare]private [guava].collect.ImmutableSortedMultiset.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMultiset.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.customCollectionType]
 [if declare]private [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]

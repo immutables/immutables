@@ -99,6 +99,10 @@ public class ValuesTest {
         .putNavigableMap(1, "2")
         .navigableMap(ImmutableMap.of(2, "2"))
         .reverseMap(ImmutableMap.of("a", "a"))
+        .addNaturalMultiset(10, 10, 11)
+        .addReverseMultiset("x", "y", "y")
+        .naturalMultiset(ImmutableList.of(20, 13, 20))
+        .reverseMultiset(ImmutableList.of("w", "z", "z"))
         .build();
 
     OrderAttributeValue b = ImmutableOrderAttributeValue.builder()
@@ -106,6 +110,8 @@ public class ValuesTest {
         .addReverse("a", "z", "b", "y")
         .putNavigableMap(2, "2")
         .putReverseMap("a", "a")
+        .addNaturalMultiset(20, 13, 20)
+        .addReverseMultiset("w", "z", "z")
         .build();
 
     check(a).is(b);
@@ -154,12 +160,16 @@ public class ValuesTest {
         .putNavigableMap(1, "1")
         .putReverseMap("a", "a")
         .putReverseMap("b", "b")
+        .addNaturalMultiset(20, 13, 20)
+        .addReverseMultiset("w", "z", "z")
         .build();
 
     check(value.natural()).isOf(1, 2, 3, 4);
     check(value.reverse()).isOf("z", "y", "b", "a");
     check(value.navigableMap().keySet()).isOf(1, 2);
     check(value.reverseMap().keySet()).isOf("b", "a");
+    check(value.naturalMultiset()).isOf(13, 20, 20);
+    check(value.reverseMultiset()).isOf("z", "z", "w");
   }
 
   @Test
