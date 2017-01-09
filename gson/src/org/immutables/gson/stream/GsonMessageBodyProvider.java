@@ -15,10 +15,10 @@
  */
 package org.immutables.gson.stream;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -87,10 +87,10 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     this.gson = options.gson();
     this.mediaTypes = mediaSetFrom(options.mediaTypes());
     this.streamer = createStreamer(options.allowJackson(),
-        new StreamingOptions(options.gson(), options.lenient()));
+        new GsonOptions(options.gson(), options.lenient()));
   }
 
-  private static Streamer createStreamer(boolean allowJacksonIfAvailable, StreamingOptions options) {
+  private static Streamer createStreamer(boolean allowJacksonIfAvailable, GsonOptions options) {
     if (allowJacksonIfAvailable) {
       try {
         return new JacksonStreamer(options);
@@ -177,9 +177,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
 
   private static class GsonStreamer implements Streamer {
     private static final String CHARSET_NAME = "utf-8";
-    private final StreamingOptions options;
+    private final GsonOptions options;
 
-    GsonStreamer(StreamingOptions options) {
+    GsonStreamer(GsonOptions options) {
       this.options = options;
     }
 
@@ -255,9 +255,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
         .disable(JsonParser.Feature.AUTO_CLOSE_SOURCE)
         .disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 
-    private final StreamingOptions options;
+    private final GsonOptions options;
 
-    JacksonStreamer(StreamingOptions options) {
+    JacksonStreamer(GsonOptions options) {
       this.options = options;
     }
 
@@ -361,16 +361,16 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
   }
 
   @VisibleForTesting
-  final static class StreamingOptions {
+  final static class GsonOptions {
     final boolean lenient;
     final boolean serializeNulls;
     final boolean htmlSafe;
     final boolean prettyPrinting;
 
-    StreamingOptions(Gson gson, boolean lenient) {
+    GsonOptions(Gson gson, boolean lenient) {
       this.lenient = lenient;
-      this.htmlSafe = accessField(gson, "htmlSafe", true);
-      this.serializeNulls = accessField(gson, "serializeNulls", false);
+      this.htmlSafe = gson.htmlSafe();
+      this.serializeNulls = gson.serializeNulls();
       this.prettyPrinting = accessField(gson, "prettyPrinting", false);
     }
 

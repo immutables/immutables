@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.immutables.gson.stream.GsonMessageBodyProvider.StreamingOptions;
+import org.immutables.gson.stream.GsonMessageBodyProvider.GsonOptions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -111,7 +111,7 @@ public class JaxrsTest {
         .setPrettyPrinting()
         .create();
 
-    StreamingOptions options = new GsonMessageBodyProvider.StreamingOptions(gson, true);
+    GsonOptions options = new GsonOptions(gson, true);
     JsonReader reader = new JsonReader(new StringReader(""));
     options.setReaderOptions(reader);
 
@@ -123,5 +123,8 @@ public class JaxrsTest {
     check(writer.isLenient());
     check(!writer.isHtmlSafe());
     check(writer.getSerializeNulls());
+
+    // checks pretty printing
+    check(gson.toJson(Collections.singletonMap("k", "v"))).is("{\n  \"k\": \"v\"\n}");
   }
 }
