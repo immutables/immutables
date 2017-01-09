@@ -523,7 +523,7 @@ private Object writeReplace() {
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
-  [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional);
+  [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional);
       [else if v.mapType]
       [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
@@ -572,7 +572,7 @@ public [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementTy
 @Override
 public [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value) { throw new UnsupportedOperationException(); }
 @Override
-public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) { throw new UnsupportedOperationException(); }
+public [type.typeAbstract.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) { throw new UnsupportedOperationException(); }
     [else if v.mapType]
       [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 @Override
@@ -912,7 +912,7 @@ public interface BuildFinal[type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  BuildFinal[type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]);
+  BuildFinal[type.generics.args] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]);
 [else if v.mapType]
   [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
     [if v.multimapType]
@@ -1483,13 +1483,16 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
+  [if type.kind.isFactory or (not v.jdkOptional)]
+  @SuppressWarnings("unchecked") // safe covariant cast
+  [/if]
   [atCanIgnoreReturnValue]
   [builderInitAnnotations v]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
-    this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
+    this.[v.name] = ([v.type]) [requireNonNull type]([v.name], "[v.name]");
   [else]
     this.[v.name] = [valueFromValue v v.name];
   [/if]
@@ -1949,6 +1952,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [rr.from v expression]
 [else if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
+[else if v.optionalType]
+  ([v.type]) [expression]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
@@ -2808,8 +2813,11 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  * @param optional A value for [v.name]
  * @return A modified copy of {@code this} object
  */
+[if not v.jdkOptional]
+@SuppressWarnings("unchecked") // safe covariant cast
+[/if]
 [deprecation v]
-public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] optional) {
+public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
   [if v.hasSimpleScalarElementType]

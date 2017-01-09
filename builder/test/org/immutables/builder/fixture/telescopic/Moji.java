@@ -17,6 +17,8 @@ public interface Moji {
 
   Optional<String> d();
 
+  Optional<Number> n();
+
   Multimap<Integer, String> e();
 
   @Nullable
