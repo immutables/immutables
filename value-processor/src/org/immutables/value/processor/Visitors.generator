@@ -15,7 +15,7 @@
 --]
 [template public generate]
   [for type in values.values if type.generateVisitor]
-    [if type.kind.isEnclosing and (not type.kind.isValue)]
+    [if type.kind.isEnclosing]
 [for String visitorClassname = ((toUpper type.name) 'Visitor')]
 [output.java type.package visitorClassname]
 [type.sourceHeader]
@@ -24,7 +24,7 @@
 [/for]
     [else]
 [output.error]
-Use @Trees.Visit to annotate umbrella class with @Value.Enclosing, but not with @Value.Immutable alone
+Use @Trees.Visit to annotate umbrella class with @Value.Enclosing
 [/output.error]
     [/if]
   [/for]

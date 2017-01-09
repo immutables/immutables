@@ -15,7 +15,7 @@
 --]
 [template public generate]
   [for type in values.values if type.generateTransformer]
-    [if type.kind.isEnclosing and (not type.kind.isValue)]
+    [if type.kind.isEnclosing]
 [for String transformersClassname = ((toUpper type.name) 'Transformer')]
 [output.java type.package transformersClassname]
 [type.sourceHeader]
@@ -24,7 +24,7 @@
 [/for]
     [else]
 [output.error]
-Use @Trees.Transform to annotate umbrella class with @Value.Enclosing, but not with @Value.Immutable alone
+Use @Trees.Transform to annotate umbrella class with @Value.Enclosing
 [/output.error]
     [/if]
   [/for]
