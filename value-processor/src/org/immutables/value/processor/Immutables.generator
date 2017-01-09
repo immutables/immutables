@@ -1025,6 +1025,9 @@ public interface BuildFinal[type.generics] {
 [if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
+[for a in type.builderAnnotations]
+[a]
+[/for]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple][type.generics] [if type.innerBuilder.isSuper]
     [if type.innerBuilder.isInterface]implements[if type.telescopicBuild][telescopicBuilderImplementInterfaces type][/if][else]extends[/if] [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args] {[else if type.telescopicBuild]implements [telescopicBuilderImplementInterfaces type] {[else]{[/if]
 [if type.constitution.outsideBuilder]

@@ -15,15 +15,29 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.List;
 import javax.annotation.Nullable;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @Value.Style(builder = "new")
 @JsonDeserialize(builder = ImmutableCustomBuilderDeserialize.Builder.class)
+@JsonIgnoreProperties(ignoreUnknown = true)
+// the annotation will be copied to builder
 public abstract class CustomBuilderDeserialize {
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+  @JsonSubTypes({
+      @Type(name = "I", value = Integer.class),
+      @Type(name = "O", value = Double.class)
+  })
+  // the annotation will be copied to a builder setter
+  public abstract @Nullable Object value();
+
   public abstract int a();
 
   public abstract @Nullable String s();

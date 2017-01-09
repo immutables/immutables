@@ -319,16 +319,23 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public List<CharSequence> getBuilderAttributeAnnotation() {
-    if (containingType.isGenerateJacksonProperties()) {
+    if (containingType.isGenerateJacksonProperties()
+        && protoclass().isJacksonDeserialized()) {
       List<CharSequence> jacksonPropertyAnnotation = Annotations.getAnnotationLines(element,
           Collections.singleton(JsonPropertyMirror.qualifiedName()),
-          true,
+          false,
           ElementType.METHOD,
           importsResolver);
+      List<CharSequence> annotations = Lists.newArrayList();
       if (jacksonPropertyAnnotation.isEmpty()) {
-        return ImmutableList.<CharSequence>of(jacksonPropertyAnnotation());
+        annotations.add(jacksonPropertyAnnotation());
       }
-      return jacksonPropertyAnnotation;
+      annotations.addAll(Annotations.getAnnotationLines(element,
+          Collections.<String>emptySet(),
+          true,
+          ElementType.METHOD,
+          importsResolver));
+      return annotations;
     }
     return ImmutableList.of();
   }

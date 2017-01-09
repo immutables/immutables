@@ -185,7 +185,7 @@ public class ObjectMappedTest {
 
   @Test
   public void customBuilderDeserialize() throws Exception {
-    String json = "{\"a\":1,\"s\":\"abc\",\"l\":[true,false]}";
+    String json = "{\"a\":1,\"s\":\"abc\",\"l\":[true,false],\"unknownShouldBeIgnored\":1}";
     CustomBuilderDeserialize o = OBJECT_MAPPER.readValue(json, CustomBuilderDeserialize.class);
     check(o.a()).is(1);
     check(o.s()).is("abc");

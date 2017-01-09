@@ -15,6 +15,20 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,22 +58,9 @@ import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
+import org.immutables.value.processor.meta.Proto.JacksonMode;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 
 /**
  * It's pointless to refactor this mess until
@@ -281,6 +282,19 @@ public final class ValueType extends TypeIntrospectionBase {
       }
     }
     return constructorAnnotations;
+  }
+
+  public List<CharSequence> getBuilderAnnotations() {
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    if (declaringType.isPresent() && declaringType.get().jacksonSerializeMode() == JacksonMode.BUILDER) {
+      return Annotations.getAnnotationLines(
+          element,
+          Collections.<String>emptySet(),
+          true,
+          ElementType.TYPE,
+          newTypeStringResolver());
+    }
+    return ImmutableList.of();
   }
 
   private Long findSerialVersionUID() {
@@ -820,9 +834,9 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().strictBuilder()
         || constitution.style().stagedBuilder();
   }
-  
+
   public boolean isUseJavaValidationApi() {
-	  return constitution.style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
+    return constitution.style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
   }
 
   private @Nullable TelescopicBuild telescopicBuild;

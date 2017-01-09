@@ -116,9 +116,13 @@ final class Annotations {
       return true;
     }
 
-    if (includeJacksonAnnotations
-        && (qualifiedName.startsWith(PREFIX_JACKSON) || qualifiedName.startsWith(PREFIX_JACKSON_DATABIND))) {
-      return true;
+    if (includeJacksonAnnotations) {
+      if (qualifiedName.equals(Proto.JACKSON_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON_SERIALIZE)) {
+        return false;
+      }
+      if (qualifiedName.startsWith(PREFIX_JACKSON) || qualifiedName.startsWith(PREFIX_JACKSON_DATABIND)) {
+        return true;
+      }
     }
 
     if (includeAnnotations.contains(qualifiedName)) {
