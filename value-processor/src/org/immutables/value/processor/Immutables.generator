@@ -2530,18 +2530,18 @@ private boolean equalTo([equalToType] another) {
 [else if getters.isEmpty]
   return [type.hashCode];
 [else]
-  int [h] = 31;
+  int [h] = 5381;
 [for v in getters]
 [if v.encoding]
-  [h] = [h] * 17 + ([rr.hash v]);
+  [h] += ([h] << 5) + ([rr.hash v]);
 [else if v.arrayType]
-  [h] = [h] * 17 + java.util.Arrays.hashCode([v.name]);
+  [h] += ([h] << 5) + java.util.Arrays.hashCode([v.name]);
 [else if v.nullable or v.jdkOptional]
-  [h] = [h] * 17 + [objectsHashCode type]([v.name]);
+  [h] += ([h] << 5) + [objectsHashCode type]([v.name]);
 [else if v.primitive]
-  [h] = [h] * 17 + [primitiveHashCode v];
+  [h] += ([h] << 5) + [primitiveHashCode v];
 [else]
-  [h] = [h] * 17 + [v.name].hashCode();
+  [h] += ([h] << 5) + [v.name].hashCode();
 [/if]
 [/for]
   return [h];
