@@ -2863,7 +2863,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-    [else if v.stringType or v.primitiveWrapperType]
+    [else if v.stringType or (v.primitiveWrapperType or v.isSuppressedOptional)]
       [if v.nullable]
   if ([objectsEqual type](this.[v.name], value)) return this;
       [else]

@@ -1026,6 +1026,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public NullElements nullElements = NullElements.BAN;
+  public boolean isSuppressedOptional;
 
   public enum NullElements {
     BAN,
@@ -1140,12 +1141,6 @@ public final class ValueAttribute extends TypeIntrospectionBase {
               + " It is better to avoid raw types at all times");
         }
       }
-      if (typeKind.isOptionalKind()
-          && containedTypeElement != null // for specialized optional types it can be null
-          && AttributeTypeKind.forRawType(containedTypeElement.getQualifiedName().toString()).isOptionalKind()) {
-        typeKind = AttributeTypeKind.REGULAR;
-        report().warning("Optional or Optional is turned into regular attribute to avoid ambiguity problems");
-      }
     }
   }
 
@@ -1202,6 +1197,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void validateTypeAndAnnotations() {
+    boolean wasOptional = isOptionalType();
+
     boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
     if (hasWildcardInType && typeKind != AttributeTypeKind.REGULAR) {
       if (hasNakedWildcardArguments()) {
@@ -1259,6 +1256,17 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (!isGenerateJdkOnly() && nullElements.allow()) {
       report().warning("Guava collection implementation does not allow null elements, nullness annotation will be ignored."
           + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
+    }
+
+    if (isOptionalType()
+        && containedTypeElement != null // for specialized optional types it can be null
+        && AttributeTypeKind.forRawType(containedTypeElement.getQualifiedName().toString()).isOptionalKind()) {
+      typeKind = AttributeTypeKind.REGULAR;
+      report().warning("Optional<Optional<*>> is turned into regular attribute to avoid ambiguity problems");
+    }
+
+    if (wasOptional && !isOptionalType()) {
+      isSuppressedOptional = true;
     }
   }
 
