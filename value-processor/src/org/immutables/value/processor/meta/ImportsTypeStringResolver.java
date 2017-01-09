@@ -30,6 +30,7 @@ class ImportsTypeStringResolver implements Function<String, String> {
   private final @Nullable DeclaringType originType;
   private @Nullable ImmutableList<TypeElement> extendedClasses;
   private @Nullable ImmutableSet<TypeElement> implementedInterfaces;
+  private ImmutableSet<String> unresolvedYetArguments = ImmutableSet.of();
   private Round round;
 
   ImportsTypeStringResolver(@Nullable DeclaringType usingType, @Nullable DeclaringType originType) {
@@ -37,17 +38,20 @@ class ImportsTypeStringResolver implements Function<String, String> {
     this.originType = originType == null ? null : originType.associatedTopLevel();
   }
 
-  public void hierarchyTraversalForUnresolvedTypes(
+  void hierarchyTraversalForUnresolvedTypes(
       Round round,
       ImmutableList<TypeElement> extendedClasses,
-      ImmutableSet<TypeElement> implementedInterfaces) {
+      ImmutableSet<TypeElement> implementedInterfaces,
+      ImmutableSet<String> unresolvedYetArguments) {
     this.round = round;
     this.extendedClasses = extendedClasses;
     this.implementedInterfaces = implementedInterfaces;
+    this.unresolvedYetArguments = unresolvedYetArguments;
   }
 
   @Override
   public String apply(String input) {
+    unresolved = false;
     boolean assumedUnqualified = Ascii.isUpperCase(input.charAt(0));
     if (assumedUnqualified) {
       input = qualifyImportedIfPossible(input, false);
@@ -55,10 +59,11 @@ class ImportsTypeStringResolver implements Function<String, String> {
     return input;
   }
 
-  public String resolveTopForAttribute(String input) {
+  String resolveTopForAttribute(String input) {
+    unresolved = false;
     boolean assumedUnqualified = Ascii.isUpperCase(input.charAt(0));
     if (assumedUnqualified) {
-      input = qualifyImportedIfPossible(input, true);
+      input = qualifyImportedIfPossible(input, !unresolvedYetArguments.contains(input));
     }
     return input;
   }

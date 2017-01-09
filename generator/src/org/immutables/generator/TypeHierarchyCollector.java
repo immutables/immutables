@@ -37,6 +37,7 @@ public class TypeHierarchyCollector {
   private final Set<TypeElement> implementedInterfaces = Sets.newLinkedHashSet();
   private final List<String> extendedClassNames = Lists.newArrayList();
   private final Set<String> implementedInterfaceNames = Sets.newLinkedHashSet();
+  protected final Set<String> unresolvedYetArguments = Sets.newHashSet();
 
   /**
    * overridable stringify.
@@ -87,6 +88,10 @@ public class TypeHierarchyCollector {
 
   public ImmutableSet<TypeElement> implementedInterfaces() {
     return ImmutableSet.copyOf(implementedInterfaces);
+  }
+  
+  public ImmutableSet<String> unresolvedYetArguments() {
+    return ImmutableSet.copyOf(unresolvedYetArguments);
   }
 
   public ImmutableList<String> extendedClassNames() {

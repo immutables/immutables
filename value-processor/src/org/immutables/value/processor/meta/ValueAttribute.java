@@ -322,10 +322,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.isGenerateJacksonProperties()) {
       List<CharSequence> jacksonPropertyAnnotation = Annotations.getAnnotationLines(element,
           Collections.singleton(JsonPropertyMirror.qualifiedName()),
-          false,
+          true,
           ElementType.METHOD,
           importsResolver);
-
       if (jacksonPropertyAnnotation.isEmpty()) {
         return ImmutableList.<CharSequence>of(jacksonPropertyAnnotation());
       }
@@ -1000,7 +999,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     this.importsResolver.hierarchyTraversalForUnresolvedTypes(
         protoclass().environment().round(),
         this.containingType.extendedClasses(),
-        this.containingType.implementedInterfaces());
+        this.containingType.implementedInterfaces(),
+        this.containingType.unresolvedYetArguments);
 
     TypeStringProvider provider = new TypeStringProvider(
         reporter,

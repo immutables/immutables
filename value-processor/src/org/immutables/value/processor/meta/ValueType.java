@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -37,7 +36,6 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-
 import org.immutables.generator.Output;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
@@ -48,7 +46,6 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
-
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -825,7 +822,7 @@ public final class ValueType extends TypeIntrospectionBase {
   }
   
   public boolean isUseJavaValidationApi() {
-	  return constitution.style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API; 
+	  return constitution.style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
   }
 
   private @Nullable TelescopicBuild telescopicBuild;
@@ -1101,6 +1098,7 @@ public final class ValueType extends TypeIntrospectionBase {
             newTypeStringResolver(),
             context.parameters.toArray(new String[0]),
             context.arguments.toArray(new String[0]));
+        provider.collectUnresolvedYetArgumentsTo(this.unresolvedYetArguments);
         provider.process();
         return provider.returnTypeName();
       }

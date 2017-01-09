@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -157,6 +158,10 @@ class TypeStringProvider {
       } else {
         typeName = importsResolver.apply(typeName);
       }
+      if (type != startType && importsResolver.unresolved && unresolvedYetArguments != null) {
+        unresolvedYetArguments.add(typeName);
+      }
+
       hasMaybeUnresolvedYetAfter |= importsResolver.unresolved;
     }
 
@@ -348,6 +353,12 @@ class TypeStringProvider {
     if (startType == type) {
       typeParameterStrings.add(buffer.substring(mark));
     }
+  }
+
+  private Set<String> unresolvedYetArguments;
+
+  void collectUnresolvedYetArgumentsTo(Set<String> unresolvedYetArguments) {
+    this.unresolvedYetArguments = unresolvedYetArguments;
   }
 
   static final String EPHEMERAL_ANNOTATION_NULLABLE = "Nullable";

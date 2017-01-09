@@ -69,6 +69,7 @@ public abstract class TypeIntrospectionBase {
   private volatile boolean introspected;
   protected ImmutableList<String> extendedClassesNames;
   protected ImmutableSet<String> implementedInterfacesNames;
+  protected ImmutableSet<String> unresolvedYetArguments;
   private boolean isOrdinalValue;
   private boolean isEnum;
   private boolean isComparable;
@@ -141,6 +142,7 @@ public abstract class TypeIntrospectionBase {
     TypeHierarchyCollector collector = collectTypeHierarchy(typeMirror);
     this.extendedClassesNames = collector.extendedClassNames();
     this.implementedInterfacesNames = collector.implementedInterfaceNames();
+    this.unresolvedYetArguments = collector.unresolvedYetArguments();
   }
 
   protected TypeHierarchyCollector collectTypeHierarchy(TypeMirror typeMirror) {
