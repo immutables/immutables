@@ -54,6 +54,11 @@ abstract class NullabilityAnnotationInfo {
         throw new UnsupportedOperationException("expecting this will not be accessed");
       }
 
+      @Override
+      String qualifiedName() {
+        return "";
+      }
+
       /** Empty as we expect type string extraction to handle this for us where possible. */
       @Override
       String asLocalPrefix() {

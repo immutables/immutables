@@ -161,8 +161,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isContainerType()
         && !isNullable()
         && !isEncoding()
-        && !hasBuilderSwitcherDefault()
-        && protoclass().styles().style().validationMethod() == ValidationMethod.SIMPLE;
+        && !hasBuilderSwitcherDefault();
   }
 
   public boolean isNullable() {
@@ -1301,6 +1300,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         anyGetter = typeKind.isMap();
       }
     }
+    if (isCollectionType()
+        && nullElements == NullElements.BAN
+        && protoclass().styles().style().validationMethod() == ValidationMethod.NONE) {
+      nullElements = NullElements.ALLOW;
+    }
   }
 
   public boolean isNullableCollector() {
@@ -1320,6 +1324,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         .isDeprecated(CachingElements.getDelegate(element));
 
     this.docComment = containingType.extractDocComment(element);
+    if (isMandatory() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
+      this.nullability = NullabilityAnnotationInfo.forTypeUse();
+    }
   }
 
   private void initBuilderParamsIfApplicable() {

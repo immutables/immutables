@@ -695,8 +695,9 @@ public @interface Value {
     boolean strictBuilder() default false;
 
     /**
-      * When {@code true} @mdash; disables check that all required attributes have been provided to a builder.
-      */
+     * When {@code true} @mdash; disables check that all required attributes have been provided to a
+     * builder.
+     */
     ValidationMethod validationMethod() default ValidationMethod.SIMPLE;
 
     /**
@@ -868,10 +869,11 @@ public @interface Value {
      * then some special handling will be applied to it. As of now following functionality is
      * applied:
      * <ul>
-     * <li>Accessors in a generated immutable type will be implemented with a covariant return type of
-     * the immutable implementation of the abstract value type of the declared attribute. This has no
-     * effect on the collection/container attributes to not interfere with invariant generic types.
-     * Derived and Default attributes are also not supported as of now to avoid excessive complexity</li>
+     * <li>Accessors in a generated immutable type will be implemented with a covariant return type
+     * of the immutable implementation of the abstract value type of the declared attribute. This
+     * has no effect on the collection/container attributes to not interfere with invariant generic
+     * types. Derived and Default attributes are also not supported as of now to avoid excessive
+     * complexity</li>
      * <li>Builder initializers will have overloaded variants with parameters of the attribute value
      * object's constructor (if it has constructor as opposed to the ones which only have builder).
      * Effectively this is a shortcut to initialize value object in a more consice way. This works
@@ -983,7 +985,6 @@ public @interface Value {
      *         {@code JsonSerialialize/JsonDeserialialize}. Default is {@code true}.
      */
     boolean jacksonIntegration() default true;
-
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
@@ -1135,15 +1136,25 @@ public @interface Value {
 
     public enum ValidationMethod {
       /**
-       * No validation of attributes
+       * Disables null and mandatory attribute checks. Any missing primitives will be initialized to
+       * their zero-based values: {@code false}, {@code 0}, {@code '\0'}. Object references will be
+       * nulls. Any optional, default and collection attributes will be initialized with their
+       * appropriate default values regardless of this validation setting.
        */
       NONE,
       /**
-       * Simple validation, verifying that non-null attributes have been provided
+       * Simple validation, verifying that non-null attributes have been provided. This is classic
+       * fail-fast, null-hostile behavior and works best in most cases.
        */
       SIMPLE,
       /**
-       * Validation using Java Validation API
+       * Validation using Java Bean Validation API (JSR 303). It disables null checks, in favor or
+       * {@literal @}{@code javax.validation.constraints.NotNull} and creates static validator per
+       * objects. To better control the usage of JSR 303 Validator objects or enable fail-fast null
+       * checks, please use custom validation mixin approach, where you create base abstract class
+       * or interface with default methods to provide `@Value.Check` which would explictly call
+       * validation of your choice. Please see discussion and examples provided in the following
+       * github issue: {@linkplain "https://github.com/immutables/immutables/issues/26"}
        */
       VALIDATION_API
     }
