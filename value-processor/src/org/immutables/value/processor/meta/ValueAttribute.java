@@ -431,34 +431,26 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       report()
           .error("@Value.Natural and @Value.Reverse annotations cannot be used on the same attribute");
     } else if (naturalOrderAnnotation.isPresent()) {
-      if (typeKind.isSortedKind()) {
-        if (isMaybeComparableKey()) {
-          orderKind = OrderKind.NATURAL;
-        } else {
-          report()
-              .annotationNamed(NaturalOrderMirror.simpleName())
-              .error("@Value.Natural requires that a (multi)set's elements or a map's key are Comparable");
-        }
-      } else {
-        report()
-            .annotationNamed(NaturalOrderMirror.simpleName())
-            .error("@Value.Natural can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
-      }
+      configureOrdering(OrderKind.NATURAL, NaturalOrderMirror.simpleName());
     } else if (reverseOrderAnnotation.isPresent()) {
-      if (typeKind.isSortedKind()) {
-        if (isMaybeComparableKey()) {
-          orderKind = OrderKind.REVERSE;
-        } else {
-          report()
-              .annotationNamed(ReverseOrderMirror.simpleName())
-              .error("@Value.Reverse requires that a (multi)set's elements or a map's key are Comparable");
-        }
-      } else {
-        report()
-            .annotationNamed(ReverseOrderMirror.simpleName())
-            .error("@Value.Reverse can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
-      }
+      configureOrdering(OrderKind.REVERSE, ReverseOrderMirror.simpleName());
     }
+  }
+
+  private void configureOrdering(OrderKind orderKind, String annotationName) {
+    if (typeKind.isSortedKind()) {
+      if (isMaybeComparableKey()) {
+        this.orderKind = orderKind;
+      } else {
+        reportOrderingError(annotationName, "requires that a (multi)set's elements or a map's keys are Comparable");
+      }
+    } else {
+      reportOrderingError(annotationName, "can be applied only to SortedSet, SortedMap and SortedMultiset attributes");
+    }
+  }
+
+  private void reportOrderingError(String annotationName, String msg) {
+    report().annotationNamed(annotationName).error(String.format("@Value.%s %s", annotationName, msg));
   }
 
   public boolean isJdkOptional() {
