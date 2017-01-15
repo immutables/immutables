@@ -217,7 +217,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     Boolean reallySupportsSubs = supportedSubs and (not a.hasTypeVariables)]
   [if subs and reallySupportsSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
-    [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
+    TypeToken.get([if secondary][a.unwrapperOrRawSecondaryElementType][else][a.unwrapperOrRawElementType][/if].class)[for s in subs],
     TypeToken.get([s].class)[/for]);
   [else]
 [if secondary]
