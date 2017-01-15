@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.annotation.Nullable;
 import com.google.common.collect.Iterators;
 import java.util.Collections;
 import java.util.Iterator;
@@ -182,13 +183,17 @@ public final class Generics implements Iterable<String> {
     }
   }
 
-  public boolean hasParameter(String var) {
+  public @Nullable Parameter get(String var) {
     for (Parameter p : parameters) {
       if (p.var.equals(var)) {
-        return true;
+        return p;
       }
     }
-    return false;
+    return null;
+  }
+
+  public boolean hasParameter(String var) {
+    return get(var) != null;
   }
 
   public boolean isEmpty() {

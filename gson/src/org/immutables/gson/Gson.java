@@ -27,7 +27,6 @@ import java.lang.annotation.Target;
 import java.util.Map;
 import java.util.ServiceLoader;
 import org.immutables.gson.adapter.ExpectedSubtypesAdapter;
-import org.immutables.gson.adapter.FieldNamingTranslator;
 
 /**
  * Gson umbrella annotation used to group nested Gson-related annotations.
@@ -78,16 +77,9 @@ public @interface Gson {
      * When {@code namingStrategy=true}, somewhat more involved code is generated to apply naming
      * strategies extracted from configured {@link com.google.gson.Gson} instance.
      * <p>
-     * <em>This functionality uses runtime support class and requires that this Gson integration module
-     * jar will be available at runtime. It uses Gson internals which could
-     * potentially break in later versions of Gson library, in addition it uses Oracle JVM internals.
-     * If you want to discuss this functionality to be more portable,
-     * file a request at <a href="https://github.com/immutables/immutables/issues">https://github.com/immutables/immutables/issues</a>.
-     * </em>
      * @see FieldNamingStrategy
      * @see FieldNamingPolicy
      * @see GsonBuilder#setFieldNamingPolicy(FieldNamingPolicy)
-     * @see FieldNamingTranslator
      * @return {@code true} if enabled, by default is {@code false}
      */
     boolean fieldNamingStrategy() default false;

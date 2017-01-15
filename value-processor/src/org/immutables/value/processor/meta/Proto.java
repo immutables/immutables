@@ -15,7 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.encode.EncodingMirror;
+import org.immutables.value.processor.encode.Type;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -53,6 +53,7 @@ import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.encode.EncMetadataMirror;
 import org.immutables.value.processor.encode.EncodingInfo;
+import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Inflater;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
@@ -62,7 +63,8 @@ import static com.google.common.base.Verify.verify;
 public class Proto {
   private Proto() {}
 
-  private static final Inflater ENCODING_INFLATER = new Inflater();
+  static final Type.Factory TYPE_FACTORY = new Type.Producer();
+  private static final Inflater ENCODING_INFLATER = new Inflater(TYPE_FACTORY);
 
   final static class Interning {
     private final Interner<DeclaringPackage> packageInterner = Interners.newStrongInterner();

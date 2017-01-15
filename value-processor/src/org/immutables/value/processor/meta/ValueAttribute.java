@@ -49,8 +49,8 @@ import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
-import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
+import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
 
 /**
  * It's pointless to refactor this mess until
@@ -1423,6 +1423,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   Reporter report() {
     return reporter.withElement(element);
+  }
+
+  public CharSequence getTypeTokenOfElement() {
+    return containingType.getGsonTypeTokens().sourceFor(getElementType());
+  }
+
+  public CharSequence getTypeTokenOfSecondaryElement() {
+    return containingType.getGsonTypeTokens().sourceFor(getSecondaryElementType());
   }
 
   @Override

@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.Parameterizable;
+import org.immutables.value.processor.encode.TypeExtractor;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -1515,6 +1517,17 @@ public final class ValueType extends TypeIntrospectionBase {
             null);
     provider.process();
     return provider.returnTypeName();
+  }
+
+  private @Nullable GsonTypeTokens gsonTypeTokens;
+
+  public GsonTypeTokens getGsonTypeTokens() {
+    if (gsonTypeTokens == null) {
+      gsonTypeTokens = new GsonTypeTokens(
+          generics(),
+          new TypeExtractor(Proto.TYPE_FACTORY, (Parameterizable) element));
+    }
+    return gsonTypeTokens;
   }
 
   public Reporter report() {

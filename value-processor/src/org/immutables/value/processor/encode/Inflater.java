@@ -26,7 +26,11 @@ import org.immutables.value.processor.encode.Mirrors.EncMetadata;
 
 @Enclosing
 public final class Inflater implements Function<EncMetadata, EncodingInfo> {
-  private final Type.Factory typeFactory = new Type.Producer();
+  private final Type.Factory typeFactory;
+
+  public Inflater(Type.Factory typeFactory) {
+    this.typeFactory = typeFactory;
+  }
 
   public Instantiator instantiatorFor(Set<EncodingInfo> encodinds) {
     return new Instantiator(typeFactory, encodinds);

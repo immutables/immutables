@@ -678,7 +678,7 @@ public interface Type {
       this.parameters = parameters;
     }
 
-    Parser unresolving() {
+    public Parser unresolving() {
       unresolve = false;
       return this;
     }
@@ -695,7 +695,7 @@ public interface Type {
           : factory.reference(name);
     }
 
-    Type parse(String input) {
+    public Type parse(String input) {
       try {
         return doParse(input);
       } catch (RuntimeException ex) {
@@ -740,6 +740,12 @@ public interface Type {
               }
             }
             return type;
+          } else if (t.is("@")) {
+            // just consume type annotation
+            terms.poll();
+            named();
+            // and try again, yep, recursively...
+            return type();
           }
           throw new IllegalStateException("unexpected term '" + t + "'");
         }
@@ -800,8 +806,15 @@ public interface Type {
 
           for (;;) {
             Term t = terms.poll();
-            assert t.isWordOrNumber();
-            segments.add(t.toString());
+            if (t.isWordOrNumber()) {
+              segments.add(t.toString());
+            } else if (t.is("@")) {
+              // just consume type annotation
+              named();
+              continue;
+            } else {
+              break;
+            }
 
             if (!terms.isEmpty() && terms.peek().is(".")) {
               if (terms.size() >= 2) {

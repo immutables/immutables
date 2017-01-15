@@ -95,9 +95,6 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
   [/for]
   [for v in allValues if v.generics]
   [if for.first]
-    [if classpath.unavailable 'org.immutables.gson.adapter.Types']
-[output.error]Please add full org.immutables:gson artifact to the classpath. It contain classes needed at runtime[/output.error]
-    [/if]
 
   private static java.lang.reflect.Type['[]'] getTypeArguments(TypeToken<?> type) {
     if (type.getType() instanceof java.lang.reflect.ParameterizedType) {
@@ -107,6 +104,18 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
         + type.getType() + " instance using method overloads like toJson(instance, type)."
         + " Runtime raw type alone is not enough."
         + " You can use TypeToken class or reflection to construct Type with type arguments");
+  }
+  [/if]
+  [/for]
+  [for v in allValues if v.gsonTypeAdapters.fieldNamingStrategy and (not v.useConstructorOnly)]
+  [if for.first]
+
+  private static String translateName(Gson gson, Class<?> sampleClass, String fieldName) {
+    try {
+      return gson.fieldNamingStrategy().translateName(sampleClass.getField(fieldName));
+    } catch (NoSuchFieldException noSuchField) {
+      throw new AssertionError(noSuchField);
+    }
   }
   [/if]
   [/for]
@@ -140,6 +149,16 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   final String [a.name]Name;
   [/for]
 [/if]
+[if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
+  [if allAttributes]
+
+  static class [type.name]NamingFields[type.generics] {
+  [for a in allAttributes]
+    public [a.type] [a.name];
+  [/for]
+  }
+  [/if]
+[/if]
 
   [type.name]TypeAdapter([if type.generics]TypeToken<?> type, [/if]Gson gson) {[if not allAttributes]}[/if]
   [if type.generics]
@@ -154,11 +173,12 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     [/if]
   [/for]
 [if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
-  [if allAttributes]
-    org.immutables.gson.adapter.FieldNamingTranslator fieldNaming = new org.immutables.gson.adapter.FieldNamingTranslator(gson);
-  [/if]
   [for a in allAttributes]
-    this.[a.name]Name = fieldNaming.translateName([type.typeAbstract].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
+    [if a.serializedName]
+    this.[a.name]Name = "[a.serializedName]";
+    [else]
+    this.[a.name]Name = translateName(gson, [type.name]NamingFields.class, "[a.name]");
+    [/if]
   [/for]
 [/if]
   [if allAttributes]} [/if]
@@ -197,37 +217,19 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     Boolean reallySupportsSubs = supportedSubs and (not a.hasTypeVariables)]
   [if subs and reallySupportsSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
-    TypeToken.get([if secondary][a.unwrapperOrRawSecondaryElementType][else][a.unwrapperOrRawElementType][/if].class)[for s in subs],
+    [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
     TypeToken.get([s].class)[/for]);
   [else]
 [if secondary]
-this.[a.name]SecondaryTypeAdapter = gson.getAdapter([if a.hasTypeVariables][getVariableTypeToken a true][else][if a.nonRawSecondaryElementType or a.hasTypeAnnotations]new TypeToken<[a.secondaryElementType]>() {}[else]TypeToken.get([a.secondaryElementType].class)[/if][/if]);
+this.[a.name]SecondaryTypeAdapter = [output.linesShortable]gson.getAdapter(
+    [a.typeTokenOfSecondaryElement]);[/output.linesShortable]
 [else]
-this.[a.name]TypeAdapter = gson.getAdapter([if a.hasTypeVariables][getVariableTypeToken a false][else][if a.nonRawElementType or a.hasTypeAnnotations]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if][/if]);
+this.[a.name]TypeAdapter = [output.linesShortable]gson.getAdapter(
+    [a.typeTokenOfElement]);[/output.linesShortable]
 [/if]
   [/if]
 [/for]
 [/template]
-
-[template getVariableTypeToken Attribute a Boolean secondary][output.trim]
-[if secondary]
-  [for tv = a.secondaryWholeTypeVariable]
-    [if tv.is]
-(TypeToken<[a.secondaryElementType]>) TypeToken.get(typeArguments['['][tv.index][']'])
-    [else]
-org.immutables.gson.adapter.Types.<[a.secondaryElementType]>tokenFor(getClass(), "[a.name]SecondaryTypeSample", typeArguments[for g in a.containingType.generics.vars], "[g]"[/for])
-    [/if]
-  [/for]
-[else]
-  [for tv = a.wholeTypeVariable]
-    [if tv.is]
-(TypeToken<[a.elementType]>) TypeToken.get(typeArguments['['][tv.index][']'])
-    [else]
-org.immutables.gson.adapter.Types.<[a.elementType]>tokenFor(getClass(), "[a.name]TypeSample", typeArguments[for g in a.containingType.generics.vars], "[g]"[/for])
-    [/if]
-  [/for]
-[/if]
-[/output.trim][/template]
 
 [template generateMarshalingMethods Type type]
 

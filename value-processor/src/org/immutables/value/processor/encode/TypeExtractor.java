@@ -35,25 +35,25 @@ import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor7;
 
-final class TypeExtractor {
-  final Type.Factory factory;
-  final Type.Parameters parameters;
-  final Type.Parser parser;
+public final class TypeExtractor {
+  public final Type.Factory factory;
+  public final Type.Parameters parameters;
+  public final Type.Parser parser;
   private final TypeConverter converter = new TypeConverter();
 
-  TypeExtractor(Type.Factory factory, Parameterizable context) {
+  public TypeExtractor(Type.Factory factory, Parameterizable context) {
     this.factory = factory;
     this.parameters = initParameters(context);
     this.parser = new Type.Parser(factory, parameters);
   }
 
-  TypeExtractor(Type.Factory factory, Type.Parameters parameters) {
+  public TypeExtractor(Type.Factory factory, Type.Parameters parameters) {
     this.factory = factory;
     this.parameters = parameters;
     this.parser = new Type.Parser(factory, parameters);
   }
 
-  TypeExtractor withParameter(String name, Iterable<? extends Type.Defined> bounds) {
+  public TypeExtractor withParameter(String name, Iterable<? extends Type.Defined> bounds) {
     return new TypeExtractor(
         factory,
         parameters.introduce(name, bounds));

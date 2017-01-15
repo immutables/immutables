@@ -15,10 +15,11 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.processor.encode.Type.Reference;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.immutables.value.processor.encode.Type.Defined;
+import org.immutables.value.processor.encode.Type.Primitive;
+import org.immutables.value.processor.encode.Type.Reference;
 import org.immutables.value.processor.encode.Type.VariableResolver;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
@@ -45,6 +46,12 @@ public class TypeTest {
     check(template.accept(match.get())).is(specific);
 
     check(!new Type.Template(specific).match(template).isPresent());
+  }
+
+  @Test
+  public void parseIngoreTypeAnnotation() {
+    check(parser.parse("@type.annotation.TypeA @TypeD int")).is(Primitive.INT);
+    check(parser.parse("java.lang.@type.annotation.TypeA @type.annotation.TypeB @TypeC String")).is(Reference.STRING);
   }
 
   @Test
