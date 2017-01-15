@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface SortedMultisetWrapper {
+public interface SortedCollectionWrapper {
     @Value.NaturalOrder
     ImmutableSortedSet<Elem> getElemSet();
 
