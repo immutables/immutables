@@ -722,14 +722,6 @@ public static final class Criteria extends Repositories.Criteria {
 private static class Serialization {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-  private static final TypeToken<[a.elementType]> [toConstant a.name]_TYPE_TOKEN = [if a.nonRawElementType]new TypeToken<[a.elementType]>() {}[else]TypeToken.get([a.elementType].class)[/if];
-    [/if]
-    [if a.requiresMarshalingSecondaryAdapter]
-  private static final TypeToken<[a.secondaryElementType]> [toConstant a.name]_SECONDARY_TYPE_TOKEN = [if a.nonRawSecondaryElementType]new TypeToken<[a.secondaryElementType]>() {}[else]TypeToken.get([a.secondaryElementType].class)[/if];
-    [/if]
-  [/for]
-  [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
   final TypeAdapter<[a.elementType]> [a.name]TypeAdapter;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
@@ -751,10 +743,28 @@ private static class Serialization {
     [getAdapterFromGson a true]
     [/if]
   [/for]
-    org.immutables.gson.adapter.FieldNamingTranslator fieldNaming = new org.immutables.gson.adapter.FieldNamingTranslator(gson);
   [for a in allAttributes]
-    this.[a.name]Name = fieldNaming.translateName([type.typeDocument].class, [a.rawType].class, "[a.name]", "[a.serializedName]");
+    [if a.serializedName]
+    this.[a.name]Name = "[a.serializedName]";
+    [else]
+    this.[a.name]Name = translateName("[a.name]");
+    [/if]
   [/for]
+  }
+
+  static final class [type.name]NamingFields[type.generics] {
+  [for a in allAttributes]
+    public [a.type] [a.name];
+  [/for]
+  }
+
+  private String translateName(String fieldName) {
+    try {
+      return gson.fieldNamingStrategy().translateName(
+          [type.name]NamingFields.class.getField(fieldName));
+    } catch (NoSuchFieldException noSuchField) {
+      throw new AssertionError(noSuchField);
+    }
   }
 }
 [/for]
@@ -765,10 +775,10 @@ private static class Serialization {
     Boolean suppotedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind))]
   [if subs and suppotedSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
-    [toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN[for s in subs],
+    [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
     TypeToken.get([s].class)[/for]);
   [else]
-this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([toConstant a.name][if secondary]_SECONDARY[/if]_TYPE_TOKEN);
+this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if]);
   [/if]
 [/for]
 [/template]

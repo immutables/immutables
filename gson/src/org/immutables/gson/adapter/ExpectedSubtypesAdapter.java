@@ -63,6 +63,14 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
     return new ExpectedSubtypesAdapter<>(gson, type, subtypes);
   }
 
+  @SafeVarargs
+  public static <T> ExpectedSubtypesAdapter<T> create(
+      Gson gson,
+      Class<T> type,
+      TypeToken<? extends T>... subtypes) {
+    return create(gson, TypeToken.get(type), subtypes);
+  }
+
   private ExpectedSubtypesAdapter(Gson gson, TypeToken<T> type, TypeToken<? extends T>[] subtypes) {
     if (subtypes.length < 1) {
       throw new IllegalArgumentException("At least one subtype should be specified");
