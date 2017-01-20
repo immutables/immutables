@@ -11,10 +11,13 @@ public class ValidationTest {
 
     check(nv.a()).isNull();
     check(nv.b()).isNull();
+    check(!nv.z());
+    check(nv.i()).is(0);
 
-    nv = ImmutableNoValidation.of(null, null);
+    nv = ImmutableNoValidation.of(null, null, true, 0);
     check(nv.a()).isNull();
     check(nv.b()).isNull();
+    check(nv.z());
 
     nv = nv.withA(null).withB(null);
 

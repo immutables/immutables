@@ -11,4 +11,10 @@ public interface NoValidation {
 
   @Value.Parameter
   Integer b();
+
+  @Value.Parameter
+  boolean z();
+
+  @Value.Parameter
+  int i();
 }

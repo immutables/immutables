@@ -161,7 +161,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         && !isContainerType()
         && !isNullable()
         && !isEncoding()
-        && !hasBuilderSwitcherDefault();
+        && !hasBuilderSwitcherDefault()
+        && !(isPrimitive() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE);
   }
 
   public boolean isNullable() {
@@ -1316,7 +1317,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         .isDeprecated(CachingElements.getDelegate(element));
 
     this.docComment = containingType.extractDocComment(element);
-    if (isMandatory() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
+    if (!isPrimitive() && isMandatory() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
       this.nullability = NullabilityAnnotationInfo.forTypeUse();
     }
   }
