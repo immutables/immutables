@@ -983,6 +983,8 @@ public String toString() {
       + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
     [else if v.nullable or v.containerType]
       + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
+    [else if v.primitive and (not v.mandatory)]
+      + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
     [else]
       + "[if not for.first], [/if][v.names.raw]="  + ([isSet v]() ? [v.names.get]() : "?")
     [/if]
@@ -997,6 +999,8 @@ public String toString() {
     [else if v.generateDefault]
       .add("[v.names.raw]", [v.names.get]())
     [else if v.nullable or v.containerType]
+      .add("[v.names.raw]", [v.names.get]())
+    [else if v.primitive and (not v.mandatory)]
       .add("[v.names.raw]", [v.names.get]())
     [else]
       .add("[v.names.raw]", [isSet v]() ? [v.names.get]() : "?")
