@@ -26,6 +26,9 @@ import org.immutables.value.Value;
 @Value.Style(depluralize = true)
 @OptionalMapEnabled
 @OptionalListEnabled
+@interface OptionalCollectionsWithStyle {}
+
+@OptionalCollectionsWithStyle
 @JsonDeserialize(as = ImmutableUseOptionalCollections.class)
 @Value.Immutable
 public interface UseOptionalCollections<V> {

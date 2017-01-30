@@ -94,23 +94,32 @@ public class Proto {
 
     @Value.Parameter
     @Value.Auxiliary
+    public abstract String qualifiedName();
+
+    @Value.Parameter
+    @Value.Auxiliary
     public abstract Environment environment();
 
     @Value.Derived
     @Value.Auxiliary
     public Set<EncodingInfo> encodings() {
-      if (element().getSimpleName().toString().endsWith("Enabled")) {
+      if (qualifiedName().endsWith("Enabled")
+          || CustomImmutableAnnotations.annotations().contains(qualifiedName())
+          || style().isPresent()) {
+
         // See if it is encoding enabled itself
         Optional<EncodingInfo> encoding = EncMetadataMirror.find(element()).transform(ENCODING_INFLATER);
         if (encoding.isPresent()) {
           return encoding.asSet();
         }
+
         // trying to find it as meta-meta annotation
         List<EncodingInfo> result = new ArrayList<>();
         for (AnnotationMirror m : element().getAnnotationMirrors()) {
           MetaAnnotated metaAnnotated = MetaAnnotated.from(m, environment());
           result.addAll(metaAnnotated.encodings());
         }
+
         if (!result.isEmpty()) {
           return FluentIterable.from(result).toSet();
         }
@@ -193,7 +202,7 @@ public class Proto {
 
       @Nullable MetaAnnotated metaAnnotated = cache.get(element);
       if (metaAnnotated == null) {
-        metaAnnotated = ImmutableProto.MetaAnnotated.of(element, environment);
+        metaAnnotated = ImmutableProto.MetaAnnotated.of(element, name, environment);
         @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
         if (existing != null) {
           metaAnnotated = existing;
