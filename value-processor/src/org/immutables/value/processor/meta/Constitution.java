@@ -668,6 +668,7 @@ public abstract class Constitution {
   }
 
   public final class InnerBuilderDefinition {
+    public final boolean isAccessibleFields;
     public final boolean isPresent;
     public final boolean isExtending;
     public final boolean isSuper;
@@ -698,6 +699,7 @@ public abstract class Constitution {
       }
 
       if (builderElement != null) {
+        this.isAccessibleFields = AccessibleFieldsMirror.find(builderElement).isPresent();
         this.isPresent = true;
         this.isInterface = builderElement.getKind() == ElementKind.INTERFACE;
         this.isExtending = extending;
@@ -712,6 +714,7 @@ public abstract class Constitution {
           lateValidateSuper(builderElement);
         }
       } else {
+        this.isAccessibleFields = false;
         this.isPresent = false;
         this.isInterface = false;
         this.isExtending = false;

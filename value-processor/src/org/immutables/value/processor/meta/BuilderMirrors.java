@@ -20,6 +20,9 @@ import org.immutables.mirror.Mirror;
 public final class BuilderMirrors {
   private BuilderMirrors() {}
 
+  @Mirror.Annotation("org.immutables.builder.Builder.AccessibleFields")
+  public @interface AccessibleFields {}
+
   @Mirror.Annotation("org.immutables.builder.Builder.Factory")
   public @interface Factory {}
 
