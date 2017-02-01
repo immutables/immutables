@@ -22,7 +22,7 @@ import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
 
 /**
- * This umbrella annotaion does nothing. Use nested annotations, such as {@literal @}
+ * This umbrella annotation does nothing. Use nested annotations, such as {@literal @}
  * {@code Builder.Factory} to generate builders for arbitrary static factory methods.
  * and is used for static factory methods to generate arbitrary builders.
  * Immutable values as {@link Immutable Value.Immutable} generate builder by default, unless
@@ -31,6 +31,15 @@ import org.immutables.value.Value.Style;
  */
 @Target({})
 public @interface Builder {
+
+  /**
+   * Annotate to get access to the builder's fields to avoid building the entire object. The fields will be package
+   * private rather then private as by default.
+   */
+  @Documented
+  @Target({ ElementType.TYPE })
+  public @interface AccessibleFields {}
+
   /**
    * Annotate static factory methods that produce some value (non-void, non-private) to create
    * builder out of constructor parameters.
