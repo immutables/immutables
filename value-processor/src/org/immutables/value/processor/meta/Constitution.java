@@ -608,6 +608,16 @@ public abstract class Constitution {
     public abstract Visibility visibility();
 
     @Value.Default
+    public String absolute(){
+      return DOT_JOINER.join(packageOf(), relative());
+    }
+
+    @Value.Default
+    public String absoluteRaw(){
+      return DOT_JOINER.join(packageOf(), relativeRaw());
+    }
+
+    @Value.Default
     public String genericArgs() {
       return "";
     }

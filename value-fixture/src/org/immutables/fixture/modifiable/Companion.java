@@ -26,7 +26,7 @@ import java.util.*;
 
 @Value.Immutable
 @Value.Modifiable
-interface Companion {
+public interface Companion {
   int integer();
 
   String string();
