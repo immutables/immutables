@@ -1,4 +1,4 @@
-package org.immutables.fixture.modifiable.differentPackage;
+package org.immutables.fixture.modifiable.nested;
 
 
 import org.immutables.fixture.modifiable.Companion;
