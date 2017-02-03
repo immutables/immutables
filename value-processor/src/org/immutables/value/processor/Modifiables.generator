@@ -717,7 +717,7 @@ public final [thisReturnType type] [v.names.set]([v.elementType]... elements) {
 [deprecation v]
 public [thisReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
   [if v.attributeValueKindModifyFrom]
-  this.[v.name] = [if v.nullable][v.name] == null ? null : [/if]([v.name] instanceof [v.attributeValueType.constitution.typeModifiable.relativeRaw] ? ([v.attributeValueType.constitution.typeModifiable.relative]) [v.name] : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]));
+  this.[v.name] = [if v.nullable][v.name] == null ? null : [/if]([v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw] ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name] : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]));
   [else if v.primitive or v.nullable]
   this.[v.name] = [v.name];
   [else]
