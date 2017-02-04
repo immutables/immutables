@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.style;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import org.junit.Test;
@@ -39,6 +40,11 @@ public class StyleTest {
     // when containers are supported, the type would be Iterable.class
     check(cls.getMethod("b", List.class)).notNull();
     // when containers are supported there will be convenience String method
-    check(cls.getMethod("c", String.class)).isNull();
+    Method c = null;
+    try {
+      c = cls.getMethod("c", String.class);
+    } catch (NoSuchMethodException ex) {
+    }
+    check(c).isNull();
   }
 }
