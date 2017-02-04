@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,11 +33,27 @@ import org.immutables.value.Value.Style;
 public @interface Builder {
 
   /**
-   * Annotate to get access to the builder's fields to avoid building the entire object. The fields will be package
-   * private rather then private as by default.
+   * Annotate nested static builder to get access to the builder's fields to avoid building the
+   * entire
+   * object. The fields will be protected rather then private as they are by default.
+   * 
+   * <pre>
+   * &#064;Immutable
+   * abstract class A {
+   *   int a();
+   * 
+   *   &#064;AccessibleFields
+   *   static class Builder extends ImmutableA.Builder {
+   *     A build() {
+   *       int accessibleBuilderFieldA = this.a;
+   *       return super.build();
+   *     }
+   *   }
+   * }
+   * </pre>
    */
   @Documented
-  @Target({ ElementType.TYPE })
+  @Target({ElementType.TYPE})
   public @interface AccessibleFields {}
 
   /**
