@@ -31,6 +31,7 @@ import org.immutables.value.Value.Style.ValidationMethod;
     typeImmutable = "*",
     optionalAcceptNullable = true,
     forceJacksonPropertyNames = false,
+    jdkOnly = true,
     validationMethod = ValidationMethod.VALIDATION_API,
     visibility = ImplementationVisibility.SAME)
 public interface AbstractImmutableWithModifiable {
