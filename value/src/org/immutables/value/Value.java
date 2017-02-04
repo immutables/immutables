@@ -15,6 +15,9 @@
  */
 package org.immutables.value;
 
+import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -1082,6 +1085,21 @@ public @interface Value {
      * @return if telescopic builders are used, {@code false} by default
      */
     boolean stagedBuilder() default false;
+
+    /**
+     * Setting {@code builtinContainerAttributes} to {@code false} would disable generation of
+     * built-in convenience features of automatically recongized container types such as
+     * {@link Optional}, {@link List}, {@link Map}. This will turn all attribute types into nothing
+     * special setters(initializers) and getters. However any registered encodings (type
+     * customizers) will be still processed. One of the purposes of this style control is to provide
+     * clean-slate when only registered encodings will impact type generation, but none of the
+     * built-in types would be applied. Note: that this style controls recognition of the
+     * attribute types, but not kind of attributes such as those specified by {@code Value.Default}
+     * or {@code Nullable} annotations.
+     * @return {@code true} if builtin container attributes should be supported. {@code true} is the
+     *         default
+     */
+    boolean builtinContainerAttributes() default true;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

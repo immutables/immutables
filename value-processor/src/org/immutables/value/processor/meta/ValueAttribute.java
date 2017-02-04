@@ -969,8 +969,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     initSpecialAnnotations();
     validateTypeAndAnnotations();
 
-    initAttributeValueType();
-    initImmutableCopyOf();
+    if (supportBuiltinContainerTypes()) {
+      initAttributeValueType();
+      initImmutableCopyOf();
+    }
   }
 
   private void initImmutableCopyOf() {
@@ -1046,6 +1048,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private void initAttributeValueType() {
+
     if (containingType.constitution.style().deepImmutablesDetection()
         && containedTypeElement != null) {
       // prevent recursion in case we have the same type
@@ -1133,14 +1136,11 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       typeKind = AttributeTypeKind.forRawType(rawTypeName);
       ensureTypeIntrospected();
       typeKind = typeKind.havingEnumFirstTypeParameter(hasEnumContainedElementType());
-      if (typeKind.isContainerKind() && typeParameters.isEmpty()) {
-        typeKind = AttributeTypeKind.REGULAR;
-        if (!SuppressedWarnings.forElement(element, false, false).rawtypes) {
-          report().warning("Raw container types treated as regular attributes, nothing special generated."
-              + " It is better to avoid raw types at all times");
-        }
-      }
     }
+  }
+
+  private boolean supportBuiltinContainerTypes() {
+    return protoclass().styles().style().builtinContainerAttributes();
   }
 
   public static class WholeTypeVariable {
@@ -1198,13 +1198,27 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void validateTypeAndAnnotations() {
     boolean wasOptional = isOptionalType();
 
-    boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
-    if (hasWildcardInType && typeKind != AttributeTypeKind.REGULAR) {
-      if (hasNakedWildcardArguments()) {
-        typeKind = AttributeTypeKind.REGULAR;
-        report()
-            .annotationNamed(DefaultMirror.simpleName())
-            .warning("Wildcards are not supported as elements or key/values. Make it lose its special treatment");
+    if (!typeKind.isRegular() && !supportBuiltinContainerTypes()) {
+      typeKind = AttributeTypeKind.REGULAR;
+    }
+
+    if (typeKind.isContainerKind() && typeParameters.isEmpty()) {
+      typeKind = AttributeTypeKind.REGULAR;
+      if (!SuppressedWarnings.forElement(element, false, false).rawtypes) {
+        report().warning("Raw container types treated as regular attributes, nothing special generated."
+            + " It is better to avoid raw types at all times");
+      }
+    }
+
+    if (typeKind.isContainerKind()) {
+      boolean hasWildcardInType = returnTypeName.indexOf('?') >= 0;
+      if (hasWildcardInType) {
+        if (hasNakedWildcardArguments()) {
+          typeKind = AttributeTypeKind.REGULAR;
+          report()
+              .annotationNamed(DefaultMirror.simpleName())
+              .warning("Wildcards are not supported as elements or key/values. Make it lose its special treatment");
+        }
       }
     }
 
@@ -1232,7 +1246,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           .warning("@Value.Default on a optional attribute make it lose its special treatment");
     }
 
-    if (containingType.isUseStrictBuilder() && isContainerType()) {
+    if (isContainerType() && containingType.isUseStrictBuilder()) {
       if (isGenerateDefault) {
         typeKind = AttributeTypeKind.REGULAR;
         report()

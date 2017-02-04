@@ -204,6 +204,8 @@ public final class ValueMirrors {
 
     boolean stagedBuilder() default false;
 
+    boolean builtinContainerAttributes() default true;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

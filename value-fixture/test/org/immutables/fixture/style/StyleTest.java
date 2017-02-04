@@ -16,8 +16,9 @@
 package org.immutables.fixture.style;
 
 import java.lang.reflect.Modifier;
+import java.util.List;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class StyleTest {
   @Test
@@ -30,5 +31,14 @@ public class StyleTest {
   public void packageVisibility() {
     check(Modifier.isPublic(LoweredVisibility.class.getModifiers()));
     check(!Modifier.isPublic(ImmutableLoweredVisibility.class.getModifiers()));
+  }
+
+  @Test
+  public void noBuiltinContainersSupport() throws Exception {
+    Class<?> cls = ImmutableNoBuiltinContainers.Builder.class;
+    // when containers are supported, the type would be Iterable.class
+    check(cls.getMethod("b", List.class)).notNull();
+    // when containers are supported there will be convenience String method
+    check(cls.getMethod("c", String.class)).isNull();
   }
 }
