@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import javax.lang.model.element.ElementKind;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
@@ -70,7 +71,7 @@ final class Annotations {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationTypeMatches(annotationElement,
+      if (annotationTypeMatches(element, annotationElement,
           includeAnnotations,
           includeAllAnnotations,
           includeJacksonAnnotations,
@@ -83,6 +84,7 @@ final class Annotations {
   }
 
   private static boolean annotationTypeMatches(
+      Element element,
       TypeElement annotationElement,
       Set<String> includeAnnotations,
       boolean includeAllAnnotations,
@@ -117,8 +119,10 @@ final class Annotations {
     }
 
     if (includeJacksonAnnotations) {
-      if (qualifiedName.equals(Proto.JACKSON_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON_SERIALIZE)) {
-        return false;
+      if (element.getKind() != ElementKind.METHOD) {
+        if (qualifiedName.equals(Proto.JACKSON_DESERIALIZE) || qualifiedName.equals(Proto.JACKSON_SERIALIZE)) {
+          return false;
+        }
       }
       if (qualifiedName.startsWith(PREFIX_JACKSON) || qualifiedName.startsWith(PREFIX_JACKSON_DATABIND)) {
         return true;
@@ -133,7 +137,12 @@ final class Annotations {
     if (includeJacksonAnnotations || !includeAnnotations.isEmpty()) {
       for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
         TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
-        if (annotationTypeMatches(parentElement, includeAnnotations, false, includeJacksonAnnotations, seenAnnotations)) {
+        if (annotationTypeMatches(element,
+            parentElement,
+            includeAnnotations,
+            false,
+            includeJacksonAnnotations,
+            seenAnnotations)) {
           return true;
         }
       }
