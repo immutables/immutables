@@ -744,6 +744,7 @@ public interface Type {
             // just consume type annotation
             terms.poll();
             named();
+            consumeErraticTrailingComma();
             // and try again, yep, recursively...
             return type();
           }
@@ -811,6 +812,7 @@ public interface Type {
             } else if (t.is("@")) {
               // just consume type annotation
               named();
+              consumeErraticTrailingComma();
               continue;
             } else {
               break;
@@ -832,6 +834,12 @@ public interface Type {
           }
 
           return forName(JOINER.join(segments));
+        }
+
+        private void consumeErraticTrailingComma() {
+          if (!terms.isEmpty() && terms.peek().is(",")) {
+            terms.poll();
+          }
         }
 
         void expect(Term t, String is) {

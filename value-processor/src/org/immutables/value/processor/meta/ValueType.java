@@ -1207,9 +1207,11 @@ public final class ValueType extends TypeIntrospectionBase {
   public FromSupertypesModel getBuildFromTypes() {
     if (buildFromTypes == null) {
       buildFromTypes = new FromSupertypesModel(
+          report(),
           typeAbstract().toString(),
           getSettableAttributes(),
-          accessorMapping);
+          accessorMapping,
+          getTypeExtractor());
     }
     return buildFromTypes;
   }
@@ -1523,11 +1525,21 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public GsonTypeTokens getGsonTypeTokens() {
     if (gsonTypeTokens == null) {
-      gsonTypeTokens = new GsonTypeTokens(
+      this.gsonTypeTokens = new GsonTypeTokens(
           generics(),
-          new TypeExtractor(Proto.TYPE_FACTORY, (Parameterizable) element));
+          getTypeExtractor());
     }
     return gsonTypeTokens;
+  }
+
+  private @Nullable TypeExtractor typeExtractor;
+
+  private TypeExtractor getTypeExtractor() {
+    if (typeExtractor == null) {
+      this.typeExtractor = new TypeExtractor(
+          Proto.TYPE_FACTORY, (Parameterizable) element);
+    }
+    return typeExtractor;
   }
 
   public Reporter report() {

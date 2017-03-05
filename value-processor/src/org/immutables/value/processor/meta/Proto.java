@@ -64,6 +64,7 @@ public class Proto {
   private Proto() {}
 
   static final Type.Factory TYPE_FACTORY = new Type.Producer();
+
   private static final Inflater ENCODING_INFLATER = new Inflater(TYPE_FACTORY);
 
   final static class Interning {

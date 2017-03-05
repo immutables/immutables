@@ -15,6 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.value.processor.encode.Type;
+import org.immutables.value.processor.encode.TypeExtractor;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.HashMultimap;
@@ -40,6 +42,8 @@ public final class FromSupertypesModel {
   public final ImmutableList<FromSupertypesModel.FromSupertype> supertypes;
   public final ImmutableList<String> repeating;
   public final LongPositions positions;
+  public final TypeExtractor typeExtractor;
+  private final Reporter reporter;
 
   public final static class FromSupertype {
     public final String type;
@@ -61,10 +65,14 @@ public final class FromSupertypesModel {
   }
 
   FromSupertypesModel(
+      Reporter reporter,
       String abstractTypeName,
       Collection<ValueAttribute> attributes,
-      ImmutableListMultimap<String, TypeElement> accessorMapping) {
+      ImmutableListMultimap<String, TypeElement> accessorMapping,
+      TypeExtractor typeExtractor) {
 
+    this.reporter = reporter;
+    this.typeExtractor = typeExtractor;
     SetMultimap<String, String> typesByAttribute = HashMultimap.create();
 
     for (ValueAttribute a : attributes) {
@@ -124,7 +132,21 @@ public final class FromSupertypesModel {
       // it (null) should never happen in theory
       return false;
     }
-    return accessor.getReturnType().toString().equals(attr.returnType.toString());
+
+    Type supertypeReturnType = typeExtractor.parser.parse(accessor.getReturnType().toString());
+    Type subtypeReturnType = typeExtractor.parser.parse(attr.returnType.toString());
+
+    boolean sameReturnType = subtypeReturnType.equals(supertypeReturnType);
+    if (sameReturnType) {
+      return true;
+    }
+    
+    reporter.warning("Generated 'Builder.from' method will not copy from attribute '%s'"
+        + " because it has different return type in supertype"
+        + " (And we cannot handle generic specialization or covarian overrides yet)."
+        + " Sometimes it is possible to avoid this by providing abstract override method in this value object",
+        attr.name());
+    return false;
   }
 
   private @Nullable ExecutableElement findMethod(TypeElement typeElement, String getter) {
