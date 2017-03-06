@@ -2508,6 +2508,9 @@ private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
+    [if type.usePrehashed]
+  if (hashCode != another.hashCode) return false;
+    [/if]
   return [if not getters]true[/if][for v in getters][if not for.first]
       && [/if][equalsAttribute v type.annotationType][/for];
   [/if]
@@ -3093,21 +3096,22 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/output.trim][/template]
 
 [template public equalsAttribute Attribute a Boolean useAccessor][output.trim]
+[let thisAttr][if a.name eq 'another']this.[/if][a.name][/let]
 [let getOther]another.[if useAccessor][a.names.get]()[else][a.name][/if][/let]
 [if a.encoding]
   [rr.equals a]another[/rr.equals]
 [else if a.float]
-  Float.floatToIntBits([a.name]) == Float.floatToIntBits([getOther])
+  Float.floatToIntBits([thisAttr]) == Float.floatToIntBits([getOther])
 [else if a.double]
-  Double.doubleToLongBits([a.name]) == Double.doubleToLongBits([getOther])
+  Double.doubleToLongBits([thisAttr]) == Double.doubleToLongBits([getOther])
 [else if a.primitive]
-  [a.name] == [getOther]
+  [thisAttr] == [getOther]
 [else if a.arrayType]
-  java.util.Arrays.equals([a.name], [getOther])
+  java.util.Arrays.equals([thisAttr], [getOther])
 [else if a.nullable or a.jdkOptional]
-  [objectsEqual a.containingType]([a.name], [getOther])
+  [objectsEqual a.containingType]([thisAttr], [getOther])
 [else]
-  [a.name].equals([getOther])
+  [thisAttr].equals([getOther])
 [/if]
 [/output.trim][/template]
 

@@ -1103,7 +1103,7 @@ public @interface Value {
 
     /**
      * If enabled modifable type will have void setters and will look more like JavaBean. This is
-     * modifiable companion types only, not for builders and other types of generate artifacts.
+     * modifiable companion types only, not for builders and other types of generated artifacts.
      * <p>
      * <em>Note, we are not supporting JavaBean specification in any way except that Immutables can be
      * used/configured to be partially compatible with some of the conventions.</em>
