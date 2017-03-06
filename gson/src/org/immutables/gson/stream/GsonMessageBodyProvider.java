@@ -15,6 +15,7 @@
  */
 package org.immutables.gson.stream;
 
+import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -35,6 +36,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -51,6 +53,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
@@ -70,6 +73,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
   private final Gson gson;
   private final Set<MediaType> mediaTypes;
   private final Streamer streamer;
+  private final ExceptionHandler exceptionHandler;
 
   /**
    * Creates new provider with internally configured {@link Gson} instance,
@@ -88,6 +92,7 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     this.mediaTypes = mediaSetFrom(options.mediaTypes());
     this.streamer = createStreamer(options.allowJackson(),
         new GsonOptions(options.gson(), options.lenient()));
+    this.exceptionHandler = options.exceptionHandler();
   }
 
   private static Streamer createStreamer(boolean allowJacksonIfAvailable, GsonOptions options) {
@@ -110,12 +115,12 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
 
   @Override
   public boolean isWriteable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-    return mediaTypes.contains(mediaType);
+    return mediaTypes.contains(mediaType) && !UNSUPPORTED_TYPES.contains(type);
   }
 
   @Override
   public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
-    return mediaTypes.contains(mediaType);
+    return mediaTypes.contains(mediaType) && !UNSUPPORTED_TYPES.contains(type);
   }
 
   @Override
@@ -132,7 +137,29 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       MediaType mediaType,
       MultivaluedMap<String, Object> httpHeaders,
       OutputStream entityStream) throws IOException, WebApplicationException {
-    streamer.write(gson, genericType, t, entityStream);
+    // Special case of unsupported type, where surrounding framework
+    // may have, mistakengly, chosen this provider based on media type, but when
+    // response will be streamed using StreamingOutput or is already prepared using
+    // in the form of CharSequence
+    if (t instanceof StreamingOutput) {
+      ((StreamingOutput) t).write(entityStream);
+      return;
+    }
+    if (t instanceof CharSequence) {
+      // UTF-8 used because it should be considered default encoding for the JSON-family
+      // of media types
+      OutputStreamWriter writer = new OutputStreamWriter(entityStream, StandardCharsets.UTF_8);
+      writer.append((CharSequence) t);
+      writer.flush();
+      return;
+    }
+    // Standard way of handling writing using gson
+    try {
+      streamer.write(gson, genericType, t, entityStream);
+    } catch (IOException ex) {
+      exceptionHandler.onWrite(gson, ex);
+      throw ex;
+    }
   }
 
   @Override
@@ -146,26 +173,8 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     try {
       return streamer.read(gson, genericType, entityStream);
     } catch (IOException ex) {
-      if (ex.getCause() instanceof RuntimeException) {
-        String json = gson.toJson(new Error(ex.getCause().getMessage()));
-        throw new WebApplicationException(
-            Response.status(Status.BAD_REQUEST)
-                .type(mediaType)
-                .entity(json)
-                .build());
-      }
+      exceptionHandler.onRead(gson, ex);
       throw ex;
-    }
-  }
-
-  static class Error {
-    final String error;
-
-//    final String[] location;
-
-    Error(String error) {// , String[] location) {
-      this.error = error;
-//      this.location = location;
     }
   }
 
@@ -320,7 +329,39 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
     }
   }
 
-  @Value.Immutable(singleton = true)
+  /**
+   * Implement streaming exception handler. If now exception will be thrown by handler methods,
+   * original {@link IOException} will be rethrown. Note that any runtime exceptions thrown by
+   * {@code Gson} will be wrapped in {@link IOException} passed in.
+   */
+  public interface ExceptionHandler {
+    /**
+     * Handles read exception. Can throw checked {@link IOException} or any runtime exception,
+     * including {@link WebApplicationException}.
+     * @param gson gson instance if Gson serializer needed to format error response.
+     * @param exception thrown from within {@link Gson}
+     * @throws IOException IO exception, to be handled by JAX-RS implementation
+     * @throws WebApplicationException exception which forces certain response
+     * @throws RuntimeException any runtime exception to be handled by JAX-RS implementation
+     */
+    void onRead(Gson gson, IOException exception) throws IOException, WebApplicationException, RuntimeException;
+
+    /**
+     * Handles write exception. Can throw checked {@link IOException} or any runtime exception,
+     * including {@link WebApplicationException}.
+     * @param gson gson instance if Gson serializer needed to format error response.
+     * @param exception thrown from within {@link Gson}
+     * @throws IOException IO exception, to be handled by JAX-RS implementation
+     * @throws WebApplicationException exception which forces certain response
+     * @throws RuntimeException any runtime exception to be handled by JAX-RS implementation
+     */
+    void onWrite(Gson gson, IOException exception) throws IOException, WebApplicationException, RuntimeException;
+  }
+
+  /**
+   * Use {@link GsonProviderOptionsBuilder} to build instances of {@code GsonProviderOptions}.
+   */
+  @Value.Immutable
   @Value.Style(
       jdkOnly = true,
       visibility = ImplementationVisibility.PRIVATE)
@@ -357,6 +398,19 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       return false;
     }
 
+    /**
+     * Streaming exception handler to use.
+     * @return exception handler.
+     */
+    @Value.Default
+    public ExceptionHandler exceptionHandler() {
+      return DEFAULT_EXCEPTION_HANDLER;
+    }
+
+    /**
+     * Handled media types
+     * @return media types
+     */
     public abstract List<MediaType> mediaTypes();
   }
 
@@ -395,4 +449,47 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       writer.setIndent(prettyPrinting ? "  " : "");
     }
   }
+
+  private static final Set<Class<?>> UNSUPPORTED_TYPES = new HashSet<>();
+  static {
+    UNSUPPORTED_TYPES.add(InputStream.class);
+    UNSUPPORTED_TYPES.add(Reader.class);
+    UNSUPPORTED_TYPES.add(OutputStream.class);
+    UNSUPPORTED_TYPES.add(Writer.class);
+    UNSUPPORTED_TYPES.add(byte[].class);
+    UNSUPPORTED_TYPES.add(char[].class);
+    UNSUPPORTED_TYPES.add(String.class);
+    UNSUPPORTED_TYPES.add(StreamingOutput.class);
+    UNSUPPORTED_TYPES.add(Response.class);
+  }
+
+  static class JsonError {
+    final String error;
+
+    JsonError(String error) {
+      this.error = error;
+    }
+  }
+
+  private static final ExceptionHandler DEFAULT_EXCEPTION_HANDLER = new ExceptionHandler() {
+    @Override
+    public void onWrite(Gson gson, IOException ex) {}
+
+    @Override
+    public void onRead(final Gson gson, final IOException ex) {
+      StreamingOutput output = new StreamingOutput() {
+        @Override
+        public void write(OutputStream output) throws IOException, WebApplicationException {
+          gson.toJson(new JsonError(ex.getCause().getMessage()), (Appendable) output);
+        }
+      };
+      if (ex.getCause() instanceof RuntimeException) {
+        throw new WebApplicationException(
+            Response.status(Status.BAD_REQUEST)
+                .type(MediaType.APPLICATION_JSON_TYPE)
+                .entity(output)
+                .build());
+      }
+    }
+  };
 }
