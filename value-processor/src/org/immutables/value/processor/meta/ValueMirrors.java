@@ -206,6 +206,8 @@ public final class ValueMirrors {
 
     boolean builtinContainerAttributes() default true;
 
+    boolean chainableModifiableSetters() default true;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

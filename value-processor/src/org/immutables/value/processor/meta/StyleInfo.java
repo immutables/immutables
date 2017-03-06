@@ -292,6 +292,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean builtinContainerAttributes();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean chainableModifiableSetters();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);

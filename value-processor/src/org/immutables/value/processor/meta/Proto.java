@@ -1760,7 +1760,8 @@ public class Proto {
           input.depluralizeDictionary(),
           ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),
           input.stagedBuilder(),
-          input.builtinContainerAttributes());
+          input.builtinContainerAttributes(),
+          input.chainableModifiableSetters());
     }
   }
 

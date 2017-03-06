@@ -228,6 +228,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return !constitution.style().buildOrThrow().isEmpty();
   }
 
+  public boolean isGenerateChainableSetters() {
+    return constitution.style().chainableModifiableSetters();
+  }
+
   private boolean noGuavaInClasspath() {
     return !constitution.protoclass().environment().hasGuavaLib();
   }

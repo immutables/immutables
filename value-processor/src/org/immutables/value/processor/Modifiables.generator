@@ -166,10 +166,10 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
-  public final [thisReturnType type] [unset m]() {
+  public final [thisSetterReturnType type] [unset m]() {
     [disambiguateField type 'initBits'][emptyIfZero pos.index] |= INIT_BIT_[toConstant m.name];
     [clearField m true]
-    [thisReturn type]
+    [thisSetterReturn type]
   }
   [/for]
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
@@ -177,10 +177,10 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
-  public final [thisReturnType type] [unset p]() {
+  public final [thisSetterReturnType type] [unset p]() {
     [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
     [clearField p true]
-    [thisReturn type]
+    [thisSetterReturn type]
   }
   [/for]
 
@@ -519,12 +519,12 @@ public final [thisReturnType type] [v.names.add]([v.unwrappedElementType]... ele
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+public [thisSetterReturnType type] [v.names.set]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
   [if v.nullable]
   if (elements == null) {
     [v.name] = null;
     [nondefaultSetter v]
-    [thisReturn type]
+    [thisSetterReturn type]
   }
   [/if]
   [if v.nullableCollector]
@@ -536,7 +536,7 @@ public [thisReturnType type] [v.names.set]([v.atNullability]Iterable<[v.consumed
   [else]
   [v.name].clear();
   [/if]
-  return [v.names.addAll](elements);
+  [if type.generateChainableSetters]return [/if][v.names.addAll](elements);
 }
 
 /**
@@ -565,10 +565,10 @@ public [thisReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> 
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
+public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
   this.[v.name] = [optionalOf v]([v.name]);
   [nondefaultSetter v]
-  [thisReturn type]
+  [thisSetterReturn type]
 }
 
 /**
@@ -577,10 +577,10 @@ public [thisReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
-public [thisReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
+public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
   this.[v.name] = [im.requireNonNull type]([v.name], "[v.name]");
   [nondefaultSetter v]
-  [thisReturn type]
+  [thisSetterReturn type]
 }
 [else if v.mapType]
   [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
@@ -1058,6 +1058,10 @@ import [starImport];
 [template thisReturn Type type]return this;[/template]
 
 [template thisReturnType Type type][type.names.typeModifiable][type.generics.args][/template]
+
+[template thisSetterReturn Type type]return[if type.generateChainableSetters] this[/if];[/template]
+
+[template thisSetterReturnType Type type][if type.generateChainableSetters][type.names.typeModifiable][type.generics.args][else]void[/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
