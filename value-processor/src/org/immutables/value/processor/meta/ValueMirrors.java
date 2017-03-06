@@ -206,7 +206,7 @@ public final class ValueMirrors {
 
     boolean builtinContainerAttributes() default true;
 
-    boolean chainableModifiableSetters() default true;
+    boolean beanFriendlyModifiables() default false;
 
     public enum ImplementationVisibility {
       PUBLIC,
@@ -221,7 +221,7 @@ public final class ValueMirrors {
       SAME,
       PACKAGE
     }
-    
+
     public enum ValidationMethod {
       NONE,
       SIMPLE,

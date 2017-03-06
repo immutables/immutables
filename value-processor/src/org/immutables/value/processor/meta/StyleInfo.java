@@ -294,7 +294,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
-  public abstract boolean chainableModifiableSetters();
+  public abstract boolean beanFriendlyModifiables();
 
   @Value.Lazy
   public Styles getStyles() {

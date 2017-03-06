@@ -1102,16 +1102,17 @@ public @interface Value {
     boolean builtinContainerAttributes() default true;
 
     /**
-     * If disabled, modifable type will have void setters and will look more like JavaBean. This is
-     * modifiable companion types only, not for builders and other types of generate artifacts
+     * If enabled modifable type will have void setters and will look more like JavaBean. This is
+     * modifiable companion types only, not for builders and other types of generate artifacts.
      * <p>
-     * <em>Please, note, we are not supporting JavaBean specification in any way, except that Immutables can be
-     * used/configured to be partially compatible with some of the conventions</em>
+     * <em>Note, we are not supporting JavaBean specification in any way except that Immutables can be
+     * used/configured to be partially compatible with some of the conventions.</em>
      * </p>
-     * @return {@code true} if chainable setters, {@code false} for void setters. {@code true} is
-     *         the default.
+     * @return {@code true} for void setters and minor tweaks to make modifiables more
+     *         bean-friendly. {@code false} is the
+     *         default
      */
-    boolean chainableModifiableSetters() default true;
+    boolean beanFriendlyModifiables() default false;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

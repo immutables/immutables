@@ -6,7 +6,7 @@ import java.util.List;
 
 @Value.Immutable
 @Value.Modifiable
-@Value.Style(chainableModifiableSetters = false, create = "new")
+@Value.Style(beanFriendlyModifiables = true, create = "new")
 public interface VoidSetters {
   int getAa();
 
