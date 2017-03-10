@@ -145,7 +145,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || isPrimitiveWrappedType(type)
         || hasEnumContainedElementType()
         || isEnumType()
-        || isJdkSpecializedOptional(); // the last is not needed, probably
+        || isJdkSpecializedOptional()
+        || extendedClassesNames.contains(Number.class.getName());
   }
 
   public boolean requiresAlternativeStrictConstructor() {
