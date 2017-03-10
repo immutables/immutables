@@ -373,7 +373,7 @@ public class Proto {
     }
 
     ValueType composeValue(Protoclass protoclass) {
-      return round().composer().compose(protoclass);
+      return round().composeValue(protoclass);
     }
 
     ImmutableList<Protoclass> protoclassesFrom(Iterable<? extends Element> elements) {
