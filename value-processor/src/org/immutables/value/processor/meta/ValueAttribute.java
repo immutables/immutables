@@ -991,7 +991,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (typeKind.isSortedKind()) {
       checkOrderAnnotations();
       if (orderKind == OrderKind.NONE) {
-        typeKind = AttributeTypeKind.REGULAR;
+        this.typeKind = AttributeTypeKind.REGULAR;
       }
     }
   }

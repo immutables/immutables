@@ -42,8 +42,7 @@ public final class ValueTypeComposer {
           .or(CharMatcher.inRange('A', 'Z'))
           .or(CharMatcher.inRange('0', '9')).precomputed();
 
-  ValueType compose(Protoclass protoclass) {
-    ValueType type = new ValueType();
+  void compose(ValueType type, Protoclass protoclass) {
     type.element = protoclass.sourceElement();
     type.immutableFeatures = protoclass.features();
     type.constitution = protoclass.constitution();
@@ -77,7 +76,6 @@ public final class ValueTypeComposer {
     checkAttributeNamesForDuplicates(type, protoclass);
     checkConstructability(type);
     checkStyleConflicts(type, protoclass);
-    return type;
   }
 
   private void checkAttributeNamesIllegalCharacters(ValueType type) {

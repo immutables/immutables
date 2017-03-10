@@ -15,11 +15,13 @@
  */
 package org.immutables.value.processor.meta;
 
+import java.util.HashSet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -69,7 +71,7 @@ public abstract class Round {
     // Collect enclosing
     for (Protoclass protoclass : protoclasses) {
       if (protoclass.kind().isEnclosing()) {
-        ValueType type = composer().compose(protoclass);
+        ValueType type = composeValue(protoclass);
         enclosingTypes.put(protoclass.declaringType().get(), type);
       }
     }
@@ -79,7 +81,7 @@ public abstract class Round {
       if (protoclass.kind().isNested()) {
         @Nullable ValueType enclosing = enclosingTypes.get(protoclass.enclosingOf().get());
         if (enclosing != null) {
-          current = composer().compose(protoclass);
+          current = composeValue(protoclass);
           // Attach nested to enclosing
           enclosing.addNested(current);
         }
@@ -90,7 +92,7 @@ public abstract class Round {
       }
       // If none then we just create it
       if (current == null) {
-        current = composer().compose(protoclass);
+        current = composeValue(protoclass);
       }
       // We put all enclosing and nested values by the package
       builder.put(protoclass.packageOf(), current);
@@ -166,6 +168,18 @@ public abstract class Round {
             .interner(interners)
             .element(wrapElement(element))
             .build());
+  }
+
+  private final Map<Protoclass, ValueType> composedValues = new HashMap<>();
+
+  ValueType composeValue(Protoclass protoclass) {
+    @Nullable ValueType t = composedValues.get(protoclass);
+    if (t == null) {
+      t = new ValueType();
+      composedValues.put(protoclass, t);
+      composer().compose(t, protoclass);
+    }
+    return t;
   }
 
   private class ProtoclassCollecter {

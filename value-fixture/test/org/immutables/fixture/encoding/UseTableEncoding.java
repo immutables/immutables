@@ -23,6 +23,7 @@ import org.immutables.value.Value;
 @JsonDeserialize(builder = ImmutableUseTableEncoding.Builder.class)
 @Value.Immutable(singleton = true)
 @TableEncodingEnabled
+@Value.Modifiable
 public abstract class UseTableEncoding {
 
   abstract Table<String, Integer, Void> getIt();
