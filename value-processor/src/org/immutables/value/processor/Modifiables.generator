@@ -58,7 +58,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [/template]
 
 [template modifiableClass Type type Boolean topLevel]
-[for mandatories = type.mandatoryAttributes,
+[for mandatories = type.mandatoryOrEncodingAttributes,
      nondefaults = type.requiresTrackedIsSetNonMandatoryAttributes,
      LongPositions positions = longsFor mandatories,
      LongPositions nondefaultsPositions = longsFor nondefaults]
@@ -449,7 +449,7 @@ public [thisSetterReturnType type] [type.names.from]([type.typeAbstract] instanc
 [/template]
 
 [template generateSetters Type type]
-[for mandatories = type.mandatoryAttributes,
+[for mandatories = type.mandatoryOrEncodingAttributes,
      nondefaults = type.requiresTrackedIsSetNonMandatoryAttributes,
      LongPositions positions = longsFor mandatories,
      LongPositions nondefaultsPositions = longsFor nondefaults]
@@ -870,7 +870,7 @@ if ([v.name]Value != null) {
 
 /**
  * This instance is equal to all instances of {@code [equalToType]} that have equal attribute values.
-[if type.mandatoryAttributes]
+[if type.mandatoryOrEncodingAttributes]
  * An uninitialized instance is equal only to itself.
 [/if]
  * @return {@code true} if {@code this} is equal to {@code another} instance
@@ -880,7 +880,7 @@ public boolean equals([atNullable]Object another) {
   if (this == another) return true;
   if (!(another instanceof [equalToType])) return false;
   [equalToType] other = ([equalToType]) another;
-  [if type.mandatoryAttributes]
+  [if type.mandatoryOrEncodingAttributes]
   if (![isInitialized type]() || !other.[isInitialized type]()) {
     return false;
   }

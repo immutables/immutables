@@ -736,6 +736,16 @@ public final class ValueType extends TypeIntrospectionBase {
     return mandatory;
   }
 
+  public List<ValueAttribute> getMandatoryOrEncodingAttributes() {
+    List<ValueAttribute> mandatory = Lists.newArrayList();
+    for (ValueAttribute attribute : getSettableAttributes()) {
+      if (attribute.isMandatory() || attribute.isEncoding()) {
+        mandatory.add(attribute);
+      }
+    }
+    return mandatory;
+  }
+
   public List<ValueAttribute> getLazyAttributes() {
     List<ValueAttribute> lazyAttributes = Lists.newArrayList();
     for (ValueAttribute attribute : attributes()) {
