@@ -495,7 +495,7 @@ private [type.typeAbstract] read[type.name](JsonReader in)
 
 private [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
-  [type.typeBuilder] builder = [type.factoryBuilder]();
+  [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder]()[/castBuildStagedBuilder];
     [if type.unmarshaledAttributes]
   in.beginObject();
   while (in.hasNext()) {
@@ -935,6 +935,8 @@ out.value([variableName]);
 [/output.error]
 [/for]
 [/template]
+
+[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
 
 [template serializedName Attribute a][if a.containingType.gsonTypeAdapters.fieldNamingStrategy][a.name]Name[else]"[a.marshaledName]"[/if][/template]
 
