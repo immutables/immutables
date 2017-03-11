@@ -1761,7 +1761,8 @@ public class Proto {
           ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),
           input.stagedBuilder(),
           input.builtinContainerAttributes(),
-          input.beanFriendlyModifiables());
+          input.beanFriendlyModifiables(),
+          input.allMandatoryParameters());
     }
   }
 

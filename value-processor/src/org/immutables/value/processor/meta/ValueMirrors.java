@@ -208,6 +208,8 @@ public final class ValueMirrors {
 
     boolean beanFriendlyModifiables() default false;
 
+    boolean allMandatoryParameters() default false;
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

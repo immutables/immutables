@@ -1109,10 +1109,19 @@ public @interface Value {
      * used/configured to be partially compatible with some of the conventions.</em>
      * </p>
      * @return {@code true} for void setters and minor tweaks to make modifiables more
-     *         bean-friendly. {@code false} is the
-     *         default
+     *         bean-friendly. {@code false} is the default
      */
     boolean beanFriendlyModifiables() default false;
+
+    /**
+     * If enabled mandatory attributes would be auto-propagated to be parameters of value object
+     * constuctor.
+     * <p>
+     * <em>This parameter conflicts with {@link #allParameters()} and is ignored when {@code allParameters} </em>
+     * @return {@code true} to turn mandatory attributes into parameters. {@code false} is the
+     *         default
+     */
+    boolean allMandatoryParameters() default false;
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

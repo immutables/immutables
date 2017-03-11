@@ -867,7 +867,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (parameterOrderIsNotDefined) {
       Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
 
-      parameterOrder = containingType.constitution.style().allParameters()
+      boolean autoParameter = containingType.constitution.style().allParameters()
+          || (containingType.constitution.style().allMandatoryParameters() && isMandatory());
+
+      parameterOrder = autoParameter
           ? CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
           : CONSTRUCTOR_NOT_A_PARAMETER;
 

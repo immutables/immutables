@@ -296,6 +296,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract boolean beanFriendlyModifiables();
 
+  @Value.Parameter
+  @Override
+  public abstract boolean allMandatoryParameters();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);
