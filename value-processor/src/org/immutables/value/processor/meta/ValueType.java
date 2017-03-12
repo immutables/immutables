@@ -1037,13 +1037,13 @@ public final class ValueType extends TypeIntrospectionBase {
   public boolean isUseNullSafeUtilities() {
     for (ValueType n : nested) {
       for (ValueAttribute a : n.attributes) {
-        if (a.isNullable()) {
+        if (a.isNullable() || a.isJdkOptional()) {
           return true;
         }
       }
     }
     for (ValueAttribute a : attributes) {
-      if (a.isNullable()) {
+      if (a.isNullable() || a.isJdkOptional()) {
         return true;
       }
     }

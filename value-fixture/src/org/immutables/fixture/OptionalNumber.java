@@ -1,7 +1,7 @@
 package org.immutables.fixture;
 
+import com.google.common.base.Optional;
 import java.math.BigDecimal;
-import java.util.Optional;
 import org.immutables.value.Value;
 
 @Value.Immutable
