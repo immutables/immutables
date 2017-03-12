@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import java.util.HashSet;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Maps;

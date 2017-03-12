@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,18 +13,25 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.processor.meta;
+package org.immutables.generator;
 
-import org.immutables.generator.ExtensionLoader;
 import com.google.common.collect.ImmutableSet;
 
-public final class CustomImmutableCollections {
-  private CustomImmutableCollections() {}
+/**
+ * The Class ClasspathFence.
+ */
+public final class ClasspathFence {
+  private ClasspathFence() {}
 
-  private static final ImmutableSet<String> COLLECTIONS =
-      ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.collect");
+  private static final ImmutableSet<String> BLOCKED =
+      ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.inhibit-classpath");
 
-  public static ImmutableSet<String> collections() {
-    return COLLECTIONS;
+  public static boolean isInhibited(String classname) {
+    for (String prefix : BLOCKED) {
+      if (classname.startsWith(prefix)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

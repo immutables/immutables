@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.ClasspathFence;
 import org.immutables.value.processor.encode.Type;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -381,6 +382,9 @@ public class Proto {
     }
 
     private @Nullable TypeElement findElement(String qualifiedName) {
+      if (ClasspathFence.isInhibited(qualifiedName)) {
+        return null;
+      }
       try {
         TypeElement typeElement = processing()
             .getElementUtils()

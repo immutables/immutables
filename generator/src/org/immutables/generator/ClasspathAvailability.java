@@ -34,12 +34,17 @@ public final class ClasspathAvailability {
 
   public final Predicate<String> available = new Predicate<String>() {
     @Override
-    public boolean apply(String input) {
-      /*@Nullable*/Boolean available = availableClasses.get(input);
+    public boolean apply(String qualifiedName) {
+      /*@Nullable*/Boolean available = availableClasses.get(qualifiedName);
       if (available == null) {
-        TypeElement element = loadTypeElement(input);
-        available = element != null;
-        availableClasses.put(input, available);
+        if (ClasspathFence.isInhibited(qualifiedName)) {
+          available = false;
+          availableClasses.put(qualifiedName, available);
+        } else {
+          TypeElement element = loadTypeElement(qualifiedName);
+          available = element != null;
+          availableClasses.put(qualifiedName, available);
+        }
       }
 
       return available;

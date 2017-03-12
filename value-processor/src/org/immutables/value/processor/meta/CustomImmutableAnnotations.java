@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import org.immutables.generator.ExtensionLoader;
 import com.google.common.collect.ImmutableSet;
 
 public final class CustomImmutableAnnotations {

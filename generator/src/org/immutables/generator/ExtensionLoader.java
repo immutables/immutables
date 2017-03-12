@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.processor.meta;
+package org.immutables.generator;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
@@ -26,14 +26,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
 
-final class ExtensionLoader {
+public final class ExtensionLoader {
   private ExtensionLoader() {}
 
   private static final Splitter RESOURCE_SPLITTER = Splitter.on("\n")
       .omitEmptyStrings()
       .trimResults();
 
-  static ImmutableSet<String> findExtensions(String resource) {
+  public static ImmutableSet<String> findExtensions(String resource) {
     List<String> annotations = Lists.newArrayList();
 
     ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
