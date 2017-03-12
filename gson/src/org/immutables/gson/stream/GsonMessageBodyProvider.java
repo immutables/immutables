@@ -480,7 +480,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       StreamingOutput output = new StreamingOutput() {
         @Override
         public void write(OutputStream output) throws IOException, WebApplicationException {
-          gson.toJson(new JsonError(ex.getCause().getMessage()), (Appendable) output);
+          OutputStreamWriter writer = new OutputStreamWriter(output);
+          gson.toJson(new JsonError(ex.getCause().getMessage()), writer);
+          writer.flush();
         }
       };
       if (ex.getCause() instanceof RuntimeException) {

@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -101,6 +102,21 @@ public class JaxrsTest {
         .post(Entity.text(Collections.singletonList("11")), new GenericType<List<String>>() {});
 
     check(result).isOf("x", "y", "[11]");
+  }
+
+  @Test
+  public void defaultErrorHandling() {
+    try {
+      client.target(SERVER_URI)
+          .path("/")
+          .request(MediaType.APPLICATION_JSON_TYPE)
+          .accept(MediaType.APPLICATION_JSON_TYPE)
+          .post(Entity.json(""), new GenericType<List<String>>() {});
+
+      check(false);
+    } catch (WebApplicationException ex) {
+      check(ex.getResponse().getStatus()).is(400);
+    }
   }
 
   @Test
