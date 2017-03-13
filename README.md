@@ -61,7 +61,7 @@ Changelog
   + `builtinContainerAttributes = false` to disable recognition and special handling of built-in collection type. Custom encodings would still work.
   + `@Builder.AccessibleFields` to generate builder with protected fields. Override/access using nested Builder class extending auto-generated one.
   + Gson/Jackson refinements and fixes
-  + new `META-INF` file to specify a blacklist of classnames(or prefixes) to hide them from lookup: useful if you want to disable features or integrations that are otherwise auto-enabled when certain classes are found in classpath.
+  + new `META-INF/extensions/org.immutables.inhibit-classpath` file to specify a blacklist of classnames(or prefixes) to hide them from lookup: useful if you want to disable features or integrations that are otherwise auto-enabled when certain classes are found in classpath. (But please, do not package it in libs you would distribute to 3rd parties)
 - [Issues 2.4.0](https://github.com/immutables/immutables/issues?q=milestone%3A2.4.0)
 - [Issues 2.4.1](https://github.com/immutables/immutables/issues?q=milestone%3A2.4.1)
 - [Issues 2.4.2-2.4.3](https://github.com/immutables/immutables/issues?q=milestone%3A2.4.3)
