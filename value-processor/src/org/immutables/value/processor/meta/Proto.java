@@ -1804,6 +1804,7 @@ public class Proto {
   static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";
   static final String JACKSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
   static final String JACKSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+  static final String PARCELABLE_INTERFACE_TYPE = "android.os.Parcelable";
 
   private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
       ImmutableSet.of(

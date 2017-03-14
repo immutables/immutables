@@ -1,0 +1,155 @@
+[--
+   Copyright 2017 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+--]
+[template public generate Type type]
+[if type.parcelable]
+  [generateCreator type]
+  [generateParcelableMethods type]
+[/if]
+[/template]
+
+[template generateCreator Type type]
+
+/** */
+public static final android.os.Parcelable.ClassLoaderCreator<[type.typeValue.relative]> CREATOR =
+    new android.os.Parcelable.ClassLoaderCreator<[type.typeValue.relative]>() {
+      public [type.typeValue.relative] createFromParcel(android.os.Parcel in) {
+        return createFromParcel(in, this.getClass().getClassLoader());
+      }
+      
+      @SuppressWarnings("unchecked") [-- Guess this is needed for generic types casting --]
+      public [type.typeValue.relative] createFromParcel(android.os.Parcel in, ClassLoader classLoader) {
+        [generateParcelableBuild type]
+      }    
+
+      public [type.typeValue.relative]['[]'] newArray(int size) {
+        return new [type.typeValue.relative]['[size]'];
+      }
+    };
+[/template]
+
+[template generateParcelableMethods Type type]
+
+/** */
+@Override
+public int describeContents() {
+  return 0; //??
+}
+
+/** */
+@Override
+public void writeToParcel(android.os.Parcel out, int flags) {
+[-- for known simple types we can read using fields 'this.' is added to not clash with out or flags --]
+  [for a in type.settableAttributes]
+[if a.encoding]
+  out.writeValue([a.names.get]());
+[else if a.jdkOptional]
+  out.writeValue(this.[a.name]);
+[else if a.arrayType]
+  [if a.primitiveElement]
+    [if a.elementType eq 'short']
+  // Do something with short arrays, just for completeness
+  // copy it as int array, I dunno
+    [else]
+  out.write[toUpper a.elementType]Array(this.[a.name]);
+    [/if]
+  [else if a.elementType eq 'java.lang.String']
+  out.writeStringArray(this.[a.name]);
+  [else]
+  out.writeArray(this.[a.name]);
+  [/if]
+[else if a.stringType]
+  out.writeString(this.[a.name]);
+[else if a.boolean]
+  out.writeByte(this.[a.name] ? (byte) 1 : (byte) 0);
+[else if a.short or a.char]
+  out.writeInt(this.[a.name]);
+[else if a.primitive]
+  out.write[toUpper a.type](this.[a.name]);
+[else]
+  out.writeValue([a.names.get]());
+[--maybe many more 'if else' specializations needed for arrays, lists, maps --]
+[/if]
+  [/for]
+}
+[/template]
+
+[template readParcel Attribute a][output.trim][-- output.trim removes leading and trailing whitespace --]
+[if a.encoding]
+  ([a.type]) in.readValue(classLoader)
+[else if a.jdkOptional]
+  ([a.wrappedElementType]) in.readValue(classLoader)
+[else if a.nullable]
+  ([a.type]) in.readValue(classLoader)
+[else if a.arrayType]
+  [if a.primitiveElement]
+    [if a.elementType eq 'short']
+  null/* FIXME: Do something with short arrays */   [-- just for completeness, copy it as int array, I dunno ]
+    [else]
+      in.create[toUpper a.elementType]Array()
+    [/if]
+  [else if a.elementType eq 'java.lang.String']
+  in.createStringArray()
+  [else]
+  ([a.type]) in.readArray(classLoader)
+  [/if]
+[else if a.stringType]
+  in.readString()
+[else if a.boolean]
+  in.readByte() != 0
+[else if a.short or a.char]
+  ([a.type]) in.readInt()
+[else if a.primitive]
+  in.read[toUpper a.type]()
+[else]
+  null /* FIXME: read objects and complex types */
+  [-- can generate helper methods inside generateParcelableMethods  --]
+[/if]
+[/output.trim][/template]
+
+[template generateParcelableBuild Type type]
+[if type.useBuilder]
+[type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
+[for a in type.settableAttributes]
+  [if a.encoding]
+builder.[renderers.builderCopyFrom a]([readParcel a]);
+  [else if a.jdkOptional]
+[atNullable][a.wrappedElementType] [a.name]Value = [readParcel a];
+if ([a.name]Value != null) {
+  builder.[a.names.init]([a.name]Value);
+}
+  [else if a.nullable][-- not sure about this one, copy pasted initially from 'copyOf' impl--]
+builder.[a.names.init]([readParcel a]);
+  [else if a.collectionType]
+builder.[a.names.addAll]([readParcel a]);
+  [else if a.mapType]
+builder.[a.names.putAll]([readParcel a]);
+  [else]
+builder.[a.names.init]([readParcel a]);
+  [-- maybe more specializations needed--]
+  [/if]
+[/for]
+return builder.[type.names.build]();
+[else]
+return [type.factoryOf.relative]([for c in type.constructorArguments][if not for.first], [/if][readParcel c][/for])[for
+        a in type.withSettableAfterConstruction]
+    .[a.names.with]([readParcel a])[/for];
+[/if]
+[/template]
+
+[-- one liner templates are usually inlined by template compiler --]
+[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
+
+[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]

@@ -163,6 +163,7 @@ import static [routine].immutableCopyOf;
 [generateLazyValues type]
 [generateInterning type]
 [generateSingletonInstance type]
+[parcelables.generate type]
 [generateConstruction type]
   [generateImmutableCopyOf type]
   [generateSerialization type]

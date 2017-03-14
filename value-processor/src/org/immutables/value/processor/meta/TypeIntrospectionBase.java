@@ -26,6 +26,7 @@ import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.TypeHierarchyCollector;
 
 public abstract class TypeIntrospectionBase {
+  private static final String PARCELABLE_INTERFACE_TYPE = Proto.PARCELABLE_INTERFACE_TYPE;
   private static final String COMPARABLE_INTERFACE_PREFIX = Comparable.class.getName();
   private static final String ENUM_CLASS_PREFIX = Enum.class.getName();
   private static final String ORDINAL_VALUE_INTERFACE_PREFIX = Proto.ORDINAL_VALUE_INTERFACE_TYPE;
@@ -91,6 +92,11 @@ public abstract class TypeIntrospectionBase {
   public ImmutableSet<String> getImplementedInterfacesNames() {
     ensureTypeIntrospected();
     return implementedInterfacesNames;
+  }
+
+  public boolean isParcelable() {
+    ensureTypeIntrospected();
+    return implementedInterfacesNames.contains(PARCELABLE_INTERFACE_TYPE);
   }
 
   public boolean isComparable() {

@@ -25,7 +25,9 @@ import org.immutables.value.processor.encode.Renderers;
 abstract class Immutables extends ValuesTemplate {
   // renderers for encoding elements
   final Renderers rr = new Generator_Renderers();
-
+  // obviously for android parcelable support
+  final Parcelables parcelables = new Generator_Parcelables();
+  
   @Nullable
   String topLevelSimple;
 

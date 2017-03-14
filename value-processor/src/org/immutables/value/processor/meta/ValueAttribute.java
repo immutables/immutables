@@ -112,6 +112,18 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind() == TypeKind.INT;
   }
 
+  public boolean isShort() {
+    return returnType.getKind() == TypeKind.SHORT;
+  }
+
+  public boolean isChar() {
+    return returnType.getKind() == TypeKind.CHAR;
+  }
+
+  public boolean isByte() {
+    return returnType.getKind() == TypeKind.BYTE;
+  }
+
   public boolean isLong() {
     return returnType.getKind() == TypeKind.LONG;
   }

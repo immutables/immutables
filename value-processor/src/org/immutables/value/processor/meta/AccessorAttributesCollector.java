@@ -46,6 +46,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 final class AccessorAttributesCollector {
   private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
   private static final String ORDINAL_DOMAIN_ATTRIBUTE_NAME = "domain";
+  private static final String PARCELABLE_DESCRIBE_CONTENTS_ATTRIBUTE_NAME = "describeContents";
 
   private static final String ORG_ECLIPSE = "org.eclipse";
 
@@ -164,10 +165,9 @@ final class AccessorAttributesCollector {
     default:
     }
     String definitionType = element.getEnclosingElement().toString();
-    if (definitionType.equals(Object.class.getName())) {
-      return false;
-    }
-    if (definitionType.equals(Proto.ORDINAL_VALUE_INTERFACE_TYPE)) {
+    if (definitionType.equals(Object.class.getName())
+        || definitionType.equals(Proto.ORDINAL_VALUE_INTERFACE_TYPE)
+        || definitionType.equals(Proto.PARCELABLE_INTERFACE_TYPE)) {
       return false;
     }
     return true;
@@ -380,15 +380,15 @@ final class AccessorAttributesCollector {
 
   private AttributeNames deriveNames(String accessorName) {
     AttributeNames names = styles.forAccessor(accessorName);
-    if (names.raw.equals(HASH_CODE_METHOD)
-        || names.raw.equals(TO_STRING_METHOD)) {
+    switch (names.raw) {
+    case HASH_CODE_METHOD: //$FALL-THROUGH$
+    case TO_STRING_METHOD:
       // name could equal reserved method name if template is used
       // like "getToString" accessor -> "toString" attribute
       // then we force literal accessor name as raw name
       return styles.forAccessorWithRaw(accessorName, accessorName);
-    }
-    if (names.raw.equals(ORDINAL_ORDINAL_ATTRIBUTE_NAME)
-        || names.raw.equals(ORDINAL_DOMAIN_ATTRIBUTE_NAME)) {
+    case ORDINAL_ORDINAL_ATTRIBUTE_NAME: //$FALL-THROUGH$
+    case ORDINAL_DOMAIN_ATTRIBUTE_NAME:
       if (type.isOrdinalValue()) {
         // name could equal reserved method name if template is used
         // like "getOrdinal" accessor -> "ordinal" attribute
@@ -397,6 +397,12 @@ final class AccessorAttributesCollector {
         // defined in OrdinalValue interface were filtered out beforehand
         return styles.forAccessorWithRaw(accessorName, accessorName);
       }
+      break;
+    case PARCELABLE_DESCRIBE_CONTENTS_ATTRIBUTE_NAME:
+      if (type.isParcelable()) {
+        return styles.forAccessorWithRaw(accessorName, accessorName);
+      }
+      break;
     }
     return names;
   }
