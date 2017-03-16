@@ -133,10 +133,7 @@ public final class FromSupertypesModel {
       return false;
     }
 
-    Type supertypeReturnType = typeExtractor.parser.parse(accessor.getReturnType().toString());
-    Type subtypeReturnType = typeExtractor.parser.parse(attr.returnType.toString());
-
-    boolean sameReturnType = subtypeReturnType.equals(supertypeReturnType);
+    boolean sameReturnType = accessor.getReturnType().toString().equals(attr.returnType.toString());
     if (sameReturnType) {
       return true;
     }
