@@ -126,6 +126,9 @@ public interface Companion {
     default int derived() {
       return v1().or(0);
     }
+
+    @Nullable
+    List<Unit> nullableUnit();
   }
 
   @Value.Style(strictBuilder = true)
