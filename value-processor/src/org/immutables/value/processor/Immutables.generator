@@ -2784,7 +2784,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [else]
   [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
   [/if]
-  [if v.hasSimpleScalarElementType]
+  [if v.hasSimpleScalarElementType and (not v.enumType)]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
   [else]
   if (this.[v.name] == newValue) return this;
@@ -2792,7 +2792,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [generateReturnCopyContextual type v]
 [else]
   [immutableImplementationType v] newValue = [optionalOf v](value);
-  [if v.hasSimpleScalarElementType]
+  [if v.hasSimpleScalarElementType and (not v.enumType)]
   if (this.[v.name].equals(newValue)) return this;
   [else]
   if (this.[v.name].[optionalPresent v] && this.[v.name].[optionalGet v] == value) return this;
