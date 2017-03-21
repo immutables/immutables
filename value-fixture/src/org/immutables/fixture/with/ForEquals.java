@@ -25,25 +25,25 @@ import org.immutables.value.Value;
 public abstract class ForEquals {
     public abstract int myInt();
 
-    public abstract Optional<Integer> myOptinalInt();
+    public abstract Optional<Integer> myOptionalInt();
 
     public abstract List<Integer> myIntList();
 
     public abstract BigDecimal myBigDecimal();
 
-    public abstract Optional<BigDecimal> myOptinalBigDecimal();
+    public abstract Optional<BigDecimal> myOptionalBigDecimal();
 
     public abstract List<BigDecimal> myBigDecimalList();
 
     public abstract RoundingMode myRoundingMode();
 
-    public abstract Optional<RoundingMode> myOptinalRoundingMode();
+    public abstract Optional<RoundingMode> myOptionalRoundingMode();
 
     public abstract List<RoundingMode> myRoundingModeList();
 
     public abstract Object myObject();
 
-    public abstract Optional<Object> myOptinalObject();
+    public abstract Optional<Object> myOptionalObject();
 
     public abstract List<Object> myObjectList();
 }
