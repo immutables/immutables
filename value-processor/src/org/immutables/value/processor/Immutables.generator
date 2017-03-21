@@ -2862,7 +2862,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
  * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
  [if v.primitive and v.floatType]
  * A value strict bits equality used to prevent copying of the same value by returning {@code this}.
- [else if v.primitive]
+ [else if v.primitive or v.enumType]
  * A value equality check is used to prevent copying of the same value by returning {@code this}.
  [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
  * An equals check used to prevent copying of the same value by returning {@code this}.
@@ -2878,7 +2878,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
     [else if v.double]
   if (Double.doubleToLongBits(this.[v.name]) == Double.doubleToLongBits(value)) return this;
-    [else if v.primitive]
+    [else if v.primitive or v.enumType]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
       [if v.nullable]
