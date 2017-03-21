@@ -548,11 +548,10 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 [deprecation v]
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
+  if (elements == null) return this; 
   if ([v.name] == null) {
     [defineOrResetField v false]
   }
-  if (elements == null) return this;
-
   [/if]
   for ([v.unwrappedElementType] element : elements) {
     [v.names.add](element);
