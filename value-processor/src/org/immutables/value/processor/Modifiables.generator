@@ -551,6 +551,8 @@ public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementT
   if ([v.name] == null) {
     [defineOrResetField v false]
   }
+  if (elements == null) return this;
+
   [/if]
   for ([v.unwrappedElementType] element : elements) {
     [v.names.add](element);

@@ -178,4 +178,10 @@ public class ModifiablesTest {
     m.lst().add("b");
     check(m.lst()).isOf("a", "b");
   }
+
+  @Test
+  public void listsAreNullableSafe(){
+    // Test for #578
+    ModifiableStandalone.create().addAllNullableUnit(null);
+  }
 }
