@@ -304,14 +304,14 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
     [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
 
     for (int i = 0; i < names.length; i++) {
-      switch (names['[i]']) {
+      String name = names['[i]'];
     [for v in type.settableAttributes]
-      case "[v.name]": {
+      if ("[v.name]".equals(name)) {
       [if v.collectionType]
         [if v.nullable]
         if (values[arri] == null) {
           builder.[v.names.init](null);
-          break;
+          continue;
         }
         [/if]
         for (Object e : toArray(values[arri])) {
@@ -321,7 +321,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         [if v.nullable]
         if (values[arri] == null) {
           builder.[v.names.init](null);
-          break;
+          continue;
         }
         [/if]
         [atNullable]Object[arr] entries = (Object[arr]) values[arri];
@@ -345,10 +345,9 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
       [else]
         builder.[v.names.init]([castObject v.wrapperType]toSingle("[v.name]", values[arri]));
       [/if]
-      } break;
-    [/for]
-      default:
+        continue;
       }
+    [/for]
     }
     return builder.[type.names.build]();
 [else]
@@ -364,14 +363,14 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
     [/for]
 
     for (int i = 0; i < names.length; i++) {
-      switch (names['[i]']) {
+      String name = names['[i]'];
     [for v in constructables]
-      case "[v.name]": {
+      if ("[v.name]".equals(name)) {
       [if v.collectionType]
         [if v.nullable]
         if (values[arri] == null) {
           [v.name]Builder = null;
-          break;
+          continue;
         }
         [/if]
         for (Object e : toArray(values[arri])) {
@@ -381,7 +380,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
         [if v.nullable]
         if (values[arri] == null) {
           [v.name]Builder = null;
-          break;
+          continue;
         }
         [/if]
         Object[arr] entries = (Object[arr]) values[arri];
@@ -401,10 +400,9 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
       [else]
         [v.name]Value = [castObject v.wrapperType]toSingle("[v.name]", values[arri]);
       [/if]
-      } break;
-    [/for]
-      default:
+        continue;
       }
+    [/for]
     }
   [if type.useConstructor]
     [type.typeValue.relative] instance = [type.factoryOf.relative]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
