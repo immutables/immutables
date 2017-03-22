@@ -2050,7 +2050,7 @@ this.[n] = DEFAULT_VALUE_[toConstant v.name];
   [if type.generateSafeDerived]
 this.[n] = [disambiguateField type 'initShim'].[v.names.get]();
   [else]
-this.[n] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullValue];
+this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [/if]
 [/if]
 [/for]
