@@ -22,8 +22,6 @@ import org.immutables.value.processor.encode.Generator_Renderers;
 import org.immutables.value.processor.encode.Renderers;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.encode.Generator_Renderers;
-import org.immutables.value.processor.encode.Renderers;
 
 /**
  * The Class Parcelables.

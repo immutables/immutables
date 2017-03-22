@@ -49,6 +49,11 @@ public class TypeTest {
   }
 
   @Test
+  public void parseUnderscoreType() {
+    check(parser.parse("_Type")).hasToString("_Type");
+  }
+
+  @Test
   public void parseIngoreTypeAnnotation() {
     check(parser.parse("@type.annotation.TypeA @TypeD int")).is(Primitive.INT);
     check(parser.parse("java.lang.@type.annotation.TypeA @type.annotation.TypeB @TypeC String")).is(Reference.STRING);
