@@ -323,6 +323,21 @@ public final class BsonEncoding {
     }
 
     @Override
+    public Iterator<DBObject> iterator() {
+      return new Iterator<DBObject>() {
+        int i = 0;
+        @Override
+        public boolean hasNext() {
+          return i < list.size();
+        }
+        @Override
+        public DBObject next() {
+          return get(i++);
+        }
+      };
+    }
+
+    @Override
     public Object put(String key, Object v) {
       throw new UnsupportedOperationException();
     }
@@ -421,11 +436,6 @@ public final class BsonEncoding {
     @Override
     public boolean isEmpty() {
       return false;
-    }
-
-    @Override
-    public Iterator<DBObject> iterator() {
-      return ImmutableSet.<DBObject>of().iterator();
     }
 
     @Override
