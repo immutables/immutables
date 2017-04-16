@@ -18,7 +18,6 @@ package org.immutables.trees.ast;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import java.util.List;
-import org.immutables.generator.StringLiterals;
 import org.immutables.trees.Trees;
 import org.immutables.value.Value;
 
@@ -223,30 +222,16 @@ public interface SampleNodes {
   public static abstract class StringLiteral implements Expression {
     @Value.Parameter
     public abstract String value();
-
-    @Override
-    public String toString() {
-      return StringLiterals.toLiteral(value());
-    }
   }
 
   @Value.Immutable(singleton = true, builder = false)
   public static abstract class Newline implements TextPart {
-    @Override
-    public String toString() {
-      return StringLiterals.toLiteral("\n");
-    }
   }
 
   @Value.Immutable(builder = false)
   public static abstract class TextFragment implements TextPart {
     @Value.Parameter
     public abstract String value();
-
-    @Override
-    public String toString() {
-      return StringLiterals.toLiteral(value());
-    }
 
     public boolean isWhitespace() {
       return CharMatcher.WHITESPACE.matchesAllOf(value());
