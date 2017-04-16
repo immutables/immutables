@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.subpack;
 
-import org.immutables.value.processor.meta.GsonMirrors.SerializedName;
+import com.google.gson.annotations.SerializedName;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
