@@ -1090,7 +1090,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private boolean canAccessImplementation(Protoclass p) {
     return p.constitution().implementationVisibility().isPublic()
         || (!p.constitution().implementationVisibility().isPrivate()
-        && p.constitution().implementationPackage().equals(p.constitution().implementationPackage()));
+        && p.constitution().implementationPackage().equals(p.constitution().definingPackage()));
   }
 
   public String implementationModifiableType() {

@@ -96,7 +96,11 @@ public abstract class Constitution {
   @Value.Derived
   public String implementationPackage() {
     PackageNaming naming = protoclass().styles().packageGenerated();
-    return naming.apply(protoclass().packageOf().name());
+    return naming.apply(definingPackage());
+  }
+
+  public String definingPackage() {
+    return protoclass().packageOf().name();
   }
 
   @Value.Derived
