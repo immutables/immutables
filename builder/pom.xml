@@ -43,15 +43,8 @@
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
-      <classifier>annotations</classifier>
       <scope>provided</scope>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value-processor</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
   <profiles>

@@ -30,13 +30,10 @@
   </description>
 
   <dependencies>
-    <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
-    it exposes both relocated and not relocated classess, having processor to run twice -->
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
       <version>${project.version}</version>
-      <classifier>annotations</classifier>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -66,18 +63,11 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
-      <artifactId>value-processor</artifactId>
-      <version>${project.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
       <artifactId>metainf</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>gson</artifactId>
@@ -167,7 +157,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.1</version>
         <configuration>
           <compilerId>javac-with-errorprone</compilerId>
           <forceJavacCompilerUse>true</forceJavacCompilerUse>
@@ -190,7 +180,7 @@
           <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_core</artifactId>
-            <version>2.0.18</version>
+            <version>2.0.19</version>
           </dependency>
         </dependencies>
       </plugin>
@@ -205,7 +195,7 @@
             <!-- Used to validate/lint javadocs -->
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.10.3</version>
+            <version>2.10.4</version>
             <configuration>
               <quiet>true</quiet>
               <nonavbar>true</nonavbar>

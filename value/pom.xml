@@ -51,7 +51,7 @@
       <plugin>
         <groupId>org.immutables.tools</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3</version>
+        <version>4</version>
         <executions>
           <execution>
             <phase>package</phase>

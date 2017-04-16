@@ -74,20 +74,9 @@
       <version>2.0</version>
       <optional>true</optional>
     </dependency>
-
-    <!-- it's better have just 'value' dep, but due to some maven 3.3.1 bug,
-    it exposes both relocated and not relocated classess, having processor to run twice -->
     <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value</artifactId>
-      <version>${project.version}</version>
-      <classifier>annotations</classifier>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value-processor</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
@@ -126,7 +115,7 @@
       <plugin>
         <groupId>org.immutables.tools</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3</version>
+        <version>4</version>
         <executions>
           <execution>
             <phase>package</phase>

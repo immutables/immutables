@@ -23,8 +23,9 @@ public class DefaultTest {
   @Test
   public void defArray() {
     ImmutableDefaultArray a1 = ImmutableDefaultArray.builder().build();
-    check(a1.prop() != a1.prop());
-    
+    int[] array = a1.prop();
+    int[] nextArray = a1.prop();
+    check(array != nextArray);
     check(a1.ints() instanceof ImmutableSortedSet);
   }
 }

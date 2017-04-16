@@ -466,7 +466,7 @@ private static class SerialForm[type.generics] implements java.io.Serializable {
 }
 
 private Object writeReplace() {
-  return new SerialForm(this);
+  return new SerialForm[type.generics.args](this);
 }
 [/if]
 [/template]
@@ -1119,7 +1119,7 @@ public interface BuildFinal[type.generics] {
   [/for]
    * @return A new builder
    */
-  public static[type.generics.def] [type.typeBuilderImpl.simple] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
+  public static[type.generics.def] [type.typeBuilderImpl.simple][type.generics.args] [type.factoryBuilder.applied]([for p in parameters][if not for.first], [/if][p.atNullability][constructorAcceptType p] [p.name][/for]) {
     return new [type.typeBuilderImpl.simple][type.generics.diamond]([for p in parameters][if not for.first], [/if][p.name][/for]);
   }
   [if parameters and (not type.kind.isFactory)]
