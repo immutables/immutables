@@ -18,6 +18,7 @@ package org.immutables.metainf.fixture;
 import com.google.common.base.Functions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
+
 import java.io.Serializable;
 import java.util.ServiceLoader;
 import java.util.TreeSet;
@@ -30,6 +31,7 @@ public class ServiceTest {
   public void serviceSets() {
     check(sortedToStringsFrom(ServiceLoader.load(Runnable.class))).isOf("Otherserv", "Servrun");
     check(sortedToStringsFrom(ServiceLoader.load(Serializable.class))).isOf("Serserv");
+    check(sortedToStringsFrom(ServiceLoader.load(AutoCloseable.class))).isOf("NestedService.Service");
   }
 
   private TreeSet<String> sortedToStringsFrom(Iterable<?> iterable) {
