@@ -49,7 +49,8 @@ class Metaservices extends AbstractTemplate {
         continue;
       }
       Set<String> interfaceNames = extractServiceInterfaceNames(typeElement);
-      builder.putAll(typeElement.getQualifiedName().toString(), interfaceNames);
+      String binaryName = processing().getElementUtils().getBinaryName(typeElement).toString();
+      builder.putAll(binaryName, interfaceNames);
     }
 
     return builder.build();
@@ -104,16 +105,23 @@ class Metaservices extends AbstractTemplate {
 
     if (element.getKind() == ElementKind.CLASS
         && element.getModifiers().contains(Modifier.PUBLIC)
-        && !element.getModifiers().contains(Modifier.ABSTRACT)
-        && enclosingElement != null
-        && enclosingElement.getKind() == ElementKind.PACKAGE
-        && !((PackageElement) enclosingElement).isUnnamed()) {
-      return (TypeElement) element;
+        && enclosingElement != null) {
+
+      if (enclosingElement.getKind() == ElementKind.PACKAGE
+          && !element.getModifiers().contains(Modifier.ABSTRACT)
+          && !((PackageElement) enclosingElement).isUnnamed()) {
+        return (TypeElement) element;
+      }
+
+      if (enclosingElement.getKind() == ElementKind.CLASS
+         && element.getModifiers().contains(Modifier.STATIC)) {
+          return (TypeElement) element;
+      }
     }
 
     processing().getMessager()
         .printMessage(Diagnostic.Kind.ERROR,
-            "Element annotated with @Metainf.Service annotation should be public top-level non-abstract class in a package",
+            "Element annotated with @Metainf.Service annotation should be public top-level non-abstract or static class in a package",
             element);
 
     return null;
