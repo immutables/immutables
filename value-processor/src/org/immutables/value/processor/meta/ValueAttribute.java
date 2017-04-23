@@ -667,6 +667,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return typeKind.isArray();
   }
 
+  public boolean isReferenceArrayType() {
+    return isArrayType() && !isPrimitiveType(firstTypeParameter());
+  }
+
+  public boolean isPrimitiveArrayType() {
+    return isArrayType() && isPrimitiveType(firstTypeParameter());
+  }
+
   public boolean isOptionalAcceptNullable() {
     return isOptionalType()
         && !typeKind.isOptionalSpecializedJdk()
@@ -762,7 +770,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   public boolean isRequiresMarshalingAdapter() {
-    return !isRegularMarshalableType(getElementType(), isContainerType());
+    return !isRegularMarshalableType(getElementType(), isContainerType())
+        || isPrimitiveArrayType();
   }
 
   public boolean isRequiresMarshalingSecondaryAdapter() {

@@ -129,7 +129,8 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
 private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
-    [if a.requiresMarshalingAdapter and a.wholeTypeVariable.not]
+    [if a.requiresMarshalingAdapter and a.primitiveArrayType][-- no sample --]
+    [else if a.requiresMarshalingAdapter and a.wholeTypeVariable.not]
   public final [a.elementType] [a.name]TypeSample = null;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter and a.secondaryWholeTypeVariable.not]
@@ -137,7 +138,9 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     [/if]
   [/for]
   [for a in allAttributes]
-    [if a.requiresMarshalingAdapter]
+    [if a.requiresMarshalingAdapter and a.primitiveArrayType]
+  private final TypeAdapter<[a.type]> [a.name]TypeAdapter;  
+    [else if a.requiresMarshalingAdapter]
   private final TypeAdapter<[a.elementType]> [a.name]TypeAdapter;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
@@ -223,6 +226,8 @@ this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapt
 [if secondary]
 this.[a.name]SecondaryTypeAdapter = [output.linesShortable]gson.getAdapter(
     [a.typeTokenOfSecondaryElement]);[/output.linesShortable]
+[else if a.primitiveArrayType]
+this.[a.name]TypeAdapter = gson.getAdapter([a.type].class);
 [else]
 this.[a.name]TypeAdapter = [output.linesShortable]gson.getAdapter(
     [a.typeTokenOfElement]);[/output.linesShortable]
@@ -279,7 +284,7 @@ if ([a.name]Mapping != null) {
     [else]
 [generateMarshalMapping type a]
     [/if]
-  [else if a.collectionType or a.arrayType]
+  [else if a.collectionType or a.referenceArrayType]
     [if a.nullable]
 if (instance.[a.names.get]() == null) {
   out.nullValue();
@@ -389,7 +394,7 @@ if ([a.name]Mapping != null) {
 out.name([serializedName a]);
 [generateMarshalMapping type a]
 [/if]
-  [else if a.collectionType or a.arrayType]
+  [else if a.collectionType or a.referenceArrayType]
 [a.atNullabilityLocal][a.type] [a.name]Elements = instance.[a.names.get]();
 [if type.gsonTypeAdapters.emptyAsNulls]
 if ([if a.nullable][a.name]Elements != null && [/if][if a.arrayType][a.name]Elements.length != 0[else]![a.name]Elements.isEmpty()[/if]) {
@@ -599,7 +604,7 @@ if (t == JsonToken.NULL) {
 [createBuilderForCollection type a 'elements']
 [generateCollectionUnmarshalCode type a 'elements.add']
 [returnBuiltCollection type a 'elements']
-  [else if a.arrayType]
+  [else if a.referenceArrayType]
     [if a.nullable]
 JsonToken t = in.peek();
 if (t == JsonToken.NULL) {
@@ -802,7 +807,7 @@ if (in.peek() == JsonToken.NULL) {
     [else]
 [generateCollectionUnmarshalCode type a ('builder.' a.names.add)]
     [/if]
-  [else if a.arrayType]
+  [else if a.referenceArrayType]
     [if a.nullable]
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
