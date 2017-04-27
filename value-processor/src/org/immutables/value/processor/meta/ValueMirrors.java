@@ -82,6 +82,9 @@ public final class ValueMirrors {
     String[] dictionary() default {};
   }
 
+  @Mirror.Annotation("org.immutables.value.Value.Redacted")
+  public @interface Redacted {}
+
   @Mirror.Annotation("org.immutables.value.Value.Style")
   public @interface Style {
     String[] get() default {};
@@ -209,6 +212,8 @@ public final class ValueMirrors {
     boolean beanFriendlyModifiables() default false;
 
     boolean allMandatoryParameters() default false;
+
+    String redactedSubstitution() default "";
 
     public enum ImplementationVisibility {
       PUBLIC,

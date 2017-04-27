@@ -394,6 +394,17 @@ public @interface Value {
   public @interface Modifiable {}
 
   /**
+   * Marks attribute for exclusion from auto-generated {@code toString} method. It will
+   * be just excluded by default. However you can choose to put special masking characters next to
+   * the attribute instead of a characters, like 3 stars or 4 pound signs, this replacement string
+   * can be set using {@link Style#redactedSubstitution} style attribute.
+   */
+  @Documented
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.CLASS)
+  public @interface Redacted {}
+
+  /**
    * Naming and structural style could be used to customize convention of the generated
    * immutable implementations and companion classes. It could be placed on a class or package
    * directly or serve as meta annotation. When used as meta-annotation, then annotation could
@@ -1122,6 +1133,16 @@ public @interface Value {
      *         default
      */
     boolean allMandatoryParameters() default false;
+
+    /**
+     * String to substitute value of the attribute in a generated {@code toString} implementation
+     * when {@link Redacted} annotation is applied to the attribute.
+     * <p>
+     * By default it is an empty string, which also mean that the attribute will not appear in the
+     * {@code toString} output. If you set it to some value, then it will be printed.
+     * @return redacted value substitution string
+     */
+    String redactedSubstitution() default "";
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

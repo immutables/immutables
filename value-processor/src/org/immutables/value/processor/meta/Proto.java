@@ -1766,7 +1766,8 @@ public class Proto {
           input.stagedBuilder(),
           input.builtinContainerAttributes(),
           input.beanFriendlyModifiables(),
-          input.allMandatoryParameters());
+          input.allMandatoryParameters(),
+          input.redactedSubstitution());
     }
   }
 
