@@ -19,25 +19,28 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.immutables.gson.adapter.MapTest;
+import org.immutables.gson.stream.GsonMessageBodyProvider.GsonOptions;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.immutables.gson.stream.GsonMessageBodyProvider.GsonOptions;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
 import static org.immutables.check.Checkers.check;
 
 public class JaxrsTest {
@@ -108,15 +111,56 @@ public class JaxrsTest {
   public void defaultErrorHandling() {
     try {
       client.target(SERVER_URI)
-          .path("/")
-          .request(MediaType.APPLICATION_JSON_TYPE)
-          .accept(MediaType.APPLICATION_JSON_TYPE)
-          .post(Entity.json(""), new GenericType<List<String>>() {});
+              .path("/")
+              .request(MediaType.APPLICATION_JSON_TYPE)
+              .accept(MediaType.APPLICATION_JSON_TYPE)
+              .post(Entity.json(""), new GenericType<List<String>>() {
+              });
 
       check(false);
     } catch (WebApplicationException ex) {
       check(ex.getResponse().getStatus()).is(400);
     }
+  }
+
+  @Test
+  public void objectBooleanInMapTest() {
+    MapTest response = client.target(SERVER_URI)
+            .path("/objectBooleanInMapTest")
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .get(new GenericType<MapTest>() {});
+    System.out.println(response);
+  }
+
+  @Test
+  public void objectDoubleInMapTest() {
+    MapTest response = client.target(SERVER_URI)
+            .path("/objectDoubleInMapTest")
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .get(new GenericType<MapTest>() {});
+    System.out.println(response);
+  }
+
+  @Test
+  public void booleanInMapTest() {
+    MapTest response = client.target(SERVER_URI)
+            .path("/booleanInMapTest")
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .get(new GenericType<MapTest>() {});
+    System.out.println(response);
+  }
+
+  @Test
+  public void doubleInMapTest() {
+    MapTest response = client.target(SERVER_URI)
+            .path("/doubleInMapTest")
+            .request()
+            .accept(MediaType.APPLICATION_JSON_TYPE)
+            .get(new GenericType<MapTest>() {});
+    System.out.println(response);
   }
 
   @Test
