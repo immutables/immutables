@@ -89,7 +89,11 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
 
   @Override
   public JsonWriter value(String value) throws IOException {
-    generator.writeString(value);
+    if (value == null) {
+      generator.writeNull();
+    } else {
+      generator.writeString(value);
+    }
     return this;
   }
 
@@ -102,6 +106,16 @@ public class JsonGeneratorWriter extends JsonWriter implements Callable<JsonGene
   @Override
   public JsonWriter value(boolean value) throws IOException {
     generator.writeBoolean(value);
+    return this;
+  }
+
+  @Override
+  public JsonWriter value(Boolean value) throws IOException {
+    if (value == null) {
+      generator.writeNull();
+    } else {
+      generator.writeBoolean(value);
+    }
     return this;
   }
 
