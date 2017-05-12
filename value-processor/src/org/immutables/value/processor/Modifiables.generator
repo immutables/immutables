@@ -485,7 +485,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
   [else]
   [v.unwrappedElementType] nonNullElement = [im.requireNonNull type](element, "[v.name] element");
   [if v.attributeValueKindIsCollectionOfModifiable]
-  [v.name].add(element instanceof [v.attributeValueType.constitution.typeModifiable.relativeRaw] ? element : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from](element));
+  [v.name].add(element instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw] ? element : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from](element));
   [else]
   [v.name].add(nonNullElement);
   [/if]
