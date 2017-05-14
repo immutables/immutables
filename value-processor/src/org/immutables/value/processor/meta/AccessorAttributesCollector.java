@@ -178,6 +178,8 @@ final class AccessorAttributesCollector {
     List<? extends VariableElement> parameters = utilityMethodCandidate.getParameters();
 
     TypeElement definingType = (TypeElement) utilityMethodCandidate.getEnclosingElement();
+    boolean nonFinal = !utilityMethodCandidate.getModifiers().contains(Modifier.FINAL);
+    boolean nonAbstract = !utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT);
 
     if (definingType.getQualifiedName().contentEquals(Object.class.getName())) {
       // We ignore methods of java.lang.Object
@@ -188,14 +190,12 @@ final class AccessorAttributesCollector {
         && parameters.size() == 1
         && parameters.get(0).asType().toString().equals(Object.class.getName())) {
 
-      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+      if (nonAbstract) {
         type.isEqualToDefined = true;
 
-        // inherited non-abstract implementation
-        // the flag have to be set already
-        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
-              .warning("Type inherits non-default 'equals' method but have some non-inherited attributes."
+              .warning("Type inherits overriden 'equals' method but have some non-inherited attributes."
                   + " Please override 'equals' with abstract method to have it generate. Otherwise override"
                   + " with calling super implemtation to use custom implementation");
         }
@@ -205,11 +205,11 @@ final class AccessorAttributesCollector {
 
     if (name.contentEquals(HASH_CODE_METHOD)
         && parameters.isEmpty()) {
-      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+      if (nonAbstract) {
         type.isHashCodeDefined = true;
 
         // inherited non-abstract implementation
-        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
               .warning("Type inherits non-default 'hashCode' method but have some non-inherited attributes."
                   + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
@@ -221,11 +221,11 @@ final class AccessorAttributesCollector {
 
     if (name.contentEquals(TO_STRING_METHOD)
         && parameters.isEmpty()) {
-      if (!utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT)) {
+      if (nonAbstract) {
         type.isToStringDefined = true;
 
         // inherited non-abstract implementation
-        if (!definingType.equals(originalType) && hasNonInheritedAttributes) {
+        if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
               .warning("Type inherits non-default 'toString' method but have some non-inherited attributes."
                   + " Please override 'toString' with abstract method to have generate it. Otherwise override"
