@@ -51,12 +51,18 @@ License
 Changelog
 ---------
 
+### 2.5.0
+- Number of bugfixes including Jackson and Gson fixes. Thank you for the PRs!
+- Notable features
+  + `@Value.Redacted` annotation with `Style.redactedMask` customization setting.
+- [Issues 2.5.0](https://github.com/immutables/immutables/milestone/61)
+
 ### 2.4.x-2.4.4 (2017-03-12)
 - Enhancement and bugfix release. Thanks to issue reporters and contributors! PRs were great!
 - Notable features
   + Fancier hash code generation.
   + if `hashCode` is precomputed (`prehash=true`), it is used in `equals` to short circuit unequal object comparison.
-  + `@NaturalOrder/ReverseOrder` now works with `SortedMultiset` 
+  + `@NaturalOrder/ReverseOrder` now works with `SortedMultiset`
   + `allMandatoryParameters = true` style to automatically turn all mandatory attributes into parameters
   + `builtinContainerAttributes = false` to disable recognition and special handling of built-in collection type. Custom encodings would still work.
   + `@Builder.AccessibleFields` to generate builder with protected fields. Override/access using nested Builder class extending auto-generated one.
