@@ -51,7 +51,7 @@ License
 Changelog
 ---------
 
-### 2.5.0
+### 2.5.0 (2017-05-14)
 - Number of bugfixes including Jackson and Gson fixes. Thank you for the PRs!
 - Notable features
   + `@Value.Redacted` annotation with `Style.redactedMask` customization setting.
