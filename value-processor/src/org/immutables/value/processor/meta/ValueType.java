@@ -1239,8 +1239,7 @@ public final class ValueType extends TypeIntrospectionBase {
           report(),
           typeAbstract().toString(),
           getSettableAttributes(),
-          accessorMapping,
-          getTypeExtractor());
+          accessorMapping);
     }
     return buildFromTypes;
   }

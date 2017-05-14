@@ -33,6 +33,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.value.processor.encode.Code.Term;
+import org.immutables.value.processor.encode.Type.Parameters;
 
 /**
  * I've created this type model as an experiment which I want to bring forward and evolve
@@ -45,7 +46,8 @@ import org.immutables.value.processor.encode.Code.Term;
  * What we tried to avoid:
  * <ul>
  * <li>Compicated reverse references and mutability</li>
- * <li>Idealism and unrealistic overgeneralization ({@link java.lang.reflect.WildcardType} anyone?)</li>
+ * <li>Idealism and unrealistic overgeneralization ({@link java.lang.reflect.WildcardType}
+ * anyone?)</li>
  * <li>Complicated types like intersection or unions where we get without them</li>
  * </ul>
  * Moreover we are only concerned with the types in signatures, not a whole spectre of types which
@@ -142,10 +144,12 @@ public interface Type {
   class Variable implements Defined {
     public final String name;
     public final List<Defined> upperBounds;
+    public final boolean recursive;
 
-    Variable(String name, List<Defined> upperBounds) {
+    Variable(String name, List<Defined> upperBounds, boolean recursive) {
       this.name = name;
       this.upperBounds = upperBounds;
+      this.recursive = recursive;
     }
 
     boolean isUnbounded() {
@@ -283,6 +287,8 @@ public interface Type {
   interface Parameters {
     Parameters introduce(String name, Iterable<? extends Defined> upperBounds);
 
+    Parameters recursive(String name);
+
     List<String> names();
 
     Variable variable(String name);
@@ -399,7 +405,12 @@ public interface Type {
 
       @Override
       public Parameters introduce(String name, Iterable<? extends Defined> upperBounds) {
-        return new DefinedParameters(null, name, ImmutableList.copyOf(upperBounds));
+        return new DefinedParameters(null, name, ImmutableList.copyOf(upperBounds), false);
+      }
+
+      @Override
+      public Parameters recursive(String name) {
+        return new DefinedParameters(null, name, ImmutableList.<Defined>of(), true);
       }
 
       @Override
@@ -493,9 +504,9 @@ public interface Type {
       private final Variable variable;
       private final List<String> names;
 
-      DefinedParameters(@Nullable DefinedParameters parent, String name, List<Defined> bounds) {
+      DefinedParameters(@Nullable DefinedParameters parent, String name, List<Defined> bounds, boolean recursive) {
         this.parent = parent;
-        this.variable = new Variable(name, bounds);
+        this.variable = new Variable(name, bounds, recursive);
         this.names = unwindNames();
       }
 
@@ -509,7 +520,12 @@ public interface Type {
 
       @Override
       public Parameters introduce(String name, Iterable<? extends Defined> upperBounds) {
-        return new DefinedParameters(this, name, ImmutableList.copyOf(upperBounds));
+        return new DefinedParameters(this, name, ImmutableList.copyOf(upperBounds), false);
+      }
+
+      @Override
+      public Parameters recursive(String name) {
+        return new DefinedParameters(this, name, ImmutableList.<Defined>of(), true);
       }
 
       @Override

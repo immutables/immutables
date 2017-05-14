@@ -41,7 +41,6 @@ public final class FromSupertypesModel {
   public final ImmutableList<FromSupertypesModel.FromSupertype> supertypes;
   public final ImmutableList<String> repeating;
   public final LongPositions positions;
-  public final TypeExtractor typeExtractor;
   private final Reporter reporter;
 
   public final static class FromSupertype {
@@ -67,11 +66,9 @@ public final class FromSupertypesModel {
       Reporter reporter,
       String abstractTypeName,
       Collection<ValueAttribute> attributes,
-      ImmutableListMultimap<String, TypeElement> accessorMapping,
-      TypeExtractor typeExtractor) {
+      ImmutableListMultimap<String, TypeElement> accessorMapping) {
 
     this.reporter = reporter;
-    this.typeExtractor = typeExtractor;
     SetMultimap<String, String> typesByAttribute = HashMultimap.create();
 
     for (ValueAttribute a : attributes) {

@@ -17,6 +17,7 @@ package org.immutables.value.processor.encode;
 
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Parameterizable;
@@ -34,6 +35,7 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor7;
+import org.immutables.value.processor.encode.Type.Defined;
 
 public final class TypeExtractor {
   public final Type.Factory factory;
@@ -72,8 +74,9 @@ public final class TypeExtractor {
 
     for (TypeParameterElement p : context.getTypeParameters()) {
       String name = p.getSimpleName().toString();
-      List<Type.Defined> bounds = getBounds(parameters, p);
-
+      // <T extends Cls<T>>: when parsing bounds for T, T should be already defined for recursion
+      Type.Parameters parameterForRecursion = parameters.recursive(name);
+      List<Type.Defined> bounds = getBounds(parameterForRecursion, p);
       parameters = parameters.introduce(name, bounds);
     }
 
