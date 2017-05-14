@@ -15,12 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.annotation.Nullable;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -50,12 +49,6 @@ final class AccessorAttributesCollector {
 
   private static final String ORG_ECLIPSE = "org.eclipse";
 
-  /**
-   * Something less than half of 255 parameter limit in java methods (not counting 2-slot double
-   * and long parameters and reserved slots for technical parameters).
-   */
-  private static final int USEFUL_PARAMETER_COUNT_LIMIT = 120;
-
   static final String EQUALS_METHOD = "equals";
   static final String TO_STRING_METHOD = "toString";
   static final String HASH_CODE_METHOD = "hashCode";
@@ -82,19 +75,6 @@ final class AccessorAttributesCollector {
 
   void collect() {
     collectGeneratedCandidateMethods(getTypeElement());
-
-    if (attributes.size() > USEFUL_PARAMETER_COUNT_LIMIT) {
-      ArrayList<ValueAttribute> list = Lists.newArrayListWithCapacity(USEFUL_PARAMETER_COUNT_LIMIT);
-      list.addAll(attributes.subList(0, USEFUL_PARAMETER_COUNT_LIMIT));
-      attributes.clear();
-      attributes.addAll(list);
-
-      protoclass.report().error(
-          "Value objects with more than %d attributes (including inherited) are not supported."
-              + " You can decompose '%s' class into a smaller ones",
-          USEFUL_PARAMETER_COUNT_LIMIT,
-          protoclass.name());
-    }
 
     Instantiator encodingInstantiator = protoclass.encodingInstantiator();
     @Nullable InstantiationCreator instantiationCreator =
