@@ -68,9 +68,9 @@ public abstract class TypeIntrospectionBase {
   }
 
   private volatile boolean introspected;
-  protected ImmutableList<String> extendedClassesNames;
-  protected ImmutableSet<String> implementedInterfacesNames;
-  protected ImmutableSet<String> unresolvedYetArguments;
+  protected ImmutableList<String> extendedClassesNames = ImmutableList.of();
+  protected ImmutableSet<String> implementedInterfacesNames = ImmutableSet.of();
+  protected ImmutableSet<String> unresolvedYetArguments = ImmutableSet.of();
   private boolean isOrdinalValue;
   private boolean isEnum;
   private boolean isComparable;
