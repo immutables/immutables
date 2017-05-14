@@ -593,6 +593,12 @@ public final class ValueType extends TypeIntrospectionBase {
         && !isUseConstructor()
         && getWithSettableAfterConstruction().isEmpty();
   }
+  
+  public boolean isUseSingletonOnlyForConstruction() {
+    return isUseSingleton()
+        && !useAttributelessSingleton()
+        && useSingletonNoOtherWay();
+  }
 
   private boolean useAttributelessSingleton() {
     return constitution.style().attributelessSingleton()
@@ -901,6 +907,15 @@ public final class ValueType extends TypeIntrospectionBase {
         .toList();
   }
 
+  public boolean hasAuxiliaryAttributes() {
+    for (ValueAttribute a : getImplementedAttributes()) {
+      if (a.isAuxiliary()) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
   public boolean hasSingleParameterConstructor() {
     return isUseConstructor() && getConstructorArguments().size() == 1;
   }

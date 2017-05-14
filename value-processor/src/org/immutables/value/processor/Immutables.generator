@@ -734,7 +734,11 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     return INTERNER.intern(new InternProxy(instance)).instance;
   [/if]
 [else if type.useSingleton]
+  [if type.useSingletonOnlyForConstruction]
+    return instance;
+  [else]
     return INSTANCE != null && INSTANCE.equalTo(instance) ? INSTANCE : instance;[-- may be null during initialization --]
+  [/if]
 [else]
     return instance;
 [/if]

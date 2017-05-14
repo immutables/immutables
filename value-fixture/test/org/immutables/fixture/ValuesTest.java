@@ -209,6 +209,11 @@ public class ValuesTest {
     check(includesAuxiliary.hashCode()).is(excludesAuxiliary.hashCode());
     check(includesAuxiliary).asString().not().contains("auxiliary");
   }
+  
+  @Test
+  public void auxiliaryOnForcedSingleton() {
+    check(ImmutableAuxDefaultOnForcedSingleton.of().withAux(66).aux()).is(66);
+  }
 
   @Test
   public void builderInheritence() {
