@@ -213,7 +213,7 @@ public final class ValueMirrors {
 
     boolean allMandatoryParameters() default false;
 
-    String redactedSubstitution() default "";
+    String redactedMask() default "";
 
     public enum ImplementationVisibility {
       PUBLIC,

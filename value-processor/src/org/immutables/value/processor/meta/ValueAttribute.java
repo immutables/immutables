@@ -971,6 +971,21 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
+  private boolean isRedacted() {
+    return RedactedMirror.isPresent(element);
+  }
+
+  public boolean isRedactedCompletely() {
+    return isRedacted()
+        && getRedactedMask().isEmpty();
+  }
+
+  public String getRedactedMask() {
+    return isRedacted()
+        ? protoclass().styles().style().redactedMask()
+        : "";
+  }
+  
   /**
    * Initialized Validates things that were not validated otherwise
    * @param instantiationCreator can instantiate encodings

@@ -1142,7 +1142,7 @@ public @interface Value {
      * {@code toString} output. If you set it to some value, then it will be printed.
      * @return redacted value substitution string
      */
-    String redactedSubstitution() default "";
+    String redactedMask() default "";
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

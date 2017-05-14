@@ -2613,37 +2613,39 @@ public String toString() {
   java.lang.StringBuilder builder = new java.lang.StringBuilder([if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]);
   [let startLen][output.length][if type.annotationType]@[type.name]([else][type.name]{[/if][/output.length][/let]
   [for v in type.equivalenceAttributes]
-    [if v.encoding]
+    [if v.redactedCompletely][-- Nothing --]
+    [else if v.encoding]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.names.raw]=").append([rr.string v]);
+  builder.append("[v.names.raw]=").append([maybeMasked v][rr.string v][/maybeMasked]);
     [else if v.arrayType]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.names.raw]=").append(java.util.Arrays.toString([v.name]));
+  builder.append("[v.names.raw]=").append([maybeMasked v]java.util.Arrays.toString([v.name])[/maybeMasked]);
     [else if v.jdkOptional or v.nullable]
   if ([v.name] != null) {
     [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
-    builder.append("[v.names.raw]=").append([v.name]);
+    builder.append("[v.names.raw]=").append([maybeMasked v][v.name][/maybeMasked]);
   }
     [else if v.optionalType]
   if ([v.name].[optionalPresent v]) {
     [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if]
-    builder.append("[v.names.raw]=").append([v.name].[optionalGet v]);
+    builder.append("[v.names.raw]=").append([maybeMasked v][v.name].[optionalGet v][/maybeMasked]);
   }
     [else]
   [if not for.first][if flag.is]if (builder.length() > [startLen]) [/if]builder.append(", ");[/if][flag.clear]
-  builder.append("[v.names.raw]=").append([v.name]);
+  builder.append("[v.names.raw]=").append([maybeMasked v][v.name][/maybeMasked]);
     [/if]
   [/for]
   return builder.append([if type.annotationType]")"[else]"}"[/if]).toString();
   [else]
   return [if type.annotationType]"@[type.name]("[else]"[type.name]{"[/if]
     [for v in type.equivalenceAttributes]
-      [if v.arrayType]
-      + "[if not for.first], [/if][v.names.raw]=" + java.util.Arrays.toString([v.name])
+      [if v.redactedCompletely][-- Nothing --]
+      [else if v.arrayType]
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v]java.util.Arrays.toString([v.name])[/maybeMasked]
       [else if v.encoding]
-      + "[if not for.first], [/if][v.names.raw]=" + ([rr.string v])
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v]([rr.string v])[/maybeMasked]
       [else]
-      + "[if not for.first], [/if][v.names.raw]=" + [v.name]
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.name][/maybeMasked]
       [/if]
     [/for]
       + [if type.annotationType]")"[else]"}"[/if];
@@ -2652,18 +2654,19 @@ public String toString() {
   return [type.typeMoreObjects].toStringHelper("[if type.annotationType]@[/if][type.name]")
       .omitNullValues()
   [for v in type.equivalenceAttributes]
-  [if v.encoding]
-      .add("[v.names.raw]", [rr.string v])
+  [if v.redactedCompletely][-- Nothing --]
+  [else if v.encoding]
+      .add("[v.names.raw]", [maybeMasked v][rr.string v][/maybeMasked])
   [else if v.arrayType]
-      .add("[v.names.raw]", java.util.Arrays.toString([v.name]))
+      .add("[v.names.raw]", [maybeMasked v]java.util.Arrays.toString([v.name])[/maybeMasked])
   [else if v.jdkOptional]
-      .add("[v.names.raw]", [v.name])
+      .add("[v.names.raw]", [maybeMasked v][v.name][/maybeMasked])
   [else if v.guavaOptional]
-      .add("[v.names.raw]", [v.name].orNull())
+      .add("[v.names.raw]", [maybeMasked v][v.name].orNull()[/maybeMasked])
   [else if v.optionalType]
-      .add("[v.names.raw]", [v.name].[optionalPresent v] ? [v.name].[optionalGet v] : null)
+      .add("[v.names.raw]", [maybeMasked v][v.name].[optionalPresent v] ? [v.name].[optionalGet v] : null[/maybeMasked])
   [else]
-      .add("[v.names.raw]", [v.name])
+      .add("[v.names.raw]", [maybeMasked v][v.name][/maybeMasked])
   [/if]
   [/for]
       .toString();
@@ -3562,3 +3565,5 @@ private static final long serialVersionUID = [literal serialVersion];
 [template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
 
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
+
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]

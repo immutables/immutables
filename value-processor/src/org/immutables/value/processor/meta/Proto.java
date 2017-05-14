@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.ClasspathFence;
-import org.immutables.value.processor.encode.Type;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -50,6 +48,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
+import org.immutables.generator.ClasspathFence;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.value.Value;
 import org.immutables.value.processor.encode.EncMetadataMirror;
@@ -57,6 +56,7 @@ import org.immutables.value.processor.encode.EncodingInfo;
 import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Inflater;
 import org.immutables.value.processor.encode.Instantiator;
+import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
 
@@ -202,7 +202,7 @@ public class Proto {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
 
-      @Nullable MetaAnnotated metaAnnotated = cache.get(element);
+      @Nullable MetaAnnotated metaAnnotated = cache.get(name);
       if (metaAnnotated == null) {
         metaAnnotated = ImmutableProto.MetaAnnotated.of(element, name, environment);
         @Nullable MetaAnnotated existing = cache.putIfAbsent(name, metaAnnotated);
@@ -1767,7 +1767,7 @@ public class Proto {
           input.builtinContainerAttributes(),
           input.beanFriendlyModifiables(),
           input.allMandatoryParameters(),
-          input.redactedSubstitution());
+          input.redactedMask());
     }
   }
 

@@ -302,7 +302,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
-  public abstract String redactedSubstitution();
+  public abstract String redactedMask();
 
   @Value.Lazy
   public Styles getStyles() {

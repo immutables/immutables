@@ -548,7 +548,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 [deprecation v]
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
-  if (elements == null) return this; 
+  if (elements == null) return this;
   if ([v.name] == null) {
     [defineOrResetField v false]
   }
@@ -980,34 +980,34 @@ public String toString() {
 [else if type.generateJdkOnly]
   return "[type.names.typeModifiable]{"
   [for v in type.equivalenceAttributes]
-    [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
+    [if v.generateDerived or v.redactedCompletely][-- nothing for derived, but it here to preserve logic flow --]
     [else if v.arrayType]
-      + "[if not for.first], [/if][v.names.raw]=" + ([if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if])
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v]([if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if])[/maybeMasked]
     [else if v.generateDefault]
-      + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
     [else if v.nullable or v.containerType]
-      + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
     [else if v.primitive and (not v.mandatory)]
-      + "[if not for.first], [/if][v.names.raw]=" + [v.names.get]()
+      + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
     [else]
-      + "[if not for.first], [/if][v.names.raw]="  + ([isSet v]() ? [v.names.get]() : "?")
+      + "[if not for.first], [/if][v.names.raw]="  + [maybeMasked v]([isSet v]() ? [v.names.get]() : "?")[/maybeMasked]
     [/if]
   [/for]
       + "}";
 [else]
   return [type.typeMoreObjects].toStringHelper("[type.names.typeModifiable]")
 [for v in type.equivalenceAttributes]
-    [if v.generateDerived][-- nothing for derived, but it here to preserve logic flow --]
+    [if v.generateDerived or v.redactedCompletely][-- nothing for derived, but it here to preserve logic flow --]
     [else if v.arrayType]
-      .add("[v.names.raw]", [if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if])
+      .add("[v.names.raw]", [maybeMasked v][if v.nullable or v.generateDefault]java.util.Arrays.toString([v.names.get]())[else][isSet v]() ? java.util.Arrays.toString([v.names.get]()) : "?"[/if][/maybeMasked])
     [else if v.generateDefault]
-      .add("[v.names.raw]", [v.names.get]())
+      .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
     [else if v.nullable or v.containerType]
-      .add("[v.names.raw]", [v.names.get]())
+      .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
     [else if v.primitive and (not v.mandatory)]
-      .add("[v.names.raw]", [v.names.get]())
+      .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
     [else]
-      .add("[v.names.raw]", [isSet v]() ? [v.names.get]() : "?")
+      .add("[v.names.raw]", [maybeMasked v][isSet v]() ? [v.names.get]() : "?"[/maybeMasked])
     [/if]
 [/for]
       .toString();
@@ -1092,3 +1092,5 @@ import [starImport];
 [template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
 
 [template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
+
+[template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]

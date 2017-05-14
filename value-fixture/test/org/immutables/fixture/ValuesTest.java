@@ -305,7 +305,7 @@ public class ValuesTest {
         .arg1(1)
         .arg2(2)
         .build())
-        .same(ImmutableSillyInterned.of(1, 2));
+            .same(ImmutableSillyInterned.of(1, 2));
 
     check(ImmutableSillyInterned.of(1, 2).hashCode()).is(ImmutableSillyInterned.of(1, 2).hashCode());
     check(ImmutableSillyInterned.of(1, 2).hashCode()).not(ImmutableSillyInterned.of(2, 2).hashCode());
@@ -474,5 +474,44 @@ public class ValuesTest {
   @Test(expected = IllegalStateException.class)
   public void multipleCheck2() {
     ImmutableMultipleChecks.C.builder().a(1).b(0).build();
+  }
+
+  @Test
+  public void redactedCompletely() {
+    ImmutableRedacted b = ImmutableRedacted.builder()
+        .id(2)
+        .code(1)
+        .data("a", "b")
+        .ssn("000-00-000")
+        .build();
+
+    check(b).hasToString("Redacted{id=2}");
+  }
+
+  @Test
+  public void redactedMask() {
+    ImmutableRedactedMask m = ImmutableRedactedMask.builder()
+        .code(1)
+        .build();
+
+    check(m).hasToString("RedactedMask{code=####}");
+  }
+
+  @Test
+  public void redactedMaskJdkOnly() {
+    ImmutableRedactedMaskJdkOnly m = ImmutableRedactedMaskJdkOnly.builder()
+        .code(1)
+        .build();
+
+    check(m).hasToString("RedactedMaskJdkOnly{code=$$$$}");
+  }
+
+  @Test
+  public void redactedMaskJdkOnlyOpt() {
+    ImmutableRedactedMaskJdkOnlyOpt m = ImmutableRedactedMaskJdkOnlyOpt.builder()
+        .code(1)
+        .build();
+
+    check(m).hasToString("RedactedMaskJdkOnlyOpt{code=????}");
   }
 }
