@@ -17,6 +17,7 @@ package org.immutables.value.processor.meta;
 
 import javax.lang.model.element.ElementKind;
 import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
@@ -34,10 +35,11 @@ final class Annotations {
 
   private static final String PREFIX_JAVA_LANG = "java.lang.";
   private static final String PREFIX_IMMUTABLES = "org.immutables.";
-  private static final String PREFIX_JACKSON = "com.fasterxml.jackson.annotation.";
-  private static final String PREFIX_JACKSON_DATABIND = "com.fasterxml.jackson.databind.annotation.";
+  private static final String PREFIX_JACKSON = "com.fasterxml.jackson.";
   private static final String PREFIX_JACKSON_IGNORE_PROPERTIES =
       "com.fasterxml.jackson.annotation.JsonIgnoreProperties";
+  static final String JACKSON_PROPERTY =
+      "com.fasterxml.jackson.annotation.JsonProperty";
 
   static final String JACKSON_ANY_GETTER =
       "com.fasterxml.jackson.annotation.JsonAnyGetter";
@@ -71,11 +73,15 @@ final class Annotations {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
 
-      if (annotationTypeMatches(element, annotationElement,
+      if (annotationTypeMatches(element,
+          annotationElement,
           includeAnnotations,
           includeAllAnnotations,
           includeJacksonAnnotations,
-          seenAnnotations)
+          seenAnnotations,
+          lines,
+          importsResolver,
+          elementType)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation, importsResolver));
       }
@@ -89,7 +95,10 @@ final class Annotations {
       Set<String> includeAnnotations,
       boolean includeAllAnnotations,
       boolean includeJacksonAnnotations,
-      Set<String> seenAnnotations) {
+      Set<String> seenAnnotations,
+      List<CharSequence> lines,
+      Function<String, String> importsResolver,
+      ElementType elementType) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
 
     if (seenAnnotations.contains(qualifiedName)
@@ -102,6 +111,40 @@ final class Annotations {
     }
 
     seenAnnotations.add(qualifiedName);
+
+    // Includes meta annotated jackson annotations
+    if (includeJacksonAnnotations
+        || (includeAnnotations.size() == 1
+            && hasJacksonPackagePrefix(Iterables.getOnlyElement(includeAnnotations)))) {
+      if (Proto.isAnnotatedWith(annotationElement, Proto.JACKSON_ANNOTATIONS_INSIDE)) {
+        for (AnnotationMirror metaAnnotation : annotationElement.getAnnotationMirrors()) {
+          TypeElement metaAnnotationElement = (TypeElement) metaAnnotation.getAnnotationType().asElement();
+          String qname = metaAnnotationElement.getQualifiedName().toString();
+          
+          if (seenAnnotations.contains(qname)) {
+            continue;
+          }
+          seenAnnotations.add(qname);
+          
+          if (qname.equals(Proto.JACKSON_ANNOTATIONS_INSIDE)
+              || qname.startsWith(PREFIX_IMMUTABLES)
+              || qname.startsWith(PREFIX_JAVA_LANG)) {
+            continue;
+          }
+          
+          if (qname.equals(JACKSON_ANY_GETTER)) {
+            if (!includeAnnotations.contains(JACKSON_ANY_GETTER)) {
+              continue;
+            }
+          }
+          
+          if (annotationMatchesTarget(metaAnnotationElement, elementType)) {
+            lines.add(AnnotationMirrors.toCharSequence(metaAnnotation, importsResolver));
+          }
+        }
+        return includeAllAnnotations;
+      }
+    }
 
     if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
       // we expect to propagate nullability separately
@@ -124,7 +167,11 @@ final class Annotations {
           return false;
         }
       }
-      if (qualifiedName.startsWith(PREFIX_JACKSON) || qualifiedName.startsWith(PREFIX_JACKSON_DATABIND)) {
+      // Any getter should be handled separately
+      if (qualifiedName.equals(JACKSON_ANY_GETTER)) {
+        return false;
+      }
+      if (hasJacksonPackagePrefix(qualifiedName)) {
         return true;
       }
     }
@@ -133,16 +180,19 @@ final class Annotations {
       return true;
     }
 
-    // This block of code can include annotation if it's parent annotation is included
     if (includeJacksonAnnotations || !includeAnnotations.isEmpty()) {
       for (AnnotationMirror parentAnnotation : annotationElement.getAnnotationMirrors()) {
         TypeElement parentElement = (TypeElement) parentAnnotation.getAnnotationType().asElement();
+        // This block of code can include annotation if it's parent annotation is included
         if (annotationTypeMatches(element,
             parentElement,
             includeAnnotations,
             false,
             includeJacksonAnnotations,
-            seenAnnotations)) {
+            seenAnnotations,
+            lines,
+            importsResolver,
+            elementType)) {
           return true;
         }
       }
@@ -168,5 +218,9 @@ final class Annotations {
       }
     }
     return true;
+  }
+
+  static boolean hasJacksonPackagePrefix(String qualifiedName) {
+    return qualifiedName.startsWith(PREFIX_JACKSON);
   }
 }

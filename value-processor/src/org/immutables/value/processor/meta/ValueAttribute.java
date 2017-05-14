@@ -324,7 +324,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   private CharSequence jacksonPropertyAnnotation() {
-    StringBuilder propertyAnnotation = new StringBuilder("@").append(JsonPropertyMirror.qualifiedName());
+    StringBuilder propertyAnnotation = new StringBuilder("@").append(Annotations.JACKSON_PROPERTY);
     if (protoclass().styles().style().forceJacksonPropertyNames()) {
       propertyAnnotation.append('(').append(StringLiterals.toLiteral(names.raw)).append(')');
     }
@@ -335,7 +335,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.isGenerateJacksonProperties()
         && protoclass().isJacksonDeserialized()) {
       List<CharSequence> jacksonPropertyAnnotation = Annotations.getAnnotationLines(element,
-          Collections.singleton(JsonPropertyMirror.qualifiedName()),
+          Collections.singleton(Annotations.JACKSON_PROPERTY),
           false,
           ElementType.METHOD,
           importsResolver);
@@ -345,7 +345,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       }
       annotations.addAll(Annotations.getAnnotationLines(element,
           Collections.<String>emptySet(),
-          true,
+          protoclass().environment().hasJacksonLib(),
           ElementType.METHOD,
           importsResolver));
       return annotations;
@@ -357,7 +357,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     List<CharSequence> allAnnotations = Lists.newArrayListWithCapacity(1);
 
     boolean dontHaveJsonPropetyAnnotationAlready = Annotations.getAnnotationLines(element,
-        Collections.singleton(JsonPropertyMirror.qualifiedName()),
+        Collections.singleton(Annotations.JACKSON_PROPERTY),
         false,
         elementType,
         importsResolver).isEmpty();
@@ -370,7 +370,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         Annotations.getAnnotationLines(element,
             Sets.union(additionalAnnotations,
                 protoclass().styles().style().additionalJsonAnnotationsNames()),
-            true,
+            protoclass().environment().hasJacksonLib(),
             elementType,
             importsResolver));
 
@@ -563,8 +563,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return (isUnwrappedElementPrimitiveType()
         || String.class.getName().equals(containmentTypeName())
         || hasEnumFirstTypeParameter())
-        ? getWrappedElementType()
-        : "? extends " + getWrappedElementType();
+            ? getWrappedElementType()
+            : "? extends " + getWrappedElementType();
   }
 
   public boolean hasEnumFirstTypeParameter() {
@@ -985,7 +985,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         ? protoclass().styles().style().redactedMask()
         : "";
   }
-  
+
   /**
    * Initialized Validates things that were not validated otherwise
    * @param instantiationCreator can instantiate encodings
@@ -1114,7 +1114,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private boolean canAccessImplementation(Protoclass p) {
     return p.constitution().implementationVisibility().isPublic()
         || (!p.constitution().implementationVisibility().isPrivate()
-        && p.constitution().implementationPackage().equals(p.constitution().definingPackage()));
+            && p.constitution().implementationPackage().equals(p.constitution().definingPackage()));
   }
 
   public String implementationModifiableType() {
@@ -1291,12 +1291,14 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         typeKind = AttributeTypeKind.REGULAR;
         report()
             .annotationNamed(DefaultMirror.simpleName())
-            .warning("@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = true)");
+            .warning(
+                "@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = true)");
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
             .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-            .warning("@Nullable on a container attribute make it lose its special treatment (when strictBuilder = true)");
+            .warning(
+                "@Nullable on a container attribute make it lose its special treatment (when strictBuilder = true)");
       }
     }
 
@@ -1307,8 +1309,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     }
 
     if (!isGenerateJdkOnly() && nullElements.allow()) {
-      report().warning("Guava collection implementation does not allow null elements, nullness annotation will be ignored."
-          + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
+      report()
+          .warning("Guava collection implementation does not allow null elements, nullness annotation will be ignored."
+              + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
     }
 
     if (isOptionalType()
@@ -1342,10 +1345,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         nullElements = NullElements.ALLOW;
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
         nullElements = NullElements.SKIP;
-      } else if (containingType.isGenerateJacksonMapped()
-          && annotationElement.getQualifiedName().toString().equals(Annotations.JACKSON_ANY_GETTER)) {
-        anyGetter = typeKind.isMap();
       }
+    }
+    if (containingType.isGenerateJacksonProperties()
+        && typeKind.isMap()
+        && Proto.isAnnotatedWith(element, Annotations.JACKSON_ANY_GETTER)) {
+      anyGetter = true;
     }
     if (isCollectionType()
         && nullElements == NullElements.BAN
@@ -1371,7 +1376,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         .isDeprecated(CachingElements.getDelegate(element));
 
     this.docComment = containingType.extractDocComment(element);
-    if (!isPrimitive() && isMandatory() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
+    if (!isPrimitive()
+        && isMandatory()
+        && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE) {
       this.nullability = NullabilityAnnotationInfo.forTypeUse();
     }
   }

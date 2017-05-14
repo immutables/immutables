@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.encode.Type;
-import org.immutables.value.processor.encode.TypeExtractor;
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.collect.HashMultimap;
@@ -36,6 +34,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceTypes;
+import org.immutables.value.processor.encode.TypeExtractor;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
 
 public final class FromSupertypesModel {

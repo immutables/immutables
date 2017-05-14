@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture.jackson;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -149,6 +148,20 @@ public class ObjectMappedTest {
   public void anyGetterSetter() throws Exception {
     String json = "{\"A\":1,\"B\":true}";
     AnyGetterSetter value = OBJECT_MAPPER.readValue(json, AnyGetterSetter.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void anyGetterInBuilderSetter() throws Exception {
+    String json = "{\"A\":1,\"B\":true}";
+    AnyGetterInBuilder value = OBJECT_MAPPER.readValue(json, AnyGetterInBuilder.class);
+    check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
+  }
+
+  @Test
+  public void jacksonMetaAnnotated() throws Exception {
+    String json = "{\"X\":1,\"A\":1,\"B\":true}";
+    ImmutableJacksonUsingMeta value = OBJECT_MAPPER.readValue(json, ImmutableJacksonUsingMeta.class);
     check(OBJECT_MAPPER.writeValueAsString(value)).is(json);
   }
 

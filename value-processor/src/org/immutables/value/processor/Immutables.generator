@@ -1553,6 +1553,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [atCanIgnoreReturnValue]
   [deprecation v]
+  [if v.anyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
@@ -2423,9 +2424,10 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/if]
   [/if]
  */
-[for a in v.annotations]
+[for a in v.annotations if a ne '@com.fasterxml.jackson.annotation.JsonAnyGetter']
 [a]
 [/for]
+[if v.anyGetter]@com.fasterxml.jackson.annotation.JsonAnyGetter[/if]
 [deprecation v]
 @Override
   [if v.encoding]

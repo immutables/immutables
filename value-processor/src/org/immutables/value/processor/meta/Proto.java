@@ -269,7 +269,8 @@ public class Proto {
             .printMessage(Diagnostic.Kind.MANDATORY_WARNING,
                 "The version of the Immutables annotation on the classpath has incompatible differences"
                     + " from the Immutables annotation processor used. Various problems might occur,"
-                    + " like this one: " + ex);
+                    + " like this one: "
+                    + ex);
 
         element = findElement(StyleMirror.mirrorQualifiedName());
         verify(element != null,
@@ -473,7 +474,8 @@ public class Proto {
 
       if (uniqueTypeNames.size() != typeMirrors.size()) {
         report().annotationNamed(IncludeMirror.simpleName())
-            .warning("Some types were ignored, non-supported for inclusion: duplicates, non declared reference types, non-public");
+            .warning("Some types were ignored, non-supported for inclusion: duplicates,"
+                + " non declared reference types, non-public");
       }
 
       return typeElements.toList();
@@ -498,7 +500,8 @@ public class Proto {
 
       if (uniqueTypeNames.size() != typeMirrors.size()) {
         report().annotationNamed(IncludeMirror.simpleName())
-            .warning("Some types were ignored, non-supported for inclusion: duplicates, non declared reference types, non-public");
+            .warning("Some types were ignored, non-supported for inclusion: duplicates,"
+                + " non declared reference types, non-public");
       }
 
       return typeElements.toList();
@@ -877,10 +880,10 @@ public class Proto {
         return immutableAnnotation;
       }
 
-      if (isAnnotatedWith(
-          element(),
-          environment().round().customImmutableAnnotations())) {
-        return Optional.of(environment().defaultStyles().defaults());
+      for (String a : environment().round().customImmutableAnnotations()) {
+        if (isAnnotatedWith(element(), a)) {
+          return Optional.of(environment().defaultStyles().defaults());
+        }
       }
 
       return Optional.absent();
@@ -1772,21 +1775,28 @@ public class Proto {
   }
 
   static boolean isJacksonSerializedAnnotated(Element element) {
-    return isAnnotatedWith(element, JACKSON_MAPPING_ANNOTATION_CLASSES);
+    return isAnnotatedWith(element, JACKSON_SERIALIZE)
+        || isAnnotatedWith(element, JACKSON_DESERIALIZE);
   }
 
   static boolean isJacksonDeserializedAnnotated(Element element) {
-    return isAnnotatedWith(element, Collections.singleton(JACKSON_DESERIALIZE));
+    return isAnnotatedWith(element, JACKSON_DESERIALIZE);
   }
 
   static boolean isJacksonJsonTypeInfoAnnotated(Element element) {
-    return isAnnotatedWith(element, Collections.singleton(JACKSON_TYPE_INFO));
+    return isAnnotatedWith(element, JACKSON_TYPE_INFO);
   }
 
-  static boolean isAnnotatedWith(Element element, Set<String> annotations) {
+  static boolean isAnnotatedWith(Element element, String annotation) {
     for (AnnotationMirror a : element.getAnnotationMirrors()) {
       TypeElement e = (TypeElement) a.getAnnotationType().asElement();
-      if (annotations.contains(e.getQualifiedName().toString())) {
+      if (e.getQualifiedName().contentEquals(annotation)) {
+        return true;
+      }
+      if (Annotations.hasJacksonPackagePrefix(annotation)
+          && !annotation.equals(JACKSON_ANNOTATIONS_INSIDE)
+          && isAnnotatedWith(e, JACKSON_ANNOTATIONS_INSIDE)
+          && isAnnotatedWith(e, annotation)) {
         return true;
       }
     }
@@ -1805,10 +1815,6 @@ public class Proto {
   static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";
   static final String JACKSON_DESERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonDeserialize";
   static final String JACKSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
+  static final String JACKSON_ANNOTATIONS_INSIDE = "com.fasterxml.jackson.annotation.JacksonAnnotationsInside";
   static final String PARCELABLE_INTERFACE_TYPE = "android.os.Parcelable";
-
-  private static final ImmutableSet<String> JACKSON_MAPPING_ANNOTATION_CLASSES =
-      ImmutableSet.of(
-          JACKSON_SERIALIZE,
-          JACKSON_DESERIALIZE);
 }
