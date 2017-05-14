@@ -219,6 +219,13 @@ final class AccessorAttributesCollector {
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
     Name name = attributeMethodCandidate.getSimpleName();
 
+    if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
+      report(attributeMethodCandidate)
+        .error("Method '%s' cannot have own generic type parameters."
+            + " Attribute accessors can only use enclosing type's type variables", name);
+      return;
+    }
+
     if (CheckMirror.isPresent(attributeMethodCandidate)) {
       if (!attributeMethodCandidate.getParameters().isEmpty()
           || attributeMethodCandidate.getModifiers().contains(Modifier.PRIVATE)
