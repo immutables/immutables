@@ -2300,7 +2300,9 @@ static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
   [serialVersionUID type]
 [for v in type.settableAttributes if not v.anyGetter]
-  [if v.optionalType]
+  [if v.encoding]
+  [v.type] [v.name] = [rr.defaultValue v];
+  [else if v.optionalType]
   [v.type] [v.name] = [optionalEmpty v];
   [else if v.collectionType]
   [v.type] [v.name] = [emptyImmutableInstance v ''];
