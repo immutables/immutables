@@ -27,34 +27,17 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedBytes;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
-import com.mongodb.DBCallback;
-import com.mongodb.DBCollection;
-import com.mongodb.DBDecoder;
-import com.mongodb.DBDecoderFactory;
-import com.mongodb.DBEncoder;
-import com.mongodb.DBObject;
-import com.mongodb.DefaultDBEncoder;
-import com.mongodb.LazyDBCallback;
+import com.mongodb.*;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.bson.BSONCallback;
-import org.bson.BSONObject;
-import org.bson.BasicBSONDecoder;
+import org.bson.*;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
+
+import javax.annotation.Nullable;
+import java.io.*;
+import java.util.*;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
@@ -180,10 +163,26 @@ public final class BsonEncoding {
     int writePlainCurrent(OutputBuffer buffer) throws IOException;
   }
 
+  private static DBObject cloneCurrentPosition(WritableObjectPosition position) {
+    OutputBuffer buffer = new BasicOutputBuffer();
+    try {
+      position.writePlainCurrent(buffer);
+    } catch (IOException e) {
+      throw new RuntimeException("Couldn't serialize current instance", e);
+    }
+
+    final DBObject bson = new LazyWriteableDBObject(buffer.toByteArray(), new LazyBSONCallback());
+    final BasicDBObject copy = new BasicDBObject();
+    copy.putAll(bson);
+    return copy;
+  }
+
   private static class UpdateObject<T> implements DBObject, WritableObjectPosition {
 
     private final T instance;
     private final TypeAdapter<T> adaper;
+
+    private DBObject cached;
 
     UpdateObject(T instance, TypeAdapter<T> adaper) {
       this.instance = instance;
@@ -202,6 +201,12 @@ public final class BsonEncoding {
     @Override
     public int writePlainCurrent(OutputBuffer buffer) throws IOException {
       return writeCurrent(buffer);
+    }
+
+    private DBObject cached() {
+      if (cached != null) return cached;
+      cached = cloneCurrentPosition(this);
+      return cached;
     }
 
     @Override
@@ -226,7 +231,7 @@ public final class BsonEncoding {
 
     @Override
     public Map toMap() {
-      throw new UnsupportedOperationException();
+      return cached().toMap();
     }
 
     @Override
@@ -237,17 +242,17 @@ public final class BsonEncoding {
     @Deprecated
     @Override
     public boolean containsKey(String s) {
-      throw new UnsupportedOperationException();
+      return cached().containsKey(s);
     }
 
     @Override
     public boolean containsField(String s) {
-      throw new UnsupportedOperationException();
+      return cached().containsField(s);
     }
 
     @Override
     public Set<String> keySet() {
-      return ImmutableSet.of();
+      return cached().keySet();
     }
 
     @Override
@@ -265,12 +270,16 @@ public final class BsonEncoding {
     @Nullable
     private JsonWriter writer;
 
+    private DBObject cached;
+    private int cachedIndex;
+
     private CountingOutputBufferStream outputStream;
     private final TypeAdapter<T> adaper;
 
     InsertObjectList(ImmutableList<T> list, TypeAdapter<T> adaper) {
       this.list = list;
       this.adaper = adaper;
+      this.cachedIndex = -1;
     }
 
     @Override
@@ -307,6 +316,17 @@ public final class BsonEncoding {
       }
     }
 
+    private DBObject cached() {
+      if (cachedIndex == position) {
+        return cached;
+      }
+
+      cached = cloneCurrentPosition(this);
+      cachedIndex = position;
+      return cached;
+    }
+
+
     private boolean isLastPosition() {
       return position == list.size() - 1;
     }
@@ -332,7 +352,16 @@ public final class BsonEncoding {
         }
         @Override
         public DBObject next() {
+          if (!hasNext()) {
+            throw new NoSuchElementException("At index: " + i);
+          }
+
           return get(i++);
+        }
+
+        @Override
+        public void remove() {
+          throw new UnsupportedOperationException();
         }
       };
     }
@@ -354,13 +383,14 @@ public final class BsonEncoding {
 
     @Override
     public Object get(String key) {
-      throw new UnsupportedOperationException();
+      return cached().get(key);
     }
 
     @Override
     public Map toMap() {
-      throw new UnsupportedOperationException();
+      return cached().toMap();
     }
+
 
     @Override
     public Object removeField(String key) {
@@ -370,17 +400,17 @@ public final class BsonEncoding {
     @Deprecated
     @Override
     public boolean containsKey(String s) {
-      throw new UnsupportedOperationException();
+      return cached().containsKey(s);
     }
 
     @Override
     public boolean containsField(String s) {
-      throw new UnsupportedOperationException();
+      return cached().containsField(s);
     }
 
     @Override
     public Set<String> keySet() {
-      throw new UnsupportedOperationException();
+     return cached().keySet();
     }
 
     @Override
@@ -430,17 +460,17 @@ public final class BsonEncoding {
 
     @Override
     public int indexOf(Object o) {
-      throw new UnsupportedOperationException();
+      return list.indexOf(o);
     }
 
     @Override
     public boolean isEmpty() {
-      return false;
+      return list.isEmpty();
     }
 
     @Override
     public int lastIndexOf(Object o) {
-      throw new UnsupportedOperationException();
+      return list.lastIndexOf(o);
     }
 
     @Override
@@ -494,13 +524,34 @@ public final class BsonEncoding {
     }
   }
 
-  public static <T> ImmutableList<T> unwrapResultObjectList(List<DBObject> result) {
+  public static <T> ImmutableList<T> unwrapResultObjectList(List<DBObject> result, TypeAdapter<T> adapter) {
     if (result.isEmpty()) {
       return ImmutableList.of();
     }
+
+    // Fongo ignores any decoders
+    if (result.get(0) instanceof BasicDBObject) {
+      try {
+        return convertDBObject(result, adapter);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to convert DBObject", e);
+      }
+    }
+
     // Safe as long as caller will use same T for decoder and unwrap
     @SuppressWarnings("unchecked") List<T> results = ((ResultDecoder<T>) result.get(0)).results;
     return ImmutableList.copyOf(results);
+  }
+
+  private static <T> ImmutableList<T> convertDBObject(List<DBObject> result, TypeAdapter<T> adapter) throws IOException {
+    final List<T> list = Lists.newArrayListWithExpectedSize(result.size());
+    final BSONEncoder encoder = new BasicBSONEncoder();
+    for (DBObject obj: result ) {
+      BsonReader parser = new BsonReader(BSON_FACTORY.createParser(encoder.encode(obj)));
+      list.add(adapter.read(parser));
+    }
+
+    return ImmutableList.copyOf(list);
   }
 
   public static <T> DBDecoderFactory newResultDecoderFor(TypeAdapter<T> adaper, int expectedSize) {
