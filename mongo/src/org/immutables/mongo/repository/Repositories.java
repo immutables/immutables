@@ -262,7 +262,7 @@ public final class Repositories {
           cursor.setDecoderFactory(BsonEncoding.newResultDecoderFor(adapter, expectedSize));
 
           List<DBObject> array = cursor.toArray();
-          return BsonEncoding.unwrapResultObjectList(array);
+          return BsonEncoding.unwrapResultObjectList(array, adapter);
         }
       });
     }
