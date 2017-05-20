@@ -28,7 +28,8 @@ public class BeanFriendlyTest {
 
   @Test
   public void modifiableAsJavaBean() throws Exception {
-    ImmutableSet<String> rwProperties = ImmutableSet.of("primary", "id", "description", "names", "options");
+    ImmutableSet<String> rwProperties =
+        ImmutableSet.of("primary", "id", "description", "names", "options", "extra");
 
     FluentIterable<PropertyDescriptor> propertyDescriptors =
         FluentIterable.of(

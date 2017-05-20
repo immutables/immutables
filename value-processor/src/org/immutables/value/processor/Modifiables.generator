@@ -382,12 +382,12 @@ private void from(Object object) {
  * @param instance The instance from which to copy values
  * @return {@code this} for use in a chained invocation
  */
-public [thisSetterReturnType type] [type.names.from]([type.typeAbstract] instance) {
+public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [im.requireNonNull type](instance, "instance");
 [for v in type.settableAttributes]
   [buildFromAttribute v]
 [/for]
-  [thisSetterReturn type]
+  [thisReturn type]
 }
 [/if]
 [/if]
@@ -548,7 +548,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 [deprecation v]
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
-  if (elements == null) return this;
+  if (elements == null) [thisSetterReturn type]
   if ([v.name] == null) {
     [defineOrResetField v false]
   }
