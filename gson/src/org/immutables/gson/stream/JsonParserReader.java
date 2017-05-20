@@ -27,16 +27,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.fasterxml.jackson.core.JsonToken.END_ARRAY;
-import static com.fasterxml.jackson.core.JsonToken.END_OBJECT;
-import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
-import static com.fasterxml.jackson.core.JsonToken.START_ARRAY;
-import static com.fasterxml.jackson.core.JsonToken.START_OBJECT;
-import static com.fasterxml.jackson.core.JsonToken.VALUE_NULL;
-import static com.fasterxml.jackson.core.JsonToken.VALUE_STRING;
+import static com.fasterxml.jackson.core.JsonToken.*;
 
 /**
  * {@link JsonReader} impementation backed by Jackson's {@link JsonParser}.
@@ -122,6 +117,14 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
     return toGsonToken(peek);
   }
 
+  private void expectOneOf(com.fasterxml.jackson.core.JsonToken ... expected) {
+    for (com.fasterxml.jackson.core.JsonToken token: expected) {
+      if (peek == token) return;
+    }
+
+    throw new IllegalStateException("Expected one of " + Arrays.asList(expected) + " but was " + peek);
+  }
+
   private void expect(com.fasterxml.jackson.core.JsonToken expected) {
     if (peek != expected) {
       throw new IllegalStateException("Expected " + expected + " but was " + peek);
@@ -141,7 +144,7 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   public String nextString() throws IOException {
     requirePeek();
     if (!isLenient()) {
-      expect(VALUE_STRING);
+      expectOneOf(VALUE_STRING, VALUE_NUMBER_FLOAT, VALUE_NUMBER_INT);
     }
     String value = parser.getText();
     clearPeek();

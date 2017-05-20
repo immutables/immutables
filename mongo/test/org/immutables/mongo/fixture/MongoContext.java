@@ -6,6 +6,9 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.mongodb.DB;
+import org.immutables.mongo.fixture.holder.Holder;
+import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
+import org.immutables.mongo.fixture.holder.ImmutableHolder;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.junit.rules.ExternalResource;
 
@@ -41,10 +44,16 @@ public class MongoContext extends ExternalResource {
     }
 
     private static com.google.gson.Gson createGson() {
-        GsonBuilder gsonBuilder = new GsonBuilder();
+        GsonBuilder gson = new GsonBuilder();
         for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
-            gsonBuilder.registerTypeAdapterFactory(factory);
+            gson.registerTypeAdapterFactory(factory);
         }
-        return gsonBuilder.create();
+
+        // register custom serializer for polymorphic Holder
+        final HolderJsonSerializer custom = new HolderJsonSerializer();
+        gson.registerTypeAdapter(Holder.class, custom);
+        gson.registerTypeAdapter(ImmutableHolder.class, custom);
+
+        return gson.create();
     }
 }

@@ -44,11 +44,7 @@ public class BasicMongoOperationsTest {
         List<Item> items = repository.find(repository.criteria().id("1")).fetchAll().getUnchecked();
 
         check(items).hasSize(1);
-
-        Item item2 = items.get(0);
-
-        check(item2.id()).is("1");
-
+        check(items.get(0).id()).is("1");
         check(repository.findById("1").fetchAll().getUnchecked()).hasSize(1);
     }
 
