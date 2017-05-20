@@ -117,14 +117,6 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
     return toGsonToken(peek);
   }
 
-  private void expectOneOf(com.fasterxml.jackson.core.JsonToken ... expected) {
-    for (com.fasterxml.jackson.core.JsonToken token: expected) {
-      if (peek == token) return;
-    }
-
-    throw new IllegalStateException("Expected one of " + Arrays.asList(expected) + " but was " + peek);
-  }
-
   private void expect(com.fasterxml.jackson.core.JsonToken expected) {
     if (peek != expected) {
       throw new IllegalStateException("Expected " + expected + " but was " + peek);
@@ -143,8 +135,8 @@ public class JsonParserReader extends JsonReader implements Callable<JsonParser>
   @Override
   public String nextString() throws IOException {
     requirePeek();
-    if (!isLenient()) {
-      expectOneOf(VALUE_STRING, VALUE_NUMBER_FLOAT, VALUE_NUMBER_INT);
+    if (!peek.isScalarValue()) {
+      throw new IllegalStateException("Expected scalar value for string but was " + peek);
     }
     String value = parser.getText();
     clearPeek();
