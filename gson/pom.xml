@@ -52,6 +52,14 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <!-- Compile only annotations. Used to document and statically verify code properties. -->
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>19.0</version>
+      <scope>provided</scope>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
       <!-- Optional. Jackson used to speedup Gson's streaming if performance absolutely matters -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
