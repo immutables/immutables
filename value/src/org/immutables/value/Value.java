@@ -396,8 +396,8 @@ public @interface Value {
   /**
    * Marks attribute for exclusion from auto-generated {@code toString} method. It will
    * be just excluded by default. However you can choose to put special masking characters next to
-   * the attribute instead of a characters, like 3 stars or 4 pound signs, this replacement string
-   * can be set using {@link Style#redactedSubstitution} style attribute.
+   * the attribute instead of value, like 3 stars or 4 pound signs, this replacement string
+   * can be set using {@link Style#redactedMask()} style attribute.
    */
   @Documented
   @Target(ElementType.METHOD)
