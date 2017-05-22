@@ -43,7 +43,6 @@
       <groupId>org.immutables</groupId>
       <artifactId>metainf</artifactId>
       <version>${retro.version}</version>
-      <classifier>standalone</classifier>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>
@@ -57,22 +56,27 @@
   <build>
     <plugins>
       <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <compilerVersion>1.6</compilerVersion>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.immutables.tools</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>4</version>
         <executions>
           <execution>
-            <id>retrofit</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
-              <createDependencyReducedPom>false</createDependencyReducedPom>
-              <shadedArtifactAttached>true</shadedArtifactAttached>
-              <createSourcesJar>true</createSourcesJar>
+              <createDependencyReducedPom>true</createDependencyReducedPom>
+              <shadedArtifactAttached>false</shadedArtifactAttached>
               <minimizeJar>true</minimizeJar>
-              <shadedClassifierName>standalone</shadedClassifierName>
 
               <artifactSet>
                 <includes>
@@ -85,11 +89,11 @@
               <relocations>
                 <relocation>
                   <pattern>com.google.common</pattern>
-                  <shadedPattern>org.immutables.metainf.retrofit.$guava$</shadedPattern>
+                  <shadedPattern>org.immutables.metainf.internal.$guava$</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>com.google.thirdparty</pattern>
-                  <shadedPattern>org.immutables.metainf.retrofit.$thirdparty$</shadedPattern>
+                  <shadedPattern>org.immutables.metainf.internal.$thirdparty$</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org.immutables.metainf.processor</pattern>
@@ -108,7 +112,13 @@
                     <include>**</include>
                   </includes>
                   <excludes>
-                    <excludes>**/*.generator</excludes>
+                    <exclude>**/*.generator</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>com.google.guava:guava</artifact>
+                  <excludes>
+                    <exclude>META-INF/maven/**</exclude>
                   </excludes>
                 </filter>
               </filters>
@@ -126,8 +136,8 @@
             </goals>
             <configuration>
               <createDependencyReducedPom>false</createDependencyReducedPom>
-              <minimizeJar>false</minimizeJar>
               <shadedArtifactAttached>true</shadedArtifactAttached>
+              <minimizeJar>false</minimizeJar>
               <createSourcesJar>true</createSourcesJar>
               <shadedClassifierName>annotations</shadedClassifierName>
 

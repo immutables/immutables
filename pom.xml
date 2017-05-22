@@ -99,7 +99,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <retro.version>2.4.6</retro.version>
+    <retro.version>2.5.1</retro.version>
   </properties>
 
   <build>
