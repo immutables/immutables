@@ -17,6 +17,8 @@ package org.immutables.mongo.fixture;
 
 import java.util.List;
 import java.util.Set;
+
+import com.google.common.base.Optional;
 import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.types.Binary;
@@ -33,7 +35,16 @@ public interface Item {
 
   List<String> list();
 
+  List<Tag> tags();
+
   Set<Id> ids();
 
-  Binary binary();
+  Optional<Binary> binary();
+
+  @Value.Immutable
+  @Gson.TypeAdapters
+  interface Tag {
+      @Value.Parameter
+      String name();
+  }
 }

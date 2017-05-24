@@ -51,7 +51,7 @@ public final class Binary {
     if (this == other) {
       return true;
     }
-    if (other instanceof Id) {
+    if (other instanceof Binary) {
       Binary binary = (Binary) other;
       return Arrays.equals(data, binary.data);
     }
