@@ -61,4 +61,12 @@ public class BasicMongoOperationsTest {
         // second time no entries remaining
         check(repository.findAll().deleteAll().getUnchecked()).is(0);
     }
+
+    @Test
+    public void name() throws Exception {
+
+//        repository.find(repository.criteria().id("aaa"))
+//                .andModifyFirst()
+//        repository.update(repository.criteria().id("aaa")).
+    }
 }

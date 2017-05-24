@@ -387,6 +387,23 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
     return this;
   }
 
+  /*
+   * Override all values of {@code [a.name]} [toLower a.rawCollectionType] attribute.
+   *
+   * <p>Corresponds to the MongoDB {@code $set} operator on the array field.
+   * @param values The values to set
+   * @return {@code this} [toLower tT] to be used to complete the update operation
+   */
+   public [tT] set[toUpper a.name](Iterable<[a.consumedElementType]> values) {
+     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+     for ([wW] value : values) {
+       wrappedValues.add([wrapMarshalable a]value));
+     }
+
+     setFields = setFields.equal(serialization.[a.name]Name, false, wrappedValues);
+     return this;
+   }
+
   /**
    * Add all of the given values to the {@code [a.name]} [toLower a.rawCollectionType] attribute.
    * <p>
@@ -398,7 +415,7 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
    * @param values The values to add
    * @return {@code this} [toLower tT] to be used to complete the update operation
    */
-  public [tT] addAll[toUpper a.name](Iterable<[wW]> values) {
+  public [tT] addAll[toUpper a.name](Iterable<[a.consumedElementType]> values) {
     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
     for ([wW] value : values) {
       wrappedValues.add([wrapMarshalable a]value));
