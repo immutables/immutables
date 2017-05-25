@@ -17,25 +17,25 @@ package org.immutables.mongo.repository;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.WriteResult;
+import com.mongodb.*;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.BsonEncoding;
 import org.immutables.mongo.repository.internal.Constraints;
+
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.concurrent.Callable;
+
 import static com.google.common.base.Preconditions.*;
 import static org.immutables.mongo.repository.internal.Support.extractDbObject;
 
@@ -47,6 +47,8 @@ import static org.immutables.mongo.repository.internal.Support.extractDbObject;
 public final class Repositories {
   private static final int LARGE_BATCH_SIZE = 2000;
   private static final int DEFAULT_EXPECTED_RESULT_SIZE = 500;
+
+  private static final DBObject EMPTY = new BasicDBObject();
 
   private Repositories() {}
 
@@ -131,6 +133,41 @@ public final class Repositories {
               BsonEncoding.encoder());
         }
       }).lazyTransform(GetN.FUNCTION);
+    }
+
+    protected final FluentFuture<Optional<T>> doReplace(
+      final Constraints.ConstraintHost criteria,
+      final Constraints.Constraint ordering,
+      final T document,
+      final boolean upsert,
+      final boolean newOrOld) {
+
+      checkNotNull(criteria, "criteria");
+      checkNotNull(document, "document");
+
+      return submit(new Callable<Optional<T>>() {
+        @Override
+        public Optional<T> call() throws Exception {
+          final DBCollection collection = collection();
+
+          // TODO this should be changed with findOneAndReplace mongo method in v3
+          @Nullable DBObject result = collection.findAndModify(
+                  extractDbObject(criteria), // query
+                  EMPTY, // fields (get all)
+                  extractDbObject(ordering), // sort
+                  false, // remove
+                  BsonEncoding.wrapUpdateObject(document, adapter), // document to update
+                  newOrOld,
+                  upsert);
+
+          if (result != null) {
+            return Optional.of(BsonEncoding.unmarshalDbObject(result, adapter));
+          }
+
+          return Optional.absent();
+        }
+      });
+
     }
 
     protected final FluentFuture<Optional<T>> doModify(
@@ -457,6 +494,63 @@ public final class Repositories {
   }
 
   /**
+   * Base class for handling replace operations on a mongo document given a criteria.
+   */
+  @NotThreadSafe
+  public static abstract class Replacer<T, M extends Replacer<T, M>> extends UpdatatingOperation<T> {
+
+    private final T document;
+    private final Constraints.ConstraintHost criteria;
+    private final Constraints.Constraint ordering;
+
+    private boolean returnNewOrOld;
+
+    protected Replacer(Repository<T> repository, T document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
+      super(repository);
+      this.document = checkNotNull(document, "document");
+      this.criteria = checkNotNull(criteria, "criteria");
+      this.ordering = checkNotNull(ordering, "ordering");
+    }
+
+    /**
+     * Configures this modifier so that old (not updated) version of document will be returned in
+     * case of successful update.
+     * This is default behavior so it may be called only for explanatory reasons.
+     * @see #returningNew()
+     * @return {@code this} modifier for chained invocation
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
+    public final M returningOld() {
+      returnNewOrOld = false;
+      return (M) this;
+    }
+
+    /**
+     * Configures this modifier so that new (updated) version of document will be returned in
+     * case of successful update.
+     * @see #returningOld()
+     * @return {@code this} modifier for chained invocation
+     */
+    // safe unchecked: we expect I to be a self type
+    @SuppressWarnings("unchecked")
+    public final M returningNew() {
+      returnNewOrOld = true;
+      return (M) this;
+    }
+
+    public final FluentFuture<Optional<T>> upsert() {
+      return repository.doReplace(criteria, ordering, document, true, returnNewOrOld);
+    }
+
+    public final FluentFuture<Optional<T>> update() {
+      return repository.doReplace(criteria, ordering, document, false, returnNewOrOld);
+    }
+
+  }
+
+
+    /**
    * Base class for the indexer objects.
    * @param <T> document type
    * @param <I> a self type of extended indexer class

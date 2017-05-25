@@ -137,6 +137,7 @@ import [starImport];
   [generateFinder type]
   [generateUpdater type]
   [generateModifier type]
+  [generateReplacer type]
   [generateIndexer type]
   [generateCriteria type]
   [generateSerializationHelpers type]
@@ -211,6 +212,18 @@ public static final class Finder extends Repositories.Finder<[type.typeDocument]
   }
   [generateOrderingAndExcludes type 'Finder']
   [generateAndModifyFirst type]
+  [generateAndReplaceFirst type]
+}
+[/template]
+
+[template generateAndReplaceFirst Type type]
+
+/**
+ * Used to replace in-place existing version of the document
+ */
+@javax.annotation.CheckReturnValue
+public Replacer andReplaceFirst([type.typeDocument] document) {
+  return new Replacer(([type.name]Repository) repository, document, criteria, ordering);
 }
 [/template]
 
@@ -305,6 +318,16 @@ public static final class Updater extends Repositories.Updater<[type.typeDocumen
     this.serialization = repository.serialization;
   }
 [generateUpdatingMethods type 'Updater']
+}
+[/template]
+
+[template generateReplacer Type type]
+
+@javax.annotation.concurrent.NotThreadSafe
+public static final class Replacer extends Repositories.Replacer<[type.typeDocument], Replacer> {
+  protected Replacer([type.name]Repository repository, [type.typeDocument] document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
+    super(repository, document, criteria, ordering);
+  }
 }
 [/template]
 

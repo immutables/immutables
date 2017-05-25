@@ -13,7 +13,9 @@ import org.immutables.mongo.repository.RepositorySetup;
 import org.junit.rules.ExternalResource;
 
 import java.util.ServiceLoader;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JUnit rule which allows tests to access {@link RepositorySetup} and in-memory database (fongo).
@@ -22,12 +24,11 @@ public class MongoContext extends ExternalResource {
 
     private final RepositorySetup setup;
     private final DB database;
+    private final ListeningExecutorService executor;
 
     public MongoContext() {
         this.database = new Fongo("FakeMongo").getDB("testDB");
-
-        ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
-
+        this.executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
         this.setup = RepositorySetup.builder()
                 .gson(createGson())
                 .executor(executor)
@@ -55,5 +56,13 @@ public class MongoContext extends ExternalResource {
         gson.registerTypeAdapter(ImmutableHolder.class, custom);
 
         return gson.create();
+    }
+
+    /**
+     * Cleanup (terminate executor gracefully)
+     */
+    @Override
+    protected void after() {
+        MoreExecutors.shutdownAndAwaitTermination(executor, 100, TimeUnit.MILLISECONDS);
     }
 }
