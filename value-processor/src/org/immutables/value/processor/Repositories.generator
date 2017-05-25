@@ -387,7 +387,7 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
     return this;
   }
 
-  /*
+  /**
    * Override all values of {@code [a.name]} [toLower a.rawCollectionType] attribute.
    *
    * <p>Corresponds to the MongoDB {@code $set} operator on the array field.
