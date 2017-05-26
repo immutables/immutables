@@ -39,7 +39,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.mongo.repository.Repositories.Repository;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * {@link RepositorySetup} combines driver's database, thread-pool and serialization configuration
@@ -154,7 +156,8 @@ public final class RepositorySetup {
    * <li>URI should contain database path segment</li>
    * <li>New internal {@link MongoClient} will be created</li>
    * <li>New internal executor will be created (with shutdown on jvm exit)</li>
-   * <li>New {@link Gson} instance will be created configured with type adapter factory providers</li>
+   * <li>New {@link Gson} instance will be created configured with type adapter factory
+   * providers</li>
    * </ul>
    * <p>
    * Setup created by this factory methods should be reused to configure collection repositories for
