@@ -1,9 +1,11 @@
 package org.immutables.mongo.fixture;
 
+import com.mongodb.DuplicateKeyException;
 import org.junit.Rule;
 import org.junit.Test;
 
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
 public class SimpleReplacerTest {
 
@@ -46,6 +48,39 @@ public class SimpleReplacerTest {
     check(findById("e1").version()).is(2);
   }
 
+  /**
+   * When upsert is requested on different versions but same ID there should be duplicate
+   * key exception thrown by Mongo since there will be an attempt to insert new document (same id different version)
+   * Based on criteria it is a new document, based on primary key ({@code _id}) it exists already.
+   */
+  @Test
+  public void duplicateKeyException_upsert_SameKey_different_versions() throws Exception {
+    final ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v0").build();
+    repository.upsert(entity).getUnchecked();
+
+    // first upsert successful (document should be with new version)
+    repository.find(repository.criteria().id(entity.id()).version(0))
+            .andReplaceFirst(entity.withVersion(1))
+            .upsert()
+            .getUnchecked();
+
+
+    try {
+      // this should fail because here upsert == insert (document e1 with version 0 doesn't exist)
+      repository.find(repository.criteria().id(entity.id()).version(0))
+              .andReplaceFirst(entity.withVersion(1))
+              .upsert()
+              .getUnchecked();
+
+      fail("Should fail with " + DuplicateKeyException.class.getName());
+    } catch (Exception e) {
+      if (!(e.getCause() instanceof DuplicateKeyException)) {
+        fail(String.format("Expected failure to be %s got %s", DuplicateKeyException.class.getName(), e.getCause().getClass()));
+      }
+    }
+
+
+  }
 
   @Test
   public void updateUpsert_when_empty() throws Exception {
