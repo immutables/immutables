@@ -15,9 +15,9 @@
  */
 package org.immutables.gson.adapter;
 
-import java.util.Map;
-import java.util.List;
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;

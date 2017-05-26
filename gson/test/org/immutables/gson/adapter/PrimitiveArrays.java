@@ -1,7 +1,7 @@
 package org.immutables.gson.adapter;
 
-import org.immutables.value.Value;
 import org.immutables.gson.Gson;
+import org.immutables.value.Value;
 
 /**
  * Serialization of primitive arrays should be delegated to Gson

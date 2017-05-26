@@ -119,7 +119,8 @@ public @interface Gson {
    * Note: when this annotation is used with {@link Map} attribute, it refers to types of values,
    * not keys.
    * <p>
-   * <em>This functionality uses runtime support class and requires that this Gson integration module
+   * <em>This functionality uses runtime support class and requires that this Gson integration
+   * module
    * jar will be available at runtime.</em>
    * @see ExpectedSubtypesAdapter
    * @see #value()
@@ -148,9 +149,12 @@ public @interface Gson {
    * public abstract String id();
    * </pre>
    * <p>
-   * <em>If you use Gson versions 2.5.0 and higher it's better to use {@link SerializedName} instead.
-   * This annotation is analogous to {@code SerializedName} but was created when {@code SerializedName}
-   * was applicable only to fields in older versions of Gson. You can think of this {@code Gson.Named}
+   * <em>If you use Gson versions 2.5.0 and higher it's better to use {@link SerializedName}
+   * instead.
+   * This annotation is analogous to {@code SerializedName} but was created when
+   * {@code SerializedName}
+   * was applicable only to fields in older versions of Gson. You can think of this
+   * {@code Gson.Named}
    * annotation as deprecated now.
    * </em>
    * @see SerializedName

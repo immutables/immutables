@@ -15,8 +15,8 @@
  */
 package org.immutables.gson.adapter;
 
-import com.google.gson.annotations.SerializedName;
 import com.google.common.collect.Multiset;
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

@@ -15,10 +15,10 @@
  */
 package org.immutables.gson.adapter;
 
-import java.util.Set;
 import com.google.common.collect.ListMultimap;
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nullable;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
