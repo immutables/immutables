@@ -131,9 +131,9 @@ public final class Repositories {
         public WriteResult call() {
           DBCollection collection = collection();
           return collection.insert(
-              BsonEncoding.wrapInsertObjectList(documents, adapter),
-              collection.getWriteConcern(),
-              BsonEncoding.encoder());
+                  BsonEncoding.wrapInsertObjectList(documents, adapter),
+                  collection.getWriteConcern(),
+                  BsonEncoding.encoder());
         }
       }).lazyTransform(GetN.FUNCTION);
     }

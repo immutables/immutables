@@ -15,6 +15,8 @@
  */
 package org.immutables.mongo.fixture;
 
+import com.mongodb.CommandFailureException;
+import com.mongodb.CommandResult;
 import com.mongodb.DuplicateKeyException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,7 +26,7 @@ import static org.junit.Assert.fail;
 public class SimpleReplacerTest {
 
   @Rule
-  public final MongoContext context = new MongoContext();
+  public final MongoContext context = MongoContext.create();
 
   private final EntityRepository repository = new EntityRepository(context.setup());
 
@@ -88,13 +90,26 @@ public class SimpleReplacerTest {
 
       fail("Should fail with " + DuplicateKeyException.class.getName());
     } catch (Exception e) {
-      if (!(e.getCause() instanceof DuplicateKeyException)) {
-        fail(String.format("Expected failure to be %s got %s",
-            DuplicateKeyException.class.getName(),
-            e.getCause().getClass()));
+      failIfNotDuplicateKeyException(e.getCause());
+    }
+  }
+
+  private static void failIfNotDuplicateKeyException(Throwable exception) {
+    // fongo throws directly DuplicateKeyException
+    if (exception instanceof DuplicateKeyException) return;
+
+    // for MongoDB need to check CommandResult
+    if (exception instanceof CommandFailureException) {
+      CommandResult result = ((CommandFailureException) exception).getCommandResult();
+      if (!"DuplicateKey".equals(result.get("codeName"))) {
+        fail("Not a duplicate key exception for "  + result);
       }
+
+      return;
     }
 
+    // all others exceptions
+    fail("Excepted duplicate key exception from " + exception.getCause());
   }
 
   @Test
