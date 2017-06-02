@@ -249,7 +249,7 @@ public final class BsonEncoding {
 
     @Override
     public Object get(String key) {
-      throw new UnsupportedOperationException();
+      return cached().get(key);
     }
 
     @Override

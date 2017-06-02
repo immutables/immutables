@@ -15,11 +15,14 @@
  */
 package org.immutables.mongo.fixture;
 
-import java.util.List;
 import org.immutables.mongo.types.Binary;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.List;
+
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
 /**
  * Basic CRUD operations on the top of repository
@@ -27,7 +30,7 @@ import static org.immutables.check.Checkers.check;
 public class BasicMongoOperationsTest {
 
   @Rule
-  public final MongoContext context = new MongoContext();
+  public final MongoContext context = MongoContext.create();
 
   private final ItemRepository repository = new ItemRepository(context.setup());
 
@@ -56,16 +59,70 @@ public class BasicMongoOperationsTest {
   }
 
   @Test
-  public void delete() throws Exception {
-    Item item = ImmutableItem.builder()
-        .id("1")
-        .binary(Binary.create(new byte[0]))
-        .build();
+  public void insert() throws Exception {
+    repository.insert(item()).getUnchecked();
+    check(repository.findAll().fetchAll().getUnchecked()).hasSize(1);
+    repository.insert(item().withId("another_id")).getUnchecked();
+    check(repository.findAll().fetchAll().getUnchecked()).hasSize(2);
 
-    check(repository.insert(item).getUnchecked()).is(1);
+    try {
+      repository.insert(item()).getUnchecked();
+      fail("Didn't fail when duplicate key inserted");
+    } catch (Exception ignore) {
+    }
+
+    check(repository.findAll().fetchAll().getUnchecked()).hasSize(2);
+  }
+
+  @Test
+  public void upsert() throws Exception {
+    repository.upsert(item()).getUnchecked();
+    check(findItem()).is(item());
+
+    repository.upsert(item().withList("foo", "bar")).getUnchecked();
+    check(findItem().list()).hasAll("foo", "bar");
+
+    // add item with different ID. This should be insert (not update)
+    repository.upsert(item().withId("another_id").withList("aaa")).getUnchecked();
+    check(repository.findAll().fetchAll().getUnchecked()).hasSize(2);
+  }
+
+  @Test
+  public void update() throws Exception {
+    ImmutableItem item = item();
+    repository.insert(item).getUnchecked();
+
+    check(repository.update(repository.criteria().id(item.id()))
+            .addList("foo").updateAll().getUnchecked())
+        .is(1);
+
+    check(repository.findAll().fetchAll().getUnchecked()).hasSize(1);
+    check(repository.findAll().fetchAll().getUnchecked().get(0).list()).hasAll("foo");
+  }
+
+  @Test
+  public void delete() throws Exception {
+    Item item = item();
+
+    repository.insert(item).getUnchecked();
+
     // expect single entry to be deleted
     check(repository.findAll().deleteAll().getUnchecked()).is(1);
     // second time no entries remaining
     check(repository.findAll().deleteAll().getUnchecked()).is(0);
+
+
   }
+
+  private Item findItem() {
+    return repository.findById(item().id()).fetchFirst().getUnchecked().get();
+  }
+
+  private static ImmutableItem item() {
+    return ImmutableItem.builder()
+            .id("1")
+            .binary(Binary.create(new byte[] {1}))
+            .build();
+  }
+
 }

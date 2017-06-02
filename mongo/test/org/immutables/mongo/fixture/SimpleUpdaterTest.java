@@ -28,7 +28,7 @@ import static org.immutables.check.Checkers.check;
 public class SimpleUpdaterTest {
 
   @Rule
-  public final MongoContext context = new MongoContext();
+  public final MongoContext context = MongoContext.create();
 
   private final ItemRepository repository = new ItemRepository(context.setup());
 
