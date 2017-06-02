@@ -21,7 +21,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class ExpectedSubtypesAdapterTest {
   final TypeToken<Long> longType = TypeToken.get(Long.class);

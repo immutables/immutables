@@ -25,9 +25,12 @@ import org.bson.types.ObjectId;
  * {@code ObjectID} when you need it, just use this class.
  * <p>
  * <em>
- * Internal data structure will be changed for version 3.x of Mongo Java Driver to adhere to specification.
- * Use this class as opaque storage, i.e. not for reading and manipulation with individual components.
- * In this version of class there are no separate fields, just a byte array, to further guarantee this.
+ * Internal data structure will be changed for version 3.x of Mongo Java Driver to adhere to
+ * specification.
+ * Use this class as opaque storage, i.e. not for reading and manipulation with individual
+ * components.
+ * In this version of class there are no separate fields, just a byte array, to further guarantee
+ * this.
  * </em>
  */
 @Immutable

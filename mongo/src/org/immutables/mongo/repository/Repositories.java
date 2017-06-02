@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2015 Immutables Authors and Contributors
+   Copyright 2013-2017 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,26 +17,29 @@ package org.immutables.mongo.repository;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
-import com.mongodb.*;
-import org.immutables.mongo.concurrent.FluentFuture;
-import org.immutables.mongo.concurrent.FluentFutures;
-import org.immutables.mongo.repository.internal.BsonEncoding;
-import org.immutables.mongo.repository.internal.Constraints;
-
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.WriteResult;
+import java.util.List;
+import java.util.concurrent.Callable;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static com.google.common.base.Preconditions.*;
+import org.immutables.mongo.concurrent.FluentFuture;
+import org.immutables.mongo.concurrent.FluentFutures;
+import org.immutables.mongo.repository.internal.BsonEncoding;
+import org.immutables.mongo.repository.internal.Constraints;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static org.immutables.mongo.repository.internal.Support.extractDbObject;
 
 /**
@@ -136,11 +139,11 @@ public final class Repositories {
     }
 
     protected final FluentFuture<Optional<T>> doReplace(
-      final Constraints.ConstraintHost criteria,
-      final Constraints.Constraint ordering,
-      final T document,
-      final boolean upsert,
-      final boolean newOrOld) {
+        final Constraints.ConstraintHost criteria,
+        final Constraints.Constraint ordering,
+        final T document,
+        final boolean upsert,
+        final boolean newOrOld) {
 
       checkNotNull(criteria, "criteria");
       checkNotNull(document, "document");
@@ -152,13 +155,13 @@ public final class Repositories {
 
           // TODO this should be changed with findOneAndReplace mongo method in v3
           @Nullable DBObject result = collection.findAndModify(
-                  extractDbObject(criteria), // query
-                  EMPTY, // fields (get all)
-                  extractDbObject(ordering), // sort
-                  false, // remove
-                  BsonEncoding.wrapUpdateObject(document, adapter), // document to update
-                  newOrOld,
-                  upsert);
+              extractDbObject(criteria), // query
+              EMPTY, // fields (get all)
+              extractDbObject(ordering), // sort
+              false, // remove
+              BsonEncoding.wrapUpdateObject(document, adapter), // document to update
+              newOrOld,
+              upsert);
 
           if (result != null) {
             return Optional.of(BsonEncoding.unmarshalDbObject(result, adapter));
@@ -505,7 +508,11 @@ public final class Repositories {
 
     private boolean returnNewOrOld;
 
-    protected Replacer(Repository<T> repository, T document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
+    protected Replacer(
+        Repository<T> repository,
+        T document,
+        Constraints.ConstraintHost criteria,
+        Constraints.Constraint ordering) {
       super(repository);
       this.document = checkNotNull(document, "document");
       this.criteria = checkNotNull(criteria, "criteria");
@@ -549,8 +556,7 @@ public final class Repositories {
 
   }
 
-
-    /**
+  /**
    * Base class for the indexer objects.
    * @param <T> document type
    * @param <I> a self type of extended indexer class
@@ -704,7 +710,13 @@ public final class Repositories {
     public FluentFuture<Optional<T>> deleteFirst() {
       checkState(numberToSkip == 0, "Cannot use .skip() with .deleteFirst()");
       return repository.doModify(
-          criteria, ordering, exclusion, Constraints.nilConstraint(), false, false, true);
+          criteria,
+          ordering,
+          exclusion,
+          Constraints.nilConstraint(),
+          false,
+          false,
+          true);
     }
   }
 }

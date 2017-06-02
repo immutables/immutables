@@ -52,8 +52,12 @@ public class BsonReader extends JsonParserReader {
   }
 
   private IllegalStateException unexpectedFor(String bsonType) throws IOException {
-    throw new IllegalStateException(String.format(
-        "Expected %s, but was but was %s : %s", bsonType, parser.getCurrentToken(), parser.getEmbeddedObject()));
+    throw new IllegalStateException(
+        String.format(
+            "Expected %s, but was but was %s : %s",
+            bsonType,
+            parser.getCurrentToken(),
+            parser.getEmbeddedObject()));
   }
 
   public boolean peekedBinary() throws IOException {

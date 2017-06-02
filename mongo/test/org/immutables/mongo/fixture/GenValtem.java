@@ -23,10 +23,10 @@ import org.immutables.value.Value;
 @Mongo.Repository
 @Value.Include(Valtem.class)
 enum GenValtem {
-	;
-	void use() {
-		RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
-		ValtemRepository repo = new ValtemRepository(setup);
-		repo.criteria();
-	}
+  ;
+  void use() {
+    RepositorySetup setup = RepositorySetup.forUri("mongodb://localhost/test");
+    ValtemRepository repo = new ValtemRepository(setup);
+    repo.criteria();
+  }
 }

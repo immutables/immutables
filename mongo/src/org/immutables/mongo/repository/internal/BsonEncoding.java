@@ -20,24 +20,46 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedBytes;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCallback;
+import com.mongodb.DBCollection;
+import com.mongodb.DBDecoder;
+import com.mongodb.DBDecoderFactory;
+import com.mongodb.DBEncoder;
+import com.mongodb.DBObject;
+import com.mongodb.DefaultDBEncoder;
+import com.mongodb.LazyDBCallback;
+import com.mongodb.LazyWriteableDBObject;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
-import org.bson.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import javax.annotation.Nullable;
+import org.bson.BSONCallback;
+import org.bson.BSONEncoder;
+import org.bson.BSONObject;
+import org.bson.BasicBSONDecoder;
+import org.bson.BasicBSONEncoder;
+import org.bson.LazyBSONCallback;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
-
-import javax.annotation.Nullable;
-import java.io.*;
-import java.util.*;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
@@ -204,7 +226,8 @@ public final class BsonEncoding {
     }
 
     private DBObject cached() {
-      if (cached != null) return cached;
+      if (cached != null)
+        return cached;
       cached = cloneCurrentPosition(this);
       return cached;
     }
@@ -326,7 +349,6 @@ public final class BsonEncoding {
       return cached;
     }
 
-
     private boolean isLastPosition() {
       return position == list.size() - 1;
     }
@@ -346,10 +368,12 @@ public final class BsonEncoding {
     public Iterator<DBObject> iterator() {
       return new Iterator<DBObject>() {
         int i = 0;
+
         @Override
         public boolean hasNext() {
           return i < list.size();
         }
+
         @Override
         public DBObject next() {
           if (!hasNext()) {
@@ -391,7 +415,6 @@ public final class BsonEncoding {
       return cached().toMap();
     }
 
-
     @Override
     public Object removeField(String key) {
       throw new UnsupportedOperationException();
@@ -410,7 +433,7 @@ public final class BsonEncoding {
 
     @Override
     public Set<String> keySet() {
-     return cached().keySet();
+      return cached().keySet();
     }
 
     @Override
@@ -543,10 +566,11 @@ public final class BsonEncoding {
     return ImmutableList.copyOf(results);
   }
 
-  private static <T> ImmutableList<T> convertDBObject(List<DBObject> result, TypeAdapter<T> adapter) throws IOException {
+  private static <T> ImmutableList<T> convertDBObject(List<DBObject> result, TypeAdapter<T> adapter)
+      throws IOException {
     final List<T> list = Lists.newArrayListWithExpectedSize(result.size());
     final BSONEncoder encoder = new BasicBSONEncoder();
-    for (DBObject obj: result ) {
+    for (DBObject obj : result) {
       BsonReader parser = new BsonReader(BSON_FACTORY.createParser(encoder.encode(obj)));
       list.add(adapter.read(parser));
     }

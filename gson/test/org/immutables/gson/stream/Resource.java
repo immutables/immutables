@@ -15,13 +15,17 @@
  */
 package org.immutables.gson.stream;
 
-import org.immutables.gson.adapter.*;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import org.immutables.gson.adapter.ImmutableMapTest;
+import org.immutables.gson.adapter.MapTest;
 
 @Path("/")
 public class Resource {
@@ -46,8 +50,8 @@ public class Resource {
   public MapTest getObjectBooleanInMapTest() {
 
     return ImmutableMapTest.builder()
-            .putMapObject("object", true)
-            .build();
+        .putMapObject("object", true)
+        .build();
   }
 
   @Path("/objectDoubleInMapTest")
@@ -57,8 +61,8 @@ public class Resource {
   public MapTest getObjectDoubleInMapTest() {
 
     return ImmutableMapTest.builder()
-            .putMapObject("object", 5.0)
-            .build();
+        .putMapObject("object", 5.0)
+        .build();
   }
 
   @Path("/booleanInMapTest")
@@ -68,8 +72,8 @@ public class Resource {
   public MapTest getBooleanInMapTest() {
 
     return ImmutableMapTest.builder()
-            .putMapBoolean("boolean", true)
-            .build();
+        .putMapBoolean("boolean", true)
+        .build();
   }
 
   @Path("/doubleInMapTest")
@@ -79,7 +83,7 @@ public class Resource {
   public MapTest getDoubleInMapTest() {
 
     return ImmutableMapTest.builder()
-            .putMapDouble("double", 5.0)
-            .build();
+        .putMapDouble("double", 5.0)
+        .build();
   }
 }

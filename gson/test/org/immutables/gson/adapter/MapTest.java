@@ -1,8 +1,8 @@
 package org.immutables.gson.adapter;
 
+import java.util.Map;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
-import java.util.Map;
 
 /**
  *

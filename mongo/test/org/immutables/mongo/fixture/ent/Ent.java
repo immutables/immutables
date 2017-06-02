@@ -55,7 +55,9 @@ public abstract class Ent {
         .actionIn("BAN", "IPBAN");
 
     Criteria or = where.expiresAbsent()
-        .or().with(where).expiresGreaterThan(TimeInstant.of(1467364749679L));
+        .or()
+        .with(where)
+        .expiresGreaterThan(TimeInstant.of(1467364749679L));
 
     System.out.println(or);
 

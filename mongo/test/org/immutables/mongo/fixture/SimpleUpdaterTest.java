@@ -1,15 +1,28 @@
-package org.immutables.mongo.fixture;
+/*
+   Copyright 2017 Immutables Authors and Contributors
 
-import org.bson.types.ObjectId;
-import org.immutables.mongo.types.Id;
-import org.junit.Rule;
-import org.junit.Test;
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+package org.immutables.mongo.fixture;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
+import org.bson.types.ObjectId;
+import org.immutables.mongo.types.Id;
+import org.junit.Rule;
+import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
 public class SimpleUpdaterTest {
@@ -52,11 +65,11 @@ public class SimpleUpdaterTest {
     check(repository.upsert(item).getUnchecked()).is(1);
 
     repository.update(repository.criteria().id(id))
-            .setTags(Collections.singleton(ImmutableTag.of("t1")))
-            .setList(Collections.singleton("l1"))
-            .setIds(Collections.singleton(Id.fromString(new ObjectId().toString())))
-            .updateFirst()
-            .getUnchecked();
+        .setTags(Collections.singleton(ImmutableTag.of("t1")))
+        .setList(Collections.singleton("l1"))
+        .setIds(Collections.singleton(Id.fromString(new ObjectId().toString())))
+        .updateFirst()
+        .getUnchecked();
 
     final Item item2 = findById(id);
 
@@ -75,25 +88,27 @@ public class SimpleUpdaterTest {
 
     check(repository.upsert(item).getUnchecked()).is(1);
 
-    repository.update(repository.criteria().id(id)).setTags(Collections.<Item.Tag>emptyList()).updateFirst().getUnchecked();
+    repository.update(repository.criteria().id(id))
+        .setTags(Collections.<Item.Tag>emptyList())
+        .updateFirst()
+        .getUnchecked();
 
     check(findById(id).tags()).isEmpty();
 
     final Set<? extends Item.Tag> set1 = Collections.singleton(ImmutableTag.of("t2"));
     repository.update(repository.criteria().id(id))
-            .setTags(set1)
-            .updateFirst()
-            .getUnchecked();
+        .setTags(set1)
+        .updateFirst()
+        .getUnchecked();
 
     check(findById(id).tags()).hasAll(set1);
-
 
     final List<? extends Item.Tag> set2 = Arrays.asList(ImmutableTag.of("t3"), ImmutableTag.of("t4"));
 
     repository.update(repository.criteria().id(id))
-            .setTags(set2)
-            .updateFirst()
-            .getUnchecked();
+        .setTags(set2)
+        .updateFirst()
+        .getUnchecked();
 
     check(findById(id).tags()).hasAll(set2);
   }
@@ -122,23 +137,25 @@ public class SimpleUpdaterTest {
     repository.upsert(item).getUnchecked();
 
     repository.update(repository.criteria().id(id))
-            .clearList().updateFirst().getUnchecked();
+        .clearList()
+        .updateFirst()
+        .getUnchecked();
 
     check(findById(id).list()).isEmpty();
   }
 
   private int push(String id, Iterable<String> values) {
     return repository.update(repository.criteria().id(id))
-            .addAllList(values)
-            .updateFirst()
-            .getUnchecked();
+        .addAllList(values)
+        .updateFirst()
+        .getUnchecked();
   }
 
   private int overrideList(String id, Iterable<String> list) {
     return repository.update(repository.criteria().id(id))
-            .setList(list)
-            .updateFirst()
-            .getUnchecked();
+        .setList(list)
+        .updateFirst()
+        .getUnchecked();
   }
 
   private Item findById(String id) {

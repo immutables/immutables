@@ -15,7 +15,6 @@
  */
 package org.immutables.gson.stream;
 
-import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -40,6 +39,7 @@ import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -136,7 +136,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       Annotation[] annotations,
       MediaType mediaType,
       MultivaluedMap<String, Object> httpHeaders,
-      OutputStream entityStream) throws IOException, WebApplicationException {
+      OutputStream entityStream)
+      throws IOException,
+        WebApplicationException {
     // Special case of unsupported type, where surrounding framework
     // may have, mistakengly, chosen this provider based on media type, but when
     // response will be streamed using StreamingOutput or is already prepared using
@@ -169,7 +171,9 @@ public class GsonMessageBodyProvider implements MessageBodyReader<Object>, Messa
       Annotation[] annotations,
       MediaType mediaType,
       MultivaluedMap<String, String> httpHeaders,
-      InputStream entityStream) throws IOException, WebApplicationException {
+      InputStream entityStream)
+      throws IOException,
+        WebApplicationException {
     try {
       return streamer.read(gson, genericType, entityStream);
     } catch (IOException ex) {

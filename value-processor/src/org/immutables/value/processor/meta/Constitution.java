@@ -516,10 +516,6 @@ public abstract class Constitution {
 
     Visibility visibility = builderVisibility();
 
-    if (!outside) {
-      visibility = visibility.min(implementationVisibility());
-    }
-
     return ImmutableConstitution.NameForms.builder()
         .simple(simple)
         .relativeRaw(relative)

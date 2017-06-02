@@ -21,16 +21,13 @@ import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
-
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 import static com.fasterxml.jackson.core.JsonToken.*;
 
 /**

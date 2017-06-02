@@ -131,8 +131,11 @@ public final class ExpectedSubtypesAdapter<T> extends TypeAdapter<T> {
         exceptions.add(ex);
       }
     }
-    JsonParseException failure = new JsonParseException(String.format(
-        "Cannot parse %s with following subtypes: %s", type, Arrays.toString(subtypes)));
+    JsonParseException failure = new JsonParseException(
+        String.format(
+            "Cannot parse %s with following subtypes: %s",
+            type,
+            Arrays.toString(subtypes)));
     for (Exception exception : exceptions) {
       failure.addSuppressed(exception);
     }

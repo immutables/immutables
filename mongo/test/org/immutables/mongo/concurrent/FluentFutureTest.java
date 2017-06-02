@@ -15,13 +15,11 @@
  */
 package org.immutables.mongo.concurrent;
 
-import org.immutables.mongo.concurrent.FluentFuture;
-import org.immutables.mongo.concurrent.FluentFutures;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class FluentFutureTest implements Function<Integer, String> {
   AtomicInteger calledTimes = new AtomicInteger();

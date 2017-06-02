@@ -15,10 +15,9 @@
  */
 package org.immutables.mongo.fixture;
 
+import com.google.common.base.Optional;
 import java.util.List;
 import java.util.Set;
-
-import com.google.common.base.Optional;
 import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.types.Binary;
@@ -44,7 +43,7 @@ public interface Item {
   @Value.Immutable
   @Gson.TypeAdapters
   interface Tag {
-      @Value.Parameter
-      String name();
+    @Value.Parameter
+    String name();
   }
 }

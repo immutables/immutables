@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class AdaptReadWriteTest {
 

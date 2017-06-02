@@ -15,7 +15,6 @@
  */
 package org.immutables.mongo.types;
 
-import javax.annotation.Nullable;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
@@ -24,10 +23,12 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import org.immutables.metainf.Metainf;
 import org.immutables.mongo.repository.internal.BsonReader;
 import org.immutables.mongo.repository.internal.BsonWriter;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Built-in BSON type adapters. Also contains reusable delegate-adapters to easily implement own

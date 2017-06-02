@@ -57,7 +57,7 @@ public enum Visibility {
       return PUBLIC;
     case SAME:
     default:
-      return this;
+      return this.max(PACKAGE);
     }
   }
 
