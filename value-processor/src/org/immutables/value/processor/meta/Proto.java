@@ -1836,4 +1836,5 @@ public class Proto {
   static final String JACKSON_SERIALIZE = "com.fasterxml.jackson.databind.annotation.JsonSerialize";
   static final String JACKSON_ANNOTATIONS_INSIDE = "com.fasterxml.jackson.annotation.JacksonAnnotationsInside";
   static final String PARCELABLE_INTERFACE_TYPE = "android.os.Parcelable";
+  static final String PARCELABLE_CREATOR_FIELD = "CREATOR";
 }

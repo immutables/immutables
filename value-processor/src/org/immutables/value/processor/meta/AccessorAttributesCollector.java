@@ -45,7 +45,7 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 final class AccessorAttributesCollector {
   private static final String ORDINAL_ORDINAL_ATTRIBUTE_NAME = "ordinal";
   private static final String ORDINAL_DOMAIN_ATTRIBUTE_NAME = "domain";
-  private static final String PARCELABLE_DESCRIBE_CONTENTS_ATTRIBUTE_NAME = "describeContents";
+  private static final String PARCELABLE_DESCRIBE_CONTENTS_METHOD = "describeContents";
 
   private static final String ORG_ECLIPSE = "org.eclipse";
 
@@ -385,7 +385,7 @@ final class AccessorAttributesCollector {
         return styles.forAccessorWithRaw(accessorName, accessorName);
       }
       break;
-    case PARCELABLE_DESCRIBE_CONTENTS_ATTRIBUTE_NAME:
+    case PARCELABLE_DESCRIBE_CONTENTS_METHOD:
       if (type.isParcelable()) {
         return styles.forAccessorWithRaw(accessorName, accessorName);
       }

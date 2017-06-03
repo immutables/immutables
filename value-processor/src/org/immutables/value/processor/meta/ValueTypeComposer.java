@@ -70,6 +70,7 @@ public final class ValueTypeComposer {
       }
 
       type.detectSerialization();
+      type.detectParcelableCreator();
     }
 
     checkAttributeNamesIllegalCharacters(type);

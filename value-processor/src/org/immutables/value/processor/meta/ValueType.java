@@ -512,8 +512,9 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean isUseCopyMethods() {
     return !getSettableAttributes().isEmpty()
-        && (isGenerateWithInterface() || (immutableFeatures.copy()
-        && !constitution.isImplementationHidden()));
+        && (isGenerateWithInterface()
+            || (immutableFeatures.copy()
+                && !constitution.isImplementationHidden()));
   }
 
   public boolean isUseCopyConstructor() {
@@ -593,7 +594,7 @@ public final class ValueType extends TypeIntrospectionBase {
         && !isUseConstructor()
         && getWithSettableAfterConstruction().isEmpty();
   }
-  
+
   public boolean isUseSingletonOnlyForConstruction() {
     return isUseSingleton()
         && !useAttributelessSingleton()
@@ -915,7 +916,7 @@ public final class ValueType extends TypeIntrospectionBase {
     }
     return false;
   }
-  
+
   public boolean hasSingleParameterConstructor() {
     return isUseConstructor() && getConstructorArguments().size() == 1;
   }
@@ -1285,6 +1286,21 @@ public final class ValueType extends TypeIntrospectionBase {
     }
   }
 
+  private boolean hasCreatorDefined;
+
+  void detectParcelableCreator() {
+    for (VariableElement v : ElementFilter.fieldsIn(element.getEnclosedElements())) {
+      if (v.getSimpleName().contentEquals(Proto.PARCELABLE_CREATOR_FIELD)) {
+        hasCreatorDefined = true;
+        break;
+      }
+    }
+  }
+
+  public boolean isGenerateParcelable() {
+    return isParcelable() && !hasCreatorDefined;
+  }
+
   public Set<String> getImmutableCopyOfRoutines() {
     Set<String> routines = new LinkedHashSet<>();
     routines.addAll(constitution.style().immutableCopyOfRoutinesNames());
@@ -1352,8 +1368,8 @@ public final class ValueType extends TypeIntrospectionBase {
     if (docComment == null) {
       this.docComment = constitution.isImplementationPrimary()
           || constitution.style().getStyles().isImmutableIdentityNaming()
-          ? extractDocComment(element)
-          : ImmutableList.<String>of();
+              ? extractDocComment(element)
+              : ImmutableList.<String>of();
     }
     return docComment;
   }
@@ -1366,7 +1382,8 @@ public final class ValueType extends TypeIntrospectionBase {
     if (element.getKind().isClass() || element.getKind().isInterface()) {
       Set<String> signatures = new LinkedHashSet<>();
 
-      List<? extends Element> members = constitution.protoclass().environment()
+      List<? extends Element> members = constitution.protoclass()
+          .environment()
           .processing()
           .getElementUtils()
           .getAllMembers(CachingElements.getDelegate((TypeElement) element));
@@ -1381,7 +1398,8 @@ public final class ValueType extends TypeIntrospectionBase {
             if (!AccessorAttributesCollector.isEclipseImplementation(m)) {
               returnType = AccessorAttributesCollector.asInheritedMemberReturnType(
                   constitution.protoclass().processing(),
-                  CachingElements.getDelegate((TypeElement) element), m);
+                  CachingElements.getDelegate((TypeElement) element),
+                  m);
             }
             signatures.add(toSignature(m, returnType));
           }
@@ -1565,7 +1583,8 @@ public final class ValueType extends TypeIntrospectionBase {
   private TypeExtractor getTypeExtractor() {
     if (typeExtractor == null) {
       this.typeExtractor = new TypeExtractor(
-          Proto.TYPE_FACTORY, (Parameterizable) element);
+          Proto.TYPE_FACTORY,
+          (Parameterizable) element);
     }
     return typeExtractor;
   }
@@ -1573,7 +1592,7 @@ public final class ValueType extends TypeIntrospectionBase {
   public Reporter report() {
     return constitution.protoclass().report();
   }
-  
+
   public List<String> getDebugLines() {
     return constitution.protoclass().getDebugLines();
   }

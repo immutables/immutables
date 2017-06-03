@@ -14,7 +14,7 @@
    limitations under the License.
 --]
 [template public generate Type type]
-[if type.parcelable]
+[if type.generateParcelable]
   [generateCreator type]
   [generateParcelableMethods type]
 [/if]
@@ -28,11 +28,11 @@ public static final android.os.Parcelable.ClassLoaderCreator<[type.typeValue.rel
       public [type.typeValue.relative] createFromParcel(android.os.Parcel in) {
         return createFromParcel(in, this.getClass().getClassLoader());
       }
-      
+
       @SuppressWarnings("unchecked") [-- Guess this is needed for generic types casting --]
       public [type.typeValue.relative] createFromParcel(android.os.Parcel in, ClassLoader classLoader) {
         [generateParcelableBuild type]
-      }    
+      }
 
       public [type.typeValue.relative]['[]'] newArray(int size) {
         return new [type.typeValue.relative]['[size]'];
