@@ -77,6 +77,13 @@ import [starImport];
 import static [routine].immutableCopyOf;
   [/for]
 [/if]
+[if type.debugLines]
+/*--DEBUG---------------------------------------------------
+[for d in type.debugLines]
+[d]
+[/for]
+----------------------------------------------------------*/
+[/if]
 [/template]
 
 [template generateEnclosing Type type]

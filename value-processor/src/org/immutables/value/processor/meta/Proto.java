@@ -24,10 +24,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1657,6 +1657,23 @@ public class Proto {
       }
       return isJacksonSerialized();
     }
+    
+    private List<String> debugLines = ImmutableList.of(); 
+    
+    // This is not part of the logical structure of the protoclass
+    // but it seems that this is the best place to have this info
+    Protoclass debug(String line) {
+      if (!DEBUG_ON) return this; 
+      if (debugLines.isEmpty()) {
+        debugLines = Lists.newArrayList();
+      }
+      debugLines.add(line);
+      return this;
+    }
+    
+    List<String> getDebugLines() {
+      return debugLines;
+    }
   }
 
   enum ElementToName implements Function<TypeElement, String> {
@@ -1810,6 +1827,8 @@ public class Proto {
       return first;
     return ObjectArrays.concat(first, second, String.class);
   }
+
+  private static final boolean DEBUG_ON = false;
 
   static final String ORDINAL_VALUE_INTERFACE_TYPE = "org.immutables.ordinal.OrdinalValue";
   static final String JACKSON_TYPE_INFO = "com.fasterxml.jackson.annotation.JsonTypeInfo";

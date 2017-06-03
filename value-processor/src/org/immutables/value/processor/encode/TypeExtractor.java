@@ -17,7 +17,6 @@ package org.immutables.value.processor.encode;
 
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Parameterizable;
@@ -35,7 +34,6 @@ import javax.lang.model.type.TypeVariable;
 import javax.lang.model.type.UnionType;
 import javax.lang.model.type.WildcardType;
 import javax.lang.model.util.AbstractTypeVisitor7;
-import org.immutables.value.processor.encode.Type.Defined;
 
 public final class TypeExtractor {
   public final Type.Factory factory;

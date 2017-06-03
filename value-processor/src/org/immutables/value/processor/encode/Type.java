@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import java.util.Iterator;
 import com.google.common.base.Ascii;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -27,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.value.processor.encode.Code.Term;
-import org.immutables.value.processor.encode.Type.Parameters;
 
 /**
  * I've created this type model as an experiment which I want to bring forward and evolve

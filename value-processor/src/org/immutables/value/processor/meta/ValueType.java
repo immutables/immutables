@@ -1573,6 +1573,10 @@ public final class ValueType extends TypeIntrospectionBase {
   public Reporter report() {
     return constitution.protoclass().report();
   }
+  
+  public List<String> getDebugLines() {
+    return constitution.protoclass().getDebugLines();
+  }
 
   /**
    * Used for type snapshoting

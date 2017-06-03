@@ -34,7 +34,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceTypes;
-import org.immutables.value.processor.encode.TypeExtractor;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
 
 public final class FromSupertypesModel {

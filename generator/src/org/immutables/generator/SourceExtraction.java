@@ -17,7 +17,6 @@ package org.immutables.generator;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -28,11 +27,11 @@ import com.sun.tools.javac.code.Symbol.VarSymbol;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.StringTokenizer;
 import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -142,7 +141,9 @@ public final class SourceExtraction {
     public CharSequence extract(ProcessingEnvironment environment, TypeElement element) throws IOException {
       try {
         FileObject resource = environment.getFiler().getResource(
-            StandardLocation.SOURCE_PATH, "", toFilename(element));
+            StandardLocation.SOURCE_PATH,
+            "",
+            toFilename(element));
 
         return resource.getCharContent(true);
       } catch (UnsupportedOperationException | IllegalArgumentException ex) {
@@ -193,11 +194,6 @@ public final class SourceExtraction {
   }
 
   private static final class EclipseSourceExtractor implements SourceExtractor {
-    private static final Splitter DECLARATION_SPLITTER =
-        Splitter.on(CharMatcher.WHITESPACE.or(CharMatcher.is(',')))
-            .omitEmptyStrings()
-            .trimResults();
-
     @Override
     public boolean claim(Element element) {
       return element instanceof ElementImpl;
@@ -258,20 +254,35 @@ public final class SourceExtraction {
 
     private static CharSequence extractSuperclass(SourceTypeBinding binding) {
       CharSequence declaration = readSourceDeclaration(binding);
-      Iterator<String> iterator = DECLARATION_SPLITTER.split(declaration).iterator();
-      while (iterator.hasNext()) {
-        String token = iterator.next();
-        if (token.equals("extends")) {
-          return readSourceSuperclass(iterator);
+      StringTokenizer tokenizer = new StringTokenizer(declaration.toString(), "<>, \t\n\r", true);
+      int genericsOpened = 0;
+      while (tokenizer.hasMoreTokens()) {
+        String t = tokenizer.nextToken();
+        if (t.equals("<")) {
+          genericsOpened++;
+          continue;
+        }
+        if (t.equals(">")) {
+          genericsOpened--;
+          continue;
+        }
+        if (genericsOpened > 0) {
+          continue;
+        }
+        if (t.equals("extends")) {
+          return readSourceSuperclass(tokenizer);
         }
       }
       return UNABLE_TO_EXTRACT;
     }
 
-    private static CharSequence readSourceSuperclass(Iterator<String> declarationParts) {
+    private static CharSequence readSourceSuperclass(StringTokenizer tokenizer) {
       StringBuilder superclass = new StringBuilder();
-      while (declarationParts.hasNext()) {
-        String part = declarationParts.next();
+      while (tokenizer.hasMoreTokens()) {
+        String part = tokenizer.nextToken();
+        if (CharMatcher.whitespace().matchesAllOf(part)) {
+          continue;
+        }
         if (superclass.length() == 0
             || part.charAt(0) == '.'
             || superclass.charAt(superclass.length() - 1) == '.') {
