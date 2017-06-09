@@ -50,6 +50,10 @@ import [starImport];
 /**
  * A {@code [type.name]Repository} provides type-safe access for storing and retrieving documents
  * from the MongoDB collection {@code "[type.documentName]"}.
+ [if type.repository.readonly]
+ *
+ * This repository was marked as readonly and therefore write operations have been disabled.
+ [/if]
  */
 [if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 @javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract]"})
@@ -71,6 +75,7 @@ import [starImport];
     this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
 
+  [if not type.repository.readonly]
   /**
    * Inserts a single document into the collection.
    * @param document The [toLower type.name] to insert
@@ -88,10 +93,11 @@ import [starImport];
   public FluentFuture<Integer> insert(Iterable<? extends [type.typeDocument]> documents) {
     return super.doInsert(com.google.common.collect.ImmutableList.copyOf(documents));
   }
+  [/if]
 
   /**
    * Finds all documents. Use the returned {@link Finder} object to complete
-   * {@link Finder#fetchAll() fetch all}, {@link Finder#deleteAll() delete all}, or other operations.
+   * {@link Finder#fetchAll() fetch all} or other operations.
    * @return A finder object used to complete operations
    */
   @javax.annotation.CheckReturnValue
@@ -101,7 +107,7 @@ import [starImport];
 
  /**
   * Find documents by the criteria expressed as a JSON string. Use the returned {@link Finder} object to complete
-  * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+  * {@link Finder#fetchAll() fetch} or {@link Finder#fetchFirst() fetch} operations.
   * @param jsonCriteria A JSON string for native criteria
   * @return A finder object used to complete operations
   */
@@ -114,7 +120,11 @@ import [starImport];
 
   /**
    * Find documents by the {@link [type.name]#[a.names.get]() [a.name]} identity attribute. Use the returned {@link Finder} object to complete
-   * {@link Finder#fetchFirst() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+   * {@link Finder#fetchFirst() fetch} or {@link Finder#fetchAll() fetchAll} read operations.
+   [if not type.repository.readonly]
+   * You can also use {@link Finder#andModifyFirst() modify}, {@link Finder#andReplaceFirst() replace}
+   * or {@link Finder#deleteFirst() delete} operations to update / delete the document.
+   [/if]
    * @param [a.name] The exact {@code [a.name]} value
    * @return A finder object used to complete operations
    */
@@ -123,6 +133,7 @@ import [starImport];
     return find(criteria().[a.name]([a.name]));
   }
 
+  [if not type.repository.readonly]
   /**
    * Update or insert a document, matched by the identifier value of the '[a.name]' attribute.
    * @param document The [toLower type.name] to upsert
@@ -132,13 +143,18 @@ import [starImport];
     Criteria byId = criteria().[a.name](document.[a.names.get]());
     return super.doUpsert(byId.constraint, document);
   }
+  [/if]
 [/if]
 [/for]
   [generateFinder type]
-  [generateUpdater type]
-  [generateModifier type]
-  [generateReplacer type]
-  [generateIndexer type]
+  [if not type.repository.readonly]
+    [generateUpdater type]
+    [generateModifier type]
+    [generateReplacer type]
+  [/if]
+  [if type.repository.index]
+    [generateIndexer type]
+  [/if]
   [generateCriteria type]
   [generateSerializationHelpers type]
 }
@@ -186,7 +202,11 @@ public [tT] exclude[toUpper a.name]() {
 
 /**
  * Find a document by the given {@link [type.name]Repository#criteria() criteria}. Use the returned {@link Finder} object to complete
- * {@link Finder#fetchAll() fetch}, {@link Finder#andModifyFirst() modify}, or {@link Finder#deleteFirst() delete} operations.
+ * {@link Finder#fetchAll() fetch}  operations.
+ [if not type.repository.readonly]
+ * You can also use {@link Finder#andModifyFirst() modify}, {@link Finder#andReplaceFirst() replace}
+ * or {@link Finder#deleteFirst() delete} operations to update / delete the document(s).
+ [/if]
  * @param criteria The search criteria
  * @return A finder object used to complete operations
  */
@@ -197,12 +217,12 @@ public Finder find(Criteria criteria) {
 
 /**
  * The finder object used to proceed with find operations via the
- * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}, {@link Finder#andModifyFirst()}, or {@link Finder#deleteFirst()} methods.
+ * {@link Finder#fetchAll()}, {@link Finder#fetchFirst()}[if not type.repository.readonly], {@link Finder#andModifyFirst()}, or {@link Finder#deleteFirst()}[/if] methods.
  * Configure exclusion and sort ordering for results using the family of {@code exclude*()} and {@code orderBy*()} attribute-specific methods.
  * @see [type.name]Repository#find(Criteria)
  */
 @javax.annotation.concurrent.NotThreadSafe
-public static final class Finder extends Repositories.Finder<[type.typeDocument], Finder> {
+public static final class Finder extends Repositories.[if type.repository.readonly]Finder[else]FinderWithDelete[/if]<[type.typeDocument], Finder> {
   private final Serialization serialization;
 
   private Finder([type.name]Repository repository, Constraints.ConstraintHost criteria) {
@@ -211,8 +231,10 @@ public static final class Finder extends Repositories.Finder<[type.typeDocument]
     this.serialization = repository.serialization;
   }
   [generateOrderingAndExcludes type 'Finder']
-  [generateAndModifyFirst type]
-  [generateAndReplaceFirst type]
+  [if not type.repository.readonly]
+    [generateAndModifyFirst type]
+    [generateAndReplaceFirst type]
+  [/if]
 }
 [/template]
 
