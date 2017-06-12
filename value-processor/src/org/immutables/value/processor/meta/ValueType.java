@@ -381,6 +381,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.protoclass().repository().isPresent();
   }
 
+  public MongoMirrors.Repository getRepository() {
+    return constitution.protoclass().repository().get();
+  }
+
   public boolean isAnnotationType() {
     return element.getKind() == ElementKind.ANNOTATION_TYPE;
   }
@@ -547,9 +551,11 @@ public final class ValueType extends TypeIntrospectionBase {
   public String getDocumentName() {
     Optional<RepositoryMirror> repositoryAnnotation = RepositoryMirror.find(element);
     if (repositoryAnnotation.isPresent()) {
-      String value = repositoryAnnotation.get().value();
-      if (!value.isEmpty()) {
-        return value;
+      RepositoryMirror mirror = repositoryAnnotation.get();
+      if (!mirror.collection().isEmpty()) {
+        return mirror.collection();
+      } else if (!mirror.value().isEmpty()) {
+        return mirror.value();
       }
     }
     return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_CAMEL, name());

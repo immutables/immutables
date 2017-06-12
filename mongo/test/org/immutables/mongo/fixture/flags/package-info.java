@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2013-2015 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -13,25 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.value.processor.meta;
 
-import org.immutables.mirror.Mirror;
-
-public final class MongoMirrors {
-  private MongoMirrors() {}
-
-  @Mirror.Annotation("org.immutables.mongo.Mongo.Repository")
-  public @interface Repository {
-    String value() default "";
-
-    String collection() default "";
-
-    boolean readonly() default false;
-
-    boolean index() default true;
-
-  }
-
-  @Mirror.Annotation("org.immutables.mongo.Mongo.Id")
-  public @interface Id {}
-}
+/**
+ * Tests repositories with various flags (readonly, index etc.)
+ */
+package org.immutables.mongo.fixture.flags;

@@ -46,8 +46,32 @@ public @interface Mongo {
      * Specify document collection name. If not specified, then collection name will be given
      * automatically by document class name, i.e. {@code "myDocument"} for {@code MyDocument} class.
      * @return name
+     * @deprecated use {@link #collection()} attribute instead
      */
+    @Deprecated
     String value() default "";
+
+    /**
+     * Specify document collection name. If not specified, then collection name will be given
+     * automatically by document class name, i.e. {@code "myDocument"} for {@code MyDocument} class.
+     * @return name
+     */
+    String collection() default "";
+
+    /**
+     * Force repository to be readonly. In this case no collection write methods (eg. {@code insert},
+     * {@code update}, {@code deleteAll} etc.) will be generated.
+     *
+     * @return true for a repository without write actions, false otherwise.
+     */
+    boolean readonly() default false;
+
+    /**
+     * Generate index helper which builds mongo indexes.
+     *
+     * @return true for index operations to be available to the repository, false otherwise.
+     */
+    boolean index() default true;
   }
 
   /**

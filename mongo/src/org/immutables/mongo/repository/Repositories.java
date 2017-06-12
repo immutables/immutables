@@ -380,7 +380,7 @@ public final class Repositories {
   }
 
   /**
-   * Base updater.
+   * Base class which handles update operations (like {@code upsert}, {@code updateAll}, {@code updateFirst} etc.)
    * @param <T> document type
    */
   @NotThreadSafe
@@ -557,7 +557,7 @@ public final class Repositories {
   }
 
   /**
-   * Base class for the indexer objects.
+   * Base class for the indexer objects. Allows to create indexes for mongo documents at runtime.
    * @param <T> document type
    * @param <I> a self type of extended indexer class
    */
@@ -573,7 +573,7 @@ public final class Repositories {
     /**
      * Configures name for an index, that is otherwise will be auto-named by index fields.
      * @param indexName explicitly provided index name
-     * @return {@code this} indexer for chained invocation indexer
+     * @return {@code this} indexer for chained invocation
      */
     // safe unchecked: we expect I to be a self type
     @SuppressWarnings("unchecked")
@@ -620,13 +620,54 @@ public final class Repositories {
   }
 
   /**
+   * Fetcher class which adds delete functionality to the base class {@link Finder}.
+   *
+   * @param <T> document type
+   * @param <F> a self type of extended finder class
+   */
+  @NotThreadSafe
+  public static abstract class FinderWithDelete<T, F extends Finder<T, F>> extends Finder<T, F> {
+
+    protected FinderWithDelete(Repository<T> repository) {
+      super(repository);
+    }
+
+    /**
+     * Delete all matching documents from the collection if they matches {@link Criteria}.
+     * @return future of number of deleted documents if WriteConcern allows.
+     */
+    public FluentFuture<Integer> deleteAll() {
+      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteAll()");
+      return repository.doDelete(criteria);
+    }
+
+    /**
+     * Deletes and returns first matching document. Returns {@link Optional#absent()} if none
+     * documents matches.
+     * @return future of optional matching deleted document.
+     */
+    public FluentFuture<Optional<T>> deleteFirst() {
+      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteFirst()");
+      return repository.doModify(
+              criteria,
+              ordering,
+              exclusion,
+              Constraints.nilConstraint(),
+              false,
+              false,
+              true);
+    }
+
+  }
+
+  /**
    * Base class for the finder objects. Fetcher objects are used to configure query.
    * @param <T> document type
    * @param <F> a self type of extended finder class
    */
   @NotThreadSafe
   public static abstract class Finder<T, F extends Finder<T, F>> extends Operation<T> {
-    private int numberToSkip;
+    int numberToSkip;
 
     @Nullable
     protected Constraints.ConstraintHost criteria;
@@ -691,32 +732,6 @@ public final class Repositories {
           return FluentIterable.from(input).first();
         }
       });
-    }
-
-    /**
-     * Delete all matching documents from the collection if they matches {@link Criteria}.
-     * @return future of number of deleted documents if WriteConcern allows.
-     */
-    public FluentFuture<Integer> deleteAll() {
-      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteAll()");
-      return repository.doDelete(criteria);
-    }
-
-    /**
-     * Deletes and returns first matching document. Returns {@link Optional#absent()} if none
-     * documents matches.
-     * @return future of optional matching deleted document.
-     */
-    public FluentFuture<Optional<T>> deleteFirst() {
-      checkState(numberToSkip == 0, "Cannot use .skip() with .deleteFirst()");
-      return repository.doModify(
-          criteria,
-          ordering,
-          exclusion,
-          Constraints.nilConstraint(),
-          false,
-          false,
-          true);
     }
   }
 }
