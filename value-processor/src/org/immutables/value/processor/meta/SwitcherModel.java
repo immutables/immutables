@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -33,7 +32,7 @@ public final class SwitcherModel {
 
   private final TypeElement containedTypeElement;
 
-  SwitcherModel(SwitchMirror mirror, AttributeNames names, TypeElement containedTypeElement) {
+  SwitcherModel(SwitchMirror mirror, Styles.UsingName.AttributeNames names, TypeElement containedTypeElement) {
     this.switcherNaming = Naming.from(names.raw).requireNonConstant(Preference.SUFFIX);
     this.containedTypeElement = Preconditions.checkNotNull(containedTypeElement);
     this.defaultName = mirror.defaultName();

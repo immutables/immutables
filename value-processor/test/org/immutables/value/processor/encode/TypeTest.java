@@ -60,6 +60,12 @@ public class TypeTest {
   }
 
   @Test
+  public void parseIngoreTypeAnnotationWithParameters() {
+    check(parser.parse("java.lang.@javax.validation.constraints.Size(max = 10)String")).is(Reference.STRING);
+    check(parser.parse("java.lang.@javax.validation.constraints.Size(max = 10, @A(a=@B(b=1))) String")).is(Reference.STRING);
+  }
+
+  @Test
   public void templateMoreMatches() {
     check(!new Type.Template(Reference.STRING).match(Reference.OBJECT).isPresent());
     check(new Type.Template(parser.parse("A")).match(Reference.OBJECT).isPresent());

@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.processor.encode.Code.Binding;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
@@ -51,7 +50,7 @@ public class CodeTest {
 
     Code.Binder binder = new Code.Binder(
         ImmutableMap.of("My", "xx.My"),
-        ImmutableSet.of(Binding.newTop("HERBIVORE"), Binding.newMethod("aa")));
+        ImmutableSet.of(Code.Binding.newTop("HERBIVORE"), Code.Binding.newMethod("aa")));
 
     String joined = Code.join(binder.apply(terms));
 
@@ -64,7 +63,7 @@ public class CodeTest {
 
     Code.Binder binder = new Code.Binder(
         ImmutableMap.<String, String>of(),
-        ImmutableSet.of(Binding.newMethod("aa"), Binding.newField("aa")));
+        ImmutableSet.of(Code.Binding.newMethod("aa"), Code.Binding.newField("aa")));
 
     String joined = Code.join(binder.apply(terms));
 
@@ -78,7 +77,7 @@ public class CodeTest {
 
     Code.Binder binder = new Code.Binder(
         ImmutableMap.<String, String>of(),
-        ImmutableSet.of(Binding.newTop("K"), Binding.newTop("V")));
+        ImmutableSet.of(Code.Binding.newTop("K"), Code.Binding.newTop("V")));
 
     String joined = Code.join(binder.apply(terms));
     check(joined).is("Optional.<Map<@^K, @^V>>fromNullable(null)");

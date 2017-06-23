@@ -827,6 +827,7 @@ public interface Type {
             } else if (t.is("@")) {
               // just consume type annotation
               named();
+              consumeAnnotationParameters();
               consumeErraticTrailingComma();
               continue;
             } else {
@@ -849,6 +850,28 @@ public interface Type {
           }
 
           return forName(JOINER.join(segments));
+        }
+
+        private void consumeAnnotationParameters() {
+          consumeRecursiveUntil("(", ")");
+        }
+        
+        private void consumeRecursiveUntil(String begin, String end) {
+          if (!terms.isEmpty() && terms.peek().is(begin)) {
+            terms.poll();
+            while(!terms.isEmpty()) {
+              Term t = terms.peek();
+              if (t.is(end)) {
+                terms.poll();
+                return;
+              }
+              if (t.is(begin)) {
+                consumeRecursiveUntil(begin, end);
+              } else {
+                terms.poll(); 
+              }
+            }
+          }
         }
 
         private void consumeErraticTrailingComma() {
