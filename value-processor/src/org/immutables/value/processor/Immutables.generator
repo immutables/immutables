@@ -1201,7 +1201,7 @@ public interface BuildFinal[type.generics] {
       [/for]
 
 [for bs = type.buildFromTypes]
-[if bs.hasWildcards]
+[if bs.hasWildcards and (not type.suppressesUncheckedWarning)]
   @SuppressWarnings("unchecked")
 [/if]
   private void from(Object object) {
@@ -2557,7 +2557,7 @@ public int ordinal() {
 [/if]
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
-[if type.generics]@SuppressWarnings("unchecked")[/if]
+[if type.generics and (not type.suppressesUncheckedWarning)]@SuppressWarnings("unchecked")[/if]
 @Override
 public boolean equals([atNullable]Object another) {
   [if type.useReferenceEquality]

@@ -1363,6 +1363,11 @@ public final class ValueType extends TypeIntrospectionBase {
     return suppressedWarnings;
   }
 
+  public boolean suppressesUncheckedWarning() {
+    Set<String> typeSuppressions = generatedSuppressWarnings();
+    return typeSuppressions.contains("all") || typeSuppressions.contains("unchecked");
+  }
+
   public boolean isGenerateSuppressAllWarnings() {
     return getSuppressedWarnings().generated;
   }
