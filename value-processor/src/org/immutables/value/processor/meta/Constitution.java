@@ -772,6 +772,18 @@ public abstract class Constitution {
                 t.getSimpleName(),
                 generics().def());
       }
+
+      if (protoclass().styles().style().stagedBuilder()) {
+        protoclass()
+            .report()
+            .withElement(t)
+            .warning("Extending %s shouldn't be used with stagedBuilder style attribute, they are incompartible:"
+                + " Staged builder generate series of staged interfaces, but extending builder actually"
+                + " extends implementation and do not provide type safety for setting first attribute,"
+                + " as well as stagedBuilder forces generated builder interfaces to leak in code using the builder"
+                + " and hence defeating the purpose of using extending builder.",
+                t.getSimpleName());
+      }
     }
 
     private boolean isExtending(TypeElement element) {

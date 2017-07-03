@@ -854,7 +854,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
 [/template]
 
-[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
+[template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb andnot type.innerBuilder.isExtending](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
 
 [template factoryBuildStageBuilderType Type type][for tb = type.telescopicBuild][if tb][toUpper tb.firstStage.attribute.name]BuildStage[type.generics.args][else][type.typeBuilderImpl.relative][/if][/for][/template]
 
@@ -2367,7 +2367,7 @@ static final [output.linesShortable]class Json[type.generics]
 @com.fasterxml.jackson.annotation.JsonCreator
 [/if]
 static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.generics.args] json) {
-[let cast][if type.constitution.returnsAbstractValueType]([type.typeImmutable.relative]) [/if][/let]
+[let cast][if type.constitution.returnsAbstractValueType or type.innerBuilder.isExtending]([type.typeImmutable.relative]) [/if][/let]
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
   [for v in type.settableAttributes]
