@@ -436,13 +436,17 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   return [isSet v]()
       ? [v.name]
       : [invokeSuper v].[v.names.get]();
-[else if v.nullableCollector and (not v.nullable)]
+[else]
+  [if v.nullableCollector and (not v.nullable)]
   if ([v.name] == null) {
     [defineOrResetFieldAlt v false true]
   }
+  [/if]
+  [if v.guavaImmutableDeclared]
+  return [immutableCollectionCopyOf v v.name];
+  [else]
   return [v.name];
-[else]
-  return [v.name];
+  [/if]
 [/if]
 }
   [/for]
@@ -790,7 +794,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 
 [template defineOrResetFieldAlt Attribute v Boolean declare Boolean deferAllocation]
 [let fn][if not v.nullableCollector] final[/if][/let]
-  [if v.containerType and (not v.guavaImmutableDeclared)]
+  [if v.containerType]
     [if v.generateEnumMap]
 [if declare]private[fn] java.util.EnumMap[v.genericArgs] [/if][v.name] = [if declare and v.nullableCollector]null[else]new java.util.EnumMap[v.genericArgs]([v.elementType].class)[/if];
     [else if v.generateSortedMap]
@@ -828,7 +832,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 [template clearField Attribute v]
   [if v.optionalType]
 [v.name] = [optionalEmpty v];
-  [else if v.containerType and (not (v.guavaImmutableDeclared or v.nullable))]
+  [else if v.containerType and (not v.nullable)]
     [if v.nullableCollector]
 if ([v.name] != null) {
   [v.name].clear();
@@ -1015,6 +1019,53 @@ public String toString() {
 }
 [/if]
 [/template]
+
+[template immutableCollectionCopyOf Attribute a String expression][output.trim]
+[if not a.guavaImmutableDeclared]
+  [output.error]Assertion error: not guava immutable declared[/output.error]
+[else]
+  [if a.generateSortedSet]
+    [guava].collect.ImmutableSortedSet.copyOf(
+      [if a.hasNaturalOrder]
+        [guava].collect.Ordering.<[a.elementType]>natural(),
+      [else]
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse(),
+      [/if]
+        [expression])
+  [else if a.generateEnumSet]
+    [guava].collect.Sets.immutableEnumSet([expression])
+  [else if a.generateOrdinalValueSet]
+    [-- this one is probably will not work correctly anyway with modifiables,
+        but let it stay here --]
+    org.immutables.ordinal.ImmutableOrdinalSet.copyOf([expression])
+  [else if a.generateSortedMultiset]
+    [guava].collect.ImmutableSortedMultiset.copyOf(
+      [if a.hasNaturalOrder]
+        [guava].collect.Ordering.<[a.elementType]>natural(),
+      [else]
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse(),
+      [/if]
+        [expression])
+  [else if a.customCollectionType]
+    [a.rawType].from([expression])
+  [else if a.collectionType]
+    [guava].collect.Immutable[a.rawCollectionType].copyOf([expression])
+  [else if a.generateSortedMap]
+    [guava].collect.ImmutableSortedMap.copyOf([expression],
+    [if a.hasNaturalOrder]
+        [guava].collect.Ordering.<[a.elementType]>natural()
+    [else]
+        [guava].collect.Ordering.<[a.elementType]>natural().reverse()
+    [/if])
+  [else if a.generateEnumMap]
+    [guava].collect.Maps.immutableEnumMap([expression])
+  [else if a.mapType]
+    [guava].collect.Immutable[a.rawMapType].copyOf([expression])
+  [else]
+    [expression]
+  [/if]
+[/if]
+[/output.trim][/template]
 
 [template annotationsWhenTopLevel Type type Boolean is]
 [if is]

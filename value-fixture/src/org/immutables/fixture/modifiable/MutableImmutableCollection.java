@@ -15,24 +15,20 @@
  */
 package org.immutables.fixture.modifiable;
 
-import java.util.Arrays;
-import java.util.List;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import org.immutables.value.Value;
 
 @Value.Immutable
 @Value.Modifiable
-@Value.Style(beanFriendlyModifiables = true, create = "new")
-public interface VoidSetters {
-  int getAa();
+public abstract class MutableImmutableCollection {
+  abstract ImmutableList<String> a();
 
-  String getBb();
+  abstract ImmutableSet<String> b();
 
-  List<Double> getCc();
+  abstract ImmutableMultimap<String, Integer> c();
 
-  default void use() {
-    ModifiableVoidSetters m = new ModifiableVoidSetters();
-    m.setAa(2);
-    m.setBb("bb");
-    m.setCc(Arrays.asList(1.1, 2.2, 3.3));
-  }
+  abstract ImmutableMap<Void, Void> d();
 }

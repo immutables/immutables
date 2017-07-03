@@ -15,6 +15,9 @@
  */
 package org.immutables.fixture.modifiable;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import org.junit.Test;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.immutables.check.Checkers.check;
@@ -180,8 +183,39 @@ public class ModifiablesTest {
   }
 
   @Test
-  public void listsAreNullableSafe(){
+  public void listsAreNullableSafe() {
     // Test for #578
     ModifiableStandalone.create().addAllNullableUnit(null);
+  }
+
+  @Test
+  @SuppressWarnings("deprecation")
+  public void modifiableImmutableCollections() {
+    ModifiableMutableImmutableCollection m = ModifiableMutableImmutableCollection.create();
+    m.addA("a");
+    m.addA("b", "c");
+    m.addB("d", "e");
+    m.putC("x", 1);
+    m.putC("y", 2);
+
+    check(m.a()).isA(ImmutableCollection.class);
+    check(m.b()).isA(ImmutableCollection.class);
+    check(m.c()).isA(ImmutableMultimap.class);
+    check(m.d()).isA(ImmutableMap.class);
+
+    check(m.a()).isOf("a", "b", "c");
+    check(m.b()).isOf("d", "e");
+
+    check(m.c().values()).isOf(1, 2);
+    check(m.c().keySet()).isOf("x", "y");
+
+    check(m.d().isEmpty());
+
+    m.clear();
+
+    check(m.a()).isEmpty();
+    check(m.b()).isEmpty();
+    check(m.c().entries()).isEmpty();
+    check(m.d().entrySet()).isEmpty();
   }
 }

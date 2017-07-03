@@ -46,9 +46,11 @@ public interface DeepAndJdkOnly {
     Deep getDeep();
   }
 
+  // Compile validation of generation of immutable return type and builder initializer by
+  // constructor-args .
   static void use() {
-    ImmutableContainer c = ImmutableContainer.builder().build();
+    ImmutableContainer c = ImmutableContainer.builder().deep(1, 2).build();
     ImmutableDeep deep = c.getDeep();
-    deep.withA(1);
+    deep.withA(3).withB(4);
   }
 }
