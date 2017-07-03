@@ -15,8 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.Parameterizable;
-import org.immutables.value.processor.encode.TypeExtractor;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -46,6 +44,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Parameterizable;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.DeclaredType;
@@ -55,6 +54,7 @@ import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.Output;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
+import org.immutables.value.processor.encode.TypeExtractor;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
@@ -1421,7 +1421,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return new FuncData();
   }
 
-  public class FuncData {
+  public final class FuncData {
     public final List<ValueAttribute> functionalAttributes = new ArrayList<>();
     public final List<BoundElement> boundElements = new ArrayList<>();
 
@@ -1469,7 +1469,7 @@ public final class ValueType extends TypeIntrospectionBase {
       return !functionalAttributes.isEmpty() || !boundElements.isEmpty();
     }
 
-    public class BoundElement {
+    public final class BoundElement {
       public final CharSequence access;
       public final CharSequence name;
       public final CharSequence type;

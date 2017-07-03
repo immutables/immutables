@@ -25,7 +25,6 @@ import com.google.gson.TypeAdapterFactory;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.WriteConcern;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
