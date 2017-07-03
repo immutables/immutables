@@ -15,7 +15,7 @@
 --]
 [template public generate]
   [for type in values.values if type.generateAst]
-    [if type.kind.isEnclosing and (not type.kind.isValue)]
+    [if type.kind.isEnclosing andnot type.kind.isValue]
 [for String astTypeName = ((toUpper type.name) 'Ast')]
 [output.java type.package astTypeName]
 [type.sourceHeader]

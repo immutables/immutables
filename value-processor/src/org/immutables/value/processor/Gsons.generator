@@ -107,7 +107,7 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
   }
   [/if]
   [/for]
-  [for v in allValues if v.gsonTypeAdapters.fieldNamingStrategy and (not v.useConstructorOnly)]
+  [for v in allValues if v.gsonTypeAdapters.fieldNamingStrategy andnot v.useConstructorOnly]
   [if for.first]
 
   private static String translateName(Gson gson, Class<?> sampleClass, String fieldName) {
@@ -139,7 +139,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   [/for]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter and a.primitiveArrayType]
-  private final TypeAdapter<[a.type]> [a.name]TypeAdapter;  
+  private final TypeAdapter<[a.type]> [a.name]TypeAdapter;
     [else if a.requiresMarshalingAdapter]
   private final TypeAdapter<[a.elementType]> [a.name]TypeAdapter;
     [/if]
@@ -147,12 +147,12 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   private final TypeAdapter<[a.secondaryElementType]> [a.name]SecondaryTypeAdapter;
     [/if]
   [/for]
-[if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
+[if type.gsonTypeAdapters.fieldNamingStrategy andnot type.useConstructorOnly]
   [for a in allAttributes]
   final String [a.name]Name;
   [/for]
 [/if]
-[if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
+[if type.gsonTypeAdapters.fieldNamingStrategy andnot type.useConstructorOnly]
   [if allAttributes]
 
   static class [type.name]NamingFields[type.generics] {
@@ -175,7 +175,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
     [getAdapterFromGson a true]
     [/if]
   [/for]
-[if type.gsonTypeAdapters.fieldNamingStrategy and (not type.useConstructorOnly)]
+[if type.gsonTypeAdapters.fieldNamingStrategy andnot type.useConstructorOnly]
   [for a in allAttributes]
     [if a.serializedName]
     this.[a.name]Name = "[a.serializedName]";
@@ -216,8 +216,8 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
 
 [template getAdapterFromGson Attribute a Boolean secondary]
 [for subs = a.expectedSubtypes,
-    Boolean supportedSubs = ((a.typeKind.mapKind and secondary) or (not a.typeKind.mapKind)),
-    Boolean reallySupportsSubs = supportedSubs and (not a.hasTypeVariables)]
+    Boolean supportedSubs = ((a.typeKind.mapKind and secondary) ornot a.typeKind.mapKind),
+    Boolean reallySupportsSubs = supportedSubs andnot a.hasTypeVariables]
   [if subs and reallySupportsSubs]
 this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
     [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
@@ -781,7 +781,7 @@ if (in.peek() == JsonToken.NULL) {
     [if a.nullable]
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
-  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  [if a.generateDefault andnot a.containingType.useStrictBuilder]
   builder.[a.names.init](null);
   [/if]
 } else {
@@ -796,7 +796,7 @@ if (in.peek() == JsonToken.NULL) {
     [if a.nullable]
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
-  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  [if a.generateDefault andnot a.containingType.useStrictBuilder]
   builder.[a.names.init](null);
   [/if]
 } else {
@@ -811,7 +811,7 @@ if (in.peek() == JsonToken.NULL) {
     [if a.nullable]
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
-  [if a.generateDefault and (not a.containingType.useStrictBuilder)]
+  [if a.generateDefault andnot a.containingType.useStrictBuilder]
   builder.[a.names.init](null);
   [/if]
 } else {

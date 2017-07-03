@@ -437,7 +437,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
       ? [v.name]
       : [invokeSuper v].[v.names.get]();
 [else]
-  [if v.nullableCollector and (not v.nullable)]
+  [if v.nullableCollector andnot v.nullable]
   if ([v.name] == null) {
     [defineOrResetFieldAlt v false true]
   }
@@ -832,7 +832,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
 [template clearField Attribute v]
   [if v.optionalType]
 [v.name] = [optionalEmpty v];
-  [else if v.containerType and (not v.nullable)]
+  [else if v.containerType andnot v.nullable]
     [if v.nullableCollector]
 if ([v.name] != null) {
   [v.name].clear();
@@ -900,7 +900,7 @@ private boolean equalTo([equalToType] another) {
 [for v in getters]
   [if v.generateDerived or v.generateDefault]
   [v.type] [v.name] = [v.names.get]();
-  [else if v.nullableCollector and (not v.nullable)]
+  [else if v.nullableCollector andnot v.nullable]
   [emptyImmutableCollectionType v] [v.name] = this.[v.name] != null
       ? this.[v.name]
       : [emptyImmutableCollection v v.genericArgs];
@@ -991,7 +991,7 @@ public String toString() {
       + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
     [else if v.nullable or v.containerType]
       + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
-    [else if v.primitive and (not v.mandatory)]
+    [else if v.primitive andnot v.mandatory]
       + "[if not for.first], [/if][v.names.raw]=" + [maybeMasked v][v.names.get]()[/maybeMasked]
     [else]
       + "[if not for.first], [/if][v.names.raw]="  + [maybeMasked v]([isSet v]() ? [v.names.get]() : "?")[/maybeMasked]
@@ -1008,7 +1008,7 @@ public String toString() {
       .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
     [else if v.nullable or v.containerType]
       .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
-    [else if v.primitive and (not v.mandatory)]
+    [else if v.primitive andnot v.mandatory]
       .add("[v.names.raw]", [maybeMasked v][v.names.get]()[/maybeMasked])
     [else]
       .add("[v.names.raw]", [maybeMasked v][isSet v]() ? [v.names.get]() : "?"[/maybeMasked])

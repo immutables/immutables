@@ -139,6 +139,19 @@ public class Builtins {
         }
       };
 
+  public final Templates.Binary<Object, Object, Boolean> andnot =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return Intrinsics.$if(left) && !Intrinsics.$if(right);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".andnot";
+        }
+      };
+
   public final Templates.Binary<Object, Object, Boolean> or =
       new Templates.Binary<Object, Object, Boolean>() {
         @Override
@@ -149,6 +162,19 @@ public class Builtins {
         @Override
         public String toString() {
           return Builtins.class.getSimpleName() + ".or";
+        }
+      };
+
+  public final Templates.Binary<Object, Object, Boolean> ornot =
+      new Templates.Binary<Object, Object, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Object right) {
+          return Intrinsics.$if(left) || !Intrinsics.$if(right);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".ornot";
         }
       };
 
