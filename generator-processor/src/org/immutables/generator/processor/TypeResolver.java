@@ -15,7 +15,6 @@
  */
 package org.immutables.generator.processor;
 
-import com.google.common.base.Throwables;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;

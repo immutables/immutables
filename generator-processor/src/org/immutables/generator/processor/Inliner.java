@@ -17,7 +17,6 @@ package org.immutables.generator.processor;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.Iterator;
@@ -25,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.immutables.generator.processor.ImmutableTrees.SimpleAccessExpression;
 import org.immutables.generator.processor.ImmutableTrees.AssignGenerator;
 import org.immutables.generator.processor.ImmutableTrees.ForStatement;
 import org.immutables.generator.processor.ImmutableTrees.Identifier;
 import org.immutables.generator.processor.ImmutableTrees.InvokableDeclaration;
 import org.immutables.generator.processor.ImmutableTrees.InvokeStatement;
 import org.immutables.generator.processor.ImmutableTrees.LetStatement;
+import org.immutables.generator.processor.ImmutableTrees.SimpleAccessExpression;
 import org.immutables.generator.processor.ImmutableTrees.Template;
 import org.immutables.generator.processor.ImmutableTrees.TextLine;
 import org.immutables.generator.processor.ImmutableTrees.Unit;
@@ -137,8 +136,10 @@ final class Inliner {
     protected Identifier remappedIdentifier(Trees.Identifier value) {
       return Identifier.of(
           value.value()
-              + "_" + inlinable.declaration().name().value()
-              + "_" + uniqueSuffix);
+              + "_"
+              + inlinable.declaration().name().value()
+              + "_"
+              + uniqueSuffix);
     }
   }
 
@@ -183,24 +184,6 @@ final class Inliner {
   }
 
   final class Weaver extends TreesTransformer {
-
-    @Override
-    protected Iterable<Trees.UnitPart> asUnitPartsElements(Unit value, List<Trees.UnitPart> parts) {
-      // TODO decide if we need to remove inlined completely
-      // could be referenced by outer templates
-      // return super.transformUnitListParts(context, value, parts);
-      return super.asUnitPartsElements(value, inlinedRemoved(parts));
-    }
-
-    private List<Trees.UnitPart> inlinedRemoved(List<Trees.UnitPart> parts) {
-      List<Trees.UnitPart> newParts = Lists.newArrayListWithCapacity(parts.size());
-      for (Trees.UnitPart p : parts) {
-        if (!inlinables.containsKey(p)) {
-          newParts.add(p);
-        }
-      }
-      return newParts;
-    }
 
     @Override
     protected Trees.TemplatePart asTemplatePart(InvokeStatement value) {
