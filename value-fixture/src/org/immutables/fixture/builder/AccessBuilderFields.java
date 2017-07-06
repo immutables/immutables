@@ -36,6 +36,7 @@ abstract class AccessBuilderFields {
   abstract Optional<String> g();
   @AccessibleFields
   static class Builder extends ImmutableAccessBuilderFields.Builder {
+    @SuppressWarnings("unused")
     public final Builder accessFields() {
       int a1 = a;
       String b1 = b;

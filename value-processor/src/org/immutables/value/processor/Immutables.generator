@@ -1564,7 +1564,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [atCanIgnoreReturnValue]
   [deprecation v]
-  [if v.anyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
+  [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
   public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
@@ -2294,6 +2294,55 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 
 [template generateJacksonMapped Type type]
 [if type.generateJacksonMapped and (classpath.available 'com.fasterxml.jackson.annotation.JsonCreator')]
+  [if type.jacksonValue]
+[for jval = type.jacksonValue]
+
+/**
+[javadocGenerics type]
+ * @param jsonValue to construct object from
+ * @return An immutable value type
+ * @deprecated Do not use this method directly, it exists only for the <em>Jackson</em>-binding infrastructure
+ */
+@Deprecated
+[if classpath.available 'com.fasterxml.jackson.annotation.JsonCreator.Mode']
+@com.fasterxml.jackson.annotation.JsonCreator(mode = com.fasterxml.jackson.annotation.JsonCreator.Mode.DELEGATING)
+[else]
+@com.fasterxml.jackson.annotation.JsonCreator
+[/if]
+static[type.generics.def] [type.typeImmutable.relative] fromJson([jval.type] jsonValue) {
+[let cast][if type.constitution.returnsAbstractValueType or type.innerBuilder.isExtending]([type.typeImmutable.relative]) [/if][/let]
+[if type.useBuilder]
+  [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
+  [for v in type.settableAttributes if v eq jval]
+    [if v.encoding]
+  builder.[rr.builderCopyFrom v](jsonValue);
+    [else if v.collectionType]
+  builder.[v.names.addAll](jsonValue);
+    [else if v.mapType]
+  builder.[v.names.putAll](jsonValue);
+    [else]
+  builder.[v.names.init](jsonValue);
+    [/if]
+  [/for]
+  return [cast]builder.[type.names.build]();
+[else if type.useSingletonOnly]
+  return [cast][type.factoryInstance.relative]();
+[else]
+    [if type.useConstructor]
+  [type.typeImmutable.relative] instance = [cast][type.factoryOf.relative]([for v in type.constructorArguments if v eq jval]jsonValue[/for]);
+    [else if type.useSingleton]
+  [type.typeImmutable.relative] instance = [cast][type.factoryInstance.relative]();
+    [else]
+  [output.error]Cannot generate JSON code when there are no builders, constructors or singletons available[/output.error]
+    [/if]
+  [for o in type.withSettableAfterConstruction if o eq jval]
+  instance = instance.[o.names.with](jsonValue);
+  [/for]
+  return instance;
+[/if]
+}
+[/for]
+  [else]
 
 /**
  * Utility type used to correctly read immutable object from JSON representation.
@@ -2306,37 +2355,37 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 static final [output.linesShortable]class Json[type.generics]
     [extendsImplements type][/output.linesShortable]
   [serialVersionUID type]
-[for v in type.settableAttributes if not v.anyGetter]
+[for v in type.settableAttributes if not v.jacksonAnyGetter]
   [if v.encoding]
   [v.type] [v.name] = [rr.defaultValue v];
   [else if v.optionalType]
-  [v.type] [v.name] = [optionalEmpty v];
-  [else if v.collectionType]
-  [v.type] [v.name] = [emptyImmutableInstance v ''];
+  [atNullable][v.type] [v.name] = [optionalEmpty v];
+  [else if v.collectionType or v.mapType]
+  [atNullable][v.type] [v.name] = [emptyImmutableInstance v ''];
   [else if v.primitive]
   [v.type] [v.name];
   [else]
-  [atNullable][v.wrapperType] [v.name];
+  [atNullable][v.type] [v.name];
   [/if]
-  [if v.primitive or (v.requiresTrackIsSet andnot v.anyGetter)]
+  [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
   boolean [disambiguateField type (v.name 'IsSet')];
   [/if]
 [/for]
-[for v in type.settableAttributes if v.anyGetter]
+[for v in type.settableAttributes if v.jacksonAnyGetter]
   final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
-[for v in type.settableAttributes if not v.anyGetter]
+[for v in type.settableAttributes if not v.jacksonAnyGetter]
   [for a in v.annotations]
   [a]
   [/for]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
-    [if v.primitive or (v.requiresTrackIsSet andnot v.anyGetter)]
+    [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
     this.[disambiguateField type (v.name 'IsSet')] = true;
     [/if]
   }
 [/for]
-[for v in type.settableAttributes if v.anyGetter]
+[for v in type.settableAttributes if v.jacksonAnyGetter]
 
   @com.fasterxml.jackson.annotation.JsonAnySetter
   public void set[toUpper v.name]([v.wrappedElementType] key, [v.wrappedSecondaryElementType] value) {
@@ -2371,12 +2420,11 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
 [if type.useBuilder]
   [type.typeBuilder.relative] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
   [for v in type.settableAttributes]
-  [if v.requiresTrackIsSet or v.primitive]
+    [if v.requiresTrackIsSet or v.primitive]
   if (json.[disambiguateField type (v.name 'IsSet')]) {
-    builder.[v.names.init](json.[v.name]);
-  }
-  [else]
+    [else]
   if (json.[v.name] != null) {
+    [/if]
     [if v.encoding]
     builder.[rr.builderCopyFrom v](json.[v.name]);
     [else if v.collectionType]
@@ -2387,7 +2435,6 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
     builder.[v.names.init](json.[v.name]);
     [/if]
   }
-  [/if]
   [/for]
   return [cast]builder.[type.names.build]();
 [else if type.useSingletonOnly]
@@ -2400,14 +2447,19 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
     [else]
   [output.error]Cannot generate JSON code when there are no builders, constructors or singletons available[/output.error]
     [/if]
-  [for o in type.withSettableAfterConstruction]
-  if (json.[o.name] != null) {
-    instance = instance.[o.names.with](json.[o.name]);
+  [for v in type.withSettableAfterConstruction]
+    [if v.requiresTrackIsSet or v.primitive]
+  if (json.[disambiguateField type (v.name 'IsSet')]) {
+    [else]
+  if (json.[v.name] != null) {
+    [/if]
+    instance = instance.[v.names.with](json.[v.name]);
   }
   [/for]
   return instance;
 [/if]
 }
+  [/if]
 [/if]
 [/template]
 
@@ -2440,7 +2492,8 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [for a in v.annotations if a ne '@com.fasterxml.jackson.annotation.JsonAnyGetter']
 [a]
 [/for]
-[if v.anyGetter]@com.fasterxml.jackson.annotation.JsonAnyGetter[/if]
+[if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnyGetter[/if]
+[if v.jacksonValue]@com.fasterxml.jackson.annotation.JsonValue[/if]
 [deprecation v]
 @Override
   [if v.encoding]

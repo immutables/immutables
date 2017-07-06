@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.element.ElementKind;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -27,6 +26,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import org.immutables.generator.AnnotationMirrors;
 
@@ -43,6 +43,9 @@ final class Annotations {
 
   static final String JACKSON_ANY_GETTER =
       "com.fasterxml.jackson.annotation.JsonAnyGetter";
+
+  static final String JACKSON_VALUE =
+      "com.fasterxml.jackson.annotation.JsonValue";
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
@@ -138,6 +141,12 @@ final class Annotations {
             }
           }
           
+          if (qname.equals(JACKSON_VALUE)) {
+            if (!includeAnnotations.contains(JACKSON_VALUE)) {
+              continue;
+            }
+          }
+
           if (annotationMatchesTarget(metaAnnotationElement, elementType)) {
             lines.add(AnnotationMirrors.toCharSequence(metaAnnotation, importsResolver));
           }
@@ -169,6 +178,10 @@ final class Annotations {
       }
       // Any getter should be handled separately
       if (qualifiedName.equals(JACKSON_ANY_GETTER)) {
+        return false;
+      }
+      // handled separately
+      if (qualifiedName.equals(JACKSON_VALUE)) {
         return false;
       }
       if (hasJacksonPackagePrefix(qualifiedName)) {

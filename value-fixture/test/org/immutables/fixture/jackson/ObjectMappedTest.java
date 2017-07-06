@@ -15,10 +15,12 @@
  */
 package org.immutables.fixture.jackson;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import java.io.IOException;
+import java.util.List;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -205,5 +207,35 @@ public class ObjectMappedTest {
     check(o.l()).isOf(true, false);
 
     check(OBJECT_MAPPER.readValue(OBJECT_MAPPER.writeValueAsString(o), CustomBuilderDeserialize.class)).is(o);
+  }
+
+  @Test
+  public void jsonValueBuilderRoundTrip() throws Exception {
+    String json = "[\"a\"]";
+
+    List<JsonValueCreator> values =
+        OBJECT_MAPPER.readValue(json, new TypeReference<List<JsonValueCreator>>() {});
+
+    check(OBJECT_MAPPER.writeValueAsString(values)).is(json);
+  }
+
+  @Test
+  public void jsonValueConstructorRoundtrip() throws Exception {
+    String json = "[true]";
+
+    List<JsonValueCreator.Constructor> values =
+        OBJECT_MAPPER.readValue(json, new TypeReference<List<JsonValueCreator.Constructor>>() {});
+
+    check(OBJECT_MAPPER.writeValueAsString(values)).is(json);
+  }
+
+  @Test
+  public void jsonValueSingletonRoundtrip() throws Exception {
+    String json = "[1.4]";
+
+    List<JsonValueCreator.Singleton> values =
+        OBJECT_MAPPER.readValue(json, new TypeReference<List<JsonValueCreator.Singleton>>() {});
+
+    check(OBJECT_MAPPER.writeValueAsString(values)).is(json);
   }
 }

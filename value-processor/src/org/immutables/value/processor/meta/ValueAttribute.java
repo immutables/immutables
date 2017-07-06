@@ -874,51 +874,82 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind().isPrimitive();
   }
 
+  // undefined value is any less than CONSTRUCTOR_NOT_A_PARAMETER
   private int parameterOrder = Integer.MIN_VALUE;
+
   private AttributeTypeKind typeKind;
-  public boolean anyGetter;
+  public boolean jacksonAnyGetter;
+  public boolean jacksonValue;
   public boolean hasTypeVariables;
   private ImportsTypeStringResolver importsResolver;
 
   public @Nullable Instantiation instantiation;
 
   int getConstructorParameterOrder() {
-    boolean parameterOrderIsNotDefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
+    boolean parameterOrderIsUndefined = parameterOrder < CONSTRUCTOR_NOT_A_PARAMETER;
 
-    if (parameterOrderIsNotDefined) {
-      Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
-
-      boolean autoParameter = containingType.constitution.style().allParameters()
-          || (containingType.constitution.style().allMandatoryParameters() && isMandatory());
-
-      parameterOrder = autoParameter
-          ? CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
-          : CONSTRUCTOR_NOT_A_PARAMETER;
-
-      if (parameterAnnotation.isPresent()) {
-        if (parameterAnnotation.get().value()
-            && containingType.constitution.style().allParameters()) {
-          report().annotationNamed(ParameterMirror.simpleName())
-              .warning("Annotation @Value.Parameter is superfluous when Style(allParameters = true)");
-        }
-
-        parameterOrder = parameterAnnotation.get().value()
-            ? parameterAnnotation.get().order()
-            : CONSTRUCTOR_NOT_A_PARAMETER;
-      }
-
-      if (parameterOrder == CONSTRUCTOR_NOT_A_PARAMETER
-          && containingType.isAnnotationType()
-          && names.get.equals(VALUE_ATTRIBUTE_NAME)) {
-        parameterOrder = thereAreNoOtherMandatoryAttributes()
-            ? CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
-            : CONSTRUCTOR_NOT_A_PARAMETER;
-      }
+    if (parameterOrderIsUndefined) {
+      parameterOrder = computeConstructorParameterOrder();
     }
+
     return parameterOrder;
   }
 
-  private boolean thereAreNoOtherMandatoryAttributes() {
+  private int computeConstructorParameterOrder() {
+    boolean enabledAsAllParameters =
+        containingType.constitution.style().allParameters();
+
+    boolean enabledAsAllMandatoryParameters =
+        containingType.constitution.style().allMandatoryParameters() && isMandatory();
+
+    Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
+    if (parameterAnnotation.isPresent()) {
+      if (!parameterAnnotation.get().value()) {
+        // Cancelled out parameter identified, can return immediately
+        return CONSTRUCTOR_NOT_A_PARAMETER;
+      }
+
+      int order = parameterAnnotation.get().order();
+      boolean orderActuallySpecified = order >= CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+      // when order is unspecified it would be -1, but we should not treat is as
+      // CONSTRUCTOR_NOT_A_PARAMETER, so we assign CONSTRUCTOR_PARAMETER_DEFAULT_ORDER
+      // in this case
+      if (orderActuallySpecified) {
+        return order;
+      }
+      // We issue this warning only when order is not specified explicitly
+      // and it is not a cancelling-out annotation thus the annoation
+      // is truly superfluos when allParameters enabled
+      if (enabledAsAllParameters) {
+        report().annotationNamed(ParameterMirror.simpleName())
+            .warning("Annotation @Value.Parameter is superfluous when Style(allParameters = true)");
+      }
+      if (enabledAsAllMandatoryParameters) {
+        report().annotationNamed(ParameterMirror.simpleName())
+            .warning(
+                "Annotation @Value.Parameter is superfluous when Style(allMandatoryParameters = true)"
+                    + " and it is mandatory");
+      }
+      return CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+    }
+    if (enabledAsAllParameters || enabledAsAllMandatoryParameters) {
+      return CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+    }
+    if (isAnnotationValueAttribute() && thereAreNoOtherMandatoryAttributes()) {
+      // for annotation type, if annotation only contain single mandatory
+      // attribute which is called 'value' it will be automatically turned
+      // into constructor parameter
+      return CONSTRUCTOR_PARAMETER_DEFAULT_ORDER;
+    }
+    return CONSTRUCTOR_NOT_A_PARAMETER;
+  }
+
+  private boolean isAnnotationValueAttribute() {
+    return containingType.isAnnotationType()
+        && names.get.equals(VALUE_ATTRIBUTE_NAME);
+  }
+
+  boolean thereAreNoOtherMandatoryAttributes() {
     List<ValueAttribute> mandatories = containingType.getMandatoryAttributes();
     for (ValueAttribute m : mandatories) {
       if (m != this) {
@@ -1207,6 +1238,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (!hasTypeVariables) {
       return NON_WHOLE_TYPE_VARIABLE;
     }
+
     if (secondary && !isMapType()) {
       return NON_WHOLE_TYPE_VARIABLE;
     }
@@ -1350,7 +1382,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.isGenerateJacksonProperties()
         && typeKind.isMap()
         && Proto.isAnnotatedWith(element, Annotations.JACKSON_ANY_GETTER)) {
-      anyGetter = true;
+      jacksonAnyGetter = true;
+    }
+    if (containingType.isGenerateJacksonMapped()
+        && (isGenerateAbstract || isGenerateDefault)
+        && Proto.isAnnotatedWith(element, Annotations.JACKSON_VALUE)) {
+      jacksonValue = true;
     }
     if (isCollectionType()
         && nullElements == NullElements.BAN
@@ -1439,7 +1476,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     if (containingType.isUseStrictBuilder()
         && !isMandatory()
         && !typeKind.isCollectionOrMapping()) {
-      // non mandatory attributes without add/put methods
+      // non-mandatory attributes without add/put methods
       // should be checked if it was already initialized
       // for a strict builder
       return true;

@@ -143,7 +143,8 @@ public final class ValueTypeComposer {
       if (type.isUseValidation()) {
         protoclass.report()
             .annotationNamed(ImmutableMirror.simpleName())
-            .error("interning, singleton and validation will not work correctly with 'new' constructor configured in style");
+            .error(
+                "Interning, singleton and validation will not work correctly with 'new' constructor configured in style");
       } else if (type.constitution.isImplementationHidden()
           && (type.kind().isEnclosing() || type.kind().isNested())) {
         protoclass.report()

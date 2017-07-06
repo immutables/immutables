@@ -15,16 +15,32 @@
  */
 package org.immutables.fixture.jackson;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.Map;
-import nonimmutables.jackson.JacksonMeta;
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.immutables.value.Value;
 
-@JacksonMeta
 @Value.Immutable
-public interface JacksonUsingMeta {
-  @JacksonMeta.Any
-  Map<String, JsonNode> any();
-  @JacksonMeta.X
-  int y();
+@Value.Enclosing
+@JsonDeserialize(as = ImmutableJsonValueCreator.class)
+public interface JsonValueCreator {
+  @JsonValue
+  String value();
+
+  @Value.Immutable(singleton = true, builder = false)
+  @JsonDeserialize(as = ImmutableJsonValueCreator.Singleton.class)
+  public interface Singleton {
+    @JsonValue
+    @Value.Default
+    default double value() {
+      return 0.1;
+    }
+  }
+
+  @Value.Immutable(builder = false)
+  @JsonDeserialize(as = ImmutableJsonValueCreator.Constructor.class)
+  public interface Constructor {
+    @JsonValue
+    @Value.Parameter
+    boolean value();
+  }
 }

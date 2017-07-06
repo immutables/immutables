@@ -15,9 +15,6 @@
  */
 package org.immutables.value;
 
-import java.util.Map;
-import java.util.List;
-import java.util.Optional;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -26,8 +23,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
@@ -250,16 +250,20 @@ public @interface Value {
      * Used to specify order of constructor argument. It defaults to zero and allows for
      * non-contiguous order values (arguments are sorted ascending by this order value).
      * <p>
-     * <em>This attribute was introduced as potentially not all annotation processors could use source
-     * order of elements, i.e. order of declaration appearance in a source file.
+     * <em>This attribute was introduced as potentially not all annotation processors could use
+     * source order of elements, i.e. order of declaration appearance in a source file.
      * To support portable constructor argument definitions,
      * developer should supply argument order explicitly.
      * As of version 1.0, we implemented workaround for
      * the Eclipse compiler, so it is not strictly needed to specify order,
      * but it still might be needed if you wish to reorder arguments</em>
+     * <em>
+     * Since 2.5.6 the default value was changed to -1 to signify unspecified order, but the logic
+     * behind should not result in any practical incompatibilites.
+     * </em>
      * @return order
      */
-    int order() default 0;
+    int order() default -1;
 
     /**
      * Specify as {@code false} to cancel out parameter: an attribute would not be considered as a
@@ -1215,7 +1219,8 @@ public @interface Value {
        * checks, please use custom validation mixin approach, where you create base abstract class
        * or interface with default methods to provide `@Value.Check` which would explictly call
        * validation of your choice. Please see discussion and examples provided in the following
-       * github issue: {@linkplain "https://github.com/immutables/immutables/issues/26"}
+       * github issue:
+       * <a href="https://github.com/immutables/immutables/issues/26">immutables/immutables#26</a>
        */
       VALIDATION_API
     }

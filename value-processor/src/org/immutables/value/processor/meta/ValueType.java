@@ -667,6 +667,36 @@ public final class ValueType extends TypeIntrospectionBase {
     return attributes;
   }
 
+  private boolean jacksonValueInitialized;
+  private @Nullable ValueAttribute jacksonValue;
+
+  public @Nullable ValueAttribute getJacksonValue() {
+    if (!jacksonValueInitialized) {
+      jacksonValueInitialized = true;
+      if (!isGenerateJacksonMapped()) {
+        return jacksonValue;
+      }
+      for (ValueAttribute v : getSettableAttributes()) {
+        if (v.jacksonValue) {
+          if (jacksonValue == null) {
+            if (!v.thereAreNoOtherMandatoryAttributes()) {
+              v.report()
+                  .error("Cannot generate proper @JsonCreator for @JsonValue,"
+                      + " other mandatory attributes are present");
+              return null;
+            }
+            jacksonValue = v;
+          } else {
+            v.report()
+                .warning("Multiple attributes annotated with @JsonValue on the same type."
+                    + " There should be only one to consider for mapping.");
+          }
+        }
+      }
+    }
+    return jacksonValue;
+  }
+
   private void validateConstructorParameters(Set<ValueAttribute> parameters) {
     if (kind().isValue() && !parameters.isEmpty()) {
       Set<Element> definingElements = Sets.newHashSet();
