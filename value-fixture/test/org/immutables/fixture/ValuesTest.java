@@ -233,6 +233,17 @@ public class ValuesTest {
   }
 
   @Test
+  public void checkForNull() {
+    ImmutableCheckForNullAttributes build = ImmutableCheckForNullAttributes.builder()
+        .a(null)
+        .b(null)
+        .build();
+
+    check(build.a()).isNull();
+    check(build.b()).isNull();
+  }
+
+  @Test
   public void nullableArray() {
     NullableArray n1 = ImmutableNullableArray.builder()
         .array((byte[]) null)
@@ -357,6 +368,7 @@ public class ValuesTest {
         .same(ImmutableSampleCopyOfTypes.ByConstructorAndWithers.copyOf(value2));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   public void underwriteHashcodeToStringEquals() {
     ImmutableUnderwrite v =
@@ -368,6 +380,7 @@ public class ValuesTest {
     check(v.equals("U"));
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   public void noUnderwriteInheritedHashcodeToStringEquals() {
     ImmutableNoUnderwrite v =

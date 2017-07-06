@@ -140,6 +140,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return nullability != null ? nullability.asPrefix() : "";
   }
 
+  public String atNullabilityOriginal() {
+    return nullability != null ? nullability.asPrefixOriginal() : "";
+  }
+
   public String atNullabilityLocal() {
     return nullability != null ? nullability.asLocalPrefix() : "";
   }
@@ -1377,6 +1381,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         nullElements = NullElements.ALLOW;
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
         nullElements = NullElements.SKIP;
+      } else if (annotationElement.getQualifiedName().contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)) {
+        nullability = NullabilityAnnotationInfo.checkForNull();
       }
     }
     if (containingType.isGenerateJacksonProperties()

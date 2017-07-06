@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture.encoding.defs;
 
-import org.immutables.encode.Encoding.Impl;
 import org.immutables.encode.Encoding;
 
 @Encoding

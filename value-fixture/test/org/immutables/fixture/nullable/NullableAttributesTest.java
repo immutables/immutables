@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture.nullable;
 
-import org.immutables.fixture.nullable.ImmutableNullableTypeUseJdtAccepted.Builder;
 import java.util.Arrays;
 import java.util.Collections;
 import org.junit.Test;

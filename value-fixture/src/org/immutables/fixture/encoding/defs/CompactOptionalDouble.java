@@ -16,7 +16,6 @@
 package org.immutables.fixture.encoding.defs;
 
 import java.util.OptionalDouble;
-import java.util.OptionalInt;
 import org.immutables.encode.Encoding;
 
 @Encoding

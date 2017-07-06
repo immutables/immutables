@@ -49,6 +49,9 @@ final class Annotations {
 
   static final String NULLABLE_SIMPLE_NAME = "Nullable";
 
+  static final String JAVAX_NULLABLE = "javax.annotation.Nullable";
+  static final String JAVAX_CHECK_FOR_NULL = "javax.annotation.CheckForNull";
+
   static List<CharSequence> getAnnotationLines(
       Element element,
       Set<String> includeAnnotations,
@@ -123,24 +126,24 @@ final class Annotations {
         for (AnnotationMirror metaAnnotation : annotationElement.getAnnotationMirrors()) {
           TypeElement metaAnnotationElement = (TypeElement) metaAnnotation.getAnnotationType().asElement();
           String qname = metaAnnotationElement.getQualifiedName().toString();
-          
+
           if (seenAnnotations.contains(qname)) {
             continue;
           }
           seenAnnotations.add(qname);
-          
+
           if (qname.equals(Proto.JACKSON_ANNOTATIONS_INSIDE)
               || qname.startsWith(PREFIX_IMMUTABLES)
               || qname.startsWith(PREFIX_JAVA_LANG)) {
             continue;
           }
-          
+
           if (qname.equals(JACKSON_ANY_GETTER)) {
             if (!includeAnnotations.contains(JACKSON_ANY_GETTER)) {
               continue;
             }
           }
-          
+
           if (qname.equals(JACKSON_VALUE)) {
             if (!includeAnnotations.contains(JACKSON_VALUE)) {
               continue;

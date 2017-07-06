@@ -22,14 +22,14 @@ import org.junit.Test;
 public class AccessBuilderFieldsTest {
   @Test
   public void accessFields() {
-    AccessBuilderFields a = new AccessBuilderFields.Builder()
-      .a(1)
-      .b("b")
-      .c(EnumSet.allOf(AccessBuilderFields.T.class))
-      .d(new EnumMap<AccessBuilderFields.T, String>(AccessBuilderFields.T.class))
-      .addE("e1", "e2")
-      .putF("fk", "fv")
-      .accessFields()
-      .build();
+    new AccessBuilderFields.Builder()
+        .a(1)
+        .b("b")
+        .c(EnumSet.allOf(AccessBuilderFields.T.class))
+        .d(new EnumMap<AccessBuilderFields.T, String>(AccessBuilderFields.T.class))
+        .addE("e1", "e2")
+        .putF("fk", "fv")
+        .accessFields()
+        .build();
   }
 }

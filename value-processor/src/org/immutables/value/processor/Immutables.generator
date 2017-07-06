@@ -1964,7 +1964,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.jdkOptional]
   [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
 [else if v.optionalType]
-  ([v.type]) [expression]
+  [if v.consumedElementType ne v.wrappedElementType]([v.type]) [/if][expression]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
@@ -2509,7 +2509,7 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
 [/if]
 }
   [else]
-[v.access][v.atNullability][immutableImplementationType v] [v.names.get]() {
+[v.access][v.atNullabilityOriginal][immutableImplementationType v] [v.names.get]() {
 [if type.generateSafeDerived and (v.generateDerived or v.generateDefault)]
   InitShim shim = this.[disambiguateField type 'initShim'];
   [if v.arrayType andnot v.nullable]
