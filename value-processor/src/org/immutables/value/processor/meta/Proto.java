@@ -1787,7 +1787,8 @@ public class Proto {
           input.builtinContainerAttributes(),
           input.beanFriendlyModifiables(),
           input.allMandatoryParameters(),
-          input.redactedMask());
+          input.redactedMask(),
+          input.nullableAnnotationName());
     }
   }
 
