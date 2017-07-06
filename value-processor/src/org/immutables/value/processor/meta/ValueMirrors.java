@@ -215,6 +215,8 @@ public final class ValueMirrors {
 
     String redactedMask() default "";
 
+    String nullableAnnotationName() default "Nullable";
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

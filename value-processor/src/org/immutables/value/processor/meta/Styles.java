@@ -101,6 +101,7 @@ public final class Styles {
     Naming create = Naming.from(style.create());
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
+    Naming nullableAnnotationName = Naming.from(style.nullableAnnotationName());
   }
 
   public static class UsingName {
@@ -214,6 +215,7 @@ public final class Styles {
       public final String var = apply(Naming.identity(), false);
       public final String init = apply(scheme.init, false);
       public final String with = apply(scheme.with, false);
+      public final String nullableAnnotationName = apply(scheme.nullableAnnotationName, false);
 
       public String add() {
         return forCollection().add;
