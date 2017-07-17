@@ -1149,6 +1149,94 @@ public @interface Value {
     String redactedMask() default "";
 
     /**
+     * When enabled: immutable attributes with discoverable builders receive the additional
+     * builder API:
+     *
+     * For single children:
+     * {@code BuilderT *Builder()}
+     * {@code ParentT *Builder(BuilderT builder)}
+     *
+     * For a collection of children:
+     * {@code BuilderT add*Builder()}
+     * {@code ParentT addAll*Builder(Iterable<BuilderT> builderCollection)}
+     * {@code ParentT addAll*Builder(BuilderT... builderArgs)}
+     * {@code List<BuilderT> *Builders()}
+     *
+     * In strict mode, you may only set the builder via {@code *Builder(BuilderT builder)} once,
+     * but you may call {@code *Builder()} multiple times, in which the same builder is returned.
+     * If the nested immutable is also strict, then you will only be able to set properties on
+     * the child builder once.
+     *
+     * To discover builders on value attributes the value methods are scanned for method names
+     * matching a patterns specified in {@link #attributeBuilder()}.
+     *
+     * This style parameter is experimental and may change in future.
+     * @return true to enable the feature.
+     */
+    boolean attributBuilderDetection() default false;
+
+    /**
+     * Pattern for detecting builders.
+     *
+     * {@link #attributeBuilder()} applies to both
+     * static and instance methods. In the case a builder is only discoverable through a
+     * value instance method, the builder class must have a public no-arg static construction
+     * method. To use a no-arg public constructor, a special token "new" should be specified.
+     *
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested builder.</em>
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template
+     */
+    String[] attributeBuilder() default {"*Builder", "builder"};
+
+    /**
+     * Naming template for retrieving a nested builder.
+     *
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String getBuilder() default "*Builder";
+
+    /**
+     * Naming template for setting a nested builder.
+     * This may be called only once in strict mode.
+     *
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String setBuilder() default "*Builder";
+
+    /**
+     * Naming template for adding a new builder instance to a collection.
+     *
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String addBuilder() default "add*Builder";
+
+    /**
+     * Naming template for adding a collection of builders.
+     *
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String addAllBuilder() default "addAll*Builder";
+
+    /**
+     * Naming template for retrieving an immutable list of builders.
+     *
+     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String getBuilderList() default "*Builders";
+
+    /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then
      * implementation type will not be exposed as a return type of {@code build()} or {@code of()}
      * constructon methods. Builder visibility will follow.
