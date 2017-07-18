@@ -71,7 +71,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
-  public boolean isNestedBuilder;
+  public boolean isAttributeBuilder;
   public ImmutableList<String> typeParameters = ImmutableList.of();
   // Replace with delegation?
   public Reporter reporter;
@@ -84,9 +84,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   TypeMirror returnType;
   Element element;
   String returnTypeName;
-  // Set only if isNestedBuilder is true
+  // Set only if isAttributeBuilder is true
   @Nullable
-  private NestedBuilderDescriptor nestedBuilder;
+  private AttributeBuilderDescriptor attributeBuilderDescriptor;
 
   public boolean hasEnumFirstTypeParameter;
 
@@ -882,8 +882,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind().isPrimitive();
   }
 
-  public boolean isNestedBuilder() {
-    return isNestedBuilder;
+  public boolean isAttributeBuilder() {
+    return isAttributeBuilder;
   }
 
   // undefined value is any less than CONSTRUCTOR_NOT_A_PARAMETER
@@ -1057,16 +1057,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       initImmutableCopyOf();
     }
 
-    initNestedBuilder();
+    initAttributeBuilder();
   }
 
-  private void initNestedBuilder() {
-    ImmutableNestedBuilderReflection nestedBuilderReflection =
-        ImmutableNestedBuilderReflection.of(this);
-    isNestedBuilder = nestedBuilderReflection.isNestedBuilder();
+  private void initAttributeBuilder() {
+    AttributeBuilderReflection attributeBuilderReflection =
+        AttributeBuilderReflection.forValueType(this);
+    isAttributeBuilder = attributeBuilderReflection.isAttributeBuilder();
 
-    if (isNestedBuilder) {
-      nestedBuilder = nestedBuilderReflection.getNestedBuilderDescriptor();
+    if (isAttributeBuilder) {
+      attributeBuilderDescriptor = attributeBuilderReflection.getAttributeBuilderDescriptor();
     }
   }
 
@@ -1145,7 +1145,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initAttributeValueType() {
 
     if ((containingType.constitution.style().deepImmutablesDetection()
-        || containingType.constitution.style().nestedBuilderDetection())
+        || containingType.constitution.style().attributeBuilderDetection())
           && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
@@ -1547,8 +1547,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return "";
   }
 
-  public NestedBuilderDescriptor getNestedBuilder() {
-    return nestedBuilder;
+  public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
+    return attributeBuilderDescriptor;
   }
 
   Reporter report() {

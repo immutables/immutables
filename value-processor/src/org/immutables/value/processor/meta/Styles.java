@@ -102,6 +102,7 @@ public final class Styles {
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
 
+    Naming[] nestedBuilderDetectionPattern = Naming.fromAll(style.attributeBuilder()) ;
     Naming getBuilder = Naming.from(style.getBuilder());
     Naming setBuilder = Naming.from(style.setBuilder());
 
@@ -153,6 +154,17 @@ public final class Styles {
         }
       }
       return abstractName;
+    }
+
+    String detectRawFromAttributeBuilder(String attributeBuilderName) {
+      for (Naming naming : scheme.nestedBuilderDetectionPattern) {
+        String raw = naming.detect(attributeBuilderName);
+        if (!raw.isEmpty()) {
+          return raw;
+        }
+      }
+
+      return "";
     }
 
     public class TypeNames {
@@ -210,6 +222,10 @@ public final class Styles {
 
       String rawFromAbstract(String abstractName) {
         return detectRawFromAbstract(abstractName);
+      }
+
+      String rawFromAttributeBuilder(String attributeBuilderName) {
+        return detectRawFromAttributeBuilder(attributeBuilderName);
       }
     }
 

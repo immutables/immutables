@@ -115,8 +115,8 @@ import static [routine].immutableCopyOf;
 [if type.generateJdkOnly and type.useCollectionUtility]
   [collectionUtility type]
 [/if]
-[if type.isNestedBuilderApi]
-  [builderTransformUtilities type]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
 [/if]
 }
 [/template]
@@ -218,8 +218,8 @@ import static [routine].immutableCopyOf;
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
 [/if]
-[if type.isNestedBuilderApi]
-  [builderTransformUtilities type]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
 [/if]
 }
 [/for]
@@ -1388,29 +1388,29 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     }
     [else]
       [if v.wrapArrayToIterable]
-    this.[v.name].addAll([if v.isNestedBuilder][convertToBuilderType v.nestedBuilder](elements)[else][arrayAsList v 'elements'][/if]);
+    this.[v.name].addAll([if v.isAttributeBuilder][convertToBuilderType v.getAttributeBuilderDescriptor](elements)[else][arrayAsList v 'elements'][/if]);
       [else]
-    this.[v.name].[if v.isNestedBuilder]addAll([convertToBuilderType v.nestedBuilder](elements))[else]add(elements)[/if];
+    this.[v.name].[if v.isAttributeBuilder]addAll([convertToBuilderType v.getAttributeBuilderDescriptor](elements))[else]add(elements)[/if];
       [/if]
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
   }
 
-  [if v.isNestedBuilder]
+  [if v.isAttributeBuilder]
   /**
    * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
    */
   [atCanIgnoreReturnValue]
   [deprecation v]
   [varargsSafety v]
-  public final [nestedBuilderReturnType v.getNestedBuilder] [v.names.addBuilder]() {
+  public final [attributeBuilderReturnType v.getAttributeBuilderDescriptor] [v.names.addBuilder]() {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
-    [nestedBuilderReturnType v.getNestedBuilder] builder = [createNestedBuilder v.getNestedBuilder];
+    [attributeBuilderReturnType v.getAttributeBuilderDescriptor] builder = [createAttributeBuilder v.getAttributeBuilderDescriptor];
     this.[v.name].add(builder);
 
     return builder;
@@ -1468,7 +1468,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [/if]
     }
     [else]
-    this.[v.name].addAll([if v.isNestedBuilder][convertToBuilderType v.nestedBuilder](elements)[else]elements[/if]);
+    this.[v.name].addAll([if v.isAttributeBuilder][convertToBuilderType v.getAttributeBuilderDescriptor](elements)[else]elements[/if]);
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
@@ -1765,19 +1765,19 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     return [builderReturnThis type];
   }
 
-  [if v.isNestedBuilder]
+  [if v.isAttributeBuilder]
   /**
-   * Returns the builder for the nested type.
+   * Returns the builder for the attribute type.
    *
-   * Once called, the nested builder field is set to a new instance of the builder.
+   * Once called, the attribute builder field is set to a new instance of the builder.
    * If called more than once, returns the same builder instance.
    */
   [atCanIgnoreReturnValue]
   [builderInitAnnotations v]
   [deprecation v]
-  [builderInitAccess v]final [nestedBuilderReturnType v.getNestedBuilder] [v.names.getBuilder]() {
+  [builderInitAccess v]final [attributeBuilderReturnType v.getAttributeBuilderDescriptor] [v.names.getBuilder]() {
     if (this.[v.name] == null) {
-      this.[v.name] = [createNestedBuilder v.nestedBuilder];
+      this.[v.name] = [createAttributeBuilder v.getAttributeBuilderDescriptor];
     }
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
@@ -1932,8 +1932,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
 [/if]
-[if type.isNestedBuilderApi]
-  [builderTransformUtilities type]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
 [/if]
 }
 [if type.telescopicBuild andnot topLevel]
@@ -2009,9 +2009,9 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 
 [template valueFromSuper Attribute v String expression][if v.guavaImmutableDeclared][if not v.nullable][requireNonNull v.containingType]([expression], "[v.name]")[else][expression][/if][else][valueFromValue v expression][/if][/template]
 
-[template maybeBuilder Attribute v String expression][if v.isNestedBuilder][valueToBuilder v.getNestedBuilder][expression][/valueToBuilder][else][expression][/if][/template]
+[template maybeBuilder Attribute v String expression][if v.isAttributeBuilder][valueToBuilder v.getAttributeBuilderDescriptor][expression][/valueToBuilder][else][expression][/if][/template]
 
-[template valueToBuilder NestedBuilder n String expression][if n.isCopyMethodStatic][n.getCopyMethod]([expression])[else][expression].[n.getCopyMethod]()[/if][/template]
+[template valueToBuilder AttributeBuilder n String expression][if n.isCopyMethodOnValueInstance][expression].[n.getQualifiedValueToBuilderMethod]()[else][n.getQualifiedValueToBuilderMethod]([expression])[/if][/template]
 
 [template valueFromValue Attribute v String expression][output.trim]
 [if v.encoding]
@@ -2031,7 +2031,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
-[template deepCopyOf Attribute v String expression][if v.isNestedBuilder][convertToValueType v.getNestedBuilder]([expression])[else][v.attributeValueType.factoryCopyOf]([expression])[/if][/template]
+[template deepCopyOf Attribute v String expression][if v.isAttributeBuilder][convertToValueType v.getAttributeBuilderDescriptor]([expression])[else][v.attributeValueType.factoryCopyOf]([expression])[/if][/template]
 
 [template valueFromBuilder Attribute v String expressionPrefix][valueFromBuilderAlt v true expressionPrefix][/template]
 
@@ -2048,8 +2048,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [else]
     [immutableCollectionBuild v (expressionPrefix v.name)]
   [/if]
-[else if v.isNestedBuilder]
-  [expressionPrefix][v.name].[v.nestedBuilder.getBuildMethod]()
+[else if v.isAttributeBuilder]
+  [expressionPrefix][v.name].[v.getAttributeBuilderDescriptor.getBuildMethod]()
 [else]
   [expressionPrefix][v.name]
 [/if]
@@ -3016,8 +3016,8 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (this.[v.name] == value) return this;
     [/if]
     [if v.attributeValueType and v.typeKind.isRegular]
-      [if v.isNestedBuilder]
-  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueToBuilder v.getNestedBuilder]value[/valueToBuilder].[v.getNestedBuilder.getBuildMethod]();
+      [if v.isAttributeBuilder]
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
       [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
       [/if]
@@ -3141,7 +3141,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if a.generateOrdinalValueSet]
     [output.error]Not implemented generate OrdinalValue set for JDK only[/output.error]
   [else if a.listType]
-    createUnmodifiableList(true, [if a.isNestedBuilder][convertToValueType a.getNestedBuilder]([expression])[else][expression][/if])
+    createUnmodifiableList(true, [if a.isAttributeBuilder][convertToValueType a.getAttributeBuilderDescriptor]([expression])[else][expression][/if])
   [else if a.setType]
     createUnmodifiableSet([expression])
   [else if a.generateEnumMap]
@@ -3155,7 +3155,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [if a.generateOrdinalValueSet or (a.generateEnumSet or a.generateEnumMap)]
     [immutableCollectionCopyOf a][expression].build()[/immutableCollectionCopyOf]
   [else]
-    [if a.isNestedBuilder][guava].collect.ImmutableList.copyOf([convertToValueType a.getNestedBuilder]([expression].build()))[else][expression].build()[/if]
+    [if a.isAttributeBuilder][guava].collect.ImmutableList.copyOf([convertToValueType a.getAttributeBuilderDescriptor]([expression].build()))[else][expression].build()[/if]
   [/if]
 [/if]
 [/output.trim][/template]
@@ -3378,102 +3378,102 @@ private static boolean equals(Object left, Object right) {
 [/for]
 [/template]
 
-[template public builderTransformUtilities Type type]
+[template public attributeBuilderTransformUtilities Type type]
 
-[if type.nestedBuilderApi]
+[if type.detectAttributeBuilders]
 
-[for v in type.uniqueNestedBuilderAttributes]
+[for v in type.uniqueAttributeBuilderAttributes]
 
 [atNullable]
-[-- getTopSimple is here to return the concrete class. NestedBuilders trigger the deepImmutables... --]
-private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getNestedBuilder.getQualifiedValueTypeName][/if] [convertToValueType v.getNestedBuilder]([atNullable] [v.getNestedBuilder.getQualifiedBuilderTypeName] builder) {
+[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
   if (builder == null) {
     return null;
   }
 
-  return builder.[v.getNestedBuilder.getBuildMethod]();
+  return builder.[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
 [atNullable]
-[-- getTopSimple is here to return the concrete class. NestedBuilders trigger the deepImmutables... --]
-private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getNestedBuilder.getQualifiedValueTypeName][/if] [convertToValueType v.getNestedBuilder]([atNullable] [v.getNestedBuilder.getQualifiedValueTypeName] value) {
+[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
   if (value == null) {
     return null;
   }
 
-  return [valueToBuilder v.getNestedBuilder]value[/valueToBuilder].[v.getNestedBuilder.getBuildMethod]();
+  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
 [atNullable]
-private [v.getNestedBuilder.getQualifiedBuilderTypeName] [convertToBuilderType v.getNestedBuilder]([atNullable] [v.getNestedBuilder.getQualifiedValueTypeName] value) {
+private [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
   if (value == null) {
     return null;
   }
 
-  return [valueToBuilder v.getNestedBuilder]value[/valueToBuilder];
+  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
 }
 [/for]
 
 
-[for v in type.uniqueNestedBuilderListAttributes]
-private java.util.List<[v.getNestedBuilder.getQualifiedValueTypeName]> [convertToValueType v.getNestedBuilder](Iterable<? extends [v.getNestedBuilder.getQualifiedBuilderTypeName]> builderList) {
+[for v in type.uniqueAttributeBuilderListAttributes]
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
 [copyBuilderListBody v true]builderList[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getNestedBuilder.getQualifiedValueTypeName]> [convertToValueType v.getNestedBuilder]([v.getNestedBuilder.getQualifiedBuilderTypeName]... builderArray) {
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
 [copyBuilderListBody v true]builderArray[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getNestedBuilder.getQualifiedBuilderTypeName]> [convertToBuilderType v.getNestedBuilder](Iterable<? extends [v.getNestedBuilder.getQualifiedValueTypeName]> valueList) {
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
 [copyBuilderListBody v false]valueList[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getNestedBuilder.getQualifiedBuilderTypeName]> [convertToBuilderType v.getNestedBuilder]([v.getNestedBuilder.getQualifiedValueTypeName]... valueArray) {
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
 [copyBuilderListBody v false]valueArray[/copyBuilderListBody]
 }
 [/for]
 [/if]
 [/template]
 
-[template convertToBuilderType NestedBuilder n]convertToBuilderType[n.getQualifiedValueTypeNameWithUnderscores][/template]
-[template convertToValueType NestedBuilder n]convertToValueType[n.getQualifiedValueTypeNameWithUnderscores][/template]
+[template convertToBuilderType AttributeBuilder n]convertToBuilderType[n.getQualifiedValueTypeNameWithUnderscores][/template]
+[template convertToValueType AttributeBuilder n]convertToValueType[n.getQualifiedValueTypeNameWithUnderscores][/template]
 
 [template copyBuilderListBody Attribute v Boolean toValueType String listToTransform]
   [if v.generateJdkOnly]
     [if toValueType]
-  java.util.ArrayList<[v.getNestedBuilder.getQualifiedValueTypeName]> list;
+  java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> list;
     [else]
-  java.util.ArrayList<[v.getNestedBuilder.getQualifiedBuilderTypeName]> list;
+  java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> list;
     [/if]
   if (iterable instanceof java.util.Collection<?>) {
     int size = ((java.util.Collection<?>) iterable).size();
     if (size == 0) return java.util.Collections.emptyList();
     [if toValueType]
-    list = new java.util.ArrayList<[v.getNestedBuilder.getQualifiedValueTypeName]>();
+    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]>();
     [else]
-    list = new java.util.ArrayList<[v.getNestedBuilder.getQualifiedBuilderTypeName]>();
+    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]>();
     [/if]
   } else {
     [if toValueType]
-    list = new java.util.ArrayList<[v.getNestedBuilder.getQualifiedValueTypeName]>();
+    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]>();
     [else]
-    list = new java.util.ArrayList<[v.getNestedBuilder.getQualifiedBuilderTypeName]>();
+    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]>();
     [/if]
   }
   [else]
     [if toValueType]
-  [guava].collect.ImmutableList.Builder<[v.getNestedBuilder.getQualifiedValueTypeName]> list = [guava].collect.ImmutableList.builder();
+  [guava].collect.ImmutableList.Builder<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> list = [guava].collect.ImmutableList.builder();
     [else]
-  [guava].collect.ImmutableList.Builder<[v.getNestedBuilder.getQualifiedBuilderTypeName]> list = [guava].collect.ImmutableList.builder();
+  [guava].collect.ImmutableList.Builder<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> list = [guava].collect.ImmutableList.builder();
     [/if]
   [/if]
 
   [-- todo: skip nulls and such? --]
-  for ([if toValueType][v.getNestedBuilder.getQualifiedBuilderTypeName][else][v.getNestedBuilder.getQualifiedValueTypeName][/if] element : [listToTransform]) {
+  for ([if toValueType][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] element : [listToTransform]) {
     [if toValueType]
-    list.add(element.[v.getNestedBuilder.getBuildMethod]());
+    list.add(element.[v.getAttributeBuilderDescriptor.getBuildMethod]());
     [else]
-    list.add([valueToBuilder v.getNestedBuilder]element[/valueToBuilder]);
+    list.add([valueToBuilder v.getAttributeBuilderDescriptor]element[/valueToBuilder]);
     [/if]
   }
 
@@ -3690,8 +3690,8 @@ this.[v.name].clear();
       [else if v.generateEnumSet]
 [if declare][accessModifier] java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
       [else]
-        [if v.isNestedBuilder]
-[if declare][accessModifier] java.util.List<[nestedBuilderReturnType v.getNestedBuilder]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[nestedBuilderReturnType v.getNestedBuilder]>()[/if];
+        [if v.isAttributeBuilder]
+[if declare][accessModifier] java.util.List<[attributeBuilderReturnType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderReturnType v.getAttributeBuilderDescriptor]>()[/if];
         [else]
 [if declare][accessModifier] java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
         [/if]
@@ -3704,8 +3704,8 @@ this.[v.name].clear();
       [else if v.customCollectionType]
 [if declare][accessModifier] [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]
-        [if v.isNestedBuilder]
-[if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[nestedBuilderReturnType v.getNestedBuilder]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+        [if v.isAttributeBuilder]
+[if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderReturnType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [else]
 [if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [/if]
@@ -3725,9 +3725,9 @@ this.[v.name] = false;
     [else]
 this.[v.name] = 0;
     [/if]
-  [else if v.isNestedBuilder]
+  [else if v.isAttributeBuilder]
     [if declare]
-[accessModifier] [atNullable][nestedBuilderReturnType v.getNestedBuilder] [v.name];
+[accessModifier] [atNullable][attributeBuilderReturnType v.getAttributeBuilderDescriptor] [v.name];
     [else]
 this.[v.name] = null;
     [/if]
@@ -3791,9 +3791,9 @@ private static final long serialVersionUID = [literal serialVersion];
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][type.generics.args][/if][/template]
 
 [-- TODO: make this work with extending builders --]
-[template nestedBuilderReturnType NestedBuilder n][n.getQualifiedBuilderTypeName][/template]
+[template attributeBuilderReturnType AttributeBuilder n][n.getQualifiedBuilderTypeName][/template]
 
-[template createNestedBuilder NestedBuilder n][n.getQualifiedBuilderConstructorMethod]()[/template]
+[template createAttributeBuilder AttributeBuilder n][n.getQualifiedBuilderConstructorMethod]()[/template]
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 

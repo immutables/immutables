@@ -136,8 +136,8 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
 
-  public boolean isNestedBuilderApi() {
-    return constitution.style().nestedBuilderDetection();
+  public boolean detectAttributeBuilders() {
+    return constitution.style().attributeBuilderDetection();
   }
 
   public boolean hasDerivedAttributes() {
@@ -764,27 +764,27 @@ public final class ValueType extends TypeIntrospectionBase {
   }
 
   @Nullable
-  private Set<ValueAttribute> uniqueNestedBuilderListAttributes;
+  private Set<ValueAttribute> uniqueAttributeBuilderListAttributes;
 
-  public Set<ValueAttribute> getUniqueNestedBuilderListAttributes() {
-    if (uniqueNestedBuilderListAttributes == null) {
-      uniqueNestedBuilderListAttributes = FluentIterable.from(getSettableAttributes())
+  public Set<ValueAttribute> getUniqueAttributeBuilderListAttributes() {
+    if (uniqueAttributeBuilderListAttributes == null) {
+      uniqueAttributeBuilderListAttributes = FluentIterable.from(getSettableAttributes())
           .filter(ValueAttributeFunctions.isListType())
-          .filter(ValueAttributeFunctions.isNestedImmutableWithBuilder())
-          .filter(ValueAttributeFunctions.uniqueOnNestedBuilder())
+          .filter(ValueAttributeFunctions.isAttributeBuilder())
+          .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
           .toSet();
     }
-    return uniqueNestedBuilderListAttributes;
+    return uniqueAttributeBuilderListAttributes;
   }
 
   @Nullable
   private Set<ValueAttribute> uniqueNestedBuilderAttributes;
 
-  public Set<ValueAttribute> getUniqueNestedBuilderAttributes() {
+  public Set<ValueAttribute> getUniqueAttributeBuilderAttributes() {
     if (uniqueNestedBuilderAttributes == null) {
       uniqueNestedBuilderAttributes = FluentIterable.from(getSettableAttributes())
-              .filter(ValueAttributeFunctions.isNestedImmutableWithBuilder())
-              .filter(ValueAttributeFunctions.uniqueOnNestedBuilder())
+              .filter(ValueAttributeFunctions.isAttributeBuilder())
+              .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
           .toSet();
     }
     return uniqueNestedBuilderAttributes;

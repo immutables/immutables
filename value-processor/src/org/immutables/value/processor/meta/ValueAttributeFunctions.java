@@ -116,22 +116,22 @@ final class ValueAttributeFunctions {
     }
   }
 
-  public static Predicate<ValueAttribute> isNestedImmutableWithBuilder() {
-    return NestedBuilderPredicate.INSTANCE;
+  public static Predicate<ValueAttribute> isAttributeBuilder() {
+    return AttributeBuilderPredicate.INSTANCE;
   }
 
-  private enum NestedBuilderPredicate
+  private enum AttributeBuilderPredicate
       implements Predicate<ValueAttribute> {
     INSTANCE;
 
     @Override
     public boolean apply(ValueAttribute input) {
-      return ImmutableNestedBuilderReflection.of(input).isNestedBuilder();
+      return AttributeBuilderReflection.forValueType(input).isAttributeBuilder();
     }
 
     @Override
     public String toString() {
-      return ValueAttributeFunctions.class.getSimpleName() + ".isNestedImmutableWithBuilder()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isAttributeBuilder()";
     }
   }
 
@@ -150,18 +150,18 @@ final class ValueAttributeFunctions {
 
     @Override
     public String toString() {
-      return ValueAttributeFunctions.class.getSimpleName() + ".isListKind()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".isListType()";
     }
   }
 
-  public static Predicate<ValueAttribute> uniqueOnNestedBuilder() {
-    return new UniqueOnNestedBuilder();
+  public static Predicate<ValueAttribute> uniqueOnAttributeBuilderDescriptor() {
+    return new UniqueOnAttributeBuilderDescriptor();
   }
 
-  private static class UniqueOnNestedBuilder implements Predicate<ValueAttribute> {
-    Set<NestedBuilderDescriptor> uniqueSet;
+  private static class UniqueOnAttributeBuilderDescriptor implements Predicate<ValueAttribute> {
+    Set<AttributeBuilderDescriptor> uniqueSet;
 
-    public UniqueOnNestedBuilder() {
+    public UniqueOnAttributeBuilderDescriptor() {
       uniqueSet = new HashSet<>();
     }
 
@@ -169,18 +169,18 @@ final class ValueAttributeFunctions {
     @Override
     public boolean apply(ValueAttribute valueAttribute) {
 
-      if (uniqueSet.contains(checkNotNull(valueAttribute.getNestedBuilder()))) {
+      if (uniqueSet.contains(checkNotNull(valueAttribute.getAttributeBuilderDescriptor()))) {
         return false;
       }
 
-      uniqueSet.add(valueAttribute.getNestedBuilder());
+      uniqueSet.add(valueAttribute.getAttributeBuilderDescriptor());
 
       return true;
     }
 
     @Override
     public String toString() {
-      return ValueAttributeFunctions.class.getSimpleName() + ".uniqueOnNestedBuilder()";
+      return ValueAttributeFunctions.class.getSimpleName() + ".uniqueOnAttributeBuilderDescriptor()";
     }
   }
 }

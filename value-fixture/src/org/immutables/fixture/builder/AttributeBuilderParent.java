@@ -3,13 +3,12 @@ package org.immutables.fixture.builder;
 import java.util.List;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;
-import org.immutables.value.processor.meta.NestedBuilderReflection;
 
 @Immutable
-@Style(nestedBuilderDetection = true, depluralize = true, clearBuilder = true, depluralizeDictionary = {
+@Style(attributeBuilderDetection = true, depluralize = true, clearBuilder = true, depluralizeDictionary = {
     ":list",
 })
-public abstract class NestedBuilderApiParent {
+public abstract class AttributeBuilderParent {
 
   public abstract FirstPartyImmutable firstPartyImmutable();
 

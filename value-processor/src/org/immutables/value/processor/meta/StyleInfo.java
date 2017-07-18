@@ -307,11 +307,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
-  public abstract boolean nestedBuilderDetection();
+  public abstract boolean attributeBuilderDetection();
 
   @Value.Parameter
   @Override
-  public abstract String[] nestedBuilderDetectionPattern();
+  public abstract String[] attributeBuilder();
 
   @Value.Parameter
   @Override
