@@ -15,7 +15,12 @@
  */
 package org.immutables.value.processor.meta;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Predicate;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Only functions left in this previously generated file (long time ago)
@@ -108,6 +113,74 @@ final class ValueAttributeFunctions {
     @Override
     public String toString() {
       return ValueAttributeFunctions.class.getSimpleName() + ".isPrimitive()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> isNestedImmutableWithBuilder() {
+    return NestedBuilderPredicate.INSTANCE;
+  }
+
+  private enum NestedBuilderPredicate
+      implements Predicate<ValueAttribute> {
+    INSTANCE;
+
+    @Override
+    public boolean apply(ValueAttribute input) {
+      return ImmutableNestedBuilderReflection.of(input).isNestedBuilder();
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".isNestedImmutableWithBuilder()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> isListType() {
+    return IsListType.INSTANCE;
+  }
+
+  private enum IsListType
+      implements Predicate<ValueAttribute> {
+    INSTANCE;
+
+    @Override
+    public boolean apply(ValueAttribute input) {
+      return input.isListType();
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".isListKind()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> uniqueOnNestedBuilder() {
+    return new UniqueOnNestedBuilder();
+  }
+
+  private static class UniqueOnNestedBuilder implements Predicate<ValueAttribute> {
+    Set<NestedBuilderDescriptor> uniqueSet;
+
+    public UniqueOnNestedBuilder() {
+      uniqueSet = new HashSet<>();
+    }
+
+    @Nullable
+    @Override
+    public boolean apply(ValueAttribute valueAttribute) {
+
+      if (uniqueSet.contains(checkNotNull(valueAttribute.getNestedBuilder()))) {
+        return false;
+      }
+
+      uniqueSet.add(valueAttribute.getNestedBuilder());
+
+      return true;
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".uniqueOnNestedBuilder()";
     }
   }
 }

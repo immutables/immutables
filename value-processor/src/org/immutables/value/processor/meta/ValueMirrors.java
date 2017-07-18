@@ -215,6 +215,20 @@ public final class ValueMirrors {
 
     String redactedMask() default "";
 
+    boolean nestedBuilderDetection() default false;
+
+    String[] nestedBuilderDetectionPattern() default {"*Builder", "*builder"};
+
+    String getBuilder() default "get*Builder";
+
+    String setBuilder() default "set*Builder";
+
+    String addBuilder() default "add*Builder";
+
+    String addAllBuilder() default "addAll*Builder";
+
+    String getBuilderList() default "get*BuilderList";
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,

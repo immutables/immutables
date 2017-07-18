@@ -101,6 +101,13 @@ public final class Styles {
     Naming create = Naming.from(style.create());
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
+
+    Naming getBuilder = Naming.from(style.getBuilder());
+    Naming setBuilder = Naming.from(style.setBuilder());
+
+    Naming addBuilder = Naming.from(style.addBuilder());
+    Naming addAllBuilder = Naming.from(style.addAllBuilder());
+    Naming getBuilderList = Naming.from(style.getBuilderList());
   }
 
   public static class UsingName {
@@ -247,6 +254,27 @@ public final class Styles {
         return apply(BEAN_SET, false);
       }
 
+      public String getBuilder() {
+        return apply(scheme.getBuilder, false);
+      }
+
+      public String setBuilder() {
+        return apply(scheme.setBuilder, false);
+      }
+
+      public String addBuilder() {
+        return forCollection().addBuilder;
+      }
+
+      public String addAllBuilder() {
+        return forCollection().addAllBuilder;
+      }
+
+      public String getBuilderList() {
+        return forCollection().getBuilderList;
+      }
+
+
       public final class ForCollections {
         private final String singular = depluralizer.depluralize(raw);
         private final boolean singularIsKeyword = SourceVersion.isKeyword(singular);
@@ -255,6 +283,10 @@ public final class Styles {
         final String put = applySingular(scheme.put);
         final String addAll = applyRegular(scheme.addAll);
         final String putAll = applyRegular(scheme.putAll);
+        final String addBuilder = applySingular(scheme.addBuilder);
+        final String addAllBuilder = applyRegular(scheme.addAllBuilder);
+        final String getBuilderList = applySingular(scheme.getBuilderList);
+
 
         String applySingular(Naming naming) {
           if (singularIsKeyword && naming.isIdentity()) {

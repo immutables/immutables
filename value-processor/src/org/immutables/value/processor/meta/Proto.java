@@ -1787,7 +1787,14 @@ public class Proto {
           input.builtinContainerAttributes(),
           input.beanFriendlyModifiables(),
           input.allMandatoryParameters(),
-          input.redactedMask());
+          input.redactedMask(),
+          input.nestedBuilderDetection(),
+          input.nestedBuilderDetectionPattern(),
+          input.getBuilder(),
+          input.setBuilder(),
+          input.addBuilder(),
+          input.addAllBuilder(),
+          input.getBuilderList());
     }
   }
 

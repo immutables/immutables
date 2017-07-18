@@ -136,6 +136,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
 
+  public boolean isNestedBuilderApi() {
+    return constitution.style().nestedBuilderDetection();
+  }
+
   public boolean hasDerivedAttributes() {
     return derivedAttributesCount > 0;
   }
@@ -758,6 +762,34 @@ public final class ValueType extends TypeIntrospectionBase {
     }
     return settableAttributes;
   }
+
+  @Nullable
+  private Set<ValueAttribute> uniqueNestedBuilderListAttributes;
+
+  public Set<ValueAttribute> getUniqueNestedBuilderListAttributes() {
+    if (uniqueNestedBuilderListAttributes == null) {
+      uniqueNestedBuilderListAttributes = FluentIterable.from(getSettableAttributes())
+          .filter(ValueAttributeFunctions.isListType())
+          .filter(ValueAttributeFunctions.isNestedImmutableWithBuilder())
+          .filter(ValueAttributeFunctions.uniqueOnNestedBuilder())
+          .toSet();
+    }
+    return uniqueNestedBuilderListAttributes;
+  }
+
+  @Nullable
+  private Set<ValueAttribute> uniqueNestedBuilderAttributes;
+
+  public Set<ValueAttribute> getUniqueNestedBuilderAttributes() {
+    if (uniqueNestedBuilderAttributes == null) {
+      uniqueNestedBuilderAttributes = FluentIterable.from(getSettableAttributes())
+              .filter(ValueAttributeFunctions.isNestedImmutableWithBuilder())
+              .filter(ValueAttributeFunctions.uniqueOnNestedBuilder())
+          .toSet();
+    }
+    return uniqueNestedBuilderAttributes;
+  }
+
 
   public List<ValueAttribute> getExcludableAttributes() {
     List<ValueAttribute> excludables = Lists.newArrayList();
