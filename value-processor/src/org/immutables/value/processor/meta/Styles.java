@@ -102,7 +102,7 @@ public final class Styles {
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
 
-    Naming[] nestedBuilderDetectionPattern = Naming.fromAll(style.attributeBuilder()) ;
+    Naming[] attributeBuilder = Naming.fromAll(style.attributeBuilder()) ;
     Naming getBuilder = Naming.from(style.getBuilder());
     Naming setBuilder = Naming.from(style.setBuilder());
 
@@ -157,7 +157,7 @@ public final class Styles {
     }
 
     String detectRawFromAttributeBuilder(String attributeBuilderName) {
-      for (Naming naming : scheme.nestedBuilderDetectionPattern) {
+      for (Naming naming : scheme.attributeBuilder) {
         String raw = naming.detect(attributeBuilderName);
         if (!raw.isEmpty()) {
           return raw;
@@ -226,6 +226,16 @@ public final class Styles {
 
       String rawFromAttributeBuilder(String attributeBuilderName) {
         return detectRawFromAttributeBuilder(attributeBuilderName);
+      }
+
+      public final boolean newTokenInAttributeBuilder() {
+        for (Naming pattern : scheme.attributeBuilder) {
+          if (pattern.toString().equals("new")) {
+            return true;
+          }
+        }
+
+        return false;
       }
     }
 

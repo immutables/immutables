@@ -1183,12 +1183,24 @@ public @interface Value {
      * value instance method, the builder class must have a public no-arg static construction
      * method. To use a no-arg public constructor, a special token "new" should be specified.
      *
+     * example: new token required to find this builder.
+     * <pre>
+     * class MyObject {
+     *   class Builder {
+     *     public Builder() {...}
+     *     public Builder(MyObject copy) {...}
+     *
+     *     MyObject build() {...}
+     *   }
+     * }
+     * </pre>
+     *
      * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested builder.</em>
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template
      */
-    String[] attributeBuilder() default {"*Builder", "builder"};
+    String[] attributeBuilder() default {"*Builder", "builder", "new"};
 
     /**
      * Naming template for retrieving a nested builder.

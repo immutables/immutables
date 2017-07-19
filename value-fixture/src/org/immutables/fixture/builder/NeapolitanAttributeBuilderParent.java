@@ -3,6 +3,7 @@ package org.immutables.fixture.builder;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyWithBuilderExtension;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderClassCopyMethod;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderInstanceCopyMethod;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithNestedBuilder;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueClassCopyMethod;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueInstanceCopyMethod;
 import org.immutables.value.Value.Immutable;
@@ -22,4 +23,6 @@ public abstract class NeapolitanAttributeBuilderParent {
   public abstract ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod();
 
   public abstract FirstPartyWithBuilderExtension fpWithBuilderExtension();
+
+  public abstract ThirdPartyImmutableWithNestedBuilder tpiWithNestedBuilder();
 }

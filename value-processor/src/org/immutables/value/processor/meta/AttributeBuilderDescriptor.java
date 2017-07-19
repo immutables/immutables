@@ -27,7 +27,12 @@ public abstract class AttributeBuilderDescriptor {
     /**
      * Would look like {@code ValueObject.Builder builderCopy = ValueObject.Builder.from(valueInstance);}
      */
-    BUILDER_TYPE
+    BUILDER_TYPE,
+
+    /**
+     * Would look like {@coode ValueObject.Builder builderCopy = new ValueObject.Builder(valueInstance);}
+     */
+    BUILDER_CONSTRUCTOR
   }
 
   public abstract ValueToBuilderTarget getValueToBuilderTarget();
@@ -41,14 +46,12 @@ public abstract class AttributeBuilderDescriptor {
   protected abstract String getValueToBuilderMethod();
 
   /**
-   * Uses {@link #getValueToBuilderTarget()} ()} to determine appropriate format for
+   * Uses {@link #getValueToBuilderTarget()} to determine appropriate format for
    * creating a new builder from a value object.
    *
-   * The template needs to still query {@link #getValueToBuilderTarget()} ()} to determine
+   * The template needs to still query {@link #isCopyMethodOnValueInstance()} to determine
    * whether to use {@code [expression].[n.getQualifiedValueToBuilderMethod]()} vs
    * {@code [n.getQualifiedValueToBuilderMethod]([expression])}
-   *
-   * If a template could pass an argument, then we could handle the logic in this method.
    *
    * @return method to use for converting a value to a builder.
    */
@@ -64,6 +67,8 @@ public abstract class AttributeBuilderDescriptor {
             .format("%s().%s", getQualifiedBuilderConstructorMethod(), getValueToBuilderMethod());
       case BUILDER_TYPE:
         return String.format("%s.%s", getQualifiedBuilderTypeName(), getValueToBuilderMethod());
+      case BUILDER_CONSTRUCTOR:
+        return getQualifiedBuilderConstructorMethod();
       default:
         throw new UnsupportedOperationException(
             String.format("Could not handle %s", getValueToBuilderTarget()));
@@ -89,18 +94,12 @@ public abstract class AttributeBuilderDescriptor {
   /**
    * A fully qualified type for the value object.
    *
-   * If {@link Style#deepImmutablesDetection()} is {@code true}, then the qualified value
-   * type is the generated immutables concrete class.
-   *
    * @return fully qualified name of the value type.
    */
   public abstract String getQualifiedValueTypeName();
 
   /**
    * A fully qualified type for the builder object.
-   *
-   * If using a nested static builder, then this must return the final concrete builder
-   * class.
    *
    * @return fully qualified name of the builder type.
    */
@@ -119,7 +118,7 @@ public abstract class AttributeBuilderDescriptor {
    * A fully qualified path and method which creates a new instance of a builder.
    *
    * If the builder is constructed from a no-arg constructor, the {@code new} keyword
-   * is prepended with a space.
+   * should be prepended with a space.
    *
    * @return static path which invoked will create a new empty builder. No () included.
    */

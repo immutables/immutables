@@ -217,7 +217,7 @@ public final class ValueMirrors {
 
     boolean attributeBuilderDetection() default false;
 
-    String[] attributeBuilder() default {"*Builder", "builder"};
+    String[] attributeBuilder() default {"*Builder", "builder", "new"};
 
     String getBuilder() default "*Builder";
 

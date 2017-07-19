@@ -1,6 +1,6 @@
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,8 +27,15 @@ import org.immutables.value.processor.meta.AttributeBuilderDescriptor.ValueToBui
 @Immutable(builder = false)
 @Style(visibility = ImplementationVisibility.PRIVATE)
 public abstract class AttributeBuilderReflection {
+  private static Map<String, AttributeBuilderDescriptor> analyzedReturnTypes = new HashMap<>();
 
-  static Map<String, AttributeBuilderDescriptor> analyzedReturnTypes = new HashMap<>();
+  // The discovery is based off of the class being investigated, AND the current attributeBuilder discovery pattern
+  // The same class included in two parents, may or may not be nested builders based on that discovery pattern
+  private static String cachingKey(ValueAttribute valueAttribute) {
+    return String.format("%s-%s",
+        valueAttribute.containedTypeElement.getQualifiedName(),
+        Joiner.on(".").join(valueAttribute.containingType.constitution.style().attributeBuilder()));
+  }
 
   public static AttributeBuilderReflection forValueType(ValueAttribute valueAttribute) {
     return ImmutableAttributeBuilderReflection.of(valueAttribute);
@@ -37,7 +44,8 @@ public abstract class AttributeBuilderReflection {
   @Parameter
   abstract ValueAttribute valueAttribute();
 
-  private List<Strategy> getStrategies() {
+  @Lazy
+  protected List<Strategy> getStrategies() {
     // Order here matters. We want first party to be found first.
     return Arrays.asList(
         ImmutableFirstPartyStrategy.of(valueAttribute()),
@@ -45,6 +53,7 @@ public abstract class AttributeBuilderReflection {
     );
   }
 
+  @Lazy
   boolean isAttributeBuilder() {
     if (!valueAttribute().containingType.constitution.style().attributeBuilderDetection()) {
       return false;
@@ -54,10 +63,10 @@ public abstract class AttributeBuilderReflection {
       return false;
     }
 
-    if (analyzedReturnTypes
-        .containsKey(valueAttribute().containedTypeElement.getQualifiedName().toString())) {
-      return analyzedReturnTypes
-          .get(valueAttribute().containedTypeElement.getQualifiedName().toString()) != null;
+    String cacheKey = cachingKey(valueAttribute());
+
+    if (analyzedReturnTypes.containsKey(cacheKey)) {
+      return analyzedReturnTypes.get(cacheKey) != null;
     }
 
     for (Strategy strategy : getStrategies()) {
@@ -66,12 +75,12 @@ public abstract class AttributeBuilderReflection {
       }
     }
 
-    analyzedReturnTypes
-        .put(valueAttribute().containedTypeElement.getQualifiedName().toString(), null);
+    analyzedReturnTypes.put(cacheKey, null);
 
     return false;
   }
 
+  @Lazy
   AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
     if (!isAttributeBuilder()) {
       throw new IllegalStateException(
@@ -82,7 +91,7 @@ public abstract class AttributeBuilderReflection {
       throw new AssertionError();
     }
 
-    String cacheKey = valueAttribute().containedTypeElement.getQualifiedName().toString();
+    String cacheKey = cachingKey(valueAttribute());
     if (analyzedReturnTypes.containsKey(cacheKey)) {
       return Preconditions.checkNotNull(analyzedReturnTypes
           .get(cacheKey));
@@ -157,41 +166,41 @@ public abstract class AttributeBuilderReflection {
    * Strategy for parsing third party immutables. for example: the protocol buffer API.
    *
    * Assumes that all third party classes are available on the class path at processing time.
+   *
    * If this is not the case, we may need to use a processing method that allows deferring of
-   * compilation
+   * compilation. Example, moving from auto-value to immutables... though maybe you would just
+   * implement a new strategy for that use case...
    */
   @Immutable(builder = false)
   abstract static class ThirdPartyStaticBuilderStrategy implements Strategy {
 
-    private Optional<ExecutableElement> maybeBuildMethod = null;
+    private ExecutableElement buildMethod = null;
+    private ExecutableElement builderMethod = null;
+    private ExecutableElement copyMethod = null;
+    private TypeElement attributeValueType = null;
+    private TypeElement attributeBuilderType = null;
 
     @Parameter
     abstract ValueAttribute valueAttribute();
 
     @Override
+    @Lazy
     public boolean isAttributeBuilder() {
-      return maybeAttributeValueType().isPresent()
-          && maybeAttributeBuilderType().isPresent()
-          && maybeBuilderConstructorMethod().isPresent()
-          && maybeCopyMethod().isPresent()
-          && maybeBuildMethod().isPresent();
+      return attemptToFindBuilder();
     }
 
     @Override
+    @Lazy
     public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
       if (!isAttributeBuilder()) {
-        throw new IllegalStateException("isAttributeBuilder should have been called first");
+        throw new IllegalStateException("isAttributeBuilder must be true to get the descriptor");
       }
-
-      ExecutableElement copyMethod = maybeCopyMethod().get();
-      ExecutableElement builderConstructor = maybeBuilderConstructorMethod().get();
-      TypeElement attributeValueType = maybeAttributeValueType().get();
-      TypeElement attributeBuilderType = maybeAttributeBuilderType().get();
-      ExecutableElement buildMethod = maybeBuildMethod().get();
 
       ValueToBuilderTarget target;
 
-      if (copyMethod.getModifiers().contains(Modifier.STATIC)) {
+      if (copyMethod.getKind() == ElementKind.CONSTRUCTOR) {
+        target = ValueToBuilderTarget.BUILDER_CONSTRUCTOR;
+      } else if (copyMethod.getModifiers().contains(Modifier.STATIC)) {
         if (copyMethod.getEnclosingElement().equals(attributeValueType)) {
           target = ValueToBuilderTarget.VALUE_TYPE;
         } else {
@@ -206,20 +215,18 @@ public abstract class AttributeBuilderReflection {
       }
 
       String qualifiedBuilderConstructorMethod;
-      if (builderConstructor.getEnclosingElement().equals(attributeValueType)) {
+      if (builderMethod.getEnclosingElement().equals(attributeValueType)) {
         qualifiedBuilderConstructorMethod = String.format("%s.%s",
             attributeValueType.getQualifiedName(),
-            builderConstructor.getSimpleName());
+            builderMethod.getSimpleName());
       } else {
-        // TODO: test
-        if (builderConstructor.getKind() == ElementKind.CONSTRUCTOR) {
-          qualifiedBuilderConstructorMethod = String.format("new %s.%s",
-              attributeBuilderType.getQualifiedName(),
-              builderConstructor.getSimpleName());
+        if (builderMethod.getKind() == ElementKind.CONSTRUCTOR) {
+          qualifiedBuilderConstructorMethod = String.format("new %s",
+              attributeBuilderType.getQualifiedName());
         } else {
           qualifiedBuilderConstructorMethod = String.format("%s.%s",
               attributeBuilderType.getQualifiedName(),
-              builderConstructor.getSimpleName());
+              builderMethod.getSimpleName());
         }
       }
 
@@ -234,200 +241,223 @@ public abstract class AttributeBuilderReflection {
     }
 
     /**
-     * @return type mirror for the return type, or the template argument of a single collection
-     * element.
+     * @return true if valueAttribute() can be an attributeBuilder
      */
-    @Lazy
-    protected Optional<TypeElement> maybeAttributeValueType() {
-      return Optional.fromNullable(valueAttribute().containedTypeElement);
-    }
-
-    @Lazy
-    public Optional<TypeElement> maybeAttributeBuilderType() {
-      Optional<ExecutableElement> maybeConstructorMethod = maybeBuilderConstructorMethod();
-      if (!maybeConstructorMethod.isPresent()) {
-        return Optional.absent();
+    private boolean attemptToFindBuilder() {
+      attributeValueType = valueAttribute().containedTypeElement;
+      if (attributeValueType == null) {
+        return false;
       }
 
-      // Casting is guaranteed by maybeBuilderConstructorMethod
-      return Optional.of((TypeElement)
-          ((DeclaredType) maybeConstructorMethod.get().getReturnType()).asElement());
-    }
+      // Map of possible builder class to needed methods.
+      Map<TypeElement, AttributeBuilderThirdPartyModel> partiallyBuiltModels = new HashMap<>();
+      for (Element possibleBuilderMethodCopyMethodOrClass
+          : attributeValueType.getEnclosedElements()) {
+        AttributeBuilderThirdPartyModel newBuilderModel = new AttributeBuilderThirdPartyModel();
 
-    @Lazy
-    public Optional<ExecutableElement> maybeBuilderConstructorMethod() {
+        if (isPossibleBuilderClass(possibleBuilderMethodCopyMethodOrClass)) {
+          newBuilderModel.setBuilderType((TypeElement) possibleBuilderMethodCopyMethodOrClass);
+        } else if (isPossibleBuilderMethod(possibleBuilderMethodCopyMethodOrClass, true)) {
+          newBuilderModel
+              .setBuilderMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
+        } else if (isPossibleCopyMethod(attributeValueType.asType(),
+            possibleBuilderMethodCopyMethodOrClass, true)) {
+          newBuilderModel
+              .setCopyMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
+        }
 
-      Optional<TypeElement> maybeAttributeValueType = maybeAttributeValueType();
-      if (!maybeAttributeValueType.isPresent()) {
-        return Optional.absent();
-      }
+        // We found something on the loop interesting
+        if (newBuilderModel.getBuilderType() != null) {
+          AttributeBuilderThirdPartyModel maybeCompleteModel;
 
-      TypeElement valueTypeElement = maybeAttributeValueType.get();
+          if (partiallyBuiltModels.containsKey(newBuilderModel.getBuilderType())) {
+            AttributeBuilderThirdPartyModel partiallyBuiltModel = partiallyBuiltModels
+                .get(newBuilderModel.getBuilderType());
+            partiallyBuiltModel.mergeFrom(newBuilderModel);
+            maybeCompleteModel = partiallyBuiltModel;
+          } else {
+            processPossibleBuilder(attributeValueType.asType(), newBuilderModel);
+            partiallyBuiltModels.put(newBuilderModel.getBuilderType(), newBuilderModel);
+            maybeCompleteModel = newBuilderModel;
+          }
 
-      // TODO: if new is in the attributeBuilder, look for inner classes and constructors
-      // or use another strategy... either way.
-      for (Element possibleBuilderConstructor : valueTypeElement.getEnclosedElements()) {
-
-        if (couldBeBuilderConstructor(possibleBuilderConstructor)) {
-          TypeElement candidateBuilderClass = (TypeElement)
-              ((DeclaredType) ((ExecutableElement) possibleBuilderConstructor).getReturnType())
-                  .asElement();
-
-          for (Element possibleBuildMethod : candidateBuilderClass.getEnclosedElements()) {
-            if (possibleBuildMethod.getKind() == ElementKind.METHOD
-                && !possibleBuildMethod.getModifiers().contains(Modifier.STATIC)
-                && ((ExecutableElement) possibleBuildMethod).getReturnType().getKind() ==
-                TypeKind.DECLARED
-                && ((DeclaredType) ((ExecutableElement) possibleBuildMethod).getReturnType())
-                .asElement().equals(valueTypeElement)) {
-
-              if (maybeBuildMethod != null) {
-                throw new AssertionError("MaybeBuild Method initialized twice");
-              }
-              maybeBuildMethod = Optional.of((ExecutableElement) possibleBuildMethod);
-
-              return Optional.of((ExecutableElement) possibleBuilderConstructor);
-            }
+          if (maybeCompleteModel.complete()) {
+            this.attributeBuilderType = maybeCompleteModel.getBuilderType();
+            this.copyMethod = maybeCompleteModel.getCopyMethod();
+            this.builderMethod = maybeCompleteModel.getBuilderMethod();
+            this.buildMethod = maybeCompleteModel.getBuildMethod();
+            return true;
           }
         }
       }
 
-      return Optional.absent();
+      return false;
+    }
+
+
+    // NB: because of the null checks here, we will prefer using static initialization
+    // from the value object, but eh, doesn't really work that well because we may
+    // break out of the value loop if this call to processPossibleBuilder completes the model.
+    private void processPossibleBuilder(TypeMirror attributeValueType,
+        AttributeBuilderThirdPartyModel builderModel) {
+      for (Element possibleBuildMethodOrConstructor
+          : builderModel.getBuilderType().getEnclosedElements()) {
+
+        if (builderModel.getBuildMethod() == null
+            && isPossibleBuildMethod(attributeValueType,
+            possibleBuildMethodOrConstructor)) {
+          builderModel.setBuildMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+        }
+
+        if (builderModel.getBuilderMethod() == null
+            && isPossibleBuilderMethod(possibleBuildMethodOrConstructor, false)) {
+          builderModel.setBuilderMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+        }
+
+        if (builderModel.getCopyMethod() == null
+            && isPossibleCopyMethod(attributeValueType, possibleBuildMethodOrConstructor, false)) {
+          builderModel.setCopyMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+        }
+      }
     }
 
     /**
-     * Return true if the possibleBuilderConstructor matches the
+     * Returns true if there's a public way to build the value type with an instance no-arg method.
+     *
+     * @param valueType value type that needs to be returned by builder method.
+     * @param possibleBuildMethod method which matches {@link StyleMirror#attributeBuilder()}
+     * @return true if this is the possibleBuildMethod can build the value type.
+     */
+    private boolean isPossibleBuildMethod(TypeMirror valueType, Element possibleBuildMethod) {
+      if (possibleBuildMethod.getKind() != ElementKind.METHOD) {
+        return false;
+      }
+
+      ExecutableElement candidateBuildMethod = (ExecutableElement) possibleBuildMethod;
+      return !candidateBuildMethod.getModifiers().contains(Modifier.STATIC)
+          && candidateBuildMethod.getModifiers().contains(Modifier.PUBLIC)
+          && candidateBuildMethod.getTypeParameters().isEmpty()
+          && candidateBuildMethod.getReturnType().getKind() == TypeKind.DECLARED
+          && (candidateBuildMethod.getReturnType()).equals(valueType);
+    }
+
+    /**
+     * Return true if the possibleBuilderMethod matches the
      * Style#attributeBuilder() and returns a class.
      *
      * TODO: may need to make this return true if the return type is an interface too...
      *
-     * @param possibleBuilderConstructor executableElement
+     * @param possibleBuilderMethod executableElement
      */
-    private boolean couldBeBuilderConstructor(Element possibleBuilderConstructor) {
-      if (possibleBuilderConstructor.getKind() == ElementKind.CONSTRUCTOR
-          || possibleBuilderConstructor.getKind() == ElementKind.METHOD) {
-
-        // TODO: special handling for new keyword
+    private boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType) {
+      if (possibleBuilderMethod.getKind() == ElementKind.METHOD) {
         String detectedAttributeBuilder = valueAttribute().containingType.names()
-            .rawFromAttributeBuilder(possibleBuilderConstructor.getSimpleName().toString());
+            .rawFromAttributeBuilder(possibleBuilderMethod.getSimpleName().toString());
 
         if (detectedAttributeBuilder.isEmpty()) {
           return false;
         }
+        ExecutableElement candidateMethod = (ExecutableElement) possibleBuilderMethod;
 
-        return possibleBuilderConstructor.getKind() == ElementKind.METHOD
-            && ((ExecutableElement) possibleBuilderConstructor).getReturnType().getKind()
+        return possibleBuilderMethod.getModifiers().containsAll(
+            Arrays.asList(Modifier.STATIC, Modifier.PUBLIC))
+            && candidateMethod.getParameters().isEmpty()
+            && candidateMethod
+            .getReturnType().getKind()
             == TypeKind.DECLARED
-            && ((DeclaredType) ((ExecutableElement) possibleBuilderConstructor).getReturnType())
+            && ((DeclaredType) candidateMethod.getReturnType())
             .asElement().getKind() == ElementKind.CLASS;
-      }
 
+      } else if (!onValueType && possibleBuilderMethod.getKind() == ElementKind.CONSTRUCTOR) {
+        if (!valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+          return false;
+        }
+
+        ExecutableElement candidateConstructor = (ExecutableElement) possibleBuilderMethod;
+
+        return candidateConstructor.getModifiers().contains(Modifier.PUBLIC)
+            && candidateConstructor.getTypeParameters().isEmpty();
+      }
       return false;
     }
 
     /**
-     * instance is set as part of discovering the constructor. We must be able to
-     * round trip between builder type and constructor type.
+     * Determine if inner class could be a builder.
+     *
+     * @param possibleBuilderClass nested value element that could be builder class.
+     * @return true if it's a static inner class.
      */
-    @Lazy
-    public Optional<ExecutableElement> maybeBuildMethod() {
-      if (maybeBuildMethod == null) {
-        throw new IllegalStateException("This should not be called until the build method is set.");
-      }
-      return maybeBuildMethod;
-    }
+    private boolean isPossibleBuilderClass(Element possibleBuilderClass) {
+      if (possibleBuilderClass.getKind() == ElementKind.CLASS) {
 
-    @Lazy
-    public Optional<ExecutableElement> maybeCopyMethod() {
-      Optional<TypeElement> maybeAttributeValueType = maybeAttributeValueType();
-      Optional<TypeElement> maybeAttributeBuilderType = maybeAttributeBuilderType();
-      if (!maybeAttributeValueType.isPresent() || !maybeAttributeBuilderType.isPresent()) {
-        return Optional.absent();
-      }
-
-      TypeElement valueTypeElement = maybeAttributeValueType.get();
-      TypeElement builderTypeElement = maybeAttributeBuilderType.get();
-
-      Optional<ExecutableElement> foundCopyMethod = findMethod(valueTypeElement.asType(),
-          builderTypeElement.asType(), builderTypeElement.getEnclosedElements(), true);
-      if (!foundCopyMethod.isPresent()) {
-        foundCopyMethod = findMethod(valueTypeElement.asType(), builderTypeElement.asType(),
-            valueTypeElement.getEnclosedElements(), false);
-      }
-      return foundCopyMethod;
-    }
-
-    /**
-     * @param argumentType will be the value type.
-     * @param returnType will be the builder type.
-     * @param enclosedElements list of elements to scan for the proper method
-     * @param argumentRequired when false, allows a value instance to have a no-arg constructor.
-     */
-    private Optional<ExecutableElement> findMethod(
-        TypeMirror argumentType,
-        TypeMirror returnType,
-        List<? extends Element> enclosedElements,
-        boolean argumentRequired) {
-      for (Element possibleCopyMethod : enclosedElements) {
-        if (possibleCopyMethod.getKind() == ElementKind.METHOD
-            || possibleCopyMethod.getKind() == ElementKind.CONSTRUCTOR) {
-          ExecutableElement candidateCopyMethod = (ExecutableElement) possibleCopyMethod;
-
-          if (candidateCopyMethod.getParameters().size() == 1
-              && candidateCopyMethod.getParameters().get(0).asType().equals(argumentType)
-              && candidateCopyMethod.getReturnType().equals(returnType)) {
-
-            return Optional.of(candidateCopyMethod);
-            // handle proto style toBuilder() copy method.
-          } else if (!argumentRequired && candidateCopyMethod.getParameters().size() == 0
-              && !candidateCopyMethod.getModifiers().contains(Modifier.STATIC)
-              && candidateCopyMethod.getReturnType().equals(returnType)) {
-
-            return Optional.of(candidateCopyMethod);
-          }
+        if (valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+          return possibleBuilderClass.getModifiers().contains(Modifier.STATIC)
+              && possibleBuilderClass.getKind() == ElementKind.CLASS;
         }
       }
 
-      return Optional.absent();
-    }
-  }
-
-  /**
-   * Strategy for parsing third party immutables. for example:
-   *
-   * <pre>
-   * class MyObject {
-   *   class Builder {
-   *     public Builder() {...}
-   *     public Builder(MyObject copy) {...}
-   *
-   *     MyObject build() {...}
-   *   }
-   * }
-   * </pre>
-   *
-   * To find a builder, a nested class needs to have:
-   * 1) a public or package private no-arg constructor (or static method).
-   * 2) a public or package private single arge constructor (or static method) which takes the
-   * outer class as a parameter.
-   *
-   * Discovery only operates on one nested level, but is recursive, so you can have
-   * namespaced value objects.
-   *
-   * Assumes that all third party classes are available on the class path at processing time.
-   * If this is not the case, we may need to use a processing method that allows deferring of
-   * compilation.
-   */
-  abstract static class ThirdPartyNestedBuilderTypeStrategy implements Strategy {
-
-    @Override
-    public boolean isAttributeBuilder() {
       return false;
     }
 
-    @Override
-    public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
-      throw new UnsupportedOperationException();
+    /**
+     * Applies to both builder and value candidates.
+     *
+     * @param attributeValueType argument for the copy method.
+     * @param possibleCopyMethod candidate to check.
+     */
+    protected boolean isPossibleCopyMethod(TypeMirror attributeValueType,
+        Element possibleCopyMethod, boolean onValueType) {
+      if (possibleCopyMethod.getKind() == ElementKind.METHOD) {
+        ExecutableElement candidateCopyMethod = (ExecutableElement) possibleCopyMethod;
+
+        if (candidateCopyMethod.getParameters().size() == 1
+            && candidateCopyMethod.getParameters().get(0).asType().equals(attributeValueType)) {
+
+          return true;
+          // handle proto style toBuilder() copy method... lots of BuilderModels created because of this
+        } else if (onValueType
+            && candidateCopyMethod.getParameters().size() == 0
+            && !candidateCopyMethod.getModifiers().contains(Modifier.STATIC)) {
+          return true;
+        }
+      } else if (!onValueType && possibleCopyMethod.getKind() == ElementKind.CONSTRUCTOR) {
+
+        if (!valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+          return false;
+        }
+
+        ExecutableElement candidateConstructor = (ExecutableElement) possibleCopyMethod;
+        return candidateConstructor.getParameters().size() == 1
+            && candidateConstructor.getParameters().get(0).asType().equals(attributeValueType);
+      }
+
+      return false;
+    }
+
+    private boolean logEnabled() {
+      return false;
+    }
+
+    private void log(String message, Object... varags) {
+      if (logEnabled()) {
+        System.out.println(String.format("%s:%s> %s (in %s): %s", Thread.currentThread().getId(),
+            System.identityHashCode(this), valueAttribute(), valueAttribute().containingType,
+            String.format(message, varags)));
+        //System.out.println(Joiner.on("\n").join(Thread.currentThread().getStackTrace()));
+      }
+    }
+  }
+
+  private boolean logEnabled() {
+    return false;
+  }
+
+  private void log(String message, Object... varags) {
+    if (logEnabled()) {
+      System.out.println(String.format("%s:%s> %s (in %s): %s", Thread.currentThread().getId(),
+          System.identityHashCode(this), valueAttribute(), valueAttribute().containingType,
+          String.format(message, varags)));
+      //System.out.println(Joiner.on("\n").join(Thread.currentThread().getStackTrace()));
     }
   }
 }
