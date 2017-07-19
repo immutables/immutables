@@ -1,4 +1,5 @@
-package org.immutables.fixture.builder;
+package org.immutables.fixture.builder.attribute_builders;
+
 
 import org.immutables.fixture.builder.functional.AttributeBuilderBuilderI;
 import org.immutables.fixture.builder.functional.AttributeBuilderValueI;
@@ -12,9 +13,9 @@ import org.immutables.value.Value.Style;
     depluralizeDictionary = {
         ":list",
     })
-public abstract class VanillaAttributeBuilderParent implements AttributeBuilderValueI {
-  public static class Builder extends ImmutableVanillaAttributeBuilderParent.Builder implements
-      AttributeBuilderBuilderI<VanillaAttributeBuilderParent> {
+public abstract class SamePackageVanillaAttributeBuilderParent implements AttributeBuilderValueI {
+  public static class Builder extends ImmutableSamePackageVanillaAttributeBuilderParent.Builder implements
+      AttributeBuilderBuilderI<SamePackageVanillaAttributeBuilderParent> {
     public Builder() {
     }
   }

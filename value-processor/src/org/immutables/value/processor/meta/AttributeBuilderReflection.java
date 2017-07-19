@@ -118,15 +118,15 @@ public abstract class AttributeBuilderReflection {
     @Override
     public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
       String createNewBuilder = String.format("%s.%s",
-          attributeValueType().getTopSimple(),
+          attributeValueType().typeImmutable().absolute(),
           attributeValueType().names().builder());
 
       return ImmutableAttributeBuilderDescriptor.builder()
           .valueToBuilderTarget(ValueToBuilderTarget.BUILDER_INSTANCE)
           .valueToBuilderMethod(attributeValueType().names().from)
           .buildMethod(attributeValueType().names().build)
-          .qualifiedValueTypeName(attributeValueType().name())
-          .qualifiedBuilderTypeName(attributeValueType().typeBuilderImpl().toString())
+          .qualifiedValueTypeName(attributeValueType().typeImmutable().absolute())
+          .qualifiedBuilderTypeName(attributeValueType().typeBuilderImpl().absolute())
           .qualifiedBuilderConstructorMethod(createNewBuilder)
           .build();
 

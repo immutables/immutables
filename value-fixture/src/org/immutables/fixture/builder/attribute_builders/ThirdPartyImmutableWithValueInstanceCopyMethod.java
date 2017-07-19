@@ -1,4 +1,4 @@
-package org.immutables.fixture.builder;
+package org.immutables.fixture.builder.attribute_builders;
 
 public class ThirdPartyImmutableWithValueInstanceCopyMethod {
   private final String value;

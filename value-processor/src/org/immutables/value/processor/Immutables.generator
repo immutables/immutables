@@ -3386,7 +3386,7 @@ private static boolean equals(Object left, Object right) {
 
 [atNullable]
 [-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
+private [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
   if (builder == null) {
     return null;
   }
@@ -3396,7 +3396,7 @@ private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getA
 
 [atNullable]
 [-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private [if v.hasAttributeValue][v.attributeValueType.getTopSimple][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
+private [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
   if (value == null) {
     return null;
   }
@@ -3416,20 +3416,21 @@ private [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertTo
 
 
 [for v in type.uniqueAttributeBuilderListAttributes]
-private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
-[copyBuilderListBody v true]builderList[/copyBuilderListBody]
+[let listType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
+private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
+[copyBuilderListBody v true false]builderList[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
-[copyBuilderListBody v true]builderArray[/copyBuilderListBody]
+private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
+[copyBuilderListBody v true true]builderArray[/copyBuilderListBody]
 }
 
 private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
-[copyBuilderListBody v false]valueList[/copyBuilderListBody]
+[copyBuilderListBody v false false]valueList[/copyBuilderListBody]
 }
 
 private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
-[copyBuilderListBody v false]valueArray[/copyBuilderListBody]
+[copyBuilderListBody v false true]valueArray[/copyBuilderListBody]
 }
 [/for]
 [/if]
@@ -3438,34 +3439,22 @@ private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeN
 [template convertToBuilderType AttributeBuilder n]convertToBuilderType[n.getQualifiedValueTypeNameWithUnderscores][/template]
 [template convertToValueType AttributeBuilder n]convertToValueType[n.getQualifiedValueTypeNameWithUnderscores][/template]
 
-[template copyBuilderListBody Attribute v Boolean toValueType String listToTransform]
+[template copyBuilderListBody Attribute v Boolean toValueType Boolean vargs String listToTransform]
+[let listType][if toValueType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][else][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][/if][/let]
   [if v.generateJdkOnly]
-    [if toValueType]
-  java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> list;
+  java.util.ArrayList<[listType]> list;
+    [if vargs]
+  if ([listToTransform].length == 0) return java.util.Collections.emptyList();
     [else]
-  java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> list;
-    [/if]
-  if (iterable instanceof java.util.Collection<?>) {
-    int size = ((java.util.Collection<?>) iterable).size();
+  if ([listToTransform] instanceof java.util.Collection<?>) {
+    int size = ((java.util.Collection<?>) [listToTransform]).size();
     if (size == 0) return java.util.Collections.emptyList();
-    [if toValueType]
-    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]>();
-    [else]
-    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]>();
-    [/if]
-  } else {
-    [if toValueType]
-    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]>();
-    [else]
-    list = new java.util.ArrayList<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]>();
-    [/if]
   }
-  [else]
-    [if toValueType]
-  [guava].collect.ImmutableList.Builder<[v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> list = [guava].collect.ImmutableList.builder();
-    [else]
-  [guava].collect.ImmutableList.Builder<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> list = [guava].collect.ImmutableList.builder();
     [/if]
+  list = new java.util.ArrayList<[listType]>();
+  [else]
+    [-- This is a mess, we don't want to use listType because of reasons --]
+  [guava].collect.ImmutableList.Builder<[listType]> list = [guava].collect.ImmutableList.builder();
   [/if]
 
   [-- todo: skip nulls and such? --]

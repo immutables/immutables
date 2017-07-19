@@ -2,15 +2,51 @@ package org.immutables.fixture.builder;
 
 import static org.immutables.check.Checkers.check;
 
-import org.immutables.fixture.builder.ImmutableVanillaAttributeBuilderParent.Builder;
+import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
+import org.immutables.fixture.builder.attribute_builders.ImmutableSamePackageVanillaAttributeBuilderParent;
+import org.immutables.fixture.builder.attribute_builders.SamePackageVanillaAttributeBuilderParent;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderClassCopyMethod;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderInstanceCopyMethod;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueClassCopyMethod;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueInstanceCopyMethod;
+import org.immutables.fixture.builder.functional.AttributeBuilderBuilderI;
+import org.immutables.fixture.builder.functional.AttributeBuilderValueI;
+import org.immutables.fixture.builder.functional.BuilderFunction;
+import org.immutables.fixture.builder.functional.CopyFunction;
 import org.junit.Test;
 
 public class AttributeBuilderTest {
 
   @Test
   public void basicApiForVanillaParent() {
-    assertBasicApi(ImmutableVanillaAttributeBuilderParent.class, VanillaAttributeBuilderParent.class,
+    assertBasicApi(ImmutableVanillaAttributeBuilderParent.class,
+        VanillaAttributeBuilderParent.class,
         ImmutableVanillaAttributeBuilderParent::copyOf, VanillaAttributeBuilderParent.Builder::new);
+  }
+
+  @Test
+  public void basicApiForNoJdkParent() {
+    assertBasicApi(ImmutableJdkOnlyAttributeBuilderParent.class,
+        JdkOnlyAttributeBuilderParent.class,
+        ImmutableJdkOnlyAttributeBuilderParent::copyOf, JdkOnlyAttributeBuilderParent.Builder::new);
+  }
+
+  @Test
+  public void basicApiForGuavaCollectionsParent() {
+    assertBasicApi(ImmutableGuavaAttributeBuilderParent.class,
+        GuavaAttributeBuilderParent.class,
+        ImmutableGuavaAttributeBuilderParent::copyOf, GuavaAttributeBuilderParent.Builder::new);
+  }
+
+  @Test
+  public void basicApiForSamePackageParent() {
+    assertBasicApi(ImmutableSamePackageVanillaAttributeBuilderParent.class,
+        SamePackageVanillaAttributeBuilderParent.class,
+        ImmutableSamePackageVanillaAttributeBuilderParent::copyOf, SamePackageVanillaAttributeBuilderParent.Builder::new);
   }
 
   // Allows sharing tests between guava collections, jdk only collections and whatever other combinations are needed.
@@ -59,7 +95,8 @@ public class AttributeBuilderTest {
               .value("first party through attributeBuilder");
 
       ImmutableClassT copy = copyFunction.copy(builder.build());
-      check(copy.firstPartyImmutableWithDifferentStyle().value()).is("first party through attributeBuilder");
+      check(copy.firstPartyImmutableWithDifferentStyle().value())
+          .is("first party through attributeBuilder");
     }
 
     {
@@ -89,7 +126,8 @@ public class AttributeBuilderTest {
           builder.addFirstPartyImmutableBuilder().value("first party through attributeBuilder");
 
       ImmutableClassT copy = copyFunction.copy(builder.build());
-      check(copy.firstPartyImmutableList().get(0).value()).is("first party through attributeBuilder");
+      check(copy.firstPartyImmutableList().get(0).value())
+          .is("first party through attributeBuilder");
 
     }
 

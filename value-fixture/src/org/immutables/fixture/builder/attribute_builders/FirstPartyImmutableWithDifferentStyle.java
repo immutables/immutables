@@ -1,4 +1,4 @@
-package org.immutables.fixture.builder;
+package org.immutables.fixture.builder.attribute_builders;
 
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Style;

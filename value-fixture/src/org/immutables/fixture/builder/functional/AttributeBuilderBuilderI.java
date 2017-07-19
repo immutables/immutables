@@ -1,4 +1,10 @@
-package org.immutables.fixture.builder;
+package org.immutables.fixture.builder.functional;
+
+import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
 
 public interface AttributeBuilderBuilderI<ValueT> {
 

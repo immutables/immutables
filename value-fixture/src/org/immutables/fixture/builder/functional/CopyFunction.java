@@ -1,4 +1,4 @@
-package org.immutables.fixture.builder;
+package org.immutables.fixture.builder.functional;
 
 @FunctionalInterface
 public interface CopyFunction<T extends AttributeBuilderValueI, U extends AttributeBuilderValueI> {

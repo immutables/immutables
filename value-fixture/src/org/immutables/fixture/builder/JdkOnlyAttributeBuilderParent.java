@@ -8,13 +8,16 @@ import org.immutables.value.Value.Style;
 @Immutable
 @Style(
     attributeBuilderDetection = true,
+    jdkOnly = true,
     depluralize = true,
     depluralizeDictionary = {
         ":list",
     })
-public abstract class VanillaAttributeBuilderParent implements AttributeBuilderValueI {
-  public static class Builder extends ImmutableVanillaAttributeBuilderParent.Builder implements
-      AttributeBuilderBuilderI<VanillaAttributeBuilderParent> {
+public abstract class JdkOnlyAttributeBuilderParent implements AttributeBuilderValueI {
+
+  public static class Builder extends ImmutableJdkOnlyAttributeBuilderParent.Builder implements
+      AttributeBuilderBuilderI<JdkOnlyAttributeBuilderParent> {
+
     public Builder() {
     }
   }
