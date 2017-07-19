@@ -96,7 +96,6 @@ public abstract class AttributeBuilderReflection {
 
   @Lazy
   protected Strategy getReflectionStrategy() {
-
     for (Strategy strategy : getStrategies()) {
       if (strategy.isAttributeBuilder()) {
         return strategy;
@@ -240,28 +239,7 @@ public abstract class AttributeBuilderReflection {
      */
     @Lazy
     protected Optional<TypeElement> maybeAttributeValueType() {
-      if (valueAttribute().typeKind().isRegular()
-          && valueAttribute().returnType.getKind() == TypeKind.DECLARED) {
-
-        DeclaredType returnType = (DeclaredType) valueAttribute().returnType;
-        TypeElement typeElement = (TypeElement) returnType.asElement();
-        if (typeElement.getKind() == ElementKind.CLASS) {
-          return Optional.of(typeElement);
-        }
-      } else if (valueAttribute().typeKind().isList()) {
-        TypeElement attributeBuilderType = valueAttribute()
-            .containingType.constitution
-            .protoclass()
-            .processing()
-            .getElementUtils()
-            .getTypeElement(valueAttribute().firstTypeParameter());
-
-        if (attributeBuilderType != null && attributeBuilderType.getKind() == ElementKind.CLASS) {
-          return Optional.of(attributeBuilderType);
-        }
-      }
-
-      return Optional.absent();
+      return Optional.fromNullable(valueAttribute().containedTypeElement);
     }
 
     @Lazy
