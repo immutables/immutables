@@ -354,18 +354,25 @@ public abstract class AttributeBuilderReflection {
       TypeElement builderTypeElement = maybeAttributeBuilderType.get();
 
       Optional<ExecutableElement> foundCopyMethod = findMethod(valueTypeElement.asType(),
-          builderTypeElement.asType(), builderTypeElement.getEnclosedElements());
+          builderTypeElement.asType(), builderTypeElement.getEnclosedElements(), true);
       if (!foundCopyMethod.isPresent()) {
         foundCopyMethod = findMethod(valueTypeElement.asType(), builderTypeElement.asType(),
-            valueTypeElement.getEnclosedElements());
+            valueTypeElement.getEnclosedElements(), false);
       }
       return foundCopyMethod;
     }
 
+    /**
+     * @param argumentType will be the value type.
+     * @param returnType will be the builder type.
+     * @param enclosedElements list of elements to scan for the proper method
+     * @param argumentRequired when false, allows a value instance to have a no-arg constructor.
+     */
     private Optional<ExecutableElement> findMethod(
         TypeMirror argumentType,
         TypeMirror returnType,
-        List<? extends Element> enclosedElements) {
+        List<? extends Element> enclosedElements,
+        boolean argumentRequired) {
       for (Element possibleCopyMethod : enclosedElements) {
         if (possibleCopyMethod.getKind() == ElementKind.METHOD
             || possibleCopyMethod.getKind() == ElementKind.CONSTRUCTOR) {
@@ -373,6 +380,12 @@ public abstract class AttributeBuilderReflection {
 
           if (candidateCopyMethod.getParameters().size() == 1
               && candidateCopyMethod.getParameters().get(0).asType().equals(argumentType)
+              && candidateCopyMethod.getReturnType().equals(returnType)) {
+
+            return Optional.of(candidateCopyMethod);
+            // handle proto style toBuilder() copy method.
+          } else if (!argumentRequired && candidateCopyMethod.getParameters().size() == 0
+              && !candidateCopyMethod.getModifiers().contains(Modifier.STATIC)
               && candidateCopyMethod.getReturnType().equals(returnType)) {
 
             return Optional.of(candidateCopyMethod);

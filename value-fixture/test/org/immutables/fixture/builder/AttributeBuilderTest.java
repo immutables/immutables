@@ -2,14 +2,22 @@ package org.immutables.fixture.builder;
 
 import static org.immutables.check.Checkers.check;
 
-import org.immutables.fixture.builder.ImmutableAttributeBuilderParent.Builder;
+import org.immutables.fixture.builder.ImmutableVanillaAttributeBuilderParent.Builder;
 import org.junit.Test;
 
 public class AttributeBuilderTest {
 
   @Test
-  public void testFirstPartyApiForSingle() {
-    Builder builder = ImmutableAttributeBuilderParent.builder();
+  public void basicApiForVanillaParent() {
+    assertBasicApi(ImmutableVanillaAttributeBuilderParent.class, VanillaAttributeBuilderParent.class,
+        ImmutableVanillaAttributeBuilderParent::copyOf, VanillaAttributeBuilderParent.Builder::new);
+  }
+
+  // Allows sharing tests between guava collections, jdk only collections and whatever other combinations are needed.
+  private <ImmutableClassT extends AttributeBuilderValueI, AbstractClassT extends AttributeBuilderValueI>
+  void assertBasicApi(Class<ImmutableClassT> immutableType, Class<AbstractClassT> returnType,
+      CopyFunction<ImmutableClassT, AbstractClassT> copyFunction,
+      BuilderFunction<AbstractClassT> newBuilder) {
     FirstPartyImmutable firstPartyImmutable = ImmutableFirstPartyImmutable
         .builder()
         .value("first party")
@@ -22,124 +30,232 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
-    ThirdPartyImmutableWithValueInstanceCopyMethod thirdPartyImmutableWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
-        .generateNewBuilder()
-        .setValue("third party")
-        .build();
 
-    //builder.firstPartyImmutable(firstPartyImmutable);
-    builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
-    builder.thirdPartyImmutable(thirdPartyImmutable);
-    builder.addFirstPartyImmutable(firstPartyImmutable);
-    builder.addThirdPartyImmutable(thirdPartyImmutable);
-    builder.thirdPartyImmutableWithInstanceCopyMethod(thirdPartyImmutableWithValueInstanceCopyMethod);
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      //builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
 
-    ImmutableFirstPartyImmutable.Builder firstPartyBuilder =
-        builder.firstPartyImmutableBuilder().value("first party through nestedBuilder");
+      ImmutableFirstPartyImmutable.Builder _firstPartyBuilder =
+          builder.firstPartyImmutableBuilder().value("first party through attributeBuilder");
 
-    ImmutableAttributeBuilderParent copy = ImmutableAttributeBuilderParent.copyOf(builder.build());
-    check(copy.firstPartyImmutable().value()).is("first party through nestedBuilder");
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.firstPartyImmutable().value()).is("first party through attributeBuilder");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      //builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ImmutableFirstPartyImmutableWithDifferentStyle.Abonabon _firstPartyBuilderWithDifferentStyle =
+          builder.firstPartyImmutableWithDifferentStyleBuilder()
+              .value("first party through attributeBuilder");
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.firstPartyImmutableWithDifferentStyle().value()).is("first party through attributeBuilder");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      //builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ThirdPartyImmutable.Builder thirdPartyImmutableBuilder =
+          builder.thirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.thirdPartyImmutable().getValue()).is("third party through attributeBuilder");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      //builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder firstPartyBuilder =
+          builder.addFirstPartyImmutableBuilder().value("first party through attributeBuilder");
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.firstPartyImmutableList().get(0).value()).is("first party through attributeBuilder");
+
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      //builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ThirdPartyImmutable.Builder thirdPartyBuilder =
+          builder.addThirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.thirdPartyImmutableList().get(0).getValue())
+          .is("third party through attributeBuilder");
+
+    }
   }
 
   @Test
-  public void testFirstPartyApiWithDifferentStyleForSingle() {
-    Builder builder = ImmutableAttributeBuilderParent.builder();
-    FirstPartyImmutable firstPartyImmutable = ImmutableFirstPartyImmutable
-        .builder()
-        .value("first party")
+  public void testThirdPartyApiWithValueInstanceCopy() {
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+
+    ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
         .build();
-    FirstPartyImmutableWithDifferentStyle firstPartyImmutableWithDifferentStyle = ImmutableFirstPartyImmutableWithDifferentStyle
-        .getTheBuilder()
-        .value("first party")
-        .doIIT();
-    ThirdPartyImmutable thirdPartyImmutable = ThirdPartyImmutable
+    ThirdPartyImmutableWithValueClassCopyMethod tpiWithValueClassCopyMethod = ThirdPartyImmutableWithValueClassCopyMethod
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
-    ThirdPartyImmutableWithValueInstanceCopyMethod thirdPartyImmutableWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod tpiWithBuilderInstanceCopyMethod = ThirdPartyImmutableWithBuilderInstanceCopyMethod
         .generateNewBuilder()
         .setValue("third party")
-        .build();
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod = ThirdPartyImmutableWithBuilderClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
 
-    builder.firstPartyImmutable(firstPartyImmutable);
-    //builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
-    builder.thirdPartyImmutable(thirdPartyImmutable);
-    builder.addFirstPartyImmutable(firstPartyImmutable);
-    builder.addThirdPartyImmutable(thirdPartyImmutable);
-    builder.thirdPartyImmutableWithInstanceCopyMethod(thirdPartyImmutableWithValueInstanceCopyMethod);
+    //builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
+    builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
+    builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
+    builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
 
-    ImmutableFirstPartyImmutableWithDifferentStyle.Abonabon firstPartyBuilder =
-        builder.firstPartyImmutableWithDifferentStyleBuilder().value("first party new style through nestedBuilder");
+    ThirdPartyImmutableWithValueInstanceCopyMethod.Builder thirdPartyBuilder =
+        builder.tpiWithValueInstanceCopyMethodBuilder()
+            .setValue("third party through attributeBuilder");
 
-    ImmutableAttributeBuilderParent copy = ImmutableAttributeBuilderParent.copyOf(builder.build());
-    check(copy.firstPartyImmutableWithDifferentStyle().value()).is("first party new style through nestedBuilder");
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+        .copyOf(builder.build());
+    check(copy.tpiWithValueInstanceCopyMethod().getValue())
+        .is("third party through attributeBuilder");
   }
 
   @Test
-  public void testThirdPartyApiForSingle() {
-    Builder builder = ImmutableAttributeBuilderParent.builder();
-    FirstPartyImmutable firstPartyImmutable = ImmutableFirstPartyImmutable
-        .builder()
-        .value("first party")
+  public void testThirdPartyApiWithValueClassCopy() {
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+
+    ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
         .build();
-     FirstPartyImmutableWithDifferentStyle firstPartyImmutableWithDifferentStyle = ImmutableFirstPartyImmutableWithDifferentStyle
-        .getTheBuilder()
-        .value("first party")
-        .doIIT();
-     ThirdPartyImmutable thirdPartyImmutable = ThirdPartyImmutable
+    ThirdPartyImmutableWithValueClassCopyMethod tpiWithValueClassCopyMethod = ThirdPartyImmutableWithValueClassCopyMethod
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
-    ThirdPartyImmutableWithValueInstanceCopyMethod thirdPartyImmutableWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod tpiWithBuilderInstanceCopyMethod = ThirdPartyImmutableWithBuilderInstanceCopyMethod
         .generateNewBuilder()
         .setValue("third party")
-        .build();
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod = ThirdPartyImmutableWithBuilderClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
 
-    builder.firstPartyImmutable(firstPartyImmutable);
-    builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
-    //builder.thirdPartyImmutable(thirdPartyImmutable);
-    builder.addFirstPartyImmutable(firstPartyImmutable);
-    builder.addThirdPartyImmutable(thirdPartyImmutable);
-    builder.thirdPartyImmutableWithInstanceCopyMethod(thirdPartyImmutableWithValueInstanceCopyMethod);
+    builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
+    //builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
+    builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
+    builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
 
-    ThirdPartyImmutable.Builder thirdPartyImmutableBuilder =
-        builder.thirdPartyImmutableBuilder().setValue("third party through nestedBuilder");
+    ThirdPartyImmutableWithValueClassCopyMethod.Builder thirdPartyBuilder =
+        builder.tpiWithValueClassCopyMethodBuilder()
+            .setValue("third party through attributeBuilder");
 
-    ImmutableAttributeBuilderParent copy = ImmutableAttributeBuilderParent.copyOf(builder.build());
-    check(copy.thirdPartyImmutable().getValue()).is("third party through nestedBuilder");
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+        .copyOf(builder.build());
+    check(copy.tpiWithValueClassCopyMethod().getValue())
+        .is("third party through attributeBuilder");
   }
 
   @Test
-  public void testFirstPartyApiForList() {
-    Builder builder = ImmutableAttributeBuilderParent.builder();
-    FirstPartyImmutable firstPartyImmutable = ImmutableFirstPartyImmutable
-        .builder()
-        .value("first party")
+  public void testThirdPartyApiWithBuilderInstanceCopy() {
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+
+    ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
         .build();
-    FirstPartyImmutableWithDifferentStyle firstPartyImmutableWithDifferentStyle = ImmutableFirstPartyImmutableWithDifferentStyle
-        .getTheBuilder()
-        .value("first party")
-        .doIIT();
-     ThirdPartyImmutable thirdPartyImmutable = ThirdPartyImmutable
+    ThirdPartyImmutableWithValueClassCopyMethod tpiWithValueClassCopyMethod = ThirdPartyImmutableWithValueClassCopyMethod
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
-    ThirdPartyImmutableWithValueInstanceCopyMethod thirdPartyImmutableWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod tpiWithBuilderInstanceCopyMethod = ThirdPartyImmutableWithBuilderInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod = ThirdPartyImmutableWithBuilderClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+
+    builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
+    builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
+    //builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
+    builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod.Builder thirdPartyBuilder =
+        builder.tpiWithBuilderInstanceCopyMethodBuilder()
+            .setValue("third party through attributeBuilder");
+
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+        .copyOf(builder.build());
+    check(copy.tpiWithBuilderInstanceCopyMethod().getValue())
+        .is("third party through attributeBuilder");
+  }
+
+  @Test
+  public void testThirdPartyApiWithBuilderClassCopy() {
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+
+    ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
         .generateNewBuilder()
         .setValue("third party")
         .build();
+    ThirdPartyImmutableWithValueClassCopyMethod tpiWithValueClassCopyMethod = ThirdPartyImmutableWithValueClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod tpiWithBuilderInstanceCopyMethod = ThirdPartyImmutableWithBuilderInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod = ThirdPartyImmutableWithBuilderClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
 
-    builder.firstPartyImmutable(firstPartyImmutable);
-    builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
-    builder.thirdPartyImmutable(thirdPartyImmutable);
-    //builder.addFirstPartyImmutable(firstPartyImmutable);
-    builder.addThirdPartyImmutable(thirdPartyImmutable);
-    builder.thirdPartyImmutableWithInstanceCopyMethod(thirdPartyImmutableWithValueInstanceCopyMethod);
+    builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
+    builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
+    builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
+    //builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
 
-    ImmutableFirstPartyImmutable.Builder firstPartyBuilder =
-        builder.addFirstPartyImmutableBuilder().value("first party through nestedBuilder");
+    ThirdPartyImmutableWithBuilderClassCopyMethod.Builder thirdPartyBuilder =
+        builder.tpiWithBuilderClassCopyMethodBuilder()
+            .setValue("third party through attributeBuilder");
 
-    ImmutableAttributeBuilderParent copy = ImmutableAttributeBuilderParent.copyOf(builder.build());
-    check(copy.firstPartyImmutableList().get(0).value()).is("first party through nestedBuilder");
+    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+        .copyOf(builder.build());
+    check(copy.tpiWithBuilderClassCopyMethod().getValue())
+        .is("third party through attributeBuilder");
   }
 }
