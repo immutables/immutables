@@ -1,6 +1,7 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -27,18 +28,10 @@ import org.immutables.value.processor.meta.AttributeBuilderDescriptor.ValueToBui
 @Style(visibility = ImplementationVisibility.PRIVATE)
 public abstract class AttributeBuilderReflection {
 
-  static Map<TypeMirror, AttributeBuilderReflection> analyzedReturnTypes = new HashMap<>();
+  static Map<String, AttributeBuilderDescriptor> analyzedReturnTypes = new HashMap<>();
 
-  //TODO: not 100% cached because returnType can be a list (or map etc.)
-  // Maybe bad to cache? Some safe way to cache without holding onto processing environment?
   public static AttributeBuilderReflection forValueType(ValueAttribute valueAttribute) {
-
-    if (!analyzedReturnTypes.containsKey(valueAttribute.returnType)) {
-      analyzedReturnTypes
-          .put(valueAttribute.returnType, ImmutableAttributeBuilderReflection.of(valueAttribute));
-    }
-
-    return analyzedReturnTypes.get(valueAttribute.returnType);
+    return ImmutableAttributeBuilderReflection.of(valueAttribute);
   }
 
   @Parameter
@@ -57,24 +50,52 @@ public abstract class AttributeBuilderReflection {
       return false;
     }
 
+    if (valueAttribute().containedTypeElement == null) {
+      return false;
+    }
+
+    if (analyzedReturnTypes
+        .containsKey(valueAttribute().containedTypeElement.getQualifiedName().toString())) {
+      return analyzedReturnTypes
+          .get(valueAttribute().containedTypeElement.getQualifiedName().toString()) != null;
+    }
+
     for (Strategy strategy : getStrategies()) {
       if (strategy.isAttributeBuilder()) {
         return true;
       }
     }
+
+    analyzedReturnTypes
+        .put(valueAttribute().containedTypeElement.getQualifiedName().toString(), null);
+
     return false;
   }
 
   AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
-    return getReflectionStrategy().getAttributeBuilderDescriptor();
+    if (!isAttributeBuilder()) {
+      throw new IllegalStateException(
+          "Should not call getReflectionStrategy unless isAttributeBuilder is true");
+    }
+
+    if (valueAttribute().containedTypeElement == null) {
+      throw new AssertionError();
+    }
+
+    String cacheKey = valueAttribute().containedTypeElement.getQualifiedName().toString();
+    if (analyzedReturnTypes.containsKey(cacheKey)) {
+      return Preconditions.checkNotNull(analyzedReturnTypes
+          .get(cacheKey));
+    }
+
+    AttributeBuilderDescriptor descriptor = getReflectionStrategy().getAttributeBuilderDescriptor();
+    analyzedReturnTypes.put(cacheKey, descriptor);
+
+    return descriptor;
   }
 
   @Lazy
-  Strategy getReflectionStrategy() {
-    if (!isAttributeBuilder()) {
-      throw new RuntimeException(
-          "Should not call getReflectionStrategy unless isAttributeBuilder is true");
-    }
+  protected Strategy getReflectionStrategy() {
 
     for (Strategy strategy : getStrategies()) {
       if (strategy.isAttributeBuilder()) {
