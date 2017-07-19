@@ -4,6 +4,7 @@ import static org.immutables.check.Checkers.check;
 
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
+import org.immutables.fixture.builder.attribute_builders.FirstPartyWithBuilderExtension;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ImmutableSamePackageVanillaAttributeBuilderParent;
@@ -46,7 +47,8 @@ public class AttributeBuilderTest {
   public void basicApiForSamePackageParent() {
     assertBasicApi(ImmutableSamePackageVanillaAttributeBuilderParent.class,
         SamePackageVanillaAttributeBuilderParent.class,
-        ImmutableSamePackageVanillaAttributeBuilderParent::copyOf, SamePackageVanillaAttributeBuilderParent.Builder::new);
+        ImmutableSamePackageVanillaAttributeBuilderParent::copyOf,
+        SamePackageVanillaAttributeBuilderParent.Builder::new);
   }
 
   // Allows sharing tests between guava collections, jdk only collections and whatever other combinations are needed.
@@ -151,8 +153,8 @@ public class AttributeBuilderTest {
 
   @Test
   public void testThirdPartyApiWithValueInstanceCopy() {
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
-        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+    ImmutableNeapolitanAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanAttributeBuilderParent.builder();
 
     ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
         .generateNewBuilder()
@@ -170,17 +172,21 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
+    FirstPartyWithBuilderExtension fpWithBuilderExtension = new FirstPartyWithBuilderExtension.Builder()
+        .value("first praty")
+        .build();
 
     //builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
     builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
     builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
     builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+    builder.fpWithBuilderExtension(fpWithBuilderExtension);
 
     ThirdPartyImmutableWithValueInstanceCopyMethod.Builder thirdPartyBuilder =
         builder.tpiWithValueInstanceCopyMethodBuilder()
             .setValue("third party through attributeBuilder");
 
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+    ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.tpiWithValueInstanceCopyMethod().getValue())
         .is("third party through attributeBuilder");
@@ -188,8 +194,8 @@ public class AttributeBuilderTest {
 
   @Test
   public void testThirdPartyApiWithValueClassCopy() {
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
-        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+    ImmutableNeapolitanAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanAttributeBuilderParent.builder();
 
     ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
         .generateNewBuilder()
@@ -207,17 +213,21 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
+    FirstPartyWithBuilderExtension fpWithBuilderExtension = new FirstPartyWithBuilderExtension.Builder()
+        .value("first praty")
+        .build();
 
     builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
     //builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
     builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
     builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+    builder.fpWithBuilderExtension(fpWithBuilderExtension);
 
     ThirdPartyImmutableWithValueClassCopyMethod.Builder thirdPartyBuilder =
         builder.tpiWithValueClassCopyMethodBuilder()
             .setValue("third party through attributeBuilder");
 
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+    ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.tpiWithValueClassCopyMethod().getValue())
         .is("third party through attributeBuilder");
@@ -225,8 +235,8 @@ public class AttributeBuilderTest {
 
   @Test
   public void testThirdPartyApiWithBuilderInstanceCopy() {
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
-        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+    ImmutableNeapolitanAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanAttributeBuilderParent.builder();
 
     ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
         .generateNewBuilder()
@@ -244,17 +254,21 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
+    FirstPartyWithBuilderExtension fpWithBuilderExtension = new FirstPartyWithBuilderExtension.Builder()
+        .value("first praty")
+        .build();
 
     builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
     builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
     //builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
     builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+    builder.fpWithBuilderExtension(fpWithBuilderExtension);
 
     ThirdPartyImmutableWithBuilderInstanceCopyMethod.Builder thirdPartyBuilder =
         builder.tpiWithBuilderInstanceCopyMethodBuilder()
             .setValue("third party through attributeBuilder");
 
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+    ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.tpiWithBuilderInstanceCopyMethod().getValue())
         .is("third party through attributeBuilder");
@@ -262,8 +276,8 @@ public class AttributeBuilderTest {
 
   @Test
   public void testThirdPartyApiWithBuilderClassCopy() {
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent.Builder builder
-        = ImmutableNeapolitanCopyMethodAttributeBuilderParent.builder();
+    ImmutableNeapolitanAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanAttributeBuilderParent.builder();
 
     ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
         .generateNewBuilder()
@@ -281,19 +295,64 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
+    FirstPartyWithBuilderExtension fpWithBuilderExtension = new FirstPartyWithBuilderExtension.Builder()
+        .value("first party")
+        .build();
 
     builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
     builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
     builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
     //builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+    builder.fpWithBuilderExtension(fpWithBuilderExtension);
 
     ThirdPartyImmutableWithBuilderClassCopyMethod.Builder thirdPartyBuilder =
         builder.tpiWithBuilderClassCopyMethodBuilder()
             .setValue("third party through attributeBuilder");
 
-    ImmutableNeapolitanCopyMethodAttributeBuilderParent copy = ImmutableNeapolitanCopyMethodAttributeBuilderParent
+    ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.tpiWithBuilderClassCopyMethod().getValue())
         .is("third party through attributeBuilder");
+  }
+
+  @Test
+  public void testFirstPartyApiWithExtendingBuilder() {
+    ImmutableNeapolitanAttributeBuilderParent.Builder builder
+        = ImmutableNeapolitanAttributeBuilderParent.builder();
+
+    ThirdPartyImmutableWithValueInstanceCopyMethod tpiWithValueInstanceCopyMethod = ThirdPartyImmutableWithValueInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .build();
+    ThirdPartyImmutableWithValueClassCopyMethod tpiWithValueClassCopyMethod = ThirdPartyImmutableWithValueClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderInstanceCopyMethod tpiWithBuilderInstanceCopyMethod = ThirdPartyImmutableWithBuilderInstanceCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    ThirdPartyImmutableWithBuilderClassCopyMethod tpiWithBuilderClassCopyMethod = ThirdPartyImmutableWithBuilderClassCopyMethod
+        .generateNewBuilder()
+        .setValue("third party")
+        .doTheBuild();
+    FirstPartyWithBuilderExtension fpWithBuilderExtension = new FirstPartyWithBuilderExtension.Builder()
+        .value("first party")
+        .build();
+
+    builder.tpiWithValueInstanceCopyMethod(tpiWithValueInstanceCopyMethod);
+    builder.tpiWithValueClassCopyMethod(tpiWithValueClassCopyMethod);
+    builder.tpiWithBuilderInstanceCopyMethod(tpiWithBuilderInstanceCopyMethod);
+    builder.tpiWithBuilderClassCopyMethod(tpiWithBuilderClassCopyMethod);
+    //builder.fpWithBuilderExtension(fpWithBuilderExtension);
+
+    FirstPartyWithBuilderExtension.Builder fpWithBuilderExtensionBuilder =
+        builder.fpWithBuilderExtensionBuilder()
+            .value("first party through attributeBuilder");
+
+    ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
+        .copyOf(builder.build());
+    check(copy.fpWithBuilderExtension().value())
+        .is("first party through attributeBuilder");
   }
 }
