@@ -376,7 +376,7 @@ public class AttributeBuilderTest {
     ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.fpWithBuilderExtension().value())
-        .is("first party through attributeBuilder");
+        .is(FirstPartyWithBuilderExtension.EXTENSION_OVERRIDE + "first party through attributeBuilder");
   }
 
   @Test
