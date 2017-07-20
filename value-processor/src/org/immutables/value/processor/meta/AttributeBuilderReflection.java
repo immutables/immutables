@@ -14,8 +14,6 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
-import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
@@ -52,7 +50,7 @@ public abstract class AttributeBuilderReflection {
     // Order here matters. We want first party to be found first.
     return Arrays.asList(
         ImmutableFirstPartyStrategy.of(valueAttribute()),
-        ThirdPartyStaticBuilderStrategy.of(valueAttribute())
+        ThirdPartyAttributeBuilderStrategy.of(valueAttribute())
     );
   }
 
@@ -175,7 +173,7 @@ public abstract class AttributeBuilderReflection {
    * implement a new strategy for that use case...
    */
   @Immutable(builder = false)
-  abstract static class ThirdPartyStaticBuilderStrategy implements Strategy {
+  abstract static class ThirdPartyAttributeBuilderStrategy implements Strategy {
 
     /**
      * Guaranteed not null if isAttributeBuilder is true.
@@ -205,11 +203,10 @@ public abstract class AttributeBuilderReflection {
       }
 
       ValueToBuilderTarget target;
-      ExecutableElement copyMethod = builderModel().getCopyMethod();
-
-      ExecutableElement builderMethod = builderModel().getBuilderMethod();
-      ExecutableElement buildMethod = builderModel().getBuildMethod();
-      TypeElement attributeBuilderType = builderModel().getBuilderType();
+      ExecutableElement copyMethod = builderModel().copyMethod();
+      ExecutableElement builderMethod = builderModel().builderMethod();
+      ExecutableElement buildMethod = builderModel().buildMethod();
+      TypeElement attributeBuilderType = builderModel().builderType();
 
       if (copyMethod.getKind() == ElementKind.CONSTRUCTOR) {
         target = ValueToBuilderTarget.BUILDER_CONSTRUCTOR;
@@ -256,51 +253,51 @@ public abstract class AttributeBuilderReflection {
     /**
      * @return strategy which has an AttributeBuilderDescriptor if attributeValue is an attributeBuilder.
      */
-    static ThirdPartyStaticBuilderStrategy of(ValueAttribute valueAttribute) {
+    static ThirdPartyAttributeBuilderStrategy of(ValueAttribute valueAttribute) {
       TypeElement attributeValueType = valueAttribute.containedTypeElement;
       if (attributeValueType == null) {
-        return ImmutableThirdPartyStaticBuilderStrategy.of(null, null);
+        return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null);
       }
 
       // Map of possible builder class to needed methods.
-      Map<TypeElement, AttributeBuilderThirdPartyModel> partiallyBuiltModels = new HashMap<>();
+      Map<TypeElement, AttributeBuilderThirdPartyModel.Creator> partiallyBuiltModels = new HashMap<>();
       for (Element possibleBuilderMethodCopyMethodOrClass
           : attributeValueType.getEnclosedElements()) {
-        AttributeBuilderThirdPartyModel newBuilderModel = new AttributeBuilderThirdPartyModel();
+        AttributeBuilderThirdPartyModel.Creator newBuilderModel = ModifiableCreator.create();
 
         if (isPossibleBuilderClass(possibleBuilderMethodCopyMethodOrClass, valueAttribute)) {
-          newBuilderModel.setBuilderType((TypeElement) possibleBuilderMethodCopyMethodOrClass);
+          newBuilderModel.builderType((TypeElement) possibleBuilderMethodCopyMethodOrClass);
         } else if (isPossibleBuilderMethod(possibleBuilderMethodCopyMethodOrClass, true, valueAttribute)) {
           newBuilderModel
-              .setBuilderMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
+              .builderMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
         } else if (isPossibleCopyMethod(valueAttribute,
             possibleBuilderMethodCopyMethodOrClass, true)) {
           newBuilderModel
-              .setCopyMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
+              .copyMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
         }
 
         // We found something on the loop interesting
-        if (newBuilderModel.getBuilderType() != null) {
-          AttributeBuilderThirdPartyModel maybeCompleteModel;
+        if (newBuilderModel.findBuilderType() != null) {
+          AttributeBuilderThirdPartyModel.Creator maybeCompleteModel;
 
-          if (partiallyBuiltModels.containsKey(newBuilderModel.getBuilderType())) {
-            AttributeBuilderThirdPartyModel partiallyBuiltModel = partiallyBuiltModels
-                .get(newBuilderModel.getBuilderType());
+          if (partiallyBuiltModels.containsKey(newBuilderModel.findBuilderType())) {
+            AttributeBuilderThirdPartyModel.Creator partiallyBuiltModel = partiallyBuiltModels
+                .get(newBuilderModel.findBuilderType());
             partiallyBuiltModel.mergeFrom(newBuilderModel);
             maybeCompleteModel = partiallyBuiltModel;
           } else {
             processPossibleBuilder(valueAttribute, newBuilderModel);
-            partiallyBuiltModels.put(newBuilderModel.getBuilderType(), newBuilderModel);
+            partiallyBuiltModels.put(newBuilderModel.findBuilderType(), newBuilderModel);
             maybeCompleteModel = newBuilderModel;
           }
 
           if (maybeCompleteModel.complete()) {
-            return ImmutableThirdPartyStaticBuilderStrategy.of(maybeCompleteModel, valueAttribute.containedTypeElement);
+            return ImmutableThirdPartyAttributeBuilderStrategy.of(maybeCompleteModel.toImmutable(), valueAttribute.containedTypeElement);
           }
         }
       }
 
-      return ImmutableThirdPartyStaticBuilderStrategy.of(null, null);
+      return ImmutableThirdPartyAttributeBuilderStrategy.of(null, null);
     }
 
 
@@ -308,24 +305,24 @@ public abstract class AttributeBuilderReflection {
     // from the value object, but eh, doesn't really work that well because we may
     // break out of the value loop if this call to processPossibleBuilder completes the model.
     private static void processPossibleBuilder(ValueAttribute valueAttribute,
-        AttributeBuilderThirdPartyModel builderModel) {
+        AttributeBuilderThirdPartyModel.Creator builderModel) {
       for (Element possibleBuildMethodOrConstructor
-          : builderModel.getBuilderType().getEnclosedElements()) {
+          : builderModel.findBuilderType().getEnclosedElements()) {
 
-        if (builderModel.getBuildMethod() == null
+        if (builderModel.buildMethod() == null
             && isPossibleBuildMethod(valueAttribute,
             possibleBuildMethodOrConstructor)) {
-          builderModel.setBuildMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+          builderModel.buildMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
 
-        if (builderModel.getBuilderMethod() == null
+        if (builderModel.builderMethod() == null
             && isPossibleBuilderMethod(possibleBuildMethodOrConstructor, false, valueAttribute)) {
-          builderModel.setBuilderMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+          builderModel.builderMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
 
-        if (builderModel.getCopyMethod() == null
+        if (builderModel.copyMethod() == null
             && isPossibleCopyMethod(valueAttribute, possibleBuildMethodOrConstructor, false)) {
-          builderModel.setCopyMethod((ExecutableElement) possibleBuildMethodOrConstructor);
+          builderModel.copyMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
       }
     }

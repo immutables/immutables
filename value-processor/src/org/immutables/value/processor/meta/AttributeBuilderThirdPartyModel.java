@@ -5,123 +5,129 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
+import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Modifiable;
+import org.immutables.value.Value.Style;
 
-/**
- * Helper class to detect a builder by adding methods as discovered in stages.
- * TODO: maybe bring in mutable?
- */
-class AttributeBuilderThirdPartyModel {
-
+@Immutable
+abstract class AttributeBuilderThirdPartyModel {
   // Must be instance
-  @Nullable private ExecutableElement buildMethod;
+  protected abstract ExecutableElement buildMethod();
+
   // Constructor, Static, or Instance
-  @Nullable private ExecutableElement copyMethod;
+  protected abstract ExecutableElement copyMethod();
+
+
   // Constructor or Static
-  @Nullable private ExecutableElement builderMethod;
+  protected abstract ExecutableElement builderMethod();
 
-  @Nullable private TypeElement builderType;
 
-  public ExecutableElement getBuildMethod() {
-    return buildMethod;
-  }
+  protected abstract TypeElement builderType();
 
-  public void setBuildMethod(ExecutableElement buildMethod) {
-    this.buildMethod = buildMethod;
-  }
+  @Modifiable
+  @Style(set = "*")
+  abstract static class Creator extends AttributeBuilderThirdPartyModel {
 
-  public ExecutableElement getBuilderMethod() {
-    return builderMethod;
-  }
+    @Override @Nullable
+    protected abstract ExecutableElement buildMethod();
 
-  public void setBuilderMethod(ExecutableElement builderMethod) {
-    this.builderMethod = builderMethod;
-  }
+    @Override @Nullable
+    protected abstract ExecutableElement copyMethod();
 
-  public ExecutableElement getCopyMethod() {
-    return copyMethod;
-  }
+    @Override @Nullable
+    protected abstract ExecutableElement builderMethod();
 
-  public void setCopyMethod(ExecutableElement copyMethod) {
-    this.copyMethod = copyMethod;
-  }
+    @Override @Nullable
+    protected abstract TypeElement builderType();
 
-  @Nullable
-  public TypeElement getBuilderType() {
-    if (buildMethod != null) {
-      return getBuilderTypeFromBuildMethod();
-    }
+    protected abstract AttributeBuilderThirdPartyModel buildMethod(ExecutableElement buildMethod);
 
-    if (copyMethod != null) {
-      return getBuilderTypeFromCopyMethod();
-    }
+    protected abstract AttributeBuilderThirdPartyModel copyMethod(ExecutableElement copyMethod);
 
-    if (builderMethod != null) {
-      return getBuilderTypeFromBuilderMethod();
-    }
+    protected abstract AttributeBuilderThirdPartyModel builderMethod(ExecutableElement buildMethod);
 
-    if (builderType != null) {
-      return builderType;
-    }
+    protected abstract AttributeBuilderThirdPartyModel builderType(TypeElement builderType);
 
-    return null;
-  }
-
-  public void setBuilderType(@Nullable TypeElement builderType) {
-    this.builderType = builderType;
-  }
-
-  public void mergeFrom(AttributeBuilderThirdPartyModel toCopyFrom) {
-    if (buildMethod == null) {
-      buildMethod = toCopyFrom.buildMethod;
-    }
-
-    if (copyMethod == null) {
-      copyMethod = toCopyFrom.copyMethod;
-    }
-
-    if (builderMethod == null) {
-      builderMethod = toCopyFrom.builderMethod;
-    }
-  }
-
-  private TypeElement getBuilderTypeFromBuilderMethod() {
-    if (builderMethod.getKind() == ElementKind.CONSTRUCTOR) {
-      return (TypeElement) builderMethod.getEnclosingElement();
-    } else {
-      return (TypeElement) ((DeclaredType) builderMethod.getReturnType()).asElement();
-    }
-  }
-
-  private TypeElement getBuilderTypeFromBuildMethod() {
-    return (TypeElement) buildMethod.getEnclosingElement();
-  }
-
-  private TypeElement getBuilderTypeFromCopyMethod() {
-    if (copyMethod.getKind() == ElementKind.CONSTRUCTOR) {
-      return (TypeElement) copyMethod.getEnclosingElement();
-    } else {
-      return (TypeElement) ((DeclaredType) copyMethod.getReturnType()).asElement();
-    }
-  }
-
-  public boolean complete() {
-    if (builderMethod != null && buildMethod != null && copyMethod != null) {
-      boolean transitiveEquality = getBuilderTypeFromBuilderMethod()
-          .equals(getBuilderTypeFromBuildMethod());
-      transitiveEquality = transitiveEquality && getBuilderTypeFromBuildMethod()
-          .equals(getBuilderTypeFromCopyMethod());
-      if (builderType != null) {
-        transitiveEquality =
-            transitiveEquality && getBuilderTypeFromCopyMethod().equals(builderType);
+    @Nullable
+    public TypeElement findBuilderType() {
+      if (buildMethod() != null) {
+        return getBuilderTypeFromBuildMethod();
       }
 
-      if (!transitiveEquality) {
-        throw new AssertionError();
+      if (copyMethod() != null) {
+        return getBuilderTypeFromCopyMethod();
       }
 
-      return true;
+      if (builderMethod() != null) {
+        return getBuilderTypeFromBuilderMethod();
+      }
+
+      if (builderType() != null) {
+        return builderType();
+      }
+
+      return null;
     }
 
-    return false;
+    public void mergeFrom(AttributeBuilderThirdPartyModel toCopyFrom) {
+      if (buildMethod() == null) {
+        buildMethod(toCopyFrom.buildMethod());
+      }
+
+      if (copyMethod() == null) {
+        copyMethod(toCopyFrom.copyMethod());
+      }
+
+      if (builderMethod() == null) {
+        builderMethod(toCopyFrom.builderMethod());
+      }
+    }
+
+    private TypeElement getBuilderTypeFromBuilderMethod() {
+      if (builderMethod().getKind() == ElementKind.CONSTRUCTOR) {
+        return (TypeElement) builderMethod().getEnclosingElement();
+      } else {
+        return (TypeElement) ((DeclaredType) builderMethod().getReturnType()).asElement();
+      }
+    }
+
+    private TypeElement getBuilderTypeFromBuildMethod() {
+      return (TypeElement) buildMethod().getEnclosingElement();
+    }
+
+    private TypeElement getBuilderTypeFromCopyMethod() {
+      if (copyMethod().getKind() == ElementKind.CONSTRUCTOR) {
+        return (TypeElement) copyMethod().getEnclosingElement();
+      } else {
+        return (TypeElement) ((DeclaredType) copyMethod().getReturnType()).asElement();
+      }
+    }
+
+    public boolean complete() {
+      if (builderMethod() != null && buildMethod() != null && copyMethod() != null) {
+        boolean transitiveEquality = getBuilderTypeFromBuilderMethod()
+            .equals(getBuilderTypeFromBuildMethod());
+        transitiveEquality = transitiveEquality && getBuilderTypeFromBuildMethod()
+            .equals(getBuilderTypeFromCopyMethod());
+        if (builderType() != null) {
+          transitiveEquality =
+              transitiveEquality && getBuilderTypeFromCopyMethod().equals(builderType());
+        }
+
+        if (!transitiveEquality) {
+          throw new AssertionError();
+        }
+
+        return true;
+      }
+
+      return false;
+    }
+
+    // Should this be auto-genned?  Though we still have to set the builder type.
+    public AttributeBuilderThirdPartyModel toImmutable() {
+      builderType(findBuilderType());
+      return ImmutableAttributeBuilderThirdPartyModel.copyOf(this);
+    }
   }
 }
