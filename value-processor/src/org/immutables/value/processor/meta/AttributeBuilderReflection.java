@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -14,6 +15,8 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import org.immutables.value.Value.Default;
+import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
 import org.immutables.value.Value.Parameter;
@@ -49,7 +52,7 @@ public abstract class AttributeBuilderReflection {
     // Order here matters. We want first party to be found first.
     return Arrays.asList(
         ImmutableFirstPartyStrategy.of(valueAttribute()),
-        ImmutableThirdPartyStaticBuilderStrategy.of(valueAttribute())
+        ThirdPartyStaticBuilderStrategy.of(valueAttribute())
     );
   }
 
@@ -174,40 +177,50 @@ public abstract class AttributeBuilderReflection {
   @Immutable(builder = false)
   abstract static class ThirdPartyStaticBuilderStrategy implements Strategy {
 
-    private ExecutableElement buildMethod = null;
-    private ExecutableElement builderMethod = null;
-    private ExecutableElement copyMethod = null;
-    private TypeElement attributeValueType = null;
-    private TypeElement attributeBuilderType = null;
+    /**
+     * Guaranteed not null if isAttributeBuilder is true.
+     * @return model of how to generate attributeBuilder.
+     */
+    @Nullable @Parameter
+    protected abstract AttributeBuilderThirdPartyModel builderModel();
 
-    @Parameter
-    abstract ValueAttribute valueAttribute();
+    /**
+     * Guaranteed not null if isAttributeBuilder is true.
+     * @return containingType of the value attribute.
+     */
+    @Nullable @Parameter
+    protected abstract TypeElement attributeValueType();
 
     @Override
-    @Lazy
     public boolean isAttributeBuilder() {
-      return attemptToFindBuilder();
+      return builderModel() != null;
     }
 
+    @Nullable
     @Override
-    @Lazy
+    @Derived
     public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
       if (!isAttributeBuilder()) {
-        throw new IllegalStateException("isAttributeBuilder must be true to get the descriptor");
+        return null;
       }
 
       ValueToBuilderTarget target;
+      ExecutableElement copyMethod = builderModel().getCopyMethod();
+
+      ExecutableElement builderMethod = builderModel().getBuilderMethod();
+      ExecutableElement buildMethod = builderModel().getBuildMethod();
+      TypeElement attributeBuilderType = builderModel().getBuilderType();
 
       if (copyMethod.getKind() == ElementKind.CONSTRUCTOR) {
         target = ValueToBuilderTarget.BUILDER_CONSTRUCTOR;
       } else if (copyMethod.getModifiers().contains(Modifier.STATIC)) {
-        if (copyMethod.getEnclosingElement().equals(attributeValueType)) {
+        if (copyMethod.getEnclosingElement().equals(attributeValueType())) {
           target = ValueToBuilderTarget.VALUE_TYPE;
         } else {
           target = ValueToBuilderTarget.BUILDER_TYPE;
         }
       } else {
-        if (copyMethod.getEnclosingElement().equals(attributeValueType)) {
+        if (copyMethod.getEnclosingElement().equals(attributeValueType())) {
           target = ValueToBuilderTarget.VALUE_INSTANCE;
         } else {
           target = ValueToBuilderTarget.BUILDER_INSTANCE;
@@ -215,9 +228,9 @@ public abstract class AttributeBuilderReflection {
       }
 
       String qualifiedBuilderConstructorMethod;
-      if (builderMethod.getEnclosingElement().equals(attributeValueType)) {
+      if (builderMethod.getEnclosingElement().equals(attributeValueType())) {
         qualifiedBuilderConstructorMethod = String.format("%s.%s",
-            attributeValueType.getQualifiedName(),
+            attributeValueType().getQualifiedName(),
             builderMethod.getSimpleName());
       } else {
         if (builderMethod.getKind() == ElementKind.CONSTRUCTOR) {
@@ -234,19 +247,19 @@ public abstract class AttributeBuilderReflection {
           .valueToBuilderTarget(target)
           .valueToBuilderMethod(copyMethod.getSimpleName().toString())
           .buildMethod(buildMethod.getSimpleName().toString())
-          .qualifiedValueTypeName(attributeValueType.getQualifiedName().toString())
+          .qualifiedValueTypeName(attributeValueType().getQualifiedName().toString())
           .qualifiedBuilderTypeName(attributeBuilderType.getQualifiedName().toString())
           .qualifiedBuilderConstructorMethod(qualifiedBuilderConstructorMethod)
           .build();
     }
 
     /**
-     * @return true if valueAttribute() can be an attributeBuilder
+     * @return strategy which has an AttributeBuilderDescriptor if attributeValue is an attributeBuilder.
      */
-    private boolean attemptToFindBuilder() {
-      attributeValueType = valueAttribute().containedTypeElement;
+    static ThirdPartyStaticBuilderStrategy of(ValueAttribute valueAttribute) {
+      TypeElement attributeValueType = valueAttribute.containedTypeElement;
       if (attributeValueType == null) {
-        return false;
+        return ImmutableThirdPartyStaticBuilderStrategy.of(null, null);
       }
 
       // Map of possible builder class to needed methods.
@@ -255,12 +268,12 @@ public abstract class AttributeBuilderReflection {
           : attributeValueType.getEnclosedElements()) {
         AttributeBuilderThirdPartyModel newBuilderModel = new AttributeBuilderThirdPartyModel();
 
-        if (isPossibleBuilderClass(possibleBuilderMethodCopyMethodOrClass)) {
+        if (isPossibleBuilderClass(possibleBuilderMethodCopyMethodOrClass, valueAttribute)) {
           newBuilderModel.setBuilderType((TypeElement) possibleBuilderMethodCopyMethodOrClass);
-        } else if (isPossibleBuilderMethod(possibleBuilderMethodCopyMethodOrClass, true)) {
+        } else if (isPossibleBuilderMethod(possibleBuilderMethodCopyMethodOrClass, true, valueAttribute)) {
           newBuilderModel
               .setBuilderMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
-        } else if (isPossibleCopyMethod(attributeValueType.asType(),
+        } else if (isPossibleCopyMethod(valueAttribute,
             possibleBuilderMethodCopyMethodOrClass, true)) {
           newBuilderModel
               .setCopyMethod((ExecutableElement) possibleBuilderMethodCopyMethodOrClass);
@@ -276,46 +289,42 @@ public abstract class AttributeBuilderReflection {
             partiallyBuiltModel.mergeFrom(newBuilderModel);
             maybeCompleteModel = partiallyBuiltModel;
           } else {
-            processPossibleBuilder(attributeValueType.asType(), newBuilderModel);
+            processPossibleBuilder(valueAttribute, newBuilderModel);
             partiallyBuiltModels.put(newBuilderModel.getBuilderType(), newBuilderModel);
             maybeCompleteModel = newBuilderModel;
           }
 
           if (maybeCompleteModel.complete()) {
-            this.attributeBuilderType = maybeCompleteModel.getBuilderType();
-            this.copyMethod = maybeCompleteModel.getCopyMethod();
-            this.builderMethod = maybeCompleteModel.getBuilderMethod();
-            this.buildMethod = maybeCompleteModel.getBuildMethod();
-            return true;
+            return ImmutableThirdPartyStaticBuilderStrategy.of(maybeCompleteModel, valueAttribute.containedTypeElement);
           }
         }
       }
 
-      return false;
+      return ImmutableThirdPartyStaticBuilderStrategy.of(null, null);
     }
 
 
     // NB: because of the null checks here, we will prefer using static initialization
     // from the value object, but eh, doesn't really work that well because we may
     // break out of the value loop if this call to processPossibleBuilder completes the model.
-    private void processPossibleBuilder(TypeMirror attributeValueType,
+    private static void processPossibleBuilder(ValueAttribute valueAttribute,
         AttributeBuilderThirdPartyModel builderModel) {
       for (Element possibleBuildMethodOrConstructor
           : builderModel.getBuilderType().getEnclosedElements()) {
 
         if (builderModel.getBuildMethod() == null
-            && isPossibleBuildMethod(attributeValueType,
+            && isPossibleBuildMethod(valueAttribute,
             possibleBuildMethodOrConstructor)) {
           builderModel.setBuildMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
 
         if (builderModel.getBuilderMethod() == null
-            && isPossibleBuilderMethod(possibleBuildMethodOrConstructor, false)) {
+            && isPossibleBuilderMethod(possibleBuildMethodOrConstructor, false, valueAttribute)) {
           builderModel.setBuilderMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
 
         if (builderModel.getCopyMethod() == null
-            && isPossibleCopyMethod(attributeValueType, possibleBuildMethodOrConstructor, false)) {
+            && isPossibleCopyMethod(valueAttribute, possibleBuildMethodOrConstructor, false)) {
           builderModel.setCopyMethod((ExecutableElement) possibleBuildMethodOrConstructor);
         }
       }
@@ -324,11 +333,11 @@ public abstract class AttributeBuilderReflection {
     /**
      * Returns true if there's a public way to build the value type with an instance no-arg method.
      *
-     * @param valueType value type that needs to be returned by builder method.
+     * @param valueAttribute value attribute to check.
      * @param possibleBuildMethod method which matches {@link StyleMirror#attributeBuilder()}
      * @return true if this is the possibleBuildMethod can build the value type.
      */
-    private boolean isPossibleBuildMethod(TypeMirror valueType, Element possibleBuildMethod) {
+    private static boolean isPossibleBuildMethod(ValueAttribute valueAttribute, Element possibleBuildMethod) {
       if (possibleBuildMethod.getKind() != ElementKind.METHOD) {
         return false;
       }
@@ -338,7 +347,7 @@ public abstract class AttributeBuilderReflection {
           && candidateBuildMethod.getModifiers().contains(Modifier.PUBLIC)
           && candidateBuildMethod.getTypeParameters().isEmpty()
           && candidateBuildMethod.getReturnType().getKind() == TypeKind.DECLARED
-          && (candidateBuildMethod.getReturnType()).equals(valueType);
+          && (candidateBuildMethod.getReturnType()).equals(valueAttribute.containedTypeElement.asType());
     }
 
     /**
@@ -349,9 +358,9 @@ public abstract class AttributeBuilderReflection {
      *
      * @param possibleBuilderMethod executableElement
      */
-    private boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType) {
+    private static boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType, ValueAttribute valueAttribute) {
       if (possibleBuilderMethod.getKind() == ElementKind.METHOD) {
-        String detectedAttributeBuilder = valueAttribute().containingType.names()
+        String detectedAttributeBuilder = valueAttribute.containingType.names()
             .rawFromAttributeBuilder(possibleBuilderMethod.getSimpleName().toString());
 
         if (detectedAttributeBuilder.isEmpty()) {
@@ -369,7 +378,7 @@ public abstract class AttributeBuilderReflection {
             .asElement().getKind() == ElementKind.CLASS;
 
       } else if (!onValueType && possibleBuilderMethod.getKind() == ElementKind.CONSTRUCTOR) {
-        if (!valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+        if (!valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
           return false;
         }
 
@@ -387,10 +396,10 @@ public abstract class AttributeBuilderReflection {
      * @param possibleBuilderClass nested value element that could be builder class.
      * @return true if it's a static inner class.
      */
-    private boolean isPossibleBuilderClass(Element possibleBuilderClass) {
+    private static boolean isPossibleBuilderClass(Element possibleBuilderClass, ValueAttribute valueAttribute) {
       if (possibleBuilderClass.getKind() == ElementKind.CLASS) {
 
-        if (valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+        if (valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
           return possibleBuilderClass.getModifiers().contains(Modifier.STATIC)
               && possibleBuilderClass.getKind() == ElementKind.CLASS;
         }
@@ -402,16 +411,16 @@ public abstract class AttributeBuilderReflection {
     /**
      * Applies to both builder and value candidates.
      *
-     * @param attributeValueType argument for the copy method.
+     * @param valueAttribute the valueAttribute.
      * @param possibleCopyMethod candidate to check.
      */
-    protected boolean isPossibleCopyMethod(TypeMirror attributeValueType,
+    protected static boolean isPossibleCopyMethod(ValueAttribute valueAttribute,
         Element possibleCopyMethod, boolean onValueType) {
       if (possibleCopyMethod.getKind() == ElementKind.METHOD) {
         ExecutableElement candidateCopyMethod = (ExecutableElement) possibleCopyMethod;
 
         if (candidateCopyMethod.getParameters().size() == 1
-            && candidateCopyMethod.getParameters().get(0).asType().equals(attributeValueType)) {
+            && candidateCopyMethod.getParameters().get(0).asType().equals(valueAttribute.containedTypeElement.asType())) {
 
           return true;
           // handle proto style toBuilder() copy method... lots of BuilderModels created because of this
@@ -422,42 +431,16 @@ public abstract class AttributeBuilderReflection {
         }
       } else if (!onValueType && possibleCopyMethod.getKind() == ElementKind.CONSTRUCTOR) {
 
-        if (!valueAttribute().containingType.names().newTokenInAttributeBuilder()) {
+        if (!valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
           return false;
         }
 
         ExecutableElement candidateConstructor = (ExecutableElement) possibleCopyMethod;
         return candidateConstructor.getParameters().size() == 1
-            && candidateConstructor.getParameters().get(0).asType().equals(attributeValueType);
+            && candidateConstructor.getParameters().get(0).asType().equals(valueAttribute.containedTypeElement.asType());
       }
 
       return false;
-    }
-
-    private boolean logEnabled() {
-      return false;
-    }
-
-    private void log(String message, Object... varags) {
-      if (logEnabled()) {
-        System.out.println(String.format("%s:%s> %s (in %s): %s", Thread.currentThread().getId(),
-            System.identityHashCode(this), valueAttribute(), valueAttribute().containingType,
-            String.format(message, varags)));
-        //System.out.println(Joiner.on("\n").join(Thread.currentThread().getStackTrace()));
-      }
-    }
-  }
-
-  private boolean logEnabled() {
-    return false;
-  }
-
-  private void log(String message, Object... varags) {
-    if (logEnabled()) {
-      System.out.println(String.format("%s:%s> %s (in %s): %s", Thread.currentThread().getId(),
-          System.identityHashCode(this), valueAttribute(), valueAttribute().containingType,
-          String.format(message, varags)));
-      //System.out.println(Joiner.on("\n").join(Thread.currentThread().getStackTrace()));
     }
   }
 }
