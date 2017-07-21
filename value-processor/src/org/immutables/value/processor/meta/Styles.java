@@ -310,7 +310,7 @@ public final class Styles {
         final String addAll = applyRegular(scheme.addAll);
         final String putAll = applyRegular(scheme.putAll);
         final String addBuilder = applySingular(scheme.addBuilder);
-        final String addAllBuilder = applyRegular(scheme.addAllBuilder);
+        final String addAllBuilder = applySingular(scheme.addAllBuilder);
         final String getBuilderList = applySingular(scheme.getBuilderList);
 
 

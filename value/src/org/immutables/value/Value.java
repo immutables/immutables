@@ -1237,7 +1237,7 @@ public @interface Value {
      *
      * @return naming template.
      */
-    String addAllBuilder() default "addAll*Builder";
+    String addAllBuilder() default "addAll*Builders";
 
     /**
      * Naming template for retrieving an immutable list of builders.

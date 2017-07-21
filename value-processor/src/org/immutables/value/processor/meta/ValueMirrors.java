@@ -225,7 +225,7 @@ public final class ValueMirrors {
 
     String addBuilder() default "add*Builder";
 
-    String addAllBuilder() default "addAll*Builder";
+    String addAllBuilder() default "addAll*Builders";
 
     String getBuilderList() default "*Builders";
 

@@ -193,8 +193,8 @@ public class AttributeBuilderTest {
           .builder().value("first party through setter 2");
       ImmutableFirstPartyImmutable.Builder third = ImmutableFirstPartyImmutable
           .builder().value("first party through setter 3");
-      builder.addAllFirstPartyImmutableListBuilder(first);
-      builder.addAllFirstPartyImmutableListBuilder(Arrays.asList(second, third));
+      builder.addAllFirstPartyImmutableBuilders(first);
+      builder.addAllFirstPartyImmutableBuilders(Arrays.asList(second, third));
 
       List<Builder> builderList = builder.firstPartyImmutableBuilders();
       check(builderList.size()).is(3);

@@ -27,9 +27,9 @@ public interface AttributeBuilderBuilderI<ValueT> {
 
   AttributeBuilderBuilderI addFirstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
 
-  AttributeBuilderBuilderI addAllFirstPartyImmutableListBuilder(ImmutableFirstPartyImmutable.Builder... elements);
+  AttributeBuilderBuilderI addAllFirstPartyImmutableBuilders(ImmutableFirstPartyImmutable.Builder... elements);
 
-  AttributeBuilderBuilderI addAllFirstPartyImmutableListBuilder(Iterable<ImmutableFirstPartyImmutable.Builder> elements);
+  AttributeBuilderBuilderI addAllFirstPartyImmutableBuilders(Iterable<ImmutableFirstPartyImmutable.Builder> elements);
 
   List<Builder> firstPartyImmutableBuilders();
 
