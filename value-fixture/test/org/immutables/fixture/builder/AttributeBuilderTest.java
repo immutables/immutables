@@ -2,10 +2,13 @@ package org.immutables.fixture.builder;
 
 import static org.immutables.check.Checkers.check;
 
+import java.util.Arrays;
+import java.util.List;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyWithBuilderExtension;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable.Builder;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ImmutableSamePackageVanillaAttributeBuilderParent;
 import org.immutables.fixture.builder.attribute_builders.SamePackageVanillaAttributeBuilderParent;
@@ -33,7 +36,7 @@ public class AttributeBuilderTest {
   }
 
   @Test
-  public void basicApiForNoJdkParent() {
+  public void basicApiForJdkOnlyParent() {
     assertBasicApi(ImmutableJdkOnlyAttributeBuilderParent.class,
         JdkOnlyAttributeBuilderParent.class,
         ImmutableJdkOnlyAttributeBuilderParent::copyOf, JdkOnlyAttributeBuilderParent.Builder::new);
@@ -151,6 +154,70 @@ public class AttributeBuilderTest {
       check(copy.thirdPartyImmutableList().get(0).getValue())
           .is("third party through attributeBuilder");
 
+    }
+
+    // builder setter api
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      //builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
+          .builder().value("first party through setter");
+      builder.firstPartyImmutableBuilder(firstPartyBuilder);
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.firstPartyImmutable().value()).is("first party through setter");
+
+      // Make sure that we aren't copying the builder we set.
+      firstPartyBuilder.value("another value");
+      ImmutableClassT copy2 = copyFunction.copy(builder.build());
+      check(copy2.firstPartyImmutable().value()).is("another value");
+    }
+
+    // Builder List modification
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      //builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder first = ImmutableFirstPartyImmutable
+          .builder().value("first party through setter 1");
+      ImmutableFirstPartyImmutable.Builder second = ImmutableFirstPartyImmutable
+          .builder().value("first party through setter 2");
+      ImmutableFirstPartyImmutable.Builder third = ImmutableFirstPartyImmutable
+          .builder().value("first party through setter 3");
+      builder.addAllFirstPartyImmutableListBuilder(first);
+      builder.addAllFirstPartyImmutableListBuilder(Arrays.asList(second, third));
+
+      List<Builder> builderList = builder.firstPartyImmutableBuilders();
+      check(builderList.size()).is(3);
+      boolean thrown = false;
+      try {
+        builderList.add(ImmutableFirstPartyImmutable.builder());
+      } catch(Exception e) {
+        thrown = true;
+      }
+      check("Should not have been able to modify builder list, but could", thrown);
+      check(builderList.size()).is(3);
+      builderList.get(1).value("first party through setter munged");
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.firstPartyImmutableList().size()).is(3);
+      check(copy.firstPartyImmutableList().get(0).value()).is("first party through setter 1");
+      check(copy.firstPartyImmutableList().get(1).value()).is("first party through setter munged");
+      check(copy.firstPartyImmutableList().get(2).value()).is("first party through setter 3");
+
+      // Make sure that we aren't copying the builder we add.
+      third.value("MUNGING");
+      ImmutableClassT copy2 = copyFunction.copy(builder.build());
+      check(copy2.firstPartyImmutableList().get(2).value()).is("MUNGING");
     }
   }
 
@@ -376,7 +443,8 @@ public class AttributeBuilderTest {
     ImmutableNeapolitanAttributeBuilderParent copy = ImmutableNeapolitanAttributeBuilderParent
         .copyOf(builder.build());
     check(copy.fpWithBuilderExtension().value())
-        .is(FirstPartyWithBuilderExtension.EXTENSION_OVERRIDE + "first party through attributeBuilder");
+        .is(FirstPartyWithBuilderExtension.EXTENSION_OVERRIDE
+            + "first party through attributeBuilder");
   }
 
   @Test

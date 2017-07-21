@@ -1,8 +1,10 @@
 package org.immutables.fixture.builder.functional;
 
+import java.util.List;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable.Builder;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
 
@@ -11,6 +13,8 @@ public interface AttributeBuilderBuilderI<ValueT> {
   AttributeBuilderBuilderI firstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
 
   ImmutableFirstPartyImmutable.Builder firstPartyImmutableBuilder();
+
+  AttributeBuilderBuilderI firstPartyImmutableBuilder(ImmutableFirstPartyImmutable.Builder firstPartyImmutableBuilder);
 
   AttributeBuilderBuilderI firstPartyImmutableWithDifferentStyle(
       FirstPartyImmutableWithDifferentStyle firstPartyImmutableWithDifferentStyle);
@@ -22,6 +26,12 @@ public interface AttributeBuilderBuilderI<ValueT> {
   ThirdPartyImmutable.Builder thirdPartyImmutableBuilder();
 
   AttributeBuilderBuilderI addFirstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
+
+  AttributeBuilderBuilderI addAllFirstPartyImmutableListBuilder(ImmutableFirstPartyImmutable.Builder... elements);
+
+  AttributeBuilderBuilderI addAllFirstPartyImmutableListBuilder(Iterable<ImmutableFirstPartyImmutable.Builder> elements);
+
+  List<Builder> firstPartyImmutableBuilders();
 
   ImmutableFirstPartyImmutable.Builder addFirstPartyImmutableBuilder();
 
