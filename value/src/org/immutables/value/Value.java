@@ -1173,7 +1173,7 @@ public @interface Value {
      * This style parameter is experimental and may change in future.
      * @return true to enable the feature.
      */
-    boolean attributBuilderDetection() default false;
+    boolean attributeBuilderDetection() default false;
 
     /**
      * Pattern for detecting builders.
@@ -1183,17 +1183,29 @@ public @interface Value {
      * value instance method, the builder class must have a public no-arg static construction
      * method. To use a no-arg public constructor, a special token "new" should be specified.
      *
+     * example: new token required to find this builder.
+     * <pre>
+     * class MyObject {
+     *   class Builder {
+     *     public Builder() {...}
+     *     public Builder(MyObject copy) {...}
+     *
+     *     MyObject build() {...}
+     *   }
+     * }
+     * </pre>
+     *
      * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested builder.</em>
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template
      */
-    String[] attributeBuilder() default {"*Builder", "builder"};
+    String[] attributeBuilder() default {"*Builder", "builder", "new"};
 
     /**
      * Naming template for retrieving a nested builder.
      *
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template.
      */
@@ -1203,7 +1215,7 @@ public @interface Value {
      * Naming template for setting a nested builder.
      * This may be called only once in strict mode.
      *
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template.
      */
@@ -1212,7 +1224,7 @@ public @interface Value {
     /**
      * Naming template for adding a new builder instance to a collection.
      *
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template.
      */
@@ -1221,16 +1233,16 @@ public @interface Value {
     /**
      * Naming template for adding a collection of builders.
      *
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template.
      */
-    String addAllBuilder() default "addAll*Builder";
+    String addAllBuilder() default "addAll*Builders";
 
     /**
      * Naming template for retrieving an immutable list of builders.
      *
-     * Only applies if {@link #attributBuilderDetection()} is {@code true}.
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
      *
      * @return naming template.
      */

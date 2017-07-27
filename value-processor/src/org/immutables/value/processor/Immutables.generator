@@ -115,6 +115,9 @@ import static [routine].immutableCopyOf;
 [if type.generateJdkOnly and type.useCollectionUtility]
   [collectionUtility type]
 [/if]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
+[/if]
 }
 [/template]
 
@@ -214,6 +217,9 @@ import static [routine].immutableCopyOf;
 [/if]
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
+[/if]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
 [/if]
 }
 [/for]
@@ -1323,17 +1329,17 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
       [/if]
       [if v.nullElements.skip]
-    if (element != null) this.[v.name].add(element);
+    if (element != null) this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
       [else if v.nullElements.allow]
-    this.[v.name].add(element);
+    this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
       [else]
-    this.[v.name].add([requireNonNull type](element, "[v.name] element"));
+    this.[v.name].add([maybeToBuilder v][requireNonNull type](element, "[v.name] element")[/maybeToBuilder]);
       [/if]
     [else]
     [if v.hasAttributeValue]
     element = [deepCopyOf v]element[/deepCopyOf];
     [/if]
-    this.[v.name].add(element);
+    this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
@@ -1373,6 +1379,61 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
       [/if]
       [if v.primitiveElement or v.nullElements.allow]
+      this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
+      [else if v.nullElements.skip]
+      if (element != null) this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
+      [else]
+      this.[v.name].add([maybeToBuilder v][requireNonNull type](element, "[v.name] element")[/maybeToBuilder]);
+      [/if]
+    }
+    [else]
+      [if v.wrapArrayToIterable]
+    this.[v.name].addAll([if v.isAttributeBuilder][convertToBuilderType v.getAttributeBuilderDescriptor](elements)[else][arrayAsList v 'elements'][/if]);
+      [else]
+    this.[v.name].[if v.isAttributeBuilder]addAll([convertToBuilderType v.getAttributeBuilderDescriptor](elements))[else]add(elements)[/if];
+      [/if]
+    [/if]
+    [nondefaultSetInBuilder v]
+    return [builderReturnThis type];
+  }
+
+  [if v.isAttributeBuilder]
+  /**
+   * Adds a new builder to the [sourceDocRef type v] [toLower v.rawCollectionType] and returns
+   * the builder.
+   */
+  [atCanIgnoreReturnValue]
+  [deprecation v]
+  [varargsSafety v]
+  public final [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.names.addBuilder]() {
+    [if v.nullableCollector]
+    if (this.[v.name] == null) {
+      [defineOrResetBuildingFieldAlt v false false]
+    }
+    [/if]
+    [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] builder = [createAttributeBuilder v.getAttributeBuilderDescriptor];
+    this.[v.name].add(builder);
+
+    return builder;
+  }
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements An array of [v.name] builder elements
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [atCanIgnoreReturnValue]
+  [deprecation v]
+  [varargsSafety v]
+  public final [builderReturnType type] [v.names.addAllBuilder]([attributeBuilderBuilderType v.getAttributeBuilderDescriptor]... elements) {
+    [if v.nullableCollector]
+    if (this.[v.name] == null) {
+      [defineOrResetBuildingFieldAlt v false false]
+    }
+    [/if]
+    [if v.generateJdkOnly or v.hasAttributeValue]
+    for ([attributeBuilderBuilderType v.getAttributeBuilderDescriptor] element : elements) {
+      [if v.primitiveElement or v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
       if (element != null) this.[v.name].add(element);
@@ -1390,6 +1451,21 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
   }
+
+  /**
+   * Gets the builder elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @return {@code this} unmodifiable list of modifiable builders.
+   */
+  [deprecation v]
+  [varargsSafety v]
+  public final java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [v.names.getBuilderList]() {
+  [if v.generateJdkOnly]
+    return createUnmodifiableList(false, this.[v.name]);
+  [else]
+    return this.[v.name].build();
+  [/if]
+  }
+  [/if]
       [if not type.useStrictBuilder]
 
   /**
@@ -1434,6 +1510,38 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [if not v.nullElements.ban]if (element != null) [/if]element = [deepCopyOf v]element[/deepCopyOf];
       [/if]
       [if v.nullElements.allow]
+      this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
+      [else if v.nullElements.skip]
+      if (element != null) this.[v.name].add([maybeToBuilder v]element[/maybeToBuilder]);
+      [else]
+      this.[v.name].add([maybeToBuilder v][requireNonNull type](element, "[v.name] element")[/maybeToBuilder]);
+      [/if]
+    }
+    [else]
+    this.[v.name].addAll([if v.isAttributeBuilder][convertToBuilderType v.getAttributeBuilderDescriptor](elements)[else]elements[/if]);
+    [/if]
+    [nondefaultSetInBuilder v]
+    return [builderReturnThis type];
+  }
+  [if v.isAttributeBuilder]
+
+  /**
+   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * @param elements An iterable of [v.name] builder elements
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [atCanIgnoreReturnValue]
+  [deprecation v]
+  [builderInitAccess v]final [builderReturnType type] [v.names.addAllBuilder](Iterable<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> elements) {
+    [if v.nullableCollector]
+    [requireNonNull type](elements, "[v.name] element");
+    if (this.[v.name] == null) {
+      [defineOrResetBuildingFieldAlt v false false]
+    }
+    [/if]
+    [if v.generateJdkOnly or v.hasAttributeValue]
+    for ([attributeBuilderBuilderType v.getAttributeBuilderDescriptor] element : elements) {
+      [if v.nullElements.allow]
       this.[v.name].add(element);
       [else if v.nullElements.skip]
       if (element != null) this.[v.name].add(element);
@@ -1447,6 +1555,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
   }
+  [/if]
   [else if v.optionalType]
     [if not v.isBuilderParameter]
 
@@ -1732,12 +1841,46 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [if v.isBuilderSwitcher and type.kind.isFactory][-- considered always null safe because method call is private/internal --]
     this.[v.name] = [v.name];
     [else]
-    this.[v.name] = [valueFromValue v v.name];
+    this.[v.name] = [maybeToBuilder v][valueFromValue v v.name][/maybeToBuilder];
     [/if]
     [nondefaultSetInBuilder v]
     [mandatorySetInBuilder v]
     return [builderReturnThis type];
   }
+
+  [if v.isAttributeBuilder]
+  /**
+   * Returns a builder for [sourceDocRef type v].
+   *
+   * Once called, the attribute builder field is set to a new instance of the builder.
+   * If called more than once, returns the same builder instance.
+   */
+  [builderInitAnnotations v]
+  [deprecation v]
+  [builderInitAccess v]final [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.names.getBuilder]() {
+    if (this.[v.name] == null) {
+      this.[v.name] = [createAttributeBuilder v.getAttributeBuilderDescriptor];
+    }
+    [nondefaultSetInBuilder v]
+    [mandatorySetInBuilder v]
+
+    return this.[v.name];
+  }
+
+  /**
+   * Sets [sourceDocRef type v] to the provided builder.
+   */
+  [atCanIgnoreReturnValue]
+  [builderInitAnnotations v]
+  [deprecation v]
+  [builderInitAccess v]final [builderReturnType type] [v.names.setBuilder]([v.atNullability][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [v.name]) {
+    [checkNotIsSet v]
+    this.[v.name] = [v.name];
+    [nondefaultSetInBuilder v]
+    [mandatorySetInBuilder v]
+    return [builderReturnThis type];
+  }
+  [/if]
   [/if]
   [/for]
 [if type.generateClearBuilder]
@@ -1884,6 +2027,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
   [collectionUtility type]
 [/if]
+[if type.detectAttributeBuilders]
+  [attributeBuilderTransformUtilities type]
+[/if]
 }
 [if type.telescopicBuild andnot topLevel]
 [generateTelescopicBuilderInterfaces type]
@@ -1958,6 +2104,10 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 
 [template valueFromSuper Attribute v String expression][if v.guavaImmutableDeclared][if not v.nullable][requireNonNull v.containingType]([expression], "[v.name]")[else][expression][/if][else][valueFromValue v expression][/if][/template]
 
+[template maybeToBuilder Attribute v String expression][if v.isAttributeBuilder][valueToBuilder v.getAttributeBuilderDescriptor][expression][/valueToBuilder][else][expression][/if][/template]
+
+[template valueToBuilder AttributeBuilder n String expression][if n.isCopyMethodOnValueInstance][expression].[n.getQualifiedValueToBuilderMethod]()[else][n.getQualifiedValueToBuilderMethod]([expression])[/if][/template]
+
 [template valueFromValue Attribute v String expression][output.trim]
 [if v.encoding]
   [rr.from v expression]
@@ -1976,7 +2126,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
-[template deepCopyOf Attribute v String expression][v.attributeValueType.factoryCopyOf]([expression])[/template]
+[template deepCopyOf Attribute v String expression][if v.isAttributeBuilder][convertToValueType v.getAttributeBuilderDescriptor]([expression])[else][v.attributeValueType.factoryCopyOf]([expression])[/if][/template]
 
 [template valueFromBuilder Attribute v String expressionPrefix][valueFromBuilderAlt v true expressionPrefix][/template]
 
@@ -1993,6 +2143,8 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
   [else]
     [immutableCollectionBuild v (expressionPrefix v.name)]
   [/if]
+[else if v.isAttributeBuilder]
+  [expressionPrefix][v.name].[v.getAttributeBuilderDescriptor.getBuildMethod]()
 [else]
   [expressionPrefix][v.name]
 [/if]
@@ -2959,7 +3111,11 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   if (this.[v.name] == value) return this;
     [/if]
     [if v.attributeValueType and v.typeKind.isRegular]
+      [if v.isAttributeBuilder]
+  [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
+      [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
+      [/if]
   [generateReturnCopyContextual type v]
     [else if v.nullable or v.primitive]
   [generateReturnCopy type v 'value']
@@ -3080,7 +3236,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [else if a.generateOrdinalValueSet]
     [output.error]Not implemented generate OrdinalValue set for JDK only[/output.error]
   [else if a.listType]
-    createUnmodifiableList(true, [expression])
+    createUnmodifiableList(true, [if a.isAttributeBuilder][convertToValueType a.getAttributeBuilderDescriptor]([expression])[else][expression][/if])
   [else if a.setType]
     createUnmodifiableSet([expression])
   [else if a.generateEnumMap]
@@ -3094,7 +3250,7 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
   [if a.generateOrdinalValueSet or (a.generateEnumSet or a.generateEnumMap)]
     [immutableCollectionCopyOf a][expression].build()[/immutableCollectionCopyOf]
   [else]
-    [expression].build()
+    [if a.isAttributeBuilder][guava].collect.ImmutableList.copyOf([convertToValueType a.getAttributeBuilderDescriptor]([expression].build()))[else][expression].build()[/if]
   [/if]
 [/if]
 [/output.trim][/template]
@@ -3317,6 +3473,101 @@ private static boolean equals(Object left, Object right) {
 [/for]
 [/template]
 
+[template public attributeBuilderTransformUtilities Type type]
+
+[if type.detectAttributeBuilders]
+
+[for v in type.uniqueAttributeBuilderAttributes]
+
+[atNullable]
+[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+private [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
+  if (builder == null) {
+    return null;
+  }
+
+  return builder.[v.getAttributeBuilderDescriptor.getBuildMethod]();
+}
+
+[atNullable]
+[-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
+private [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
+  if (value == null) {
+    return null;
+  }
+
+  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
+}
+
+[atNullable]
+private [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
+  if (value == null) {
+    return null;
+  }
+
+  return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
+}
+[/for]
+
+
+[for v in type.uniqueAttributeBuilderListAttributes]
+[let listType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
+private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
+[copyBuilderListBody v true false]builderList[/copyBuilderListBody]
+}
+
+private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
+[copyBuilderListBody v true true]builderArray[/copyBuilderListBody]
+}
+
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
+[copyBuilderListBody v false false]valueList[/copyBuilderListBody]
+}
+
+private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
+[copyBuilderListBody v false true]valueArray[/copyBuilderListBody]
+}
+[/for]
+[/if]
+[/template]
+
+[template convertToBuilderType AttributeBuilder n]convertToBuilderType[n.getQualifiedValueTypeNameWithUnderscores][/template]
+[template convertToValueType AttributeBuilder n]convertToValueType[n.getQualifiedValueTypeNameWithUnderscores][/template]
+
+[template copyBuilderListBody Attribute v Boolean toValueType Boolean vargs String listToTransform]
+[let listType][if toValueType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][else][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][/if][/let]
+  [if v.generateJdkOnly]
+  java.util.ArrayList<[listType]> list;
+    [if vargs]
+  if ([listToTransform].length == 0) return java.util.Collections.emptyList();
+    [else]
+  if ([listToTransform] instanceof java.util.Collection<?>) {
+    int size = ((java.util.Collection<?>) [listToTransform]).size();
+    if (size == 0) return java.util.Collections.emptyList();
+  }
+    [/if]
+  list = new java.util.ArrayList<[listType]>();
+  [else]
+    [-- This is a mess, we don't want to use listType because of reasons --]
+  [guava].collect.ImmutableList.Builder<[listType]> list = [guava].collect.ImmutableList.builder();
+  [/if]
+
+  [-- todo: skip nulls and such? --]
+  for ([if toValueType][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] element : [listToTransform]) {
+    [if toValueType]
+    list.add(element.[v.getAttributeBuilderDescriptor.getBuildMethod]());
+    [else]
+    list.add([valueToBuilder v.getAttributeBuilderDescriptor]element[/valueToBuilder]);
+    [/if]
+  }
+
+  [if v.generateJdkOnly]
+  return list;
+  [else]
+  return list.build();
+  [/if]
+[/template]
+
 [template public collectionUtility Type type]
 [if type.useListUtility or (type.useSetUtility or (type.useEnumSetUtility or type.useSortedSetUtility))]
 
@@ -3523,7 +3774,11 @@ this.[v.name].clear();
       [else if v.generateEnumSet]
 [if declare][accessModifier] java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
       [else]
+        [if v.isAttributeBuilder]
+[if declare][accessModifier] java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]>()[/if];
+        [else]
 [if declare][accessModifier] java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
+        [/if]
       [/if]
     [else]
       [if v.generateSortedSet]
@@ -3533,7 +3788,11 @@ this.[v.name].clear();
       [else if v.customCollectionType]
 [if declare][accessModifier] [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]
+        [if v.isAttributeBuilder]
+[if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+        [else]
 [if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+        [/if]
       [else if v.optionalType]
 [if declare][accessModifier] [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
@@ -3549,6 +3808,12 @@ this.[v.name].clear();
 this.[v.name] = false;
     [else]
 this.[v.name] = 0;
+    [/if]
+  [else if v.isAttributeBuilder]
+    [if declare]
+[accessModifier] [atNullable][attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.name];
+    [else]
+this.[v.name] = null;
     [/if]
   [else]
     [if declare]
@@ -3608,6 +3873,10 @@ private static final long serialVersionUID = [literal serialVersion];
 [template builderReturnThis Type type][if type.innerBuilder.isExtending]([type.typeBuilder]) [/if]this[/template]
 
 [template builderReturnType Type type][if type.innerBuilder.isExtending][type.typeBuilder][else][type.typeBuilder.simple][type.generics.args][/if][/template]
+
+[template attributeBuilderBuilderType AttributeBuilder n][n.getQualifiedBuilderTypeName][/template]
+
+[template createAttributeBuilder AttributeBuilder n][n.getQualifiedBuilderConstructorMethod]()[/template]
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 

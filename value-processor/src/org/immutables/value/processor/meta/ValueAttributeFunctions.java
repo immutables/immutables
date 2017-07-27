@@ -15,7 +15,12 @@
  */
 package org.immutables.value.processor.meta;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Predicate;
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Only functions left in this previously generated file (long time ago)
@@ -108,6 +113,74 @@ final class ValueAttributeFunctions {
     @Override
     public String toString() {
       return ValueAttributeFunctions.class.getSimpleName() + ".isPrimitive()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> isAttributeBuilder() {
+    return AttributeBuilderPredicate.INSTANCE;
+  }
+
+  private enum AttributeBuilderPredicate
+      implements Predicate<ValueAttribute> {
+    INSTANCE;
+
+    @Override
+    public boolean apply(ValueAttribute input) {
+      return AttributeBuilderReflection.forValueType(input).isAttributeBuilder();
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".isAttributeBuilder()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> isListType() {
+    return IsListType.INSTANCE;
+  }
+
+  private enum IsListType
+      implements Predicate<ValueAttribute> {
+    INSTANCE;
+
+    @Override
+    public boolean apply(ValueAttribute input) {
+      return input.isListType();
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".isListType()";
+    }
+  }
+
+  public static Predicate<ValueAttribute> uniqueOnAttributeBuilderDescriptor() {
+    return new UniqueOnAttributeBuilderDescriptor();
+  }
+
+  private static class UniqueOnAttributeBuilderDescriptor implements Predicate<ValueAttribute> {
+    Set<AttributeBuilderDescriptor> uniqueSet;
+
+    public UniqueOnAttributeBuilderDescriptor() {
+      uniqueSet = new HashSet<>();
+    }
+
+    @Nullable
+    @Override
+    public boolean apply(ValueAttribute valueAttribute) {
+
+      if (uniqueSet.contains(checkNotNull(valueAttribute.getAttributeBuilderDescriptor()))) {
+        return false;
+      }
+
+      uniqueSet.add(valueAttribute.getAttributeBuilderDescriptor());
+
+      return true;
+    }
+
+    @Override
+    public String toString() {
+      return ValueAttributeFunctions.class.getSimpleName() + ".uniqueOnAttributeBuilderDescriptor()";
     }
   }
 }
