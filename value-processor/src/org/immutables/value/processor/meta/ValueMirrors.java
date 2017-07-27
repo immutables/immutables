@@ -215,6 +215,20 @@ public final class ValueMirrors {
 
     String redactedMask() default "";
 
+    boolean attributeBuilderDetection() default false;
+
+    String[] attributeBuilder() default {"*Builder", "builder", "new"};
+
+    String getBuilder() default "*Builder";
+
+    String setBuilder() default "*Builder";
+
+    String addBuilder() default "add*Builder";
+
+    String addAllBuilder() default "addAll*Builders";
+
+    String getBuilderList() default "*Builders";
+
     String nullableAnnotationName() default "Nullable";
 
     public enum ImplementationVisibility {

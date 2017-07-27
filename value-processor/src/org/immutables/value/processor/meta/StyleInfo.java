@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
  */
 @SuppressWarnings("all")
 @Value.Immutable(intern = true, builder = false)
+@Value.Style(get="*")
 public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Override
@@ -303,6 +304,34 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Value.Parameter
   @Override
   public abstract String redactedMask();
+
+  @Value.Parameter
+  @Override
+  public abstract boolean attributeBuilderDetection();
+
+  @Value.Parameter
+  @Override
+  public abstract String[] attributeBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract String getBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract String setBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract String addBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract String addAllBuilder();
+
+  @Value.Parameter
+  @Override
+  public abstract String getBuilderList();
 
   @Value.Parameter
   @Override

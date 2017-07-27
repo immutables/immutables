@@ -1788,6 +1788,13 @@ public class Proto {
           input.beanFriendlyModifiables(),
           input.allMandatoryParameters(),
           input.redactedMask(),
+          input.attributeBuilderDetection(),
+          input.attributeBuilder(),
+          input.getBuilder(),
+          input.setBuilder(),
+          input.addBuilder(),
+          input.addAllBuilder(),
+          input.getBuilderList(),
           input.nullableAnnotationName());
     }
   }
