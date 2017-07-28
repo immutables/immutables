@@ -216,7 +216,7 @@ public final class Support {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Comparable<T>> Range<Comparable<Object>> writable(TypeAdapter<T> adapter, Range<T> range) {
+  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(TypeAdapter<T> adapter, Range<T> range) {
     if (range.hasLowerBound() && range.hasUpperBound()) {
       return Range.range(
           (Comparable<Object>) writable(adapter, range.lowerEndpoint()),
@@ -236,7 +236,7 @@ public final class Support {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Comparable<T>> Range<Comparable<Object>> writable(Range<T> range) {
+  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(Range<T> range) {
     return (Range<Comparable<Object>>) writable((Object) range);
   }
 

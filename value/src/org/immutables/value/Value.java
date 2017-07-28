@@ -203,16 +203,16 @@ public @interface Value {
    * <pre>
    * {@literal @}Value.Immutable
    * public abstract class Order {
-   * 
+   *
    *   public abstract List&lt;Item&gt; items();
-   * 
+   *
    *   {@literal @}Value.Lazy
    *   public int totalCost() {
    *     int cost = 0;
-   * 
+   *
    *     for (Item i : items())
    *       cost += i.count() * i.price();
-   * 
+   *
    *     return cost;
    *   }
    * }
@@ -281,19 +281,19 @@ public @interface Value {
    * (non-private) method and have a {@code void} return type, which also should not throw a checked
    * exceptions.
    * </p>
-   * 
+   *
    * <pre>
    * {@literal @}Value.Immutable
    * public abstract class NumberContainer {
    *   public abstract List<Number> nonEmptyNumbers();
-   * 
+   *
    *   {@literal @}Value.Check
    *   protected void check() {
    *     Preconditions.checkState(!nonEmptyNumbers().isEmpty(),
    *         "'nonEmptyNumbers' should have at least one number");
    *   }
    * }
-   * 
+   *
    * // will throw IllegalStateException("'nonEmptyNumbers' should have at least one number")
    * ImmutableNumberContainer.builder().build();
    * </pre>
@@ -314,12 +314,12 @@ public @interface Value {
    * <em>Be warned that it's easy introduce unresolvable recursion if normalization is implemented without
    * proper or with conflicting checks. Always return {@code this} if value do not require normalization.</em>
    * </p>
-   * 
+   *
    * <pre>
    * {@literal @}Value.Immutable
    * public interface Normalize {
    *   int value();
-   * 
+   *
    *   {@literal @}Value.Check
    *   default Normalize normalize() {
    *     if (value() == Integer.MIN_VALUE) {
@@ -335,7 +335,7 @@ public @interface Value {
    *     return this;
    *   }
    * }
-   * 
+   *
    * int shouldBePositive2 = ImmutableNormalize.builder()
    *     .value(-2)
    *     .build()
@@ -734,7 +734,7 @@ public @interface Value {
      *     allParameters = true,
      *     defaults = {@literal @}Value.Immutable(builder = false))
      * public @interface Tuple {}
-     * 
+     *
      * {@literal @}Tuple
      * {@literal @}Value.Immutable
      * interface Color {
@@ -744,7 +744,7 @@ public @interface Value {
      *   {@literal @}Value.Parameter(false)
      *   List<Info> auxiliaryInfo();
      * }
-     * 
+     *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
      * @return if all attributes will be considered parameters
@@ -899,7 +899,7 @@ public @interface Value {
      * confusing overload).</li>
      * </ul>
      * See the example below which illustrates these behaviors.
-     * 
+     *
      * <pre>
      * {@literal @}Value.Style(deepImmutablesDetection = true)
      * public interface Canvas {
@@ -909,20 +909,20 @@ public @interface Value {
      *     {@literal @}Value.Parameter double green();
      *     {@literal @}Value.Parameter double blue();
      *   }
-     * 
+     *
      *   {@literal @}Value.Immutable
      *   public interface Point {
      *     {@literal @}Value.Parameter int x();
      *     {@literal @}Value.Parameter int y();
      *   }
-     * 
+     *
      *   {@literal @}Value.Immutable
      *   public interface Line {
      *     Color color();
      *     Point start();
      *     Point end();
      *   }
-     * 
+     *
      *   public static void main(String... args) {
      *     ImmutableLine line = ImmutableLine.builder()
      *         .start(1, 2) // overload, equivalent of .start(ImmutablePoint.of(1, 2))
@@ -931,11 +931,11 @@ public @interface Value {
      *         .color(0.9, 0.7, 0.4)
      *         // overload, equivalent of .color(ImmutableColor.of(0.9, 0.7. 0.4))
      *         .build();
-     * 
+     *
      *     ImmutablePoint start = line.start(); // return type is ImmutablePoint rather than declared Point
      *     ImmutablePoint end = line.end(); // return type is ImmutablePoint rather than declared Point
      *     ImmutableColor color = line.color(); // return type is ImmutableColor rather than declared Color
-     * 
+     *
      *     ImmutableLine.builder()
      *         .start(start)
      *         .end(end)
@@ -1028,13 +1028,13 @@ public @interface Value {
      * ("*ies" to "*y" is also supported).
      * Exceptions are provided using {@link #depluralizeDictionary()} array of "singular:plural"
      * pairs as alternative to mechanical "*s" depluralization.
-     * 
+     *
      * <pre>
      * {@literal @}Value.Style(
      *    depluralize = true, // enable feature
      *    depluralizeDictionary = {"person:people", "foot:feet"}) // specifying dictionary of exceptions
      * </pre>
-     * 
+     *
      * When given the dictionary defined as {@code "person:people", "foot:feet"} then
      * depluralization examples for collection {@code add*} method in builder would be:
      * <ul>
@@ -1147,6 +1147,109 @@ public @interface Value {
      * @return redacted value substitution string
      */
     String redactedMask() default "";
+
+
+    String nullableAnnotationName() default "Nullable";
+
+    /**
+     * When enabled: immutable attributes with discoverable builders receive the additional
+     * builder API:
+     *
+     * For single children:
+     * {@code BuilderT *Builder()}
+     * {@code ParentT *Builder(BuilderT builder)}
+     *
+     * For a collection of children:
+     * {@code BuilderT add*Builder()}
+     * {@code ParentT addAll*Builder(Iterable<BuilderT> builderCollection)}
+     * {@code ParentT addAll*Builder(BuilderT... builderArgs)}
+     * {@code List<BuilderT> *Builders()}
+     *
+     * In strict mode, you may only set the builder via {@code *Builder(BuilderT builder)} once,
+     * but you may call {@code *Builder()} multiple times, in which the same builder is returned.
+     * If the nested immutable is also strict, then you will only be able to set properties on
+     * the child builder once.
+     *
+     * To discover builders on value attributes the value methods are scanned for method names
+     * matching a patterns specified in {@link #attributeBuilder()}.
+     *
+     * This style parameter is experimental and may change in future.
+     * @return true to enable the feature.
+     */
+    boolean attributeBuilderDetection() default false;
+
+    /**
+     * Pattern for detecting builders.
+     *
+     * {@link #attributeBuilder()} applies to both
+     * static and instance methods. In the case a builder is only discoverable through a
+     * value instance method, the builder class must have a public no-arg static construction
+     * method. To use a no-arg public constructor, a special token "new" should be specified.
+     *
+     * example: new token required to find this builder.
+     * <pre>
+     * class MyObject {
+     *   class Builder {
+     *     public Builder() {...}
+     *     public Builder(MyObject copy) {...}
+     *
+     *     MyObject build() {...}
+     *   }
+     * }
+     * </pre>
+     *
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested builder.</em>
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template
+     */
+    String[] attributeBuilder() default {"*Builder", "builder", "new"};
+
+    /**
+     * Naming template for retrieving a nested builder.
+     *
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String getBuilder() default "*Builder";
+
+    /**
+     * Naming template for setting a nested builder.
+     * This may be called only once in strict mode.
+     *
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String setBuilder() default "*Builder";
+
+    /**
+     * Naming template for adding a new builder instance to a collection.
+     *
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String addBuilder() default "add*Builder";
+
+    /**
+     * Naming template for adding a collection of builders.
+     *
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String addAllBuilder() default "addAll*Builders";
+
+    /**
+     * Naming template for retrieving an immutable list of builders.
+     *
+     * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
+     * @return naming template.
+     */
+    String getBuilderList() default "*Builders";
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

@@ -71,6 +71,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   public boolean isGenerateDerived;
   public boolean isGenerateAbstract;
   public boolean isGenerateLazy;
+  public boolean isAttributeBuilder;
   public ImmutableList<String> typeParameters = ImmutableList.of();
   // Replace with delegation?
   public Reporter reporter;
@@ -83,6 +84,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   TypeMirror returnType;
   Element element;
   String returnTypeName;
+  // Set only if isAttributeBuilder is true
+  @Nullable
+  private AttributeBuilderDescriptor attributeBuilderDescriptor;
 
   public boolean hasEnumFirstTypeParameter;
 
@@ -878,6 +882,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return returnType.getKind().isPrimitive();
   }
 
+  public boolean isAttributeBuilder() {
+    return isAttributeBuilder;
+  }
+
   // undefined value is any less than CONSTRUCTOR_NOT_A_PARAMETER
   private int parameterOrder = Integer.MIN_VALUE;
 
@@ -1048,6 +1056,18 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       initAttributeValueType();
       initImmutableCopyOf();
     }
+
+    initAttributeBuilder();
+  }
+
+  private void initAttributeBuilder() {
+    AttributeBuilderReflection attributeBuilderReflection =
+        AttributeBuilderReflection.forValueType(this);
+    isAttributeBuilder = attributeBuilderReflection.isAttributeBuilder();
+
+    if (isAttributeBuilder) {
+      attributeBuilderDescriptor = attributeBuilderReflection.getAttributeBuilderDescriptor();
+    }
   }
 
   private void initImmutableCopyOf() {
@@ -1124,8 +1144,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void initAttributeValueType() {
 
-    if (containingType.constitution.style().deepImmutablesDetection()
-        && containedTypeElement != null) {
+    if ((containingType.constitution.style().deepImmutablesDetection()
+        || containingType.constitution.style().attributeBuilderDetection())
+          && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
         // We don't propagate type arguments so we don't support it, sorry
@@ -1306,12 +1327,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .warning("@Nullable on a Optional attribute make it lose its special treatment");
       } else if (isPrimitive()) {
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-            .error("@Nullable could not be used with primitive type attibutes");
+            .annotationNamed(this.names.nullableAnnotationName)
+            .error("@" + this.names.nullableAnnotationName + " could not be used with primitive type attibutes");
       } else if (containingType.isAnnotationType()) {
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-            .error("@Nullable could not be used with annotation attribute, use default value");
+            .annotationNamed(this.names.nullableAnnotationName)
+            .error("@" + this.names.nullableAnnotationName + " could not be used with annotation attribute, use default value");
       }
     }
 
@@ -1332,9 +1353,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+            .annotationNamed(this.names.nullableAnnotationName)
             .warning(
-                "@Nullable on a container attribute make it lose its special treatment (when strictBuilder = true)");
+                "@" + this.names.nullableAnnotationName + " on a container attribute make it lose its special treatment (when strictBuilder = true)");
       }
     }
 
@@ -1375,7 +1396,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
-      if (simpleName.contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
+      if (simpleName.contentEquals(this.names.nullableAnnotationName)) {
         nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;
@@ -1524,6 +1545,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       return type.substring(indexOfGenerics);
     }
     return "";
+  }
+
+  public AttributeBuilderDescriptor getAttributeBuilderDescriptor() {
+    return attributeBuilderDescriptor;
   }
 
   Reporter report() {

@@ -20,6 +20,7 @@ import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.encode.Generator_Renderers;
 import org.immutables.value.processor.encode.Renderers;
+import org.immutables.value.processor.meta.AttributeBuilderDescriptor;
 
 @Generator.Template
 abstract class Immutables extends ValuesTemplate {
@@ -30,6 +31,9 @@ abstract class Immutables extends ValuesTemplate {
   
   @Nullable
   String topLevelSimple;
+
+  @Generator.Typedef
+  AttributeBuilderDescriptor AttributeBuilder;
 
   abstract Templates.Invokable arrayAsList();
 

@@ -136,6 +136,10 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
 
+  public boolean detectAttributeBuilders() {
+    return constitution.style().attributeBuilderDetection();
+  }
+
   public boolean hasDerivedAttributes() {
     return derivedAttributesCount > 0;
   }
@@ -759,6 +763,34 @@ public final class ValueType extends TypeIntrospectionBase {
     return settableAttributes;
   }
 
+  @Nullable
+  private Set<ValueAttribute> uniqueAttributeBuilderListAttributes;
+
+  public Set<ValueAttribute> getUniqueAttributeBuilderListAttributes() {
+    if (uniqueAttributeBuilderListAttributes == null) {
+      uniqueAttributeBuilderListAttributes = FluentIterable.from(getSettableAttributes())
+          .filter(ValueAttributeFunctions.isListType())
+          .filter(ValueAttributeFunctions.isAttributeBuilder())
+          .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
+          .toSet();
+    }
+    return uniqueAttributeBuilderListAttributes;
+  }
+
+  @Nullable
+  private Set<ValueAttribute> uniqueNestedBuilderAttributes;
+
+  public Set<ValueAttribute> getUniqueAttributeBuilderAttributes() {
+    if (uniqueNestedBuilderAttributes == null) {
+      uniqueNestedBuilderAttributes = FluentIterable.from(getSettableAttributes())
+              .filter(ValueAttributeFunctions.isAttributeBuilder())
+              .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
+          .toSet();
+    }
+    return uniqueNestedBuilderAttributes;
+  }
+
+
   public List<ValueAttribute> getExcludableAttributes() {
     List<ValueAttribute> excludables = Lists.newArrayList();
     for (ValueAttribute attribute : attributes()) {
@@ -1361,6 +1393,11 @@ public final class ValueType extends TypeIntrospectionBase {
               hasDeprecatedAttributes());
     }
     return suppressedWarnings;
+  }
+
+  public boolean suppressesUncheckedWarning() {
+    Set<String> typeSuppressions = generatedSuppressWarnings();
+    return typeSuppressions.contains("all") || typeSuppressions.contains("unchecked");
   }
 
   public boolean isGenerateSuppressAllWarnings() {
