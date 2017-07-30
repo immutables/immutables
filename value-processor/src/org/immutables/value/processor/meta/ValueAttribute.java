@@ -1327,12 +1327,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .warning("@Nullable on a Optional attribute make it lose its special treatment");
       } else if (isPrimitive()) {
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-            .error("@Nullable could not be used with primitive type attibutes");
+            .annotationNamed(this.names.nullableAnnotationName)
+            .error("@" + this.names.nullableAnnotationName + " could not be used with primitive type attibutes");
       } else if (containingType.isAnnotationType()) {
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
-            .error("@Nullable could not be used with annotation attribute, use default value");
+            .annotationNamed(this.names.nullableAnnotationName)
+            .error("@" + this.names.nullableAnnotationName + " could not be used with annotation attribute, use default value");
       }
     }
 
@@ -1353,9 +1353,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
-            .annotationNamed(Annotations.NULLABLE_SIMPLE_NAME)
+            .annotationNamed(this.names.nullableAnnotationName)
             .warning(
-                "@Nullable on a container attribute make it lose its special treatment (when strictBuilder = true)");
+                "@" + this.names.nullableAnnotationName + " on a container attribute make it lose its special treatment (when strictBuilder = true)");
       }
     }
 
@@ -1396,7 +1396,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
-      if (simpleName.contentEquals(Annotations.NULLABLE_SIMPLE_NAME)) {
+      if (simpleName.contentEquals(this.names.nullableAnnotationName)) {
         nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;

@@ -333,6 +333,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract String getBuilderList();
 
+  @Value.Parameter
+  @Override
+  public abstract String nullableAnnotationName();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);

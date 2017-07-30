@@ -229,6 +229,8 @@ public final class ValueMirrors {
 
     String getBuilderList() default "*Builders";
 
+    String nullableAnnotationName() default "Nullable";
+
     public enum ImplementationVisibility {
       PUBLIC,
       SAME,
