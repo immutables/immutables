@@ -30,6 +30,11 @@ abstract class NullabilityAnnotationInfo {
     return element().getQualifiedName().toString();
   }
 
+  @Value.Derived
+  String simpleName() {
+    return element().getSimpleName().toString();
+  }
+
   @Value.Lazy
   String asPrefix() {
     return "@" + qualifiedName() + " ";
@@ -63,6 +68,11 @@ abstract class NullabilityAnnotationInfo {
         return "";
       }
 
+      @Override
+      String simpleName() {
+        return "";
+      }
+
       /** Empty as we expect type string extraction to handle this for us where possible. */
       @Override
       String asLocalPrefix() {
@@ -73,38 +83,6 @@ abstract class NullabilityAnnotationInfo {
       @Override
       String asPrefix() {
         return "";
-      }
-    };
-  }
-
-  /** Ad-hoc implementation for type-use level nullable annotation. */
-  static NullabilityAnnotationInfo checkForNull() {
-    return new NullabilityAnnotationInfo() {
-      @Override
-      TypeElement element() {
-        throw new UnsupportedOperationException("expecting this will not be accessed");
-      }
-
-      @Override
-      String qualifiedName() {
-        return Annotations.JAVAX_NULLABLE;
-      }
-
-      /** Empty as we expect type string extraction to handle this for us where possible. */
-      @Override
-      String asPrefix() {
-        return "@" + qualifiedName() + " ";
-      }
-
-      @Override
-      String asPrefixOriginal() {
-        return "@" + Annotations.JAVAX_CHECK_FOR_NULL + " ";
-      }
-
-      /** Empty as we expect type string extraction to handle this for us where possible. */
-      @Override
-      String asLocalPrefix() {
-        return asPrefix();
       }
     };
   }

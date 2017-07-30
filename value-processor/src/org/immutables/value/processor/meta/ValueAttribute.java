@@ -309,7 +309,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         protoclass().styles().style().passAnnotationsNames(),
         false,
         ElementType.METHOD,
-        importsResolver);
+        importsResolver,
+        nullability);
   }
 
   public CharSequence getConstructorParameterAnnotations() {
@@ -318,7 +319,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             protoclass().styles().style().passAnnotationsNames(),
             false,
             ElementType.PARAMETER,
-            importsResolver);
+            importsResolver,
+            nullability);
 
     if (!annotations.isEmpty()) {
       return Joiner.on(' ').join(annotations).concat(" ");
@@ -346,7 +348,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           Collections.singleton(Annotations.JACKSON_PROPERTY),
           false,
           ElementType.METHOD,
-          importsResolver);
+          importsResolver,
+          nullability);
       List<CharSequence> annotations = Lists.newArrayList();
       if (jacksonPropertyAnnotation.isEmpty()) {
         annotations.add(jacksonPropertyAnnotation());
@@ -355,7 +358,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
           Collections.<String>emptySet(),
           protoclass().environment().hasJacksonLib(),
           ElementType.METHOD,
-          importsResolver));
+          importsResolver,
+          nullability));
       return annotations;
     }
     return ImmutableList.of();
@@ -368,7 +372,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         Collections.singleton(Annotations.JACKSON_PROPERTY),
         false,
         elementType,
-        importsResolver).isEmpty();
+        importsResolver,
+        nullability).isEmpty();
 
     if (dontHaveJsonPropetyAnnotationAlready) {
       allAnnotations.add(jacksonPropertyAnnotation());
@@ -380,7 +385,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
                 protoclass().styles().style().additionalJsonAnnotationsNames()),
             protoclass().environment().hasJacksonLib(),
             elementType,
-            importsResolver));
+            importsResolver,
+            nullability));
 
     return allAnnotations;
   }
@@ -1146,7 +1152,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
     if ((containingType.constitution.style().deepImmutablesDetection()
         || containingType.constitution.style().attributeBuilderDetection())
-          && containedTypeElement != null) {
+        && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
         // We don't propagate type arguments so we don't support it, sorry
@@ -1327,12 +1333,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
             .warning("@Nullable on a Optional attribute make it lose its special treatment");
       } else if (isPrimitive()) {
         report()
-            .annotationNamed(this.names.nullableAnnotationName)
-            .error("@" + this.names.nullableAnnotationName + " could not be used with primitive type attibutes");
+            .annotationNamed(nullability.simpleName())
+            .error("@%s could not be used with primitive type attibutes", nullability.simpleName());
       } else if (containingType.isAnnotationType()) {
         report()
-            .annotationNamed(this.names.nullableAnnotationName)
-            .error("@" + this.names.nullableAnnotationName + " could not be used with annotation attribute, use default value");
+            .annotationNamed(nullability.simpleName())
+            .error("@%s could not be used with annotation attribute, use default value", nullability.simpleName());
       }
     }
 
@@ -1353,9 +1359,9 @@ public final class ValueAttribute extends TypeIntrospectionBase {
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
-            .annotationNamed(this.names.nullableAnnotationName)
-            .warning(
-                "@" + this.names.nullableAnnotationName + " on a container attribute make it lose its special treatment (when strictBuilder = true)");
+            .annotationNamed(nullability.simpleName())
+            .warning("@%s on a container attribute make it lose its special treatment (when strictBuilder = true)",
+                nullability.simpleName());
       }
     }
 
@@ -1396,14 +1402,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
-      if (simpleName.contentEquals(this.names.nullableAnnotationName)) {
+      Name qualifiedName = annotationElement.getQualifiedName();
+      if (qualifiedName.contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)
+          || qualifiedName.contentEquals(Annotations.JAVAX_NULLABLE)
+          || simpleName.contentEquals(containingType.names().nullableAnnotation)) {
         nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_SKIP_NULLS)) {
         nullElements = NullElements.SKIP;
-      } else if (annotationElement.getQualifiedName().contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)) {
-        nullability = NullabilityAnnotationInfo.checkForNull();
       }
     }
     if (containingType.isGenerateJacksonProperties()

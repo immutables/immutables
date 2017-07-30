@@ -108,9 +108,9 @@ public final class Styles {
 
     Naming addBuilder = Naming.from(style.addBuilder());
     Naming addAllBuilder = Naming.from(style.addAllBuilder());
-    Naming getBuilderList = Naming.from(style.getBuilderList());
+    Naming getBuilders = Naming.from(style.getBuilders());
 
-    Naming nullableAnnotationName = Naming.from(style.nullableAnnotationName());
+    String nullableAnnotation = style.nullableAnnotation();
   }
 
   public static class UsingName {
@@ -181,6 +181,7 @@ public final class Styles {
       public final String copyOf = scheme.copyOf.apply(raw);
       public final String from = scheme.from.apply(raw);
       public final String build = scheme.build.apply(raw);
+      public final String nullableAnnotation = scheme.nullableAnnotation;
 
       public final String typeWith() {
         return scheme.typeWith.apply(raw);
@@ -249,7 +250,6 @@ public final class Styles {
       public final String var = apply(Naming.identity(), false);
       public final String init = apply(scheme.init, false);
       public final String with = apply(scheme.with, false);
-      public final String nullableAnnotationName = apply(scheme.nullableAnnotationName, false);
 
       public String add() {
         return forCollection().add;
@@ -299,8 +299,8 @@ public final class Styles {
         return forCollection().addAllBuilder;
       }
 
-      public String getBuilderList() {
-        return forCollection().getBuilderList;
+      public String getBuilders() {
+        return forCollection().getBuilders;
       }
 
 
@@ -314,7 +314,7 @@ public final class Styles {
         final String putAll = applyRegular(scheme.putAll);
         final String addBuilder = applySingular(scheme.addBuilder);
         final String addAllBuilder = applySingular(scheme.addAllBuilder);
-        final String getBuilderList = applySingular(scheme.getBuilderList);
+        final String getBuilders = applySingular(scheme.getBuilders);
 
 
         String applySingular(Naming naming) {

@@ -1458,7 +1458,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [deprecation v]
   [varargsSafety v]
-  public final java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [v.names.getBuilderList]() {
+  public final java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [v.names.getBuilders]() {
   [if v.generateJdkOnly]
     return createUnmodifiableList(false, this.[v.name]);
   [else]

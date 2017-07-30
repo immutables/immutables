@@ -57,7 +57,8 @@ public @interface Value {
    * <em>Be warned that such immutable object may contain attributes with types that are not
    * guaranteed to be immutable, thus not every object will be recursively immutable.
    * While this may be useful in some cases,
-   * one should generally avoid creating immutable object with attribute values that could be mutated.</em>
+   * one should generally avoid creating immutable object with attribute values that could be
+   * mutated.</em>
    * <p>
    * @see Style
    * @see Include
@@ -311,8 +312,10 @@ public @interface Value {
    * validation method will also be able to return substitute instance. Normalized instance should
    * always be of the immutable implementations type, otherwise {@link ClassCastException} will
    * occur during construction.
-   * <em>Be warned that it's easy introduce unresolvable recursion if normalization is implemented without
-   * proper or with conflicting checks. Always return {@code this} if value do not require normalization.</em>
+   * <em>Be warned that it's easy introduce unresolvable recursion if normalization is implemented
+   * without
+   * proper or with conflicting checks. Always return {@code this} if value do not require
+   * normalization.</em>
    * </p>
    *
    * <pre>
@@ -386,8 +389,10 @@ public @interface Value {
    * that return {@code this} for chained invocation. Getters will be of the same shape as defined
    * by abstract value types.
    * <p>
-   * <em>Note: unlike {@literal @}{@link Immutable}, this annotation has very little of additional "magic"
-   * and customisations implemented. Annotation like {@link Include}, {@link Enclosing}, {@link Lazy} do not work with
+   * <em>Note: unlike {@literal @}{@link Immutable}, this annotation has very little of additional
+   * "magic"
+   * and customisations implemented. Annotation like {@link Include}, {@link Enclosing},
+   * {@link Lazy} do not work with
    * modifiable implementation</em>
    * <p>
    * <em>This is beta functionality that is likely to change</em>
@@ -439,7 +444,8 @@ public @interface Value {
      * similarity with annotation attributes, however usage of "get" is neither recommended, nor
      * discouraged.
      * <p>
-     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not how to derive name</em>
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not
+     * how to derive name</em>
      * @return naming template
      */
     String[] get() default "get*";
@@ -551,7 +557,8 @@ public @interface Value {
      * will have no effect: no method will be generated.
      * <p>
      * <em>Note: This attribute-style is experimental and may be changed in near releases.
-     * You should not rely on it if don't ready to change code on minor updates of the annotation processor</em>
+     * You should not rely on it if don't ready to change code on minor updates of the annotation
+     * processor</em>
      * @return naming template
      */
     String buildOrThrow() default "";
@@ -619,7 +626,8 @@ public @interface Value {
      * If none specified or if none matches, then raw type name will be taken literally the same as
      * abstract value type name.
      * <p>
-     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not how to derive name</em>
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize name, not
+     * how to derive name</em>
      * @return naming templates
      */
     String[] typeAbstract() default "Abstract*";
@@ -666,8 +674,10 @@ public @interface Value {
      * specify pattern, like "*.gen" or "*.immutable.impl".
      * </p>
      * <p>
-     * <em>Note: It is expected that most generators will honor this style attribute, but it's not guaranteed.
-     * When you generate derived classes in the same package (by default), then implementation could access
+     * <em>Note: It is expected that most generators will honor this style attribute, but it's not
+     * guaranteed.
+     * When you generate derived classes in the same package (by default), then implementation could
+     * access
      * and/or override package-private methods. If using a different package make sure to use public
      * or protected access where needed, otherwise illegal access compilation errors will be flagged
      * in the generated code.</em>
@@ -747,6 +757,7 @@ public @interface Value {
      *
      * ColorTuple.of(0xFF, 0x00, 0xFE);
      * </pre>
+     * 
      * @return if all attributes will be considered parameters
      */
     boolean allParameters() default false;
@@ -948,7 +959,8 @@ public @interface Value {
      * Disabled by default as, speculatively, this might increase processing time. It will not work
      * for yet-to-be-generated types as attribute types, which allows only shallow analysis.
      * <p>
-     * <em>Note: this functionality is experimental and may be changed in further versions. As of version 2.2
+     * <em>Note: this functionality is experimental and may be changed in further versions. As of
+     * version 2.2
      * we no longer add {@code *Of} suffix to the shortcut initializer attribute.</em>
      * @return {@code true} if deep detection is enabled.
      */
@@ -1120,8 +1132,8 @@ public @interface Value {
      * If enabled modifable type will have void setters and will look more like JavaBean. This is
      * modifiable companion types only, not for builders and other types of generated artifacts.
      * <p>
-     * <em>Note, we are not supporting JavaBean specification in any way except that Immutables can be
-     * used/configured to be partially compatible with some of the conventions.</em>
+     * <em>Note, we are not supporting JavaBean specification in any way except that Immutables can
+     * be used/configured to be partially compatible with some of the conventions.</em>
      * </p>
      * @return {@code true} for void setters and minor tweaks to make modifiables more
      *         bean-friendly. {@code false} is the default
@@ -1132,7 +1144,8 @@ public @interface Value {
      * If enabled mandatory attributes would be auto-propagated to be parameters of value object
      * constuctor.
      * <p>
-     * <em>This parameter conflicts with {@link #allParameters()} and is ignored when {@code allParameters} </em>
+     * <em>This parameter conflicts with {@link #allParameters()} and is ignored when
+     * {@code allParameters} is enabled</em>
      * @return {@code true} to turn mandatory attributes into parameters. {@code false} is the
      *         default
      */
@@ -1148,31 +1161,42 @@ public @interface Value {
      */
     String redactedMask() default "";
 
-
-    String nullableAnnotationName() default "Nullable";
+    /**
+     * Immutables recognizes nullable annotation by simple name. For most cases this is sufficient.
+     * But for some cases it's needed to customize this annotation simple name and
+     * {@code nullableAnnotation} can be used to set custom simple name for nullable annotation.
+     * While we recommend against this change,
+     * <em>Except for simple name detection, {@code javax.annotation.Nullable} and
+     * {@code javax.annotation.CheckForNull} are always recognized as nullable annotations.
+     * </em>
+     * @return nullable annotation simple name
+     */
+    String nullableAnnotation() default "Nullable";
 
     /**
      * When enabled: immutable attributes with discoverable builders receive the additional
      * builder API:
-     *
+     * <p>
      * For single children:
-     * {@code BuilderT *Builder()}
-     * {@code ParentT *Builder(BuilderT builder)}
-     *
+     * <ul>
+     * <li>{@code BuilderT *Builder()}
+     * <li>{@code ParentT *Builder(BuilderT builder)}
+     * </ul>
+     * <p>
      * For a collection of children:
-     * {@code BuilderT add*Builder()}
-     * {@code ParentT addAll*Builder(Iterable<BuilderT> builderCollection)}
-     * {@code ParentT addAll*Builder(BuilderT... builderArgs)}
-     * {@code List<BuilderT> *Builders()}
-     *
+     * <li>{@code BuilderT add*Builder()}
+     * <li>{@code ParentT addAll*Builder(Iterable<BuilderT> builderCollection)}
+     * <li>{@code ParentT addAll*Builder(BuilderT... builderArgs)}
+     * <li>{@code List<BuilderT> *Builders()}
+     * </ul>
+     * <p>
      * In strict mode, you may only set the builder via {@code *Builder(BuilderT builder)} once,
      * but you may call {@code *Builder()} multiple times, in which the same builder is returned.
      * If the nested immutable is also strict, then you will only be able to set properties on
      * the child builder once.
-     *
+     * <p>
      * To discover builders on value attributes the value methods are scanned for method names
      * matching a patterns specified in {@link #attributeBuilder()}.
-     *
      * This style parameter is experimental and may change in future.
      * @return true to enable the feature.
      */
@@ -1180,13 +1204,12 @@ public @interface Value {
 
     /**
      * Pattern for detecting builders.
-     *
      * {@link #attributeBuilder()} applies to both
      * static and instance methods. In the case a builder is only discoverable through a
      * value instance method, the builder class must have a public no-arg static construction
      * method. To use a no-arg public constructor, a special token "new" should be specified.
-     *
      * example: new token required to find this builder.
+     * 
      * <pre>
      * class MyObject {
      *   class Builder {
@@ -1198,18 +1221,16 @@ public @interface Value {
      * }
      * </pre>
      *
-     * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested builder.</em>
+     * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested
+     * builder.</em>
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template
      */
     String[] attributeBuilder() default {"*Builder", "builder", "new"};
 
     /**
      * Naming template for retrieving a nested builder.
-     *
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template.
      */
     String getBuilder() default "*Builder";
@@ -1217,39 +1238,31 @@ public @interface Value {
     /**
      * Naming template for setting a nested builder.
      * This may be called only once in strict mode.
-     *
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template.
      */
     String setBuilder() default "*Builder";
 
     /**
      * Naming template for adding a new builder instance to a collection.
-     *
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template.
      */
     String addBuilder() default "add*Builder";
 
     /**
      * Naming template for adding a collection of builders.
-     *
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template.
      */
     String addAllBuilder() default "addAll*Builders";
 
     /**
      * Naming template for retrieving an immutable list of builders.
-     *
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
-     *
      * @return naming template.
      */
-    String getBuilderList() default "*Builders";
+    String getBuilders() default "*Builders";
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

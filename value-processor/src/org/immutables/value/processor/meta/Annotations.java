@@ -57,13 +57,15 @@ final class Annotations {
       Set<String> includeAnnotations,
       boolean includeJacksonAnnotations,
       ElementType elementType,
-      Function<String, String> importsResolver) {
+      Function<String, String> importsResolver,
+      @Nullable NullabilityAnnotationInfo nullability) {
     return getAnnotationLines(element,
         includeAnnotations,
         false,
         includeJacksonAnnotations,
         elementType,
-        importsResolver);
+        importsResolver,
+        nullability);
   }
 
   static List<CharSequence> getAnnotationLines(
@@ -72,7 +74,8 @@ final class Annotations {
       boolean includeAllAnnotations,
       boolean includeJacksonAnnotations,
       ElementType elementType,
-      Function<String, String> importsResolver) {
+      Function<String, String> importsResolver,
+      @Nullable NullabilityAnnotationInfo nullability) {
     List<CharSequence> lines = Lists.newArrayList();
 
     Set<String> seenAnnotations = new HashSet<>();
@@ -87,7 +90,8 @@ final class Annotations {
           seenAnnotations,
           lines,
           importsResolver,
-          elementType)
+          elementType,
+          nullability)
           && annotationMatchesTarget(annotationElement, elementType)) {
         lines.add(AnnotationMirrors.toCharSequence(annotation, importsResolver));
       }
@@ -104,7 +108,8 @@ final class Annotations {
       Set<String> seenAnnotations,
       List<CharSequence> lines,
       Function<String, String> importsResolver,
-      ElementType elementType) {
+      ElementType elementType,
+      @Nullable NullabilityAnnotationInfo nullability) {
     String qualifiedName = annotationElement.getQualifiedName().toString();
 
     if (seenAnnotations.contains(qualifiedName)
@@ -158,7 +163,7 @@ final class Annotations {
       }
     }
 
-    if (annotationElement.getSimpleName().contentEquals(NULLABLE_SIMPLE_NAME)) {
+    if (nullability != null && annotationElement.getQualifiedName().contentEquals(nullability.qualifiedName())) {
       // we expect to propagate nullability separately
       return false;
     }
@@ -208,7 +213,8 @@ final class Annotations {
             seenAnnotations,
             lines,
             importsResolver,
-            elementType)) {
+            elementType,
+            nullability)) {
           return true;
         }
       }

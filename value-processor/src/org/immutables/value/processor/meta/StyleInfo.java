@@ -331,11 +331,11 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
-  public abstract String getBuilderList();
+  public abstract String getBuilders();
 
   @Value.Parameter
   @Override
-  public abstract String nullableAnnotationName();
+  public abstract String nullableAnnotation();
 
   @Value.Lazy
   public Styles getStyles() {

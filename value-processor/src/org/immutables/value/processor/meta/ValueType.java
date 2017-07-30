@@ -279,7 +279,8 @@ public final class ValueType extends TypeIntrospectionBase {
                   true,
                   false,
                   ElementType.CONSTRUCTOR,
-                  newTypeStringResolver());
+                  newTypeStringResolver(),
+                  null);
         }
       }
       if (constructorAnnotations == null) {
@@ -302,7 +303,8 @@ public final class ValueType extends TypeIntrospectionBase {
           Collections.<String>emptySet(),
           true,
           ElementType.TYPE,
-          newTypeStringResolver());
+          newTypeStringResolver(),
+          null);
     }
     return ImmutableList.of();
   }
@@ -434,7 +436,8 @@ public final class ValueType extends TypeIntrospectionBase {
             constitution.style().additionalJsonAnnotationsNames()),
         false,
         ElementType.TYPE,
-        newTypeStringResolver());
+        newTypeStringResolver(),
+        null);
   }
 
   private ImportsTypeStringResolver newTypeStringResolver() {

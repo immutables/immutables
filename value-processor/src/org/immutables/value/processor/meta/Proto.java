@@ -1794,8 +1794,8 @@ public class Proto {
           input.setBuilder(),
           input.addBuilder(),
           input.addAllBuilder(),
-          input.getBuilderList(),
-          input.nullableAnnotationName());
+          input.getBuilders(),
+          input.nullableAnnotation());
     }
   }
 
