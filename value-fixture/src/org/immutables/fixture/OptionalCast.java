@@ -16,19 +16,21 @@
 package org.immutables.fixture;
 
 import org.immutables.value.Value;
+import com.google.common.base.Optional;
 
 @Value.Immutable
-@Value.Style(allMandatoryParameters = true, defaultAsDefault = true)
-public interface AllMandatoryParams {
-  int a();
+@Value.Style(allParameters = true)
+public interface OptionalCast {
+  Optional<String> getBar();
 
-  boolean b();
+  Optional<Object> getObject();
 
-  default String c() {
-    return "C";
-  }
+  Optional<String[]> getStringArray();
 
-  static void use() {
-    ImmutableAllMandatoryParams.of(1, true).withC("ABC");
+  default void use() {
+    ImmutableOptionalCast.of(
+        Optional.absent(),
+        Optional.of("String is object"),
+        Optional.<String[]>absent());
   }
 }

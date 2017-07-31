@@ -2439,6 +2439,8 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
   java.util.Map<[a.consumedElementType], ? extends [a.secondaryElementType]>
 [else if a.typeKind.isCollectionKind]
   Iterable<[a.consumedElementType]>
+[else if a.optionalType andnot a.jdkSpecializedOptional]
+  [a.rawType]<[a.consumedElementType]>
 [else]
   [a.type]
 [/if]
