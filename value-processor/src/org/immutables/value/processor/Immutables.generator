@@ -2227,11 +2227,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [rr.declareFields v]
   [else]
   [jsonIgnore type]
-  [for a in v.annotations if a ne '@com.fasterxml.jackson.annotation.JsonAnyGetter']
+  [for a in v.annotations if a eq '@com.google.gson.annotations.SerializedName']
   [a]
   [/for]
-  [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnyGetter[/if]
-  [if v.jacksonValue]@com.fasterxml.jackson.annotation.JsonValue[/if]
   private final [v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
