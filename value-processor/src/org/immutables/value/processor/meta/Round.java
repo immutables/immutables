@@ -113,7 +113,7 @@ public abstract class Round {
   }
 
   private Set<Element> allAnnotatedElements() {
-    Set<Element> elements = Sets.newHashSetWithExpectedSize(100);
+    Set<Element> elements = Sets.newLinkedHashSetWithExpectedSize(100);
     for (TypeElement annotation : annotations()) {
       Set<? extends Element> annotatedElements = round().getElementsAnnotatedWith(annotation);
       checkAnnotation(annotation, annotatedElements);
