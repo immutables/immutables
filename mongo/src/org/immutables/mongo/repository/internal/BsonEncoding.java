@@ -26,16 +26,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedBytes;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCallback;
-import com.mongodb.DBCollection;
-import com.mongodb.DBDecoder;
-import com.mongodb.DBDecoderFactory;
-import com.mongodb.DBEncoder;
-import com.mongodb.DBObject;
-import com.mongodb.DefaultDBEncoder;
-import com.mongodb.LazyDBCallback;
-import com.mongodb.LazyWriteableDBObject;
+import com.mongodb.*;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
@@ -44,6 +35,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -52,12 +44,9 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
-import org.bson.BSONCallback;
-import org.bson.BSONEncoder;
-import org.bson.BSONObject;
-import org.bson.BasicBSONDecoder;
-import org.bson.BasicBSONEncoder;
-import org.bson.LazyBSONCallback;
+
+import org.bson.*;
+import org.bson.codecs.DecoderContext;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.io.OutputBuffer;
 
@@ -193,10 +182,8 @@ public final class BsonEncoding {
       throw new RuntimeException("Couldn't serialize current instance", e);
     }
 
-    final DBObject bson = new LazyWriteableDBObject(buffer.toByteArray(), new LazyBSONCallback());
-    final BasicDBObject copy = new BasicDBObject();
-    copy.putAll(bson);
-    return copy;
+    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
+    return MongoClient.getDefaultCodecRegistry().get(BasicDBObject.class).decode(reader, DecoderContext.builder().build());
   }
 
   private static class UpdateObject<T> implements DBObject, WritableObjectPosition {
@@ -552,7 +539,7 @@ public final class BsonEncoding {
       return ImmutableList.of();
     }
 
-    // Fongo ignores any decoders
+    // Fongo ignores any decoders (check what type is first element)
     if (result.get(0) instanceof BasicDBObject) {
       try {
         return convertDBObject(result, adapter);
@@ -579,7 +566,7 @@ public final class BsonEncoding {
   }
 
   public static <T> DBDecoderFactory newResultDecoderFor(TypeAdapter<T> adaper, int expectedSize) {
-    return new ResultDecoder<>(adaper, expectedSize);
+    return new ResultDecoder<>(adaper, new DefaultDBDecoder(), expectedSize);
   }
 
   /**
@@ -649,15 +636,19 @@ public final class BsonEncoding {
   }
 
   private static final class ResultDecoder<T> implements DBDecoderFactory, DBDecoder, DBObject {
+
     final List<T> results;
     private final TypeAdapter<T> adaper;
+    private final DBDecoder decoder;
+
     @Nullable
     private BsonReader parser;
 
     private final ObjectBufferInputStream bufferStream = new ObjectBufferInputStream(2012);
 
-    ResultDecoder(TypeAdapter<T> adaper, int expectedSize) {
+    ResultDecoder(TypeAdapter<T> adaper, DBDecoder decoder, int expectedSize) {
       this.adaper = adaper;
+      this.decoder = decoder;
       this.results = Lists.newArrayListWithExpectedSize(expectedSize);
     }
 
@@ -685,32 +676,32 @@ public final class BsonEncoding {
 
     @Override
     public BSONObject readObject(byte[] b) {
-      throw new UnsupportedOperationException();
+      return decoder.readObject(b);
     }
 
     @Override
     public BSONObject readObject(InputStream in) throws IOException {
-      throw new UnsupportedOperationException();
+      return decoder.readObject(in);
     }
 
     @Override
     public int decode(byte[] b, BSONCallback callback) {
-      throw new UnsupportedOperationException();
+      return decoder.decode(b, callback);
     }
 
     @Override
     public int decode(InputStream in, BSONCallback callback) throws IOException {
-      throw new UnsupportedOperationException();
+      return decoder.decode(in, callback);
     }
 
     @Override
     public DBCallback getDBCallback(DBCollection collection) {
-      throw new UnsupportedOperationException();
+      return decoder.getDBCallback(collection);
     }
 
     @Override
     public DBObject decode(byte[] b, DBCollection collection) {
-      throw new UnsupportedOperationException();
+      return decoder.decode(b, collection);
     }
 
     @Override

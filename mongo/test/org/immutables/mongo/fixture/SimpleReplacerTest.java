@@ -15,11 +15,12 @@
  */
 package org.immutables.mongo.fixture;
 
-import com.mongodb.CommandFailureException;
-import com.mongodb.CommandResult;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoCommandException;
+import com.mongodb.MongoException;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.immutables.check.Checkers.check;
 import static org.junit.Assert.fail;
 
@@ -90,26 +91,30 @@ public class SimpleReplacerTest {
 
       fail("Should fail with " + DuplicateKeyException.class.getName());
     } catch (Exception e) {
-      failIfNotDuplicateKeyException(e.getCause());
+      failIfNotDuplicateKeyException(e);
     }
   }
 
   private static void failIfNotDuplicateKeyException(Throwable exception) {
+    exception = exception instanceof MongoException ? exception : exception.getCause();
+
     // fongo throws directly DuplicateKeyException
     if (exception instanceof DuplicateKeyException) return;
 
-    // for MongoDB need to check CommandResult
-    if (exception instanceof CommandFailureException) {
-      CommandResult result = ((CommandFailureException) exception).getCommandResult();
-      if (!"DuplicateKey".equals(result.get("codeName"))) {
-        fail("Not a duplicate key exception for "  + result);
-      }
+    // MongoDB throws custom exception
+    if (exception instanceof MongoCommandException) {
+      String codeName = ((MongoCommandException) exception).getResponse().get("codeName").asString().getValue();
+      int errorCode = ((MongoCommandException) exception).getErrorCode();
 
+      check(codeName).is("DuplicateKey");
+      check(errorCode).is(11000);
+
+      // all good here (can return)
       return;
     }
 
     // all others exceptions
-    fail("Excepted duplicate key exception from " + exception.getCause());
+    fail("Excepted duplicate key exception from " + exception);
   }
 
   @Test

@@ -610,7 +610,7 @@ public final class Repositories {
 
     /**
      * Creates configured index on a set of fields, if one does not already exist.
-     * @see DBCollection#ensureIndex(DBObject, DBObject)
+     * @see DBCollection#createIndex(DBObject, DBObject)
      * @return future of indexing operation, future value is insignificant ({@code null} typed as
      *         {@link Void})
      */
