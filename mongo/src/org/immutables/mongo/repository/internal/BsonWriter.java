@@ -32,6 +32,23 @@ import org.immutables.gson.stream.JsonGeneratorWriter;
  */
 @NotThreadSafe
 public class BsonWriter extends JsonGeneratorWriter {
+
+  private static final java.io.Writer UNSUPPORTED_WRITER = new java.io.Writer() {
+    @Override
+    public void write(char[] cbuf, int off, int len) throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void flush() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() throws IOException {
+      throw new UnsupportedOperationException();
+    }
+  };
   private final BsonGenerator generator;
 
   public BsonWriter(BsonGenerator generator) {

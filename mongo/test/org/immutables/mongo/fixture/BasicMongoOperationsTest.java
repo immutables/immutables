@@ -117,6 +117,18 @@ public class BasicMongoOperationsTest {
     repository.index().withId().ensure().getUnchecked();
   }
 
+  @Test
+  public void jsonQuery() throws Exception {
+    check(repository.find("{}").fetchAll().getUnchecked()).isEmpty();
+    Item item = item().withList("foo");
+    repository.insert(item).getUnchecked();
+
+    check(repository.find("{ \"_id\": \"1\" }").fetchAll().getUnchecked()).hasSize(1);
+    check(repository.find("{ \"_id\": \"99\" }").fetchAll().getUnchecked()).isEmpty();
+    check(repository.find("{ \"list\": \"foo\" }").fetchAll().getUnchecked()).hasSize(1);
+    check(repository.find("{ \"list\": \"bar\" }").fetchAll().getUnchecked()).isEmpty();
+  }
+
   private Item findItem() {
     return repository.findById(item().id()).fetchFirst().getUnchecked().get();
   }
