@@ -114,7 +114,7 @@ public class SimpleReplacerTest {
     }
 
     // all others exceptions
-    fail("Excepted duplicate key exception from " + exception);
+    fail("Should get duplicate key exception after " + exception);
   }
 
   @Test

@@ -26,10 +26,31 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedBytes;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCallback;
+import com.mongodb.DBCollection;
+import com.mongodb.DBDecoder;
+import com.mongodb.DBDecoderFactory;
+import com.mongodb.DBEncoder;
+import com.mongodb.DBObject;
+import com.mongodb.DefaultDBDecoder;
+import com.mongodb.DefaultDBEncoder;
+import com.mongodb.LazyDBCallback;
+import com.mongodb.MongoClient;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
+import org.bson.BSONCallback;
+import org.bson.BSONEncoder;
+import org.bson.BSONObject;
+import org.bson.BasicBSONDecoder;
+import org.bson.BasicBSONEncoder;
+import org.bson.BsonBinaryReader;
+import org.bson.codecs.DecoderContext;
+import org.bson.io.BasicOutputBuffer;
+import org.bson.io.OutputBuffer;
+
+import javax.annotation.Nullable;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,12 +64,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import javax.annotation.Nullable;
-
-import org.bson.*;
-import org.bson.codecs.DecoderContext;
-import org.bson.io.BasicOutputBuffer;
-import org.bson.io.OutputBuffer;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
