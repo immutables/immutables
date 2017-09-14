@@ -120,6 +120,7 @@ public class BasicMongoOperationsTest {
   @Test
   public void jsonQuery() throws Exception {
     check(repository.find("{}").fetchAll().getUnchecked()).isEmpty();
+    check(repository.find("{ \"_id\": \"1\"}").fetchAll().getUnchecked()).isEmpty();
     Item item = item().withList("foo");
     repository.insert(item).getUnchecked();
 

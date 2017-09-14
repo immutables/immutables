@@ -19,12 +19,13 @@ import com.google.common.base.Preconditions;
 import com.google.gson.stream.JsonWriter;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.types.ObjectId;
+import org.immutables.gson.stream.JsonGeneratorWriter;
+
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.regex.Pattern;
-import javax.annotation.concurrent.NotThreadSafe;
-import org.immutables.gson.stream.JsonGeneratorWriter;
 
 /**
  * BSON subclass for {@link JsonWriter} that uses bson4jackson. Adds methods to write BSON
@@ -33,22 +34,6 @@ import org.immutables.gson.stream.JsonGeneratorWriter;
 @NotThreadSafe
 public class BsonWriter extends JsonGeneratorWriter {
 
-  private static final java.io.Writer UNSUPPORTED_WRITER = new java.io.Writer() {
-    @Override
-    public void write(char[] cbuf, int off, int len) throws IOException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void flush() throws IOException {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void close() throws IOException {
-      throw new UnsupportedOperationException();
-    }
-  };
   private final BsonGenerator generator;
 
   public BsonWriter(BsonGenerator generator) {
