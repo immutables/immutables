@@ -11,7 +11,7 @@ import java.util.List;
 @Mongo.Repository
 @Value.Immutable
 @Gson.TypeAdapters
-public interface Person {
+interface Person {
 
   @Mongo.Id
   String id();
