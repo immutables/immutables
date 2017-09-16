@@ -36,7 +36,7 @@ public class BsonWriter extends JsonGeneratorWriter {
 
   private final BsonGenerator generator;
 
-  public BsonWriter(BsonGenerator generator) {
+  BsonWriter(BsonGenerator generator) {
     super(generator);
     this.generator = generator;
   }
