@@ -16,9 +16,12 @@
 package org.immutables.mongo.fixture;
 
 import org.immutables.mongo.types.Binary;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.immutables.check.Checkers.check;
@@ -72,6 +75,20 @@ public class BasicMongoOperationsTest {
     }
 
     check(repository.findAll().fetchAll().getUnchecked()).hasSize(2);
+  }
+
+  /**
+   * This test fails on real mongo: v3.4
+   */
+  @Test
+  @Ignore
+  public void insertMultiple() throws Exception {
+    Item item1 = item().withId("i1");
+    Item item2 = item().withId("i2");
+
+    repository.insert(Arrays.asList(item1, item2)).getUnchecked();
+
+    check(repository.findAll().fetchAll().getUnchecked()).hasContentInAnyOrder(item1, item2);
   }
 
   @Test
