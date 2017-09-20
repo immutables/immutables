@@ -26,6 +26,7 @@ import org.immutables.value.Value;
 public abstract class Entity {
 
   @Mongo.Id
+  @Value.Parameter
   abstract String id();
 
   @Value.Default

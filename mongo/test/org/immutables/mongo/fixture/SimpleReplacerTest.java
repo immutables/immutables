@@ -95,6 +95,25 @@ public class SimpleReplacerTest {
     }
   }
 
+  @Test
+  public void returnNewOld() throws Exception {
+    final Entity entity1 = ImmutableEntity.builder().id("e1").value("v1").build();
+    final Entity entity2 = ImmutableEntity.builder().id("e1").value("v2").build();
+
+    repository.insert(entity1).getUnchecked();
+
+    check(repository.find(repository.criteria().id("e1")).andReplaceFirst(entity2).returningNew().update()
+            .getUnchecked()).isOf(entity2);
+
+    check(repository.find(repository.criteria()).fetchAll().getUnchecked()).hasContentInAnyOrder(entity2);
+
+    check(repository.find(repository.criteria().id("e1")).andReplaceFirst(entity1).returningOld().update()
+            .getUnchecked()).isOf(entity2);
+
+    check(repository.find(repository.criteria()).fetchAll().getUnchecked()).hasContentInAnyOrder(entity1);
+
+  }
+
   private static void failIfNotDuplicateKeyException(Throwable exception) {
     exception = exception instanceof MongoException ? exception : exception.getCause();
 
