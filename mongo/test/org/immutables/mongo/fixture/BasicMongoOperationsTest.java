@@ -112,11 +112,6 @@ public class BasicMongoOperationsTest {
     check(repository.findAll().deleteAll().getUnchecked()).is(0);
   }
 
-  @Test
-  public void index() throws Exception {
-    repository.index().withId().ensure().getUnchecked();
-  }
-
   private Item findItem() {
     return repository.findById(item().id()).fetchFirst().getUnchecked().get();
   }
