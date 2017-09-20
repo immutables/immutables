@@ -16,8 +16,6 @@
 package org.immutables.mongo.fixture;
 
 import com.mongodb.DuplicateKeyException;
-import com.mongodb.MongoCommandException;
-import com.mongodb.MongoException;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -91,7 +89,7 @@ public class SimpleReplacerTest {
 
       fail("Should fail with " + DuplicateKeyException.class.getName());
     } catch (Exception e) {
-      failIfNotDuplicateKeyException(e);
+      MongoAsserts.assertDuplicateKeyException(e);
     }
   }
 
@@ -112,28 +110,6 @@ public class SimpleReplacerTest {
 
     check(repository.find(repository.criteria()).fetchAll().getUnchecked()).hasContentInAnyOrder(entity1);
 
-  }
-
-  private static void failIfNotDuplicateKeyException(Throwable exception) {
-    exception = exception instanceof MongoException ? exception : exception.getCause();
-
-    // fongo throws directly DuplicateKeyException
-    if (exception instanceof DuplicateKeyException) return;
-
-    // MongoDB throws custom exception
-    if (exception instanceof MongoCommandException) {
-      String codeName = ((MongoCommandException) exception).getResponse().get("codeName").asString().getValue();
-      int errorCode = ((MongoCommandException) exception).getErrorCode();
-
-      check(codeName).is("DuplicateKey");
-      check(errorCode).is(11000);
-
-      // all good here (can return)
-      return;
-    }
-
-    // all others exceptions
-    fail("Should get duplicate key exception after " + exception);
   }
 
   @Test
