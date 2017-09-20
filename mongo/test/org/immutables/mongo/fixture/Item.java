@@ -30,6 +30,7 @@ import org.immutables.value.Value;
 public interface Item {
 
   @Mongo.Id
+  @Value.Parameter
   String id();
 
   List<String> list();

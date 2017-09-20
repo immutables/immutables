@@ -56,6 +56,42 @@ public class SimpleUpdaterTest {
     check(findById(id).list()).hasAll("l3", "l4", "l5");
   }
 
+  /**
+   * Checks that number of updated documents is correct (see {@link com.mongodb.WriteResult})
+   */
+  @Test
+  public void writeResult() throws Exception {
+    final ImmutableItem item1 = ImmutableItem.of("id1");
+
+    final ItemRepository.Criteria crit1 = repository.criteria().id(item1.id());
+
+    check(repository.update(crit1).addList("l1").updateAll().getUnchecked()).is(0);
+    check(repository.update(crit1).addList("l1").updateFirst().getUnchecked()).is(0);
+
+    // mongo returns WriteResult(0) for inserts
+    repository.insert(item1).getUnchecked();
+    check(repository.update(crit1).addList("l1").updateAll().getUnchecked()).is(1);
+    check(repository.update(crit1).addList("l2").updateFirst().getUnchecked()).is(1);
+
+    check(repository.update(repository.criteria().id("_MISSING_")).addList("l2").updateFirst().getUnchecked()).is(0);
+    check(repository.update(repository.criteria().id("_MISSING_")).addList("l2").updateAll().getUnchecked()).is(0);
+
+    final ImmutableItem item2 = ImmutableItem.of("id2");
+    final ItemRepository.Criteria crit2 = repository.criteria().id(item2.id());
+
+    repository.insert(item2).getUnchecked();
+    check(repository.update(crit2).addList("l1").updateAll().getUnchecked()).is(1);
+    check(repository.update(crit2).addList("l1").updateFirst().getUnchecked()).is(1);
+
+    // crit1 still returns valid result
+    check(repository.update(crit1).addList("l1").updateAll().getUnchecked()).is(1);
+    check(repository.update(crit1).addList("l2").updateFirst().getUnchecked()).is(1);
+
+    // both crit1 and crit2
+    check(repository.update(repository.criteria()).addList("l1").updateAll().getUnchecked()).is(2);
+    check(repository.update(repository.criteria()).addList("l2").updateFirst().getUnchecked()).is(1);
+  }
+
   @Test
   public void set_with_other_operations() throws Exception {
     final String id = "i1";
