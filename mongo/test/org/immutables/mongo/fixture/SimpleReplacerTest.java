@@ -15,9 +15,9 @@
  */
 package org.immutables.mongo.fixture;
 
-import com.mongodb.CommandFailureException;
 import com.mongodb.CommandResult;
 import com.mongodb.DuplicateKeyException;
+import com.mongodb.MongoCommandException;
 import org.junit.Rule;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
@@ -97,16 +97,6 @@ public class SimpleReplacerTest {
   private static void failIfNotDuplicateKeyException(Throwable exception) {
     // fongo throws directly DuplicateKeyException
     if (exception instanceof DuplicateKeyException) return;
-
-    // for MongoDB need to check CommandResult
-    if (exception instanceof CommandFailureException) {
-      CommandResult result = ((CommandFailureException) exception).getCommandResult();
-      if (!"DuplicateKey".equals(result.get("codeName"))) {
-        fail("Not a duplicate key exception for "  + result);
-      }
-
-      return;
-    }
 
     // all others exceptions
     fail("Excepted duplicate key exception from " + exception.getCause());

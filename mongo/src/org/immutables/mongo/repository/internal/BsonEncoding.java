@@ -35,7 +35,6 @@ import com.mongodb.DBEncoder;
 import com.mongodb.DBObject;
 import com.mongodb.DefaultDBEncoder;
 import com.mongodb.LazyDBCallback;
-import com.mongodb.LazyWriteableDBObject;
 import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
@@ -193,7 +192,7 @@ public final class BsonEncoding {
       throw new RuntimeException("Couldn't serialize current instance", e);
     }
 
-    final DBObject bson = new LazyWriteableDBObject(buffer.toByteArray(), new LazyBSONCallback());
+    final DBObject bson = (DBObject) new LazyDBCallback(null).createObject(buffer.toByteArray(), 0);
     final BasicDBObject copy = new BasicDBObject();
     copy.putAll(bson);
     return copy;
