@@ -9,7 +9,7 @@ import static org.immutables.check.Checkers.check;
 import static org.junit.Assert.fail;
 
 /**
- * Collection of simple validation methods.
+ * Collection of simple validation methods
  */
 final class MongoAsserts {
 
