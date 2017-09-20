@@ -191,11 +191,7 @@ public final class RepositorySetup {
   }
 
   private static MongoClient newMongoClient(MongoClientURI clientUri) {
-    try {
-      return new MongoClient(clientUri);
-    } catch (UnknownHostException ex) {
-      throw Throwables.propagate(ex);
-    }
+    return new MongoClient(clientUri);
   }
 
   private static final int DEFAULT_THREAD_POOL_CORE_SIZE = 5;
