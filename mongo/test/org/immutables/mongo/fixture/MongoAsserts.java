@@ -15,9 +15,15 @@ final class MongoAsserts {
 
   private MongoAsserts() {}
 
+  /**
+   * Ensures current exception has been generated due to a duplicate (primary) key.
+   * Differentiates between Fongo and Mongo exceptions since the behaviour under these databases
+   * is different.
+   */
   public static void assertDuplicateKeyException(Throwable exception) {
     Preconditions.checkNotNull(exception, "exception");
 
+    // unwrap, if necessary
     exception = exception instanceof MongoException ? exception : exception.getCause();
 
     // fongo throws directly DuplicateKeyException
