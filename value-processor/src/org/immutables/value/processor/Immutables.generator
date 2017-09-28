@@ -574,9 +574,11 @@ private Object writeReplace() {
   [for v in type.settableAttributes]
     [if v.arrayType]
 @Override
+[varargsSafety v]
 public [type.typeAbstract.relative] [v.names.with]([v.elementType]... elements) { throw new UnsupportedOperationException(); }
     [else if v.collectionType]
 @Override
+[varargsSafety v]
 public [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements) { throw new UnsupportedOperationException(); }
 @Override
 public [type.typeAbstract.relative] [v.names.with](Iterable<[v.consumedElementType]> elements) { throw new UnsupportedOperationException(); }
@@ -3912,7 +3914,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template typeDeprecation Type t][if t.deprecated]@Deprecated[/if][/template]
 
-[template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs[/if][/template]
+[template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs @SuppressWarnings("varargs")[/if][/template]
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
 
