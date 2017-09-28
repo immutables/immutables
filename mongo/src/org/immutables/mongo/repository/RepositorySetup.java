@@ -15,7 +15,6 @@
  */
 package org.immutables.mongo.repository;
 
-import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -28,20 +27,22 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
-import java.net.UnknownHostException;
+import org.immutables.mongo.repository.Repositories.Repository;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
-import org.immutables.mongo.repository.Repositories.Repository;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+
 
 /**
  * {@link RepositorySetup} combines driver's database, thread-pool and serialization configuration
@@ -191,11 +192,7 @@ public final class RepositorySetup {
   }
 
   private static MongoClient newMongoClient(MongoClientURI clientUri) {
-    try {
       return new MongoClient(clientUri);
-    } catch (UnknownHostException ex) {
-      throw Throwables.propagate(ex);
-    }
   }
 
   private static final int DEFAULT_THREAD_POOL_CORE_SIZE = 5;

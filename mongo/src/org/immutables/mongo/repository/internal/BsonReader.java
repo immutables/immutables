@@ -33,7 +33,7 @@ import org.immutables.gson.stream.JsonParserReader;
 public class BsonReader extends JsonParserReader {
   private final BsonParser parser;
 
-  public BsonReader(BsonParser parser) {
+  BsonReader(BsonParser parser) {
     super(parser);
     this.parser = parser;
   }

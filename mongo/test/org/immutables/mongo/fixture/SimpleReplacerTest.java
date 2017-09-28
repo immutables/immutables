@@ -15,11 +15,10 @@
  */
 package org.immutables.mongo.fixture;
 
-import com.mongodb.CommandFailureException;
-import com.mongodb.CommandResult;
 import com.mongodb.DuplicateKeyException;
 import org.junit.Rule;
 import org.junit.Test;
+
 import static org.immutables.check.Checkers.check;
 import static org.junit.Assert.fail;
 
@@ -90,26 +89,27 @@ public class SimpleReplacerTest {
 
       fail("Should fail with " + DuplicateKeyException.class.getName());
     } catch (Exception e) {
-      failIfNotDuplicateKeyException(e.getCause());
+      MongoAsserts.assertDuplicateKeyException(e);
     }
   }
 
-  private static void failIfNotDuplicateKeyException(Throwable exception) {
-    // fongo throws directly DuplicateKeyException
-    if (exception instanceof DuplicateKeyException) return;
+  @Test
+  public void returnNewOld() throws Exception {
+    final Entity entity1 = ImmutableEntity.builder().id("e1").value("v1").build();
+    final Entity entity2 = ImmutableEntity.builder().id("e1").value("v2").build();
 
-    // for MongoDB need to check CommandResult
-    if (exception instanceof CommandFailureException) {
-      CommandResult result = ((CommandFailureException) exception).getCommandResult();
-      if (!"DuplicateKey".equals(result.get("codeName"))) {
-        fail("Not a duplicate key exception for "  + result);
-      }
+    repository.insert(entity1).getUnchecked();
 
-      return;
-    }
+    check(repository.find(repository.criteria().id("e1")).andReplaceFirst(entity2).returningNew().update()
+            .getUnchecked()).isOf(entity2);
 
-    // all others exceptions
-    fail("Excepted duplicate key exception from " + exception.getCause());
+    check(repository.find(repository.criteria()).fetchAll().getUnchecked()).hasContentInAnyOrder(entity2);
+
+    check(repository.find(repository.criteria().id("e1")).andReplaceFirst(entity1).returningOld().update()
+            .getUnchecked()).isOf(entity2);
+
+    check(repository.find(repository.criteria()).fetchAll().getUnchecked()).hasContentInAnyOrder(entity1);
+
   }
 
   @Test
