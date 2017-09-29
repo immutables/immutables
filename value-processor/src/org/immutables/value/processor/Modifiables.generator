@@ -99,6 +99,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Clears the object by setting all attributes to their initial values.
    * @return {@code this} for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public [thisSetterReturnType type] [type.names.clear]() {
     [for l in positions.longs]
     [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
@@ -166,6 +167,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public final [thisSetterReturnType type] [unset m]() {
     [disambiguateField type 'initBits'][emptyIfZero pos.index] |= INIT_BIT_[toConstant m.name];
     [clearField m true]
@@ -177,6 +179,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
    * Reset an attribute to its initial value.
    * @return {@code this} for use in a chained invocation
    */
+  [atCanIgnoreReturnValue]
   public final [thisSetterReturnType type] [unset p]() {
     [disambiguateField type 'optBits'][emptyIfZero pos.index] |= 0;
     [clearField p true]
@@ -341,6 +344,7 @@ public static[type.generics.def] [thisReturnType type] [type.names.create]() {
  * @param instance The instance from which to copy values
  * @return {@code this} for use in a chained invocation
  */
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
   [im.requireNonNull type](instance, "instance");
   from((Object) instance);
@@ -478,6 +482,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] element) {
   [if v.nullableCollector]
   if ([v.name] == null) {
@@ -505,6 +510,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
  */
 [deprecation v]
 [varargsSafety v]
+[atCanIgnoreReturnValue]
 public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
   for ([v.unwrappedElementType] element : elements) {
     [if v.unwrappedElementPrimitiveType]
@@ -523,6 +529,7 @@ public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType].
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
   [if v.nullable]
   if (elements == null) {
@@ -550,6 +557,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
   if (elements == null) [thisSetterReturn type]
@@ -571,6 +579,7 @@ public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementT
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
   this.[v.name] = [optionalOf v]([v.name]);
   [nondefaultSetter v]
@@ -583,6 +592,7 @@ public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.na
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
   this.[v.name] = [im.requireNonNull type]([v.name], "[v.name]");
   [nondefaultSetter v]
@@ -600,6 +610,7 @@ public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecial
  */
 [varargsSafety v]
 [deprecation v]
+[atCanIgnoreReturnValue]
 public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values) {
   [v.names.putAll](key, [im.arrayAsListSecondary v 'values']);
   [thisSetterReturn type]
@@ -612,6 +623,7 @@ public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values)
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
   [if v.nullableCollector]
   if ([v.name] == null) {
@@ -631,6 +643,7 @@ public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> val
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
   [if v.nullableCollector]
   if ([v.name] == null) {
@@ -651,6 +664,7 @@ public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]>[/if] entries) {
   [if v.nullable]
   if (entries == null) {
@@ -679,6 +693,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   [if v.nullableCollector]
   if ([v.name] == null) {
@@ -706,6 +721,7 @@ public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].c
  */
 [varargsSafety v]
 [deprecation v]
+[atCanIgnoreReturnValue]
 public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elements) {
   this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
   [mandatorySetter v]
@@ -723,6 +739,7 @@ public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elemen
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[atCanIgnoreReturnValue]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
   [if v.attributeValueKindModifyFrom]
   this.[v.name] = [if v.nullable][v.name] == null ? null : [/if]([v.name] instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw] ? ([v.attributeValueType.constitution.typeModifiable.absolute]) [v.name] : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from]([v.name]));
@@ -1145,3 +1162,5 @@ import [starImport];
 [template jsonIgnore Type type][if type.generateJacksonIngoreFields]@com.fasterxml.jackson.annotation.JsonIgnore[/if][/template]
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+
+[template atCanIgnoreReturnValue][if classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue[/if][/template]

@@ -26,7 +26,6 @@ import com.google.common.collect.Range;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonWriter;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.QueryOperators;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +35,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BSONObject;
+import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
 
@@ -45,7 +45,7 @@ import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
 public final class Support {
   private Support() {}
 
-  public static DBObject extractDbObject(final Constraints.ConstraintHost fields) {
+  public static Bson convertToBson(final Constraints.ConstraintHost fields) {
     if (fields instanceof JsonQuery) {
       return BsonEncoding.unwrapJsonable(((JsonQuery) fields).value);
     }
@@ -56,7 +56,7 @@ public final class Support {
     if (constraints instanceof JsonQuery) {
       return ((JsonQuery) constraints).value;
     }
-    return extractDbObject(constraints).toString();
+    return convertToBson(constraints).toString();
   }
 
   @NotThreadSafe
@@ -253,7 +253,7 @@ public final class Support {
     }
 
     if (value instanceof Constraints.ConstraintHost) {
-      return extractDbObject((Constraints.ConstraintHost) value);
+      return convertToBson((Constraints.ConstraintHost) value);
     }
 
     if (value == null
@@ -290,8 +290,8 @@ public final class Support {
   }
 
   static final class Adapted<T> implements Comparable<Adapted<T>> {
-    private final T value;
-    private final TypeAdapter<T> adapter;
+    final T value;
+    final TypeAdapter<T> adapter;
 
     Adapted(TypeAdapter<T> adapter, T value) {
       this.adapter = adapter;
