@@ -22,8 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.FindOneAndDeleteOptions;
@@ -62,8 +60,6 @@ import static org.immutables.mongo.repository.internal.Support.convertToBson;
 public final class Repositories {
   private static final int LARGE_BATCH_SIZE = 2000;
   private static final int DEFAULT_EXPECTED_RESULT_SIZE = 500;
-
-  private static final DBObject EMPTY = new BasicDBObject();
 
   private Repositories() {}
 
@@ -281,16 +277,15 @@ public final class Repositories {
       return submit(new Callable<UpdateResult>() {
         @Override
         public UpdateResult call() {
-          MongoCollection<T> collection = collection();
-          return collection.replaceOne(
-              convertToBson(criteria),
-                  document,
-              new UpdateOptions().upsert(true));
+          return collection().replaceOne(convertToBson(criteria), document, new UpdateOptions().upsert(true));
         }
       }).lazyTransform(new Function<UpdateResult, Integer>() {
         @Override
-        public Integer apply( UpdateResult input) {
-          return (int) input.getModifiedCount();
+        public Integer apply(UpdateResult input) {
+          // upsert will always return 1:
+          // if document doesn't exists, it will be inserted (modCount == 1)
+          // if document exists, it will be updated (modCount == 1)
+          return 1;
         }
       });
     }

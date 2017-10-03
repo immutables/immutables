@@ -15,30 +15,16 @@
  */
 package org.immutables.mongo.repository.internal;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
 import com.google.gson.TypeAdapter;
-import com.mongodb.MongoClient;
-import de.undercouch.bson4jackson.BsonFactory;
-import de.undercouch.bson4jackson.BsonParser;
 import org.bson.BsonDocument;
-import org.bson.BsonDocumentReader;
 import org.bson.BsonDocumentWriter;
-import org.bson.codecs.Codec;
 import org.bson.codecs.EncoderContext;
 import org.bson.conversions.Bson;
 
 /**
  * MongoDB driver specific encoding and jumping hoops.
  */
-@SuppressWarnings("resource")
-public final class BsonEncoding {
-  private static final BsonFactory BSON_FACTORY = new BsonFactory()
-      .enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
-
-  private static final JsonFactory JSON_FACTORY = new JsonFactory()
-      .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-      .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
+final class BsonEncoding {
 
   /**
    * This field name will cause an MongoDB confuse if not unwrapped correctly so it may be a good
@@ -48,32 +34,24 @@ public final class BsonEncoding {
 
   private BsonEncoding() {}
 
-  public static Object unwrapBsonable(Support.Adapted<?> adapted) {
+  /**
+   * Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.
+   */
+  static Object unwrapBsonable(Support.Adapted<?> adapted) {
+    @SuppressWarnings("unchecked")
     GsonCodecs.GsonCodec<Object> codec = new GsonCodecs.GsonCodec<Object>((Class<Object>) adapted.value.getClass(), (TypeAdapter<Object>) adapted.adapter);
-    return marshalDocument(adapted.value, codec);
-  }
-
-  public static Bson unwrapJsonable(String json) {
-    return BsonDocument.parse(json);
-  }
-
-  public static <T> Bson marshalDocument(T document, Codec<T> codec) {
     BsonDocument bson = new BsonDocument();
     org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
-    codec.encode(writer, document, EncoderContext.builder().build());
-    return bson;
+    writer.writeStartDocument();
+    writer.writeName(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
+    codec.encode(writer, adapted.value, EncoderContext.builder().build());
+    writer.writeEndDocument();
+    writer.flush();
+    return bson.get(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
   }
 
-  private static org.bson.AbstractBsonReader readerFor(Bson bson) {
-    if (bson instanceof BsonDocument) {
-      return new BsonDocumentReader((BsonDocument) bson);
-    } else  {
-      return new BsonDocumentReader(bson.toBsonDocument(BsonDocument.class,
-              MongoClient.getDefaultCodecRegistry()));
-    }
-
+  static Bson unwrapJsonable(String json) {
+    return BsonDocument.parse(json);
   }
-
-
 
 }

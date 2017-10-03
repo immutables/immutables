@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-
 @NotThreadSafe
 public class BsonReader extends JsonReader {
 
@@ -72,7 +71,7 @@ public class BsonReader extends JsonReader {
   public JsonToken peek() throws IOException {
     JsonToken token = null;
 
-    if (state() == State.INITIAL || state() == State.DONE || state() == State.SCOPE_DOCUMENT) {
+    if (state() == State.INITIAL || state() == State.SCOPE_DOCUMENT) {
       advance();
       token = toGsonToken(delegate.getCurrentBsonType());
     } else if (state() == State.TYPE) {
@@ -149,6 +148,9 @@ public class BsonReader extends JsonReader {
         break;
       case DECIMAL128:
         token = JsonToken.NUMBER;
+        break;
+      case BINARY:
+        token = JsonToken.STRING;
         break;
       default:
         // not really sure what to do with this type
