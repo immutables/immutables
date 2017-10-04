@@ -21,7 +21,7 @@ public class SimpleIndexerTest {
 
   @Test
   public void index1() throws Exception {
-    repository.index().withId().named("id").expireAfterSeconds(1).ensure().getUnchecked();
+    repository.index().withId().named("id").ensure().getUnchecked();
     repository.index().withString().named("string").unique().expireAfterSeconds(2).ensure().getUnchecked();
     repository.index().withLongValue().named("longValue").expireAfterSeconds(3).ensure().getUnchecked();
     repository.index().withDoubleValue().named("doubleValue").ensure().getUnchecked();
