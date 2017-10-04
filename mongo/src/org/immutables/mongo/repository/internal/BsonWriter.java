@@ -1,17 +1,29 @@
 package org.immutables.mongo.repository.internal;
 
-import com.google.gson.internal.LazilyParsedNumber;
-import org.bson.BsonBinary;
-import org.bson.BsonRegularExpression;
-import org.bson.types.ObjectId;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.gson.internal.LazilyParsedNumber;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.regex.Pattern;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.bson.BsonBinary;
+import org.bson.BsonRegularExpression;
+import org.bson.types.ObjectId;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+/**
+ * Adapter of {@link com.google.gson.stream.JsonWriter GSON Writer} writing JSON documents in <a href="http://bsonspec.org/">BSON format</a>
+ * It delegates most of the calls to {@link org.bson.BsonWriter} which can serialize document representation in BSON binary version (default wire protocol
+ * between mongo server and client). This allows to write / persist immutable objects directly into binary, bypassing intermediate
+ * object representation (typically Immutable -> DBObject-> byte[]} ). Generated Gson {@link com.google.gson.TypeAdapter} takes care of
+ * reading the object and calling write methods as a stream API.
+ *
+ * @see BsonReader
+ * @see <a href="http://mongodb.github.io/mongo-java-driver/3.5/bson/">Mongo Driver (BSON)</a>
+ * @see <a href="http://bsonspec.org/">BSON spec</a>
+ */
+@NotThreadSafe
 public class BsonWriter extends com.google.gson.stream.JsonWriter {
   private static final Writer UNWRITABLE_WRITER = new Writer() {
     @Override public void write(char[] buffer, int offset, int counter) {

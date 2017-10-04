@@ -1,17 +1,16 @@
 package org.immutables.mongo.fixture;
 
 
+import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
+
 import com.google.common.base.Optional;
+import java.util.Date;
 import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Date;
-
-import static org.immutables.check.Checkers.check;
-import static org.junit.Assert.fail;
 
 public class SimpleIndexerTest {
 
@@ -22,12 +21,12 @@ public class SimpleIndexerTest {
 
   @Test
   public void index1() throws Exception {
-    repository.index().withId().ensure().getUnchecked();
-    repository.index().withString().ensure().getUnchecked();
-    repository.index().withLongValue().ensure().getUnchecked();
-    repository.index().withDoubleValue().ensure().getUnchecked();
-    repository.index().withDate().ensure().getUnchecked();
-    repository.index().withOptional().ensure().getUnchecked();
+    repository.index().withId().named("id").expireAfterSeconds(1).ensure().getUnchecked();
+    repository.index().withString().named("string").unique().expireAfterSeconds(2).ensure().getUnchecked();
+    repository.index().withLongValue().named("longValue").expireAfterSeconds(3).ensure().getUnchecked();
+    repository.index().withDoubleValue().named("doubleValue").ensure().getUnchecked();
+    repository.index().withDateDesceding().named("date").ensure().getUnchecked();
+    repository.index().withOptional().named("optional").ensure().getUnchecked();
 
     final ImmutableForIndexer doc = create();
     repository.insert(doc).getUnchecked();
@@ -110,7 +109,6 @@ public class SimpleIndexerTest {
     Optional<String> optional();
 
     Optional<Date> date();
-
   }
 
 }

@@ -15,6 +15,8 @@
  */
 package org.immutables.mongo.repository.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -24,17 +26,19 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonWriter;
-import com.mongodb.BasicDBObject;
 import com.mongodb.QueryOperators;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
-import org.bson.BSONObject;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentWriter;
+import org.bson.BsonValue;
+import org.bson.Document;
+import org.bson.codecs.Encoder;
+import org.bson.codecs.EncoderContext;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
@@ -45,11 +49,14 @@ import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
 public final class Support {
   private Support() {}
 
+  /**
+   * Given a query / ordering clause will convert it to Bson representation.
+   */
   public static Bson convertToBson(final Constraints.ConstraintHost fields) {
     if (fields instanceof JsonQuery) {
-      return BsonEncoding.unwrapJsonable(((JsonQuery) fields).value);
+      return Document.parse(((JsonQuery) fields).value);
     }
-    return fields.accept(new ConstraintBuilder("")).asDbObject();
+    return fields.accept(new ConstraintBuilder("")).asDocument();
   }
 
   public static String stringify(final Constraints.ConstraintHost constraints) {
@@ -63,14 +70,14 @@ public final class Support {
   public static class ConstraintBuilder implements Constraints.ConstraintVisitor<ConstraintBuilder> {
 
     private final String keyPrefix;
-    private BasicDBObject constraints;
-    private List<BasicDBObject> disjunction;
+    private Document constraints;
+    private List<Document> disjunction;
 
-    public ConstraintBuilder(String keyPrefix) {
-      this(keyPrefix, new BasicDBObject());
+    ConstraintBuilder(String keyPrefix) {
+      this(keyPrefix, new Document());
     }
 
-    private ConstraintBuilder(String keyPrefix, BasicDBObject constraints) {
+    private ConstraintBuilder(String keyPrefix, Document constraints) {
       this.keyPrefix = keyPrefix;
       this.constraints = constraints;
     }
@@ -92,7 +99,7 @@ public final class Support {
     @Override
     public ConstraintBuilder in(String name, boolean negate, Iterable<?> values) {
       addContraint(name,
-          new BasicDBObject(
+          new Document(
               negate ? QueryOperators.NIN : QueryOperators.IN,
               ImmutableSet.copyOf(unwrapBsonableIterable(values))));
       return this;
@@ -100,7 +107,7 @@ public final class Support {
 
     @Override
     public ConstraintBuilder equal(String name, boolean negate, @Nullable Object value) {
-      addContraint(name, negate ? new BasicDBObject(QueryOperators.NE, unwrapBsonable(value)) : unwrapBsonable(value));
+      addContraint(name, negate ? new Document(QueryOperators.NE, unwrapBsonable(value)) : unwrapBsonable(value));
       return this;
     }
 
@@ -111,7 +118,7 @@ public final class Support {
         if (range.lowerEndpoint().equals(range.upperEndpoint()) && !range.isEmpty()) {
           equal(name, negate, range.lowerEndpoint());
         } else {
-          BasicDBObject rangeObject = new BasicDBObject(2)
+          Document rangeObject = new Document()
               .append(boundToOperator(true, false, range.lowerBoundType()), unwrapBsonable(range.lowerEndpoint()))
               .append(boundToOperator(false, false, range.upperBoundType()), unwrapBsonable(range.upperEndpoint()));
 
@@ -119,16 +126,16 @@ public final class Support {
         }
 
       } else if (range.hasLowerBound()) {
-        BasicDBObject rangeObject =
-            new BasicDBObject(
+        Document rangeObject =
+            new Document(
                 boundToOperator(true, negate, range.lowerBoundType()),
                 unwrapBsonable(range.lowerEndpoint()));
 
         addContraint(name, rangeObject);
 
       } else if (range.hasUpperBound()) {
-        BasicDBObject rangeObject =
-            new BasicDBObject(
+        Document rangeObject =
+            new Document(
                 boundToOperator(false, negate, range.upperBoundType()),
                 unwrapBsonable(range.upperEndpoint()));
 
@@ -148,25 +155,25 @@ public final class Support {
     };
 
     private Object negateConstraint(boolean negate, Object constraint) {
-      return negate ? new BasicDBObject(QueryOperators.NOT, constraint) : constraint;
+      return negate ? new Document(QueryOperators.NOT, constraint) : constraint;
     }
 
-    public BasicDBObject asDbObject() {
+    public Document asDocument() {
       if (disjunction != null) {
-        return new BasicDBObject(1).append(QueryOperators.OR, disjunction);
+        return new Document(QueryOperators.OR, disjunction);
       }
       return constraints;
     }
 
     @Override
     public ConstraintBuilder size(String name, boolean negate, int size) {
-      addContraint(name, negateConstraint(negate, new BasicDBObject(QueryOperators.SIZE, size)));
+      addContraint(name, negateConstraint(negate, new Document(QueryOperators.SIZE, size)));
       return this;
     }
 
     @Override
     public ConstraintBuilder present(String name, boolean negate) {
-      addContraint(name, new BasicDBObject(QueryOperators.EXISTS, !negate));
+      addContraint(name, new Document(QueryOperators.EXISTS, !negate));
       return this;
     }
 
@@ -178,7 +185,7 @@ public final class Support {
 
     @Override
     public ConstraintBuilder nested(String name, Constraints.ConstraintHost nestedConstraints) {
-      constraints.putAll((BSONObject) nestedConstraints.accept(newBuilderForKey(name)).asDbObject());
+      constraints.putAll(nestedConstraints.accept(newBuilderForKey(name)).asDocument());
       return this;
     }
 
@@ -188,7 +195,7 @@ public final class Support {
         disjunction = new ArrayList<>(4);
         disjunction.add(constraints);
       }
-      constraints = new BasicDBObject();
+      constraints = new Document();
       disjunction.add(constraints);
       return this;
     }
@@ -241,8 +248,8 @@ public final class Support {
   }
 
   public static Object unwrapBsonable(Object value) {
-    if (value instanceof BasicDBObject) {
-      for (Entry<String, Object> entry : ((BasicDBObject) value).entrySet()) {
+    if (value instanceof Document) {
+      for (Entry<String, Object> entry : ((Document) value).entrySet()) {
         entry.setValue(unwrapBsonable(entry.getValue()));
       }
       return value;
@@ -264,7 +271,7 @@ public final class Support {
     }
 
     if (value instanceof Adapted<?>) {
-      return BsonEncoding.unwrapBsonable((Adapted<?>) value);
+      return ((Adapted) value).toBson();
     }
 
     return String.valueOf(value);
@@ -274,7 +281,7 @@ public final class Support {
     private final String value;
 
     JsonQuery(String value) {
-      this.value = value;
+      this.value = checkNotNull(value, "value");
     }
 
     @Override
@@ -298,8 +305,18 @@ public final class Support {
       this.value = value;
     }
 
-    void write(JsonWriter writer) throws IOException {
-      adapter.write(writer, value);
+    BsonValue toBson() {
+      @SuppressWarnings("unchecked")
+      Encoder<T> encoder = BsonEncoding.encoderFor((Class<T>) value.getClass(), adapter);
+      BsonDocument bson = new BsonDocument();
+      org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
+      // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.
+      writer.writeStartDocument();
+      writer.writeName("$");
+      encoder.encode(writer, value, EncoderContext.builder().build());
+      writer.writeEndDocument();
+      writer.flush();
+      return bson.get("$");
     }
 
     @SuppressWarnings("unchecked")
@@ -325,11 +342,7 @@ public final class Support {
     });
   }
 
-  public static Object emptyBsonObject() {
-    return new BasicDBObject();
-  }
-
   public static Object bsonObjectAttribute(String name, Object value) {
-    return new BasicDBObject(name, value);
+    return new Document(name, value);
   }
 }

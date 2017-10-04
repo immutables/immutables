@@ -2,6 +2,15 @@ package org.immutables.mongo.repository.internal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.internal.bind.TypeAdapters;
+import org.bson.BsonArray;
+import org.bson.BsonBoolean;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentReader;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonNull;
+import org.bson.BsonString;
 import org.bson.json.JsonReader;
 import org.junit.Test;
 
@@ -87,6 +96,41 @@ public class BsonReaderTest {
         compare("{\"foo\": 1, \"bar\": 2}");
         compare("{\"foo\": [], \"bar\": {}}");
         compare("{\"foo\": {\"bar\": {\"baz\": true}}}");
+    }
+
+    @Test
+    public void raw() throws Exception {
+        BsonDocument document = new BsonDocument();
+        document.append("boolean", new BsonBoolean(true));
+        document.append("int32", new BsonInt32(32));
+        document.append("int64", new BsonInt64(64));
+        document.append("double", new BsonDouble(42.42D));
+        document.append("string", new BsonString("foo"));
+        document.append("null", new BsonNull());
+        document.append("array", new BsonArray());
+        document.append("object", new BsonDocument());
+
+        JsonElement element = TypeAdapters.JSON_ELEMENT.read(new BsonReader(new BsonDocumentReader(document)));
+        check(element.isJsonObject());
+
+        check(element.getAsJsonObject().get("boolean").getAsJsonPrimitive().isBoolean());
+        check(element.getAsJsonObject().get("boolean").getAsJsonPrimitive().getAsBoolean());
+
+        check(element.getAsJsonObject().get("int32").getAsJsonPrimitive().isNumber());
+        check(element.getAsJsonObject().get("int32").getAsJsonPrimitive().getAsNumber().intValue()).is(32);
+
+        check(element.getAsJsonObject().get("int64").getAsJsonPrimitive().isNumber());
+        check(element.getAsJsonObject().get("int64").getAsJsonPrimitive().getAsNumber().longValue()).is(64L);
+
+        check(element.getAsJsonObject().get("double").getAsJsonPrimitive().isNumber());
+        check(element.getAsJsonObject().get("double").getAsJsonPrimitive().getAsNumber().doubleValue()).is(42.42D);
+
+        check(element.getAsJsonObject().get("string").getAsJsonPrimitive().isString());
+        check(element.getAsJsonObject().get("string").getAsJsonPrimitive().getAsString()).is("foo");
+
+        check(element.getAsJsonObject().get("null").isJsonNull());
+        check(element.getAsJsonObject().get("array").isJsonArray());
+        check(element.getAsJsonObject().get("object").isJsonObject());
     }
 
     private static void compare(String string) throws IOException {

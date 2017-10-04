@@ -2,7 +2,17 @@ package org.immutables.mongo.repository.internal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.TypeAdapter;
 import com.google.gson.internal.bind.TypeAdapters;
+import org.bson.BsonBoolean;
+import org.bson.BsonDecimal128;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentReader;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonString;
+import org.bson.types.Decimal128;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,6 +28,13 @@ public class BsonWriterTest {
     write("1");
     write("0");
     write("{}");
+  }
+
+  @Test
+  public void array() throws Exception {
+    write("[]");
+    write("[[]]");
+    write("[[[]]]");
   }
 
   @Test
@@ -39,13 +56,14 @@ public class BsonWriterTest {
     write(obj);
   }
 
+
   private static void write(String string) throws IOException {
     write(TypeAdapters.JSON_ELEMENT.fromJson(string));
   }
 
   private static void write(JsonElement gson) throws IOException {
 
-    // BSON likes full document
+    // BSON likes encoding full document (not simple elements like BsonValue)
     if (!gson.isJsonObject()) {
       JsonObject temp = new JsonObject();
       temp.add("ignore", gson);

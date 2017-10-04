@@ -15,43 +15,123 @@
  */
 package org.immutables.mongo.repository.internal;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.gson.TypeAdapter;
-import org.bson.BsonDocument;
-import org.bson.BsonDocumentWriter;
+import java.io.IOException;
+import org.bson.AbstractBsonReader;
+import org.bson.BsonReader;
+import org.bson.BsonWriter;
+import org.bson.codecs.Codec;
+import org.bson.codecs.Decoder;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.Encoder;
 import org.bson.codecs.EncoderContext;
-import org.bson.conversions.Bson;
+import org.bson.codecs.configuration.CodecConfigurationException;
+import org.bson.codecs.configuration.CodecRegistry;
 
 /**
- * MongoDB driver specific encoding and jumping hoops.
+ * MongoDB (Bson) driver specific codecs and helper methods. Utility class.
  */
-final class BsonEncoding {
-
-  /**
-   * This field name will cause an MongoDB confuse if not unwrapped correctly so it may be a good
-   * choice.
-   */
-  private static final String PREENCODED_VALUE_WRAPPER_FIELD_NAME = "$";
+public final class BsonEncoding {
 
   private BsonEncoding() {}
 
   /**
-   * Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.
+   * "Smart" registry just for this particular {@code type}. It is typically composed with existing
+   * registries using {@link org.bson.codecs.configuration.CodecRegistries#fromRegistries(CodecRegistry...)} method.
    */
-  static Object unwrapBsonable(Support.Adapted<?> adapted) {
-    @SuppressWarnings("unchecked")
-    GsonCodecs.GsonCodec<Object> codec = new GsonCodecs.GsonCodec<Object>((Class<Object>) adapted.value.getClass(), (TypeAdapter<Object>) adapted.adapter);
-    BsonDocument bson = new BsonDocument();
-    org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
-    writer.writeStartDocument();
-    writer.writeName(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
-    codec.encode(writer, adapted.value, EncoderContext.builder().build());
-    writer.writeEndDocument();
-    writer.flush();
-    return bson.get(PREENCODED_VALUE_WRAPPER_FIELD_NAME);
+  public static <T> CodecRegistry registryFor(final Class<T> type, final TypeAdapter<T> adapter) {
+    return new CodecRegistry() {
+      @SuppressWarnings("unchecked")
+      @Override
+      public <X> Codec<X> get(Class<X> clazz) {
+        // TODO is this a safe assumption with polymorphism (in repositories) ?
+        if (type.isAssignableFrom(clazz)) {
+          return (Codec<X>) codecFor(type, adapter);
+        } else {
+          // let other registries decide
+          throw new CodecConfigurationException(String.format("Type %s not supported by this registry", type.getName()));
+        }
+      }
+    };
   }
 
-  static Bson unwrapJsonable(String json) {
-    return BsonDocument.parse(json);
+  /**
+   * Creates codec for {@code type} given GSON {@code adapter}. Codec is composed of internal implementations
+   * from this class.
+   *
+   * @see #encoderFor(Class, TypeAdapter)
+   * @see #decoderFor(Class, TypeAdapter)
+   */
+  public static <T> Codec<T> codecFor(final Class<T> type, final TypeAdapter<T> adapter) {
+    checkNotNull(type, "type");
+    checkNotNull(adapter, "adapter");
+    return new Codec<T>() {
+      final Decoder<T> decoder = decoderFor(type, adapter);
+      final Encoder<T> encoder = encoderFor(type, adapter);
+      @Override
+      public T decode(BsonReader reader, DecoderContext context) {
+        return decoder.decode(reader, context);
+      }
+
+      @Override
+      public void encode(BsonWriter writer, T value, EncoderContext context) {
+        encoder.encode(writer, value, context);
+      }
+
+      @Override
+      public Class<T> getEncoderClass() {
+        return encoder.getEncoderClass();
+      }
+    };
+  }
+
+  /**
+   * Creates a "reader" which is able to deserialize binary data into a immutables instance (using GSON type adapter).
+   */
+  public static <T> Decoder<T> decoderFor(final Class<T> type, final TypeAdapter<T> adapter) {
+    checkNotNull(type, "type");
+    checkNotNull(adapter, "adapter");
+    return new Decoder<T>() {
+      @Override
+      public T decode(BsonReader reader, DecoderContext decoderContext) {
+        if (!(reader instanceof AbstractBsonReader)) {
+          throw new UnsupportedOperationException(String.format("Only readers of type %s supported. Yours is %s",
+              AbstractBsonReader.class.getName(), reader.getClass().getName()));
+        }
+
+        try {
+          return adapter.read(new org.immutables.mongo.repository.internal.BsonReader((AbstractBsonReader) reader));
+        } catch (IOException e) {
+          throw new RuntimeException(String.format("Couldn't encode %s", type), e);
+        }
+      }
+    };
+  }
+
+  /**
+   * Creates "writer" which can serialize existing immutable instance into <a href="http://bsonspec.org/">BSON format</a>
+   * consumed by mongo server.
+   */
+  public static <T> Encoder<T> encoderFor(final Class<T> type, final TypeAdapter<T> adapter) {
+    checkNotNull(type, "type");
+    checkNotNull(adapter, "adapter");
+    return new Encoder<T>() {
+      @Override
+      public void encode(org.bson.BsonWriter writer, T value, EncoderContext encoderContext) {
+        try {
+          adapter.write(new org.immutables.mongo.repository.internal.BsonWriter(writer), value);
+        } catch (IOException e) {
+          throw new RuntimeException(String.format("Couldn't write value of class %s: %s", type.getName(), value),e);
+        }
+      }
+
+      @Override
+      public Class<T> getEncoderClass() {
+        return type;
+      }
+    };
   }
 
 }

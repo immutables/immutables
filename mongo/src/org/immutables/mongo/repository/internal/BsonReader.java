@@ -1,5 +1,6 @@
 package org.immutables.mongo.repository.internal;
 
+import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.bson.AbstractBsonReader;
@@ -13,6 +14,17 @@ import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * Adapter of {@link JsonReader GSON Reader} reading directly from <a href="http://bsonspec.org/">BSON encoded</a> documents.
+ * It delegates most of the calls to {@link org.bson.BsonReader} which understands binary JSON representation (default wire protocol
+ * between mongo server and client). This class allows to instantiate immutable objects directly from binary stream (eg. {@code byte[]}) bypassing intermediate
+ * object instantiation (typically {@code byte[] -> DBObject-> Immutable} ). Internally generated GSON {@link com.google.gson.TypeAdapter} will
+ * read incoming bytes as stream API.
+ *
+ * @see BsonWriter
+ * @see <a href="http://mongodb.github.io/mongo-java-driver/3.5/bson/">Mongo Driver (BSON)</a>
+ * @see <a href="http://bsonspec.org/">BSON spec</a>
+ */
 @NotThreadSafe
 public class BsonReader extends JsonReader {
 
@@ -27,6 +39,13 @@ public class BsonReader extends JsonReader {
 
   private final AbstractBsonReader delegate;
 
+  /**
+   * In order to be able to get current location of the BSON "cursor" (document or array start/end) enforcing clients to
+   * provide {@link AbstractBsonReader} which exposes this information via {@code getState()} method, instead of more generic interface {@link BsonReader}.
+   *
+   * @param delegate
+   * @see AbstractBsonReader#getState()
+   */
   BsonReader(org.bson.AbstractBsonReader delegate) {
     super(UNREADABLE_READER);
     this.delegate = checkNotNull(delegate, "delegate");
@@ -171,9 +190,12 @@ public class BsonReader extends JsonReader {
   }
 
   /**
-   * Gson library reads numbers lazily (parsing strings on demand). {@link JsonReader} was never expected to be
-   * applied on non-textual data.
-   * This is inefficient but (binary) number has to be converted to string (for GSON) then back to number (by GSON).
+   * Gson library reads numbers lazily when using generic {@link com.google.gson.internal.bind.TypeAdapters#JSON_ELEMENT} type adapter.
+   * Number is read as string and then wrapped inside {@link LazilyParsedNumber}. This inefficiency should only occur if reading numbers with generic JSON element API
+   * and not using generated type adapters.
+   *
+   * @see LazilyParsedNumber
+   * @see com.google.gson.internal.bind.TypeAdapters#JSON_ELEMENT
    */
   private String scalarToString() throws IOException {
     final BsonType type = delegate.getCurrentBsonType();

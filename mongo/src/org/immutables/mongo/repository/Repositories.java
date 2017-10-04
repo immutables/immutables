@@ -15,6 +15,11 @@
  */
 package org.immutables.mongo.repository;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.immutables.mongo.repository.internal.Support.convertToBson;
+
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -32,25 +37,21 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.conversions.Bson;
-import org.immutables.mongo.concurrent.FluentFuture;
-import org.immutables.mongo.concurrent.FluentFutures;
-import org.immutables.mongo.repository.internal.Constraints;
-import org.immutables.mongo.repository.internal.GsonCodecs;
-
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static org.immutables.mongo.repository.internal.Support.convertToBson;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.immutables.mongo.concurrent.FluentFuture;
+import org.immutables.mongo.concurrent.FluentFutures;
+import org.immutables.mongo.repository.internal.BsonEncoding;
+import org.immutables.mongo.repository.internal.Constraints;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that
@@ -71,21 +72,25 @@ public final class Repositories {
   public static abstract class Repository<T> {
 
     private final RepositorySetup configuration;
-    private final String collectionName;
-    private final TypeAdapter<T> adapter;
-    private final Class<T> type;
-    private final CodecRegistry registry;
+    private final MongoCollection<T> collection;
 
     protected Repository(
         RepositorySetup configuration,
         String collectionName,
         Class<T> type) {
-      this.configuration = checkNotNull(configuration, "configuration");
-      this.collectionName = checkNotNull(collectionName, "collectionName");
-      this.type = checkNotNull(type, "type");
-      this.adapter = checkAdapter(configuration.gson.getAdapter(type), type);
-      this.registry = GsonCodecs.registryFor(type, adapter, configuration.database.getCollection(collectionName).getCodecRegistry());
 
+      this.configuration = checkNotNull(configuration, "configuration");
+      checkNotNull(collectionName, "collectionName");
+      checkNotNull(type, "type");
+
+      final TypeAdapter<T> adapter = checkAdapter(configuration.gson.getAdapter(type), type);
+      final MongoCollection<Document> collection = configuration.database.getCollection(collectionName);
+      // combine default and immutables codec registries
+      final CodecRegistry registry = CodecRegistries.fromRegistries(collection.getCodecRegistry(), BsonEncoding.registryFor(type, adapter));
+
+      this.collection = collection
+          .withCodecRegistry(registry)
+          .withDocumentClass(type);
     }
 
     private static <A> TypeAdapter<A> checkAdapter(TypeAdapter<A> adapter, Class<A> type) {
@@ -106,9 +111,7 @@ public final class Repositories {
     }
 
     private MongoCollection<T> collection() {
-      return configuration.database.getCollection(collectionName)
-              .withCodecRegistry(registry)
-              .withDocumentClass(type);
+      return collection;
     }
 
     private <V> FluentFuture<V> submit(Callable<V> callable) {
@@ -175,9 +178,7 @@ public final class Repositories {
       return submit(new Callable<Optional<T>>() {
         @Override
         public Optional<T> call() throws Exception {
-          MongoCollection<T> collection = collection();
-
-          @Nullable T result = collection.findOneAndUpdate(
+          @Nullable T result = collection().findOneAndUpdate(
                   convertToBson(criteria),
                   convertToBson(update),
                   options);
@@ -215,8 +216,7 @@ public final class Repositories {
       return submit(new Callable<Integer>() {
         @Override
         public Integer call() {
-          MongoCollection<T> collection = collection();
-          T result = collection.findOneAndUpdate(
+          T result = collection().findOneAndUpdate(
                   convertToBson(criteria),
                   convertToBson(update),
                   options);
@@ -238,8 +238,8 @@ public final class Repositories {
       return submit(new Callable<UpdateResult>() {
         @Override
         public UpdateResult call() {
-          MongoCollection<T> collection = collection();
-          return collection.updateMany(
+          return collection()
+              .updateMany(
               convertToBson(criteria),
               convertToBson(update),
               options);
@@ -274,17 +274,14 @@ public final class Repositories {
         final T document) {
       checkNotNull(criteria, "criteria");
       checkNotNull(document, "document");
-      return submit(new Callable<UpdateResult>() {
+      return submit(new Callable<Integer>() {
         @Override
-        public UpdateResult call() {
-          return collection().replaceOne(convertToBson(criteria), document, new UpdateOptions().upsert(true));
-        }
-      }).lazyTransform(new Function<UpdateResult, Integer>() {
-        @Override
-        public Integer apply(UpdateResult input) {
+        public Integer call() {
+          collection().replaceOne(convertToBson(criteria), document, new UpdateOptions().upsert(true));
           // upsert will always return 1:
           // if document doesn't exists, it will be inserted (modCount == 1)
           // if document exists, it will be updated (modCount == 1)
+
           return 1;
         }
       });
@@ -300,11 +297,9 @@ public final class Repositories {
         @SuppressWarnings("resource")
         @Override
         public List<T> call() throws Exception {
-          MongoCollection<T> collection = collection();
-
           @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
 
-          FindIterable<T> cursor = collection.find(query);
+          FindIterable<T> cursor = collection().find(query);
 
           if (!exclusion.isNil()) {
             cursor.projection(convertToBson(exclusion));
@@ -504,7 +499,7 @@ public final class Repositories {
     public final FluentFuture<Optional<T>> upsert() {
       options.upsert(true);
       options.sort(convertToBson(ordering));
-      // TODO exlusion / projection
+      // TODO exclusion / projection
       return repository.doModify(criteria, collectRequiredUpdate(), options);
     }
 
