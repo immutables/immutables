@@ -15,14 +15,9 @@
  */
 package org.immutables.fixture.marshal;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.google.common.base.CharMatcher;
 import com.google.gson.JsonNull;
 import com.google.gson.reflect.TypeToken;
-import de.undercouch.bson4jackson.BsonFactory;
-import java.util.List;
 import org.immutables.fixture.ImmutableHasNullable;
 import org.immutables.fixture.ImmutableJsonIgnore;
 import org.immutables.fixture.ImmutableSillySub1;
@@ -37,21 +32,13 @@ import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
 import org.immutables.fixture.subpack.SillySubstructure;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+
+import java.util.List;
+
+import static org.immutables.check.Checkers.check;
 
 @SuppressWarnings("resource")
 public class MarshallingTest {
-
-  JsonFactory jsonFactory = new JsonFactory()
-      .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-      .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES)
-      .disable(JsonGenerator.Feature.QUOTE_FIELD_NAMES);
-
-  JsonFactory strictierJsonFactory = new JsonFactory()
-      .enable(JsonParser.Feature.ALLOW_SINGLE_QUOTES)
-      .enable(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES);
-
-  BsonFactory bsonFactory = new BsonFactory();
 
   @Test
   public void discoveredMarhaler() {

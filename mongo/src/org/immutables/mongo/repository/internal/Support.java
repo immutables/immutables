@@ -26,6 +26,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.google.gson.TypeAdapter;
+import com.mongodb.BasicDBObject;
 import com.mongodb.QueryOperators;
 import java.util.ArrayList;
 import java.util.List;
@@ -340,6 +341,10 @@ public final class Support {
         return unwrapBsonable(input);
       }
     });
+  }
+
+  public static Object emptyBsonObject() {
+    return new Document();
   }
 
   public static Object bsonObjectAttribute(String name, Object value) {

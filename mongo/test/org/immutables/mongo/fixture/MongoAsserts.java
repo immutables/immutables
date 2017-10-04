@@ -54,7 +54,7 @@ final class MongoAsserts {
       return;
     }
 
-    // all others exceptions
+    // if we got here means there is a problem (no duplicate key exception)
     fail("Should get duplicate key exception after " + exception);
   }
 
