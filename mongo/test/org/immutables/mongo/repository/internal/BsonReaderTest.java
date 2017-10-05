@@ -15,6 +15,7 @@ import org.bson.BsonInt32;
 import org.bson.BsonInt64;
 import org.bson.BsonNull;
 import org.bson.BsonString;
+import org.bson.BsonType;
 import org.bson.json.JsonReader;
 import org.junit.Test;
 
@@ -158,16 +159,21 @@ public class BsonReaderTest {
 
         check(doc.keySet()).notEmpty();
 
+        check(doc.get("boolean").getBsonType()).is(BsonType.BOOLEAN);
         check(doc.get("boolean").asBoolean());
-        check(doc.get("int32").isInt32());
+        check(doc.get("int32").getBsonType()).is(BsonType.INT32);
         check(doc.get("int32").asInt32().getValue()).is(32);
-        check(doc.get("int64").isInt64());
+        check(doc.get("int64").getBsonType()).is(BsonType.INT64);
         check(doc.get("int64").asInt64().getValue()).is(64L);
-        check(doc.get("double").isDouble());
+        check(doc.get("double").getBsonType()).is(BsonType.DOUBLE);
         check(doc.get("double").asDouble().getValue()).is(42.42D);
+        check(doc.get("string").getBsonType()).is(BsonType.STRING);
         check(doc.get("string").asString().getValue()).is("foo");
+        check(doc.get("null").getBsonType()).is(BsonType.NULL);
         check(doc.get("null").isNull());
+        check(doc.get("array").getBsonType()).is(BsonType.ARRAY);
         check(doc.get("array").asArray()).isEmpty();
+        check(doc.get("object").getBsonType()).is(BsonType.DOCUMENT);
         check(doc.get("object").asDocument().keySet()).isEmpty();
     }
 
