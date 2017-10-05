@@ -1,11 +1,15 @@
 package org.immutables.mongo.repository.internal;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
 import com.google.gson.internal.bind.TypeAdapters;
 import org.bson.BsonArray;
 import org.bson.BsonBoolean;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
+import org.bson.BsonDocumentWriter;
 import org.bson.BsonDouble;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
@@ -98,8 +102,11 @@ public class BsonReaderTest {
         compare("{\"foo\": {\"bar\": {\"baz\": true}}}");
     }
 
+    /**
+     * Reading from BSON to GSON
+     */
     @Test
-    public void raw() throws Exception {
+    public void bsonToGson() throws Exception {
         BsonDocument document = new BsonDocument();
         document.append("boolean", new BsonBoolean(true));
         document.append("int32", new BsonInt32(32));
@@ -131,6 +138,37 @@ public class BsonReaderTest {
         check(element.getAsJsonObject().get("null").isJsonNull());
         check(element.getAsJsonObject().get("array").isJsonArray());
         check(element.getAsJsonObject().get("object").isJsonObject());
+    }
+
+    @Test
+    public void gsonToBson() throws Exception {
+        JsonObject obj = new JsonObject();
+        obj.addProperty("boolean", true);
+        obj.addProperty("int32", 32);
+        obj.addProperty("int64", 64L);
+        obj.addProperty("double", 42.42D);
+        obj.addProperty("string", "foo");
+        obj.add("null", JsonNull.INSTANCE);
+        obj.add("array", new JsonArray());
+        obj.add("object", new JsonObject());
+
+
+        BsonDocument doc = new BsonDocument();
+        TypeAdapters.JSON_ELEMENT.write(new BsonWriter(new BsonDocumentWriter(doc)), obj);
+
+        check(doc.keySet()).notEmpty();
+
+        check(doc.get("boolean").asBoolean());
+        check(doc.get("int32").isInt32());
+        check(doc.get("int32").asInt32().getValue()).is(32);
+        check(doc.get("int64").isInt64());
+        check(doc.get("int64").asInt64().getValue()).is(64L);
+        check(doc.get("double").isDouble());
+        check(doc.get("double").asDouble().getValue()).is(42.42D);
+        check(doc.get("string").asString().getValue()).is("foo");
+        check(doc.get("null").isNull());
+        check(doc.get("array").asArray()).isEmpty();
+        check(doc.get("object").asDocument().keySet()).isEmpty();
     }
 
     private static void compare(String string) throws IOException {

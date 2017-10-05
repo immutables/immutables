@@ -127,13 +127,15 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
     } else if (value instanceof Double) {
       return value(value.doubleValue());
     } else if (value instanceof Float) {
-      return value(value.floatValue());
+      return value((double) value.floatValue());
     } else if (value instanceof Long){
       return value(value.longValue());
     } else if (value instanceof Integer) {
-      return value(value.intValue());
+      delegate.writeInt32(value.intValue());
+      return this;
     } else if (value instanceof Short) {
-      return value((int) value.shortValue());
+      delegate.writeInt32(value.shortValue());
+      return this;
     } else if (value instanceof LazilyParsedNumber) {
       return value(value.longValue());
     } else {
