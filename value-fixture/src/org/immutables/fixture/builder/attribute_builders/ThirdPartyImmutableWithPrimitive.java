@@ -12,6 +12,12 @@ public class ThirdPartyImmutableWithPrimitive {
         return value;
     }
 
+    public int[] getArrayValue() {
+        int[] x = {value};
+        return x;
+    }
+
+
     public static Builder generateNewBuilder() {
         return new Builder();
     }

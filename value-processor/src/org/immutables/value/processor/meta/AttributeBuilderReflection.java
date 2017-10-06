@@ -424,7 +424,9 @@ public abstract class AttributeBuilderReflection {
         } else if (onValueType
             && candidateCopyMethod.getParameters().size() == 0
             && !candidateCopyMethod.getModifiers().contains(Modifier.STATIC)) {
-          return !candidateCopyMethod.getReturnType().getKind().isPrimitive();
+
+          TypeKind kind = candidateCopyMethod.getReturnType().getKind();
+          return !kind.isPrimitive() && kind != TypeKind.ARRAY;
         }
       } else if (!onValueType && possibleCopyMethod.getKind() == ElementKind.CONSTRUCTOR) {
 
