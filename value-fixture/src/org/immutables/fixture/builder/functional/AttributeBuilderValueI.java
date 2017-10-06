@@ -4,6 +4,7 @@ import java.util.List;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithPrimitive;
 
 public interface AttributeBuilderValueI {
   FirstPartyImmutable firstPartyImmutable();
@@ -15,4 +16,6 @@ public interface AttributeBuilderValueI {
   ThirdPartyImmutable thirdPartyImmutable();
 
   List<ThirdPartyImmutable> thirdPartyImmutableList();
+
+  ThirdPartyImmutableWithPrimitive thirdPartyImmutableWithPrimitive();
 }

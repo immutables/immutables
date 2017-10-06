@@ -7,6 +7,7 @@ import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmu
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable.Builder;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithPrimitive;
 
 public interface AttributeBuilderBuilderI<ValueT> {
 
@@ -24,6 +25,10 @@ public interface AttributeBuilderBuilderI<ValueT> {
   AttributeBuilderBuilderI thirdPartyImmutable(ThirdPartyImmutable thirdPartyImmutable);
 
   ThirdPartyImmutable.Builder thirdPartyImmutableBuilder();
+
+  AttributeBuilderBuilderI thirdPartyImmutableWithPrimitive(ThirdPartyImmutableWithPrimitive thirdPartyImmutableWithPrimitive);
+
+  ThirdPartyImmutableWithPrimitive.Builder thirdPartyImmutableWithPrimitiveBuilder();
 
   AttributeBuilderBuilderI addFirstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
 
