@@ -41,7 +41,7 @@ public abstract class Ent {
   public static void main(String... args) throws UnknownHostException {
     MongoClient client = new MongoClient("localhost");
     RepositorySetup setup = RepositorySetup.builder()
-        .database(client.getDB("test"))
+        .database(client.getDatabase("test"))
         .executor(MoreExecutors.listeningDecorator(Executors.newCachedThreadPool()))
         .gson(new GsonBuilder()
             .registerTypeAdapterFactory(new GsonAdaptersEnt())

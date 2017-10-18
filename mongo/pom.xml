@@ -24,9 +24,9 @@
   <artifactId>mongo</artifactId>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>
-    Annotation and runtime support to generate Mongodb repositories.
-    Mongo java driver, Gson, Jackson, Bson4jackson and Guava are required runtime dependencies,
-    which included as transitive dependencies.
+    Annotation and runtime support to generate MongoDB repositories.
+    Mongo java driver, Gson and Guava are required runtime dependencies,
+    which are included as transitive dependencies.
   </description>
 
   <dependencies>
@@ -59,44 +59,11 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-
-    <dependency>
-      <!-- Required as base for BSON marshalling (bson4jackson) -->
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>2.5.0</version>
-    </dependency>
-    <dependency>
-      <!-- Required. We are using some classes from there, but we don't use binding functionality -->
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>2.5.0</version>
-    </dependency>
     <dependency>
       <!-- Required. -->
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>3.4.3</version>
-    </dependency>
-    <dependency>
-      <!-- BSON reading writing -->
-      <groupId>de.undercouch</groupId>
-      <artifactId>bson4jackson</artifactId>
-      <version>2.4.0</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-      </exclusions>
+      <version>3.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
@@ -110,7 +77,6 @@
       <version>2.1.0</version>
       <scope>test</scope>
     </dependency>
-
     <!-- Fongo dependency -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -118,7 +84,6 @@
       <version>1.7.25</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
   <profiles>
     <profile>

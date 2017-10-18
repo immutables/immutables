@@ -27,6 +27,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
+import com.mongodb.client.MongoDatabase;
 import org.immutables.mongo.repository.Repositories.Repository;
 
 import javax.annotation.Nullable;
@@ -56,9 +57,9 @@ public final class RepositorySetup {
 
   final ListeningExecutorService executor;
   final Gson gson;
-  final DB database;
+  final MongoDatabase database;
 
-  private RepositorySetup(ListeningExecutorService executor, DB database, Gson gson) {
+  private RepositorySetup(ListeningExecutorService executor, MongoDatabase database, Gson gson) {
     this.executor = executor;
     this.database = database;
     this.gson = gson;
@@ -66,7 +67,7 @@ public final class RepositorySetup {
 
   /**
    * Builder for {@link RepositorySetup}.
-   * @see Builder#database(DB)
+   * @see Builder#database(MongoDatabase)
    * @see Builder#executor(ListeningExecutorService)
    * @return new builder
    */
@@ -82,7 +83,7 @@ public final class RepositorySetup {
     @Nullable
     private ListeningExecutorService executor;
     @Nullable
-    private DB database;
+    private MongoDatabase database;
     @Nullable
     private Gson gson;
 
@@ -108,7 +109,7 @@ public final class RepositorySetup {
      * @return {@code this}
      * @see MongoClient#getDB(String)
      */
-    public Builder database(DB database) {
+    public Builder database(MongoDatabase database) {
       this.database = checkNotNull(database);
       return this;
     }
@@ -177,7 +178,7 @@ public final class RepositorySetup {
     checkArgument(databaseName != null, "URI should contain database path segment");
 
     return builder()
-        .database(newMongoClient(clientUri).getDB(databaseName))
+        .database(newMongoClient(clientUri).getDatabase(databaseName))
         .executor(newExecutor())
         .gson(createGson())
         .build();

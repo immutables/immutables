@@ -17,14 +17,15 @@ package org.immutables.mongo.fixture;
 
 import com.github.fakemongo.Fongo;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.MongoDatabase;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
@@ -56,7 +57,7 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
 
   private final Closer closer;
   private final RepositorySetup setup;
-  private final DB database;
+  private final MongoDatabase database;
 
   private MongoContext(final MongoClient client) {
     Preconditions.checkNotNull(client, "client");
@@ -72,16 +73,16 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     });
 
     // drop database if exists (to have a clean test)
-    if (client.getDatabaseNames().contains(DBNAME)) {
-      client.getDB(DBNAME).dropDatabase();
+    if (Lists.newArrayList(client.listDatabaseNames()).contains(DBNAME)) {
+      client.getDatabase(DBNAME).drop();
     }
 
-    this.database = client.getDB(DBNAME);
+    this.database = client.getDatabase(DBNAME);
 
     closer.register(new Closeable() {
       @Override
       public void close() throws IOException {
-        database.dropDatabase();
+        database.drop();
       }
     });
 
@@ -103,7 +104,7 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     this.closer = closer;
   }
 
-  public DB database() {
+  public MongoDatabase database() {
     return database;
   }
 
