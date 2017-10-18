@@ -16,6 +16,7 @@ import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderClassCopyMethod;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithBuilderInstanceCopyMethod;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithNestedBuilder;
+import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithPrimitive;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueClassCopyMethod;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithValueInstanceCopyMethod;
 import org.immutables.fixture.builder.detection.ImmutableNewTokenAttributeBuilderParent;
@@ -74,6 +75,11 @@ public class AttributeBuilderTest {
         .generateNewBuilder()
         .setValue("third party")
         .doTheBuild();
+    ThirdPartyImmutableWithPrimitive thirdPartyImmutableWithPrimitive = ThirdPartyImmutableWithPrimitive
+        .generateNewBuilder()
+        .setValue(1)
+        .doTheBuild();
+
 
     {
       AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
@@ -82,6 +88,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ImmutableFirstPartyImmutable.Builder _firstPartyBuilder =
           builder.firstPartyImmutableBuilder().value("first party through attributeBuilder");
@@ -97,6 +104,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ImmutableFirstPartyImmutableWithDifferentStyle.Abonabon _firstPartyBuilderWithDifferentStyle =
           builder.firstPartyImmutableWithDifferentStyleBuilder()
@@ -114,6 +122,7 @@ public class AttributeBuilderTest {
       //builder.thirdPartyImmutable(thirdPartyImmutable);
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ThirdPartyImmutable.Builder thirdPartyImmutableBuilder =
           builder.thirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
@@ -129,6 +138,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       //builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ImmutableFirstPartyImmutable.Builder firstPartyBuilder =
           builder.addFirstPartyImmutableBuilder().value("first party through attributeBuilder");
@@ -146,6 +156,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       builder.addFirstPartyImmutable(firstPartyImmutable);
       //builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ThirdPartyImmutable.Builder thirdPartyBuilder =
           builder.addThirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
@@ -153,6 +164,24 @@ public class AttributeBuilderTest {
       ImmutableClassT copy = copyFunction.copy(builder.build());
       check(copy.thirdPartyImmutableList().get(0).getValue())
           .is("third party through attributeBuilder");
+
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      //builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+
+      ThirdPartyImmutableWithPrimitive.Builder thirdPartyBuilder =
+          builder.thirdPartyImmutableWithPrimitiveBuilder().setValue(2);
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(copy.thirdPartyImmutableWithPrimitive().getValue())
+          .is(2);
 
     }
 
@@ -164,6 +193,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
           .builder().value("first party through setter");
@@ -186,6 +216,7 @@ public class AttributeBuilderTest {
       builder.thirdPartyImmutable(thirdPartyImmutable);
       //builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
 
       ImmutableFirstPartyImmutable.Builder first = ImmutableFirstPartyImmutable
           .builder().value("first party through setter 1");
