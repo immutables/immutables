@@ -827,6 +827,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   [jsonIgnore type]
+  [hiddenMutableState type]
   private [if type.serial.simple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
@@ -836,6 +837,10 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
   [jsonIgnore type]
+  [-- By suppressing warnings about non-final fields we also prevent warnings
+  about lazily computed attributes that are genuinely mutable. That is an
+  unfortunate trade-off. --]
+  [hiddenMutableState type]
   private [if type.serial.simple]transient [/if][l.type] [l.name];
 
   /**
@@ -2386,6 +2391,7 @@ private static final int STAGE_INITIALIZING = -1;
 private static final int STAGE_UNINITIALIZED = 0;
 private static final int STAGE_INITIALIZED = 1;
 [-- would it remain thread safe if remove volatile? --]
+[hiddenMutableState type]
 private transient volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
 
 private final class InitShim {
@@ -2505,6 +2511,9 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson([jval.type] jso
  * @deprecated Do not use this type directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
 @Deprecated
+[-- The `Json` class implements or extends the immutable type, but is not
+itself immutable. Since it's private, that's benign. --]
+[hiddenMutableState type]
 [overrideJsonDeserialize type]
 [overrideJsonTypeInfo type]
 @com.fasterxml.jackson.annotation.JsonAutoDetect(fieldVisibility = com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE)
@@ -3927,3 +3936,5 @@ private static final long serialVersionUID = [literal serialVersion];
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+
+[template hiddenMutableState Type type][if classpath.available 'com.google.errorprone.annotations.Immutable']@SuppressWarnings("Immutable")[/if][/template]
