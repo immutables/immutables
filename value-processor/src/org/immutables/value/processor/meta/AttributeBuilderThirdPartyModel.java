@@ -17,10 +17,8 @@ abstract class AttributeBuilderThirdPartyModel {
   // Constructor, Static, or Instance
   protected abstract ExecutableElement copyMethod();
 
-
   // Constructor or Static
   protected abstract ExecutableElement builderMethod();
-
 
   protected abstract TypeElement builderType();
 
@@ -28,16 +26,20 @@ abstract class AttributeBuilderThirdPartyModel {
   @Style(set = "*")
   abstract static class Creator extends AttributeBuilderThirdPartyModel {
 
-    @Override @Nullable
+    @Override
+    @Nullable
     protected abstract ExecutableElement buildMethod();
 
-    @Override @Nullable
+    @Override
+    @Nullable
     protected abstract ExecutableElement copyMethod();
 
-    @Override @Nullable
+    @Override
+    @Nullable
     protected abstract ExecutableElement builderMethod();
 
-    @Override @Nullable
+    @Override
+    @Nullable
     protected abstract TypeElement builderType();
 
     protected abstract AttributeBuilderThirdPartyModel buildMethod(ExecutableElement buildMethod);
@@ -84,11 +86,9 @@ abstract class AttributeBuilderThirdPartyModel {
     }
 
     private TypeElement getBuilderTypeFromBuilderMethod() {
-      if (builderMethod().getKind() == ElementKind.CONSTRUCTOR) {
-        return (TypeElement) builderMethod().getEnclosingElement();
-      } else {
-        return (TypeElement) ((DeclaredType) builderMethod().getReturnType()).asElement();
-      }
+      return builderMethod().getKind() == ElementKind.CONSTRUCTOR
+          ? (TypeElement) builderMethod().getEnclosingElement()
+          : (TypeElement) ((DeclaredType) builderMethod().getReturnType()).asElement();
     }
 
     private TypeElement getBuilderTypeFromBuildMethod() {
@@ -96,19 +96,18 @@ abstract class AttributeBuilderThirdPartyModel {
     }
 
     private TypeElement getBuilderTypeFromCopyMethod() {
-      if (copyMethod().getKind() == ElementKind.CONSTRUCTOR) {
-        return (TypeElement) copyMethod().getEnclosingElement();
-      } else {
-        return (TypeElement) ((DeclaredType) copyMethod().getReturnType()).asElement();
-      }
+      return copyMethod().getKind() == ElementKind.CONSTRUCTOR
+          ? (TypeElement) copyMethod().getEnclosingElement()
+          : (TypeElement) ((DeclaredType) copyMethod().getReturnType()).asElement();
     }
 
     public boolean complete() {
       if (builderMethod() != null && buildMethod() != null && copyMethod() != null) {
         boolean transitiveEquality = getBuilderTypeFromBuilderMethod()
             .equals(getBuilderTypeFromBuildMethod());
-        transitiveEquality = transitiveEquality && getBuilderTypeFromBuildMethod()
-            .equals(getBuilderTypeFromCopyMethod());
+        transitiveEquality = transitiveEquality
+            && getBuilderTypeFromBuildMethod()
+                .equals(getBuilderTypeFromCopyMethod());
         if (builderType() != null) {
           transitiveEquality =
               transitiveEquality && getBuilderTypeFromCopyMethod().equals(builderType());
@@ -124,7 +123,7 @@ abstract class AttributeBuilderThirdPartyModel {
       return false;
     }
 
-    // Should this be auto-genned?  Though we still have to set the builder type.
+    // Should this be auto-genned? Though we still have to set the builder type.
     public AttributeBuilderThirdPartyModel toImmutable() {
       builderType(findBuilderType());
       return ImmutableAttributeBuilderThirdPartyModel.copyOf(this);

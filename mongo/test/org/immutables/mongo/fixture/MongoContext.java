@@ -17,7 +17,7 @@ package org.immutables.mongo.fixture;
 
 import com.github.fakemongo.Fongo;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -26,18 +26,16 @@ import com.google.gson.TypeAdapterFactory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.ServiceLoader;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.junit.rules.ExternalResource;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ServiceLoader;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * JUnit rule which allows tests to access {@link RepositorySetup} backed by real database (fongo or MongoDB). It
@@ -73,7 +71,7 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     });
 
     // drop database if exists (to have a clean test)
-    if (Lists.newArrayList(client.listDatabaseNames()).contains(DBNAME)) {
+    if (Iterables.contains(client.listDatabaseNames(), DBNAME)) {
       client.getDatabase(DBNAME).drop();
     }
 
@@ -127,27 +125,17 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
   }
 
   public static MongoContext create() {
-    try {
       return new MongoContext(createClient());
-    } catch (UnknownHostException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   /**
    * Allows to switch between Fongo and MongoDB based on system parameter {@code mongo}.
    */
-  private static MongoClient createClient() throws UnknownHostException {
-    final MongoClient client;
-
-    final String uri = System.getProperty("mongo");
-    if (uri != null) {
-      client = new MongoClient(new MongoClientURI(uri));
-    } else {
-      client = new Fongo("FakeMongo").getMongo();
-    }
-
-    return client;
+  private static MongoClient createClient() {
+    String uri = System.getProperty("mongo");
+    return uri != null
+        ? new MongoClient(new MongoClientURI(uri))
+        : new Fongo("FakeMongo").getMongo();
   }
 
   /**

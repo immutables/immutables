@@ -31,7 +31,7 @@ public class SimpleInserterTest {
   }
 
   @Test
-  @Ignore // in mongo v3.4 it doesn't work. insert result is 0
+  @Ignore("in mongo v3.4 it doesn't work. insert result is 0")
   public void writeResult() throws Exception {
     check(repository.insert(ImmutableItem.of("i1")).getUnchecked()).is(1);
     check(repository.insert(ImmutableItem.of("i2")).getUnchecked()).is(1);
@@ -54,11 +54,8 @@ public class SimpleInserterTest {
     }
   }
 
-  /**
-   * This test fails on real mongo: v3.4
-   */
   @Test
-  @Ignore
+  @Ignore("This test fails on real mongo: v3.4")
   public void insertMultiple() throws Exception {
     Item item1 = ImmutableItem.of("i1");
     Item item2 = ImmutableItem.of("i2");

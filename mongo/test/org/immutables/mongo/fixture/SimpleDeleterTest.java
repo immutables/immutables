@@ -2,9 +2,6 @@ package org.immutables.mongo.fixture;
 
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.Arrays;
-
 import static org.immutables.check.Checkers.check;
 
 public class SimpleDeleterTest {
@@ -16,7 +13,7 @@ public class SimpleDeleterTest {
 
   @Test
   public void basicDelete() throws Exception {
-    final ImmutableItem item1 = ImmutableItem.of("id1");
+    ImmutableItem item1 = ImmutableItem.of("id1");
 
     check(repository.find(criteria()).deleteAll().getUnchecked()).is(0);
     check(repository.find(criteria()).deleteFirst().getUnchecked()).isAbsent();
@@ -31,7 +28,7 @@ public class SimpleDeleterTest {
     check(repository.find(criteria()).deleteAll().getUnchecked()).is(0);
     check(repository.find(criteria()).deleteFirst().getUnchecked()).isAbsent();
 
-    final ImmutableItem item2 = ImmutableItem.of("id2");
+    ImmutableItem item2 = ImmutableItem.of("id2");
 
     repository.insert(item1).getUnchecked();
     repository.insert(item2).getUnchecked();
@@ -52,7 +49,7 @@ public class SimpleDeleterTest {
     check(repository.find(criteria().id("_MISSING_")).deleteAll().getUnchecked()).is(0);
     check(repository.find(criteria().id("_MISSING_")).deleteFirst().getUnchecked()).isAbsent();
 
-    final ImmutableItem item1 = ImmutableItem.of("id1");
+    ImmutableItem item1 = ImmutableItem.of("id1");
     repository.insert(item1).getUnchecked();
 
     check(repository.find(criteria().id("_MISSING_")).deleteAll().getUnchecked()).is(0);
@@ -81,8 +78,8 @@ public class SimpleDeleterTest {
 
     repository.insert(item1).getUnchecked();
     repository.insert(item2).getUnchecked();
-    check(repository.find(criteria().idIn(Arrays.asList("id1", "id2"))).deleteAll().getUnchecked()).is(2);
-    check(repository.find(criteria().idIn(Arrays.asList("id1", "id2"))).deleteAll().getUnchecked()).is(0);
+    check(repository.find(criteria().idIn("id1", "id2")).deleteAll().getUnchecked()).is(2);
+    check(repository.find(criteria().idIn("id1", "id2")).deleteAll().getUnchecked()).is(0);
   }
 
   private ItemRepository.Criteria criteria() {

@@ -313,6 +313,15 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         nullability);
   }
 
+  public List<CharSequence> getFieldAnnotations() {
+    return Annotations.getAnnotationLines(element,
+        protoclass().styles().style().passAnnotationsNames(),
+        false,
+        ElementType.FIELD,
+        importsResolver,
+        null/* do not propagate nullable here */);
+  }
+
   public CharSequence getConstructorParameterAnnotations() {
     List<CharSequence> annotations =
         Annotations.getAnnotationLines(element,

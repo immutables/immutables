@@ -31,7 +31,7 @@ public class SimpleReplacerTest {
 
   @Test
   public void findAndReplace() throws Exception {
-    final ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v0").build();
+    ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v0").build();
 
     repository.upsert(entity).getUnchecked();
 
@@ -70,8 +70,8 @@ public class SimpleReplacerTest {
    * Based on criteria it is a new document, based on primary key ({@code _id}) it exists already.
    */
   @Test
-  public void duplicateKeyException_upsert_SameKey_different_versions() throws Exception {
-    final ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v0").build();
+  public void duplicateKeyUpsertSameKeyDifferentVersions() throws Exception {
+    ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v0").build();
     repository.upsert(entity).getUnchecked();
 
     // first upsert successful (document should be with new version)
@@ -95,8 +95,8 @@ public class SimpleReplacerTest {
 
   @Test
   public void returnNewOld() throws Exception {
-    final Entity entity1 = ImmutableEntity.builder().id("e1").value("v1").build();
-    final Entity entity2 = ImmutableEntity.builder().id("e1").value("v2").build();
+    Entity entity1 = ImmutableEntity.builder().id("e1").value("v1").build();
+    Entity entity2 = ImmutableEntity.builder().id("e1").value("v2").build();
 
     repository.insert(entity1).getUnchecked();
 
@@ -113,7 +113,7 @@ public class SimpleReplacerTest {
   }
 
   @Test
-  public void updateUpsert_when_empty() throws Exception {
+  public void updateUpsertWhenEmpty() throws Exception {
     ImmutableEntity entity = ImmutableEntity.builder().id("e1").version(0).value("v1").build();
 
     check(repository.find(repository.criteria().id("missing").version(0))

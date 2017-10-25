@@ -19,7 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.GsonBuilder;
 import com.mongodb.MongoClient;
-import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 import org.immutables.gson.Gson.TypeAdapters;
 import org.immutables.mongo.Mongo.Repository;
@@ -38,7 +37,7 @@ public abstract class Ent {
 
   public abstract Optional<TimeInstant> expires();
 
-  public static void main(String... args) throws UnknownHostException {
+  public static void main(String... args) {
     MongoClient client = new MongoClient("localhost");
     RepositorySetup setup = RepositorySetup.builder()
         .database(client.getDatabase("test"))

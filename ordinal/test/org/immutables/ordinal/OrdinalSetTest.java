@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import org.junit.Test;
-import static org.immutables.check.Checkers.*;
+import static org.immutables.check.Checkers.check;
 
 public class OrdinalSetTest {
 
@@ -146,7 +146,7 @@ public class OrdinalSetTest {
 
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableSet.of()));
     check(ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableSet.of(b0, b1)));
-    check(!ImmutableOrdinalSet.of(b0, b1).contains(1));
-    check(!ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableSet.of(0, 1)));
+    check(!ImmutableOrdinalSet.of(b0, b1).contains(a1));
+    check(!ImmutableOrdinalSet.of(b0, b1).containsAll(ImmutableSet.of(a1, a0)));
   }
 }

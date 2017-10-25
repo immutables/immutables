@@ -37,7 +37,7 @@ public class SimpleUpdaterTest {
    */
   @Test
   public void setList() throws Exception {
-    final String id = "i1";
+    String id = "i1";
 
     check(overrideList(id, Collections.singleton("BAD"))).is(0);
 
@@ -61,9 +61,9 @@ public class SimpleUpdaterTest {
    */
   @Test
   public void writeResult() throws Exception {
-    final ImmutableItem item1 = ImmutableItem.of("id1");
+    ImmutableItem item1 = ImmutableItem.of("id1");
 
-    final ItemRepository.Criteria crit1 = repository.criteria().id(item1.id());
+    ItemRepository.Criteria crit1 = repository.criteria().id(item1.id());
 
     check(repository.update(crit1).addList("l1").updateAll().getUnchecked()).is(0);
     check(repository.update(crit1).addList("l1").updateFirst().getUnchecked()).is(0);
@@ -76,8 +76,8 @@ public class SimpleUpdaterTest {
     check(repository.update(repository.criteria().id("_MISSING_")).addList("l2").updateFirst().getUnchecked()).is(0);
     check(repository.update(repository.criteria().id("_MISSING_")).addList("l2").updateAll().getUnchecked()).is(0);
 
-    final ImmutableItem item2 = ImmutableItem.of("id2");
-    final ItemRepository.Criteria crit2 = repository.criteria().id(item2.id());
+    ImmutableItem item2 = ImmutableItem.of("id2");
+    ItemRepository.Criteria crit2 = repository.criteria().id(item2.id());
 
     repository.insert(item2).getUnchecked();
     check(repository.update(crit2).addList("l1").updateAll().getUnchecked()).is(1);
@@ -93,8 +93,8 @@ public class SimpleUpdaterTest {
   }
 
   @Test
-  public void set_with_other_operations() throws Exception {
-    final String id = "i1";
+  public void setWithOtherOperations() throws Exception {
+    String id = "i1";
 
     ImmutableItem item = ImmutableItem.builder().id(id).addList("l1").build();
 
@@ -107,7 +107,7 @@ public class SimpleUpdaterTest {
         .updateFirst()
         .getUnchecked();
 
-    final Item item2 = findById(id);
+    Item item2 = findById(id);
 
     check(item2.list()).hasAll("l1");
     check(item2.tags()).hasAll(ImmutableTag.of("t1"));
@@ -118,8 +118,8 @@ public class SimpleUpdaterTest {
    * {@code $set} functionality but on a non-scalar Object
    */
   @Test
-  public void setList_non_scalar_object() throws Exception {
-    final String id = "i1";
+  public void setListNonScalar() throws Exception {
+    String id = "i1";
     ImmutableItem item = ImmutableItem.builder().id(id).addList("l1").addTags(ImmutableTag.of("t1")).build();
 
     check(repository.upsert(item).getUnchecked()).is(1);
@@ -131,7 +131,7 @@ public class SimpleUpdaterTest {
 
     check(findById(id).tags()).isEmpty();
 
-    final Set<? extends Item.Tag> set1 = Collections.singleton(ImmutableTag.of("t2"));
+    Set<Item.Tag> set1 = Collections.<Item.Tag>singleton(ImmutableTag.of("t2"));
     repository.update(repository.criteria().id(id))
         .setTags(set1)
         .updateFirst()
@@ -139,7 +139,7 @@ public class SimpleUpdaterTest {
 
     check(findById(id).tags()).hasAll(set1);
 
-    final List<? extends Item.Tag> set2 = Arrays.asList(ImmutableTag.of("t3"), ImmutableTag.of("t4"));
+    List<? extends Item.Tag> set2 = Arrays.asList(ImmutableTag.of("t3"), ImmutableTag.of("t4"));
 
     repository.update(repository.criteria().id(id))
         .setTags(set2)
@@ -154,7 +154,7 @@ public class SimpleUpdaterTest {
    */
   @Test
   public void addToList() throws Exception {
-    final String id = "i1";
+    String id = "i1";
     ImmutableItem item = ImmutableItem.builder().id(id).addList("l1").build();
 
     check(repository.upsert(item).getUnchecked()).is(1);
@@ -168,7 +168,7 @@ public class SimpleUpdaterTest {
 
   @Test
   public void clear() throws Exception {
-    final String id = "i1";
+    String id = "i1";
     ImmutableItem item = ImmutableItem.builder().id(id).addList("l1").build();
     repository.upsert(item).getUnchecked();
 

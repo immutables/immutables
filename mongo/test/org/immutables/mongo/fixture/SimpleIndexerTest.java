@@ -28,7 +28,7 @@ public class SimpleIndexerTest {
     repository.index().withDateDesceding().named("date").ensure().getUnchecked();
     repository.index().withOptional().named("optional").ensure().getUnchecked();
 
-    final ImmutableForIndexer doc = create();
+    ImmutableForIndexer doc = create();
     repository.insert(doc).getUnchecked();
 
     // simple check of index
@@ -47,7 +47,7 @@ public class SimpleIndexerTest {
             .ensure()
             .getUnchecked();
 
-    final ImmutableForIndexer doc = create();
+    ImmutableForIndexer doc = create();
     repository.insert(doc).getUnchecked();
 
     // simple check of index
@@ -110,5 +110,4 @@ public class SimpleIndexerTest {
 
     Optional<Date> date();
   }
-
 }
