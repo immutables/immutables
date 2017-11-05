@@ -112,7 +112,7 @@ public final class FieldConflictTest {
     verifyRoundTrip(getMapper(true), ImmutableCustomDummyWithMetaAnnotation.of(true));
   }
 
-  private ObjectMapper getMapper(final boolean useFields) {
+  private static ObjectMapper getMapper(final boolean useFields) {
     final ObjectMapper mapper = new ObjectMapper();
     return useFields
         ? mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
@@ -120,7 +120,7 @@ public final class FieldConflictTest {
         : mapper;
   }
 
-  private void verifyRoundTrip(final ObjectMapper mapper, final Object value) throws IOException {
+  private static void verifyRoundTrip(final ObjectMapper mapper, final Object value) throws IOException {
     final String json = mapper.writeValueAsString(value);
     final Object newValue = mapper.readValue(json, value.getClass());
     check(newValue).is(value);

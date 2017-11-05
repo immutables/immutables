@@ -910,6 +910,7 @@ public boolean equals([atNullable]Object another) {
   return equalTo(other);
 }
 
+[if not type.equalToDefined][if not type.usePrehashed][if not getters][if type.generics.empty]@SuppressWarnings("MethodCanBeStatic")[/if][/if][/if][/if]
 private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);

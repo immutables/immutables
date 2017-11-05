@@ -1981,7 +1981,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
 
-  private void checkNotIsSet(boolean isSet, String name) {
+  private static void checkNotIsSet(boolean isSet, String name) {
     if (isSet) throw new java.lang.IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
   }
   [/if]
@@ -2727,6 +2727,7 @@ public boolean equals([atNullable]Object another) {
 [/if]
 [if type.useEqualTo]
 
+[if not type.equalToDefined][if not type.usePrehashed][if not getters][if type.generics.empty]@SuppressWarnings("MethodCanBeStatic")[/if][/if][/if][/if]
 private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
@@ -3485,7 +3486,7 @@ private static boolean equals(Object left, Object right) {
 
 [atNullable]
 [-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
+private static [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] builder) {
   if (builder == null) {
     return null;
   }
@@ -3495,7 +3496,7 @@ private [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [convertToVa
 
 [atNullable]
 [-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
-private [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
+private static [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
   if (value == null) {
     return null;
   }
@@ -3504,7 +3505,7 @@ private [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][els
 }
 
 [atNullable]
-private [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
+private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
   if (value == null) {
     return null;
   }
@@ -3516,19 +3517,19 @@ private [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertTo
 
 [for v in type.uniqueAttributeBuilderListAttributes]
 [let listType][if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if][/let]
-private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
+private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> builderList) {
 [copyBuilderListBody v true false]builderList[/copyBuilderListBody]
 }
 
-private java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
+private static java.util.List<[listType]> [convertToValueType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]... builderArray) {
 [copyBuilderListBody v true true]builderArray[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
+private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor](Iterable<? extends [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]> valueList) {
 [copyBuilderListBody v false false]valueList[/copyBuilderListBody]
 }
 
-private java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
+private static java.util.List<[v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName]> [convertToBuilderType v.getAttributeBuilderDescriptor]([v.getAttributeBuilderDescriptor.getQualifiedValueTypeName]... valueArray) {
 [copyBuilderListBody v false true]valueArray[/copyBuilderListBody]
 }
 [/for]
