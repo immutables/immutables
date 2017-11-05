@@ -165,7 +165,7 @@
           <source>1.8</source>
           <target>1.8</target>
           <compilerArgs>
-            <arg>-Xep:CheckReturnValue:WARN</arg>
+            <arg>-Xep:CheckReturnValue:ERROR</arg>
           </compilerArgs>
         </configuration>
         <dependencies>
