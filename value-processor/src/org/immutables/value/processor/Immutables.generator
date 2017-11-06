@@ -2742,7 +2742,7 @@ private boolean equalTo([equalToType] another) {
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
-  int [h] = 0;
+  [atVar] int [h] = 0;
 [for v in getters]
 [if v.arrayType]
   [h] += 127 * "[v.names.get]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
@@ -2756,7 +2756,7 @@ private boolean equalTo([equalToType] another) {
 [else if getters.isEmpty]
   return [type.hashCode];
 [else]
-  int [h] = 5381;
+  [atVar] int [h] = 5381;
 [for v in getters]
 [if v.encoding]
   [h] += ([h] << 5) + ([rr.hash v]);
@@ -3906,6 +3906,8 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
+[template atVar][if classpath.available 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var[/if][/template]
+
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
@@ -3927,3 +3929,4 @@ private static final long serialVersionUID = [literal serialVersion];
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+
