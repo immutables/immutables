@@ -1981,7 +1981,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
   [if type.useStrictBuilder and (nondefaultsPositions.longs or positions.longs)]
 
-  private void checkNotIsSet(boolean isSet, String name) {
+  private static void checkNotIsSet(boolean isSet, String name) {
     if (isSet) throw new java.lang.IllegalStateException("Builder of [type.name] is strict, attribute is already set: ".concat(name));
   }
   [/if]
