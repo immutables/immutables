@@ -18,7 +18,7 @@
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
-    <version>2.6.1.alpha0-SNAPSHOT</version>
+    <version>2.6.0-alpha11</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -29,6 +29,7 @@
   </description>
 
   <artifactId>value</artifactId>
+  <version>2.6.0-alpha1</version>
 
   <dependencies>
     <dependency>

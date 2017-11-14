@@ -20,11 +20,12 @@
   <parent>
     <groupId>org.immutables</groupId>
     <artifactId>immutables</artifactId>
-    <version>2.6.1.alpha0-SNAPSHOT</version>
+    <version>2.6.0-alpha11</version>
   </parent>
 
   <groupId>org.immutables.dependency</groupId>
   <artifactId>utility</artifactId>
+  <version>2.6.0-alpha1</version>
   <packaging>pom</packaging>
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Guava and findbugs</description>
