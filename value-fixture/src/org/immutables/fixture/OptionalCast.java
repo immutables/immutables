@@ -27,6 +27,7 @@ public interface OptionalCast {
 
   Optional<String[]> getStringArray();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableOptionalCast.of(
         Optional.absent(),

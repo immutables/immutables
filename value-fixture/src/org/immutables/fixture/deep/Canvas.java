@@ -55,6 +55,7 @@ public interface Canvas {
     int y();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableLine line = ImmutableLine.builder()
         .color(0.9, 0.7, 0.4)

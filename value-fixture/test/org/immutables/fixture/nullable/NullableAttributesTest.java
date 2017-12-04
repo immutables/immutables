@@ -101,6 +101,7 @@ public class NullableAttributesTest {
     check(ImmutableNullableCompact.of(null, null)).is(c1);
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = NullPointerException.class)
   public void nonnullDefaultBlowupOnNull() {
     ImmutableNonnullConstruction.builder()

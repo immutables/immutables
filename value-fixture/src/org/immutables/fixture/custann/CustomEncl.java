@@ -24,6 +24,7 @@ public interface CustomEncl {
   @CustomWithEncStyle
   interface Cuzt {}
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     JeNcCustomEncl.Cuzt.builder();
   }

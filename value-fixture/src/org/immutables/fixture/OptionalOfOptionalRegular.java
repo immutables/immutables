@@ -23,6 +23,7 @@ import org.immutables.value.Value;
 public interface OptionalOfOptionalRegular<T> {
   Option<Optional<T>> optionalOfOptional();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableOptionalOfOptionalRegular.<Void>builder()
         .optionalOfOptional(Option.some(Optional.<Void>absent()))

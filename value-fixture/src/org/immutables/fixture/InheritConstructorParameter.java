@@ -27,6 +27,7 @@ interface InheritConstructorParameter {
   @Value.Immutable
   abstract class ExtendsIt extends HasParam {}
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableExtendsIt.of(1);
   }

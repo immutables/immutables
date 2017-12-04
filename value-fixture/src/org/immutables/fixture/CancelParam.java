@@ -33,6 +33,7 @@ public interface CancelParam extends Param {
   @Value.Parameter(false)
   List<Integer> aux();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableCancelParam.of(1).withAux(1, 2, 3);
   }

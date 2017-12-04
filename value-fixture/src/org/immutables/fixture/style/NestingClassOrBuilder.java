@@ -34,6 +34,7 @@ interface NestingClassOrBuilder {
       builderVisibility = BuilderVisibility.PACKAGE)
   interface NonPublicBuild {}
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImplNestedInBuildBuilder builder = new ImplNestedInBuildBuilder();
     ImplNestedInBuild abstractValue = builder.build();

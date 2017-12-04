@@ -30,6 +30,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 @Value.Style(visibility = ImplementationVisibility.PRIVATE)
 public class HiddenImplementation {
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     HiddenImplementation instance = new HiddenImplementationBuilder().build();
     instance.toString();

@@ -44,6 +44,7 @@ public interface ExtraCollection {
   @Value.Parameter
   BiMap<Integer, String> biMap();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableExtraCollection.of(
         ImmutableList.<String>of(),

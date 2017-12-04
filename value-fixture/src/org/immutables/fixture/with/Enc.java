@@ -43,6 +43,7 @@ public interface Enc {
     class Builder<T extends Number> extends ImmutableEnc.Suppied.Builder<T> {}
   }
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     new Suppied.Builder<Long>()
         .a("a")

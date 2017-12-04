@@ -25,6 +25,7 @@ abstract class BeanStyleDetected {
 
   abstract List<String> getEm();
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     ImmutableBeanStyleDetected.builder()
         .setIt(1)

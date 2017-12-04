@@ -32,6 +32,7 @@ public abstract class EnclosingBuilderNew {
   @Value.Immutable
   public static class Hidden {}
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     new ImmutableEnclosingBuilderNew.HiddenBuilder().build();
   }

@@ -28,6 +28,7 @@ interface PackageStyleFromAncestor {
   }
 
   /** Generated API dictated by parent package's style. */
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImBaj.builder().a(1).build().copyWithA(2);
   }

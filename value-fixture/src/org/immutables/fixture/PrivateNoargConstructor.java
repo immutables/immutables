@@ -74,6 +74,7 @@ interface PrivateNoargConstructorIsOverriddenBySingleton {
     return 1;
   }
   
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutablePrivateNoargConstructorIsOverriddenBySingleton.of();
   }

@@ -22,6 +22,7 @@ import org.immutables.value.Value;
 public interface HaveBuilderNew {
   int a();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     new ImmutableHaveBuilderNew.Builder().build();
   }

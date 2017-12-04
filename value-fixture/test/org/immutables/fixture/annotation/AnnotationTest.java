@@ -35,6 +35,7 @@ public class AnnotationTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void bee() {
     ImmutableHasDefault.of(1).withOtherValue("w");
 

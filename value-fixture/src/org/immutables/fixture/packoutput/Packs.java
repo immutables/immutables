@@ -32,6 +32,7 @@ public abstract class Packs {
   @Value.Immutable
   public interface Perk {}
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     borg.immutables.fixture.packoutput.impl.ImmutablePacks.builder().build();
     borg.immutables.fixture.packoutput.impl.ImmutablePacks.Perk.builder().build();

@@ -48,6 +48,7 @@ public interface DeepAndJdkOnly {
 
   // Compile validation of generation of immutable return type and builder initializer by
   // constructor-args .
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImmutableContainer c = ImmutableContainer.builder().deep(1, 2).build();
     ImmutableDeep deep = c.getDeep();

@@ -20,6 +20,7 @@ import static org.immutables.check.Checkers.*;
 
 public class ClearBuilderTest {
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void clear() {
     ImmutableClearBuilder.Builder builder = ImmutableClearBuilder.builder()
         .a(true)

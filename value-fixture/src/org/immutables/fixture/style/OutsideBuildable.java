@@ -45,6 +45,7 @@ public class OutsideBuildable {
 @Value.Style(newBuilder = "newBuilder", visibility = ImplementationVisibility.PRIVATE)
 class OutsideBuildableNew {
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     OutsideBuildableNewBuilder.newBuilder().build();
   }
