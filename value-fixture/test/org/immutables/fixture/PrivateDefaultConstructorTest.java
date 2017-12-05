@@ -26,6 +26,7 @@ public class PrivateDefaultConstructorTest {
     ImmutablePrivateNoargConstructorNominal.class.getDeclaredConstructor();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = NoSuchMethodException.class)
   public void testOverridePrehash() throws Exception {
     ImmutablePrivateNoargConstructorOverridePrehash.class.getDeclaredMethod("computeHashCode");

@@ -43,6 +43,7 @@ public interface Depluralize {
 
   Multiset<Boolean> goods();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableDepluralize.builder()
         .addBoat("") // automatically trims s

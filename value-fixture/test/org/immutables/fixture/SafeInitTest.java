@@ -20,6 +20,7 @@ import static org.immutables.check.Checkers.*;
 
 public class SafeInitTest {
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void cycles() {
     try {
       ImmutableSafeInitIface.builder().build();

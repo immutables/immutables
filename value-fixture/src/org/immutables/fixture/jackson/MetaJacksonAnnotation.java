@@ -30,7 +30,7 @@ interface Val {
   // compile check for presense of
   // the Jackson specific creator method
   // triggered by meta annotation
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings({"deprecation", "CheckReturnValue"})
   default void use() {
     ImmutableVal.fromJson(null);
   }

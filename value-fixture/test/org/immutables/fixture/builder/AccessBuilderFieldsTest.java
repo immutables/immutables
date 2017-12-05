@@ -21,6 +21,7 @@ import org.junit.Test;
 
 public class AccessBuilderFieldsTest {
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void accessFields() {
     new AccessBuilderFields.Builder()
         .a(1)

@@ -37,6 +37,7 @@ public abstract class DerivedNotInConstructor {
     return length;
   }
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     ImmutableDerivedNotInConstructor.of(Arrays.asList("a", "b", "c"));
   }
@@ -53,6 +54,7 @@ abstract class DerivedNotInConstructorSimpleCons {
     return 1;
   }
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     ImmutableDerivedNotInConstructorSimpleCons.of(1);
   }

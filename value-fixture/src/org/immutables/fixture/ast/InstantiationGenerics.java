@@ -38,6 +38,7 @@ public interface InstantiationGenerics {
   @Value.Immutable
   interface StringLeaf extends Leaf<String> {}
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     TreeElement<String> tree =
         ImmutableStringNode.builder()

@@ -29,6 +29,7 @@ public interface RawType {
 
   Map map();
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImmutableRawType.builder()
         .set(Collections.emptySet())

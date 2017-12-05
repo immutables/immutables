@@ -31,6 +31,7 @@ public interface CreateFromDetect {
     int zzz();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ModifiableAaa.create()
         .setBbb(ModifiableBbb.create());

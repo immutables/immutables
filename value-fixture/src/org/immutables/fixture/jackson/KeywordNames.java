@@ -26,6 +26,7 @@ public interface KeywordNames {
 
   boolean isDefault();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableKeywordNames names = ImmutableKeywordNames.builder()
         .setDefault(true)

@@ -28,6 +28,7 @@ interface PackageStyleFromParent {
   }
 
   /** Generated API dictated by parent package's style. */
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImVal.builder().a(1).build().copyWithA(2);
   }

@@ -26,6 +26,7 @@ public interface Singletons {}
 interface Sing1 {
   List<Integer> list();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing1.builder();
     ImmutableSing1.of()
@@ -40,6 +41,7 @@ interface Sing2 {
     return 1;
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing2.of().withA(1);
   }
@@ -47,6 +49,7 @@ interface Sing2 {
 
 @Value.Immutable(builder = false)
 interface Sing3 {
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing3.of();
   }
@@ -55,6 +58,7 @@ interface Sing3 {
 @Value.Immutable(singleton = true)
 interface Sing4 {
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing4.builder();
     ImmutableSing4.of();
@@ -69,6 +73,7 @@ interface Sing5 {
     return 1;
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing5.of();
     ImmutableSing5.of(1);
@@ -77,6 +82,7 @@ interface Sing5 {
 
 @Value.Immutable
 interface Sing6 {
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing6.builder();
   }
@@ -85,6 +91,7 @@ interface Sing6 {
 @Value.Immutable(builder = false)
 @Value.Style(attributelessSingleton = true)
 interface Sing7 {
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableSing7.of();
   }

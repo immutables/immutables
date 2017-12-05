@@ -29,6 +29,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 @Value.Style(visibility = ImplementationVisibility.PACKAGE)
 public class LessVisibleImplementation {
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     ImmutableLessVisibleImplementation.Builder lessVisibleBuilder = ImmutableLessVisibleImplementation.builder();
     ImmutableLessVisibleImplementation lessVisibleImplementation = lessVisibleBuilder.build();

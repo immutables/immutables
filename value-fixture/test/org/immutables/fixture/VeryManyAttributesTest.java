@@ -19,6 +19,7 @@ import org.junit.Test;
 
 public class VeryManyAttributesTest {
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void builableWhenAllSet() {
     ImmutableHugeInterface.builder()
         .number0_0(1)
@@ -94,6 +95,7 @@ public class VeryManyAttributesTest {
         .build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void noInitBuildOverflow() {
     ImmutableHugeInterface.builder()
@@ -171,6 +173,7 @@ public class VeryManyAttributesTest {
   }
   
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void noOccupationOverflow() {
     ImmutableHugeOccupationOverflow.builder()
         .number0(0)

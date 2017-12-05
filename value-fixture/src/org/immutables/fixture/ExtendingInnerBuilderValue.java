@@ -26,6 +26,7 @@ class SuperInnerBuildeValue {
     void hello() {}
   }
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImmutableSuperInnerBuildeValue.builder().hello();
   }
@@ -64,6 +65,7 @@ interface ExtendingInnerCreatorValue {
     }
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableExtendingInnerCreatorValue.Creator c = new ImmutableExtendingInnerCreatorValue.Creator();
     c.create();

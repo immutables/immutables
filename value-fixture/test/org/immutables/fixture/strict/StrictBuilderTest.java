@@ -19,6 +19,7 @@ import com.google.common.base.Optional;
 import org.junit.Test;
 
 public class StrictBuilderTest {
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void noReassignment() {
     ImmutableAar.builder()
@@ -28,6 +29,7 @@ public class StrictBuilderTest {
         .build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void noReassignmentOptional() {
     ImmutableBar.builder()

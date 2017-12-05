@@ -42,6 +42,7 @@ abstract class AbstractValueNamingDetected {
 
   abstract Set<String> collectStr();
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     ValueNamingDetected.newBuilder()
         .usingVal(1)

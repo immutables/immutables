@@ -32,6 +32,7 @@ import org.immutables.value.Value;
 @Value.Immutable
 public class IncludeTypes {
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     // this immutable type (package style used)
     ImIncludeTypes.builder().build();

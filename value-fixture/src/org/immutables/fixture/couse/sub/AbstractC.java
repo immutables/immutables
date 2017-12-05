@@ -45,6 +45,7 @@ interface AbstractC {
 
   Map<RetentionPolicy, C> raM();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     C c = C.builder()
         .a(A.builder().build())

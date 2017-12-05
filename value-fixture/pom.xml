@@ -29,6 +29,10 @@
     Module that contains all tests for the code generation capability
   </description>
 
+  <properties>
+    <errorprone.version>2.0.19</errorprone.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
@@ -145,6 +149,11 @@
       <artifactId>hibernate-validator</artifactId>
       <version>5.4.0.Final</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.errorprone</groupId>
+      <artifactId>error_prone_annotations</artifactId>
+      <version>${errorprone.version}</version>
+    </dependency>
   </dependencies>
   <repositories>
     <repository>
@@ -177,7 +186,7 @@
           <dependency>
             <groupId>com.google.errorprone</groupId>
             <artifactId>error_prone_core</artifactId>
-            <version>2.0.19</version>
+            <version>${errorprone.version}</version>
           </dependency>
         </dependencies>
       </plugin>

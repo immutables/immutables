@@ -23,6 +23,7 @@ public interface ToImmutableCopyFalse {
   @Value.Immutable(copy = false)
   public interface A {
 
+    @SuppressWarnings("CheckReturnValue")
     default void use() {
       ModifiableA.create().toImmutable();
     }
@@ -33,6 +34,7 @@ public interface ToImmutableCopyFalse {
   @Value.Style(strictBuilder = true)
   public interface B {
 
+    @SuppressWarnings("CheckReturnValue")
     default void use() {
       ModifiableB.create().toImmutable();
     }
@@ -44,6 +46,7 @@ public interface ToImmutableCopyFalse {
     @Value.Parameter
     int c();
 
+    @SuppressWarnings("CheckReturnValue")
     default void use() {
       ModifiableC.create().toImmutable();
     }

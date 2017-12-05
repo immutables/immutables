@@ -45,6 +45,7 @@ public interface DepluralizeMergeDictionary {
     Multiset<Boolean> goods();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableInner.builder()
         .addBoat("") // automatically trims s
