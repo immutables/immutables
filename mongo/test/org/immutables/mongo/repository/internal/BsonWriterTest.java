@@ -2,23 +2,11 @@ package org.immutables.mongo.repository.internal;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.TypeAdapter;
 import com.google.gson.internal.bind.TypeAdapters;
-import org.bson.BsonBoolean;
-import org.bson.BsonDecimal128;
-import org.bson.BsonDocument;
-import org.bson.BsonDocumentReader;
-import org.bson.BsonDouble;
-import org.bson.BsonInt32;
-import org.bson.BsonInt64;
-import org.bson.BsonString;
-import org.bson.types.Decimal128;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-
+import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
 public class BsonWriterTest {

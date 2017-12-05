@@ -15,8 +15,6 @@
  */
 package org.immutables.mongo.repository.internal;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -26,7 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
 import com.google.gson.TypeAdapter;
-import com.mongodb.BasicDBObject;
 import com.mongodb.QueryOperators;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +40,7 @@ import org.bson.codecs.EncoderContext;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Routines and classes used by generated code and bridging code in {@link Repositories}
@@ -272,7 +270,7 @@ public final class Support {
     }
 
     if (value instanceof Adapted<?>) {
-      return ((Adapted) value).toBson();
+      return ((Adapted<?>) value).toBson();
     }
 
     return String.valueOf(value);

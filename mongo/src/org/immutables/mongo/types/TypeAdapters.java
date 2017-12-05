@@ -20,10 +20,13 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import org.bson.types.Decimal128;
 import org.immutables.metainf.Metainf;
 import org.immutables.mongo.repository.internal.BsonReader;
 import org.immutables.mongo.repository.internal.BsonWriter;
@@ -48,6 +51,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
   private static final TypeToken<TimeInstant> TIME_INSTANT_TYPE_TOKEN = TypeToken.get(TimeInstant.class);
   private static final TypeToken<Binary> BINARY_TYPE_TOKEN = TypeToken.get(Binary.class);
   private static final TypeToken<Pattern> PATTERN_TYPE_TOKEN = TypeToken.get(Pattern.class);
+  private static final TypeToken<Decimal128> DECIMAL128_TYPE_TOKEN = TypeToken.get(Decimal128.class);
 
   // safe unchecked, typecheck performed by type token equality
   @SuppressWarnings("unchecked")
@@ -65,6 +69,9 @@ public final class TypeAdapters implements TypeAdapterFactory {
     }
     if (PATTERN_TYPE_TOKEN.equals(type)) {
       return (TypeAdapter<T>) PATTERN_ADAPTER;
+    }
+    if (DECIMAL128_TYPE_TOKEN.equals(type)) {
+      return (TypeAdapter<T>) DECIMAL128_ADAPTER;
     }
     return null;
   }
@@ -93,6 +100,15 @@ public final class TypeAdapters implements TypeAdapterFactory {
     return BINARY_ADAPTER;
   }
 
+  /**
+   * Use this adapter (not registered by factory, default Gson adapter is used otherwise) to
+   * delagate marshaling of {@link BigDecimal} to {@link Decimal128} type in mongo.
+   * @return {@code BigDecimal <==> Decimal128} adapter
+   */
+  public static TypeAdapter<BigDecimal> decimalAdapter() {
+    return DECIMAL_ADAPTER;
+  }
+
   private static final TypeAdapter<TimeInstant> WRAPPED_TIME_INSTANT_ADAPTER = new TypeAdapter<TimeInstant>() {
     @Override
     public void write(JsonWriter out, TimeInstant value) throws IOException {
@@ -106,6 +122,11 @@ public final class TypeAdapters implements TypeAdapterFactory {
     @Override
     public TimeInstant read(JsonReader in) throws IOException {
       return TimeInstant.of(TIME_INSTANT_ADAPTER.read(in));
+    }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.(TimeInstant)";
     }
   };
 
@@ -123,6 +144,11 @@ public final class TypeAdapters implements TypeAdapterFactory {
     public Id read(JsonReader in) throws IOException {
       return Id.from(OBJECT_ID_ADAPTER.read(in));
     }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.(Id)";
+    }
   };
 
   private static final TypeAdapter<Binary> WRAPPED_BINARY_ADAPTER = new TypeAdapter<Binary>() {
@@ -139,23 +165,90 @@ public final class TypeAdapters implements TypeAdapterFactory {
     public Binary read(JsonReader in) throws IOException {
       return Binary.create(BINARY_ADAPTER.read(in));
     }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.(Binary)";
+    }
   };
 
   private static final TypeAdapter<Pattern> PATTERN_ADAPTER = new TypeAdapter<Pattern>() {
     @Override
     public void write(JsonWriter out, Pattern value) throws IOException {
-      if (out instanceof BsonWriter) {
+      if (value == null) {
+        out.nullValue();
+      } else if (out instanceof BsonWriter) {
+        ((BsonWriter) out).value(value);
+      } else {
         out.value(value.toString());
-        return;
       }
+    }
+
+    @Override
+    public Pattern read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+      if (in instanceof BsonReader) {
+        return ((BsonReader) in).nextPattern();
+      }
+      return Pattern.compile(in.nextString());
+    }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.(Pattern)";
+    }
+  };
+
+  private static final TypeAdapter<Decimal128> DECIMAL128_ADAPTER = new TypeAdapter<Decimal128>() {
+    @Override
+    public void write(JsonWriter out, Decimal128 value) throws IOException {
+      if (value == null) {
+        out.nullValue();
+      } else if (out instanceof BsonWriter) {
+        ((BsonWriter) out).value(value);
+      } else {
+        out.value(value.toString());
+      }
+    }
+
+    @Override
+    public Decimal128 read(JsonReader in) throws IOException {
+      if (in.peek() == JsonToken.NULL) {
+        in.nextNull();
+        return null;
+      }
+      if (in instanceof BsonReader) {
+        return ((BsonReader) in).nextDecimal();
+      }
+      return Decimal128.parse(in.nextString());
+    }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.(Decimal128)";
+    }
+  };
+
+  private static final TypeAdapter<BigDecimal> DECIMAL_ADAPTER = new TypeAdapter<BigDecimal>() {
+    @Override
+    public void write(JsonWriter out, BigDecimal value) throws IOException {
+      checkArgument(out instanceof BsonWriter, "Should be BsonWriter, not some other JsonWriter");
       checkNotNull(value, "Value could not be null, delegate to #nullSafe() adapter if needed");
       ((BsonWriter) out).value(value);
     }
 
     @Override
-    public Pattern read(JsonReader in) throws IOException {
+    public BigDecimal read(JsonReader in) throws IOException {
       checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
-      return ((BsonReader) in).nextPattern();
+      return ((BsonReader) in).nextDecimal().bigDecimalValue();
+    }
+
+    @Override
+    public String toString() {
+      return "TypeAdapters.decimalAdapter()";
     }
   };
 

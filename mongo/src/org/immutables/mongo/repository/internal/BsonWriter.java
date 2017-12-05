@@ -15,17 +15,19 @@
  */
 package org.immutables.mongo.repository.internal;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.gson.internal.LazilyParsedNumber;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BsonBinary;
 import org.bson.BsonRegularExpression;
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Adapter of {@link com.google.gson.stream.JsonWriter GSON Writer} writing JSON documents in <a href="http://bsonspec.org/">BSON format</a>
@@ -135,27 +137,59 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
     return this;
   }
 
+  public com.google.gson.stream.JsonWriter value(int value) {
+    delegate.writeInt32(value);
+    return this;
+  }
+
   @Override
   public com.google.gson.stream.JsonWriter value(Number value) throws IOException {
     if (value == null) {
       return nullValue();
-    } else if (value instanceof Double) {
-      return value(value.doubleValue());
-    } else if (value instanceof Float) {
-      return value((double) value.floatValue());
-    } else if (value instanceof Long){
-      return value(value.longValue());
-    } else if (value instanceof Integer) {
-      delegate.writeInt32(value.intValue());
-      return this;
-    } else if (value instanceof Short) {
-      delegate.writeInt32(value.shortValue());
-      return this;
-    } else if (value instanceof LazilyParsedNumber) {
-      return value(value.longValue());
-    } else {
-      throw new UnsupportedOperationException(String.format("Don't know how to write %s: %s", value.getClass().getName(), value));
     }
+    if (value instanceof Double) {
+      return value(value.doubleValue());
+    }
+    if (value instanceof Float) {
+			return value(value.floatValue());
+    }
+    if (value instanceof Long){
+      return value(value.longValue());
+    }
+    if (value instanceof Integer) {
+      return value(value.intValue());
+    }
+    if (value instanceof Short) {
+      return value(value.shortValue());
+    }
+    if (value instanceof LazilyParsedNumber) {
+      return value(value.longValue());
+    }
+    if (value instanceof BigDecimal) {
+      String string = ((BigDecimal) value).toPlainString();
+      try {
+        return value(Decimal128.parse(string));
+      } catch (NumberFormatException ex) {
+        // fallback to serializing to string
+        return value(string);
+      }
+    }
+    if (value instanceof BigInteger) {
+      String string = value.toString();
+      try {
+        return value(Decimal128.parse(string));
+      } catch (NumberFormatException ex) {
+        // fallback to serializing to string
+        return value(string);
+      }
+    }
+    // by default we resort to floating point 
+    return value(value.doubleValue());
+  }
+
+  public com.google.gson.stream.JsonWriter value(Decimal128 decimal) {
+    delegate.writeDecimal128(decimal);
+    return this;
   }
 
   @Override
@@ -185,6 +219,4 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
   public void valueTimeInstant(long value) {
     delegate.writeDateTime(value);
   }
-
-
 }
