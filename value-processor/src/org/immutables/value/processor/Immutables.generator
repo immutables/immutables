@@ -2721,13 +2721,13 @@ public boolean equals([atNullable]Object another) {
   [else]
   if (this == another) return true;
   return another instanceof [equalToTypeRaw]
-      && equalTo(([equalToType]) another);
+      && equalTo(([equalToTypeRaw]) another);
   [/if]
 }
 [/if]
 [if type.useEqualTo]
 
-private boolean equalTo([equalToType] another) {
+private boolean equalTo([equalToTypeRaw] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
