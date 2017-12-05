@@ -63,7 +63,7 @@ import [starImport];
  * @see [v.typeValue.relativeRaw]
  [/for]
  */
-@SuppressWarnings("all")[-- reliably check for generateSuppressAllWarnings --]
+@SuppressWarnings({"all", "MethodCanBeStatic"})[-- reliably check for generateSuppressAllWarnings --]
 [if classpath.available 'javax.annotation.Generated']
 @javax.annotation.Generated({"Gsons.generator", "[packageName].[simpleName]"})
 [/if]
@@ -478,7 +478,7 @@ private [type.typeAbstract] read[type.name](JsonReader in)
 [else if type.useConstructorOnly]
 
 [for ca = type.constructorArguments]
-private [type.typeAbstract] read[type.name](JsonReader in)
+private [if singular ca][for a in ca][if a.primitive]static[/if][/for][/if] [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
 [if singular ca]
   [for a in ca]
@@ -498,7 +498,7 @@ private [type.typeAbstract] read[type.name](JsonReader in)
 [/for]
 [else]
 
-private [type.typeAbstract] read[type.name](JsonReader in)
+private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/if] [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
   [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder]()[/castBuildStagedBuilder];
     [if type.unmarshaledAttributes]
@@ -557,7 +557,7 @@ private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
 
 [template generateConstructorArgumentUnmarshal Type type Attribute a]
 
-private [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name](JsonReader in)
+private [if a.primitive]static[/if] [a.atNullability][constructorAcceptType a] readParameter[toUpper a.name](JsonReader in)
     throws IOException {
   [if a.primitive]
   return [simpleTypeNext a.type];

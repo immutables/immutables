@@ -34,7 +34,7 @@ public class ServiceTest {
     check(sortedToStringsFrom(ServiceLoader.load(AutoCloseable.class))).isOf("NestedService.Service");
   }
 
-  private TreeSet<String> sortedToStringsFrom(Iterable<?> iterable) {
+  private static TreeSet<String> sortedToStringsFrom(Iterable<?> iterable) {
     return Sets.newTreeSet(FluentIterable.from(iterable).transform(Functions.toStringFunction()));
   }
 }

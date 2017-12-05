@@ -129,11 +129,11 @@ public class MarshallingTest {
     check(Marshaling.fromJson(Marshaling.toJson(structure), SillyStructure.class)).is(structure);
   }
 
-  private <T> List<T> fromJsonIterable(String json, TypeToken<List<T>> typeToken) {
+  private static <T> List<T> fromJsonIterable(String json, TypeToken<List<T>> typeToken) {
     return Marshaling.getGson().fromJson(json, typeToken.getType());
   }
 
-  private <T> String toJsonIterable(List<? extends T> list, TypeToken<List<T>> typeToken) {
+  private static <T> String toJsonIterable(List<? extends T> list, TypeToken<List<T>> typeToken) {
     return Marshaling.getGson().toJson(list, typeToken.getType());
   }
 }

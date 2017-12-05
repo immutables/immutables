@@ -59,7 +59,7 @@ public class AttributeBuilderTest {
   }
 
   // Allows sharing tests between guava collections, jdk only collections and whatever other combinations are needed.
-  private <ImmutableClassT extends AttributeBuilderValueI, AbstractClassT extends AttributeBuilderValueI>
+  private static <ImmutableClassT extends AttributeBuilderValueI, AbstractClassT extends AttributeBuilderValueI>
   void assertBasicApi(Class<ImmutableClassT> immutableType, Class<AbstractClassT> returnType,
       CopyFunction<ImmutableClassT, AbstractClassT> copyFunction,
       BuilderFunction<AbstractClassT> newBuilder) {

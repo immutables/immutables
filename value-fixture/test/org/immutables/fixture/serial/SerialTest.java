@@ -71,13 +71,13 @@ public class SerialTest {
     check(false);
   }
 
-  private Serializable deserialize(byte[] bytes) throws Exception {
+  private static Serializable deserialize(byte[] bytes) throws Exception {
     ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
     ObjectInputStream objectStream = new ObjectInputStream(stream);
     return (Serializable) objectStream.readObject();
   }
 
-  private byte[] serialize(Serializable instance) throws Exception {
+  private static byte[] serialize(Serializable instance) throws Exception {
     ByteArrayOutputStream stream = new ByteArrayOutputStream();
     ObjectOutputStream objectStream = new ObjectOutputStream(stream);
     objectStream.writeObject(instance);
