@@ -1,7 +1,6 @@
 language: java
 install: true
-# script: if [[ "$TRAVIS_REPO_SLUG" == "immutables/immutables" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" != "pull_request" ]]; then mvn deploy -Dlint-javadoc -DdeployAtEnd=true --settings settings.xml; else mvn package; fi
-script: mvn package
+script: if [[ "$TRAVIS_REPO_SLUG" == "immutables/immutables" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_EVENT_TYPE" != "pull_request" ]]; then mvn deploy -Dlint-javadoc -DdeployAtEnd=true --settings settings.xml; else mvn package; fi
 sudo: false
 cache:
   directories:
