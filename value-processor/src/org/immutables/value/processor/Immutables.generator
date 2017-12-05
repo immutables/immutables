@@ -1605,7 +1605,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [if type.kind.isFactory ornot v.jdkOptional]
-  @SuppressWarnings("unchecked") // safe covariant cast
+  [suppressCovariantCastForOptional v]
   [/if]
   [atCanIgnoreReturnValue]
   [builderInitAnnotations v]
@@ -2267,9 +2267,11 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [for ann in type.constructorAnnotations]
   [ann]
   [/for]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
   public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [else]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [/if]
@@ -3042,9 +3044,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  * @param optional A value for [v.name]
  * @return A modified copy of {@code this} object
  */
-[if not v.jdkOptional]
-@SuppressWarnings("unchecked") // safe covariant cast
-[/if]
+[suppressCovariantCastForOptional v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
@@ -3863,6 +3863,24 @@ java.util.List[a.genericArgs] [variableName] = new java.util.ArrayList[a.generic
   [if serialVersion]
 
 private static final long serialVersionUID = [literal serialVersion];
+  [/if]
+[/for]
+[/template]
+
+[template suppressCovariantCastForOptional Attribute a]
+[if a.optionalType andnot a.jdkOptional][if a.consumedElementType ne a.elementType]
+@SuppressWarnings("unchecked") // safe covariant cast
+[/if][/if]
+[/template]
+
+[template suppressAnyCovariantCastForOptional Attribute... as]
+[for a in as]
+  [if a.optionalType andnot a.jdkOptional]
+    [if a.consumedElementType ne a.elementType]
+      [if for.first]
+@SuppressWarnings("unchecked") // safe covariant cast
+      [/if]
+    [/if]
   [/if]
 [/for]
 [/template]
