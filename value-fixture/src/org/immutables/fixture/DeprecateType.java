@@ -21,6 +21,7 @@ import org.immutables.value.Value;
 @Deprecated
 interface DeprecateType {
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableDeprecateType.of();
   }

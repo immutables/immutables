@@ -20,11 +20,13 @@ import org.junit.Test;
 import nonimmutables.SampleRuntimeException;
 
 public class SpecifiedExceptionTest {
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = SampleRuntimeException.class)
   public void itThrowsExpectedConfiguredException() {
     ImmutableSpecifiedException.builder().build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalArgumentException.class)
   public void itThrowsSpecifiedExceptionOnBuild() {
     ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new);

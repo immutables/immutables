@@ -35,6 +35,7 @@ import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
 import org.immutables.mongo.repository.RepositorySetup;
+import org.immutables.mongo.types.TypeAdapters;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -112,6 +113,9 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
 
   private static com.google.gson.Gson createGson() {
     GsonBuilder gson = new GsonBuilder();
+    // this one is no longer auto-registered
+    gson.registerTypeAdapterFactory(new TypeAdapters());
+
     for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
       gson.registerTypeAdapterFactory(factory);
     }

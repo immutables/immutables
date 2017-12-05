@@ -15,8 +15,6 @@
  */
 package org.immutables.mongo.repository.internal;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.gson.TypeAdapter;
 import java.io.IOException;
 import org.bson.AbstractBsonReader;
@@ -29,6 +27,7 @@ import org.bson.codecs.Encoder;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecRegistry;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * MongoDB (Bson) driver specific codecs and helper methods. Utility class.
@@ -49,10 +48,9 @@ public final class BsonEncoding {
         // TODO is this a safe assumption with polymorphism (in repositories) ?
         if (type.isAssignableFrom(clazz)) {
           return (Codec<X>) codecFor(type, adapter);
-        } else {
-          // let other registries decide
-          throw new CodecConfigurationException(String.format("Type %s not supported by this registry", type.getName()));
         }
+				// let other registries decide
+				throw new CodecConfigurationException(String.format("Type %s not supported by this registry", type.getName()));
       }
     };
   }

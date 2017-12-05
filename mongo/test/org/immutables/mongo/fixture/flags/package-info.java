@@ -17,4 +17,5 @@
 /**
  * Tests repositories with various flags (readonly, index etc.)
  */
+@org.immutables.gson.Gson.TypeAdapters
 package org.immutables.mongo.fixture.flags;

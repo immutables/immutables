@@ -37,6 +37,7 @@ public abstract class Copied implements WithCopied {
 
   public static class Builder extends ImmutableCopied.Builder {}
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     new Copied.Builder()
         .attr(1)

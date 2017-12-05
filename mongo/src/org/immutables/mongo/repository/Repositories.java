@@ -15,11 +15,6 @@
  */
 package org.immutables.mongo.repository;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static org.immutables.mongo.repository.internal.Support.convertToBson;
-
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
@@ -52,6 +47,10 @@ import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.BsonEncoding;
 import org.immutables.mongo.repository.internal.Constraints;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static org.immutables.mongo.repository.internal.Support.convertToBson;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that
@@ -60,7 +59,6 @@ import org.immutables.mongo.repository.internal.Constraints;
  */
 public final class Repositories {
   private static final int LARGE_BATCH_SIZE = 2000;
-  private static final int DEFAULT_EXPECTED_RESULT_SIZE = 500;
 
   private Repositories() {}
 

@@ -53,6 +53,7 @@ public interface UseImmutableCollections {
 
   ImmutableListMultimap<String, Integer> listMultimap();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
 
     ImmutableUseImmutableCollections.builder()

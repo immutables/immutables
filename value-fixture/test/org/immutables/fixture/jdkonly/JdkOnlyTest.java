@@ -29,6 +29,7 @@ public class JdkOnlyTest {
     check(ImmutableJdkColl.of()).same(ImmutableJdkColl.builder().build());
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void checkingOfAttributesBeingSet() {
     ImmutableJdkUtil.builder().build();
@@ -53,6 +54,7 @@ public class JdkOnlyTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void modify() {
     ImmutableJdkColl coll = ImmutableJdkColl.builder()
         .addInts(1)
@@ -79,6 +81,7 @@ public class JdkOnlyTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void collectionNulls() {
     try {
       ImmutableJdkColl.builder().addPols((RetentionPolicy) null).build();
@@ -113,6 +116,7 @@ public class JdkOnlyTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void mapNulls() {
     try {
       new JdkMapsBuilder().putPols((RetentionPolicy) null, 1).build();

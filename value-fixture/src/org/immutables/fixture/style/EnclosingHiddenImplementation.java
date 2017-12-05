@@ -55,6 +55,7 @@ public abstract class EnclosingHiddenImplementation {
     public abstract Optional<Integer> cons();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     EnclosingFactory.HiddenImplementationBuilder.create().build();
 

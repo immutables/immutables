@@ -30,6 +30,7 @@ interface Color {
   int green();
   int blue();
   
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     ColorTuple.of(0xFF, 0x00, 0xFE);
   }
@@ -48,6 +49,7 @@ interface OverrideColor {
     return black() - gray();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     OverrideColorTuple.of(0xFF, 0x00);
   }

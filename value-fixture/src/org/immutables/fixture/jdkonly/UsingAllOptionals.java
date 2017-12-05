@@ -52,6 +52,7 @@ public interface UsingAllOptionals {
   javaslang.control.Option<String> jso();
 
   class Use {
+    @SuppressWarnings("CheckReturnValue")
     void use() {
       UsingAllOptionals value =
           ImmutableUsingAllOptionals.builder()

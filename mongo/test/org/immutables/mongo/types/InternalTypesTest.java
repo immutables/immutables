@@ -7,9 +7,9 @@ import org.immutables.mongo.fixture.MongoContext;
 import org.immutables.value.Value;
 import org.junit.Rule;
 import org.junit.Test;
-
 import static org.immutables.check.Checkers.check;
 
+@Gson.TypeAdapters
 public class InternalTypesTest {
   @Rule
   public final MongoContext context = MongoContext.create();
@@ -34,7 +34,6 @@ public class InternalTypesTest {
 
   @Mongo.Repository
   @Value.Immutable
-  @Gson.TypeAdapters
   interface InternalTypes {
     @Mongo.Id
     ObjectId objectId();

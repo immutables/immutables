@@ -31,6 +31,7 @@ public interface JdkOptionalBuilderFactory {
     return b.hashCode() + c.hashCode();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     new ApplBuilder()
         .a(1)

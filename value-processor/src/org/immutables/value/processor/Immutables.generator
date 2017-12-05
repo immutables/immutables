@@ -1605,7 +1605,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [if type.kind.isFactory ornot v.jdkOptional]
-  @SuppressWarnings("unchecked") // safe covariant cast
+  [suppressCovariantCastForOptional v]
   [/if]
   [atCanIgnoreReturnValue]
   [builderInitAnnotations v]
@@ -2267,9 +2267,11 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [for ann in type.constructorAnnotations]
   [ann]
   [/for]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
   public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [else]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [/if]
@@ -2721,14 +2723,14 @@ public boolean equals([atNullable]Object another) {
   [else]
   if (this == another) return true;
   return another instanceof [equalToTypeRaw]
-      && equalTo(([equalToType]) another);
+      && equalTo(([equalToTypeRaw]) another);
   [/if]
 }
 [/if]
 [if type.useEqualTo]
 
 [if not type.equalToDefined][if not type.usePrehashed][if not getters][if type.generics.empty]@SuppressWarnings("MethodCanBeStatic")[/if][/if][/if][/if]
-private boolean equalTo([equalToType] another) {
+private boolean equalTo([equalToTypeRaw] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
@@ -2743,7 +2745,7 @@ private boolean equalTo([equalToType] another) {
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
-  int [h] = 0;
+  [atVar] int [h] = 0;
 [for v in getters]
 [if v.arrayType]
   [h] += 127 * "[v.names.get]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
@@ -2757,7 +2759,7 @@ private boolean equalTo([equalToType] another) {
 [else if getters.isEmpty]
   return [type.hashCode];
 [else]
-  int [h] = 5381;
+  [atVar] int [h] = 5381;
 [for v in getters]
 [if v.encoding]
   [h] += ([h] << 5) + ([rr.hash v]);
@@ -3043,9 +3045,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  * @param optional A value for [v.name]
  * @return A modified copy of {@code this} object
  */
-[if not v.jdkOptional]
-@SuppressWarnings("unchecked") // safe covariant cast
-[/if]
+[suppressCovariantCastForOptional v]
 [deprecation v]
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
@@ -3868,6 +3868,24 @@ private static final long serialVersionUID = [literal serialVersion];
 [/for]
 [/template]
 
+[template suppressCovariantCastForOptional Attribute a]
+[if a.optionalType andnot a.jdkOptional][if a.consumedElementType ne a.elementType]
+@SuppressWarnings("unchecked") // safe covariant cast
+[/if][/if]
+[/template]
+
+[template suppressAnyCovariantCastForOptional Attribute... as]
+[for a in as]
+  [if a.optionalType andnot a.jdkOptional]
+    [if a.consumedElementType ne a.elementType]
+      [if for.first]
+@SuppressWarnings("unchecked") // safe covariant cast
+      [/if]
+    [/if]
+  [/if]
+[/for]
+[/template]
+
 [-- templates below are one-liners so they auto-inlined --]
 [template topSimplePrefix Type type][if topLevelSimple][topLevelSimple].[else][type.topSimple].[/if][/template]
 
@@ -3907,6 +3925,8 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
+[template atVar][if classpath.available 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var[/if][/template]
+
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
 [template disambiguateAccessor Type type String name][name][for v in type.implementedAttributes if v.names.get eq name]$$[/for][/template]
@@ -3928,3 +3948,4 @@ private static final long serialVersionUID = [literal serialVersion];
 [template castObject String typename][if typename ne 'java.lang.Object']([typename]) [/if][/template]
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
+

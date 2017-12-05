@@ -23,6 +23,7 @@ public class CustomImmutables {
   @CustomWithStyle2
   interface Dv {}
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     CustoOd.builder().build();
     JcIvDv.builder().build();

@@ -24,6 +24,7 @@ interface AbstractB {
 
   Optional<A> aO();
 
+  @SuppressWarnings("CheckReturnValue")
   default void use() {
     B b = B.builder()
         .a(A.builder().build())

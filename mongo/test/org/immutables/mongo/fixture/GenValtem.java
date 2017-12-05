@@ -15,12 +15,14 @@
  */
 package org.immutables.mongo.fixture;
 
+import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.fixture.imp.Valtem;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.immutables.value.Value;
 
 @Mongo.Repository
+@Gson.TypeAdapters
 @Value.Include(Valtem.class)
 enum GenValtem {
   ;

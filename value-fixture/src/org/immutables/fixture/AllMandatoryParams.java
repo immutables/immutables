@@ -28,6 +28,7 @@ public interface AllMandatoryParams {
     return "C";
   }
 
+  @SuppressWarnings("CheckReturnValue")
   static void use() {
     ImmutableAllMandatoryParams.of(1, true).withC("ABC");
   }

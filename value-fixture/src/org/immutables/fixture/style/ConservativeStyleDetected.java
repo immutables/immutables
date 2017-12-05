@@ -27,6 +27,7 @@ abstract class ConservativeStyleDetected {
 
   abstract String getString();
 
+  @SuppressWarnings("CheckReturnValue")
   void use() {
     new ConservativeStyleDetectedBuilder()
         .setValue(1)

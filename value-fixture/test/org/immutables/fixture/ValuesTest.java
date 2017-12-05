@@ -59,6 +59,7 @@ public class ValuesTest {
         .build());
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = NullPointerException.class)
   public void orderAndNullCheckForConstructor() {
     ImmutableHostWithPort.of(1, null);
@@ -192,6 +193,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void requiredAttributesSetChecked() {
     try {
       ImmutableIfaceValue.builder().build();
@@ -265,6 +267,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void withMethods() {
     ImmutableSillyValidatedBuiltValue value = ImmutableSillyValidatedBuiltValue.builder()
         .value(-10)
@@ -327,6 +330,7 @@ public class ValuesTest {
     check(ImmutableSillyInterned.of(1, 2).hashCode()).not(ImmutableSillyInterned.of(2, 2).hashCode());
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void cannotBuildWrongInvariants() {
     ImmutableSillyValidatedBuiltValue.builder()
@@ -404,6 +408,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void canBuildCorrectInvariants() {
 
     ImmutableSillyValidatedBuiltValue.builder()
@@ -422,12 +427,14 @@ public class ValuesTest {
         .build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void cannotConstructWithWrongInvariants() {
     ImmutableSillyValidatedConstructedValue.of(10, true);
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void canConstructWithCorrectInvariants() {
     ImmutableSillyValidatedConstructedValue.of(-10, true);
     ImmutableSillyValidatedConstructedValue.of(10, false);
@@ -435,6 +442,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void optionalWhichAcceptsNullable() {
     ImmutableOptionalWithNullable.builder()
         .guavaOptional((String) null)
@@ -443,6 +451,7 @@ public class ValuesTest {
         .build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = NullPointerException.class)
   public void optionalWhichDoesntAcceptsNullable() {
     ImmutableOptionalWithoutNullable.builder()
@@ -451,6 +460,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void properInitInternNoBuilder() {
     ImmutableProperInitInternNoBuilder.of();
   }
@@ -464,6 +474,7 @@ public class ValuesTest {
   }
 
   @Test
+  @SuppressWarnings("CheckReturnValue")
   public void primitiveOptional() {
     ImmutablePrimitiveOptionals.builder()
         .v1(1)
@@ -480,15 +491,18 @@ public class ValuesTest {
         .withV2(0.3);
   }
 
+  @SuppressWarnings("CheckReturnValue")
   public void multipleCheck0() {
     ImmutableMultipleChecks.C.builder().a(1).b(1).build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void multipleCheck1() {
     ImmutableMultipleChecks.C.builder().a(0).b(1).build();
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalStateException.class)
   public void multipleCheck2() {
     ImmutableMultipleChecks.C.builder().a(1).b(0).build();

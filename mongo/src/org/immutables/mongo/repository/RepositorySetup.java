@@ -28,18 +28,17 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
-import org.immutables.mongo.repository.Repositories.Repository;
-
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+import org.immutables.mongo.repository.Repositories.Repository;
+import org.immutables.mongo.types.TypeAdapters;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -123,9 +122,10 @@ public final class RepositorySetup {
      * 
      * <pre>
      * GsonBuilder gsonBuilder = new GsonBuilder();
+     * gsonBuilder.registerTypeAdapterFactory(new TypeAdapters()); // BSON specific type adapters
      * ...
      * for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory)) {
-     *   gsonBuilder.
+     *   gsonBuilder.registerTypeAdapterFactory(factory);
      * }
      * Gson gson = gsonBuilder.create();
      * </pre>
@@ -186,6 +186,9 @@ public final class RepositorySetup {
 
   private static Gson createGson() {
     GsonBuilder gsonBuilder = new GsonBuilder();
+    // there are no longer auto-registed from class-path, but from here or if added manually.
+    gsonBuilder.registerTypeAdapterFactory(new TypeAdapters());
+
     for (TypeAdapterFactory factory : ServiceLoader.load(TypeAdapterFactory.class)) {
       gsonBuilder.registerTypeAdapterFactory(factory);
     }

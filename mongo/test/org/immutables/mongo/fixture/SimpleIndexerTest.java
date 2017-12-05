@@ -1,9 +1,6 @@
 package org.immutables.mongo.fixture;
 
 
-import static org.immutables.check.Checkers.check;
-import static org.junit.Assert.fail;
-
 import com.google.common.base.Optional;
 import java.util.Date;
 import org.immutables.gson.Gson;
@@ -11,7 +8,10 @@ import org.immutables.mongo.Mongo;
 import org.immutables.value.Value;
 import org.junit.Rule;
 import org.junit.Test;
+import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
+@Gson.TypeAdapters
 public class SimpleIndexerTest {
 
   @Rule
@@ -93,7 +93,6 @@ public class SimpleIndexerTest {
 
   @Mongo.Repository
   @Value.Immutable
-  @Gson.TypeAdapters
   interface ForIndexer {
     @Mongo.Id
     String id();
