@@ -1012,6 +1012,12 @@ public final class ValueAttribute extends TypeIntrospectionBase {
     return isPrimitiveType(getUnwrappedElementType());
   }
 
+  public boolean isSafeUncheckedCovariantCast() {
+    return isOptionalType()
+        && !isJdkOptional()
+        && !getConsumedElementType().equals(getWrappedElementType());
+  }
+
   public boolean isAuxiliary() {
     return AuxiliaryMirror.isPresent(element);
   }

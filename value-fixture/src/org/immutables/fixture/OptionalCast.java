@@ -15,8 +15,9 @@
  */
 package org.immutables.fixture;
 
-import org.immutables.value.Value;
 import com.google.common.base.Optional;
+import java.util.List;
+import org.immutables.value.Value;
 
 @Value.Immutable
 @Value.Style(allParameters = true)
@@ -27,11 +28,14 @@ public interface OptionalCast {
 
   Optional<String[]> getStringArray();
 
+  Optional<List<Long>> getList();
+
   @SuppressWarnings("CheckReturnValue")
   default void use() {
     ImmutableOptionalCast.of(
         Optional.absent(),
         Optional.of("String is object"),
-        Optional.<String[]>absent());
+        Optional.<String[]>absent(),
+        Optional.absent());
   }
 }

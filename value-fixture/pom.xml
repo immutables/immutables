@@ -176,6 +176,7 @@
           <compilerArgs>
             <arg>-Xep:CheckReturnValue:ERROR</arg>
             <arg>-Xep:MethodCanBeStatic:ERROR</arg>
+            <arg>-Xlint:unchecked</arg>
           </compilerArgs>
         </configuration>
         <dependencies>
