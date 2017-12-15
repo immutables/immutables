@@ -24,6 +24,7 @@ import com.google.gson.Gson;
 import com.google.gson.TypeAdapter;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.FindOneAndDeleteOptions;
 import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -319,7 +320,10 @@ public final class Repositories {
             }
           }
 
-          return ImmutableList.copyOf(cursor);
+          // close properly
+          try (MongoCursor<T> iterator = cursor.iterator()) {
+            return ImmutableList.copyOf(iterator);
+          }
         }
       });
     }
