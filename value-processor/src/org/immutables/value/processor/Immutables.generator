@@ -1420,7 +1420,6 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
     [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] builder = [createAttributeBuilder v.getAttributeBuilderDescriptor];
     this.[v.name].add(builder);
-
     return builder;
   }
 
@@ -1576,13 +1575,13 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
-    this.[v.name] = [optionalOf v]([v.name]);
+    this.[v.name] = [optionalOf v]([maybeCopyOf v][v.name][/maybeCopyOf]);
   [else if v.jdkOptional and ((v.jdkSpecializedOptional or v.optionalAcceptNullable) or v.primitiveElement)]
-    this.[v.name] = [v.name];
+    this.[v.name] = [maybeCopyOf v][v.name][/maybeCopyOf];
   [else if v.jdkOptional]
-    this.[v.name] = [requireNonNull type]([v.name], "[v.name]");
+    this.[v.name] = [maybeCopyOf v][requireNonNull type]([v.name], "[v.name]")[/maybeCopyOf];
   [else]
-    this.[v.name] = [optionalOf v]([v.name]);
+    this.[v.name] = [optionalOf v]([maybeCopyOf v][v.name][/maybeCopyOf]);
   [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
@@ -2119,9 +2118,9 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [if v.encoding]
   [rr.from v expression]
 [else if v.jdkOptional]
-  [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][expression].orElse(null)[/if]
+  [if v.jdkSpecializedOptional][expression].isPresent() ? [expression].getAs[toUpper v.unwrappedElementType]() : null[else][maybeCopyOf v][expression].orElse(null)[/maybeCopyOf][/if]
 [else if v.optionalType]
-  [if v.consumedElementType ne v.wrappedElementType]([v.type]) [/if][expression]
+  [if v.consumedElementType ne v.wrappedElementType]([v.type]) [/if][maybeCopyOf v expression]
 [else if v.arrayType][-- we don't make a safe copy for nullable array --]
   [if v.nullable][expression][else][expression].clone()[/if]
 [else if v.attributeValueKindCopy]
@@ -2129,7 +2128,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [else if v.collectionType or v.mapType]
   [if v.nullable][expression] == null ? null : [/if][immutableCollectionCopyOf v expression]
 [else]
-  [maybeNonNullValue v][maybeCopyOf v expression][/maybeNonNullValue]
+  [maybeCopyOf v][maybeNonNullValue v][expression][/maybeNonNullValue][/maybeCopyOf]
 [/if]
 [/output.trim][/template]
 
@@ -3025,7 +3024,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [if v.primitiveElement or (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
   [immutableImplementationType v] newValue = value;
   [else]
-  [immutableImplementationType v] newValue = [requireNonNull type](value, "[v.name]");
+  [immutableImplementationType v] newValue = [maybeCopyOf v][requireNonNull type](value, "[v.name]")[/maybeCopyOf];
   [/if]
   [if v.hasSimpleScalarElementType andnot v.enumType]
   if ([objectsEqual type](this.[v.name], newValue)) return this;
@@ -3034,7 +3033,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
   [/if]
   [generateReturnCopyContextual type v]
 [else]
-  [immutableImplementationType v] newValue = [optionalOf v](value);
+  [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
   [if v.hasSimpleScalarElementType andnot v.enumType]
   if (this.[v.name].equals(newValue)) return this;
   [else]

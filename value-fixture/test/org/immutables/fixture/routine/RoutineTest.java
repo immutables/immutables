@@ -15,6 +15,8 @@
  */
 package org.immutables.fixture.routine;
 
+import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -33,6 +35,16 @@ public class RoutineTest {
           @Override
           public Bb bb() {
             throw new UnsupportedOperationException();
+          }
+
+          @Override
+          public Optional<Bb> zz() {
+            return Optional.empty();
+          }
+
+          @Override
+          public com.google.common.base.Optional<List<String>> uu() {
+            return com.google.common.base.Optional.absent();
           }
         })
         .build()

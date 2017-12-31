@@ -15,6 +15,10 @@
  */
 package org.immutables.fixture.routine;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+
 // customized normalization of Aa
 public final class Routines {
 
@@ -25,5 +29,13 @@ public final class Routines {
    */
   public static Aa immutableCopyOf(Aa aa) {
     return new Aa.D();
+  }
+
+  public static <T> List<T> immutableCopyOf(List<? extends T> list) {
+    return ImmutableList.copyOf(list);
+  }
+
+  public static <T> Optional<List<T>> immutableCopyOf(Optional<? extends List<T>> list) {
+    return list.transform(ImmutableList::copyOf);
   }
 }
