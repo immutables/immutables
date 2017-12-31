@@ -2258,6 +2258,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [rr.declareFields v]
   [else]
   [jsonIgnore type]
+  [for a in v.annotations if a eq '@com.google.gson.annotations.SerializedName']
+  [a]
+  [/for]
   private final [v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
