@@ -15,16 +15,9 @@
  */
 package org.immutables.value.processor.encode;
 
-import com.google.common.base.Predicate;
-import org.immutables.value.processor.meta.ValueType;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.*;
+import com.google.common.collect.*;
+import java.util.*;
 import javax.annotation.Nullable;
 import org.immutables.generator.Templates;
 import org.immutables.generator.Templates.Invokable;
@@ -33,12 +26,10 @@ import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.TypeParam;
-import org.immutables.value.processor.encode.Type.Defined;
-import org.immutables.value.processor.encode.Type.Parameters;
-import org.immutables.value.processor.encode.Type.Variable;
-import org.immutables.value.processor.encode.Type.VariableResolver;
+import org.immutables.value.processor.encode.Type.*;
 import org.immutables.value.processor.meta.Styles;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
+import org.immutables.value.processor.meta.ValueType;
 
 public final class Instantiation {
   private static final String BUILDER_RESERVED_IN_CONSTRUCTOR = "builder";
@@ -194,6 +185,15 @@ public final class Instantiation {
     return names.raw;
   }
 
+  final Predicate<EncodedElement> isSafeVarargs = new Predicate<EncodedElement>() {
+    @Override
+    public boolean apply(EncodedElement input) {
+      return input.isFinal()
+          && input.isSafeVarargs()
+          && hasGenericVarargs(input);
+    }
+  };
+
   final Predicate<EncodedElement> isInlined = new Predicate<EncodedElement>() {
     @Override
     public boolean apply(EncodedElement input) {
@@ -205,6 +205,18 @@ public final class Instantiation {
     return !el.oneLiner().isEmpty()
         && !encoding.crossReferencedMethods().contains(el.name())
         && !entangledBuildMethod(el);
+  }
+
+  protected boolean hasGenericVarargs(EncodedElement input) {
+    List<Param> params = input.params();
+    if (!params.isEmpty()) {
+      Type t = Iterables.getLast(params).type();
+      if (t instanceof Type.Array) {
+        Type.Array a = (Type.Array) t;
+        return a.varargs && typer.apply(a.element) instanceof Type.Variable;
+      }
+    }
+    return false;
   }
 
   private boolean entangledBuildMethod(EncodedElement el) {

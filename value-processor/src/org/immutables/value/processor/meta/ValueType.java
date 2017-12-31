@@ -15,53 +15,20 @@
  */
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Function;
+import com.google.common.base.*;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 import java.lang.annotation.ElementType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Objects;
-import java.util.Set;
 import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Parameterizable;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.element.*;
+import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
-import org.immutables.generator.Output;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.generator.TypeHierarchyCollector;
+import org.immutables.generator.*;
 import org.immutables.value.processor.encode.TypeExtractor;
-import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
-import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
-import org.immutables.value.processor.meta.Constitution.NameForms;
-import org.immutables.value.processor.meta.Proto.DeclaringType;
-import org.immutables.value.processor.meta.Proto.Environment;
-import org.immutables.value.processor.meta.Proto.JacksonMode;
-import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Constitution.*;
+import org.immutables.value.processor.meta.Proto.*;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 
 /**
@@ -1400,7 +1367,7 @@ public final class ValueType extends TypeIntrospectionBase {
 
   public boolean suppressesUncheckedWarning() {
     Set<String> typeSuppressions = generatedSuppressWarnings();
-    return typeSuppressions.contains("all") || typeSuppressions.contains("unchecked");
+    return typeSuppressions.contains("unchecked");
   }
 
   public boolean isGenerateSuppressAllWarnings() {

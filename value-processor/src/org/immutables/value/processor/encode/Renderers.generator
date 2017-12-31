@@ -101,6 +101,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
   [/for]
 [/if]
 [atCanIgnoreReturnValue]
+[if inst.isSafeVarargs el]@java.lang.SafeVarargs[/if]
 [if el.private]private [else]public [/if][if el.final]final [/if][builderReturnType a] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]return [builderReturnThis a][/inst.codeOf]
 [/for]
 [/template]
@@ -199,6 +200,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [/template]
 
 [template declareMethod Inst inst Elem el]
+[if inst.isSafeVarargs el]@java.lang.SafeVarargs[/if]
 [if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.ownTypeParams el][inst.typer el.type] [inst.namer el]([for p in el.params][if not for.first], [/if][inst.typer p.type] [p.name][/for])[throwsClause inst el] [inst.codeOf el]
 [/template]
 

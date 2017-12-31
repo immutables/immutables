@@ -16,14 +16,8 @@
 
 package org.immutables.fixture.encoding.defs;
 
-import java.util.stream.Stream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.*;
+import java.util.stream.*;
 import org.immutables.encode.Encoding;
 import org.immutables.encode.Encoding.StandardNaming;
 
@@ -119,8 +113,8 @@ final class OptionalList2<T> {
     // TODO: Needed to reproduce (addX(T...))
     @Encoding.Naming(standard = StandardNaming.ADD)
     @Encoding.Init
-    @SuppressWarnings("unchecked")
-    void addVarargs(T... elements) {
+    @SafeVarargs
+    final void addVarargs(T... elements) {
       if (this.list == null) {
         this.list = new ArrayList<>();
       }

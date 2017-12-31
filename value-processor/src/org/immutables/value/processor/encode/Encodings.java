@@ -15,48 +15,21 @@
  */
 package org.immutables.value.processor.encode;
 
-import java.util.concurrent.atomic.AtomicReference;
-import com.google.common.base.Ascii;
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
+import com.google.common.base.*;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.ObjectArrays;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import com.google.common.collect.*;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
-import javax.lang.model.element.Parameterizable;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.util.ElementFilter;
-import org.immutables.generator.AbstractTemplate;
-import org.immutables.generator.Generator;
-import org.immutables.generator.Naming;
+import org.immutables.generator.*;
 import org.immutables.generator.Naming.Usage;
-import org.immutables.generator.SourceExtraction;
-import org.immutables.generator.Templates;
 import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.Tag;
-import org.immutables.value.processor.encode.Type.Array;
-import org.immutables.value.processor.encode.Type.Defined;
-import org.immutables.value.processor.encode.Type.Primitive;
+import org.immutables.value.processor.encode.Type.*;
 import org.immutables.value.processor.meta.Reporter;
 
 @Generator.Template
@@ -978,6 +951,9 @@ public abstract class Encodings extends AbstractTemplate {
       }
       if (member.getModifiers().contains(Modifier.FINAL)) {
         tags.add(Tag.FINAL);
+      }
+      if (member.getAnnotation(SafeVarargs.class) != null) {
+        tags.add(Tag.SAFE_VARARGS);
       }
       return tags;
     }

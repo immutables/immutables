@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.Value.Default;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -23,9 +22,7 @@ import java.util.List;
 import java.util.Set;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value;
-import org.immutables.value.Value.Derived;
-import org.immutables.value.Value.Enclosing;
-import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.*;
 import org.immutables.value.processor.encode.Code.Term;
 
 @Immutable
@@ -51,7 +48,8 @@ public abstract class EncodedElement {
     // syntethic element which is automatically inserted
     SYNTH,
     // applies to impl field
-    VIRTUAL
+    VIRTUAL,
+    SAFE_VARARGS
   }
 
   abstract String name();
@@ -120,6 +118,11 @@ public abstract class EncodedElement {
   @Derived
   boolean isInit() {
     return tags().contains(Tag.INIT);
+  }
+
+  @Derived
+  boolean isSafeVarargs() {
+    return tags().contains(Tag.SAFE_VARARGS);
   }
 
   @Derived
