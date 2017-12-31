@@ -2548,7 +2548,11 @@ static final [output.linesShortable]class Json[type.generics]
   [serialVersionUID type]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
   [if v.encoding]
+    [if v.instantiation.supportsDefaultValue]
   [v.type] [v.name] = [rr.defaultValue v];
+    [else]
+  [atNullable][v.type] [v.name];
+    [/if]
   [else if v.optionalType]
   [atNullable][v.type] [v.name] = [optionalEmpty v];
   [else if v.collectionType or v.mapType]
