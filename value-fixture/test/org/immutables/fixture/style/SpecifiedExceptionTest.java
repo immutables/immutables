@@ -15,20 +15,29 @@
  */
 package org.immutables.fixture.style;
 
-import org.junit.Test;
-
 import nonimmutables.SampleRuntimeException;
+import org.junit.Test;
+import static org.immutables.check.Checkers.check;
 
+@SuppressWarnings("CheckReturnValue")
 public class SpecifiedExceptionTest {
-  @SuppressWarnings("CheckReturnValue")
   @Test(expected = SampleRuntimeException.class)
   public void itThrowsExpectedConfiguredException() {
     ImmutableSpecifiedException.builder().build();
   }
 
-  @SuppressWarnings("CheckReturnValue")
   @Test(expected = IllegalArgumentException.class)
   public void itThrowsSpecifiedExceptionOnBuild() {
     ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new);
+  }
+
+  @Test
+  public void itThrowsExceptionWithMissingAttributeNames() {
+    try {
+      ImmutableSpecifiedExceptionWithNamesConstructor.builder().build();
+      check(false);
+    } catch (SpecifiedExceptionWithNamesConstructor.Exc ex) {
+      check(ex.names).isOf("someRequiredInteger", "someRequiredString");
+    }
   }
 }

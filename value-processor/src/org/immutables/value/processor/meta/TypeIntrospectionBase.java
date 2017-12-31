@@ -16,10 +16,7 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.*;
 import com.google.common.primitives.Primitives;
 import java.io.Serializable;
 import javax.lang.model.type.TypeMirror;
@@ -68,7 +65,7 @@ public abstract class TypeIntrospectionBase {
   }
 
   private volatile boolean introspected;
-  protected ImmutableList<String> extendedClassesNames = ImmutableList.of();
+  protected ImmutableSet<String> extendedClassesNames = ImmutableSet.of();
   protected ImmutableSet<String> implementedInterfacesNames = ImmutableSet.of();
   protected ImmutableSet<String> unresolvedYetArguments = ImmutableSet.of();
   private boolean isOrdinalValue;
@@ -84,7 +81,7 @@ public abstract class TypeIntrospectionBase {
     }
   }
 
-  public ImmutableList<String> getExtendedClassesNames() {
+  public ImmutableSet<String> getExtendedClassesNames() {
     ensureTypeIntrospected();
     return extendedClassesNames;
   }

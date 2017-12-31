@@ -15,21 +15,8 @@
  */
 package org.immutables.value;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.NavigableSet;
-import java.util.Optional;
-import java.util.SortedMap;
-import java.util.SortedSet;
+import java.lang.annotation.*;
+import java.util.*;
 
 /**
  * This annotation provides namespace for annotations for immutable value object generation.
@@ -1025,10 +1012,20 @@ public @interface Value {
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
 
     /**
-     * Exception to throw when an immutable object is in an invalid state. I.e. when some mandatory
-     * attributes are missing and immutable object cannot be built. The runtime exception class must
-     * have a constructor that takes a single string, otherwise there will be compile error in the
-     * generated code. The default exception type is {@link IllegalStateException}.
+     * Runtime exception to throw when an immutable object is in an invalid state. I.e. when some
+     * mandatory attributes are missing and immutable object cannot be built. The runtime exception
+     * class must have a constructor that takes a single string, otherwise there will be compile
+     * error in the generated code.
+     * <p>
+     * The default exception type is {@link IllegalStateException}. In case if
+     * specified exception type have public constructor taking array of strings (can be varargs),
+     * then missing parameter names will be passed to that constructor. Otherwise, string
+     * constructor is always expected to be present to take formatted error message.
+     * <p>
+     * <em>Technically we allow exception class to be checked (non-runtime), but not all processor
+     * features might be generated correctly (they may not expect). So use checked exception only if
+     * this work with your set of use-cases: there is no guarantee that it will be ever supported in
+     * all processor components/templates</em>
      * @return exception type
      */
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;

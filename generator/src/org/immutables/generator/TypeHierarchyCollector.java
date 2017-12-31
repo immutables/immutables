@@ -16,26 +16,19 @@
 package org.immutables.generator;
 
 import com.google.common.base.Verify;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.*;
+import java.util.*;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.*;
 import static com.google.common.base.Verify.verify;
 
 @NotThreadSafe
 public class TypeHierarchyCollector {
   private final List<TypeElement> extendedClasses = Lists.newArrayList();
   private final Set<TypeElement> implementedInterfaces = Sets.newLinkedHashSet();
-  private final List<String> extendedClassNames = Lists.newArrayList();
+  private final Set<String> extendedClassNames = Sets.newLinkedHashSet();
   private final Set<String> implementedInterfaceNames = Sets.newLinkedHashSet();
   protected final Set<String> unresolvedYetArguments = Sets.newHashSet();
 
@@ -94,8 +87,8 @@ public class TypeHierarchyCollector {
     return ImmutableSet.copyOf(unresolvedYetArguments);
   }
 
-  public ImmutableList<String> extendedClassNames() {
-    return ImmutableList.copyOf(extendedClassNames);
+  public ImmutableSet<String> extendedClassNames() {
+    return ImmutableSet.copyOf(extendedClassNames);
   }
 
   public ImmutableSet<String> implementedInterfaceNames() {

@@ -753,13 +753,12 @@ public final class ValueType extends TypeIntrospectionBase {
   public Set<ValueAttribute> getUniqueAttributeBuilderAttributes() {
     if (uniqueNestedBuilderAttributes == null) {
       uniqueNestedBuilderAttributes = FluentIterable.from(getSettableAttributes())
-              .filter(ValueAttributeFunctions.isAttributeBuilder())
-              .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
+          .filter(ValueAttributeFunctions.isAttributeBuilder())
+          .filter(ValueAttributeFunctions.uniqueOnAttributeBuilderDescriptor())
           .toSet();
     }
     return uniqueNestedBuilderAttributes;
   }
-
 
   public List<ValueAttribute> getExcludableAttributes() {
     List<ValueAttribute> excludables = Lists.newArrayList();
@@ -919,13 +918,15 @@ public final class ValueType extends TypeIntrospectionBase {
     return constitution.style().privateNoargConstructor();
   }
 
-  public String getThrowForInvalidImmutableState() {
-    return constitution.style().throwForInvalidImmutableStateName();
-  }
+  private @Nullable ThrowForInvalidImmutableState throwForInvalidImmutableState;
 
-  public boolean isCustomizedThrowForInvalidImmutableState() {
-    return !getThrowForInvalidImmutableState()
-        .equals(IllegalStateException.class.getName());
+  public ThrowForInvalidImmutableState getThrowForInvalidImmutableState() {
+    if (throwForInvalidImmutableState == null) {
+      throwForInvalidImmutableState = ThrowForInvalidImmutableState.from(
+          constitution.protoclass().processing(),
+          constitution.style());
+    }
+    return throwForInvalidImmutableState;
   }
 
   public List<ValueAttribute> getImplementedAttributes() {
@@ -1378,7 +1379,7 @@ public final class ValueType extends TypeIntrospectionBase {
     return !kind().isFactory()
         && !isUseStrictBuilder()
         && !isGenerateBuildOrThrow()
-        && getThrowForInvalidImmutableState().equals(IllegalStateException.class.getName());
+        && !getThrowForInvalidImmutableState().isCustom;
   }
 
   public boolean isDeprecated() {

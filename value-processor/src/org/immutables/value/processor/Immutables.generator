@@ -1219,7 +1219,7 @@ public interface BuildFinal[type.generics] {
 [/if]
   private void from(Object object) {
     [for l in bs.positions.longs]
-    long bits[emptyIfZero l.index] = 0;
+    [atVar]long bits[emptyIfZero l.index] = 0;
     [/for]
   [for s in bs.supertypes if s.attributes]
     if (object instanceof [s.wildcard]) {
@@ -1927,9 +1927,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @throws [type.throwForInvalidImmutableState] if any required attributes are missing
    */
 [let returnType][if type.constitution.isSimple][type.typeValue.simple][type.generics.args][else][type.typeValue][/if][/let]
-[if type.throwing or type.customizedThrowForInvalidImmutableState]
+[if type.throwing]
   public [returnType] [output.linesShortable][type.names.build]()
-      throws [type.throwForInvalidImmutableState][for t in type.throwing], [t][/for] {[/output.linesShortable]
+      throws [for t in type.throwing][if not for.first], [/if][t][/for] {[/output.linesShortable]
 [else]
   public [returnType] [type.names.build]() {
 [/if]
@@ -1991,20 +1991,38 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
   [if positions.longs]
 
-  private void checkRequiredAttributes() throws [type.throwForInvalidImmutableState] {
-    [checkRequiredOrThrow type positions]new [type.throwForInvalidImmutableState][/checkRequiredOrThrow]
+  private void checkRequiredAttributes() {
+    [checkRequiredOrThrow type positions false]
   }
   [if type.isGenerateBuildOrThrow]
     [if classpath.isJava8 ornot type.generateJdkOnly]
 
   private <T extends Exception> void checkRequiredAttributesOrThrow([functionClass]<String, T> exceptionSupplier) throws T {
-    [checkRequiredOrThrow type positions]exceptionSupplier.apply[/checkRequiredOrThrow]
+    [checkRequiredOrThrow type positions true]
   }
     [/if]
   [/if]
   [/if]
 [/if]
   [if positions.longs]
+  [if type.throwForInvalidImmutableState.hasAttributeNamesConstructor]
+
+  private String['[]'] missingRequiredAttributesNames() {
+    String['[]'] attributes = new String['['][mandatories.size][']'];
+    [atVar]int c = 0;
+    [if type.useCompactBuilder]
+      [for m in mandatories, BitPosition pos = positions m]
+    if (([disambiguateField type 'initBits'][emptyIfZero pos.index] & INIT_BIT_[toConstant m.name]) != 0) attributes['[']c++[']'] = "[m.names.raw]";
+      [/for]
+    [else]
+      [for m in mandatories]
+    if (![m.names.isSet]()) attributes['[']c++[']'] = "[m.names.raw]";
+      [/for]
+    [/if]
+    return java.util.Arrays.copyOf(attributes, c);
+  }
+  [/if]
+  [if type.isGenerateBuildOrThrow ornot type.throwForInvalidImmutableState.hasAttributeNamesConstructor]
 
   private String formatRequiredAttributesMessage() {
     java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
@@ -2019,6 +2037,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
     return "Cannot build [type.name], some of required attributes are not set " + attributes;
   }
+  [/if]
   [/if]
   [rr.builderHelperMethods setters]
 [if type.constitution.hasImmutableInBuilder]
@@ -2061,9 +2080,15 @@ return [validated type true]new [type.typeImmutable.relative](this)[/validated];
 [/if]
 [/template]
 
-[template checkRequiredOrThrow Type type LongPositions positions String throwSupplier]
+[template checkRequiredOrThrow Type type LongPositions positions Boolean useSupplier]
 if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type 'initBits'][emptyIfZero l.index] != 0[/for]) {
-  throw [throwSupplier](formatRequiredAttributesMessage());
+  [if useSupplier]
+  throw exceptionSupplier.apply(formatRequiredAttributesMessage());
+  [else if type.throwForInvalidImmutableState.hasAttributeNamesConstructor]
+  throw new [type.throwForInvalidImmutableState](missingRequiredAttributesNames());
+  [else]
+  throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
+  [/if]
 }
 [/template]
 
@@ -2606,10 +2631,11 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson(Json[type.gener
 [else if type.useSingletonOnly]
   return [cast][type.factoryInstance.relative]();
 [else]
+  [let varDecl][if type.withSettableAfterConstruction][atVar][/if][type.typeImmutable.relative] instance[/let]
     [if type.useConstructor]
-  [type.typeImmutable.relative] instance = [cast][type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
+  [varDecl] = [cast][type.factoryOf.relative]([for v in type.constructorArguments][if not for.first], [/if]json.[v.name][/for]);
     [else if type.useSingleton]
-  [type.typeImmutable.relative] instance = [cast][type.factoryInstance.relative]();
+  [varDecl] = [cast][type.factoryInstance.relative]();
     [else]
   [output.error]Cannot generate JSON code when there are no builders, constructors or singletons available[/output.error]
     [/if]
@@ -2757,7 +2783,7 @@ private boolean equalTo([equalToTypeRaw] another) {
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
-  [atVar] int [h] = 0;
+  [atVar]int [h] = 0;
 [for v in getters]
 [if v.arrayType]
   [h] += 127 * "[v.names.get]".hashCode() ^ java.util.Arrays.hashCode([v.name]);
@@ -2771,7 +2797,7 @@ private boolean equalTo([equalToTypeRaw] another) {
 [else if getters.isEmpty]
   return [type.hashCode];
 [else]
-  [atVar] int [h] = 5381;
+  [atVar]int [h] = 5381;
 [for v in getters]
 [if v.encoding]
   [h] += ([h] << 5) + ([rr.hash v]);
@@ -3509,19 +3535,13 @@ private static [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] [conv
 [atNullable]
 [-- getTopSimple is here to return the concrete class. AttributeBuilders trigger the deepImmutables... --]
 private static [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] [convertToValueType v.getAttributeBuilderDescriptor]([atNullable] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
-  if (value == null) {
-    return null;
-  }
-
+  if (value == null) return null;
   return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder].[v.getAttributeBuilderDescriptor.getBuildMethod]();
 }
 
 [atNullable]
 private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
-  if (value == null) {
-    return null;
-  }
-
+  if (value == null) return null;
   return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
 }
 [/for]
@@ -3933,7 +3953,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
-[template atVar][if classpath.available 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var[/if][/template]
+[template atVar][if classpath.available 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var [/if][/template]
 
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
