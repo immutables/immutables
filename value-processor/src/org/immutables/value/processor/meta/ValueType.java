@@ -26,17 +26,19 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.*;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.*;
+import org.immutables.value.processor.encode.SourceStructureGet;
 import org.immutables.value.processor.encode.TypeExtractor;
 import org.immutables.value.processor.meta.Constitution.*;
 import org.immutables.value.processor.meta.Proto.*;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
+import org.immutables.value.processor.meta.TypeStringProvider.SourceExtractionCache;
 
 /**
  * It's pointless to refactor this mess until
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public final class ValueType extends TypeIntrospectionBase {
+public final class ValueType extends TypeIntrospectionBase implements SourceExtractionCache {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
   public Element element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
@@ -1631,6 +1633,20 @@ public final class ValueType extends TypeIntrospectionBase {
           (Parameterizable) element);
     }
     return typeExtractor;
+  }
+
+  private @Nullable SourceStructureGet cachedSourceGet;
+
+  @Override
+  public @Nullable SourceStructureGet readCachedSourceGet() {
+    if (cachedSourceGet == null) {
+      CharSequence source = inferDeclaringType(element).sourceCode();
+      if (source.length() > 0) {
+        // and all this needed only to defeat Javac problem, sigh
+        cachedSourceGet = new SourceStructureGet(source);
+      }
+    }
+    return cachedSourceGet;
   }
 
   public Reporter report() {

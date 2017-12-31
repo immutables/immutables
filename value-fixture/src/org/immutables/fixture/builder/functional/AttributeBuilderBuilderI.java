@@ -9,8 +9,8 @@ import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmu
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutableWithPrimitive;
 
+@SuppressWarnings("rawtypes")
 public interface AttributeBuilderBuilderI<ValueT> {
-
   AttributeBuilderBuilderI firstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
 
   ImmutableFirstPartyImmutable.Builder firstPartyImmutableBuilder();

@@ -18,203 +18,280 @@ package org.immutables.value.processor.encode;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Verify;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import javax.lang.model.element.Modifier;
 import org.immutables.value.Value.Default;
 import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Enclosing;
 import org.immutables.value.Value.Immutable;
+import org.immutables.value.Value.Lazy;
 import org.immutables.value.processor.encode.Code.Term;
 
+// All parsing assume well-formed Java code
 @Enclosing
 final class Structurizer {
-	private final PeekingIterator<Term> terms;
-	private final WhitespaceEnabler whitespaces = new WhitespaceEnabler();
+  private static final ImmutableSet<String> modifiers = allModifiers();
+  private final PeekingIterator<Term> terms;
+  private final WhitespaceEnabler whitespaces = new WhitespaceEnabler();
 
-	Structurizer(Iterable<Term> terms) {
-		this.terms = Iterators.peekingIterator(Iterators.filter(terms.iterator(), whitespaces));
-	}
+  Structurizer(Iterable<Term> terms) {
+    this.terms = Iterators.peekingIterator(Iterators.filter(terms.iterator(), whitespaces));
+  }
 
-	private final class WhitespaceEnabler implements Predicate<Term> {
-		private int count;
-		void on() {
-			count++;
-		}
-		void off() {
-			if (--count < 0) throw new IllegalStateException("unmatched off");
-		}
-		@Override
-		public boolean apply(Term input) {
-			return count > 0 || (!input.isWhitespace() && !input.isComment());
-		}
-	}
+  private final class WhitespaceEnabler implements Predicate<Term> {
+    private int count;
 
-	@Immutable
-	abstract static class Statement {
-		abstract List<Term> annotations();
-		abstract List<Term> signature();
-		abstract List<Term> parameters();
-		abstract List<Term> expression();
-		abstract List<Term> block();
-		abstract List<Statement> definitions();
+    void on() {
+      count++;
+    }
 
-		@Derived
-		boolean isClass() {
-			for (Term t : signature()) {
-				if (t.is("class")) {
-					return true;
-				}
-			}
-			return false;
-		}
+    void off() {
+      if (--count < 0)
+        throw new IllegalStateException("unmatched off");
+    }
 
-		@Default
-		Optional<String> name() {
-			if (signature().isEmpty()) {
-				return Optional.absent();
-			}
-			Term last = Iterables.getLast(signature());
-			if (last.isWordOrNumber() && !last.is("static")) {
-				return Optional.of(last.toString());
-			}
-			return Optional.absent();
-		}
+    @Override
+    public boolean apply(Term input) {
+      return count > 0 || (!input.isWhitespace() && !input.isComment());
+    }
+  }
 
-		static class Builder extends ImmutableStructurizer.Statement.Builder {}
-	}
+  @Immutable
+  abstract static class Statement {
+    abstract List<Term> annotations();
 
-	List<Statement> structurize() {
-		List<Statement> result = new ArrayList<>();
-		while (terms.hasNext()) {
-			result.add(statement());
-		}
-		return result;
-	}
+    abstract List<Term> signature();
 
-	private Statement statement() {
-		Statement.Builder builder = new Statement.Builder();
-		boolean classDecl = false;
-		boolean wasParameters = false;
-		for (;;) {
-			Term t = terms.peek();
-			if (t.is("=")) {
-				terms.next();
-				expressionUpToSemicolon(builder);
-				return builder.build();
-			} else if (t.is("(") && !wasParameters) {
-				builder.addAllParameters(collectUntilMatching(")"));
-				wasParameters = true;
-			} else if (t.is("{")) {
-				block(builder, classDecl);
-				return builder.build();
-			} else if (t.is(";")) {
-				terms.next();
-				return builder.build();
-			} else {
-				if (wasParameters) {
-					terms.next();// just throwing away throws information
-				} else {
-					if (signature(builder)) {
-						classDecl = true;
-						// take class name as next token after class keyword
-						builder.name(Optional.of(terms.peek().toString()));
-					}
-				}
-			}
-		}
-	}
+    abstract List<Term> parameters();
 
-	private List<Term> collectUntilMatching(String end) {
-		List<Term> result = new ArrayList<>();
-		doCollectMatching(result, terms.peek().toString(), end);
-		return result;
-	}
+    abstract List<Term> expression();
 
-	private void doCollectMatching(List<Term> accumulator, String start, String end) {
-		whitespaces.on();
-		try {
-			accumulator.add(terms.next());
+    abstract List<Term> block();
 
-			for (;;) {
-				Term t = terms.peek();
-				if (t.is(start)) {
-					doCollectMatching(accumulator, start, end);
-				} else if (t.is(end)) {
-					accumulator.add(terms.next());
-					return;
-				} else {
-					accumulator.add(terms.next());
-				}
-			}
-		} finally {
-			whitespaces.off();
-		}
-	}
+    abstract List<Statement> definitions();
 
-	private void expressionUpToSemicolon(Statement.Builder builder) {
+    @Derived
+    boolean isClassOrInterface() {
+      for (Term t : signature()) {
+        if (t.is("class") || t.is("interface")) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Lazy
+    List<Term> returnType() {
+      return parseReturnType(signature());
+    }
+
+    @Default
+    Optional<String> name() {
+      if (signature().isEmpty()) {
+        return Optional.absent();
+      }
+      Term last = Iterables.getLast(signature());
+      if (last.isWordOrNumber() && !last.is("static")) {
+        return Optional.of(last.toString());
+      }
+      return Optional.absent();
+    }
+
+    static class Builder extends ImmutableStructurizer.Statement.Builder {}
+  }
+
+  List<Statement> structurize() {
+    List<Statement> result = new ArrayList<>();
+    while (terms.hasNext()) {
+      result.add(statement());
+    }
+    return result;
+  }
+
+  private Statement statement() {
+    Statement.Builder builder = new Statement.Builder();
+    boolean classDecl = false;
+    boolean wasParameters = false;
+    for (;;) {
+      Term t = terms.peek();
+      if (t.is("=")) {
+        terms.next();
+        expressionUpToSemicolon(builder);
+        return builder.build();
+      } else if (t.is("(") && !wasParameters) {
+        builder.addAllParameters(collectUntilMatching(")"));
+        wasParameters = true;
+      } else if (t.is("{")) {
+        block(builder, classDecl);
+        return builder.build();
+      } else if (t.is(";")) {
+        terms.next();
+        return builder.build();
+      } else {
+        if (wasParameters) {
+          terms.next();// just throwing away throws information
+        } else {
+          if (signature(builder)) {
+            classDecl = true;
+            // take class name as next token after class keyword
+            builder.name(Optional.of(terms.peek().toString()));
+          }
+        }
+      }
+    }
+  }
+
+  private List<Term> collectUntilMatching(String end) {
+    List<Term> result = new ArrayList<>();
+    doCollectMatching(result, terms.peek().toString(), end);
+    return result;
+  }
+
+  private void doCollectMatching(List<Term> accumulator, String start, String end) {
+    whitespaces.on();
+    try {
+      accumulator.add(terms.next());
+      for (;;) {
+        Term t = terms.peek();
+        if (t.is(start)) {
+          doCollectMatching(accumulator, start, end);
+        } else if (t.is(end)) {
+          accumulator.add(terms.next());
+          return;
+        } else {
+          accumulator.add(terms.next());
+        }
+      }
+    } finally {
+      whitespaces.off();
+    }
+  }
+
+  private void expressionUpToSemicolon(Statement.Builder builder) {
     terms.peek();
-		whitespaces.on();
-		try {
-			List<Term> result = new ArrayList<>();
-			for (;;) {
-				Term t = terms.peek();
-				if (t.is("(")) {
-					doCollectMatching(result, "(", ")");
-				} else if (t.is("{")) {
-					doCollectMatching(result, "{", "}");
-				} else if (t.is("[")) {
-					doCollectMatching(result, "[", "]");
-				} else {
+    whitespaces.on();
+    try {
+      List<Term> result = new ArrayList<>();
+      for (;;) {
+        Term t = terms.peek();
+        if (t.is("(")) {
+          doCollectMatching(result, "(", ")");
+        } else if (t.is("{")) {
+          doCollectMatching(result, "{", "}");
+        } else if (t.is("[")) {
+          doCollectMatching(result, "[", "]");
+        } else {
           if (t.is(";")) {
             builder.addAllExpression(result);
             return;
           }
           result.add(terms.next());
-				}
-			}
-		} finally {
-			whitespaces.off();
-		}
-	}
+        }
+      }
+    } finally {
+      whitespaces.off();
+    }
+  }
 
-	private void block(Statement.Builder builder, boolean classDecl) {
-		if (classDecl) {
-			Verify.verify(terms.peek().is("{"));
-			terms.next();
-			while (terms.hasNext() && !terms.peek().is("}")) {
-				builder.addDefinitions(statement());
-			}
-			Verify.verify(terms.next().is("}"));
-		} else {
-			builder.addAllBlock(collectUntilMatching("}"));
-		}
-	}
+  private void block(Statement.Builder builder, boolean classDecl) {
+    if (classDecl) {
+      Verify.verify(terms.peek().is("{"));
+      terms.next();
+      while (terms.hasNext() && !terms.peek().is("}")) {
+        builder.addDefinitions(statement());
+      }
+      Verify.verify(terms.next().is("}"));
+    } else {
+      builder.addAllBlock(collectUntilMatching("}"));
+    }
+  }
 
-	private boolean signature(Statement.Builder builder) {
-		Term t = terms.peek();
-		if (t.is("@")) {
-			do {
-				builder.addAnnotations(terms.next());
-				Verify.verify(terms.peek().isWordOrNumber());
-				builder.addAnnotations(terms.next());
-			} while (terms.peek().is("."));
+  private boolean signature(Statement.Builder builder) {
+    Term t = terms.peek();
+    if (t.is("@")) {
+      do {
+        builder.addAnnotations(terms.next());
+        Verify.verify(terms.peek().isWordOrNumber());
+        builder.addAnnotations(terms.next());
+      } while (terms.peek().is("."));
 
-			if (terms.peek().is("(")) {
-				builder.addAllAnnotations(collectUntilMatching(")"));
-			}
-			return false;
-		} else if (t.is("<")) {
-			builder.addAllSignature(collectUntilMatching(">"));
-			return false;
-		} else if (t.is("class")) {
-			builder.addSignature(terms.next());
-			return true;
-		} else {
-			builder.addSignature(terms.next());
-			return false;
-		}
-	}
+      if (terms.peek().is("(")) {
+        builder.addAllAnnotations(collectUntilMatching(")"));
+      }
+      return false;
+    } else if (t.is("<")) {
+      builder.addAllSignature(collectUntilMatching(">"));
+      return false;
+    } else if (t.is("class") || t.is("interface")) {
+      builder.addSignature(terms.next());
+      return true;
+    } else {
+      builder.addSignature(terms.next());
+      return false;
+    }
+  }
+
+  private static List<Term> parseReturnType(List<Term> signature) {
+    if (signature.isEmpty()) {
+      return ImmutableList.of();
+    }
+    Deque<Term> terms = new ArrayDeque<>(signature);
+    Term last = terms.removeLast();
+    if (!last.isWordOrNumber() || last.is("static")) {
+      return ImmutableList.of();
+    }
+    while (!terms.isEmpty()) {
+      Term t = terms.peek();
+      if (t.is("<")) {
+        removeTillMatching(terms, "<", ">");
+      } else if (modifiers.contains(t.toString())) {
+        terms.remove();
+      } else {
+        // it is possible that there are
+        // no whitespace or comments already
+        removeCommentsAndWhitespace(terms);
+        return ImmutableList.copyOf(terms);
+      }
+    }
+    return ImmutableList.of();
+  }
+
+  private static void removeCommentsAndWhitespace(Deque<Term> terms) {
+    Iterator<Term> it = terms.iterator();
+    while (it.hasNext()) {
+      Term n = it.next();
+      if (n.isComment() || n.isWhitespace()) {
+        it.remove();
+      }
+    }
+  }
+
+  private static void removeTillMatching(Deque<Term> terms, String begin, String end) {
+    assert terms.peek().is(begin);
+    terms.remove();
+    for (;;) {
+      if (terms.peek().is(begin)) {
+        removeTillMatching(terms, begin, end);
+      } else if (terms.remove().is(end)) {
+        return;
+      }
+    }
+  }
+
+  private static ImmutableSet<String> allModifiers() {
+    ImmutableSet.Builder<String> b = ImmutableSet.builder();
+    for (Modifier m : Modifier.values()) {
+      b.add(m.toString());
+    }
+    return b.build();
+  }
 }

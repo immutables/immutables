@@ -38,6 +38,7 @@ import javax.lang.model.type.WildcardType;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.SourceTypes;
+import org.immutables.value.processor.encode.SourceStructureGet;
 import org.immutables.value.processor.meta.ValueAttribute.NullElements;
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -46,6 +47,12 @@ import static com.google.common.base.Preconditions.checkArgument;
  * parameters, while attempting to resolve unresolved types using source imports.
  */
 class TypeStringProvider {
+  // All this is grotesque ugly, cannot get any worse probably
+  interface SourceExtractionCache {
+    @Nullable
+    SourceStructureGet readCachedSourceGet();
+  }
+
   private final TypeMirror startType;
   private final Element element;
   private final List<String> typeParameterStrings = Lists.newArrayListWithCapacity(2);
@@ -74,6 +81,8 @@ class TypeStringProvider {
   boolean forAttribute = false;
   NullElements nullElements = NullElements.BAN;
   boolean nullableTypeAnnotation;
+  @Nullable
+  SourceExtractionCache sourceExtractionCache;
 
   TypeStringProvider(
       Reporter reporter,
@@ -202,6 +211,19 @@ class TypeStringProvider {
     }
 
     CharSequence returnTypeString = SourceExtraction.getReturnTypeString((ExecutableElement) element);
+    if (returnTypeString.length() == 0 && sourceExtractionCache != null) {
+      try {
+        SourceStructureGet sourceStructure = sourceExtractionCache.readCachedSourceGet();
+
+        if (sourceStructure != null) {
+          String accessorPath = computePath((ExecutableElement) element);
+          returnTypeString = sourceStructure.getReturnType(accessorPath);
+        }
+      } catch (Error | RuntimeException bestEffortsMiserablyFailed) {
+        return false;
+      }
+    }
+
     if (returnTypeString.length() == 0) {
       // no source could be extracted for some reason, workaround will not work
       return false;
@@ -219,6 +241,16 @@ class TypeStringProvider {
 
     // workaround may have successed, need to continue with whatever we have
     return true;
+  }
+
+  private String computePath(ExecutableElement element) {
+    String path = element.getSimpleName().toString();// + "()";
+    for (Element e = element.getEnclosingElement(); //
+        e.getKind().isClass() || e.getKind().isInterface(); //
+        e = e.getEnclosingElement()) {
+      path = e.getSimpleName() + "." + path;
+    }
+    return path;
   }
 
   private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
@@ -305,6 +337,12 @@ class TypeStringProvider {
       break;
     default:
       buffer.append(type);
+    }
+    // workaround for Javac problem
+    if (type.getKind() == TypeKind.ERROR && buffer.toString().equals("<any>")) {
+      if (tryToUseSourceAsAWorkaround()) {
+        ended = true;
+      }
     }
   }
 

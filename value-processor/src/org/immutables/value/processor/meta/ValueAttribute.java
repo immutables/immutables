@@ -1109,6 +1109,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
         protoclass().constitution().generics().vars(),
         null);
 
+    provider.sourceExtractionCache = containingType;
     provider.forAttribute = true;
     provider.processNestedTypeUseAnnotations = true;
     provider.process();

@@ -18,6 +18,9 @@ package org.immutables.value.processor.encode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import org.immutables.value.processor.encode.Structurizer.Statement;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -88,15 +91,19 @@ public class CodeTest {
     SourceMapper m1 = new SourceMapper(""
         + "import z;\n"
         + "import o;\n"
-        + "class A {\n"
+        + "interface A {\n"
         + "int f /* */ = 1   +2;\n"
         + "@Deprecated class B {  static {} int u =1; @Nonnull(when = When.ALWAYS) String k= abc.a(); \n}"
         + " @Override String h() throws java.lang.Exception { return \"xxx\"; }"
+        + " private abstract @Override void j() {}"
+        + " private synchronized Gg<T, List< T>> g() {}"
         + "\n}");
 
     check(Code.join(m1.getExpression("A.f"))).hasToString("1   +2");
     check(Code.join(m1.getBlock("A.h()"))).hasToString("{ return \"xxx\"; }");
     check(Code.join(m1.getExpression("A.B.u"))).hasToString("1");
+    check(Code.join(m1.getReturnType("A.h()"))).hasToString("String");
+    check(Code.join(m1.getReturnType("A.g()"))).hasToString("Gg<T,List<T>>");
   }
 
   @Test

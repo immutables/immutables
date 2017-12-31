@@ -17,9 +17,7 @@ package org.immutables.value.processor.encode;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.Structurizer.Statement;
 
@@ -36,9 +34,14 @@ final class SourceMapper {
 
   private void mapDefinitions(String prefix, List<Statement> statements) {
     for (Statement statement : statements) {
-      if (statement.isClass()) {
+      if (statement.isClassOrInterface()) {
         mapDefinitions(prefix + statement.name().get() + ".", statement.definitions());
       } else if (statement.name().isPresent()) {
+        // was somehow hard to stick this check into structurizer, but here is ok too
+        Term t = statement.signature().get(0);
+        if (t.is("import") || t.is("package")) {
+          continue;
+        }
         String suffix = statement.block().isEmpty() ? "" : "()";
         definitions.put(prefix + statement.name().get() + suffix, statement);
       }
@@ -51,6 +54,10 @@ final class SourceMapper {
 
   List<Term> getBlock(String path) {
     return get.apply(path).block();
+  }
+
+  List<Term> getReturnType(String path) {
+    return get.apply(path).returnType();
   }
 
   List<Term> getAnnotations(String path) {
