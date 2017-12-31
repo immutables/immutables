@@ -1051,8 +1051,18 @@ public interface BuildFinal[type.generics] {
 [for a in type.builderAnnotations]
 [a]
 [/for]
-[type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [type.typeBuilderImpl.simple][type.generics] [if type.innerBuilder.isSuper]
-    [if type.innerBuilder.isInterface]implements[if type.telescopicBuild][telescopicBuilderImplementInterfaces type][/if][else]extends[/if] [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args][if type.telescopicBuild] implements [telescopicBuilderImplementInterfaces type][/if] {[else if type.telescopicBuild]implements [telescopicBuilderImplementInterfaces type] {[else]{[/if]
+[type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [output.linesShortable][type.typeBuilderImpl.simple][type.generics]
+  [if type.innerBuilder.isSuper]
+    [if type.innerBuilder.isInterface]
+    implements [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args][if type.telescopicBuild], [telescopicBuilderImplementInterfaces type][/if] {
+    [else]
+    extends [type.typeAbstract.relativeRaw].[type.innerBuilder.simpleName][type.innerBuilder.generics.args][if type.telescopicBuild]
+    implements [telescopicBuilderImplementInterfaces type][/if] {
+    [/if]
+  [else if type.telescopicBuild]
+    implements [telescopicBuilderImplementInterfaces type] {
+  [else] {
+  [/if][/output.linesShortable]
 [if type.constitution.outsideBuilder]
   [rr.staticFields setters]
   [rr.staticMethods setters]
