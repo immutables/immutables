@@ -1,6 +1,8 @@
 Read full documentation at http://immutables.org
 
+<!--
 [![Build Status](https://travis-ci.org/immutables/immutables.svg?branch=master)](https://travis-ci.org/immutables/immutables)
+-->
 
 
 ```java
