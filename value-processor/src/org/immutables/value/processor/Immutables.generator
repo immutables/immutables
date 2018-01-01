@@ -830,7 +830,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [for l in positions.longs]
   [jsonIgnore type]
   [hiddenMutableState type]
-  private [if type.serial.simple]transient [/if]volatile long lazyInitBitmap[emptyIfZero l.index];
+  private transient volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
@@ -843,7 +843,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   about lazily computed attributes that are genuinely mutable. That is an
   unfortunate trade-off. --]
   [hiddenMutableState type]
-  private [if type.serial.simple]transient [/if][l.type] [l.name];
+  private transient [l.type] [l.name];
 
   /**
    * {@inheritDoc}
