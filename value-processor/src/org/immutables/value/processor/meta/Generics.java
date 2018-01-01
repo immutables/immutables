@@ -30,6 +30,7 @@ import org.immutables.value.processor.meta.Proto.Protoclass;
 public final class Generics implements Iterable<String> {
   private static final String[] NO_STRINGS = new String[0];
   private static final Parameter[] NO_PARAMETERS = new Parameter[0];
+  private static final boolean noDiamonds = ObscureFeatures.noDiamonds();
   public final String declaration;
   public final String arguments;
   public final String unknown;
@@ -209,7 +210,7 @@ public final class Generics implements Iterable<String> {
   }
 
   public String diamond() {
-    return isEmpty() ? "" : args(); // could be "<>" if we stop to support java 6
+    return isEmpty() ? "" : (noDiamonds ? args() : "<>");
   }
 
   public String def() {
