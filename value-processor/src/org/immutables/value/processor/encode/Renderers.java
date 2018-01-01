@@ -15,18 +15,14 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
-import org.immutables.value.processor.meta.ValueAttribute;
+import org.immutables.value.processor.AbstractValuesTemplate;
 
 @Generator.Template
-public abstract class Renderers extends AbstractTemplate {
+public abstract class Renderers extends AbstractValuesTemplate {
   @Generator.Typedef
   Instantiation Inst;
-
-  @Generator.Typedef
-  ValueAttribute Attribute;
 
   @Generator.Typedef
   Templates.Invokable Invokable;

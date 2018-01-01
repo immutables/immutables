@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2014 Immutables Authors and Contributors
+   Copyright 2013-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public final class ValueAttribute extends TypeIntrospectionBase {
+public final class ValueAttribute extends TypeIntrospectionBase implements HasStyleInfo {
   private static final WholeTypeVariable NON_WHOLE_TYPE_VARIABLE = new WholeTypeVariable(-1);
   private static final int CONSTRUCTOR_PARAMETER_DEFAULT_ORDER = 0;
   private static final int CONSTRUCTOR_NOT_A_PARAMETER = -1;
@@ -905,10 +905,10 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private int computeConstructorParameterOrder() {
     boolean enabledAsAllParameters =
-        containingType.constitution.style().allParameters();
+        style().allParameters();
 
     boolean enabledAsAllMandatoryParameters =
-        containingType.constitution.style().allMandatoryParameters() && isMandatory();
+        style().allMandatoryParameters() && isMandatory();
 
     Optional<ParameterMirror> parameterAnnotation = ParameterMirror.find(element);
     if (parameterAnnotation.isPresent()) {
@@ -981,7 +981,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   public String getAccess() {
     if (element.getModifiers().contains(Modifier.PUBLIC)
-        || containingType.constitution.style().visibility() == ImplementationVisibility.PUBLIC) {
+        || style().visibility() == ImplementationVisibility.PUBLIC) {
       return "public ";
     } else if (element.getModifiers().contains(Modifier.PROTECTED)) {
       return "protected ";
@@ -1075,7 +1075,7 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   private void initImmutableCopyOf() {
     ensureTypeIntrospected();
     this.isGenerateImmutableCopyOf = containingType.kind().isValue()
-        && !containingType.constitution.style().immutableCopyOfRoutinesNames().isEmpty()
+        && !style().immutableCopyOfRoutinesNames().isEmpty()
         && (typeKind.isRegular() || typeKind.isOptionalKind())
         && !isPrimitiveOrWrapped(rawTypeName)
         && !isUnwrappedElementPrimitiveType()
@@ -1148,8 +1148,8 @@ public final class ValueAttribute extends TypeIntrospectionBase {
 
   private void initAttributeValueType() {
 
-    if ((containingType.constitution.style().deepImmutablesDetection()
-        || containingType.constitution.style().attributeBuilderDetection())
+    if ((style().deepImmutablesDetection()
+        || style().attributeBuilderDetection())
         && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
@@ -1569,11 +1569,16 @@ public final class ValueAttribute extends TypeIntrospectionBase {
   }
 
   @Override
-  public String toString() {
-    return "Attribute[" + name() + "]";
+  public StyleInfo style() {
+    return containingType.constitution.style();
   }
 
   public boolean supportsInternalImplConstructor() {
     return !isEncoding() || instantiation.supportsInternalImplConstructor();
+  }
+
+  @Override
+  public String toString() {
+    return "Attribute[" + name() + "]";
   }
 }

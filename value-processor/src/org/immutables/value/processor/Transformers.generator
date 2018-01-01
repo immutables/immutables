@@ -1,5 +1,5 @@
 [--
-   Copyright 2014-2016 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,8 +36,14 @@ package [transformerType.package];
 [/if]
 
 [if transformerType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if transformerType allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if transformerType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Transformers.generator", "[transformerType.name]"})
+[else if transformerType allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
+[/if]
 [transformerType.typeValue.access]abstract class [transformersClassname] {
   protected [transformersClassname]() {}
   [for cases = transformerType.cases,

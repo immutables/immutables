@@ -1,5 +1,5 @@
 [--
-   Copyright 2017 Immutables Authors and Contributors
+   Copyright 2017-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ public void writeToParcel(android.os.Parcel out, int flags) {
   [if a.encoding]
 builder.[renderers.builderCopyFrom a]([readParcel a]);
   [else if a.jdkOptional]
-[atNullable][a.wrappedElementType] [a.name]Value = [readParcel a];
+[atNullable type][a.wrappedElementType] [a.name]Value = [readParcel a];
 if ([a.name]Value != null) {
   builder.[a.names.init]([a.name]Value);
 }
@@ -152,4 +152,4 @@ return [type.factoryOf.relative]([for c in type.constructorArguments][if not for
 [-- one liner templates are usually inlined by template compiler --]
 [template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]
 
-[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
+[template atNullable Type type][if type allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]

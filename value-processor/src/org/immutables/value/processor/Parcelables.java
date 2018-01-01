@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor;
 
-import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.encode.Generator_Renderers;
@@ -27,7 +26,7 @@ import org.immutables.value.processor.meta.ValueType;
  * The Class Parcelables.
  */
 @Generator.Template
-public abstract class Parcelables extends AbstractTemplate {
+public abstract class Parcelables extends AbstractValuesTemplate {
   @Generator.Typedef
   ValueAttribute Attribute;
   @Generator.Typedef

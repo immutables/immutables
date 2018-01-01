@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,7 +19,24 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import javax.annotation.Nullable;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
 import org.immutables.generator.Generator;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.OkNamedMirror;
@@ -28,13 +45,6 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-
-import javax.annotation.Nullable;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.TypeElement;
-import java.util.*;
-import java.util.Map.Entry;
 
 //@Generator.Template
 abstract class OkJsons extends ValuesTemplate {
@@ -280,7 +290,7 @@ abstract class OkJsons extends ValuesTemplate {
 
   Iterable<OkTypeAdapterTypes> typeAdapters() {
     Multimap<AbstractDeclaring, ValueType> byDeclaring = HashMultimap.create();
-    for (ValueType value : values().values()) {
+    for (ValueType value : values.values()) {
       Protoclass protoclass = value.constitution.protoclass();
       if (protoclass.kind().isValue()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.okTypeAdaptersProvider();

@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -230,6 +230,8 @@ public final class ValueMirrors {
     String getBuilders() default "*Builders";
 
     String nullableAnnotation() default "Nullable";
+
+    Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     public enum ImplementationVisibility {
       PUBLIC,

@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -251,26 +251,6 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract BuilderVisibility builderVisibility();
 
-  @Override
-  public Class<? extends Annotation>[] passAnnotations() {
-    throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");
-  }
-
-  @Override
-  public Class<? extends Annotation>[] additionalJsonAnnotations() {
-    throw new UnsupportedOperationException("Use StyleInfo.additionalJsonAnnotationsNames() instead");
-  }
-
-  @Override
-  public Class<? extends Exception> throwForInvalidImmutableState() {
-    throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
-  }
-
-  @Override
-  public Class<?>[] immutableCopyOfRoutines() {
-    throw new UnsupportedOperationException("Use StyleInfo.immutableCopyOfRoutinesNames() instead");
-  }
-
   @Value.Parameter
   public abstract String throwForInvalidImmutableStateName();
 
@@ -337,8 +317,46 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public abstract String nullableAnnotation();
 
+  @Value.Parameter
+  public abstract ImmutableSet<String> allowedClasspathAnnotationsNames();
+
   @Value.Lazy
   public Styles getStyles() {
     return new Styles(this);
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.passAnnotationsNames() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Annotation>[] passAnnotations() {
+    throw new UnsupportedOperationException("Use StyleInfo.passAnnotationsNames() instead");
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.additionalJsonAnnotationsNames() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Annotation>[] additionalJsonAnnotations() {
+    throw new UnsupportedOperationException("Use StyleInfo.additionalJsonAnnotationsNames() instead");
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.throwForInvalidImmutableStateName() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Exception> throwForInvalidImmutableState() {
+    throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.immutableCopyOfRoutinesNames() instead */
+  @Deprecated
+  @Override
+  public Class<?>[] immutableCopyOfRoutines() {
+    throw new UnsupportedOperationException("Use StyleInfo.immutableCopyOfRoutinesNames() instead");
+  }
+
+  /** @deprecated no runtime classes, use StyleInfo.allowedClasspathAnnotationsNames() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Annotation>[] allowedClasspathAnnotations() {
+    throw new UnsupportedOperationException("Use StyleInfo.allowedClasspathAnnotationsNames() instead");
   }
 }

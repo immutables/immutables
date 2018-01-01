@@ -1,5 +1,5 @@
 [--
-   Copyright 2015-2016 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -898,7 +898,7 @@ if ([v.name]Value != null) {
  * @return {@code true} if {@code this} is equal to {@code another} instance
  */
 @Override
-public boolean equals([atNullable]Object another) {
+public boolean equals([atNullable type]Object another) {
   if (this == another) return true;
   if (!(another instanceof [equalToType])) return false;
   [equalToType] other = ([equalToType]) another;
@@ -1090,17 +1090,19 @@ public String toString() {
 [if type.generatedSuppressWarnings]
 @SuppressWarnings({[for k in type.generatedSuppressWarnings][if not for.first], [/if][literal k][/for]})
 [/if]
-[if classpath.available 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
+[if type allowsClasspathAnnotation 'edu.umd.cs.findbugs.annotations.SuppressFBWarnings']
 @edu.umd.cs.findbugs.annotations.SuppressFBWarnings
 [/if]
-[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
-[if classpath.available 'javax.annotation.Generated']
+[if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Modifiables.generator", "[type.typeAbstract.relative]"})
+[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated({"Modifiables.generator", "[type.typeAbstract.relative]"})
 [/if]
 [/if]
-[if classpath.available 'javax.annotation.concurrent.NotThreadSafe']
+[if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
 [for a in type.passedAnnotations]
@@ -1148,9 +1150,9 @@ import [starImport];
 
 [template optionalPresent Attribute a][if a.fugueOptional or a.javaslangOptional]isDefined[else]isPresent[/if]()[/template]
 
-[template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
+[template unwrappedOptionalType Attribute a][if a.optionalType and a.optionalAcceptNullable][atNullable a][a.wrappedElementType][else][a.unwrappedElementType][/if][/template]
 
-[template atNullable][if classpath.available 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
+[template atNullable HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 
@@ -1164,4 +1166,4 @@ import [starImport];
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
 
-[template atCanIgnoreReturnValue Type type][if classpath.available 'com.google.errorprone.annotations.CanIgnoreReturnValue'][if not type.beanFriendlyModifiable]@com.google.errorprone.annotations.CanIgnoreReturnValue[/if][/if][/template]
+[template atCanIgnoreReturnValue Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue'][if not type.beanFriendlyModifiable]@com.google.errorprone.annotations.CanIgnoreReturnValue[/if][/if][/template]

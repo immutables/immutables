@@ -1,5 +1,5 @@
 /*
-   Copyright 2013-2014 Immutables Authors and Contributors
+   Copyright 2013-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import org.immutables.value.processor.meta.TypeStringProvider.SourceExtractionCa
  * 1) Some sort of type calculus toolkit used/created
  * 2) Facets/Implicits in Generator toolkit with auto-memoising implemented
  */
-public final class ValueType extends TypeIntrospectionBase implements SourceExtractionCache {
+public final class ValueType extends TypeIntrospectionBase implements HasStyleInfo, SourceExtractionCache {
   private static final String SERIAL_VERSION_FIELD_NAME = "serialVersionUID";
   public Element element;
   public List<ValueAttribute> attributes = Lists.newArrayList();
@@ -69,7 +69,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
           ? Output.NO_IMPORTS
           : "";
 
-      if (constitution.style().headerComments()) {
+      if (style().headerComments()) {
         Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
         if (declaringType.isPresent()) {
           CharSequence headerComments = declaringType.get().associatedTopLevel().headerComments();
@@ -102,11 +102,11 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isDeferCollectionAllocation() {
-    return constitution.style().deferCollectionAllocation() && !isUseStrictBuilder();
+    return style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
 
   public boolean detectAttributeBuilders() {
-    return constitution.style().attributeBuilderDetection();
+    return style().attributeBuilderDetection();
   }
 
   public boolean hasDerivedAttributes() {
@@ -194,15 +194,15 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isGenerateJdkOnly() {
-    return constitution.style().jdkOnly() || noGuavaInClasspath();
+    return style().jdkOnly() || noGuavaInClasspath();
   }
 
   public boolean isGenerateBuildOrThrow() {
-    return !constitution.style().buildOrThrow().isEmpty();
+    return !style().buildOrThrow().isEmpty();
   }
 
   public boolean isBeanFriendlyModifiable() {
-    return constitution.style().beanFriendlyModifiables();
+    return style().beanFriendlyModifiables();
   }
 
   private boolean noGuavaInClasspath() {
@@ -214,7 +214,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isOptionalAcceptNullable() {
-    return constitution.style().optionalAcceptNullable();
+    return style().optionalAcceptNullable();
   }
 
   @Nullable
@@ -314,7 +314,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
 
   public boolean isGenerateJacksonIngoreFields() {
     return isGenerateJacksonProperties()
-        && constitution.style().forceJacksonIgnoreFields();
+        && style().forceJacksonIgnoreFields();
   }
 
   public boolean isJacksonDeserialized() {
@@ -401,8 +401,8 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
     return Annotations.getAnnotationLines(
         element,
         Sets.union(
-            constitution.style().passAnnotationsNames(),
-            constitution.style().additionalJsonAnnotationsNames()),
+            style().passAnnotationsNames(),
+            style().additionalJsonAnnotationsNames()),
         false,
         ElementType.TYPE,
         newTypeStringResolver(),
@@ -476,7 +476,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
     boolean moreThanOne = defaultAttributesCount + derivedAttributesCount > 1;
     return moreThanOne
         && !isAnnotationType()
-        && !constitution.style().unsafeDefaultAndDerived();
+        && !style().unsafeDefaultAndDerived();
   }
 
   public boolean isUseConstructorOnly() {
@@ -584,7 +584,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   private boolean useAttributelessSingleton() {
-    return constitution.style().attributelessSingleton()
+    return style().attributelessSingleton()
         && getSettableAttributes().isEmpty();
   }
 
@@ -893,19 +893,19 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isUseStrictBuilder() {
-    return constitution.style().strictBuilder()
-        || constitution.style().stagedBuilder();
+    return style().strictBuilder()
+        || style().stagedBuilder();
   }
 
   public boolean isUseJavaValidationApi() {
-    return constitution.style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
+    return style().validationMethod() == ValueMirrors.Style.ValidationMethod.VALIDATION_API;
   }
 
   private @Nullable TelescopicBuild telescopicBuild;
 
   public @Nullable TelescopicBuild getTelescopicBuild() {
     if (telescopicBuild == null) {
-      if (constitution.style().stagedBuilder()
+      if (style().stagedBuilder()
           && !getMandatoryAttributes().isEmpty()) {
         TelescopicBuild tb = TelescopicBuild.from(getSettableAttributes());
         if (!tb.stages.isEmpty()) {
@@ -917,7 +917,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isGeneratePrivateNoargConstructor() {
-    return constitution.style().privateNoargConstructor();
+    return style().privateNoargConstructor();
   }
 
   private @Nullable ThrowForInvalidImmutableState throwForInvalidImmutableState;
@@ -926,7 +926,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
     if (throwForInvalidImmutableState == null) {
       throwForInvalidImmutableState = ThrowForInvalidImmutableState.from(
           constitution.protoclass().processing(),
-          constitution.style());
+          style());
     }
     return throwForInvalidImmutableState;
   }
@@ -1164,7 +1164,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   }
 
   public boolean isGenerateClearBuilder() {
-    return constitution.style().clearBuilder();
+    return style().clearBuilder();
   }
 
   @Override
@@ -1344,9 +1344,9 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
 
   public Set<String> getImmutableCopyOfRoutines() {
     Set<String> routines = new LinkedHashSet<>();
-    routines.addAll(constitution.style().immutableCopyOfRoutinesNames());
+    routines.addAll(style().immutableCopyOfRoutinesNames());
     for (ValueType v : nested) {
-      routines.addAll(v.constitution.style().immutableCopyOfRoutinesNames());
+      routines.addAll(v.style().immutableCopyOfRoutinesNames());
     }
     return routines;
   }
@@ -1362,7 +1362,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
       suppressedWarnings =
           SuppressedWarnings.forElement(
               element,
-              constitution.style().generateSuppressAllWarnings(),
+              style().generateSuppressAllWarnings(),
               hasDeprecatedAttributes());
     }
     return suppressedWarnings;
@@ -1413,7 +1413,7 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
   public ImmutableList<String> getDocComment() {
     if (docComment == null) {
       this.docComment = constitution.isImplementationPrimary()
-          || constitution.style().getStyles().isImmutableIdentityNaming()
+          || style().getStyles().isImmutableIdentityNaming()
               ? extractDocComment(element)
               : ImmutableList.<String>of();
     }
@@ -1657,6 +1657,10 @@ public final class ValueType extends TypeIntrospectionBase implements SourceExtr
     return constitution.protoclass().getDebugLines();
   }
 
+  @Override
+  public StyleInfo style() {
+    return constitution.style();
+  }
   /**
    * Used for type snapshoting
    */

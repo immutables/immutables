@@ -1,5 +1,5 @@
 /*
-   Copyright 2014-2017 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1658,12 +1658,12 @@ public class Proto {
       return isJacksonSerialized();
     }
     
-    private List<String> debugLines = ImmutableList.of(); 
+    private List<String> debugLines = ImmutableList.of();
     
     // This is not part of the logical structure of the protoclass
     // but it seems that this is the best place to have this info
     Protoclass debug(String line) {
-      if (!DEBUG_ON) return this; 
+      if (!DEBUG_ON) return this;
       if (debugLines.isEmpty()) {
         debugLines = Lists.newArrayList();
       }
@@ -1795,7 +1795,8 @@ public class Proto {
           input.addBuilder(),
           input.addAllBuilder(),
           input.getBuilders(),
-          input.nullableAnnotation());
+          input.nullableAnnotation(),
+          ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()));
     }
   }
 

@@ -1,5 +1,5 @@
 [--
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2016-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -36,8 +36,14 @@ package [visitorType.package];
 [/if]
 
 [if visitorType.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
+[if visitorType allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
-@javax.annotation.Generated({"Transformers.generator", "[visitorType.name]"})
+[/if]
+[if visitorType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Visitors.generator", "[visitorType.typeAbstract.relative]"})
+[else if visitorType allowsClasspathAnnotation 'javax.annotation.Generated']
+@javax.annotation.Generated({"Visitors.generator", "[visitorType.typeAbstract.relative]"})
+[/if]
 [visitorType.typeValue.access]abstract class [visitorClassname] {
   protected [visitorClassname]() {}
   [for cases = visitorType.cases,

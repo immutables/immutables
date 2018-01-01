@@ -1,5 +1,5 @@
 [--
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -41,8 +41,14 @@ import java.lang.String;
 [if type.generatedSuppressWarnings]
 @SuppressWarnings({[for k in type.generatedSuppressWarnings][if not for.first], [/if][literal k][/for]})
 [/if]
+[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[/if]
 [type.typeValue.access]final class [astTypeName] {
   private [astTypeName]() {}
 [for v in type.nested]
@@ -53,7 +59,11 @@ import java.lang.String;
 
 [template generateParboiledType Type type]
 
+[if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+[/if]
 public static class [type.name] {
   private [type.name]() {}
 [if type.useSingleton]

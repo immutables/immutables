@@ -1,5 +1,5 @@
 /*
-   Copyright 2014-2017 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -1020,7 +1020,10 @@ public @interface Value {
      * The default exception type is {@link IllegalStateException}. In case if
      * specified exception type have public constructor taking array of strings (can be varargs),
      * then missing parameter names will be passed to that constructor. Otherwise, string
-     * constructor is always expected to be present to take formatted error message.
+     * constructor is always expected to be present to take formatted error message. It is always
+     * advisable have string constructor even in the presense of attribute names array constructor
+     * as some additional generators might use string constuctor for reporting other invalid state
+     * issues.
      * <p>
      * <em>Technically we allow exception class to be checked (non-runtime), but not all processor
      * features might be generated correctly (they may not expect). So use checked exception only if
@@ -1162,7 +1165,7 @@ public @interface Value {
      * Immutables recognizes nullable annotation by simple name. For most cases this is sufficient.
      * But for some cases it's needed to customize this annotation simple name and
      * {@code nullableAnnotation} can be used to set custom simple name for nullable annotation.
-     * While we recommend against this change,
+     * While we recommend against this change, this may be occasionally be needed.
      * <em>Except for simple name detection, {@code javax.annotation.Nullable} and
      * {@code javax.annotation.CheckForNull} are always recognized as nullable annotations.
      * </em>
@@ -1260,6 +1263,54 @@ public @interface Value {
      * @return naming template.
      */
     String getBuilders() default "*Builders";
+
+    /**
+     * Immutables applies some annotations if found on classpath. These include:
+     * <ul>
+     * <li>{@literal @}{@code javax.annotation.Generated}
+     * <li>{@literal @}{@code java.annotation.processing.Generated}
+     * <li>{@literal @}{@code javax.annotation.concurrent.Immutable}
+     * <li>{@literal @}{@code javax.annotation.ParametersAreNonnullByDefault}
+     * <li>{@literal @}{@code javax.annotation.CheckReturnValue}
+     * <li>{@literal @}{@code edu.umd.cs.findbugs.annotations.SuppressFBWarnings}
+     * <li>{@literal @}{@code com.google.errorprone.annotations.Var}
+     * <li>{@literal @}{@code com.google.errorprone.annotations.Immutable}
+     * <li>... and others, etc
+     * </ul>
+     * This annotation attribute provides a whitelist (if not empty by default) to those
+     * annotation discovered. This is motivated that a lot of build configurations gets very complex
+     * with different build tools and IDEs, making it hard to solely use classpath management as a
+     * way to configure auto-applied annotations.
+     * <p>
+     * In order to simply disable all such annotation auto-discovery, you can put some dummy
+     * annotation like {@code java.lang}, as in:
+     * 
+     * <pre>
+     * Style(allowedClasspathAnnotations = {java.lang.Override.class})
+     * </pre>
+     * 
+     * The array will no longer be empty as by default so only specified entries will be applied.
+     * Please note that standard {@code java.lang} annotations like {@link java.lang.Override},
+     * {@link java.lang.Deprecated}, {@link java.lang.SuppressWarnings} will always be applied where
+     * supported, so this configuration
+     * have no effect on those. At the same time, {@code javax.annotation.*} or
+     * {@code java.annotation.processing.*} are configurable by this style attribute. Another
+     * exception is when some annotation is put on abstract value
+     * type or attribute and then propagated to corresponding/related elements of generated
+     * classes, these other mechanisms do not count as complementary annotation generation regulated
+     * by this property.
+     * <p>
+     * Another, more universal way to inhibit some classpath entries from discovery is using
+     * class-path fence using META-INF extension mechanism. That mechanism is a general classpath
+     * discovery blacklist and overrides any whitelist allowed here. Add unwanted fully qualified
+     * class name prefixes (for example, like full class names, or package names ending with a dot)
+     * as the lines to the {@code META-INF/extensions/org.immutables.inhibit-classpath} resource
+     * file available in classpath.
+     * @return a non-empty array of only allowed auto-discovered annotations. Empty by
+     *         default, which allows any auto-discovered annotation support for backward
+     *         compatibility.
+     */
+    Class<? extends Annotation>[] allowedClasspathAnnotations() default {};
 
     /**
      * If implementation visibility is more restrictive than visibility of abstract value type, then

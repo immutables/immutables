@@ -18,9 +18,6 @@ package org.immutables.value.processor.encode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import org.immutables.value.processor.encode.Structurizer.Statement;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 

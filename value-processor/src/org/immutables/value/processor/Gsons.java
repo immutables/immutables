@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ abstract class Gsons extends ValuesTemplate {
     Map<AbstractDeclaring, GsonMirrors.TypeAdapters> mirrors = Maps.newHashMap();
 
     Multimap<AbstractDeclaring, ValueType> byDeclaring = HashMultimap.create();
-    for (ValueType value : values().values()) {
+    for (ValueType value : values.values()) {
       Protoclass protoclass = value.constitution.protoclass();
       if (protoclass.kind().isValue()) {
         Optional<AbstractDeclaring> typeAdaptersProvider = protoclass.typeAdaptersProvider();

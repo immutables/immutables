@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -16,61 +16,17 @@
 package org.immutables.value.processor;
 
 import com.google.common.collect.Multimap;
-import org.immutables.generator.AbstractTemplate;
-import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
-import org.immutables.value.processor.meta.LongBits;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
-import org.immutables.value.processor.meta.UnshadeGuava;
-import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
 
-abstract class ValuesTemplate extends AbstractTemplate {
-  @Generator.Typedef
-  ValueType Type;
-
-  @Generator.Typedef
-  ValueAttribute Attribute;
-
-  @Generator.Typedef
-  LongBits.LongPositions LongPositions;
-
-  @Generator.Typedef
-  LongBits.BitPosition BitPosition;
-
-  @Generator.Typedef
-  DeclaringPackage Package;
-
+abstract class ValuesTemplate extends AbstractValuesTemplate {
   public abstract Templates.Invokable generate();
 
-  public final String guava = UnshadeGuava.prefix();
-
-  public final LongBits longsFor = new LongBits();
-
-  private Multimap<DeclaringPackage, ValueType> values;
+  Multimap<DeclaringPackage, ValueType> values;
 
   ValuesTemplate usingValues(Multimap<DeclaringPackage, ValueType> values) {
     this.values = values;
     return this;
-  }
-
-  public Multimap<DeclaringPackage, ValueType> values() {
-    return values;
-  }
-
-  final Flag flag = new Flag();
-
-  static class Flag {
-    boolean is;
-
-    String set() {
-      this.is = true;
-      return "";
-    }
-
-    String clear() {
-      this.is = false;
-      return "";
-    }
   }
 }

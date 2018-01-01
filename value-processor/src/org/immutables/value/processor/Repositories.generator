@@ -56,9 +56,17 @@ import [starImport];
  [/if]
  */
 [if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
-@javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract]"})
+[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
+[/if]
+[if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Repositories.generator", "[type.typeAbstract.relative]"})
+[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
+@javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract.relative]"})
+[/if]
+[if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
+[/if]
 [type.typeDocument.access]final class [type.name]Repository extends Repositories.Repository<[type.typeDocument]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
@@ -100,7 +108,7 @@ import [starImport];
    * {@link Finder#fetchAll() fetch all} or other operations.
    * @return A finder object used to complete operations
    */
-  @javax.annotation.CheckReturnValue
+  [atCheckReturnValue type]
   public Finder findAll() {
     return find(criteria());
   }
@@ -111,7 +119,7 @@ import [starImport];
   * @param jsonCriteria A JSON string for native criteria
   * @return A finder object used to complete operations
   */
-  @javax.annotation.CheckReturnValue
+  [atCheckReturnValue type]
   public Finder find(String jsonCriteria) {
     return new Finder(this, Support.jsonQuery(jsonCriteria));
   }
@@ -128,7 +136,7 @@ import [starImport];
    * @param [a.name] The exact {@code [a.name]} value
    * @return A finder object used to complete operations
    */
-  @javax.annotation.CheckReturnValue
+  [atCheckReturnValue type]
   public Finder findBy[toUpper a.name]([a.type] [a.name]) {
     return find(criteria().[a.name]([a.name]));
   }
@@ -210,7 +218,7 @@ public [tT] exclude[toUpper a.name]() {
  * @param criteria The search criteria
  * @return A finder object used to complete operations
  */
-@javax.annotation.CheckReturnValue
+[atCheckReturnValue type]
 public Finder find(Criteria criteria) {
   return new Finder(this, criteria.constraint);
 }
@@ -221,7 +229,7 @@ public Finder find(Criteria criteria) {
  * Configure exclusion and sort ordering for results using the family of {@code exclude*()} and {@code orderBy*()} attribute-specific methods.
  * @see [type.name]Repository#find(Criteria)
  */
-@javax.annotation.concurrent.NotThreadSafe
+[atNotThreadSafe type]
 public static final class Finder extends Repositories.[if type.repository.readonly]Finder[else]FinderWithDelete[/if]<[type.typeDocument], Finder> {
   private final Serialization serialization;
 
@@ -243,7 +251,7 @@ public static final class Finder extends Repositories.[if type.repository.readon
 /**
  * Used to replace in-place existing version of the document
  */
-@javax.annotation.CheckReturnValue
+[atCheckReturnValue type]
 public Replacer andReplaceFirst([type.typeDocument] document) {
   return new Replacer(([type.name]Repository) repository, document, criteria, ordering);
 }
@@ -257,7 +265,7 @@ public Replacer andReplaceFirst([type.typeDocument] document) {
  * (and other attribute-specific) methods to describe the modification.
  * @return A modifier object to complete the {@code findAndModify} operation
  */
-@javax.annotation.CheckReturnValue
+[atCheckReturnValue type]
 public Modifier andModifyFirst() {
   return new Modifier(([type.name]Repository) repository, criteria, ordering, exclusion);
 }
@@ -274,7 +282,7 @@ public Modifier andModifyFirst() {
  * @see Indexer#unique()
  * @return An indexer object to be completed with the {@link Indexer#ensure()} operation.
  */
-@javax.annotation.CheckReturnValue
+[atCheckReturnValue type]
 public Indexer index() {
   return new Indexer(this);
 }
@@ -283,7 +291,7 @@ public Indexer index() {
  * An indexer used to create an index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
  * @see DBCollection#ensureIndex(DBObject, DBObject)
  */
-@javax.annotation.concurrent.NotThreadSafe
+[atNotThreadSafe type]
 public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
   private final Serialization serialization;
 
@@ -321,7 +329,7 @@ public static final class Indexer extends Repositories.Indexer<[type.typeDocumen
  * @param criteria The search criteria for update
  * @return An updater object that will be used to complete the update.
  */
-@javax.annotation.CheckReturnValue
+[atCheckReturnValue type]
 public Updater update(Criteria criteria) {
   return new Updater(this, criteria);
 }
@@ -330,7 +338,7 @@ public Updater update(Criteria criteria) {
  * {@link #update(Criteria) Given} the criteria updater describes how to perform
  * update operations on sets of documents.
  */
-@javax.annotation.concurrent.NotThreadSafe
+[atNotThreadSafe type]
 public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
   private final Serialization serialization;
 
@@ -345,7 +353,7 @@ public static final class Updater extends Repositories.Updater<[type.typeDocumen
 
 [template generateReplacer Type type]
 
-@javax.annotation.concurrent.NotThreadSafe
+[atNotThreadSafe type]
 public static final class Replacer extends Repositories.Replacer<[type.typeDocument], Replacer> {
   protected Replacer([type.name]Repository repository, [type.typeDocument] document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
     super(repository, document, criteria, ordering);
@@ -355,7 +363,7 @@ public static final class Replacer extends Repositories.Replacer<[type.typeDocum
 
 [template generateModifier Type type]
 
-@javax.annotation.concurrent.NotThreadSafe
+[atNotThreadSafe type]
 public static final class Modifier extends Repositories.Modifier<[type.typeDocument], Modifier> {
   private final Serialization serialization;
 
@@ -848,3 +856,11 @@ this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([if secon
 [template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]TypeAdapter, [else]Support.writable([/if][/template]
 
 [template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryTypeAdapter, [else]Support.writable([/if][/template]
+
+[template atCheckReturnValue HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.CheckReturnValue']@javax.annotation.CheckReturnValue[/if][/template]
+
+[template atNotThreadSafe Type type]
+[if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
+@javax.annotation.concurrent.NotThreadSafe
+[/if]
+[/template]
