@@ -1166,4 +1166,4 @@ import [starImport];
 
 [template maybeMasked Attribute a String value][if a.redactedMask][literal.string a.redactedMask][else][value][/if][/template]
 
-[template atCanIgnoreReturnValue Type type][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue'][if not type.beanFriendlyModifiable]@com.google.errorprone.annotations.CanIgnoreReturnValue[/if][/if][/template]
+[template atCanIgnoreReturnValue Type type][if not type.beanFriendlyModifiable][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue'][if not type.beanFriendlyModifiable]@com.google.errorprone.annotations.CanIgnoreReturnValue[/if][/if][/if][/template]
