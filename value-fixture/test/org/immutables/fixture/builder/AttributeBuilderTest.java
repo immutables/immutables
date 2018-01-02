@@ -27,6 +27,7 @@ import org.immutables.fixture.builder.functional.BuilderFunction;
 import org.immutables.fixture.builder.functional.CopyFunction;
 import org.junit.Test;
 
+@SuppressWarnings("unused")
 public class AttributeBuilderTest {
 
   @Test
@@ -530,18 +531,17 @@ public class AttributeBuilderTest {
 
     try {
       check(ImmutableNewTokenAttributeBuilderParent.Builder.class
-          .getMethod(thirdPartyBuilder, null));
+          .getMethod(thirdPartyBuilder));
     } catch (NoSuchMethodException e) {
       check("Could not find method when it should have been generated", false);
     }
     try {
       check(ImmutableNoNewTokenAttributeBuilderParent.Builder.class
-          .getMethod(thirdPartyBuilder, null));
+          .getMethod(thirdPartyBuilder));
+      check("Generated nested builder when we should not have", false);
     } catch (NoSuchMethodException e) {
       thrown = true;
     }
 
-    check("Generated nested builder when we should not have", thrown);
   }
-
 }
