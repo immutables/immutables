@@ -79,5 +79,9 @@ public abstract class Renderers extends AbstractValuesTemplate {
 
   public abstract Templates.Invokable fromBuild();
 
+  public abstract Templates.Invokable wasInit();
+
   public abstract Templates.Invokable builderCopyFrom();
+
+  public abstract Templates.Invokable unitializedFieldValue();
 }

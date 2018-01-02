@@ -1,15 +1,17 @@
 package org.immutables.value.processor;
 
+import com.google.common.base.Function;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
 import org.immutables.value.processor.meta.HasStyleInfo;
 import org.immutables.value.processor.meta.LongBits;
+import org.immutables.value.processor.meta.ObscureFeatures;
+import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.StyleInfo;
 import org.immutables.value.processor.meta.UnshadeGuava;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 
 /** Groups typedefs and useful utilities. */
 public abstract class AbstractValuesTemplate extends AbstractTemplate {
@@ -34,6 +36,13 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
   protected final String guava = UnshadeGuava.prefix();
 
   protected final LongBits longsFor = new LongBits();
+
+  protected final Function<Object, String> asDiamond = new Function<Object, String>() {
+    @Override
+    public String apply(Object input) {
+      return ObscureFeatures.noDiamonds() ? ("<" + input + ">") : "<>";
+    }
+  };
 
   protected final Templates.Binary<HasStyleInfo, String, Boolean> allowsClasspathAnnotation =
       new Templates.Binary<HasStyleInfo, String, Boolean>() {

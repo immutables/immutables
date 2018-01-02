@@ -47,6 +47,9 @@ interface Mirrors {
   @Mirror.Annotation("org.immutables.encode.Encoding.Init")
   @interface Init {}
 
+  @Mirror.Annotation("org.immutables.encode.Encoding.IsInit")
+  @interface IsInit {}
+
   @Mirror.Annotation("org.immutables.encode.Encoding.Builder")
   @interface Builder {}
 

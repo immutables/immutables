@@ -255,9 +255,9 @@ public interface Type {
     DOUBLE(Reference.DOUBLE, "0D"),
     VOID(Reference.VOID, "");
 
-    final String typename;
-    final Reference wrapper;
-    final String defaultValue;
+    public final String typename;
+    public final Reference wrapper;
+    public final String defaultValue;
 
     Primitive(Reference wrapper, String defaultValue) {
       this.wrapper = wrapper;
@@ -868,7 +868,7 @@ public interface Type {
               if (t.is(begin)) {
                 consumeRecursiveUntil(begin, end);
               } else {
-                terms.poll(); 
+                terms.poll();
               }
             }
           }

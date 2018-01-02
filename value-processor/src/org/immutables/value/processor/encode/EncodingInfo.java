@@ -56,6 +56,17 @@ public abstract class EncodingInfo {
 
   @Derived
   @Auxiliary
+  public @Nullable EncodedElement isWasInit() {
+    for (EncodedElement e : element()) {
+      if (e.isWasInit()) {
+        return e;
+      }
+    }
+    return null;
+  }
+
+  @Derived
+  @Auxiliary
   public EncodedElement from() {
     for (EncodedElement e : element()) {
       if (e.isFrom()) {

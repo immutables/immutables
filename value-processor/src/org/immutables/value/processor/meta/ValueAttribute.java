@@ -1039,9 +1039,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     initTypeName();
 
     if (instantiationCreator != null
-        && !isGenerateLazy
-        && !isGenerateDefault
-        && !isGenerateDerived) {
+        && !isGenerateLazy) {
       this.instantiation =
           instantiationCreator.tryInstantiateFor(reporter, returnTypeName, names, containingType);
     }
@@ -1566,6 +1564,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public CharSequence getTypeTokenOfSecondaryElement() {
     return containingType.getGsonTypeTokens().sourceFor(getSecondaryElementType());
+  }
+
+  public Element originalElement() {
+    return CachingElements.getDelegate(element);
+  }
+
+  public Element originalTypeElement() {
+    return containingType.originalElement();
   }
 
   @Override

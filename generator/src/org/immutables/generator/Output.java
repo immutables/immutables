@@ -24,6 +24,7 @@ import com.google.common.base.Supplier;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSink;
 import com.google.common.io.CharSource;
@@ -42,6 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.FilerException;
 import javax.annotation.processing.Messager;
+import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
@@ -57,8 +59,17 @@ public final class Output {
     @Override
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
-      String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
-      StaticEnvironment.processing().getMessager().printMessage(Diagnostic.Kind.ERROR, message);
+      Messager messager = StaticEnvironment.processing().getMessager();
+      String message = CharMatcher.WHITESPACE.trimFrom(parameters[parameters.length - 1].toString());
+      Element element = (Element) Iterators.find(
+          Iterators.forArray(parameters),
+          Predicates.instanceOf(Element.class),
+          null);
+      if (element != null) {
+        messager.printMessage(Diagnostic.Kind.ERROR, message, element);
+      } else {
+        messager.printMessage(Diagnostic.Kind.ERROR, message);
+      }
       return null;
     }
   };
@@ -296,11 +307,13 @@ public final class Output {
         if (identicalFileIsAlreadyGenerated(sourceCode)) {
           getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
         } else {
-          getMessager().printMessage(Kind.ERROR, String.format(
-              "Generated source file name colission. Attempt to overwrite already generated file: %s, %s."
-                  + " If this happens when using @Value.Immutable on same-named nested classes in the same package,"
-                  + " use can use @Value.Enclosing annotation to provide some sort of namespacing",
-              key, ex));
+          getMessager().printMessage(Kind.ERROR,
+              String.format(
+                  "Generated source file name colission. Attempt to overwrite already generated file: %s, %s."
+                      + " If this happens when using @Value.Immutable on same-named nested classes in the same package,"
+                      + " use can use @Value.Enclosing annotation to provide some sort of namespacing",
+                  key,
+                  ex));
         }
       } catch (IOException ex) {
         throw Throwables.propagate(ex);
@@ -317,7 +330,8 @@ public final class Output {
           public Reader openStream() throws IOException {
             return getFiler()
                 .getResource(StandardLocation.SOURCE_OUTPUT,
-                    "", packagePath + filename)
+                    "",
+                    packagePath + filename)
                 .openReader(true);
           }
         }.read();

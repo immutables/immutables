@@ -88,7 +88,7 @@ public @interface Value {
 
     /**
      * If {@code prehash=true} then {@code hashCode} will be precomputed during construction.
-     * This could speed up collection lookups for objects with lots of attributes and nested
+     * This could speed up map/set lookups for objects with lots of attributes and nested
      * objects.
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
      * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be

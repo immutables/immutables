@@ -15,13 +15,15 @@
  */
 package org.immutables.fixture.encoding.defs;
 
+import java.util.Objects;
 import java.util.OptionalDouble;
 import org.immutables.encode.Encoding;
+import org.immutables.encode.Encoding.StandardNaming;
 
 @Encoding
 class CompactOptionalDouble {
   @Encoding.Impl(virtual = true)
-  private OptionalDouble opt;
+  private final OptionalDouble opt = OptionalDouble.empty();
 
   private final double value = opt.orElse(0);
   private final boolean present = opt.isPresent();
@@ -39,5 +41,32 @@ class CompactOptionalDouble {
     return present
         ? OptionalDouble.of(value)
         : OptionalDouble.empty();
+  }
+
+  @Encoding.Builder
+  static final class Builder {
+    private OptionalDouble builder = OptionalDouble.empty();
+
+    @Encoding.Naming(standard = StandardNaming.INIT)
+    @Encoding.Init
+    void set(double value) {
+      this.builder = OptionalDouble.of(value);
+    }
+
+    @Encoding.Copy
+    @Encoding.Init
+    void setOpt(OptionalDouble value) {
+      this.builder = Objects.requireNonNull(value);
+    }
+
+    @Encoding.IsInit
+    boolean isSet() {
+      return builder.isPresent();
+    }
+
+    @Encoding.Build
+    OptionalDouble build() {
+      return this.builder;
+    }
   }
 }

@@ -28,6 +28,19 @@ private final [inst.typer impl.type] [inst.namer impl];
 [/for]
 [/template]
 
+[template public unitializedFieldValue Attribute a]
+[for inst = a.instantiation,
+      enc = inst.encoding,
+			impl = enc.impl]
+[if not impl.virtual]
+[inst.namer impl] = [impl.unitializedFieldValue];
+[/if]
+[for el in enc.element if el.valueField]
+[inst.namer el] = [el.unitializedFieldValue];
+[/for]
+[/for]
+[/template]
+
 [template public defaultValue Attribute a]
 [for inst = a.instantiation,
       enc = inst.encoding,
@@ -36,8 +49,8 @@ private final [inst.typer impl.type] [inst.namer impl];
 [inst.codeOf impl]
   [else]
 null
-[output.error]
-Could not generate constructor. Attribute '[a.name]' does not have default value.
+[output.error a.originalTypeElement]
+Could not generate constructor for [a.containingType.typeImmutable.relativeRaw]. Attribute '[a.name]' does not have default value provided in encoding: [inst.encoding.name]
 [/output.error]
   [/if]
 [/for]
@@ -46,12 +59,13 @@ Could not generate constructor. Attribute '[a.name]' does not have default value
 [template public assignDefaultFields Attribute... as Boolean pureCopy]
 [for a in as if a.encoding,
     inst = a.instantiation,
-    el in inst.encoding.element if el.valueField]
+    el in inst.encoding.element if el.valueField,
+    Boolean mangled = inst.hasVirtualImpl and (a.generateDerived ornot pureCopy)]
 [if el.code]
-  [if pureCopy or (not inst.virtualNotOfSameType)]
-this.[inst.namer el] = [inst.codeOf el];
-  [else]
+  [if mangled]
 this.[inst.namer el] = [inst.codeOfAuxFieldVirtualDecorated el];
+  [else]
+this.[inst.namer el] = [inst.codeOf el];
   [/if]
 [/if]
 [/for]
@@ -63,11 +77,8 @@ this.[inst.namer el] = [inst.codeOfAuxFieldVirtualDecorated el];
 [for inst = a.instantiation,
       enc = inst.encoding,
 			impl = enc.impl]
-[if inst.virtualNotOfSameType]
 [inst.typer impl.type] [a.instantiation.decoratedImplFieldName]
-[else]
-[a.instantiation.namer a.instantiation.encoding.impl]
-[/if]
+[--a.instantiation.namer a.instantiation.encoding.impl]
 [/for]
 [/output.trim][/template]
 
@@ -123,14 +134,9 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [template public builderHelperMethods Attribute... as]
   [for a in as if a.encoding,
       el in a.instantiation.encoding.element]
-[if el.builderMethod]
+[if el.builderMethod or (el.build or el.wasInit)]
 
 [declareMethod a.instantiation el]
-[else if el.build]
-  [if not (a.instantiation.isInlined el)]
-
-[declareMethod a.instantiation el]
-  [/if]
 [/if]
   [/for]
 [/template]
@@ -141,14 +147,11 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [if el.valueMethod]
 
 [declareMethod a.instantiation el]
-[else if not (el.static or el.inBuilder)]
-  [if el.inlinable and (not el.oneLiner)]
+[else if el.isInlinable][-- this means from, toString, hashCode, equals, copy]
+  [if not (a.instantiation.isInlined el)]
 
 [declareMethod a.instantiation el]
   [/if]
-[else if el.from]
-
-[declareMethod a.instantiation el]
 [/if]
   [/for]
 [/template]
@@ -164,26 +167,38 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 [template public staticMethods Attribute... as]
   [for a in as if a.encoding,
-      el in a.instantiation.encoding.element]
-[if el.staticMethod]
+      el in a.instantiation.encoding.element if el.staticMethod]
 
 [declareMethod a.instantiation el]
-[else if el.static and (not el.from)]
-  [if el.inlinable and (not el.oneLiner)]
-
-[declareMethod a.instantiation el]
-  [/if]
-[/if]
   [/for]
 [/template]
 
-[template public accessor Attribute a]
+[template public accessor Attribute a String shimName]
 [for inst = a.instantiation, el = inst.expose]
+  [if a.generateDefault or a.generateDerived]
+[a.access][inst.type] [a.names.get]() {
+  [if a.hasVirtualImpl]
+  if (this.[shimName] != null) {
+    throw new [a.containingType.throwForInvalidImmutableState](
+        "Cannot refer to '[a.name]' attribute from initializer method. Limitation of encoding virtual fields");
+  }
+  return this.[a.names.get]$get();
+  [else]
+  InitShim shim = this.[shimName];
+  return shim != null
+      ? shim.[a.names.get]()
+      : this.[a.names.get]$get();
+  [/if]
+}
+
+private [inst.type] [a.names.get]$get() [inst.codeOf el]
+  [else]
 [a.access][inst.type] [a.names.get]() [inst.codeOf el]
+  [/if]
 [/for]
 [/template]
 
-[template public from Attribute a String expression][a.instantiation.fragmentOf a.instantiation.encoding.from expression][/template]
+[template public from Attribute a String expression][if a.instantiation.hasTrivialFrom][expression][else][a.instantiation.fragmentOf a.instantiation.encoding.from expression][/if][/template]
 
 [template public string Attribute a][a.instantiation.fragmentOf a.instantiation.encoding.string][/template]
 
@@ -193,7 +208,9 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 [template public implType Attribute a][a.instantiation.typer a.instantiation.encoding.impl.type][/template]
 
-[template public fromBuild Attribute a][a.instantiation.fragmentOf a.instantiation.encoding.build][/a.instantiation.fragmentOf][/template]
+[template public fromBuild Attribute a][a.instantiation.fragmentOf a.instantiation.encoding.build][/template]
+
+[template public wasInit Attribute a][a.instantiation.fragmentOf a.instantiation.encoding.isWasInit][/template]
 
 [template declareAuxiliaryField Inst inst Elem el]
 [if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el][if el.code] = [inst.codeOf el][/if];

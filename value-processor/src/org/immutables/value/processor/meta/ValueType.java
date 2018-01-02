@@ -101,6 +101,15 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return false;
   }
 
+  public boolean hasEncodingAttributes() {
+    for (ValueAttribute attribute : attributes()) {
+      if (attribute.isEncoding()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean isDeferCollectionAllocation() {
     return style().deferCollectionAllocation() && !isUseStrictBuilder();
   }
@@ -474,9 +483,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isGenerateSafeDerived() {
     boolean moreThanOne = defaultAttributesCount + derivedAttributesCount > 1;
-    return moreThanOne
-        && !isAnnotationType()
-        && !style().unsafeDefaultAndDerived();
+    return !isAnnotationType()
+        && (hasEncodingAttributes() || (moreThanOne && !style().unsafeDefaultAndDerived()));
   }
 
   public boolean isUseConstructorOnly() {
@@ -1660,6 +1668,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   @Override
   public StyleInfo style() {
     return constitution.style();
+  }
+
+  public Element originalElement() {
+    return CachingElements.getDelegate(element);
   }
   /**
    * Used for type snapshoting

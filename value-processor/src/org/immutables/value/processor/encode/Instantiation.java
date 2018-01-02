@@ -107,16 +107,11 @@ public final class Instantiation {
     }
   }
 
-  public boolean isVirtualNotOfSameType() {
-    return hasVirtualImpl()
-        && (!encoding.from().firstParam().type().equals(encoding.impl().type())
-        || names.var.equals(BUILDER_RESERVED_IN_CONSTRUCTOR));
-  }
-
-  public boolean isTrivialOf() {
-    return isInlined(encoding.from())
-        && encoding.from().oneLiner().equals(
-            ImmutableList.of(Binding.newTop(encoding.from().firstParam().name())));
+  public boolean hasTrivialFrom() {
+    ImmutableList<Term> oneLiner = encoding.from().oneLiner();
+    return oneLiner.size() == 1
+        && oneLiner.get(0).equals(
+            Binding.newTop(encoding.from().firstParam().name()));
   }
 
   public String getDecoratedImplFieldName() {
@@ -202,7 +197,8 @@ public final class Instantiation {
   };
 
   private boolean isInlined(EncodedElement el) {
-    return !el.oneLiner().isEmpty()
+    return el.isInlinable()
+        && !el.oneLiner().isEmpty()
         && !encoding.crossReferencedMethods().contains(el.name())
         && !entangledBuildMethod(el);
   }

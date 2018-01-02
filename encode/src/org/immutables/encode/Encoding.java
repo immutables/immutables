@@ -111,6 +111,19 @@ public @interface Encoding {
   public @interface Build {}
 
   /**
+   * Template method for internal purposes that describes how to ask builder if an attribute was
+   * initialized. This must be a boolean-returning no-arg accessor method on a builder.
+   * Implementation will always be private regardless if provided method is defined as private or
+   * not. If builder encoding is not defined (i.e. no {@code Encoding.Builder}), the generator will
+   * infer this as a a null check, but if builder encoding is defined with no such {@code IsInit}
+   * provided, then encoding will be unable to generate
+   * code for instantiations of {@code Value.Default} or {@code Value.Derived} attributes.
+   */
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface IsInit {}
+
+  /**
    * Many elements (but not all) supports customized naming patterns.
    * Use single asterisk symbol in a name to denote a placeholder where attribute name would be
    * insterted.
@@ -128,8 +141,10 @@ public @interface Encoding {
    * As an alternative to specifying a pattern, you may want to reuse {@link #standard()} naming.
    * <p>
    * <em>
-   * Please note, that with customized naming it is possible (but in general, not recommended) to put
-   * constant naming (without {@code "*"} placeholder) on elements. But when you do this it can result
+   * Please note, that with customized naming it is possible (but in general, not recommended) to
+   * put
+   * constant naming (without {@code "*"} placeholder) on elements. But when you do this it can
+   * result
    * in name clashes in generated code.
    * </em>
    * @see #depluralize()

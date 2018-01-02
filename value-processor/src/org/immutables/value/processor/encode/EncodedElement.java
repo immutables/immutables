@@ -49,7 +49,8 @@ public abstract class EncodedElement {
     SYNTH,
     // applies to impl field
     VIRTUAL,
-    SAFE_VARARGS
+    SAFE_VARARGS,
+    IS_INIT
   }
 
   abstract String name();
@@ -118,6 +119,11 @@ public abstract class EncodedElement {
   @Derived
   boolean isInit() {
     return tags().contains(Tag.INIT);
+  }
+
+  @Derived
+  boolean isWasInit() {
+    return tags().contains(Tag.IS_INIT);
   }
 
   @Derived
@@ -228,7 +234,7 @@ public abstract class EncodedElement {
 
   @Derived
   ImmutableList<Term> oneLiner() {
-    return isInlinable() && typeParams().isEmpty()
+    return typeParams().isEmpty()
         ? ImmutableList.copyOf(Code.oneLiner(code()))
         : ImmutableList.<Term>of();
   }
@@ -239,12 +245,19 @@ public abstract class EncodedElement {
         || isToString()
         || isHashCode()
         || isFrom()
-        || isCopy()
-        || isBuild();
+        || isCopy();
   }
 
   boolean depluralize() {
     return tags().contains(Tag.DEPLURALIZE);
+  }
+
+  String unitializedFieldValue() {
+    Type type = type();
+    if (type instanceof Type.Primitive) {
+      return ((Type.Primitive) type).defaultValue;
+    }
+    return "null";
   }
 
   static class Builder extends ImmutableEncodedElement.Builder {}
