@@ -2272,12 +2272,12 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [rr.declareFields v]
   [else]
   [jsonIgnore type]
-  private final [v.atNullability][immutableImplementationType v] [v.name];
+  private [if v.generateDerived andnot type.serial.simple]transient [/if]final [v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
 [if type.usePrehashed]
   [jsonIgnore type]
-  private final int hashCode;
+  private [if not type.serial.simple]transient [/if]final int hashCode;
 [/if]
 [if type.generateOrdinalValue]
   [jsonIgnore type]

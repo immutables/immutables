@@ -32,7 +32,6 @@ import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueType;
 
 public final class Instantiation {
-  private static final String BUILDER_RESERVED_IN_CONSTRUCTOR = "builder";
   private final Map<Binding, String> bindings;
   private final Map<Binding, String> builderBindings;
 
