@@ -45,9 +45,9 @@ import java.lang.String;
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relativeRaw]"})
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [type.typeValue.access]final class [astTypeName] {
   private [astTypeName]() {}

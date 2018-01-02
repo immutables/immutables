@@ -1097,9 +1097,9 @@ public String toString() {
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Modifiables.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.processing.Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Modifiables.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Modifiables.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']

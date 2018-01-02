@@ -64,12 +64,16 @@ import [starImport];
  [/for]
  */
 @SuppressWarnings({"all", "MethodCanBeStatic"})[-- reliably check for generateSuppressAllWarnings --]
-[if classpath.available 'javax.annotation.Generated']
-@javax.annotation.Generated({"Gsons.generator", "[packageName].[simpleName]"})
-[/if]
-[if classpath.available 'javax.annotation.ParametersAreNonnullByDefault']
+[for v in allValues][if for.first][-- this is only needed to get to first available value's style --]
+[if v allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
+[if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"Gsons.generator", "[packageName]"})
+[else if v allowsClasspathAnnotation 'javax.annotation.Generated']
+@javax.annotation.Generated({"Gsons.generator", "[packageName]"})
+[/if]
+[/if][/for]
 public final class [typeAdaptersName] implements TypeAdapterFactory {
   @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
   @Override

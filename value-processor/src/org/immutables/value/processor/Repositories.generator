@@ -60,9 +60,9 @@ import [starImport];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Repositories.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.processing.Generated({"Repositories.generator", "[type.typeAbstract.relativeRaw]"})
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Repositories.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe

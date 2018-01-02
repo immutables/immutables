@@ -57,13 +57,13 @@ import [starImport];
  */
  @SuppressWarnings("all")
 [for v in allValues][if for.first][-- this is only needed to get to first available value's style --]
-[if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
+[if v allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
-[if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"OkJsons.generator", "[type.typeAbstract.relative]"})
-[else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"OkJsons.generator", "[type.typeAbstract.relative]"})
+[if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+@javax.annotation.processing.Generated({"OkJsons.generator", "[packageName]"})
+[else if v allowsClasspathAnnotation 'javax.annotation.Generated']
+@javax.annotation.Generated({"OkJsons.generator", "[packageName]"})
 [/if]
 [/if][/for]
 public final class [typeAdaptersName] implements com.squareup.moshi.JsonAdapter.Factory {

@@ -40,9 +40,9 @@ package [visitorType.package];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if visitorType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Visitors.generator", "[visitorType.typeAbstract.relative]"})
+@javax.annotation.processing.Generated({"Visitors.generator", "[visitorType.typeAbstract.relativeRaw]"})
 [else if visitorType allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Visitors.generator", "[visitorType.typeAbstract.relative]"})
+@javax.annotation.Generated({"Visitors.generator", "[visitorType.typeAbstract.relativeRaw]"})
 [/if]
 [visitorType.typeValue.access]abstract class [visitorClassname] {
   protected [visitorClassname]() {}

@@ -40,9 +40,9 @@ package [type.package];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Funcs.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.processing.Generated({"Funcs.generator", "[type.typeAbstract.relativeRaw]"})
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Funcs.generator", "[type.typeAbstract.relative]"})
+@javax.annotation.Generated({"Funcs.generator", "[type.typeAbstract.relativeRaw]"})
 [/if]
 [type.typePreferablyAbstract.access]final class [type.name]Functions {
   private [type.name]Functions() {}
