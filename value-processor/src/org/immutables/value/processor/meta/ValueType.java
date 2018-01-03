@@ -102,8 +102,17 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean hasEncodingAttributes() {
-    for (ValueAttribute attribute : attributes()) {
-      if (attribute.isEncoding()) {
+    for (ValueAttribute a : attributes()) {
+      if (a.isEncoding()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean hasEncodingValueOrVirtualFields() {
+    for (ValueAttribute a : attributes()) {
+      if (a.isEncoding() && a.instantiation.hasValueOrVirtualFields()) {
         return true;
       }
     }

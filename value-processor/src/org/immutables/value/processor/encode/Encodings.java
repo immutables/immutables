@@ -124,7 +124,7 @@ public abstract class Encodings extends AbstractTemplate {
     final SourceExtraction.Imports imports;
 
     final Iterable<EncodedElement> allElements;
-    final Set<String> nonlinkedImports;
+    final Set<String> generatedImports;
     private final Type encodingSelfType;
     private String builderInitCopy;
 
@@ -183,7 +183,7 @@ public abstract class Encodings extends AbstractTemplate {
               builderInits));
 
       this.linkage = new Linkage();
-      this.nonlinkedImports = nonlinkedImports();
+      this.generatedImports = generatedImports();
     }
 
     // used for cross validation possible only when all elements are discovered
@@ -265,12 +265,15 @@ public abstract class Encodings extends AbstractTemplate {
       throw new NoSuchElementException("No enclosed element named '" + name + "' found in " + enclosing);
     }
 
-    private Set<String> nonlinkedImports() {
+    private Set<String> generatedImports() {
       Set<String> lines = new LinkedHashSet<>();
       for (String a : imports.all) {
-        if (a.startsWith("static ") || a.endsWith(".*")) {
-          lines.add(a);
+        if (a.contains("org.immutables.encode.")) {
+          continue;
         }
+        // if (a.startsWith("static ") || a.endsWith(".*")) {
+        lines.add(a);
+        // }
       }
       return lines;
     }
@@ -1133,7 +1136,7 @@ public abstract class Encodings extends AbstractTemplate {
             .addAllCode(
                 Code.termsFrom("{\n"
                     + "if (" + fieldElementName + " == null)"
-                    + " throw new IllegalStateException(\"'<*>' is not initialized\");\n"
+                    + " throw new java.lang.IllegalStateException(\"'<*>' is not initialized\");\n"
                     + "return " + fieldElementName + ";\n"
                     + "}"))
             .build();

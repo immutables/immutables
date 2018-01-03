@@ -15,8 +15,10 @@
  */
 package org.immutables.fixture.encoding;
 
+import java.util.Date;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import org.immutables.fixture.encoding.defs.CompactDateEnabled;
 import org.immutables.fixture.encoding.defs.CompactOptionalDoubleEnabled;
 import org.immutables.fixture.encoding.defs.CompactOptionalIntEnabled;
 import org.immutables.fixture.encoding.defs.VoidEncodingEnabled;
@@ -24,9 +26,12 @@ import org.immutables.value.Value;
 
 @CompactOptionalIntEnabled
 @CompactOptionalDoubleEnabled
+@CompactDateEnabled
 @Value.Immutable
-public abstract class DefaultDerivedEncs {
+public abstract class EncodingWithDefaultDerived {
   abstract OptionalInt a();
+
+  abstract Date dt();
 
   public @Value.Default OptionalInt i() {
     return OptionalInt.empty();
@@ -41,6 +46,10 @@ public abstract class DefaultDerivedEncs {
   }
 
   public @Value.Derived Void dv() {
+    return null;
+  }
+
+  public @Value.Derived Date ddt() {
     return null;
   }
 }

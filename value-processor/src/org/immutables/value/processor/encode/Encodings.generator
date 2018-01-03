@@ -27,7 +27,7 @@ package [enc.package];
 @org.immutables.encode.EncodingMetadata(
   name = "[enc.package].[enc.name]",
   imports = {
-[for imp in enc.nonlinkedImports][if not for.first],[/if]
+[for imp in enc.generatedImports][if not for.first],[/if]
     [literal.string imp][/for]
   },
   typeParams = {[for p in enc.typeParams][if not for.first], [/if][literal p][/for]},

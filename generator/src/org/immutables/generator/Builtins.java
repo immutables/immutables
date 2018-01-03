@@ -21,6 +21,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 
@@ -175,6 +176,32 @@ public class Builtins {
         @Override
         public String toString() {
           return Builtins.class.getSimpleName() + ".ornot";
+        }
+      };
+
+  public final Templates.Binary<Object, Collection<?>, Boolean> in =
+      new Templates.Binary<Object, Collection<?>, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Collection<?> right) {
+          return right.contains(left);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".in";
+        }
+      };
+
+  public final Templates.Binary<Object, Collection<?>, Boolean> notin =
+      new Templates.Binary<Object, Collection<?>, Boolean>() {
+        @Override
+        public Boolean apply(Object left, Collection<?> right) {
+          return !right.contains(left);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".right";
         }
       };
 

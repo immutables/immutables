@@ -50,6 +50,10 @@ public @interface EncodingMetadata {
 
     String[] thrown();
 
+    String[] annotations() default {};
+
+    String[] doc() default {};
+
     String code();
   }
 }

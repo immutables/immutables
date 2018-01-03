@@ -30,10 +30,13 @@ import org.immutables.value.processor.encode.Type.*;
 import org.immutables.value.processor.meta.Styles;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueType;
+import static com.google.common.base.Preconditions.checkArgument;
 
 public final class Instantiation {
   private final Map<Binding, String> bindings;
   private final Map<Binding, String> builderBindings;
+  private final Map<Binding, String> deriveFieldBindings = new HashMap<>();
+  private final Map<Binding, String> thisFieldBindings = new HashMap<>();
 
   final Type type;
   final EncodingInfo encoding;
@@ -41,10 +44,9 @@ public final class Instantiation {
 
   // these exist as functions that can be applied from a template
   final VariableResolver typer;
-  final Function<EncodedElement, String> namer;
-
   private final AttributeNames names;
   private final ValueType containingType;
+  private final boolean shimFields;
 
   Instantiation(
       EncodingInfo encoding,
@@ -52,30 +54,27 @@ public final class Instantiation {
       Type exposedType,
       Styles.UsingName.AttributeNames names,
       VariableResolver resolver,
-      ValueType containingType) {
+      ValueType containingType,
+      boolean shimFields) {
     this.encoding = encoding;
     this.expose = expose;
     this.type = exposedType;
     this.names = names;
     this.typer = resolver;
     this.containingType = containingType;
+    this.shimFields = shimFields;
 
     this.bindings = new HashMap<>(encoding.element().size());
     this.builderBindings = new HashMap<>(encoding.element().size());
 
     populateBindings(resolver);
-
-    this.namer = new Function<EncodedElement, String>() {
-      @Override
-      public String apply(EncodedElement input) {
-        return input.inBuilder()
-            ? builderBindings.get(input.asBinding())
-            : bindings.get(input.asBinding());
-      }
-    };
   }
 
   private void populateBindings(VariableResolver resolver) {
+    if (hasVirtualImpl()) {
+      deriveFieldBindings.put(encoding.impl().asBinding(), getDecoratedImplFieldName());
+    }
+
     for (EncodedElement e : encoding.element()) {
       if (e.isStatic()) {
         if (e.inBuilder()) {
@@ -92,6 +91,14 @@ public final class Instantiation {
       if (!e.isStatic()) {
         if (e.inBuilder()) {
           builderBindings.put(e.asBinding(), generateProperName(e));
+        } else if (isShimField(e)) {
+          bindings.put(e.asBinding(), generateShimAccess(e));
+          if (e.isValueField() || e.isImplField()) {
+            thisFieldBindings.put(e.asBinding(), directThisFieldName(e));
+          }
+          if (e.isValueField()) {
+            deriveFieldBindings.put(e.asBinding(), directFieldName(e));
+          }
         } else {
           bindings.put(e.asBinding(), generateProperName(e));
         }
@@ -106,6 +113,49 @@ public final class Instantiation {
     }
   }
 
+  private String generateShimAccess(EncodedElement e) {
+    return shimName(e) + "()"; // it safe to append parenheses to field access, not for methods
+  }
+
+  private String shimName(EncodedElement e) {
+    return directFieldName(e) + "$shim";
+  }
+
+  final Function<EncodedElement, String> directField = new Function<EncodedElement, String>() {
+    @Override
+    public String apply(EncodedElement e) {
+      return isShimField(e)
+          ? directFieldName(e)
+          : namer.apply(e);
+    }
+  };
+
+  final Function<EncodedElement, String> shimName = new Function<EncodedElement, String>() {
+    @Override
+    public String apply(EncodedElement input) {
+      return shimName(input);
+    }
+  };
+
+  public boolean shimFields() {
+    return shimFields;
+  }
+
+  private String directFieldName(EncodedElement e) {
+    checkArgument(e.isValueField() || e.isImplField());
+    return e.isImplField()
+        ? names.var
+        : names.apply(e.naming(), false);
+  }
+
+  private String directThisFieldName(EncodedElement e) {
+    return "this." + directFieldName(e);
+  }
+
+  protected boolean isShimField(EncodedElement e) {
+    return shimFields && (e.isValueField() || e.isImplField());
+  }
+
   public boolean hasTrivialFrom() {
     ImmutableList<Term> oneLiner = encoding.from().oneLiner();
     return oneLiner.size() == 1
@@ -114,7 +164,19 @@ public final class Instantiation {
   }
 
   public String getDecoratedImplFieldName() {
-    return bindings.get(encoding.impl().asBinding()) + "$impl";
+    return directFieldName(encoding.impl()) + "$impl";
+  }
+
+  public boolean hasValueOrVirtualFields() {
+    if (encoding.impl().isVirtual()) {
+      return true;
+    }
+    for (EncodedElement e : encoding.element()) {
+      if (e.isValueField()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean hasVirtualImpl() {
@@ -179,6 +241,15 @@ public final class Instantiation {
     return names.raw;
   }
 
+  final Function<EncodedElement, String> namer = new Function<EncodedElement, String>() {
+    @Override
+    public String apply(EncodedElement input) {
+      return input.inBuilder()
+          ? builderBindings.get(input.asBinding())
+          : bindings.get(input.asBinding());
+    }
+  };
+
   final Predicate<EncodedElement> isSafeVarargs = new Predicate<EncodedElement>() {
     @Override
     public boolean apply(EncodedElement input) {
@@ -225,7 +296,7 @@ public final class Instantiation {
   final Templates.Invokable fragmentOf = new Templates.Invokable() {
     @Override
     public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
-      final EncodedElement el = (EncodedElement) parameters[0];
+      EncodedElement el = (EncodedElement) parameters[0];
 
       @Nullable Map<Binding, String> overrideBindings = null;
       if (el.params().size() == 1 && parameters.length > 1) {
@@ -255,7 +326,6 @@ public final class Instantiation {
       }
       return null;
     }
-
   };
 
   final Templates.Invokable codeOf = new Templates.Invokable() {
@@ -280,26 +350,31 @@ public final class Instantiation {
     }
   };
 
-  // for aux fields we can override impl field binding
-  final Templates.Invokable codeOfAuxFieldVirtualDecorated = new Templates.Invokable() {
+  final Templates.Invokable codeThisFields = new Templates.Invokable() {
     @Override
     public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
-      EncodedElement el = (EncodedElement) parameters[0];
-
-      Map<Binding, String> contextBindings = el.inBuilder() ? builderBindings : bindings;
-      Map<Binding, String> overrideBindings =
-          ImmutableMap.of(Binding.newField(encoding.impl().name()), getDecoratedImplFieldName());
-
-      Code.Interpolator interpolator =
-          new Code.Interpolator(
-              rawName(),
-              contextBindings,
-              overrideBindings);
-
-      printWithIndentation(invokation, interpolator.apply(el.code()));
+      interpolateAndPrint(invokation, (EncodedElement) parameters[0], thisFieldBindings);
       return null;
     }
   };
+
+  final Templates.Invokable codeDeriveFields = new Templates.Invokable() {
+    @Override
+    public @Nullable Invokable invoke(Invokation invokation, Object... parameters) {
+      interpolateAndPrint(invokation, (EncodedElement) parameters[0], deriveFieldBindings);
+      return null;
+    }
+  };
+
+  private void interpolateAndPrint(Invokation invokation, EncodedElement el, Map<Binding, String> overrides) {
+    Code.Interpolator interpolator =
+        new Code.Interpolator(
+            rawName(),
+            bindings,
+            overrides);
+
+    printWithIndentation(invokation, interpolator.apply(el.code()));
+  }
 
   private static void printWithIndentation(Invokation invokation, List<Term> terms) {
     int indentLevel = 0;

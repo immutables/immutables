@@ -110,7 +110,8 @@ public final class Instantiator {
         Reporter reporter,
         String typeString,
         Styles.UsingName.AttributeNames names,
-        ValueType containingType) {
+        ValueType containingType,
+        boolean indirectField) {
 
       // we use parse/string here to reuse all cryptic logic to extract type strings
       // when resolving not-yet-generated types and othe complex cases
@@ -150,7 +151,8 @@ public final class Instantiator {
             type,
             names,
             winnerResolver,
-            containingType);
+            containingType,
+            indirectField);
       }
 
       return null;

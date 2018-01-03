@@ -19,11 +19,11 @@
 			impl = enc.impl]
 [if not impl.virtual]
 [jsonIgnore a]
-private final [inst.typer impl.type] [inst.namer impl];
+private final [inst.typer impl.type] [inst.directField impl];
 [/if]
 [for el in enc.element if el.valueField]
 [jsonIgnore a]
-[if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el];
+[if el.private]private [else]public [/if][if el.final]final [/if][inst.typer el.type] [inst.directField el];
 [/for]
 [/for]
 [/template]
@@ -33,10 +33,10 @@ private final [inst.typer impl.type] [inst.namer impl];
       enc = inst.encoding,
 			impl = enc.impl]
 [if not impl.virtual]
-[inst.namer impl] = [impl.unitializedFieldValue];
+[inst.directField impl] = [impl.unitializedFieldValue];
 [/if]
 [for el in enc.element if el.valueField]
-[inst.namer el] = [el.unitializedFieldValue];
+[inst.directField el] = [el.unitializedFieldValue];
 [/for]
 [/for]
 [/template]
@@ -56,18 +56,48 @@ Could not generate constructor for [a.containingType.typeImmutable.relativeRaw].
 [/for]
 [/template]
 
-[template public assignDefaultFields Attribute... as Boolean pureCopy]
-[for a in as if a.encoding,
-    inst = a.instantiation,
-    el in inst.encoding.element if el.valueField,
-    Boolean mangled = inst.hasVirtualImpl and (a.generateDerived ornot pureCopy)]
-[if el.code]
-  [if mangled]
-this.[inst.namer el] = [inst.codeOfAuxFieldVirtualDecorated el];
-  [else]
-this.[inst.namer el] = [inst.codeOf el];
-  [/if]
+[template public shimAssignExtract Attribute a String shim]
+[for inst = a.instantiation,
+      enc = inst.encoding,
+			impl = enc.impl]
+[if not impl.virtual]
+this.[inst.directField impl] = [shim].[a.names.get]();
 [/if]
+[for f in enc.element if f.valueField]
+this.[inst.directField f] = [shim].[inst.directField f]();
+[/for]
+[/for]
+[/template]
+
+[template public shimFields Attribute a]
+[for inst = a.instantiation,
+    f in inst.encoding.element if f.valueField]
+private [inst.typer f.type] [inst.directField f];
+[/for]
+[/template]
+
+[template public derivedAssign Attribute a]
+[for inst = a.instantiation,
+    f in inst.encoding.element if f.valueField]
+this.[inst.directField f] = [inst.codeDeriveFields f];
+[/for]
+[/template]
+
+[template public shimAssign Attribute a]
+[for inst = a.instantiation,
+    f in inst.encoding.element if f.valueField]
+this.[inst.directField f] = [inst.codeThisFields f];
+[/for]
+[/template]
+
+[template public shimAccessor Attribute a]
+[for inst = a.instantiation,
+    f in inst.encoding.element if f.valueField]
+
+[inst.typer f.type] [inst.directField f]() {
+  [a.names.get]();[-- trigger init of impl and helper fields, then return derived field ]
+  return [inst.directField f];
+}
 [/for]
 [/template]
 
@@ -174,26 +204,18 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [/template]
 
 [template public accessor Attribute a String shimName]
-[for inst = a.instantiation, el = inst.expose]
-  [if a.generateDefault or a.generateDerived]
-[a.access][inst.type] [a.names.get]() {
-  [if a.hasVirtualImpl]
-  if (this.[shimName] != null) {
-    throw new [a.containingType.throwForInvalidImmutableState](
-        "Cannot refer to '[a.name]' attribute from initializer method. Limitation of encoding virtual fields");
-  }
-  return this.[a.names.get]$get();
-  [else]
-  InitShim shim = this.[shimName];
-  return shim != null
-      ? shim.[a.names.get]()
-      : this.[a.names.get]$get();
-  [/if]
-}
-
-private [inst.type] [a.names.get]$get() [inst.codeOf el]
-  [else]
+[for inst = a.instantiation,
+    enc = inst.encoding,
+    el = inst.expose]
 [a.access][inst.type] [a.names.get]() [inst.codeOf el]
+  [if inst.shimFields]
+    [for f in enc.element if f.valueField or (f.implField andnot f.virtual)]
+
+private [inst.typer f.type] [inst.namer f] {
+  InitShim shim = this.[shimName];
+  return shim != null ? shim.[inst.directField f]() : this.[inst.directField f];
+}
+    [/for]
   [/if]
 [/for]
 [/template]

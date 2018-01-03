@@ -71,6 +71,10 @@ public abstract class EncodedElement {
 
   abstract List<TypeParam> typeParams();
 
+  abstract List<String> docs();
+
+  abstract List<String> annotations();
+
   Param firstParam() {
     return params().get(0);
   }

@@ -1,6 +1,7 @@
 package org.immutables.value.processor;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
@@ -32,6 +33,8 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
 
   @Generator.Typedef
   protected DeclaringPackage Package;
+
+  protected final ImmutableList<ValueAttribute> noAttributes = ImmutableList.of();
 
   protected final String guava = UnshadeGuava.prefix();
 

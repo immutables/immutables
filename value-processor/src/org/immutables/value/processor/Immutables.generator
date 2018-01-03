@@ -2252,15 +2252,11 @@ this.[n] = null;
 [for v in attributes if not (v.generateDefault or v.generateDerived), n = v.name]
 [if v.hasVirtualImpl][rr.virtualImpl v][else]this.[n][/if] = [emptyImmutableInstance v ''];
 [/for]
-[for v in attributes if v.generateDefault or v.generateDerived, n = v.name]
+[for v in attributes if v.generateDefault, n = v.name]
 [if type.annotationType]
-this.[n] = DEFAULT_VALUE_[toConstant v.name];
-[else]
-  [if type.generateSafeDerived]
-[if v.hasVirtualImpl][rr.virtualImpl v][else]this.[n][/if] = [disambiguateField type 'initShim'].[v.names.get]();
-  [else]
+this.[n] = DEFAULT_VALUE_[toConstant n];
+[else if not type.generateSafeDerived]
 this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
-  [/if]
 [/if]
 [/for]
 [/template]
@@ -2289,13 +2285,14 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 
   private [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorDefaultAttributes type type.implementedAttributes]
-    [generateAfterConstruction type false false false]
+    [generateDerivedConstruction type noAttributes]
+    [generateAfterConstruction type false]
   [/output.collapsible]}
 [else if type.generatePrivateNoargConstructor]
 
   private [type.typeImmutable.simple]() {[output.collapsible]
     [generateConstructorNoAttributes type type.implementedAttributes]
-    [generateAfterConstruction type false true true]
+    [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
 [if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
@@ -2318,20 +2315,25 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
   [/if]
+[if type.constructorOmited or (type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes))]
+  [let shim][disambiguateField type 'initShim'][/let]
   [for v in type.constructorArguments, n = v.name]
-    [if v.hasVirtualImpl]
+[if v.generateDefault and type.generateSafeDerived]
+    [shim].[v.names.init]([valueFromValue v n]);
+[else if v.hasVirtualImpl]
     [rr.virtualImpl v] = [valueFromValue v n];
-    [else]
+[else]
     this.[n] = [valueFromValue v n];
-    [/if]
+[/if]
   [/for]
-[if type.generateSafeDerived]
-  [for v in type.constructorArguments if v.generateDefault]
-    [disambiguateField type 'initShim'].[v.names.init](this.[v.name]);
+    [generateConstructorDefaultAttributes type type.constructorOmited]
+[else][-- Alternatively a lot simpler implementation]
+  [for v in type.constructorArguments, n = v.name]
+    this.[n] = [valueFromValue v n];
   [/for]
 [/if]
-    [generateConstructorDefaultAttributes type type.constructorOmited]
-    [generateAfterConstruction type false false false]
+    [generateDerivedConstruction type type.constructorArguments]
+    [generateAfterConstruction type false]
   }
 [/if]
 [if type.generateBuilderConstructor]
@@ -2353,19 +2355,15 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     }
   [/for]
 [/if]
-[for v in getters, n = v.name]
-[if v.generateDefault]
-  [if type.generateSafeDerived]
-    [if v.hasVirtualImpl][rr.virtualImpl v][else]this.[n][/if] = [disambiguateField type 'initShim'].[v.names.get]();
-  [else]
+[for v in getters if v.generateDefault, n = v.name]
+  [if type.annotationType ornot type.generateSafeDerived]
     this.[n] = [if v.requiresTrackIsSet]builder.[v.names.isSet]()[else]builder.[n] != null[/if]
         ? [valueFromBuilderAlt v v.requiresTrackIsSet]builder.[/valueFromBuilderAlt]
         : [if type.annotationType]DEFAULT_VALUE_[toConstant v.name][else][valueFromSuper v][invokeSuper v].[v.names.get]()[/valueFromSuper][/if];
   [/if]
-[/if]
 [/for]
-    [generateDerivedConstruction type]
-    [generateAfterConstruction type true false false]
+    [generateDerivedConstruction type noAttributes]
+    [generateAfterConstruction type true]
   }
 [/if]
 [if type.useCopyMethods]
@@ -2381,26 +2379,35 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [ann]
   [/for]
   public [type.typeImmutable.simple]([output.linesShortable]
-      [for v in getters if not v.generateDerived][if not for.first],
+      [for v in setters][if not for.first],
       [/if][v.constructorParameterAnnotations][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [else]
   private [type.typeImmutable.simple]([output.linesShortable]
       [if type.synthCopyConstructor][type.typeImmutable.simple] [disambiguateField type 'original'],
-      [/if][for v in getters if not v.generateDerived][if not for.first],
+      [/if][for v in setters][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [/if]
-  [for v in getters if not v.generateDerived]
-    [if not v.hasVirtualImpl]
-    this.[v.name] = [v.name];
+[if type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes)]
+  [let shim][disambiguateField type 'initShim'][/let]
+  [for v in setters, n = v.name]
+    [if v.generateDefault and type.generateSafeDerived]
+    [shim].[v.names.init]([n]);
+    [else if v.hasVirtualImpl]
+    [rr.virtualImpl v] = [n];
+    [else]
+    this.[n] = [n];
     [/if]
   [/for]
-  [if type.generateSafeDerived and type.hasDerivedAttributes]
-  [for v in getters if v.generateDefault]
-    [disambiguateField type 'initShim'].[v.names.init]([v.name]);
+    [generateDerivedConstruction type setters]
+[else][-- Alternatively a lot simpler implementation]
+  [for v in setters, n = v.name]
+    this.[n] = [n];
   [/for]
-  [/if]
-    [generateDerivedConstruction type]
-    [generateAfterConstruction type false true false]
+  [for v in getters if v.generateDerived, n = v.name]
+    this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
+  [/for]
+[/if]
+    [generateAfterConstruction type false]
   }
 [/if]
 [if type.generateSafeDerived]
@@ -2410,17 +2417,6 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [generateCopyMethods type]
   [generateObjectUtilityMethods type]
   [generateJacksonMapped type]
-[/for]
-[/template]
-
-[template generateDerivedConstruction Type type]
-[for v in type.implementedAttributes if v.generateDerived]
-  [if type.generateSafeDerived and v.encoding]
-  [let getShim][disambiguateField type 'initShim'].[v.names.get]()[/let]
-[if v.hasVirtualImpl][rr.virtualImpl v][else]this.[v.name][/if] = [getShim];
-  [else]
-this.[v.name] = [maybeNonNullValue v][invokeSuper v].[v.names.get]()[/maybeNonNullValue];
-  [/if]
 [/for]
 [/template]
 
@@ -2434,31 +2430,41 @@ private static final byte STAGE_INITIALIZED = 1;
 [hiddenMutableState type]
 private transient volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
 
+[-- dancing around errorprone --]
+[for f in deriveds if f.encoding]
+[if for.first][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']
+@com.google.errorprone.annotations.CanIgnoreReturnValue
+[/if][/if]
+[/for]
 private final class InitShim {
 [for v in deriveds]
   [let stage][disambiguateField type][v.name]BuildStage[/disambiguateField][/let]
   [let invokeSuperGet][disambiguateAccessor type][v.names.get]Initialize[/disambiguateAccessor][/let]
+  private byte [stage] = STAGE_UNINITIALIZED;
   private [immutableImplementationType v] [v.name];
-  private byte [stage];
+  [if v.encoding][rr.shimFields v][/if]
 
   [immutableImplementationType v] [v.names.get]() {
     if ([stage] == STAGE_INITIALIZING) throw new [type.throwForInvalidImmutableState](formatInitCycleMessage());
     if ([stage] == STAGE_UNINITIALIZED) {
       [stage] = STAGE_INITIALIZING;
       this.[v.name] = [valueFromSuper v][if v.defaultInterface][invokeSuperGet][else][invokeSuperQualified v].[v.names.get][/if]()[/valueFromSuper];
+      [if v.encoding][rr.shimAssign v][/if]
       [stage] = STAGE_INITIALIZED;
     }
     return this.[v.name];
   }
+  [if v.encoding][rr.shimAccessor v][/if]
   [if v.generateDefault]
 
   void [v.names.init]([immutableImplementationType v] [v.name]) {
     this.[v.name] = [v.name];
+    [if v.encoding][rr.shimAssign v][/if]
     [stage] = STAGE_INITIALIZED;
   }
   [/if]
-[/for]
 
+[/for]
   private String formatInitCycleMessage() {
     java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList[asDiamond 'String']()[else][guava].collect.Lists.newArrayList()[/if];
     [for v in deriveds]
@@ -2957,10 +2963,31 @@ public String toString() {
 [/if]
 [/template]
 
-[template generateAfterConstruction Type type Boolean usingBuilder Boolean pureCopy Boolean skipEncoding]
-  [if not skipEncoding]
-[rr.assignDefaultFields type.implementedAttributes pureCopy]
+[template generateDerivedConstruction Type type Attribute... constructorArgs]
+[-- first come things that have to be initialized before any of initShim kicks in]
+[for a in type.implementedAttributes]
+  [if a.generateDefault or a.generateDerived]
+    [if a.generateDerived andnot type.generateSafeDerived]
+this.[a.name] = [valueFromValue a][invokeSuper a].[a.names.get]()[/valueFromValue];
+    [/if]
+  [else if a.encoding][-- non derived encodings]
+[rr.derivedAssign a]
   [/if]
+[/for]
+[-- now completing with initShim]
+[if type.generateSafeDerived]
+[let shim][disambiguateField type 'initShim'][/let]
+[for a in type.implementedAttributes if a.generateDefault or a.generateDerived]
+  [if a.encoding]
+[rr.shimAssignExtract a shim]
+  [else if a notin constructorArgs]
+this.[a.name] = [shim].[a.names.get]();
+  [/if]
+[/for]
+[/if]
+[/template]
+
+[template generateAfterConstruction Type type Boolean usingBuilder]
   [if type.usePrehashed]
 this.hashCode = [if type.hashCodeDefined]super.hashCode()[else][disambiguateAccessor type 'computeHashCode']()[/if];
   [/if]

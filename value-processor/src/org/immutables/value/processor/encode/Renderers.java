@@ -43,8 +43,6 @@ public abstract class Renderers extends AbstractValuesTemplate {
 
   public abstract Templates.Invokable defaultValue();
 
-  public abstract Templates.Invokable assignDefaultFields();
-
   public abstract Templates.Invokable staticFields();
 
   public abstract Templates.Invokable staticMethods();
@@ -84,4 +82,14 @@ public abstract class Renderers extends AbstractValuesTemplate {
   public abstract Templates.Invokable builderCopyFrom();
 
   public abstract Templates.Invokable unitializedFieldValue();
+
+  public abstract Templates.Invokable shimFields();
+
+  public abstract Templates.Invokable shimAssign();
+
+  public abstract Templates.Invokable shimAccessor();
+
+  public abstract Templates.Invokable shimAssignExtract();
+
+  public abstract Templates.Invokable derivedAssign();
 }

@@ -1040,8 +1040,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
     if (instantiationCreator != null
         && !isGenerateLazy) {
-      this.instantiation =
-          instantiationCreator.tryInstantiateFor(reporter, returnTypeName, names, containingType);
+      this.instantiation = instantiationCreator.tryInstantiateFor(
+          reporter,
+          returnTypeName,
+          names,
+          containingType,
+          isGenerateDefault || isGenerateDerived);
     }
 
     initTypeKind();
