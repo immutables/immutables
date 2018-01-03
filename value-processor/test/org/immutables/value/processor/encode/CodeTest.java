@@ -58,6 +58,22 @@ public class CodeTest {
   }
 
   @Test
+  public void bind3() {
+    List<Code.Term> terms =
+        Code.termsFrom(
+            "this.aa(OPA.aa, new My(this.HERBIVORE))");
+
+    Code.Binder binder = new Code.Binder(
+        ImmutableMap.of("My", "xx.My"),
+        ImmutableSet.of(Code.Binding.newTop("HERBIVORE"), Code.Binding.newMethod("aa")));
+
+    String joined = Code.join(binder.apply(terms));
+
+    check(joined).is(
+        "this.@:aa(OPA.aa, new xx.My(this.HERBIVORE))");
+  }
+
+  @Test
   public void bind2() {
     List<Code.Term> terms = Code.termsFrom("this.aa\n(this\n.aa, this :: aa)");
 

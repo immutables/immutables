@@ -272,10 +272,15 @@ public abstract class Encodings extends AbstractTemplate {
       Set<String> lines = new LinkedHashSet<>();
       for (String a : imports.all) {
         if (a.contains(ENCODE_PACKAGE_PREFIX)) {
+          // don't want to bother with any of encoding annotation imports
           continue;
         }
-        // if (a.startsWith("static ") || a.endsWith(".*"))
-        lines.add(a);
+        if (a.startsWith("static ") || a.endsWith(".*")) {
+          // only adding this, other are added directly to code as fully qualified names by
+          // Code.Binder. This is to minimize conflicts betweed differend encodings.
+          // thus encoding authors should avoid use star and static imports.
+          lines.add(a);
+        }
       }
       return lines;
     }

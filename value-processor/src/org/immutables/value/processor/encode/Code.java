@@ -135,11 +135,17 @@ final class Code {
             result.add(t);
           }
         } else if (state.isMethod()) {
-          Binding method = Binding.newMethod(t.toString());
-          if (bindings.contains(method)) {
-            result.add(method);
+          String identifier = t.toString();
+          if (imports.containsKey(identifier)) {
+            String qualifiedName = imports.get(identifier);
+            result.addAll(termsFrom(qualifiedName));
           } else {
-            result.add(t);
+            Binding method = Binding.newMethod(identifier);
+            if (bindings.contains(method)) {
+              result.add(method);
+            } else {
+              result.add(t);
+            }
           }
         } else {
           result.add(t);
