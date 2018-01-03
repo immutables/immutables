@@ -147,7 +147,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>5.4.0.Final</version>
+      <version>6.0.7.Final</version>
     </dependency>
     <dependency>
       <groupId>com.google.errorprone</groupId>
