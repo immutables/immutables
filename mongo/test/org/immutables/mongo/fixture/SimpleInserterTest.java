@@ -1,5 +1,6 @@
 package org.immutables.mongo.fixture;
 
+import com.mongodb.DuplicateKeyException;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
 public class SimpleInserterTest {
 
@@ -43,12 +45,14 @@ public class SimpleInserterTest {
 
     try {
       repository.insert(ImmutableItem.of("i1")).getUnchecked();
+      fail("Should fail on " + DuplicateKeyException.class.getSimpleName());
     } catch (Exception e) {
       MongoAsserts.assertDuplicateKeyException(e);
     }
 
     try {
       repository.insert(Collections.singleton(ImmutableItem.of("i1"))).getUnchecked();
+      fail("Should fail on " + DuplicateKeyException.class.getSimpleName());
     } catch (Exception e) {
       MongoAsserts.assertDuplicateKeyException(e);
     }
