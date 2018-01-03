@@ -980,11 +980,11 @@ public interface BuildFinal[type.generics] {
 
   /**
    * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
-   * @param [v.name] The entries that will be added to the [v.name] map
+   * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  BuildFinal[type.generics.args] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]);
+  BuildFinal[type.generics.args] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries);
   [/for]
 [else if v.arrayType]
 
@@ -993,11 +993,11 @@ public interface BuildFinal[type.generics] {
   [if v.generateDefault]
    * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
   [/if]
-   * @param [v.name] The elements for [v.name]
+   * @param elements The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  BuildFinal[type.generics.args] [v.names.init]([v.elementType]... [v.name]);
+  BuildFinal[type.generics.args] [v.names.init]([v.elementType]... elements);
 [else]
 
   /**
@@ -1750,13 +1750,13 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 
   /**
    * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map. Nulls are not permitted[if v.nullable] as keys or values, but parameter itself can be null[/if]
-   * @param [v.name] The entries that will be added to the [v.name] map
+   * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue type]
   [builderInitAnnotations v]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullable]
     if ([v.name] == null) {
       [defineOrResetBuildingFieldAlt v false true]
@@ -1766,28 +1766,28 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
     [defineOrResetBuildingField v false]
     [nondefaultSetInBuilder v]
-    return [v.names.putAll]([v.name]);
+    return [v.names.putAll](entries);
   }
           [/if]
         [/if]
 
   /**
    * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
-   * @param [v.name] The entries that will be added to the [v.name] map
+   * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
     }
     [/if]
     [if v.generateJdkOnly]
-    for (java.util.Map.Entry<[gE], ? extends [wV]> entry : [v.name].entrySet()) {
-      [wK] k = entry.getKey();
-      [wV] v = entry.getValue();
+    for (java.util.Map.Entry<[gE], ? extends [wV]> e : entries.entrySet()) {
+      [wK] k = e.getKey();
+      [wV] v = e.getValue();
         [if v.nullElements.allow]
       this.[v.name].put(k, v);
         [else if v.nullElements.skip]
@@ -1799,7 +1799,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
         [/if]
     }
     [else]
-    this.[v.name].putAll([v.name]);
+    this.[v.name].putAll(entries);
     [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
