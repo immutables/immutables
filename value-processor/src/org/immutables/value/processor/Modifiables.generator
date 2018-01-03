@@ -887,8 +887,9 @@ if ([v.name]Value != null) {
 [/template]
 
 [template generateEqualsHashCode Type type]
-[let equalToType][type.names.typeModifiable][/let]
 [for getters = type.equivalenceAttributes]
+  [if not type.isEqualToFinal]
+[let equalToType][type.names.typeModifiable][/let]
 
 /**
  * This instance is equal to all instances of {@code [equalToType]} that have equal attribute values.
@@ -928,6 +929,8 @@ private boolean equalTo([equalToType] another) {
       && [/if][im.equalsAttribute v (type.annotationType or (v.generateDerived or (v.generateDefault or v.deferCollectionAllocation)))][/for];
   [/if]
 }
+  [/if]
+  [if not type.isHashCodeFinal]
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
 [if type.annotationType]
@@ -984,6 +987,7 @@ public int hashCode() {
 [computeHashCodeBody]
 }
 [/if]
+  [/if][--not final]
 [/for]
 [/template]
 

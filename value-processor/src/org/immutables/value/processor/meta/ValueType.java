@@ -44,6 +44,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public List<ValueAttribute> attributes = Lists.newArrayList();
   public boolean isHashCodeDefined;
   public boolean isEqualToDefined;
+  public boolean isHashCodeFinal;
+  public boolean isEqualToFinal;
   public boolean isToStringDefined;
   public Constitution constitution;
   public int defaultAttributesCount;

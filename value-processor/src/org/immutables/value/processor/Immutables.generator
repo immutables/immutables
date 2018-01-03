@@ -2765,6 +2765,7 @@ public int ordinal() {
 [let equalToTypeRaw][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relativeRaw][type.generics.unknown][/if][/let]
 [let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relative][/if][/let]
 [for getters = type.equivalenceAttributes]
+[if not type.isEqualToFinal]
 [if type.useReferenceEquality ornot type.equalToDefined]
 
 /**
@@ -2789,6 +2790,7 @@ public boolean equals([atNullable type]Object another) {
       && equalTo(([equalToTypeRaw]) another);
   [/if]
 }
+[/if]
 [/if]
 [if type.useEqualTo]
 

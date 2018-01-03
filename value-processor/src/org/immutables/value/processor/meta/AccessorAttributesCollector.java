@@ -172,6 +172,7 @@ final class AccessorAttributesCollector {
 
       if (nonAbstract) {
         type.isEqualToDefined = true;
+        type.isEqualToFinal = !nonFinal;
 
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
@@ -187,6 +188,7 @@ final class AccessorAttributesCollector {
         && parameters.isEmpty()) {
       if (nonAbstract) {
         type.isHashCodeDefined = true;
+        type.isHashCodeFinal = !nonFinal;
 
         // inherited non-abstract implementation
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
