@@ -2696,6 +2696,12 @@ public Class<? extends java.lang.annotation.Annotation> annotationType() {
  *[d][-- no space before doc line!]
 [/for]
   [else]
+  [if v.encoding]
+[for d in v.instantiation.exposeDoc]
+[-- adding space if singular]
+ *[if singular v.instantiation.exposeDoc] [/if][v.instantiation.filterDoc d]
+[/for]
+  [/if]
 [if v.arrayType]
  * @return A cloned {@code [v.name]} array
 [else if v.generateDerived]

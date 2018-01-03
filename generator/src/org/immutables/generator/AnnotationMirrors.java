@@ -117,7 +117,8 @@ public final class AnnotationMirrors {
       AnnotationMirror annotationMirror) {
 
     for (Entry<? extends ExecutableElement, ? extends AnnotationValue> e : annotationMirror
-        .getElementValues().entrySet()) {
+        .getElementValues()
+        .entrySet()) {
 
       if (e.getKey().getSimpleName().contentEquals(annotationValueName)) {
         e.getValue().accept(new SimpleAnnotationValueVisitor7<Void, Void>() {
@@ -146,7 +147,8 @@ public final class AnnotationMirrors {
     String annotationTypeName = annotationType.getCanonicalName();
     for (AnnotationMirror annotation : annotationMirrors) {
       if (((TypeElement) annotation.getAnnotationType().asElement())
-          .getQualifiedName().contentEquals(annotationTypeName)) {
+          .getQualifiedName()
+          .contentEquals(annotationTypeName)) {
         return annotation;
       }
     }
@@ -244,6 +246,10 @@ public final class AnnotationMirrors {
 
     @Override
     public Void visitArray(List<? extends AnnotationValue> vals, Void p) {
+      if (vals.size() == 1) {
+        visitValue(vals.get(0));
+        return null;
+      }
       builder.append('{');
       boolean notFirst = false;
       for (AnnotationValue v : vals) {

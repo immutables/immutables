@@ -179,6 +179,32 @@ public class Builtins {
         }
       };
 
+  public final Templates.Binary<Object, String, Boolean> startsWith =
+      new Templates.Binary<Object, String, Boolean>() {
+        @Override
+        public Boolean apply(Object left, String right) {
+          return left.toString().startsWith(right);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".startsWith";
+        }
+      };
+
+  public final Templates.Binary<Object, String, Boolean> endsWith =
+      new Templates.Binary<Object, String, Boolean>() {
+        @Override
+        public Boolean apply(Object left, String right) {
+          return left.toString().endsWith(right);
+        }
+
+        @Override
+        public String toString() {
+          return Builtins.class.getSimpleName() + ".endsWith";
+        }
+      };
+
   public final Templates.Binary<Object, Collection<?>, Boolean> in =
       new Templates.Binary<Object, Collection<?>, Boolean>() {
         @Override

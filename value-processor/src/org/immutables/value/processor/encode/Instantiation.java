@@ -179,6 +179,10 @@ public final class Instantiation {
     return false;
   }
 
+  public List<String> exposeDoc() {
+    return expose.doc();
+  }
+
   public boolean hasVirtualImpl() {
     return encoding.impl().isVirtual();
   }
@@ -250,15 +254,6 @@ public final class Instantiation {
     }
   };
 
-  final Predicate<EncodedElement> isSafeVarargs = new Predicate<EncodedElement>() {
-    @Override
-    public boolean apply(EncodedElement input) {
-      return input.isFinal()
-          && input.isSafeVarargs()
-          && hasGenericVarargs(input);
-    }
-  };
-
   final Predicate<EncodedElement> isInlined = new Predicate<EncodedElement>() {
     @Override
     public boolean apply(EncodedElement input) {
@@ -273,18 +268,6 @@ public final class Instantiation {
         && !entangledBuildMethod(el);
   }
 
-  protected boolean hasGenericVarargs(EncodedElement input) {
-    List<Param> params = input.params();
-    if (!params.isEmpty()) {
-      Type t = Iterables.getLast(params).type();
-      if (t instanceof Type.Array) {
-        Type.Array a = (Type.Array) t;
-        return a.varargs && typer.apply(a.element) instanceof Type.Variable;
-      }
-    }
-    return false;
-  }
-
   private boolean entangledBuildMethod(EncodedElement el) {
     return el.isBuild() && containingType.isGenerateBuilderConstructor();
   }
@@ -292,6 +275,13 @@ public final class Instantiation {
   private boolean isDefaultUnspecifiedValue(EncodedElement element) {
     return element.naming().isIdentity() && !element.depluralize();
   }
+
+  public final Function<String, String> filterDoc = new Function<String, String>() {
+    @Override
+    public String apply(String input) {
+      return input.replace("<*>", names.var);
+    }
+  };
 
   final Templates.Invokable fragmentOf = new Templates.Invokable() {
     @Override

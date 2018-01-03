@@ -49,7 +49,6 @@ public abstract class EncodedElement {
     SYNTH,
     // applies to impl field
     VIRTUAL,
-    SAFE_VARARGS,
     IS_INIT
   }
 
@@ -71,7 +70,7 @@ public abstract class EncodedElement {
 
   abstract List<TypeParam> typeParams();
 
-  abstract List<String> docs();
+  abstract List<String> doc();
 
   abstract List<String> annotations();
 
@@ -128,11 +127,6 @@ public abstract class EncodedElement {
   @Derived
   boolean isWasInit() {
     return tags().contains(Tag.IS_INIT);
-  }
-
-  @Derived
-  boolean isSafeVarargs() {
-    return tags().contains(Tag.SAFE_VARARGS);
   }
 
   @Derived

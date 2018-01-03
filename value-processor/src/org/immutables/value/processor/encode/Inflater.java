@@ -73,6 +73,8 @@ public final class Inflater implements Function<EncMetadata, EncodingInfo> {
         .naming(Naming.from(e.naming()))
         .standardNaming(StandardNaming.valueOf(e.stdNaming()))
         .type(parser.parse(e.type()))
+        .addDoc(e.doc())
+        .addAnnotations(e.annotations())
         .addAllCode(Code.termsFrom(e.code()));
 
     for (String input : e.params()) {

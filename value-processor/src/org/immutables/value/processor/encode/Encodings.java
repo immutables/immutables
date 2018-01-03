@@ -20,6 +20,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ObjectArrays;
@@ -34,6 +35,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -45,6 +47,7 @@ import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.AbstractTemplate;
+import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Naming;
 import org.immutables.generator.Naming.Usage;
@@ -268,12 +271,11 @@ public abstract class Encodings extends AbstractTemplate {
     private Set<String> generatedImports() {
       Set<String> lines = new LinkedHashSet<>();
       for (String a : imports.all) {
-        if (a.contains("org.immutables.encode.")) {
+        if (a.contains(ENCODE_PACKAGE_PREFIX)) {
           continue;
         }
-        // if (a.startsWith("static ") || a.endsWith(".*")) {
+        // if (a.startsWith("static ") || a.endsWith(".*"))
         lines.add(a);
-        // }
       }
       return lines;
     }
@@ -373,6 +375,8 @@ public abstract class Encodings extends AbstractTemplate {
           .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(inferTags(field, tags))
+          .addAllDoc(docFrom(field))
+          .addAllAnnotations(annotationsFrom(field))
           .addAllCode(expression)
           .build());
 
@@ -418,6 +422,8 @@ public abstract class Encodings extends AbstractTemplate {
           .addTags(Tag.IMPL, Tag.FINAL, Tag.PRIVATE, virtual ? Tag.VIRTUAL : Tag.FIELD)
           .naming(Naming.identity())
           .typeParameters(typesReader.parameters)
+          .addAllDoc(docFrom(field))
+          .addAllAnnotations(annotationsFrom(field))
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
           .build();
 
@@ -517,6 +523,8 @@ public abstract class Encodings extends AbstractTemplate {
           .naming(helperNaming(method.getSimpleName()))
           .addParams(Param.of(parameter.getSimpleName().toString(), typesReader.get(parameter.asType())))
           .typeParameters(typesReader.parameters)
+          .addAllDoc(docFrom(method))
+          .addAllAnnotations(annotationsFrom(method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
 
@@ -678,6 +686,8 @@ public abstract class Encodings extends AbstractTemplate {
           .addTags(Tag.EXPOSE)
           .naming(Naming.identity())
           .typeParameters(typesReader.parameters)
+          .addAllDoc(docFrom(method))
+          .addAllAnnotations(annotationsFrom(method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build());
 
@@ -704,6 +714,8 @@ public abstract class Encodings extends AbstractTemplate {
           .standardNaming(standardNaming.get())
           .addAllTags(inferTags(method, tags))
           .addAllParams(getParameters(typesReader, method))
+          .addAllDoc(docFrom(method))
+          .addAllAnnotations(annotationsFrom(method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .addAllThrown(typesReader.getDefined(method.getThrownTypes()))
           .build());
@@ -874,6 +886,8 @@ public abstract class Encodings extends AbstractTemplate {
           .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(inferTags(field, tags))
+          .addAllDoc(docFrom(field))
+          .addAllAnnotations(annotationsFrom(field))
           .addAllCode(sourceMapper.getExpression(memberPath(field)))
           .build());
 
@@ -934,6 +948,8 @@ public abstract class Encodings extends AbstractTemplate {
           .standardNaming(standardNaming.get())
           .typeParameters(typesReader.parameters)
           .addAllTags(tags)
+          .addAllDoc(docFrom(method))
+          .addAllAnnotations(annotationsFrom(method))
           .addAllCode(sourceMapper.getBlock(memberPath(method)))
           .build();
 
@@ -1030,9 +1046,6 @@ public abstract class Encodings extends AbstractTemplate {
       }
       if (member.getModifiers().contains(Modifier.FINAL)) {
         tags.add(Tag.FINAL);
-      }
-      if (member.getAnnotation(SafeVarargs.class) != null) {
-        tags.add(Tag.SAFE_VARARGS);
       }
       return tags;
     }
@@ -1135,9 +1148,13 @@ public abstract class Encodings extends AbstractTemplate {
             .addTags(Tag.PRIVATE, Tag.BUILD, Tag.BUILDER, Tag.SYNTH)
             .addAllCode(
                 Code.termsFrom("{\n"
-                    + "if (" + fieldElementName + " == null)"
+                    + "if ("
+                    + fieldElementName
+                    + " == null)"
                     + " throw new java.lang.IllegalStateException(\"'<*>' is not initialized\");\n"
-                    + "return " + fieldElementName + ";\n"
+                    + "return "
+                    + fieldElementName
+                    + ";\n"
                     + "}"))
             .build();
 
@@ -1255,4 +1272,25 @@ public abstract class Encodings extends AbstractTemplate {
       return result;
     }
   }
+
+  private Iterable<String> annotationsFrom(Element element) {
+    List<String> annotations = new ArrayList<>();
+    for (AnnotationMirror annotationMirror : element.getAnnotationMirrors()) {
+      String a = AnnotationMirrors.toCharSequence(annotationMirror).toString();
+      if (!a.startsWith(ENCODE_PACKAGE_PREFIX, 1)) {
+        annotations.add(a);
+      }
+    }
+    return annotations;
+  }
+
+  private Iterable<String> docFrom(Element element) {
+    @Nullable String docComment = processing().getElementUtils().getDocComment(element);
+    return docComment == null
+        ? ImmutableList.<String>of()
+        : DOC_COMMENT_LINE_SPLITTER.split(docComment);
+  }
+
+  private static final String ENCODE_PACKAGE_PREFIX = "org.immutables.encode.";
+  private static final Splitter DOC_COMMENT_LINE_SPLITTER = Splitter.on('\n').omitEmptyStrings();
 }

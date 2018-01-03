@@ -41,6 +41,8 @@ package [enc.package];
       type = [literal.string el.type],
       typeParams = {[for t in el.typeParams][if not for.first], [/if][literal.string t][/for]},
       params = {[for p in el.params][if not for.first], [/if][literal.string p][/for]},
+      doc = {[for d in el.doc][if not for.first], [/if][literal.string d][/for]},
+      annotations = {[for a in el.annotations][if not for.first], [/if][literal.string a][/for]},
       code = [for String l = enc.linkage el][literal.string l][/for],
       thrown = {[for t in el.thrown][if not for.first], [/if][literal.string t][/for]}
     )[/for]
