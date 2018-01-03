@@ -19,6 +19,7 @@ import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.lang.annotation.ElementType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -131,7 +132,7 @@ class TypeStringProvider {
       this.returnTypeName = typeName;
       List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(startType);
       if (!annotations.isEmpty()) {
-        returnTypeName = typeAnnotationsToBuffer(annotations).append(typeName).toString();
+        returnTypeName = typeAnnotationsToBuffer(annotations, false).append(typeName).toString();
       }
     } else {
       this.buffer = new StringBuilder(100);
@@ -183,15 +184,21 @@ class TypeStringProvider {
   private void insertTypeAnnotationsIfPresent(TypeMirror type, int typeStart, int typeEnd) {
     List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(type);
     if (!annotations.isEmpty()) {
-      StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations);
+      StringBuilder annotationBuffer = typeAnnotationsToBuffer(annotations, false);
       int insertionIndex = typeStart + buffer.substring(typeStart, typeEnd).lastIndexOf('.') + 1;
       buffer.insert(insertionIndex, annotationBuffer);
     }
   }
 
-  private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations) {
+  private StringBuilder typeAnnotationsToBuffer(List<? extends AnnotationMirror> annotations, boolean nestedTypeUse) {
     StringBuilder annotationBuffer = new StringBuilder(100);
     for (AnnotationMirror annotationMirror : annotations) {
+      boolean canBeAppliedToMethodAsWell = !nestedTypeUse // just to short circuit computation early
+          && Annotations.annotationMatchesTarget(annotationMirror.getAnnotationType().asElement(), ElementType.METHOD);
+      if (canBeAppliedToMethodAsWell) {
+        // skip this type annotation on top type
+        continue;
+      }
       CharSequence sequence = AnnotationMirrors.toCharSequence(annotationMirror, importsResolver);
       if (!nullableTypeAnnotation && sequence.toString().endsWith(EPHEMERAL_ANNOTATION_NULLABLE)) {
         this.nullableTypeAnnotation = true;
@@ -371,7 +378,7 @@ class TypeStringProvider {
     }
     List<? extends AnnotationMirror> annotations = AnnotationMirrors.from(argument);
     if (!annotations.isEmpty()) {
-      String typeAnnotations = typeAnnotationsToBuffer(annotations).toString();
+      String typeAnnotations = typeAnnotationsToBuffer(annotations, true).toString();
       assignElementNullness(typeAnnotations);
     }
   }

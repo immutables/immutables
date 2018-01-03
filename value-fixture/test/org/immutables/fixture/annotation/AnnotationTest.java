@@ -43,4 +43,12 @@ public class AnnotationTest {
         .cl(Integer.class, Double.class)
         .build());
   }
+
+  @Test
+  public void methodAndTypeUse() throws Exception {
+    Class<ImmutableDoNotPropagateTypeAnnotation> c = ImmutableDoNotPropagateTypeAnnotation.class;
+    check(c.getDeclaredField("a").getAnnotatedType().getAnnotation(MethodAndTypeUse.class)).isNull();
+    check(c.getDeclaredField("b").getAnnotatedType().getAnnotation(MethodAndTypeUse.class)).isNull();
+    check(c.getDeclaredField("c").getAnnotatedType().getAnnotation(TypeUseOnly.class)).notNull();
+  }
 }
