@@ -835,6 +835,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [for l in lz, BitPosition pos = positions l]
   [let maskConstantName][toConstant l.name]_LAZY_INIT_BIT[/let]
   [let bitmapFieldName]lazyInitBitmap[emptyIfZero pos.index][/let]
+  [let lazyVar][disambiguateFieldRep type l.name '$lazy'][/let]
 
   private static final long [maskConstantName] = [literal.hex pos.mask];
 
@@ -843,7 +844,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   about lazily computed attributes that are genuinely mutable. That is an
   unfortunate trade-off. --]
   [hiddenMutableState type]
-  private transient [l.type] [l.name];
+  private transient [l.type] [lazyVar];
 
   /**
    * {@inheritDoc}
@@ -857,12 +858,12 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {
-          this.[l.name] = [maybeNonNullValue l][invokeSuper l].[l.names.get]()[/maybeNonNullValue];
+          this.[lazyVar] = [maybeNonNullValue l][invokeSuper l].[l.names.get]()[/maybeNonNullValue];
           [bitmapFieldName] |= [maskConstantName];
         }
       }
     }
-    return [l.name];
+    return [lazyVar];
   }
   [/for]
   [/for][/if]
@@ -4003,6 +4004,8 @@ private static final long serialVersionUID = [literal serialVersion];
 [template atNullable HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.Nullable']@javax.annotation.Nullable [/if][/template]
 
 [template atVar HasStyleInfo s][if s allowsClasspathAnnotation 'com.google.errorprone.annotations.Var']@com.google.errorprone.annotations.Var [/if][/template]
+
+[template disambiguateFieldRep Type type String name String replacer][name][for v in type.implementedAttributes if v.name eq name][replacer][/for][/template]
 
 [template disambiguateField Type type String name][name][for v in type.implementedAttributes if v.name eq name]$$[/for][/template]
 

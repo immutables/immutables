@@ -195,13 +195,17 @@ public final class ValueTypeComposer {
     if (!type.attributes.isEmpty()) {
       Multiset<String> attributeNames = HashMultiset.create(type.attributes.size());
       for (ValueAttribute attribute : type.attributes) {
-        attributeNames.add(attribute.name());
+        if (attribute.isGenerateLazy) {
+          attributeNames.add(attribute.name() + "$lazy"); // making lazy compare in it's own scope
+        } else {
+          attributeNames.add(attribute.name());
+        }
       }
 
       List<String> duplicates = Lists.newArrayList();
       for (Multiset.Entry<String> entry : attributeNames.entrySet()) {
         if (entry.getCount() > 1) {
-          duplicates.add(entry.getElement());
+          duplicates.add(entry.getElement().replace("$lazy", ""));
         }
       }
 
