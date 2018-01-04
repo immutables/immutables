@@ -220,7 +220,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 
 private [inst.typer f.type] [inst.namer f] {
   InitShim shim = this.[shimName];
-  return shim != null ? shim.[inst.directField f]() : this.[inst.directField f];
+  return shim != null ? shim.[if f.implField][a.names.get][else][inst.directField f][/if]() : this.[inst.directField f];
 }
     [/for]
   [/if]

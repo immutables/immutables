@@ -2327,12 +2327,12 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/if]
   [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
+    [generateDerivedConstruction type type.constructorArguments]
 [else][-- Alternatively a lot simpler implementation]
   [for v in type.constructorArguments, n = v.name]
     this.[n] = [valueFromValue v n];
   [/for]
 [/if]
-    [generateDerivedConstruction type type.constructorArguments]
     [generateAfterConstruction type false]
   }
 [/if]
