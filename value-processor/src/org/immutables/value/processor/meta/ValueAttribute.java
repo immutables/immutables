@@ -1491,7 +1491,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean canUseNullAsUndefined() {
-    return !isPrimitive() && !isNullable() && !typeKind.isCollectionOrMapping();
+    return !isPrimitive()
+        && !isNullable()
+        && !typeKind.isCollectionOrMapping()
+        && !containingType.isUseStrictBuilder();
   }
 
   public boolean requiresTrackIsSet() {
