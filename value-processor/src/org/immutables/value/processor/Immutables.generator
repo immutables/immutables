@@ -2770,7 +2770,7 @@ public int ordinal() {
 
 /**
 [if type.annotationType]
- * This instance is equal to any implementation of the {@link [type.typeAbstract.relativeRaw]} type with equal attribute values.
+ * This instance is equal to any implementation of the {@link [type.typeValue.relativeRaw]} type with equal attribute values.
 [else]
  * This instance is equal to all instances of {@code [type.typeImmutable.simple]} that have equal attribute values.
 [/if]
@@ -3986,7 +3986,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template invokeSuperQualified Attribute a][a.containingType.typeImmutable.simple].super[/template]
 
-[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeAbstract.relativeRaw]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeDocument.relativeRaw]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
