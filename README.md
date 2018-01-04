@@ -32,7 +32,7 @@ License
 ---------
 
 ```
-   Copyright 2013-2017 Immutables Authors and Contributors
+   Copyright 2013-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -49,6 +49,9 @@ License
 
 Changelog
 ---------
+
+### 2.6.0 (being cooked)
+- [Issues 2.6.0](https://github.com/immutables/immutables/milestone/68)
 
 ### 2.5.0 (2017-05-14)
 - Number of bugfixes including Jackson and Gson fixes. Thank you for the PRs!
