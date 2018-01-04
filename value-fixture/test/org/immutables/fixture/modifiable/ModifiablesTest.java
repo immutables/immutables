@@ -218,4 +218,17 @@ public class ModifiablesTest {
     check(m.c().entries()).isEmpty();
     check(m.d().entrySet()).isEmpty();
   }
+
+  @Test
+  public void allowNulls() {
+    ImmutableAllowNullsObject.builder()
+        .putMap("key", null)
+        .addList((String) null)
+        .build()
+        .getClass();
+
+    ModifiableAllowNullsObject.create()
+        .putMap("key", null)
+        .addList((String) null);
+  }
 }

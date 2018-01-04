@@ -484,19 +484,22 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [deprecation v]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] element) {
+  [if v.nullElements.skip]if (element == null) [thisSetterReturn type][/if]
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   }
   [/if]
   [if v.unwrappedElementPrimitiveType]
-  [v.name].add(element);
+  this.[v.name].add(element);
   [else]
-  [v.unwrappedElementType] nonNullElement = [im.requireNonNull type](element, "[v.name] element");
+  [if v.nullElements.ban]
+  element = [im.requireNonNull type](element, "[v.name] element");
+  [/if]
   [if v.attributeValueKindIsCollectionOfModifiable]
-  [v.name].add(element instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw] ? element : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from](element));
+  this.[v.name].add(element instanceof [v.attributeValueType.constitution.typeModifiable.absoluteRaw] ? element : [v.attributeValueType.constitution.factoryCreate]().[v.attributeValueType.names.from](element));
   [else]
-  [v.name].add(nonNullElement);
+  this.[v.name].add(element);
   [/if]
   [/if]
   [nondefaultSetter v]
@@ -512,11 +515,11 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
 [varargsSafety v]
 [atCanIgnoreReturnValue type]
 public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
-  for ([v.unwrappedElementType] element : elements) {
-    [if v.unwrappedElementPrimitiveType]
-    [v.names.add](element);
+  for ([v.unwrappedElementType] e : elements) {
+    [if v.unwrappedElementPrimitiveType][-- anti sneaky autounboxing NPE --]
+    [v.names.add]([im.requireNonNull type](e, "[v.name] element"));
     [else]
-    [v.names.add]([im.requireNonNull type](element, "[v.name] element"));
+    [v.names.add](e);
     [/if]
   }
   [nondefaultSetter v]
@@ -533,19 +536,19 @@ public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType].
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
   [if v.nullable]
   if (elements == null) {
-    [v.name] = null;
+    this.[v.name] = null;
     [nondefaultSetter v]
     [thisSetterReturn type]
   }
   [/if]
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   } else {
-    [v.name].clear();
+    this.[v.name].clear();
   }
   [else]
-  [v.name].clear();
+  this.[v.name].clear();
   [/if]
   [v.names.addAll](elements);
   [thisSetterReturn type]
@@ -561,12 +564,12 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
   if (elements == null) [thisSetterReturn type]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   }
   [/if]
-  for ([v.unwrappedElementType] element : elements) {
-    [v.names.add](element);
+  for ([v.unwrappedElementType] e : elements) {
+    [v.names.add](e);
   }
   [nondefaultSetter v]
   [thisSetterReturn type]
@@ -626,11 +629,22 @@ public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values)
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   }
   [/if]
-  [v.name].putAll(key, values);
+  [if v.nullElements.allow]
+  this.[v.name].putAll(
+      [im.requireNonNull type](key, "[v.name] key"),
+      [im.requireNonNull type](v, "[v.name] values"));
+  [else]
+  for ([wV] v : values) {
+    [if v.nullElements.skip]if (v == null) continue;[/if]
+    this.[v.name].put(
+        [im.requireNonNull type](key, "[v.name] key"),
+        [if v.nullElements.ban][im.requireNonNull type](v, "[v.name] value")[else]v[/if]);
+  }
+  [/if]
   [nondefaultSetter v]
   [thisSetterReturn type]
 }
@@ -646,13 +660,16 @@ public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> val
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   }
   [/if]
-  [v.name].put(
+  [if v.nullElements.skip]
+  if (value == null) [thisSetterReturn type]
+  [/if]
+  this.[v.name].put(
       [if not v.unwrappedElementPrimitiveType][im.requireNonNull type](key, "[v.name] key")[else]key[/if],
-      [if not v.unwrappedSecondaryElementPrimitiveType][im.requireNonNull type](value, "[v.name] value")[else]value[/if]);
+      [if v.nullElements.ban andnot v.unwrappedSecondaryElementPrimitiveType][im.requireNonNull type](value, "[v.name] value")[else]value[/if]);
   [nondefaultSetter v]
   [thisSetterReturn type]
 }
@@ -668,21 +685,32 @@ public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]>[/if] entries) {
   [if v.nullable]
   if (entries == null) {
-    [v.name] = null;
+    this.[v.name] = null;
     [nondefaultSetter v]
     [thisSetterReturn type]
   }
   [/if]
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   } else {
-    [v.name].clear();
+    this.[v.name].clear();
   }
   [else]
-  [v.name].clear();
+  this.[v.name].clear();
   [/if]
-  [v.names.putAll](entries);
+  [if v.nullElements.allow]
+  this.[v.names.putAll](entries);
+  [else]
+  for (java.util.Map.Entry<[gE], ? extends [wV]> e : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
+    [wK] k = e.getKey();
+    [wV] v = e.getValue();
+    [if v.nullElements.skip]if (v == null) continue;[/if]
+    this.[v.name].put(
+        [im.requireNonNull type](k, "[v.name] key"),
+        [if v.nullElements.ban][im.requireNonNull type](v, "[v.name] value")[else]v[/if]);
+  }
+  [/if]
   [thisSetterReturn type]
 }
 
@@ -696,14 +724,17 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   [if v.nullableCollector]
-  if ([v.name] == null) {
-    [defineOrResetField v false]
+  if (this.[v.name] == null) {
+    this.[defineOrResetField v false]
   }
   [/if]
-  for (java.util.Map.Entry<[gE], ? extends [wV]> entry : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
-    [v.name].put(
-        [im.requireNonNull type](entry.getKey(), "[v.name] key"),
-        [im.requireNonNull type](entry.getValue(), "[v.name] value"));
+  for (java.util.Map.Entry<[gE], ? extends [wV]> e : entries.[if v.multimapType]entries[else]entrySet[/if]()) {
+    [wK] k = e.getKey();
+    [wV] v = e.getValue();
+    [if v.nullElements.skip]if (v == null) continue;[/if]
+    this.[v.name].put(
+        [im.requireNonNull type](k, "[v.name] key"),
+        [if v.nullElements.ban][im.requireNonNull type](v, "[v.name] value")[else]v[/if]);
   }
   [nondefaultSetter v]
   [thisSetterReturn type]
