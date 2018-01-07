@@ -128,11 +128,29 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.0.2</version>
-        <configuration>
-          <archive>
-            <addMavenDescriptor>false</addMavenDescriptor>
-          </archive>
-        </configuration>
+
+        <executions>
+          <execution>
+            <id>default-jar</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+            <configuration>
+              <archive>
+              	 <addMavenDescriptor>false</addMavenDescriptor>
+                <manifestEntries>
+                  <Automatic-Module-Name>${project.groupId}.${project.artifactId}</Automatic-Module-Name>
+                </manifestEntries>
+              </archive>
+            </configuration>
+          </execution>
+          <execution>
+            <id>test-jar</id>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -206,6 +224,36 @@
               <minmemory>1G</minmemory>
               <maxmemory>2G</maxmemory>
               <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>lint-javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- Used to validate/lint javadocs -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.10.4</version>
+            <configuration>
+              <quiet>true</quiet>
+              <nonavbar>true</nonavbar>
+              <notree>true</notree>
+              <nocomment>true</nocomment>
+              <nohelp>true</nohelp>
+              <minmemory>1G</minmemory>
+              <maxmemory>2G</maxmemory>
             </configuration>
             <executions>
               <execution>

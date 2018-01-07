@@ -198,6 +198,13 @@ public class Proto {
       return EnclosingMirror.isPresent(element());
     }
 
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isInjectAnnotation() {
+      return environment().hasAnnotateModule()
+          && OkQualifierMirror.isPresent(element());
+    }
+
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
       TypeElement element = (TypeElement) mirror.getAnnotationType().asElement();
       String name = element.getQualifiedName().toString();
@@ -354,6 +361,11 @@ public class Proto {
     @Value.Lazy
     public boolean hasEncodeModule() {
       return findElement(EncodingMirror.qualifiedName()) != null;
+    }
+
+    @Value.Lazy
+    public boolean hasAnnotateModule() {
+      return findElement(InjectAnnotationMirror.qualifiedName()) != null;
     }
 
     /**

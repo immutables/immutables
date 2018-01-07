@@ -85,9 +85,6 @@ public final class FieldConflictTest {
     verifyRoundTrip(getMapper(false), ImmutableCustomDummy.of(true));
   }
 
-  // Fails: Unrecognized field "isSomeProperty" (class
-// com.picnic.fulfillment.model.ImmutableCustomDummy$Json), not marked as ignorable (one known
-// property: "custom_name"])
   @Test
   public void customDummyWithCustomObjectMapper() throws IOException {
     verifyRoundTrip(getMapper(true), ImmutableCustomDummy.of(true));
@@ -98,6 +95,7 @@ public final class FieldConflictTest {
     verifyRoundTrip(getMapper(false), ImmutableDummyWithMetaAnnotation.of(true));
   }
 
+  @Test
   public void dummyWithMetaAnnotationWithCustomObjectMapper() throws IOException {
     verifyRoundTrip(getMapper(true), ImmutableDummyWithMetaAnnotation.of(true));
   }
