@@ -6,6 +6,9 @@ import com.google.gson.internal.bind.TypeAdapters;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -45,6 +48,13 @@ public class BsonWriterTest {
     write(obj);
   }
 
+  @Test
+  public void bigNumbers() throws Exception {
+    JsonObject obj = new JsonObject();
+    obj.addProperty("bigInteger", new BigInteger(Long.toString(Long.MAX_VALUE)).multiply(new BigInteger("128")));
+    obj.addProperty("bigDecimal", new BigDecimal(Long.MAX_VALUE).multiply(new BigDecimal(1024)));
+    write(obj);
+  }
 
   private static void write(String string) throws IOException {
     write(TypeAdapters.JSON_ELEMENT.fromJson(string));

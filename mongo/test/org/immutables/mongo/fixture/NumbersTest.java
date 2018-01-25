@@ -73,8 +73,8 @@ public class NumbersTest {
 
     Advanced doc = ImmutableAdvanced.builder()
             .id(id)
-            .bigDecimal(new BigDecimal((String.valueOf(Long.MAX_VALUE) + "000").toCharArray())) // make number big
-            .bigInteger(new BigInteger(String.valueOf(Long.MAX_VALUE) + "333")) // make it also big
+            .bigDecimal(new BigDecimal(Long.MAX_VALUE).multiply(new BigDecimal(128))) // make number big
+            .bigInteger(new BigInteger(String.valueOf(Long.MAX_VALUE)).multiply(new BigInteger("128"))) // make it also big
             .atomicBoolean(new AtomicBoolean())
             .atomicInteger(new AtomicInteger(55))
             .atomicLong(new AtomicLong(77))
