@@ -69,6 +69,10 @@ public class BsonReaderTest {
         compare(Long.toString(Long.MAX_VALUE));
         compare(Integer.toString(Integer.MIN_VALUE));
         compare(Integer.toString(Integer.MAX_VALUE));
+        compare(Byte.toString(Byte.MIN_VALUE));
+        compare(Byte.toString(Byte.MAX_VALUE));
+        compare(Short.toString(Short.MIN_VALUE));
+        compare(Short.toString(Short.MAX_VALUE));
         compare("0.1");
         compare("-0.1111");
         compare("-2.222");

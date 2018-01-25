@@ -33,6 +33,7 @@ public class BsonWriterTest {
   @Test
   public void customTypes() throws Exception {
     JsonObject obj = new JsonObject();
+    obj.addProperty("byte", (byte) 1);
     obj.addProperty("short", (short) 4);
     obj.addProperty("int", 2222);
     obj.addProperty("long", 1111L);
