@@ -162,6 +162,9 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
     if (value instanceof Short) {
       return value(value.shortValue());
     }
+    if (value instanceof Byte) {
+     return value(value.byteValue());
+    }
     if (value instanceof LazilyParsedNumber) {
       return value(value.longValue());
     }
