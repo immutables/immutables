@@ -16,7 +16,9 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Primitives;
 import java.io.Serializable;
 import javax.lang.model.type.TypeMirror;

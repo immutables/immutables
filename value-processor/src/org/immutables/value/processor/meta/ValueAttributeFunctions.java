@@ -15,12 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.common.base.Predicate;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Only functions left in this previously generated file (long time ago)

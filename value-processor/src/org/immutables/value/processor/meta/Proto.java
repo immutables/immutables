@@ -57,6 +57,7 @@ import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Inflater;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Type;
+import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
 
@@ -200,9 +201,12 @@ public class Proto {
 
     @Value.Derived
     @Value.Auxiliary
-    public boolean isInjectAnnotation() {
-      return environment().hasAnnotateModule()
-          && OkQualifierMirror.isPresent(element());
+    public Optional<InjectionInfo> injectAnnotation() {
+      if (environment().hasAnnotateModule()) {
+        return InjectAnnotationMirror.find(element())
+            .transform(ToInjectionInfo.FUNCTION);
+      }
+      return Optional.absent();
     }
 
     public static MetaAnnotated from(AnnotationMirror mirror, Environment environment) {
@@ -1669,20 +1673,21 @@ public class Proto {
       }
       return isJacksonSerialized();
     }
-    
+
     private List<String> debugLines = ImmutableList.of();
-    
+
     // This is not part of the logical structure of the protoclass
     // but it seems that this is the best place to have this info
     Protoclass debug(String line) {
-      if (!DEBUG_ON) return this;
+      if (!DEBUG_ON)
+        return this;
       if (debugLines.isEmpty()) {
         debugLines = Lists.newArrayList();
       }
       debugLines.add(line);
       return this;
     }
-    
+
     List<String> getDebugLines() {
       return debugLines;
     }
@@ -1720,13 +1725,7 @@ public class Proto {
 
     @Override
     public ValueImmutableInfo apply(ImmutableMirror input) {
-      return ImmutableValueImmutableInfo.theOf(
-          input.builder(),
-          input.copy(),
-          input.intern(),
-          input.prehash(),
-          input.singleton())
-          .withIsDefault(input.getAnnotationMirror().getElementValues().isEmpty());
+      return ValueImmutableInfo.infoFrom(input);
     }
   }
 
@@ -1735,80 +1734,16 @@ public class Proto {
 
     @Override
     public StyleInfo apply(StyleMirror input) {
-      return ImmutableStyleInfo.of(
-          input.get(),
-          input.init(),
-          input.with(),
-          input.add(),
-          input.addAll(),
-          input.put(),
-          input.putAll(),
-          input.copyOf(),
-          input.of(),
-          input.instance(),
-          input.builder(),
-          input.newBuilder(),
-          input.from(),
-          input.build(),
-          input.buildOrThrow(),
-          input.isInitialized(),
-          input.isSet(),
-          input.set(),
-          input.unset(),
-          input.clear(),
-          input.create(),
-          input.toImmutable(),
-          input.typeBuilder(),
-          input.typeInnerBuilder(),
-          input.typeAbstract(),
-          input.typeImmutable(),
-          input.typeImmutableEnclosing(),
-          input.typeImmutableNested(),
-          input.typeModifiable(),
-          input.typeWith(),
-          input.packageGenerated(),
-          ToImmutableInfo.FUNCTION.apply(input.defaults()),
-          input.strictBuilder(),
-          input.validationMethod(),
-          input.allParameters(),
-          input.defaultAsDefault(),
-          input.headerComments(),
-          input.jdkOnly(),
-          ImmutableSet.copyOf(input.passAnnotationsName()),
-          ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
-          input.visibility(),
-          input.optionalAcceptNullable(),
-          input.generateSuppressAllWarnings(),
-          input.privateNoargConstructor(),
-          input.attributelessSingleton(),
-          input.unsafeDefaultAndDerived(),
-          input.clearBuilder(),
-          input.deferCollectionAllocation(),
-          input.deepImmutablesDetection(),
-          input.overshadowImplementation(),
-          input.implementationNestedInBuilder(),
-          input.forceJacksonPropertyNames(),
-          input.forceJacksonIgnoreFields(),
-          input.jacksonIntegration(),
-          input.builderVisibility(),
-          input.throwForInvalidImmutableStateName(),
-          input.depluralize(),
-          input.depluralizeDictionary(),
-          ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),
-          input.stagedBuilder(),
-          input.builtinContainerAttributes(),
-          input.beanFriendlyModifiables(),
-          input.allMandatoryParameters(),
-          input.redactedMask(),
-          input.attributeBuilderDetection(),
-          input.attributeBuilder(),
-          input.getBuilder(),
-          input.setBuilder(),
-          input.addBuilder(),
-          input.addAllBuilder(),
-          input.getBuilders(),
-          input.nullableAnnotation(),
-          ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()));
+      return StyleInfo.infoFrom(input);
+    }
+  }
+
+  enum ToInjectionInfo implements Function<InjectAnnotationMirror, InjectionInfo> {
+    FUNCTION;
+
+    @Override
+    public InjectionInfo apply(InjectAnnotationMirror input) {
+      return AnnotationInjections.infoFrom(input);
     }
   }
 

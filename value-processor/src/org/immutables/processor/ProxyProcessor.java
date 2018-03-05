@@ -93,7 +93,9 @@ public final class ProxyProcessor implements Processor {
             Thread.currentThread().getContextClassLoader());
       }
       return (Processor) cachedProxyClassLoader.loadClass(DELEGATE_CLASS).newInstance();
-    } catch (Throwable ex) {
+    } catch (RuntimeException | Error ex) {
+      throw ex;
+    } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
   }

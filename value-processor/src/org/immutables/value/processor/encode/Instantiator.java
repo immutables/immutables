@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.encode;
 
-import org.immutables.value.processor.meta.ValueType;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -31,6 +30,7 @@ import org.immutables.value.processor.encode.Type.VariableResolver;
 import org.immutables.value.processor.encode.Type.Wildcard;
 import org.immutables.value.processor.meta.Reporter;
 import org.immutables.value.processor.meta.Styles;
+import org.immutables.value.processor.meta.ValueType;
 
 public final class Instantiator {
   private final Type.Factory typeFactory;

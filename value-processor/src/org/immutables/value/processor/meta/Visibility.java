@@ -15,10 +15,10 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import com.google.common.collect.Ordering;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
+import org.immutables.value.processor.meta.ValueMirrors.Style.BuilderVisibility;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 
 /**

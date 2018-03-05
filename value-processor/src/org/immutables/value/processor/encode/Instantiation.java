@@ -15,9 +15,15 @@
  */
 package org.immutables.value.processor.encode;
 
-import com.google.common.base.*;
-import com.google.common.collect.*;
-import java.util.*;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import org.immutables.generator.Templates;
 import org.immutables.generator.Templates.Invokable;
@@ -26,7 +32,10 @@ import org.immutables.value.processor.encode.Code.Binding;
 import org.immutables.value.processor.encode.Code.Term;
 import org.immutables.value.processor.encode.EncodedElement.Param;
 import org.immutables.value.processor.encode.EncodedElement.TypeParam;
-import org.immutables.value.processor.encode.Type.*;
+import org.immutables.value.processor.encode.Type.Defined;
+import org.immutables.value.processor.encode.Type.Parameters;
+import org.immutables.value.processor.encode.Type.Variable;
+import org.immutables.value.processor.encode.Type.VariableResolver;
 import org.immutables.value.processor.meta.Styles;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueType;

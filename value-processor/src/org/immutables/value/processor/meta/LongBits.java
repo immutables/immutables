@@ -15,7 +15,6 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,7 +25,8 @@ import com.google.common.primitives.Longs;
 import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.Set;
-import static com.google.common.base.Preconditions.*;
+import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Structure to calculate bit packing

@@ -15,8 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.lang.model.SourceVersion;
 import com.google.common.base.CaseFormat;
+import javax.lang.model.SourceVersion;
 import org.immutables.generator.Naming;
 
 public final class Styles {

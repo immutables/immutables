@@ -16,8 +16,9 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.collect.ImmutableSet;
-import org.immutables.value.Value;
 import java.lang.annotation.Annotation;
+import org.immutables.value.Value;
+import org.immutables.value.processor.meta.Proto.ToImmutableInfo;
 
 /**
  * We copy styles to StyleInfo to safely cache styles between rounds etc and prevent any memory
@@ -25,7 +26,7 @@ import java.lang.annotation.Annotation;
  */
 @SuppressWarnings("all")
 @Value.Immutable(intern = true, builder = false)
-@Value.Style(get="*")
+@Value.Style(get = "*")
 public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Override
@@ -358,5 +359,82 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   @Override
   public Class<? extends Annotation>[] allowedClasspathAnnotations() {
     throw new UnsupportedOperationException("Use StyleInfo.allowedClasspathAnnotationsNames() instead");
+  }
+
+  static StyleInfo infoFrom(StyleMirror input) {
+    return ImmutableStyleInfo.of(
+        input.get(),
+        input.init(),
+        input.with(),
+        input.add(),
+        input.addAll(),
+        input.put(),
+        input.putAll(),
+        input.copyOf(),
+        input.of(),
+        input.instance(),
+        input.builder(),
+        input.newBuilder(),
+        input.from(),
+        input.build(),
+        input.buildOrThrow(),
+        input.isInitialized(),
+        input.isSet(),
+        input.set(),
+        input.unset(),
+        input.clear(),
+        input.create(),
+        input.toImmutable(),
+        input.typeBuilder(),
+        input.typeInnerBuilder(),
+        input.typeAbstract(),
+        input.typeImmutable(),
+        input.typeImmutableEnclosing(),
+        input.typeImmutableNested(),
+        input.typeModifiable(),
+        input.typeWith(),
+        input.packageGenerated(),
+        ToImmutableInfo.FUNCTION.apply(input.defaults()),
+        input.strictBuilder(),
+        input.validationMethod(),
+        input.allParameters(),
+        input.defaultAsDefault(),
+        input.headerComments(),
+        input.jdkOnly(),
+        ImmutableSet.copyOf(input.passAnnotationsName()),
+        ImmutableSet.copyOf(input.additionalJsonAnnotationsName()),
+        input.visibility(),
+        input.optionalAcceptNullable(),
+        input.generateSuppressAllWarnings(),
+        input.privateNoargConstructor(),
+        input.attributelessSingleton(),
+        input.unsafeDefaultAndDerived(),
+        input.clearBuilder(),
+        input.deferCollectionAllocation(),
+        input.deepImmutablesDetection(),
+        input.overshadowImplementation(),
+        input.implementationNestedInBuilder(),
+        input.forceJacksonPropertyNames(),
+        input.forceJacksonIgnoreFields(),
+        input.jacksonIntegration(),
+        input.builderVisibility(),
+        input.throwForInvalidImmutableStateName(),
+        input.depluralize(),
+        input.depluralizeDictionary(),
+        ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),
+        input.stagedBuilder(),
+        input.builtinContainerAttributes(),
+        input.beanFriendlyModifiables(),
+        input.allMandatoryParameters(),
+        input.redactedMask(),
+        input.attributeBuilderDetection(),
+        input.attributeBuilder(),
+        input.getBuilder(),
+        input.setBuilder(),
+        input.addBuilder(),
+        input.addAllBuilder(),
+        input.getBuilders(),
+        input.nullableAnnotation(),
+        ImmutableSet.copyOf(input.allowedClasspathAnnotationsName()));
   }
 }

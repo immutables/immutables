@@ -22,7 +22,10 @@ import java.util.List;
 import java.util.Set;
 import org.immutables.generator.Naming;
 import org.immutables.value.Value;
-import org.immutables.value.Value.*;
+import org.immutables.value.Value.Default;
+import org.immutables.value.Value.Derived;
+import org.immutables.value.Value.Enclosing;
+import org.immutables.value.Value.Immutable;
 import org.immutables.value.processor.encode.Code.Term;
 
 @Immutable

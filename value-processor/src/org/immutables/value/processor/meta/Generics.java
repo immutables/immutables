@@ -15,11 +15,11 @@
  */
 package org.immutables.value.processor.meta;
 
-import javax.annotation.Nullable;
 import com.google.common.collect.Iterators;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Parameterizable;
 import javax.lang.model.element.TypeParameterElement;

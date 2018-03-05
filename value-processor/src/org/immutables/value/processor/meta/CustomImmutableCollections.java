@@ -15,8 +15,8 @@
  */
 package org.immutables.value.processor.meta;
 
-import org.immutables.generator.ExtensionLoader;
 import com.google.common.collect.ImmutableSet;
+import org.immutables.generator.ExtensionLoader;
 
 public final class CustomImmutableCollections {
   private CustomImmutableCollections() {}

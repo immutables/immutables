@@ -51,4 +51,14 @@ public abstract class ValueImmutableInfo implements ValueMirrors.Immutable {
   @Value.Parameter
   @Override
   public abstract boolean singleton();
+
+  static ImmutableValueImmutableInfo infoFrom(ImmutableMirror input) {
+    return ImmutableValueImmutableInfo.theOf(
+        input.builder(),
+        input.copy(),
+        input.intern(),
+        input.prehash(),
+        input.singleton())
+        .withIsDefault(input.getAnnotationMirror().getElementValues().isEmpty());
+  }
 }
