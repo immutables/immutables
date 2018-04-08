@@ -13,24 +13,22 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.fixture;
+package org.immutables.fixture.style;
 
-import org.junit.Test;
-import static org.immutables.check.Checkers.check;
+import org.immutables.value.Value;
 
-public class CustomBaseInternedTest {
-  @Test
-  public void customInternedNormalization() {
-    CustomInternedNormalized a1 = ImmutableCustomInternedNormalized.builder()
-        .a(1)
-        .b(2)
-        .build();
+public interface WeakInterningStyle {
+  @Value.Immutable(intern = true)
+  @Value.Style(weakInterning = true)
+  interface GuavaInterner {
+    @Value.Parameter
+    int a();
+  }
 
-    CustomInternedNormalized a2 = ImmutableCustomInternedNormalized.builder()
-        .a(1)
-        .b(2)
-        .build();
-
-    check(a1).same(a2);
+  @Value.Immutable(intern = true)
+  @Value.Style(weakInterning = true, jdkOnly = true)
+  interface JdkInterner {
+    @Value.Parameter
+    int a();
   }
 }

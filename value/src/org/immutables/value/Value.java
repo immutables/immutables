@@ -16,6 +16,7 @@
 package org.immutables.value;
 
 import java.lang.annotation.*;
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 /**
@@ -1002,6 +1003,15 @@ public @interface Value {
      *         {@code JsonSerialialize/JsonDeserialialize}. Default is {@code true}.
      */
     boolean jacksonIntegration() default true;
+
+    /**
+     * When {@code weakInterning} is enabled, then for value types with
+     * {@literal @}{@code Value.Immutable(intern=true)} weak (see {@link WeakReference})
+     * interning will be used.
+     * @return {@code true} if enable weak interning for {@code intern=true} values,
+     *         defaults to {@code false}
+     */
+    boolean weakInterning() default false;
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value

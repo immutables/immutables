@@ -195,6 +195,8 @@ public final class ValueMirrors {
 
     boolean jacksonIntegration() default true;
 
+    boolean weakInterning() default false;
+
     BuilderVisibility builderVisibility() default BuilderVisibility.PUBLIC;
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;

@@ -47,4 +47,18 @@ public class StyleTest {
     }
     check(c).isNull();
   }
+
+  @Test
+  public void guavaWeakInterner() {
+    // we check only interning mechanism generation, not actual "weak" behavior
+    check(ImmutableGuavaInterner.of(1)).same(ImmutableGuavaInterner.of(1));
+    check(ImmutableGuavaInterner.of(2)).same(ImmutableGuavaInterner.of(2));
+  }
+
+  @Test
+  public void jdkWeakInterner() {
+    // we check only interning mechanism generation, not actual "weak" behavior
+    check(ImmutableJdkInterner.of(1)).same(ImmutableJdkInterner.of(1));
+    check(ImmutableJdkInterner.of(2)).same(ImmutableJdkInterner.of(2));
+  }
 }

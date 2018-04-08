@@ -250,6 +250,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean weakInterning();
+
+  @Value.Parameter
+  @Override
   public abstract BuilderVisibility builderVisibility();
 
   @Value.Parameter
@@ -417,6 +421,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.forceJacksonPropertyNames(),
         input.forceJacksonIgnoreFields(),
         input.jacksonIntegration(),
+        input.weakInterning(),
         input.builderVisibility(),
         input.throwForInvalidImmutableStateName(),
         input.depluralize(),

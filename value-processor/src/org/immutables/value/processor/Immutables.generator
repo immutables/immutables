@@ -684,10 +684,15 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [else if type.useInterned]
 
   [if type.generateJdkOnly]
-  private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
-      new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]>();
+    [if type.style.weakInterning]
+  private static final java.util.Map<InternProxy, java.lang.ref.WeakReference<[type.typeImmutable.simple]>> INTERNER =
+      new java.util.WeakHashMap<InternProxy, java.lang.ref.WeakReference<[type.typeImmutable.simple]>>();
+    [else]
+    private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
+        new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]>();
+    [/if]
   [else]
-  private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
+  private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.new[if type.style.weakInterning]Weak[else]Strong[/if]Interner();
   [/if]
 [/if]
 [/template]
@@ -745,8 +750,21 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     return ([type.typeImmutable.relative]) instance.domain.internOrdinal(new InternProxy(instance));
 [else if type.useInterned]
   [if type.generateJdkOnly]
+    [if type.style.weakInterning]
+    synchronized (INTERNER) {
+      InternProxy newProxy = new InternProxy(instance);
+      [atNullable type]java.lang.ref.WeakReference<[type.typeImmutable.relative]> reference = INTERNER.get(newProxy);
+      [atNullable type][type.typeImmutable.relative] interned = reference != null ? reference.get() : null;
+      if (interned == null) {
+        INTERNER.put(newProxy, new java.lang.ref.WeakReference<[type.typeImmutable.relative]>(instance));
+        return instance;
+      }
+      return interned;
+    }
+    [else]
     [atNullable type][type.typeImmutable.relative] interned = INTERNER.putIfAbsent(new InternProxy(instance), instance);
     return interned != null ? interned : instance;
+    [/if]
   [else]
     return INTERNER.intern(new InternProxy(instance)).instance;
   [/if]
