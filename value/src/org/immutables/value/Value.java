@@ -26,8 +26,6 @@ import java.util.*;
  * @see Value.Include
  * @see Value.Enclosing
  */
-// @Target({}) // may hide from auto-completion
-@Retention(RetentionPolicy.SOURCE)
 public @interface Value {
   /**
    * Instruct processor to generate immutable implementation of abstract value type.
