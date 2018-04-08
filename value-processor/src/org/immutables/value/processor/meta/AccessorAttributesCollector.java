@@ -223,8 +223,8 @@ final class AccessorAttributesCollector {
 
     if (!attributeMethodCandidate.getTypeParameters().isEmpty()) {
       report(attributeMethodCandidate)
-        .error("Method '%s' cannot have own generic type parameters."
-            + " Attribute accessors can only use enclosing type's type variables", name);
+          .error("Method '%s' cannot have own generic type parameters."
+              + " Attribute accessors can only use enclosing type's type variables", name);
       return;
     }
 
@@ -236,7 +236,8 @@ final class AccessorAttributesCollector {
           || attributeMethodCandidate.getModifiers().contains(Modifier.NATIVE)) {
         report(attributeMethodCandidate)
             .error("Method '%s' annotated with @%s must be non-private parameter-less method",
-                name, CheckMirror.simpleName());
+                name,
+                CheckMirror.simpleName());
       } else if (attributeMethodCandidate.getReturnType().getKind() == TypeKind.VOID) {
         type.addNormalizeMethod(name.toString(), false);
       } else if (returnsNormalizedAbstractValueType(attributeMethodCandidate)) {
@@ -244,7 +245,8 @@ final class AccessorAttributesCollector {
       } else {
         report(attributeMethodCandidate)
             .error("Method '%s' annotated with @%s must return void or normalized instance of abstract value type",
-                name, CheckMirror.simpleName());
+                name,
+                CheckMirror.simpleName());
       }
       return;
     }
@@ -352,19 +354,34 @@ final class AccessorAttributesCollector {
 
   private boolean returnsNormalizedAbstractValueType(ExecutableElement validationMethodCandidate) {
     Optional<DeclaringType> declaringType = protoclass.declaringType();
-    if (declaringType.isPresent()) {
-      TypeStringProvider provider = new TypeStringProvider(
-          reporter,
-          validationMethodCandidate,
-          validationMethodCandidate.getReturnType(),
-          new ImportsTypeStringResolver(declaringType.orNull(), declaringType.orNull()),
-          protoclass.constitution().generics().vars(),
-          null);
-      provider.process();
-      String returnTypeName = provider.returnTypeName();
-      return protoclass.constitution().typeAbstract().toString().equals(returnTypeName);
+    if (!declaringType.isPresent()) {
+      return false;
     }
-    return false;
+    TypeStringProvider provider = new TypeStringProvider(
+        reporter,
+        validationMethodCandidate,
+        resolveReturnType(validationMethodCandidate),
+        new ImportsTypeStringResolver(declaringType.orNull(), declaringType.orNull()),
+        protoclass.constitution().generics().vars(),
+        null);
+    provider.process();
+    String returnTypeName = provider.returnTypeName();
+    boolean isCompatibleReturnType =
+        protoclass.constitution().typeAbstract().toString().equals(returnTypeName)
+            || protoclass.constitution().typeImmutable().toString().equals(returnTypeName);
+
+    if (!isCompatibleReturnType) {
+      report(validationMethodCandidate)
+          .error("Method '%s' annotated with @%s should have compatible return type to"
+              + " be used as normalization method. It should return abstract value type itself"
+              + " or immutable generated type (i.e. %s or %s)",
+              validationMethodCandidate.getSimpleName(),
+              CheckMirror.simpleName(),
+              protoclass.constitution().typeAbstract(),
+              protoclass.constitution().typeImmutable());
+      return false;
+    }
+    return true;
   }
 
   private AttributeNames deriveNames(String accessorName) {
