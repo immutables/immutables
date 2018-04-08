@@ -25,8 +25,8 @@ abstract class BaseInterned<T extends BaseInterned<T>> {
 
   @SuppressWarnings("unchecked")
   @Value.Check
-  protected String intern() {
-    return "";// INTERNER.intern(this);
+  protected T intern() {
+    return (T) INTERNER.intern(this);
   }
 }
 
