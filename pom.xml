@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
    Copyright 2013-2016 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -94,7 +94,7 @@
 
   <scm>
     <connection>scm:git:https://github.com/immutables/immutables.git</connection>
-    <developerConnection>scm:git:https://github.com/immutables/immutables.git</developerConnection>
+    <developerConnection>scm:git:git@github.com:immutables/immutables.git</developerConnection>
     <url>https://github.com/immutables/immutables.git</url>
   </scm>
 
