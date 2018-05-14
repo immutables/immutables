@@ -2402,7 +2402,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
       [/if][v.constructorParameterAnnotations][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [else]
   private [type.typeImmutable.simple]([output.linesShortable]
-      [if type.synthCopyConstructor][type.typeImmutable.simple] [disambiguateField type 'original'],
+      [if type.synthCopyConstructor][type.typeImmutable.relative] [disambiguateField type 'original'],
       [/if][for v in setters][if not for.first],
       [/if][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
   [/if]
