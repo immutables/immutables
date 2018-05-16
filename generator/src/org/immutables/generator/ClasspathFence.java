@@ -35,8 +35,4 @@ public final class ClasspathFence {
     }
     return false;
   }
-
-  public static ImmutableSet<String> getBlocked() {
-    return BLOCKED.get();
-  }
 }
