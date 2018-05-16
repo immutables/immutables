@@ -43,6 +43,9 @@ import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.encode.Instantiation;
 import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
+import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
+import org.immutables.value.processor.meta.AnnotationInjections.InjectAnnotation.Where;
+import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
 import org.immutables.value.processor.meta.Generics.Parameter;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
@@ -73,6 +76,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public boolean isGenerateLazy;
   public boolean isAttributeBuilder;
   public ImmutableList<String> typeParameters = ImmutableList.of();
+  public ImmutableList<AnnotationInjection> annotationInjections = ImmutableList.of();
   // Replace with delegation?
   public Reporter reporter;
 
@@ -1418,7 +1422,20 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   private void initSpecialAnnotations() {
+    Environment environment = containingType.constitution.protoclass().environment();
+    ImmutableList.Builder<AnnotationInjection> annotationInjections = null;
+
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+      MetaAnnotated metaAnnotated = MetaAnnotated.from(annotation, environment);
+
+      if (metaAnnotated.injectAnnotation().isPresent()) {
+        InjectionInfo info = metaAnnotated.injectAnnotation().get();
+        if (annotationInjections == null) {
+          annotationInjections = ImmutableList.builder();
+        }
+        annotationInjections.add(info.injectionFor(annotation, environment));
+      }
+
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
       Name qualifiedName = annotationElement.getQualifiedName();
@@ -1446,6 +1463,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && nullElements == NullElements.BAN
         && protoclass().styles().style().validationMethod() == ValidationMethod.NONE) {
       nullElements = NullElements.ALLOW;
+    }
+    if (annotationInjections != null) {
+      this.annotationInjections = annotationInjections.build();
     }
   }
 
@@ -1607,6 +1627,39 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean supportsInternalImplConstructor() {
     return !isEncoding() || instantiation.supportsInternalImplConstructor();
+  }
+
+  public Collection<String> fieldInjectedAnnotations() {
+    return collectInjections(Where.FIELD);
+  }
+
+  public Collection<String> accessorInjectedAnnotations() {
+    return collectInjections(Where.ACCESSOR);
+  }
+
+  public Collection<String> syntheticFieldsInjectedAnnotations() {
+    return collectInjections(Where.SYNTHETIC_FIELDS);
+  }
+
+  public Collection<String> initializerInjectedAnnotations() {
+    return collectInjections(Where.INITIALIZER);
+  }
+
+  public Collection<String> constructorParameterInjectedAnnotations() {
+    return collectInjections(Where.CONSTRUCTOR_PARAMETER);
+  }
+
+  public Collection<String> elementInitializerInjectedAnnotations() {
+    return collectInjections(Where.ELEMENT_INITIALIZER);
+  }
+
+  private Collection<String> collectInjections(Where target) {
+    return AnnotationInjections.collectInjections(element,
+        target,
+        annotationInjections,
+        containingType.getDeclaringTypeAnnotationInjections(),
+        containingType.getDeclaringTypeEnclosingAnnotationInjections(),
+        containingType.getDeclaringPackageAnnotationInjections());
   }
 
   @Override

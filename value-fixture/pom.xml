@@ -54,6 +54,12 @@
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>annotate</artifactId>
+      <version>${project.version}</version>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>encode</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>

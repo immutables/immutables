@@ -75,6 +75,12 @@ public final class AnnotationMirrors {
     return printer.builder;
   }
 
+  public static CharSequence toCharSequence(AnnotationValue value) {
+    PrintVisitor printer = new PrintVisitor();
+    printer.visit(value, null);
+    return printer.builder;
+  }
+
   public static CharSequence toCharSequence(
       AnnotationMirror value,
       Function<String, String> unresovedImportsResolver) {
@@ -145,6 +151,13 @@ public final class AnnotationMirrors {
       List<? extends AnnotationMirror> annotationMirrors,
       Class<? extends Annotation> annotationType) {
     String annotationTypeName = annotationType.getCanonicalName();
+    return findAnnotation(annotationMirrors, annotationTypeName);
+  }
+
+  @Nullable
+  public static AnnotationMirror findAnnotation(
+      List<? extends AnnotationMirror> annotationMirrors,
+      String annotationTypeName) {
     for (AnnotationMirror annotation : annotationMirrors) {
       if (((TypeElement) annotation.getAnnotationType().asElement())
           .getQualifiedName()

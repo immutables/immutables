@@ -4,13 +4,97 @@ import java.lang.annotation.*;
 
 /**
  * Meta-annotation that if detected on the annotation, will turn target annotation into special
- * instruction to inject derived annotation code into target places.
+ * instruction to inject derived annotation code into target places. This annotated annotations -
+ * directives are called <em>injection annotations</em>, the derived annotation's code to be
+ * inserted is called <em>target annotation</em>. The injection annotations
+ * themselves are to be placed on attributes, abstract value types or packages, impacting all
+ * covered types and attributes for injection of target annotations (see {@link #type()},
+ * {@link #code()}) into specified placed (see {@link Where}) of the generated classes.
+ * <h5>Examples</h5>
+ * 1) Inject Deprecated into fields "a" and "b" of the generated class
+ * 
+ * <pre>
+ * &#64;InjectAnnotation(type = Deprecated.class, target = Where.FIELD)
+ * &#64;interface InjectDeprecated {}
+ * 
+ * &#64;Value.Immutable
+ * &#64;InjectDeprecated
+ * interface Val {
+ *   int a();
+ * 
+ *   int b();
+ * }
+ * </pre>
+ * 
+ * 2) Inject @TargetAnn(message="I'm BUILDER", of="Val2") onto generated ImmutableVal2.Builder
+ * 
+ * <pre>
+ * &#64;interface TargetAnn {
+ *   String message();
+ * 
+ *   String of();
+ * }
+ * 
+ * &#64;InjectAnnotation(type = TargetAnn.class, code = "(message=[[echo]], of=\"[[!name]]\"", target = Where.BUILDER_TYPE)
+ * &#64;interface InjectBuilderTarget {
+ *   String echo();
+ * }
+ * 
+ * &#64;Value.Immutable
+ * &#64;InjectBuilderTarget(echo = "I'm BUILDER")
+ * interface Val2 {
+ *   int a();
+ * }
+ * </pre>
+ * 
+ * 3) Inject Point(x = 2, y = 3) on field "a" and Point(x = 4, y = 5) on field "b"
+ * 
+ * <pre>
+ * &#64;interface Point {
+ *   int x();
+ * 
+ *   int y();
+ * }
+ * 
+ * &#64;InjectAnnotation(code = "@Point([[*]])", target = Where.FIELD)
+ * // watch-out for the relative or qualified name when putting annotation name into code attribute
+ * // that would be inserted and resolved from a generated code. Putting FQCN is recommended.
+ * &#64;interface PoinInject {
+ *   int x();
+ * 
+ *   int y();
+ * }
+ * 
+ * &#64;Value.Immutable
+ * interface Val2 {
+ *   &#64;PoinInject(x = 2, y = 3)
+ *   String a();
+ * 
+ *   &#64;PoinInject(x = 4, y = 5)
+ *   String b();
+ * }
+ * </pre>
  */
 @Documented
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface InjectAnnotation {
   /**
-   * Used to specify whole source code for the annotation. Can specify whole annotation(s) code or
+   * Used to specify whole source code for the annotation. Can specify whole target annotation(s)
+   * code or just attributes in parenthesis and the {@code type} attribute will be used for the
+   * annotation fully qualified name.
+   * Special symbols can be used to further refine code of the annotation:
+   * <ul>
+   * <li>{@code [[*]]} inserts all attributes of definiting annotation (the one which is annotated
+   * with {@code InjectAnnotation}) into target annotation code. Obviously those should match: be
+   * source-compatible. These will fully format attribute and literals, including commas between,
+   * but excluding any surrounding parentheses, so they can be mixed to non-overlapping hardcoded
+   * attributes.
+   * <li>{@code [[!name]]} inserts the simple name of the target attribute (or type) into annotation
+   * code, insertions are literal, without any quoutes etc.
+   * <li>{@code [[}<em>attr_name</em>{@code ]]} inserts source formatted value of injection
+   * annotation into code, where <em>attr_name</em> is one of the name of injection annotation
+   * attributes.
+   * </ul>
    * <p>
    * <em>If code includes {@literal @} symbol at the beginning, {@link #type()} would be ignored, if
    * code does not includes annotation start symbol and {@link #type()} specified, then annotation
@@ -54,8 +138,7 @@ public @interface InjectAnnotation {
    * from most specific to least specific, if there already was annotation injected by the some key,
    * the following annotations by the same key will be discarded.
    * if not specified explicitly (empty string in the annotation attribute) the key will be
-   * auto-inferred as {@code type()} if specifed or
-   * string
+   * auto-inferred as {@code type()} if specifed or from code template string
    */
   String deduplicationKey() default "";
 

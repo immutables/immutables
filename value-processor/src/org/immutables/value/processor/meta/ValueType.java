@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -56,6 +57,8 @@ import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
 import org.immutables.value.processor.encode.SourceStructureGet;
 import org.immutables.value.processor.encode.TypeExtractor;
+import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
+import org.immutables.value.processor.meta.AnnotationInjections.InjectAnnotation.Where;
 import org.immutables.value.processor.meta.Constitution.AppliedNameForms;
 import org.immutables.value.processor.meta.Constitution.InnerBuilderDefinition;
 import org.immutables.value.processor.meta.Constitution.NameForms;
@@ -1717,6 +1720,50 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public Element originalElement() {
     return CachingElements.getDelegate(element);
   }
+
+  List<AnnotationInjection> getDeclaringPackageAnnotationInjections() {
+    return constitution.protoclass().packageOf().getAnnotationInjections();
+  }
+
+  public Collection<String> immutableTypeInjectedAnnotations() {
+    return collectInjections(Where.IMMUTABLE_TYPE);
+  }
+
+  public Collection<String> builderTypeInjectedAnnotations() {
+    return collectInjections(Where.BUILDER_TYPE);
+  }
+
+  public Collection<String> syntheticFieldsInjectedAnnotations() {
+    return collectInjections(Where.SYNTHETIC_FIELDS);
+  }
+
+  List<AnnotationInjection> getDeclaringTypeAnnotationInjections() {
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    if (declaringType.isPresent()) {
+      return declaringType.get().getAnnotationInjections();
+    }
+    return ImmutableList.of();
+  }
+
+  List<AnnotationInjection> getDeclaringTypeEnclosingAnnotationInjections() {
+    Optional<DeclaringType> declaringType = constitution.protoclass().declaringType();
+    if (declaringType.isPresent()) {
+      Optional<DeclaringType> enclosingTopLevel = declaringType.get().enclosingTopLevel();
+      if (enclosingTopLevel.isPresent()) {
+        return enclosingTopLevel.get().getAnnotationInjections();
+      }
+    }
+    return ImmutableList.of();
+  }
+
+  private Collection<String> collectInjections(Where target) {
+    return AnnotationInjections.collectInjections(element,
+        target,
+        getDeclaringTypeAnnotationInjections(),
+        getDeclaringTypeEnclosingAnnotationInjections(),
+        getDeclaringPackageAnnotationInjections());
+  }
+
   /**
    * Used for type snapshoting
    */

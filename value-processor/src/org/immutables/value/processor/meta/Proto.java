@@ -57,6 +57,7 @@ import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Inflater;
 import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Type;
+import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
 import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
@@ -523,13 +524,39 @@ public class Proto {
       return typeElements.toList();
     }
 
+    private final List<AnnotationInjection> annotationInjections = new ArrayList<>();
+
+    public List<AnnotationInjection> getAnnotationInjections() {
+      if (!environment().hasAnnotateModule()) {
+        return ImmutableList.of();
+      }
+      // force initialization of annotationInjections list
+      metaAnnotated();
+
+      synchronized (annotationInjections) {
+        return ImmutableList.copyOf(annotationInjections);
+      }
+    }
+
     @Value.Lazy
     List<MetaAnnotated> metaAnnotated() {
       ImmutableList.Builder<MetaAnnotated> builder = ImmutableList.builder();
       for (AnnotationMirror mirror : element().getAnnotationMirrors()) {
-        builder.add(MetaAnnotated.from(mirror, environment()));
+        MetaAnnotated meta = MetaAnnotated.from(mirror, environment());
+        registerAnnotationInjection(mirror, meta);
+        builder.add(meta);
       }
       return builder.build();
+    }
+
+    private void registerAnnotationInjection(AnnotationMirror mirror, MetaAnnotated meta) {
+      if (meta.injectAnnotation().isPresent()) {
+        AnnotationInjection injection =
+            meta.injectAnnotation().get().injectionFor(mirror, environment());
+        synchronized (annotationInjections) {
+          annotationInjections.add(injection);
+        }
+      }
     }
 
     @Value.Lazy
