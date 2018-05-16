@@ -17,6 +17,7 @@ package org.immutables.generator;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,12 +33,16 @@ public final class ClasspathAvailability {
     return sourceVersion.compareTo(SourceVersion.RELEASE_7) > 0;
   }
 
+  public Collection<String> blocked() {
+    return ClasspathFence.getBlocked();
+  }
+
   public final Predicate<String> available = new Predicate<String>() {
     @Override
     public boolean apply(String qualifiedName) {
       /*@Nullable*/Boolean available = availableClasses.get(qualifiedName);
       if (available == null) {
-        if (ClasspathFence.isInhibited(qualifiedName)) {
+        if (isInhibited(qualifiedName)) {
           available = false;
           availableClasses.put(qualifiedName, available);
         } else {
@@ -48,6 +53,10 @@ public final class ClasspathAvailability {
       }
 
       return available;
+    }
+
+    private boolean isInhibited(String qualifiedName) {
+      return ClasspathFence.isInhibited(qualifiedName);
     }
 
     private TypeElement loadTypeElement(String input) {

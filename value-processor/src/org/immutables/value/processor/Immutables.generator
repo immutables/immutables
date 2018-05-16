@@ -53,6 +53,8 @@
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
+//  -->> [classpath.available 'javax.annotation.processing.Generated']
+//  --!> [classpath.blocked]
 @javax.annotation.processing.Generated({"Immutables.generator", "[type.typeAbstract.relativeRaw]"})
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relativeRaw]"})

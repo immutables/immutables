@@ -15,6 +15,7 @@
  */
 package org.immutables.generator;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -23,15 +24,19 @@ import com.google.common.collect.ImmutableSet;
 public final class ClasspathFence {
   private ClasspathFence() {}
 
-  private static final ImmutableSet<String> BLOCKED =
+  private static final Supplier<ImmutableSet<String>> BLOCKED =
       ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.inhibit-classpath");
 
   public static boolean isInhibited(String classname) {
-    for (String prefix : BLOCKED) {
+    for (String prefix : BLOCKED.get()) {
       if (classname.startsWith(prefix)) {
         return true;
       }
     }
     return false;
+  }
+
+  public static ImmutableSet<String> getBlocked() {
+    return BLOCKED.get();
   }
 }

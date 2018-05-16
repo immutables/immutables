@@ -1,5 +1,6 @@
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import org.immutables.generator.ExtensionLoader;
 
@@ -12,10 +13,10 @@ public final class ObscureFeatures {
 
   private ObscureFeatures() {}
 
-  private static final ImmutableSet<String> FEATURES =
+  private static final Supplier<ImmutableSet<String>> FEATURES =
       ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.features");
 
   public static boolean noDiamonds() {
-    return FEATURES.contains(NO_DIAMONDS);
+    return FEATURES.get().contains(NO_DIAMONDS);
   }
 }

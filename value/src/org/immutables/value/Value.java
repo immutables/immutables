@@ -870,9 +870,8 @@ public @interface Value {
     /**
      * When this optimisation in enabled then the processor tries to defer allocation of
      * collection in builder and modifiable objects. The resulting code might somewhat be slower at
-     * a microbenchmark scale due to additional "if" checks.
-     * Does not work when is enabled {@link #strictBuilder()} is enabled.
-     * Disabled by default.
+     * a microbenchmark scale due to additional "if" checks, but might save some allocations.
+     * Does not work when {@link #strictBuilder()} is enabled. Disabled by default.
      * @return {@code true} if defer collection allocation.
      */
     boolean deferCollectionAllocation() default false;
@@ -1291,7 +1290,7 @@ public @interface Value {
      * way to configure auto-applied annotations.
      * <p>
      * In order to simply disable all such annotation auto-discovery, you can put some dummy
-     * annotation like {@code java.lang}, as in:
+     * annotation like {@code java.lang.Override}, as in:
      * 
      * <pre>
      * Style(allowedClasspathAnnotations = {java.lang.Override.class})
@@ -1308,7 +1307,7 @@ public @interface Value {
      * classes, these other mechanisms do not count as complementary annotation generation regulated
      * by this property.
      * <p>
-     * Another, more universal way to inhibit some classpath entries from discovery is using
+     * Another way to inhibit some classpath entries from discovery is using
      * class-path fence using META-INF extension mechanism. That mechanism is a general classpath
      * discovery blacklist and overrides any whitelist allowed here. Add unwanted fully qualified
      * class name prefixes (for example, like full class names, or package names ending with a dot)

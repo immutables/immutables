@@ -15,16 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import org.immutables.generator.ExtensionLoader;
 
 public final class CustomImmutableCollections {
   private CustomImmutableCollections() {}
 
-  private static final ImmutableSet<String> COLLECTIONS =
+  private static final Supplier<ImmutableSet<String>> COLLECTIONS =
       ExtensionLoader.findExtensions("META-INF/extensions/org.immutables.collect");
 
   public static ImmutableSet<String> collections() {
-    return COLLECTIONS;
+    return COLLECTIONS.get();
   }
 }

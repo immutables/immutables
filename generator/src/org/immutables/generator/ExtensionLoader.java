@@ -16,6 +16,8 @@
 package org.immutables.generator;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -25,6 +27,8 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
+import javax.annotation.processing.Filer;
+import javax.tools.StandardLocation;
 
 public final class ExtensionLoader {
   private ExtensionLoader() {}
@@ -33,21 +37,46 @@ public final class ExtensionLoader {
       .omitEmptyStrings()
       .trimResults();
 
-  public static ImmutableSet<String> findExtensions(String resource) {
-    List<String> annotations = Lists.newArrayList();
+  public static Supplier<ImmutableSet<String>> findExtensions(final String resource) {
+    // Provide lazy-once supplier
+    return Suppliers.memoize(new Supplier<ImmutableSet<String>>() {
+      @Override
+      public ImmutableSet<String> get() {
+        List<String> extensions = Lists.newArrayList();
 
-    ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
-    try {
-      Enumeration<URL> resources = classLoader.getResources(resource);
-      while (resources.hasMoreElements()) {
-        URL nextElement = resources.nextElement();
-        String lines = Resources.toString(nextElement, StandardCharsets.UTF_8);
-        annotations.addAll(RESOURCE_SPLITTER.splitToList(lines));
+        // best effort to read it from compilation classpath, rather than
+        if (StaticEnvironment.isInitialized()) {
+          try {
+            String lines = getClasspathResourceText(
+                StaticEnvironment.processing().getFiler(),
+                resource);
+            extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
+          } catch (IOException cannotReadFromClasspath) {
+            // we ignore this as we did or best effort
+            // and there are no plans to halt whole compilation
+          }
+        }
+
+        ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
+        try {
+          Enumeration<URL> resources = classLoader.getResources(resource);
+          while (resources.hasMoreElements()) {
+            URL nextElement = resources.nextElement();
+            String lines = Resources.toString(nextElement, StandardCharsets.UTF_8);
+            extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
+          }
+        } catch (IOException cannotReadFromClasspath) {
+          // we ignore this as we did or best effort
+          // and there are no plans to halt whole compilation
+        }
+        return FluentIterable.from(extensions).toSet();
       }
-    } catch (IOException cannotReadFromClasspath) {
-      // we ignore this as we did or best effort
-      // and there are no plans to halt whole compilation
-    }
-    return FluentIterable.from(annotations).toSet();
+    });
+  }
+
+  private static String getClasspathResourceText(Filer filer, String resourceName) throws IOException {
+    return filer.getResource(StandardLocation.CLASS_PATH, "", resourceName)
+        .getCharContent(true)
+        .toString();
   }
 }

@@ -89,6 +89,10 @@ final class StaticEnvironment {
     return instance;
   }
 
+  static boolean isInitialized() {
+    return state.get().initialized;
+  }
+
   static ProcessingEnvironment processing() {
     return state().processing;
   }

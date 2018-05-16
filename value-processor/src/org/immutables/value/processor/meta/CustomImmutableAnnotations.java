@@ -15,16 +15,17 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import org.immutables.generator.ExtensionLoader;
 
 public final class CustomImmutableAnnotations {
   private CustomImmutableAnnotations() {}
 
-  private static final ImmutableSet<String> ANNOTATIONS =
+  private static final Supplier<ImmutableSet<String>> ANNOTATIONS =
       ExtensionLoader.findExtensions("META-INF/annotations/org.immutables.value.immutable");
 
   public static ImmutableSet<String> annotations() {
-    return ANNOTATIONS;
+    return ANNOTATIONS.get();
   }
 }
