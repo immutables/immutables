@@ -102,7 +102,7 @@ public final class Styles {
     Naming toImmutable = Naming.from(style.toImmutable());
     Naming typeModifiable = Naming.from(style.typeModifiable());
 
-    Naming[] attributeBuilder = Naming.fromAll(style.attributeBuilder()) ;
+    Naming[] attributeBuilder = Naming.fromAll(style.attributeBuilder());
     Naming getBuilder = Naming.from(style.getBuilder());
     Naming setBuilder = Naming.from(style.setBuilder());
 
@@ -255,8 +255,16 @@ public final class Styles {
         return forCollection().add;
       }
 
+      public String addv() {
+        return forCollection().addv;
+      }
+
       public String put() {
         return forCollection().put;
+      }
+
+      public String putv() {
+        return forCollection().putv;
       }
 
       public String addAll() {
@@ -303,19 +311,19 @@ public final class Styles {
         return forCollection().getBuilders;
       }
 
-
       public final class ForCollections {
         private final String singular = depluralizer.depluralize(raw);
         private final boolean singularIsKeyword = SourceVersion.isKeyword(singular);
 
         final String add = applySingular(scheme.add);
+        final String addv = applyRegular(scheme.add); // vararg version
         final String put = applySingular(scheme.put);
+        final String putv = applyRegular(scheme.put); // vararg version
         final String addAll = applyRegular(scheme.addAll);
         final String putAll = applyRegular(scheme.putAll);
         final String addBuilder = applySingular(scheme.addBuilder);
         final String addAllBuilder = applySingular(scheme.addAllBuilder);
         final String getBuilders = applySingular(scheme.getBuilders);
-
 
         String applySingular(Naming naming) {
           if (singularIsKeyword && naming.isIdentity()) {

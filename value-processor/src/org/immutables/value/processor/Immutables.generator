@@ -931,7 +931,7 @@ public interface BuildFinal[type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  BuildFinal[type.generics.args] [v.names.add]([v.unwrappedElementType]... elements);
+  BuildFinal[type.generics.args] [v.names.addv]([v.unwrappedElementType]... elements);
 
   /**
    * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
@@ -968,7 +968,7 @@ public interface BuildFinal[type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [deprecation v]
-  BuildFinal[type.generics.args] [v.names.put]([uK] key, [uV]... values);
+  BuildFinal[type.generics.args] [v.names.putv]([uK] key, [uV]... values);
 
   /**
    * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
@@ -1410,7 +1410,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
   [varargsSafety v]
-  public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
+  public final [builderReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1680,7 +1680,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [varargsSafety v]
   [deprecation v]
-  public final [builderReturnType type] [v.names.put]([uK] key, [uV]... values) {
+  public final [builderReturnType type] [v.names.putv]([uK] key, [uV]... values) {
     [if v.nullable]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]

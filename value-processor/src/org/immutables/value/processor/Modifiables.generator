@@ -528,7 +528,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
 [eachLine v.elementInitializerInjectedAnnotations]
 [varargsSafety v]
 [atCanIgnoreReturnValue type]
-public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
+public final [thisSetterReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
   for ([v.unwrappedElementType] e : elements) {
     [if v.unwrappedElementPrimitiveType][-- anti sneaky autounboxing NPE --]
     [v.names.add]([im.requireNonNull type](e, "[v.name] element"));
@@ -633,7 +633,7 @@ public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecial
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
-public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values) {
+public final [thisSetterReturnType type] [v.names.putv]([uK] key, [uV]... values) {
   [v.names.putAll](key, [im.arrayAsListSecondary v 'values']);
   [thisSetterReturn type]
 }
