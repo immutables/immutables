@@ -1725,6 +1725,14 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.protoclass().packageOf().getAnnotationInjections();
   }
 
+  public Collection<String> syntheticFieldsInjectedAnnotations() {
+    return collectInjections(Where.SYNTHETIC_FIELDS);
+  }
+
+  public Collection<String> constructorInjectedAnnotations() {
+    return collectInjections(Where.CONSTRUCTOR);
+  }
+
   public Collection<String> immutableTypeInjectedAnnotations() {
     return collectInjections(Where.IMMUTABLE_TYPE);
   }
@@ -1733,8 +1741,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return collectInjections(Where.BUILDER_TYPE);
   }
 
-  public Collection<String> syntheticFieldsInjectedAnnotations() {
-    return collectInjections(Where.SYNTHETIC_FIELDS);
+  public Collection<String> modifiableTypeInjectedAnnotations() {
+    return collectInjections(Where.MODIFIABLE_TYPE);
   }
 
   List<AnnotationInjection> getDeclaringTypeAnnotationInjections() {

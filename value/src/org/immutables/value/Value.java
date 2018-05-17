@@ -167,7 +167,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Default {}
 
   /**
@@ -180,7 +179,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Auxiliary {}
 
   /**
@@ -215,7 +213,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Lazy {}
 
   /**
@@ -231,7 +228,6 @@ public @interface Value {
    */
   @Documented
   @Target({ElementType.METHOD, ElementType.PARAMETER})
-  @Retention(RetentionPolicy.CLASS)
   public @interface Parameter {
     /**
      * Used to specify order of constructor argument. It defaults to zero and allows for
@@ -385,7 +381,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Modifiable {}
 
   /**
@@ -396,7 +391,6 @@ public @interface Value {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.CLASS)
   public @interface Redacted {}
 
   /**

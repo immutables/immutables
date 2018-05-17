@@ -50,7 +50,9 @@ public final class AnnotationInjections {
       INITIALIZER,
       ELEMENT_INITIALIZER,
       BUILDER_TYPE,
-      IMMUTABLE_TYPE
+      IMMUTABLE_TYPE,
+      MODIFIABLE_TYPE,
+      CONSTRUCTOR
     }
   }
 

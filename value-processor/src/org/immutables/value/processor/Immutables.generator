@@ -81,9 +81,7 @@ import static [routine].immutableCopyOf;
 [/if]
 [if type.debugLines]
 /*--DEBUG---------------------------------------------------
-[for d in type.debugLines]
-[d]
-[/for]
+[eachLine type.debugLines]
 ----------------------------------------------------------*/
 [/if]
 [/template]
@@ -160,8 +158,8 @@ import static [routine].immutableCopyOf;
 @javax.annotation.CheckReturnValue
   [/if]
 [/if]
-[atLines type.passedAnnotations]
-[atLines type.immutableTypeInjectedAnnotations]
+[eachLine type.passedAnnotations]
+[eachLine type.immutableTypeInjectedAnnotations]
 [type.typeImmutable.access][if not topLevel]static [/if]final [output.linesShortable]class [type.typeImmutable.simple][type.generics]
     [extendsImplements type][/output.linesShortable]
 [if type.annotationType]
@@ -707,7 +705,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][atLines v.constructorParameterInjectedAnnotations][v.type] [v.name][/for]) {
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
   }
   [/if]
@@ -719,7 +717,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/for]
    * @return An immutable [type.name] instance
    */
-  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][atLines v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
+  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
 [/if]
@@ -846,7 +844,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [for LongPositions positions = longsFor lz]
   [for l in positions.longs]
   [jsonIgnore type]
-  [atLines type.syntheticFieldsInjectedAnnotations]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   [hiddenMutableState type]
   private transient volatile long lazyInitBitmap[emptyIfZero l.index];
   [/for]
@@ -861,7 +859,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [-- By suppressing warnings about non-final fields we also prevent warnings
   about lazily computed attributes that are genuinely mutable. That is an
   unfortunate trade-off. --]
-  [atLines l.fieldInjectedAnnotations]
+  [eachLine l.fieldInjectedAnnotations]
   [hiddenMutableState type]
   private transient [l.type] [lazyVar];
 
@@ -872,7 +870,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * Initialized once and only once and stored for subsequent access with proper synchronization.
    * @return A lazily initialized value of the {@code l.name} attribute
    */
-  [atLines l.accessorInjectedAnnotations]
+  [eachLine l.accessorInjectedAnnotations]
   @Override
   public [l.type] [l.names.get]() {
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
@@ -1071,8 +1069,8 @@ public interface BuildFinal[type.generics] {
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
-[atLines type.builderAnnotations]
-[atLines type.builderTypeInjectedAnnotations]
+[eachLine type.builderAnnotations]
+[eachLine type.builderTypeInjectedAnnotations]
 [type.typeBuilderImpl.access][if not topLevel]static [/if][if not type.innerBuilder.isExtending]final [/if]class [output.linesShortable][type.typeBuilderImpl.simple][type.generics]
   [if type.innerBuilder.isSuper]
     [if type.innerBuilder.isInterface]
@@ -1097,11 +1095,11 @@ public interface BuildFinal[type.generics] {
   [/for]
   [rr.builderStaticFields setters]
   [for l in positions.longs]
-  [atLines type.syntheticFieldsInjectedAnnotations]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private long [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
-  [atLines type.syntheticFieldsInjectedAnnotations]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private long [disambiguateField type 'optBits'][emptyIfZero l.index];
   [/for]
   [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
@@ -1112,7 +1110,7 @@ public interface BuildFinal[type.generics] {
   [defineOrResetBuildingFieldAlt v true v.nullableCollector]
   [/for]
   [if type.generateOrdinalValue]
-  [atLines type.syntheticFieldsInjectedAnnotations]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private Domain domain = Domain.get();
   [/if]
 [for Boolean useFactoryMethod = not type.factoryBuilder.isNew]
@@ -1359,7 +1357,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue type]
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.nullableCollector]
@@ -1396,7 +1394,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
   public final [builderReturnType type] [v.names.add]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
     return [v.names.add]([v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]));
@@ -1409,7 +1407,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue type]
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
   [varargsSafety v]
   public final [builderReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
@@ -1517,9 +1515,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
     [if v.nullable]
@@ -1540,7 +1538,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
@@ -1610,7 +1608,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
@@ -1636,7 +1634,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
@@ -1653,9 +1651,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if type.kind.isFactory ornot v.jdkOptional]
   [suppressCovariantCastForOptional v]
   [/if]
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] [v.name]) {
     [checkNotIsSet v]
@@ -1678,7 +1676,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [varargsSafety v]
   [deprecation v]
@@ -1699,7 +1697,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
@@ -1722,7 +1720,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param value The associated value in the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
@@ -1754,7 +1752,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param entry The key and value entry
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
@@ -1788,9 +1786,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullable]
@@ -1812,7 +1810,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
@@ -1852,10 +1850,10 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [varargsSafety v]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.elementType]... [v.name]) {
     [checkNotIsSet v]
@@ -1874,7 +1872,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/for]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.elementInitializerInjectedAnnotations]
+  [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
@@ -1890,9 +1888,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
    */
-  [atLines v.initializerInjectedAnnotations]
+  [eachLine v.initializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][v.type] [v.name]) {
     [checkNotIsSet v]
@@ -1913,7 +1911,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * Once called, the attribute builder field is set to a new instance of the builder.
    * If called more than once, returns the same builder instance.
    */
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.names.getBuilder]() {
     if (this.[v.name] == null) {
@@ -1929,7 +1927,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    * Sets [sourceDocRef type v] to the provided builder.
    */
   [atCanIgnoreReturnValue type]
-  [builderInitAnnotations v]
+  [eachLine v.builderAttributeAnnotation]
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.setBuilder]([v.atNullability][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [v.name]) {
     [checkNotIsSet v]
@@ -2111,12 +2109,6 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 [if type.telescopicBuild andnot topLevel]
 [generateTelescopicBuilderInterfaces type]
 [/if]
-[/for]
-[/template]
-
-[template builderInitAnnotations Attribute v]
-[for a in v.builderAttributeAnnotation]
-[a]
 [/for]
 [/template]
 
@@ -2356,9 +2348,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
    * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
   [/for]
    */
-  [for ann in type.constructorAnnotations]
-  [ann]
-  [/for]
+  [eachLine type.constructorAnnotations]
+  [eachLine type.constructorInjectedAnnotations]
   [suppressAnyCovariantCastForOptional type.constructorArguments]
   public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
       [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
@@ -2427,9 +2418,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
    * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
   [/for]
    */
-  [for ann in type.constructorAnnotations]
-  [ann]
-  [/for]
+  [eachLine type.constructorAnnotations]
+  [eachLine type.constructorInjectedAnnotations]
   public [type.typeImmutable.simple]([output.linesShortable]
       [for v in setters][if not for.first],
       [/if][v.constructorParameterAnnotations][v.atNullability][immutableImplementationType v] [v.name][/for][/output.linesShortable]) {
@@ -2642,9 +2632,7 @@ static final [output.linesShortable]class Json[type.generics]
   final [v.type] [v.name] = new java.util.HashMap[v.genericArgs]();
 [/for]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
-  [for a in v.annotations]
-  [a]
-  [/for]
+  [eachLine v.annotations]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
     [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
@@ -3329,9 +3317,8 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryInstance
 [/for]
  * @return An immutable [type.name] instance
  */
-[for ann in type.constructorAnnotations]
-[ann]
-[/for]
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][v.type] [v.name][/for]) {
   return [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
 }
@@ -3345,9 +3332,8 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/for]
  * @return An immutable [type.name] instance
  */
-[for ann in type.constructorAnnotations]
-[ann]
-[/for]
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simple]([for v in type.constructorArguments][if not for.first], [/if][v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for]) {
   return [type.typeImmutable.relative].[type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for]);
 }
@@ -4016,10 +4002,10 @@ private static final long serialVersionUID = [literal serialVersion];
 [/for]
 [/template]
 
-[-- Annotation injections --]
-[template atLines Object... annotations]
-[for a in annotations]
-[a]
+[-- Usefull for annotations etc --]
+[template eachLine Object... lines]
+[for l in lines]
+[l]
 [/for]
 [/template]
 

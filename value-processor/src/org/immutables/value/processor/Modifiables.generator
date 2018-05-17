@@ -58,6 +58,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [/template]
 
 [template modifiableClass Type type Boolean topLevel]
+[eachLine type.passedAnnotations]
+[eachLine type.modifiableTypeInjectedAnnotations]
 [for mandatories = type.mandatoryOrEncodingAttributes,
      nondefaults = type.requiresTrackedIsSetNonMandatoryAttributes,
      LongPositions positions = longsFor mandatories,
@@ -81,16 +83,19 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   private static final long OPT_BIT_[toConstant p.name] = [literal.hex pos.mask];
   [/for]
   [for l in positions.longs]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private long [disambiguateField type 'initBits'][emptyIfZero l.index] = [literal.hex l.occupation];
   [/for]
   [for l in nondefaultsPositions.longs]
+  [eachLine type.syntheticFieldsInjectedAnnotations]
   private long [disambiguateField type 'optBits'][emptyIfZero l.index];
   [/for]
   [if positions.longs or nondefaultsPositions.longs][-- just to separate sections --]
 
   [/if]
   [for v in type.implementedAttributes if not v.generateDerived]
-  [defineField v true]
+  [eachLine v.fieldInjectedAnnotations]
+  [defineOrResetField v true]
   [/for]
   [generateConstructors type]
   [generateAccessors type]
@@ -269,7 +274,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [for Boolean useFactoryMethod = type.names.create ne 'new']
 [let constructorAccess][if useFactoryMethod]private[else]public[/if] [/let]
 [let constructorParameters][output.linesShortable][for p in type.constructorArguments][if not for.first],
-  [/if][p.atNullability][constructorAcceptType p] [p.name][/for][/output.linesShortable][/let]
+  [/if][p.atNullability][eachLine p.constructorParameterInjectedAnnotations][constructorAcceptType p] [p.name][/for][/output.linesShortable][/let]
 [let constructorParametersSupplied][for p in type.constructorArguments][if not for.first], [/if][p.name][/for][/let]
 [if type.useConstructor]
   [if not useFactoryMethod]
@@ -280,6 +285,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
  * @param [p.name] The value for the [sourceDocRef type p] attribute [if p.nullable](can be {@code null})[/if]
 [/for]
  */
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 [constructorAccess][type.names.typeModifiable]([constructorParameters]) {
   [for v in type.constructorArguments]
     [if v.collectionType]
@@ -300,6 +307,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
  * Construct a modifiable instance of {@code [type.typeAbstract.simple]}.
  */
   [/if]
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 [constructorAccess][type.names.typeModifiable]() {}
 [/if]
 [if useFactoryMethod]
@@ -313,6 +322,8 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [/for]
  * @return A new modifiable instance
  */
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 public static[type.generics.def] [thisReturnType type] [type.names.create]([constructorParameters]) {
   return new [type.names.typeModifiable][type.generics.args]()[for v in type.constructorArguments]
     [if v.collectionType]
@@ -327,6 +338,8 @@ public static[type.generics.def] [thisReturnType type] [type.names.create]([cons
 [im.javadocGenerics type]
  * @return A new modifiable instance
  */
+[eachLine type.constructorAnnotations]
+[eachLine type.constructorInjectedAnnotations]
 public static[type.generics.def] [thisReturnType type] [type.names.create]() {
   return new [type.names.typeModifiable][type.generics.diamond]();
 }
@@ -421,9 +434,8 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
 [/if]
   [/if]
  */
-[for a in v.annotations]
-[a]
-[/for]
+[eachLine v.annotations]
+[eachLine v.accessorInjectedAnnotations]
 [deprecation v]
 @Override
 [v.access]final [v.atNullability][v.implementationModifiableType] [v.names.get]() {
@@ -482,6 +494,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] element) {
   [if v.nullElements.skip]if (element == null) [thisSetterReturn type][/if]
@@ -512,6 +525,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [varargsSafety v]
 [atCanIgnoreReturnValue type]
 public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType]... elements) {
@@ -532,6 +546,7 @@ public final [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType].
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else]Iterable<[v.consumedElementType]>[/if] elements) {
   [if v.nullable]
@@ -560,6 +575,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementType]> elements) {
   [if v.nullableCollector]
@@ -582,6 +598,7 @@ public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementT
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.name]) {
   this.[v.name] = [optionalOf v]([v.name]);
@@ -595,6 +612,7 @@ public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.na
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecializedOptional]<[v.wrappedElementType]>[/if] [v.name]) {
   this.[v.name] = [im.requireNonNull type]([v.name], "[v.name]");
@@ -613,6 +631,7 @@ public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecial
  */
 [varargsSafety v]
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values) {
   [v.names.putAll](key, [im.arrayAsListSecondary v 'values']);
@@ -626,6 +645,7 @@ public final [thisSetterReturnType type] [v.names.put]([uK] key, [uV]... values)
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
   [if v.nullableCollector]
@@ -657,6 +677,7 @@ public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> val
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.elementInitializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
   [if v.nullableCollector]
@@ -681,6 +702,7 @@ public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanFriendlyModifiable][v.type][else][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]>[/if] entries) {
   [if v.nullable]
@@ -721,6 +743,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
   [if v.nullableCollector]
@@ -752,6 +775,7 @@ public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].c
  */
 [varargsSafety v]
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elements) {
   this.[v.name] = [if v.nullable]elements == null ? null : [/if]elements.clone();
@@ -770,6 +794,7 @@ public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elemen
  * @return {@code this} for use in a chained invocation
  */
 [deprecation v]
+[eachLine v.initializerInjectedAnnotations]
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.name]) {
   [if v.attributeValueKindModifyFrom]
@@ -799,10 +824,6 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][v.type] [v.na
   [a.type]
 [/if]
 [/output.trim][/template]
-
-[template defineField Attribute v]
-[defineOrResetField v true]
-[/template]
 
 [-- ??? is it used --]
 [template emptyImmutableCollectionType Attribute v][output.trim]
@@ -1140,9 +1161,6 @@ public String toString() {
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
 [/if]
-[for a in type.passedAnnotations]
-[a]
-[/for]
 [/template]
 
 [template packageWhenTopLevel Type type Boolean is]
@@ -1157,6 +1175,13 @@ import java.lang.String;
 import [starImport];
   [/for]
 [/if]
+[/template]
+
+[-- Usefull for annotations etc --]
+[template eachLine Object... lines]
+[for l in lines]
+[l]
+[/for]
 [/template]
 
 [template isInitialized Type t][disambiguateAccessor t t.names.isInitialized][/template]
