@@ -544,6 +544,20 @@ public @interface Value {
     String buildOrThrow() default "";
 
     /**
+     * Naming template for the {@code canBuild} method on a builder that return boolean if it can
+     * "safely" build an object, i.e. all attributes are set and instance would be returned by
+     * calling {@code .build()} method without throwing {@link IllegalStateException}.
+     * <em>Note: By default this method is not generated, unless a naming is provided. For example,
+     * set it to {@code canBuild="canBuild"} and {@code boolean canBuild()} method will be
+     * generated on builder.</em>
+     * <em>Note: when using encoding, building of attributes is delegated to encoding specific
+     * routines, so that general builder infrastructure may not know if attribute can be safely
+     * constructed, in this case, canBuild method might give wrong answer.</em>
+     * @return naming template
+     */
+    String canBuild() default "";
+
+    /**
      * Method to determine if all required attributes are set.
      * Default method name choice for this is mostly random.
      * @return naming template

@@ -61,4 +61,14 @@ public class StyleTest {
     check(ImmutableJdkInterner.of(1)).same(ImmutableJdkInterner.of(1));
     check(ImmutableJdkInterner.of(2)).same(ImmutableJdkInterner.of(2));
   }
+
+  @Test
+  public void canBuild() {
+    CanBuild.Builder builder = new CanBuild.Builder();
+    check(!builder.isBuilderCanBuild());
+    builder.a(1);
+    check(builder.isBuilderCanBuild());
+    builder.b("");
+    check(builder.isBuilderCanBuild());
+  }
 }

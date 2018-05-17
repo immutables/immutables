@@ -1994,6 +1994,21 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
     [builderReturnValue type]
   }
+  [if type.isGenerateCanBuild]
+
+  /**
+   * If all required attributes are set and calling {@link #[type.names.build]()}
+   * will return an instance and will not throw {@code IllegalStateException}.
+   * @return {@code true} if all mandatory attributes are initialized
+   */
+  public boolean [type.names.canBuild]() {
+    [if positions.longs]
+    return [for l in positions.longs][if not for.first] && [/if][disambiguateField type 'initBits'][emptyIfZero l.index] == 0[/for];
+    [else]
+    return true;
+    [/if]
+  }
+  [/if]
   [if type.isGenerateBuildOrThrow]
   [if classpath.isJava8 ornot type.generateJdkOnly]
 

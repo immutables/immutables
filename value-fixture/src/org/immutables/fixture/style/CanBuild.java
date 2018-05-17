@@ -13,5 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-@InjAnn.Ifp
-package org.immutable.fixture.annotate;
+package org.immutables.fixture.style;
+
+import java.util.Optional;
+import org.immutables.value.Value;
+
+// checks generation and functionality of canBuild method on builder
+@Value.Immutable
+@Value.Style(canBuild = "isBuilder*")
+public interface CanBuild {
+  int a();
+
+  Optional<String> b();
+
+  class Builder extends ImmutableCanBuild.Builder {}
+}

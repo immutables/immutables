@@ -257,6 +257,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return !style().buildOrThrow().isEmpty();
   }
 
+  public boolean isGenerateCanBuild() {
+    return !style().canBuild().isEmpty();
+  }
+
   public boolean isBeanFriendlyModifiable() {
     return style().beanFriendlyModifiables();
   }
