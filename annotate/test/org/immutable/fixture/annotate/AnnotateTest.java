@@ -1,6 +1,7 @@
 package org.immutable.fixture.annotate;
 
 import java.lang.reflect.Method;
+import org.immutable.fixture.annotate.InjAnn.OnTypeAndAccessorCascadeToInitializerInterpolate;
 import org.immutable.fixture.annotate.InjAnn.ToInj;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
@@ -37,6 +38,19 @@ public class AnnotateTest {
     check(t.a()).is(33);
     ToInj b = ImmutableOnTypeAndBuilder.Builder.class.getAnnotation(ToInj.class);
     check(b.a()).is(33);
+    ToInj m = ModifiableOnTypeAndBuilder.class.getAnnotation(ToInj.class);
+    check(m.a()).is(33);
+  }
+
+  @Test
+  public void syntheticField() throws Exception {
+    ToInj h = ModifiableOnTypeAndAccessorCascadeToInitializerInterpolate.class
+        .getDeclaredField("initBits")
+        .getAnnotation(ToInj.class);
+
+    // this one is injected from accessor
+    check(h.a()).is(71);
+    check(h.b()).is("synthetic of " + OnTypeAndAccessorCascadeToInitializerInterpolate.class.getSimpleName());
   }
 
   @Test
@@ -51,6 +65,25 @@ public class AnnotateTest {
 
     ToInj x = ImmutableOnTypeAndAccessorCascadeToInitializerInterpolate.Builder.class
         .getDeclaredMethod("x", String.class)
+        .getAnnotation(ToInj.class);
+
+    // this one is injected from type
+    check(x.a()).is(31);
+    check(x.b()).is("UO");
+  }
+
+  @Test
+  public void settersFromTypeAndCascade() throws Exception {
+    ToInj h = ModifiableOnTypeAndAccessorCascadeToInitializerInterpolate.class
+        .getDeclaredMethod("setH", int.class)
+        .getAnnotation(ToInj.class);
+
+    // this one is injected from accessor
+    check(h.a()).is(15);
+    check(h.b()).is("EF");
+
+    ToInj x = ModifiableOnTypeAndAccessorCascadeToInitializerInterpolate.class
+        .getDeclaredMethod("setX", String.class)
         .getAnnotation(ToInj.class);
 
     // this one is injected from type

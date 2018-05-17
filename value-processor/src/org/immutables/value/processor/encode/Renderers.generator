@@ -213,6 +213,7 @@ private [inst.typer el.type] with_[inst.namer el]([for p in el.params][if not fo
 [for inst = a.instantiation,
     enc = inst.encoding,
     el = inst.expose]
+[eachLine a.accessorInjectedAnnotations]
 [annots el][-- encoding authors should be careful not add conflicting annotations here]
 [a.access][inst.type] [a.names.get]() [inst.codeOf el]
   [if inst.shimFields]
@@ -243,6 +244,7 @@ private [inst.typer f.type] [inst.namer f] {
 
 [template declareAuxiliaryField Inst inst Elem el]
 [doc inst el]
+[if not el.static][eachLine inst.containingType.syntheticFieldsInjectedAnnotations][/if]
 [annots el]
 [if el.private]private [else]public [/if][if el.static]static [/if][if el.final]final [/if][inst.typer el.type] [inst.namer el][if el.code] = [inst.codeOf el][/if];
 [/template]
@@ -278,6 +280,7 @@ private [inst.typer f.type] [inst.namer f] {
 [/template]
 
 [template annotsJI Attribute s Elem el]
+[eachLine s.fieldInjectedAnnotations]
 [if s.containingType.generateJacksonIngoreFields]
 [for a in el.annotations if not (a startsWith '@com.fasterxml.jackson.annotation.JsonIgnore')]
 [a]
@@ -289,8 +292,15 @@ private [inst.typer f.type] [inst.namer f] {
 [/template]
 
 [template annotsCIRV Attribute s Elem el]
+[eachLine s.initializerInjectedAnnotations]
 [for a in el.annotations if not (a startsWith '@com.google.errorprone.annotations.CanIgnoreReturnValue')]
 [a]
 [/for]
 [if s allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue[/if]
+[/template]
+
+[template eachLine Object... lines]
+[for l in lines]
+[l]
+[/for]
 [/template]

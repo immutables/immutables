@@ -35,8 +35,16 @@ public interface InjAnn {
   }
 
   @Retention(RetentionPolicy.RUNTIME)
-  @InjectAnnotation(code = "(a=33)", type = ToInj.class, target = {Where.BUILDER_TYPE, Where.IMMUTABLE_TYPE})
+  @InjectAnnotation(code = "(a=33)",
+      type = ToInj.class,
+      target = {Where.BUILDER_TYPE, Where.IMMUTABLE_TYPE, Where.MODIFIABLE_TYPE})
   @interface ImB {}
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @InjectAnnotation(code = "(a=71, b=\"synthetic of [[!name]]\")",
+      type = ToInj.class,
+      target = {Where.SYNTHETIC_FIELDS})
+  @interface BmS {}
 
   @Retention(RetentionPolicy.RUNTIME)
   @InjectAnnotation(type = ToInj.class, ifPresent = true, target = Where.CONSTRUCTOR_PARAMETER)
@@ -66,7 +74,9 @@ public interface InjAnn {
   }
 
   @Value.Immutable
+  @Value.Modifiable
   @Cn3(c = 31, d = "UO")
+  @BmS
   interface OnTypeAndAccessorCascadeToInitializerInterpolate {
     @Cn3(c = 15, d = "EF")
     int h();
@@ -75,6 +85,7 @@ public interface InjAnn {
   }
 
   @Value.Immutable
+  @Value.Modifiable
   @ImB
   interface OnTypeAndBuilder {}
 }

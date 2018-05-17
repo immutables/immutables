@@ -281,6 +281,10 @@ public final class Instantiation {
     return el.isBuild() && containingType.isGenerateBuilderConstructor();
   }
 
+  public ValueType getContainingType() {
+    return containingType;
+  }
+
   private boolean isDefaultUnspecifiedValue(EncodedElement element) {
     return element.naming().isIdentity() && !element.depluralize();
   }
