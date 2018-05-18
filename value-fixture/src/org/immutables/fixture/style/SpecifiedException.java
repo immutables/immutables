@@ -22,6 +22,7 @@ import nonimmutables.SampleRuntimeException;
 @Value.Immutable
 @Value.Style(
     throwForInvalidImmutableState = SampleRuntimeException.class,
+    throwForNullPointer = SampleRuntimeException.class,
     strictBuilder = true,
     buildOrThrow = "buildOrThrow")
 public interface SpecifiedException {

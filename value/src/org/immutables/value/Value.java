@@ -1049,6 +1049,17 @@ public @interface Value {
     Class<? extends RuntimeException> throwForInvalidImmutableState() default IllegalStateException.class;
 
     /**
+     * Runtime exception to throw when null reference is passed to non-nullable parameter or occured
+     * in array/container that must not contain nulls. It is expected that the exception will have
+     * public constructor receiving string as message/parameter name. The
+     * default is {@link NullPointerException} and the calls are usually delegated to
+     * {@link Objects#requireNonNull(Object)} or similar utility throwing
+     * {@code NullPointerException}.
+     * @return exception type
+     */
+    Class<? extends RuntimeException> throwForNullPointer() default NullPointerException.class;
+
+    /**
      * Depluralize names for collection and map attributes used for generating derived method names,
      * such as {@link #add()} and {@link #put()}. In order to enable depluralization use
      * {@code depluralize = true}: this will trim trailing "s" if present to create singular form

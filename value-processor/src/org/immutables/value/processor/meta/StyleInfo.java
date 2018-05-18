@@ -264,6 +264,9 @@ public abstract class StyleInfo implements ValueMirrors.Style {
   public abstract String throwForInvalidImmutableStateName();
 
   @Value.Parameter
+  public abstract String throwForNullPointerName();
+
+  @Value.Parameter
   @Override
   public abstract boolean depluralize();
 
@@ -355,6 +358,13 @@ public abstract class StyleInfo implements ValueMirrors.Style {
     throw new UnsupportedOperationException("Use StyleInfo.throwForInvalidImmutableStateName() instead");
   }
 
+  /** @deprecated no runtime classes, use StyleInfo.throwForNullPointerName() instead */
+  @Deprecated
+  @Override
+  public Class<? extends Exception> throwForNullPointer() {
+    throw new UnsupportedOperationException("Use StyleInfo.throwForNullPointerName() instead");
+  }
+
   /** @deprecated no runtime classes, use StyleInfo.immutableCopyOfRoutinesNames() instead */
   @Deprecated
   @Override
@@ -429,6 +439,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.weakInterning(),
         input.builderVisibility(),
         input.throwForInvalidImmutableStateName(),
+        input.throwForNullPointerName(),
         input.depluralize(),
         input.depluralizeDictionary(),
         ImmutableSet.copyOf(input.immutableCopyOfRoutinesName()),

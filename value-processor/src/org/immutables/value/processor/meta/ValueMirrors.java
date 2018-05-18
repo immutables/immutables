@@ -203,6 +203,8 @@ public final class ValueMirrors {
 
     Class<? extends Exception> throwForInvalidImmutableState() default IllegalStateException.class;
 
+    Class<? extends Exception> throwForNullPointer() default NullPointerException.class;
+
     boolean depluralize() default false;
 
     String[] depluralizeDictionary() default {};

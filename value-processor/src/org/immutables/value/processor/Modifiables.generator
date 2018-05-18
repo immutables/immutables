@@ -260,7 +260,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [/if]
   [generateEqualsHashCode type]
   [generateToString type]
-[if topLevel and type.generateJdkOnly]
+[if topLevel]
   [im.objectsUtility type]
 [/if]
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
@@ -1178,11 +1178,9 @@ import [starImport];
 [/template]
 
 [-- Usefull for annotations etc --]
-[template eachLine Object... lines]
-[for l in lines]
+[template eachLine Object... lines][for l in lines]
 [l]
-[/for]
-[/template]
+[/for][/template]
 
 [template isInitialized Type t][disambiguateAccessor t t.names.isInitialized][/template]
 

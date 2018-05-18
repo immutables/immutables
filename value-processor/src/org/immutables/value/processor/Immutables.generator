@@ -109,9 +109,7 @@ import static [routine].immutableCopyOf;
   [/if]
   [forwardingEnclosingFactoryMethods v]
 [/for]
-[if type.generateJdkOnly]
   [objectsUtility type]
-[/if]
 [if type.generateJdkOnly and type.useCollectionUtility]
   [collectionUtility type]
 [/if]
@@ -211,7 +209,7 @@ import static [routine].immutableCopyOf;
   [generateWithInterface v false]
   [/if]
 [/for]
-[if topLevel and type.generateJdkOnly]
+[if topLevel]
   [objectsUtility type]
 [/if]
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
@@ -1903,8 +1901,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [mandatorySetInBuilder v]
     return [builderReturnThis type];
   }
-
   [if v.isAttributeBuilder]
+
   /**
    * Returns a builder for [sourceDocRef type v].
    *
@@ -2111,7 +2109,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [generateWithInterface type false]
   [/if]
 [/if]
-[if topLevel and type.generateJdkOnly]
+[if topLevel]
   [objectsUtility type]
 [/if]
 [if topLevel and (type.generateJdkOnly and type.useCollectionUtility)]
@@ -3583,7 +3581,9 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [template public requireNonNull Type type][output.trim]
 [for Boolean hasObjects = classpath.available 'java.util.Objects',
     Boolean hasAndroid = classpath.available 'android.R']
-[if type.generateJdkOnly]
+[if type.throwForNullPointer]
+  [topSimplePrefix type]requireNonNull
+[else if type.generateJdkOnly]
   [if hasAndroid]
     [topSimplePrefix type]requireNonNull
   [else if hasObjects]
@@ -3602,14 +3602,24 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/output.trim][/template]
 
 [template public objectsUtility Type type]
+[if type.throwForNullPointer]
+
+private static <T> T requireNonNull(T object, String message) {
+  if (object == null) throw new [type.throwForNullPointer](message);
+  return object;
+}
+[/if]
+[if type.generateJdkOnly]
 [for Boolean haveObjects = classpath.available 'java.util.Objects',
      Boolean haveAndroid = classpath.available 'android.R']
   [if haveAndroid ornot haveObjects]
+    [if not type.throwForNullPointer][--NPE was not customized (see above)--]
 
 private static <T> T requireNonNull(T object, String message) {
   if (object == null) throw new NullPointerException(message);
   return object;
 }
+    [/if]
     [if type.useNullSafeUtilities]
 
 private static int hashCode(Object object) {
@@ -3622,6 +3632,7 @@ private static boolean equals(Object left, Object right) {
     [/if]
   [/if]
 [/for]
+[/if]
 [/template]
 
 [template public attributeBuilderTransformUtilities Type type]
@@ -4018,11 +4029,9 @@ private static final long serialVersionUID = [literal serialVersion];
 [/template]
 
 [-- Usefull for annotations etc --]
-[template eachLine Object... lines]
-[for l in lines]
+[template eachLine Object... lines][for l in lines]
 [l]
-[/for]
-[/template]
+[/for][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
 [template topSimplePrefix Type type][if topLevelSimple][topLevelSimple].[else][type.topSimple].[/if][/template]

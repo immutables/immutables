@@ -299,8 +299,6 @@ private [inst.typer f.type] [inst.namer f] {
 [if s allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']@com.google.errorprone.annotations.CanIgnoreReturnValue[/if]
 [/template]
 
-[template eachLine Object... lines]
-[for l in lines]
+[template eachLine Object... lines][for l in lines]
 [l]
-[/for]
-[/template]
+[/for][/template]

@@ -26,6 +26,11 @@ public class SpecifiedExceptionTest {
     ImmutableSpecifiedException.builder().build();
   }
 
+  @Test(expected = SampleRuntimeException.class)
+  public void throwsSampleExceptionInsteadOfNullPointer() {
+    ImmutableSpecifiedException.builder().someRequiredString(null);
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void itThrowsSpecifiedExceptionOnBuild() {
     ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new);

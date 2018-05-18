@@ -990,6 +990,21 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return throwForInvalidImmutableState;
   }
 
+  private @Nullable String throwForNullPointer;
+
+  public String getThrowForNullPointer() {
+    if (throwForNullPointer == null) {
+      if (!style().throwForNullPointerName().equals(NullPointerException.class.getName())) {
+        throwForNullPointer = style().throwForNullPointerName();
+      } else {
+        // falsy but non-null value
+        throwForNullPointer = "";
+      }
+    }
+    return throwForNullPointer;
+    
+  }
+
   public List<ValueAttribute> getImplementedAttributes() {
     if (implementedAttributes == null) {
       implementedAttributes = attributes()
