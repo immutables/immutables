@@ -34,6 +34,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceTypes;
+import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
 
 public final class FromSupertypesModel {
@@ -128,14 +129,18 @@ public final class FromSupertypesModel {
       return false;
     }
 
-    boolean sameReturnType = accessor.getReturnType().toString().equals(attr.returnType.toString());
-    if (sameReturnType) {
+    String ownType = accessor.getReturnType().toString();
+    String inheritedType = attr.returnType.toString();
+    // This kind of parsing normalizes and ignores type annotations
+    Type.Producer tf = new Type.Producer();
+    Type.Parser parser = new Type.Parser(tf, tf.parameters());
+    if (parser.parse(ownType).equals(parser.parse(inheritedType))) {
       return true;
     }
-    
-    reporter.warning("Generated 'Builder.from' method will not copy from attribute '%s'"
+
+    reporter.warning("Generated builder '.from' method will not copy from attribute '%s'"
         + " because it has different return type in supertype"
-        + " (And we cannot handle generic specialization or covarian overrides yet)."
+        + " (And we cannot handle generic specialization or covariant overrides yet)."
         + " Sometimes it is possible to avoid this by providing abstract override method in this value object",
         attr.name());
     return false;

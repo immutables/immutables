@@ -63,6 +63,7 @@ public class TypeTest {
   public void parseIngoreTypeAnnotationWithParameters() {
     check(parser.parse("java.lang.@javax.validation.constraints.Size(max = 10)String")).is(Reference.STRING);
     check(parser.parse("java.lang.@javax.validation.constraints.Size(max = 10, @A(a=@B(b=1))) String")).is(Reference.STRING);
+    check(parser.parse("@Ann(\"b\") int")).is(Primitive.INT);
   }
 
   @Test

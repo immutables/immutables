@@ -759,6 +759,7 @@ public interface Type {
             // just consume type annotation
             terms.poll();
             named();
+            consumeAnnotationParameters();
             consumeErraticTrailingComma();
             // and try again, yep, recursively...
             return type();
