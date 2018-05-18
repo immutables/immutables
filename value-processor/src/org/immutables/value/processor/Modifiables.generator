@@ -214,7 +214,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   }
 
   private String [disambiguateAccessor type 'formatRequiredAttributesMessage']() {
-    java.util.List<String> attributes = [if type.generateJdkOnly]new java.util.ArrayList<String>()[else][guava].collect.Lists.newArrayList()[/if];
+    java.util.List<String> attributes = new java.util.ArrayList[asDiamond 'String']();
     [for m in mandatories]
     if (![m.names.isSet]()) attributes.add("[m.names.raw]");
     [/for]

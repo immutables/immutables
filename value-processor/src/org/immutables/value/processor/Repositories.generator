@@ -448,7 +448,7 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
    * @return {@code this} [toLower tT] to be used to complete the update operation
    */
    public [tT] set[toUpper a.name](Iterable<[a.consumedElementType]> values) {
-     java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+     java.util.List<Object> wrappedValues = new java.util.ArrayList[asDiamond 'Object']();
      for ([wW] value : values) {
        wrappedValues.add([wrapMarshalable a]value));
      }
@@ -469,7 +469,7 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
    * @return {@code this} [toLower tT] to be used to complete the update operation
    */
   public [tT] addAll[toUpper a.name](Iterable<[a.consumedElementType]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    java.util.List<Object> wrappedValues = new java.util.ArrayList[asDiamond 'Object']();
     for ([wW] value : values) {
       wrappedValues.add([wrapMarshalable a]value));
     }
@@ -644,7 +644,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]ContainsAll(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    java.util.List<Object> wrappedValues = new java.util.ArrayList[asDiamond 'Object']();
     for ([wW] value : values) {
       wrappedValues.add([wrapMarshalable a]value));
     }
@@ -674,7 +674,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]In(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    java.util.List<Object> wrappedValues = new java.util.ArrayList[asDiamond 'Object']();
     for ([wW] value : values) {
       wrappedValues.add([wrapMarshalable a]value));
     }
@@ -682,7 +682,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]In([uU] first, [uU] second, [uU]... rest) {
-    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    java.util.List<Object> values = new java.util.ArrayList[asDiamond 'Object'](2 + rest.length);
     values.add([wrapMarshalable a]first));
     values.add([wrapMarshalable a]second));
     for ([uU] value : rest) {
@@ -692,7 +692,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]NotIn(Iterable<[wW]> values) {
-    java.util.List<Object> wrappedValues = com.google.common.collect.Lists.newArrayList();
+    java.util.List<Object> wrappedValues = new java.util.ArrayList[asDiamond 'Object']();
     for ([wW] value : values) {
       wrappedValues.add([wrapMarshalable a]value));
     }
@@ -700,7 +700,7 @@ public static final class Criteria extends Repositories.Criteria {
   }
 
   public Criteria [a.name]NotIn([uU] first, [uU] second, [uU]... rest) {
-    java.util.List<Object> values = com.google.common.collect.Lists.newArrayListWithCapacity(2 + rest.length);
+    java.util.List<Object> values = new java.util.ArrayList[asDiamond 'Object'](2 + rest.length);
     values.add([wrapMarshalable a]first));
     values.add([wrapMarshalable a]second));
     for ([uU] value : rest) {
