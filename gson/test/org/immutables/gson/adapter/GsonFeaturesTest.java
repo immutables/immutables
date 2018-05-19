@@ -20,7 +20,9 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import java.util.Map;
 import java.util.Set;
 import org.junit.Test;
@@ -32,6 +34,7 @@ public class GsonFeaturesTest {
       .serializeNulls()
       .registerTypeAdapterFactory(new GsonAdaptersSimple())
       .registerTypeAdapterFactory(new GsonAdaptersUnsimple())
+      .registerTypeAdapterFactory(new GsonAdaptersOtherAttributes())
       .create();
 
   final Gson gsonDefault = new GsonBuilder()
@@ -121,6 +124,17 @@ public class GsonFeaturesTest {
     check(json).contains("\"a\":");
     check(json).contains("\"l\":");
     check(json).contains("\"m\":");
+  }
+
+  @Test
+  public void otherAttributes() {
+    String json = "{\"a\":1,\"b\":\"B\",\"c\":true,\"d\":null}";
+    OtherAttributes o = gsonWithOptions.fromJson(json, OtherAttributes.class);
+
+    check(o.rest().get("c")).is(new JsonPrimitive(true));
+    check(o.rest().get("d")).is(JsonNull.INSTANCE);
+
+    check(gsonWithOptions.toJson(o)).is(json);
   }
 
   private Set<String> keysIn(JsonObject json) {

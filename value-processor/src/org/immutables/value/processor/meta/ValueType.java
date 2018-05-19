@@ -877,9 +877,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public List<ValueAttribute> getMarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
-    for (ValueAttribute attribute : getImplementedAttributes()) {
-      if (!attribute.isJsonIgnore()) {
-        builder.add(attribute);
+    for (ValueAttribute a : getImplementedAttributes()) {
+      if (!a.isJsonIgnore() && !a.isGsonOther()) {
+        builder.add(a);
       }
     }
     return builder.build();
@@ -887,9 +887,9 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public List<ValueAttribute> getUnmarshaledAttributes() {
     ImmutableList.Builder<ValueAttribute> builder = ImmutableList.builder();
-    for (ValueAttribute attribute : getSettableAttributes()) {
-      if (!attribute.isJsonIgnore()) {
-        builder.add(attribute);
+    for (ValueAttribute a : getSettableAttributes()) {
+      if (!a.isJsonIgnore() && !a.isGsonOther()) {
+        builder.add(a);
       }
     }
     return builder.build();
@@ -1696,6 +1696,15 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           getTypeExtractor());
     }
     return gsonTypeTokens;
+  }
+  
+  public @Nullable ValueAttribute getGsonOther() {
+    for (ValueAttribute a : attributes) {
+      if (a.isGsonOther()) {
+        return a;
+      }
+    }
+    return null;
   }
 
   private @Nullable TypeExtractor typeExtractor;

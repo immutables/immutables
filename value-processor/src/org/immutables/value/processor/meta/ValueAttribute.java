@@ -289,6 +289,26 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return names.raw;
   }
 
+  private @Nullable Boolean isGsonOther = null;
+
+  public boolean isGsonOther() {
+    if (isGsonOther == null) {
+      if (GsonOtherMirror.isPresent(element)) {
+        if (!isGenerateAbstract || !rawTypeName.equals(GsonMirrors.JSON_OBJECT_TYPE)) {
+          report().error(
+              "@Gson.Other attribute must be abstract accessor of type %s",
+              GsonMirrors.JSON_OBJECT_TYPE);
+          isGsonOther = false;
+        } else {
+          isGsonOther = true;
+        }
+      } else {
+        isGsonOther = false;
+      }
+    }
+    return isGsonOther;
+  }
+
   public boolean isForcedEmpty() {
     return !containingType.gsonTypeAdapters().emptyAsNulls();
   }

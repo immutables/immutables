@@ -141,6 +141,9 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   public final [a.secondaryElementType] [a.name]SecondaryTypeSample = null;
     [/if]
   [/for]
+  [for other = type.gsonOther][if other]
+  private final TypeAdapter<JsonElement> [other.name]TypeAdapter;
+  [/if][/for]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter and a.primitiveArrayType]
   private final TypeAdapter<[a.type]> [a.name]TypeAdapter;
@@ -171,6 +174,9 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
   [if type.generics]
     java.lang.reflect.Type['[]'] typeArguments = getTypeArguments(type);
   [/if]
+  [for other = type.gsonOther][if other]
+    this.[other.name]TypeAdapter = gson.getAdapter(JsonElement.class);
+  [/if][/for]
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
     [getAdapterFromGson a false]
@@ -259,9 +265,19 @@ private void write[type.name](JsonWriter out, [type.typeAbstract] instance)
   [for a in type.marshaledAttributes]
   [generateMarshalAttributeValue type a]
   [/for]
+  [generateMarshalOther type]
   out.endObject();
 [/if]
 }
+[/template]
+
+[template generateMarshalOther Type type]
+[for other = type.gsonOther][if other]
+for (java.util.Map.Entry<String, JsonElement> other : instance.[other.names.get]().entrySet()) {
+  out.name(other.getKey());
+  [other.name]TypeAdapter.write(out, other.getValue());
+}
+[/if][/for]
 [/template]
 
 [template generateMarshalConstructorValue Type type Attribute a]
@@ -514,11 +530,19 @@ private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/
   }
   [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder]()[/castBuildStagedBuilder];
     [if type.unmarshaledAttributes]
+      [for other = type.gsonOther]
+        [if other]
+  JsonObject other = new JsonObject();
+        [/if]
   in.beginObject();
   while (in.hasNext()) {
-    eachAttribute(in, builder);
+    eachAttribute(in, builder[if other], other[/if]);
   }
   in.endObject();
+        [if other]
+  builder.[other.names.init](other);
+        [/if]
+      [/for]
     [else]
   in.skipValue();
     [/if]
@@ -526,7 +550,7 @@ private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/
 }
 [if type.unmarshaledAttributes]
 
-private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
+private void eachAttribute(JsonReader in, [type.typeBuilder] builder[if type.gsonOther], JsonObject other[/if])
     throws IOException {
   String attributeName = in.nextName();
 [if type.gsonTypeAdapters.fieldNamingStrategy]
@@ -558,7 +582,13 @@ private void eachAttribute(JsonReader in, [type.typeBuilder] builder)
   default:
   }
 [/if]
+  [for other = type.gsonOther]
+    [if other]
+  other.add(attributeName, [other.name]TypeAdapter.read(in));
+    [else]
   in.skipValue();
+    [/if]
+  [/for]
 }
 [/if]
 [for s in type.unmarshaledAttributes]

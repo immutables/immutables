@@ -20,6 +20,8 @@ import org.immutables.mirror.Mirror;
 public final class GsonMirrors {
   private GsonMirrors() {}
 
+  public static String JSON_OBJECT_TYPE = "com.google.gson.JsonObject";
+
   @Mirror.Annotation("org.immutables.gson.Gson.TypeAdapters")
   public @interface TypeAdapters {
     boolean metainfService() default true;
@@ -50,4 +52,7 @@ public final class GsonMirrors {
 
   @Mirror.Annotation("org.immutables.gson.Gson.Ignore")
   public @interface Ignore {}
+
+  @Mirror.Annotation("org.immutables.gson.Gson.Other")
+  public @interface GsonOther {}
 }

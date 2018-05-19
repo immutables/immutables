@@ -18,6 +18,7 @@ package org.immutables.gson;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.FieldNamingStrategy;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -175,4 +176,12 @@ public @interface Gson {
   @Documented
   @Target(ElementType.METHOD)
   public @interface Ignore {}
+
+  /**
+   * Can be put on accessor of type {@link JsonObject} as catch all collection of all other fields,
+   * not mapped to declared attributes (i.e. unknown).
+   */
+  @Documented
+  @Target(ElementType.METHOD)
+  public @interface Other {}
 }
