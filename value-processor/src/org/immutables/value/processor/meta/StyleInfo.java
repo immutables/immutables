@@ -258,6 +258,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean publicInitializers();
+
+  @Value.Parameter
+  @Override
   public abstract BuilderVisibility builderVisibility();
 
   @Value.Parameter
@@ -437,6 +441,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.forceJacksonIgnoreFields(),
         input.jacksonIntegration(),
         input.weakInterning(),
+        input.publicInitializers(),
         input.builderVisibility(),
         input.throwForInvalidImmutableStateName(),
         input.throwForNullPointerName(),

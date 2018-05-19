@@ -71,4 +71,12 @@ public class StyleTest {
     builder.b("");
     check(builder.isBuilderCanBuild());
   }
+
+  @Test
+  public void nonPublicInitializers() throws Exception {
+    Class<?> cls = ImmutableNonPublicInitializers.Builder.class;
+    check(cls.getDeclaredMethod("a", int.class).getModifiers() & Modifier.PUBLIC).is(Modifier.PUBLIC);
+    check(cls.getDeclaredMethod("b", String.class).getModifiers() & Modifier.PROTECTED).is(Modifier.PROTECTED);
+    check(cls.getDeclaredMethod("c", boolean.class).getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)).is(0);
+  }
 }

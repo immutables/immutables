@@ -1223,7 +1223,7 @@ public interface BuildFinal[type.generics] {
    * @return {@code this} builder for use in a chained invocation
    */
   [atCanIgnoreReturnValue type]
-  [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
+  public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
     from((Object) instance);
     return [builderReturnThis type];
@@ -1357,7 +1357,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.initializerInjectedAnnotations]
   [deprecation v]
-  public final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1394,7 +1394,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
    */
   [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
-  public final [builderReturnType type] [v.names.add]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.add]([for c in v.constructorParameters][if not for.first], [/if][c.atNullability][c.type] [c.name][/for]) {
     return [v.names.add]([v.attributeValueType.factoryOf]([for c in v.constructorParameters][if not for.first], [/if][c.name][/for]));
   }
   [/if]
@@ -1408,7 +1408,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [deprecation v]
   [varargsSafety v]
-  public final [builderReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.addv]([v.unwrappedElementType]... elements) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1465,7 +1465,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [varargsSafety v]
-  public final [builderReturnType type] [v.names.addAllBuilder]([attributeBuilderBuilderType v.getAttributeBuilderDescriptor]... elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.addAllBuilder]([attributeBuilderBuilderType v.getAttributeBuilderDescriptor]... elements) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1517,7 +1517,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
   [deprecation v]
-  public final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability]Iterable<[v.consumedElementType]> elements) {
     [if v.nullable]
     if (elements == null) {
       [defineOrResetBuildingFieldAlt v false true]
@@ -1609,7 +1609,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  public final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.init]([unwrappedOptionalType v] [v.name]) {
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
     this.[v.name] = [optionalOf v]([maybeCopyOf v][v.name][/maybeCopyOf]);
@@ -1678,7 +1678,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [varargsSafety v]
   [deprecation v]
-  public final [builderReturnType type] [v.names.putv]([uK] key, [uV]... values) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.putv]([uK] key, [uV]... values) {
     [if v.nullable]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1698,7 +1698,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  public final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> values) {
     [if v.nullable]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1722,7 +1722,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
-  public final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1753,7 +1753,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [eachLine v.elementInitializerInjectedAnnotations]
   [atCanIgnoreReturnValue type]
   [deprecation v]
-  public final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -4050,7 +4050,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 
-[template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else]public [/if][/template]
+[template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else][a.accessInit][/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 

@@ -1019,6 +1019,20 @@ public @interface Value {
     boolean weakInterning() default false;
 
     /**
+     * All initializers (the methods to set attribute values on a builder) usually have public
+     * visibility regardless of the visibility of the attribute accessors. Usually this doen't
+     * matter, especially for value types defined as interfaces (where all accessors public). But
+     * sometimes there's a need to have abstract class with finer-grained access control to
+     * attributes, which also require initializers to follow the access level of accessors defining
+     * attributes. Set this flage to {@code false} if initializers (builder setters) should follow
+     * access level of attributes.
+     * <em>Note this flag is disregarded when {@link #stagedBuilder()} is enabled which generates
+     * stage interfaces which requires public access anyway.</em>
+     * @return {@code true} if force all initializers to public. Default is true
+     */
+    boolean publicInitializers() default true;
+
+    /**
      * Specify the mode in which visibility of generated value type is derived from abstract value
      * type. It is a good idea to not specify such attributes inline with immutable values, but
      * rather create style annotation (@see Style).

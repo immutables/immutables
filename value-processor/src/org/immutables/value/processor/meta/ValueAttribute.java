@@ -1012,6 +1012,18 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return "";
   }
 
+  public String getAccessInit() {
+    if (style().stagedBuilder()
+        || style().publicInitializers()
+        || element.getModifiers().contains(Modifier.PUBLIC)) {
+      return "public ";
+    }
+    if (element.getModifiers().contains(Modifier.PROTECTED)) {
+      return "protected ";
+    }
+    return "";
+  }
+
   public boolean isPrimitiveElement() {
     return isPrimitiveType(getUnwrappedElementType());
   }
