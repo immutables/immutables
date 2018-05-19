@@ -57,8 +57,8 @@
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
 [/if]
-[if type allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
-@org.immutables.value.Value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
 [/if]
 [/if]
 [/template]
