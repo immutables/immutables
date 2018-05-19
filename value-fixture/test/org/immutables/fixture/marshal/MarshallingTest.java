@@ -28,13 +28,12 @@ import org.immutables.fixture.SillyPolyHost;
 import org.immutables.fixture.SillyPolyHost2;
 import org.immutables.fixture.SillyStructure;
 import org.immutables.fixture.SillyTuplie;
+import org.immutables.fixture.nested.ImmutableBuagra;
 import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
 import org.immutables.fixture.subpack.SillySubstructure;
 import org.junit.Test;
-
 import java.util.List;
-
 import static org.immutables.check.Checkers.check;
 
 @SuppressWarnings("resource")
@@ -61,12 +60,19 @@ public class MarshallingTest {
   }
 
   @Test
+  public void unmarshalWrappedNull() {
+    check(Marshaling.fromJson("null", NonGrouped.Buagra.class).buagra()).isNull();
+    check(Marshaling.getGson().getAdapter(NonGrouped.Buagra.class).toJsonTree(ImmutableBuagra.of(null)))
+        .isA(JsonNull.class);
+  }
+
+  @Test
   public void nullableMarshaling() {
-    check(CharMatcher.WHITESPACE.removeFrom(Marshaling.toJson(ImmutableHasNullable.of())))
-        .is("{}");
+    check(CharMatcher.WHITESPACE.removeFrom(Marshaling.toJson(ImmutableHasNullable.of()))).is("{}");
     check(Marshaling.fromJson("{}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of());
     check(Marshaling.fromJson("{\"in\":1}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of(1));
-    check(Marshaling.fromJson("{\"def\":\"1\"}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of().withDef("1"));
+    check(Marshaling.fromJson("{\"def\":\"1\"}", ImmutableHasNullable.class))
+        .is(ImmutableHasNullable.of().withDef("1"));
   }
 
   @Test

@@ -15,6 +15,7 @@
  */
 package org.immutables.fixture.nested;
 
+import javax.annotation.Nullable;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
@@ -25,13 +26,18 @@ public abstract class NonGrouped {
   abstract static class Abra {}
 
   @Value.Immutable(builder = false)
-  public interface Cadabra {
-
-  }
+  public interface Cadabra {}
 
   @Value.Immutable(builder = false)
   abstract static class Dabra {
     @Value.Parameter
     abstract int dabra();
+  }
+
+  @Value.Immutable(builder = false)
+  public abstract static class Buagra {
+    @Value.Parameter
+    @Nullable
+    public abstract String buagra();
   }
 }

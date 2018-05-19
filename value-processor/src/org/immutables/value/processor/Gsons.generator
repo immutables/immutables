@@ -206,10 +206,6 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
 
   @Override
   public [t] read(JsonReader in) throws IOException {
-    if (in.peek() == JsonToken.NULL) {
-      in.nextNull();
-      return null;
-    }
     return read[type.name](in);
   }
   [generateMarshalingMethods type]
@@ -476,6 +472,10 @@ private static char charValueOf(String string) {
 
 private [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
+  if (in.peek() == JsonToken.NULL) {
+    in.nextNull();
+    return null;
+  }
   in.skipValue();
   return [type.factoryInstance]();
 }
@@ -489,6 +489,10 @@ private [if singular ca][for a in ca][if a.primitive]static[/if][/for][/if] [typ
   return [type.factoryOf](readParameter[toUpper a.name](in));
   [/for]
 [else]
+  if (in.peek() == JsonToken.NULL) {
+    in.nextNull();
+    return null;
+  }
   in.beginArray();
   [type.typeAbstract] instance = [type.factoryOf]([for a in ca][if not for.first],[/if]
     readParameter[toUpper a.name](in)[/for]);
@@ -504,6 +508,10 @@ private [if singular ca][for a in ca][if a.primitive]static[/if][/for][/if] [typ
 
 private [if type.generics.empty][if not type.unmarshaledAttributes]static[/if][/if] [type.typeAbstract] read[type.name](JsonReader in)
     throws IOException {
+  if (in.peek() == JsonToken.NULL) {
+    in.nextNull();
+    return null;
+  }
   [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder]()[/castBuildStagedBuilder];
     [if type.unmarshaledAttributes]
   in.beginObject();
