@@ -1030,7 +1030,7 @@ public @interface Value {
      * stage interfaces which requires public access anyway.</em>
      * @return {@code true} if force all initializers to public. Default is true
      */
-    boolean publicInitializers() default true;
+    boolean alwaysPublicInitializers() default true;
 
     /**
      * Specify the mode in which visibility of generated value type is derived from abstract value

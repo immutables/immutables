@@ -1012,9 +1012,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return "";
   }
 
-  public String getAccessInit() {
+  public String getIntializerAccess() {
     if (style().stagedBuilder()
-        || style().publicInitializers()
+        || style().alwaysPublicInitializers()
         || element.getModifiers().contains(Modifier.PUBLIC)) {
       return "public ";
     }

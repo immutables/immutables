@@ -4050,7 +4050,7 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template validated Type type Boolean qualified String expression][if type.useValidation][if qualified][type.typeImmutable.relativeRaw].[/if]validate([expression])[else][expression][/if][/template]
 
-[template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else][a.accessInit][/if][/template]
+[template builderInitAccess Attribute a][if a.isBuilderParameter or a.isBuilderSwitcher][if a.containingType.kind.isFactory]private [/if][else][a.intializerAccess][/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
