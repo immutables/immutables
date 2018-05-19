@@ -1147,7 +1147,8 @@ public @interface Value {
      * and then allowing adding any optional or collection attributes in any order before calling
      * the build method. This option also implies {@link #strictBuilder()} is automatically enabled.
      * <p>
-     * <em>Note: this functionality is experimental and may not play well with other functionality.
+     * <em>Note: this functionality may not play well with other functionality, may be auto-disabled
+     * in certain configurations like implementations nested in builder.
      * </em>
      * @return if telescopic builders are used, {@code false} by default
      */

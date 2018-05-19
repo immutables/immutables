@@ -965,7 +965,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public @Nullable TelescopicBuild getTelescopicBuild() {
     if (telescopicBuild == null) {
       if (style().stagedBuilder()
-          && !getMandatoryAttributes().isEmpty()) {
+          && !getMandatoryAttributes().isEmpty()
+          && !constitution.isOutsideBuilder()) {
         TelescopicBuild tb = TelescopicBuild.from(getSettableAttributes());
         if (!tb.stages.isEmpty()) {
           telescopicBuild = tb;
