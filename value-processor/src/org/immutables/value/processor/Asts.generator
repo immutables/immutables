@@ -45,9 +45,12 @@ import java.lang.String;
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Asts.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Asts.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if type allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Asts")
 [/if]
 [type.typeValue.access]final class [astTypeName] {
   private [astTypeName]() {}

@@ -40,9 +40,12 @@ package [visitorType.package];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if visitorType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Visitors.generator", "[visitorType.typeAbstract.relativeRaw]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if visitorType allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Visitors.generator", "[visitorType.typeAbstract.relativeRaw]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if visitorType allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[visitorType.typeAbstract.relativeRaw]", generator = "Visitors")
 [/if]
 [visitorType.typeValue.access]abstract class [visitorClassname] {
   protected [visitorClassname]() {}

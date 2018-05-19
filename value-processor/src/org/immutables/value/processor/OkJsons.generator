@@ -61,9 +61,12 @@ import [starImport];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"OkJsons.generator", "[packageName]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if v allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"OkJsons.generator", "[packageName]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if v allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[packageName]", generator = "OkJsons")
 [/if]
 [/if][/for]
 public final class [typeAdaptersName] implements com.squareup.moshi.JsonAdapter.Factory {

@@ -40,9 +40,12 @@ package [transformerType.package];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if transformerType allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Transformers.generator", "[transformerType.name]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if transformerType allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Transformers.generator", "[transformerType.name]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if transformerType allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[transformerType.typeAbstract.relativeRaw]", generator = "Transformers")
 [/if]
 [transformerType.typeValue.access]abstract class [transformersClassname] {
   protected [transformersClassname]() {}

@@ -69,9 +69,12 @@ import [starImport];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if v allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Gsons.generator", "[packageName]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if v allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Gsons.generator", "[packageName]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if v allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[packageName]", generator = "Gsons")
 [/if]
 [/if][/for]
 public final class [typeAdaptersName] implements TypeAdapterFactory {

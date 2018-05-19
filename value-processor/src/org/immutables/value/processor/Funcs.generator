@@ -40,9 +40,12 @@ package [type.package];
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Funcs.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Funcs.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if type allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Funcs")
 [/if]
 [type.typePreferablyAbstract.access]final class [type.name]Functions {
   private [type.name]Functions() {}

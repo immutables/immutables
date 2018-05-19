@@ -53,9 +53,12 @@
 @javax.annotation.ParametersAreNonnullByDefault
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.processing.Generated']
-@javax.annotation.processing.Generated({"Immutables.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
-@javax.annotation.Generated({"Immutables.generator", "[type.typeAbstract.relativeRaw]"})
+@javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
+[/if]
+[if type allowsClasspathAnnotation 'org.immutables.value.Value.Generated']
+@org.immutables.value.Value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
 [/if]
 [/if]
 [/template]
