@@ -2649,6 +2649,7 @@ static final [output.linesShortable]class Json[type.generics]
 [/for]
 [for v in type.settableAttributes if not v.jacksonAnyGetter]
   [eachLine v.annotations]
+  [eachLine v.initializerInjectedAnnotations]
   public void [v.names.beanSet]([v.atNullability][v.type] [v.name]) {
     this.[v.name] = [v.name];
     [if v.primitive or (v.requiresTrackIsSet andnot v.jacksonAnyGetter)]
