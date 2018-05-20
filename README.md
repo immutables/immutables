@@ -52,7 +52,7 @@ Changelog
 
 ### 2.6.0 (2018-05-19)
 - Tons of fixes and small improvements. Thank you for reported issues and PRs!
-- [Issues 2.6.0](https://github.com/immutables/immutables/milestone/68)
+- [Issues 2.6.0](https://github.com/immutables/immutables/milestone/68?closed=1)
 - Notables features
   + Fixed long standing issue with compile error when using inverse generation style and using attributes with not-yet-generated generic types (the issue with `<any>`)
   + Experimental annotation injection: allows injecting annotation on fields, accessors, initializer, immutable and builder types etc. Injection directives are defined as custom annotations that are meta-annotated with `@InjectAnnotation` in new `org.immutables:annotate` module. Allow some non-trivial annotation code construction, see javadoc of `@InjectAnnotation` for details.
@@ -68,7 +68,7 @@ Changelog
 - Number of bugfixes including _Jackson_ and _Gson_ fixes. Thank you for the PRs!
 - Notable features
   + `@Value.Redacted` annotation with `Style.redactedMask` customization setting.
-- [Issues 2.5.0](https://github.com/immutables/immutables/milestone/61)
+- [Issues 2.5.0](https://github.com/immutables/immutables/milestone/61?closed=1)
 
 ### 2.4.x-2.4.4 (2017-03-12)
 - Enhancement and bugfix release. Thanks to issue reporters and contributors! PRs were great!
