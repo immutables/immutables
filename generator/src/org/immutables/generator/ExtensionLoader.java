@@ -75,7 +75,7 @@ public final class ExtensionLoader {
   }
 
   private static String getClasspathResourceText(Filer filer, String resourceName) throws IOException {
-    return filer.getResource(StandardLocation.CLASS_PATH, "", resourceName)
+    return filer.getResource(StandardLocation.CLASS_OUTPUT, "", resourceName)
         .getCharContent(true)
         .toString();
   }
