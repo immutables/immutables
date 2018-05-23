@@ -1793,7 +1793,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [deprecation v]
   [builderInitAccess v]final [builderReturnType type] [v.names.init]([v.atNullability][if v.multimapType][guava].collect.Multimap[else]java.util.Map[/if]<[gE], ? extends [wV]> entries) {
     [if v.nullable]
-    if ([v.name] == null) {
+    if (entries == null) {
       [defineOrResetBuildingFieldAlt v false true]
       [nondefaultSetInBuilder v]
       return [builderReturnThis type];
