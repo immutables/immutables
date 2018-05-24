@@ -51,7 +51,7 @@ public final class ExtensionLoader {
                 StaticEnvironment.processing().getFiler(),
                 resource);
             extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
-          } catch (IOException cannotReadFromClasspath) {
+          } catch (RuntimeException | IOException cannotReadFromClasspath) {
             // we ignore this as we did or best effort
             // and there are no plans to halt whole compilation
           }
@@ -65,7 +65,7 @@ public final class ExtensionLoader {
             String lines = Resources.toString(nextElement, StandardCharsets.UTF_8);
             extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
           }
-        } catch (IOException cannotReadFromClasspath) {
+        } catch (RuntimeException | IOException cannotReadFromClasspath) {
           // we ignore this as we did or best effort
           // and there are no plans to halt whole compilation
         }
