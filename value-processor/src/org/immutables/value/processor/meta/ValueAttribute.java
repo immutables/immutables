@@ -1050,7 +1050,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean isSafeUncheckedCovariantCast() {
     return isOptionalType()
-        && !isJdkOptional()
         && !getConsumedElementType().equals(getWrappedElementType());
   }
 
