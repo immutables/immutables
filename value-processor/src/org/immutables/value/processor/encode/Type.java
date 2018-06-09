@@ -758,13 +758,23 @@ public interface Type {
           } else if (t.is("@")) {
             // just consume type annotation
             terms.poll();
-            named();
-            consumeAnnotationParameters();
-            consumeErraticTrailingComma();
+            consumeAnnotation();
             // and try again, yep, recursively...
             return type();
+          } else if (t.is("(")) {
+            return annotatedType();
           }
           throw new IllegalStateException("unexpected term '" + t + "'");
+        }
+
+        Type annotatedType() {
+          terms.poll();
+          consumeAnnotation();
+          expect(terms.poll(), ":");
+          expect(terms.poll(), ":");
+          Type type = type();
+          expect(terms.poll(), ")");
+          return type;
         }
 
         Wildcard wildcard() {
@@ -822,14 +832,12 @@ public interface Type {
           List<String> segments = new ArrayList<>();
 
           for (;;) {
-            Term t = terms.poll();
-            if (t.isWordOrNumber()) {
-              segments.add(t.toString());
-            } else if (t.is("@")) {
+            if (terms.peek().isWordOrNumber()) {
+              segments.add(terms.poll().toString());
+            } else if (terms.peek().is("@")) {
+              terms.poll();
               // just consume type annotation
-              named();
-              consumeAnnotationParameters();
-              consumeErraticTrailingComma();
+              consumeAnnotation();
               continue;
             } else {
               break;
@@ -851,6 +859,12 @@ public interface Type {
           }
 
           return forName(JOINER.join(segments));
+        }
+
+        private void consumeAnnotation() {
+          named();
+          consumeAnnotationParameters();
+          consumeErraticTrailingComma();
         }
 
         private void consumeAnnotationParameters() {
