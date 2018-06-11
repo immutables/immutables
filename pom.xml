@@ -44,6 +44,7 @@
     <module>gson</module>
     <module>mongo</module>
     <module>func</module>
+    <module>value-annotations</module>
     <module>value-processor</module>
     <module>value-fixture</module>
     <module>serial</module>
