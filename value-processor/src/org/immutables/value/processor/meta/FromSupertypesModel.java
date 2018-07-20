@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
@@ -38,6 +39,8 @@ import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
 
 public final class FromSupertypesModel {
+  private static final AtomicBoolean typeParseExceptionReported = new AtomicBoolean();
+
   public final ImmutableList<FromSupertypesModel.FromSupertype> supertypes;
   public final ImmutableList<String> repeating;
   public final LongPositions positions;
@@ -128,14 +131,20 @@ public final class FromSupertypesModel {
       // it (null) should never happen in theory
       return false;
     }
+    try {
+      String ownType = accessor.getReturnType().toString();
+      String inheritedType = attr.returnType.toString();
+      // This kind of parsing normalizes and ignores type annotations
+      Type.Producer tf = new Type.Producer();
+      Type.Parser parser = new Type.Parser(tf, tf.parameters());
 
-    String ownType = accessor.getReturnType().toString();
-    String inheritedType = attr.returnType.toString();
-    // This kind of parsing normalizes and ignores type annotations
-    Type.Producer tf = new Type.Producer();
-    Type.Parser parser = new Type.Parser(tf, tf.parameters());
-    if (parser.parse(ownType).equals(parser.parse(inheritedType))) {
-      return true;
+      if (parser.parse(ownType).equals(parser.parse(inheritedType))) {
+        return true;
+      }
+    } catch (Exception typeParseException) {
+      if (typeParseExceptionReported.compareAndSet(false, true)) {
+        reporter.warning("Type parsing problem in FromSupertypesModel: %s", typeParseException);
+      }
     }
 
     reporter.warning("Generated builder '.from' method will not copy from attribute '%s'"
