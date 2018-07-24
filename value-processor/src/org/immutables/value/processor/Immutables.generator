@@ -869,7 +869,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * <p>
    * Returns a lazily initialized value of the [sourceDocRef type l] attribute.
    * Initialized once and only once and stored for subsequent access with proper synchronization.
-   * @return A lazily initialized value of the {@code l.name} attribute
+   * @return A lazily initialized value of the {@code [l.name]} attribute
    */
   [eachLine l.accessorInjectedAnnotations]
   @Override
