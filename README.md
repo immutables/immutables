@@ -50,6 +50,10 @@ License
 Changelog
 ---------
 
+### 2.6.3 (2018-07-21)
+* https://github.com/immutables/immutables/issues/784
+* https://github.com/immutables/immutables/issues/788
+
 ### 2.6.1 (2018-05-23)
 - Hotfixes for 2.6. Thank you for reported issues and PRs!
 - [Issues 2.6.1](https://github.com/immutables/immutables/milestone/69?closed=1)
