@@ -712,7 +712,7 @@ public static final class Criteria extends Repositories.Criteria {
     return new Criteria(serialization, constraint.in(serialization.[a.name]Name, true, values));
   }
   [/if]
-[if a.stringType]
+[if a.stringType or (a.optionalType and (uU eq 'java.lang.String'))]
 
   public Criteria [a.name]StartsWith(String prefix) {
     return new Criteria(serialization, constraint.match(serialization.[a.name]Name, false, Constraints.prefixPatternOf(prefix)));
