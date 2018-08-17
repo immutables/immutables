@@ -115,6 +115,30 @@ public class PersonCriteriaTest {
   }
 
   @Test
+  public void optionalStringPattern() throws Exception {
+    Person john = ImmutablePerson.builder().id("p1").name("John").middleName("Jacob").age(30).build();
+    repository.insert(john).getUnchecked();
+
+    check(repository.find(criteria().middleName("Jacob")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleName("Jacob123")).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().middleNameNot("Jacob")).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().middleNameStartsWith("Jacob")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameStartsWith("Ja")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameStartsWith("J")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameIn("J1", "J2")).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().middleNameIn("Jacob", "Jacob")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameNotIn("Jacob", "Jacob")).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().middleNameNotIn("J1", "J2")).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+
+    // patterns
+    check(repository.find(criteria().middleNameMatches(Pattern.compile("J.*b"))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameMatches(Pattern.compile("J\\w+b"))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameMatches(Pattern.compile("J...b"))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameMatches(Pattern.compile(".*"))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().middleNameNotMatches(Pattern.compile("J.*b"))).fetchAll().getUnchecked()).isEmpty();
+  }
+
+  @Test
   public void subCollection() throws Exception {
     Person john = ImmutablePerson.builder().id("p1").name("John").age(30).build();
     check(repository.find(criteria().aliasesEmpty()).fetchAll().getUnchecked()).isEmpty();

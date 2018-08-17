@@ -19,6 +19,8 @@ interface Person {
 
   String name();
 
+  Optional<String> middleName();
+
   int age();
 
   Optional<Date> dateOfBirth();
