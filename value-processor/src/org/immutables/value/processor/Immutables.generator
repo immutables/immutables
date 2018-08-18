@@ -3908,6 +3908,7 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 
 [template defineOrResetBuildingFieldAlt Attribute v Boolean declare Boolean toNull]
 [let accessModifier][if v.containingType.innerBuilder.isAccessibleFields]protected[else]private[/if][/let]
+[let updatableAccessModifier][accessModifier][if v.containingType.useStrictBuilder andnot toNull] final[/if][/let]
   [if v.jdkOptional and v.containingType.kind.isFactory]
 [if declare][accessModifier] [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
   [else if v.jdkOptional][-- Combine with else case at the bottom?  --]
@@ -3923,37 +3924,37 @@ this.[v.name] = null;
       [else if not (declare or v.nullableCollector)]
 this.[v.name].clear();
       [else if v.generateEnumMap]
-[if declare][accessModifier] java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class)[/if];
+[if declare][updatableAccessModifier] java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.EnumMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>([v.wrappedElementType].class)[/if];
       [else if v.mapType]
-[if declare][accessModifier] java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
+[if declare][updatableAccessModifier] java.util.Map<[v.wrappedElementType], [v.wrappedSecondaryElementType]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.LinkedHashMap<[v.wrappedElementType], [v.wrappedSecondaryElementType]>()[/if];
       [else if v.generateEnumSet]
-[if declare][accessModifier] java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
+[if declare][updatableAccessModifier] java.util.EnumSet[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]java.util.EnumSet.noneOf([v.elementType].class)[/if];
       [else]
         [if v.isAttributeBuilder]
-[if declare][accessModifier] java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]>()[/if];
+[if declare][updatableAccessModifier] java.util.List<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]>()[/if];
         [else]
-[if declare][accessModifier] java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
+[if declare][updatableAccessModifier] java.util.List[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else]new java.util.ArrayList[v.genericArgs]()[/if];
         [/if]
       [/if]
     [else]
       [if v.generateSortedSet]
-[if declare][accessModifier] [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedSet.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedSet.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.generateSortedMultiset]
-[if declare][accessModifier] [guava].collect.ImmutableSortedMultiset.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMultiset.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedMultiset.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMultiset.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.customCollectionType]
-[if declare][accessModifier] [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
+[if declare][updatableAccessModifier] [v.rawType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][v.rawType].builder()[/if];
       [else if v.collectionType]
         [if v.isAttributeBuilder]
-[if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder<[attributeBuilderBuilderType v.getAttributeBuilderDescriptor]> [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [else]
-[if declare][accessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
+[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawCollectionType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawCollectionType].builder()[/if];
         [/if]
       [else if v.optionalType]
 [if declare][accessModifier] [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
       [else if v.generateSortedMap]
-[if declare][accessModifier] [guava].collect.ImmutableSortedMap.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
+[if declare][updatableAccessModifier] [guava].collect.ImmutableSortedMap.Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.ImmutableSortedMap.[if v.hasNaturalOrder]naturalOrder[else]reverseOrder[/if]()[/if];
       [else if v.mapType]
-[if declare][accessModifier] [guava].collect.Immutable[v.rawMapType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
+[if declare][updatableAccessModifier] [guava].collect.Immutable[v.rawMapType].Builder[v.genericArgs] [else]this.[/if][v.name] = [if toNull]null[else][guava].collect.Immutable[v.rawMapType].builder()[/if];
       [/if]
     [/if]
   [else if v.primitive]
