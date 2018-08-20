@@ -49,6 +49,7 @@
     <module>serial</module>
     <module>trees</module>
     <module>encode</module>
+    <module>ge</module>
   </modules>
 
   <organization>

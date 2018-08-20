@@ -44,14 +44,14 @@ public final class ExtensionLoader {
       public ImmutableSet<String> get() {
         List<String> extensions = Lists.newArrayList();
 
-        // best effort to read it from compilation classpath, rather than
+        // best effort to read it from compilation classpath
         if (StaticEnvironment.isInitialized()) {
           try {
             String lines = getClasspathResourceText(
                 StaticEnvironment.processing().getFiler(),
                 resource);
             extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
-          } catch (RuntimeException | IOException cannotReadFromClasspath) {
+          } catch (RuntimeException | IOException cannotReadCompilationClasspath) {
             // we ignore this as we did or best effort
             // and there are no plans to halt whole compilation
           }
@@ -65,7 +65,7 @@ public final class ExtensionLoader {
             String lines = Resources.toString(nextElement, StandardCharsets.UTF_8);
             extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
           }
-        } catch (RuntimeException | IOException cannotReadFromClasspath) {
+        } catch (RuntimeException | IOException cannotReadAnnotationProcessingClasspath) {
           // we ignore this as we did or best effort
           // and there are no plans to halt whole compilation
         }

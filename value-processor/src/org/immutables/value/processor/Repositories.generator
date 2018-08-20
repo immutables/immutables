@@ -215,8 +215,8 @@ public [tT] exclude[toUpper a.name]() {
  * Find a document by the given {@link [type.name]Repository#criteria() criteria}. Use the returned {@link Finder} object to complete
  * {@link Finder#fetchAll() fetch}  operations.
  [if not type.repository.readonly]
- * You can also use {@link Finder#andModifyFirst() modify}, {@link Finder#andReplaceFirst() replace}
- * or {@link Finder#deleteFirst() delete} operations to update / delete the document(s).
+ * You can also use {@link Finder#andModifyFirst() modify} or {@link Finder#deleteFirst() delete}
+ * operations to update / delete the document(s).
  [/if]
  * @param criteria The search criteria
  * @return A finder object used to complete operations
@@ -277,7 +277,7 @@ public Modifier andModifyFirst() {
 [template generateIndexer Type type]
 
 /**
- * {@link DBCollection#ensureIndex(DBObject, DBObject) Ensure an index} on collection {@code "[type.documentName]"} by one or
+ * {@link DBCollection#createIndex(DBObject, DBObject) Ensure an index} on collection [type.documentName] by one or
  * more attributes using the family of {@code with*()} attribute-specific methods.
  * While indexes will usually be maintained by special administration scripts, for simple cases it is convenient
  * to ensure an index on application startup.
@@ -292,7 +292,7 @@ public Indexer index() {
 
 /**
  * An indexer used to create an index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
- * @see DBCollection#ensureIndex(DBObject, DBObject)
+ * @see DBCollection#ensure(DBObject, DBObject)
  */
 [atNotThreadSafe type]
 public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
