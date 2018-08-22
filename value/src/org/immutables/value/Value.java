@@ -15,6 +15,7 @@
  */
 package org.immutables.value;
 
+import java.io.Serializable;
 import java.lang.annotation.*;
 import java.lang.ref.WeakReference;
 import java.util.*;
@@ -1191,6 +1192,19 @@ public @interface Value {
      *         default
      */
     boolean allMandatoryParameters() default false;
+
+    /**
+     * When {@code transientDerivedFields} is enabled (as it by default), the backing fields for
+     * derived attributes will be marked as {@code transient} (unless type is {@link Serializable}
+     * by using regular Java serialization (not for when structural serialization is on via
+     * {@literal @}{@code Serial.Structural}). When set {@code false}, the processor we will not add
+     * any {@code transient} annotations to derived fields. This is only for derived fields. Any
+     * fields for lazy attributes are
+     * always {@transient} and ready to be reinitialized lazily after object is deserialized
+     * regardless of serialization/persistence technology.
+     * @return default is {@code true} for backward compatibility. Set to {@code false} to disable
+     */
+    boolean transientDerivedFields() default true;
 
     /**
      * String to substitute value of the attribute in a generated {@code toString} implementation

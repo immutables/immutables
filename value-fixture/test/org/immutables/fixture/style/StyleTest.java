@@ -79,4 +79,12 @@ public class StyleTest {
     check(cls.getDeclaredMethod("b", String.class).getModifiers() & Modifier.PROTECTED).is(Modifier.PROTECTED);
     check(cls.getDeclaredMethod("c", boolean.class).getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)).is(0);
   }
+
+  @Test
+  public void transientDerivedFields() throws Exception {
+    check(ImmutableTr.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(Modifier.TRANSIENT);
+    check(ImmutableNonTr.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(0);
+    check(ImmutableSer.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(0);
+    check(ImmutableStrSer.class.getDeclaredField("def").getModifiers() & Modifier.TRANSIENT).is(Modifier.TRANSIENT);
+  }
 }

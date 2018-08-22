@@ -574,6 +574,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && !element.getModifiers().contains(Modifier.ABSTRACT);
   }
 
+  public boolean isGenerateTransientDerived() {
+    return isGenerateDerived
+        && style().transientDerivedFields()
+        && !containingType.serial.isSimple();
+  }
+
   public boolean isGenerateEnumMap() {
     return typeKind.isEnumMap();
   }

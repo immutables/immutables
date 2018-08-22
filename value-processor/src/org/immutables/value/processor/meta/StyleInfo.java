@@ -299,6 +299,10 @@ public abstract class StyleInfo implements ValueMirrors.Style {
 
   @Value.Parameter
   @Override
+  public abstract boolean transientDerivedFields();
+
+  @Value.Parameter
+  @Override
   public abstract String redactedMask();
 
   @Value.Parameter
@@ -452,6 +456,7 @@ public abstract class StyleInfo implements ValueMirrors.Style {
         input.builtinContainerAttributes(),
         input.beanFriendlyModifiables(),
         input.allMandatoryParameters(),
+        input.transientDerivedFields(),
         input.redactedMask(),
         input.attributeBuilderDetection(),
         input.attributeBuilder(),
