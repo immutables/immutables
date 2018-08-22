@@ -16,8 +16,6 @@
 package org.immutables.value;
 
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.immutables.value.Value.Style;
 
@@ -27,7 +25,6 @@ import org.immutables.value.Value.Style;
  * classes when processing class files or by using reflection. Can be disabled by
  * {@link Style#allowedClasspathAnnotations()}.
  */
-@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Generated {
   /**
