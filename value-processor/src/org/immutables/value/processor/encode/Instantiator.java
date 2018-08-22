@@ -31,6 +31,7 @@ import org.immutables.value.processor.encode.Type.Wildcard;
 import org.immutables.value.processor.meta.Reporter;
 import org.immutables.value.processor.meta.Styles;
 import org.immutables.value.processor.meta.ValueType;
+import org.immutables.value.processor.meta.Reporter.About;
 
 public final class Instantiator {
   private final Type.Factory typeFactory;
@@ -138,7 +139,7 @@ public final class Instantiator {
 
       if (winner != null) {
         if (contenders != null) {
-          reporter.warning(
+          reporter.warning(About.INCOMPAT,
               "Encoding conflict for attribute '%s', the winning match: %s. Other applicable: %s",
               names.var, winner, contenders);
         }

@@ -22,7 +22,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
-import javax.tools.Diagnostic.Kind;
 import org.immutables.value.Value;
 
 @Value.Immutable(builder = false)
@@ -63,17 +62,46 @@ public abstract class Reporter {
   }
 
   public void warning(String message, Object... parameters) {
+    warning(About.ANY, message, parameters);
+  }
+
+  public enum About {
+    ANY, FROM, SUBTYPE, UNTYPE, INCOMPAT
+  }
+
+  public void warning(About warn, String message, Object... parameters) {
+    SuppressedWarnings suppressed = SuppressedWarnings.forElement(getElement(), false, false);
+    if (suppressed.immutables) {
+      return;
+    }
+    switch (warn) {
+    case FROM:
+      if (suppressed.from) {
+        return;
+      }
+      break;
+    case SUBTYPE:
+      if (suppressed.subtype) {
+        return;
+      }
+      break;
+    case UNTYPE:
+      if (suppressed.untype) {
+        return;
+      }
+      break;
+    case INCOMPAT:
+      if (suppressed.incompat) {
+        return;
+      }
+      break;
+    default:
+      break;
+    }
     reportMessage(Diagnostic.Kind.MANDATORY_WARNING, message, parameters);
   }
 
   private void reportMessage(Diagnostic.Kind messageKind, String message, Object... parameters) {
-    if (messageKind == Kind.WARNING || messageKind == Kind.MANDATORY_WARNING) {
-      SuppressedWarnings suppressed = SuppressedWarnings.forElement(getElement(), false, false);
-      if (suppressed.immutables) {
-        return;
-      }
-    }
-
     String formattedMessage = String.format(message, parameters);
     if (element().isPresent() && annotation().isPresent()) {
       messager().printMessage(messageKind, formattedMessage, getElement(), getAnnotation());

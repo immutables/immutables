@@ -20,6 +20,7 @@ import com.google.common.base.Splitter;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.PackageElement;
+import org.immutables.value.processor.meta.Reporter.About;
 
 class ImportRewriteDisabler {
   private static final Splitter DOT_SPLITTER = Splitter.on('.');
@@ -31,7 +32,7 @@ class ImportRewriteDisabler {
 
     for (String segment : DOT_SPLITTER.split(type.constitution.implementationPackage())) {
       if (!segment.isEmpty() && Ascii.isUpperCase(segment.charAt(0))) {
-        reporter.warning(WARNING_START + " uppercase package names");
+        reporter.warning(About.INCOMPAT, WARNING_START + " uppercase package names");
         return true;
       }
     }
@@ -43,7 +44,7 @@ class ImportRewriteDisabler {
 
     for (ValueAttribute attribute : type.attributes) {
       if (Ascii.isUpperCase(attribute.names.get.charAt(0))) {
-        reporter.warning(WARNING_START + " uppercase attribute names");
+        reporter.warning(About.INCOMPAT, WARNING_START + " uppercase attribute names");
         return true;
       }
       if (attribute.containedTypeElement != null) {
@@ -66,14 +67,14 @@ class ImportRewriteDisabler {
       if (element.getKind() == ElementKind.PACKAGE) {
         for (String segment : DOT_SPLITTER.split(((PackageElement) element).getQualifiedName())) {
           if (!segment.isEmpty() && Ascii.isUpperCase(segment.charAt(0))) {
-            reporter.warning(WARNING_START + " uppercase package names");
+            reporter.warning(About.INCOMPAT, WARNING_START + " uppercase package names");
             return true;
           }
         }
       }
       if (element.getKind().isClass() || element.getKind().isInterface()) {
         if (Ascii.isLowerCase(element.getSimpleName().charAt(0))) {
-          reporter.warning(WARNING_START + " lowercase class names");
+          reporter.warning(About.INCOMPAT, WARNING_START + " lowercase class names");
           return true;
         }
       }

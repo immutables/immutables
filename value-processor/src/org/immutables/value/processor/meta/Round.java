@@ -38,6 +38,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
 import org.immutables.value.processor.meta.Proto.Protoclass.Kind;
+import org.immutables.value.processor.meta.Reporter.About;
 
 @Value.Immutable
 public abstract class Round {
@@ -128,7 +129,8 @@ public abstract class Round {
         Reporter.from(processing())
             .withElement(element)
             .annotationNamed(ValueUmbrellaMirror.simpleName())
-            .warning("@Value annotation have no effect, use nested annotations instead, like @Value.Immutable");
+            .warning(About.INCOMPAT,
+                "@Value annotation have no effect, use nested annotations instead, like @Value.Immutable");
       }
     }
   }
@@ -208,7 +210,7 @@ public abstract class Round {
       default:
         Reporter.from(processing())
             .withElement(element)
-            .warning("Unmatched annotation will be skipped for annotation processing");
+            .warning(About.INCOMPAT, "Unmatched annotation will be skipped for annotation processing");
       }
     }
 

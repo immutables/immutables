@@ -51,6 +51,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.MetaAnnotated;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
@@ -979,11 +980,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       // is truly superfluos when allParameters enabled
       if (enabledAsAllParameters) {
         report().annotationNamed(ParameterMirror.simpleName())
-            .warning("Annotation @Value.Parameter is superfluous when Style(allParameters = true)");
+            .warning(About.INCOMPAT,
+                "Annotation @Value.Parameter is superfluous when Style(allParameters = true)");
       }
       if (enabledAsAllMandatoryParameters) {
         report().annotationNamed(ParameterMirror.simpleName())
-            .warning(
+            .warning(About.INCOMPAT,
                 "Annotation @Value.Parameter is superfluous when Style(allMandatoryParameters = true)"
                     + " and it is mandatory");
       }
@@ -1368,8 +1370,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     if (typeKind.isContainerKind() && typeParameters.isEmpty()) {
       typeKind = AttributeTypeKind.REGULAR;
       if (!SuppressedWarnings.forElement(element, false, false).rawtypes) {
-        report().warning("Raw container types treated as regular attributes, nothing special generated."
-            + " It is better to avoid raw types at all times");
+        report().warning(About.UNTYPE,
+            "Raw container types treated as regular attributes, nothing special generated."
+                + " It is better to avoid raw types at all times");
       }
     }
 
@@ -1380,7 +1383,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
           typeKind = AttributeTypeKind.REGULAR;
           report()
               .annotationNamed(DefaultMirror.simpleName())
-              .warning("Wildcards are not supported as elements or key/values. Make it lose its special treatment");
+              .warning(About.UNTYPE,
+                  "Wildcards are not supported as elements or key/values. Make it lose its special treatment");
         }
       }
     }
@@ -1390,7 +1394,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         typeKind = AttributeTypeKind.REGULAR;
         report()
             .annotationNamed(DefaultMirror.simpleName())
-            .warning("@Nullable on a Optional attribute make it lose its special treatment");
+            .warning(About.UNTYPE, "@Nullable on a Optional attribute make it lose its special treatment");
       } else if (isPrimitive()) {
         report()
             .annotationNamed(nullability.simpleName())
@@ -1406,7 +1410,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       typeKind = AttributeTypeKind.REGULAR;
       report()
           .annotationNamed(DefaultMirror.simpleName())
-          .warning("@Value.Default on a optional attribute make it lose its special treatment");
+          .warning(About.UNTYPE, "@Value.Default on a optional attribute make it lose its special treatment");
     }
 
     if (isContainerType() && containingType.isUseStrictBuilder()) {
@@ -1414,13 +1418,14 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         typeKind = AttributeTypeKind.REGULAR;
         report()
             .annotationNamed(DefaultMirror.simpleName())
-            .warning(
+            .warning(About.UNTYPE,
                 "@Value.Default on a container attribute make it lose its special treatment (when strictBuilder = true)");
       } else if (isNullable()) {
         typeKind = AttributeTypeKind.REGULAR;
         report()
             .annotationNamed(nullability.simpleName())
-            .warning("@%s on a container attribute make it lose its special treatment (when strictBuilder = true)",
+            .warning(About.UNTYPE,
+                "@%s on a container attribute make it lose its special treatment (when strictBuilder = true)",
                 nullability.simpleName());
       }
     }
@@ -1433,15 +1438,17 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
     if (!isGenerateJdkOnly() && nullElements.allow()) {
       report()
-          .warning("Guava collection implementation does not allow null elements, nullness annotation will be ignored."
-              + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
+          .warning(About.INCOMPAT,
+              "Guava collection implementation does not allow null elements, nullness annotation will be ignored."
+                  + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
     }
 
     if (isOptionalType()
         && containedTypeElement != null // for specialized optional types it can be null
         && AttributeTypeKind.forRawType(containedTypeElement.getQualifiedName().toString()).isOptionalKind()) {
       typeKind = AttributeTypeKind.REGULAR;
-      report().warning("Optional<Optional<*>> is turned into regular attribute to avoid ambiguity problems");
+      report().warning(About.UNTYPE,
+          "Optional<Optional<*>> is turned into regular attribute to avoid ambiguity problems");
     }
 
     if (wasOptional && !isOptionalType()) {

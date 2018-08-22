@@ -35,6 +35,7 @@ import org.immutables.generator.SourceTypes;
 import org.immutables.value.Value;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.PackageNaming;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
@@ -65,7 +66,8 @@ public abstract class Constitution {
         && !protoclass().kind().isNested()) {
       protoclass()
           .report()
-          .warning("effective Style.visibility cannot be PRIVATE when builder is disabled and is not nested,"
+          .warning(About.INCOMPAT,
+              "effective Style.visibility cannot be PRIVATE when builder is disabled and is not nested,"
               + " automatically switching visibility to PACKAGE because top level implementation class is required");
       return Visibility.PACKAGE;
     }
@@ -777,7 +779,8 @@ public abstract class Constitution {
         protoclass()
             .report()
             .withElement(t)
-            .warning("Extending %s shouldn't be used with stagedBuilder style attribute, they are incompartible:"
+            .warning(About.INCOMPAT,
+                "Extending %s shouldn't be used with stagedBuilder style attribute, they are incompartible:"
                 + " Staged builder generate series of staged interfaces, but extending builder actually"
                 + " extends implementation and do not provide type safety for setting first attribute,"
                 + " as well as stagedBuilder forces generated builder interfaces to leak in code using the builder"
@@ -824,7 +827,8 @@ public abstract class Constitution {
         protoclass()
             .report()
             .withElement(t)
-            .warning("Inner type %s is %s - not supported as Builder extend/super type",
+            .warning(About.INCOMPAT,
+                "Inner type %s is %s - not supported as Builder extend/super type",
                 t.getSimpleName(),
                 kind.name().toLowerCase());
 
@@ -838,7 +842,8 @@ public abstract class Constitution {
         protoclass()
             .report()
             .withElement(t)
-            .warning("Inner type %s should be static non-private to be supported as Builder extend/super type",
+            .warning(About.INCOMPAT,
+                "Inner type %s should be static non-private to be supported as Builder extend/super type",
                 t.getSimpleName());
 
         return false;
@@ -849,7 +854,8 @@ public abstract class Constitution {
         protoclass()
             .report()
             .withElement(t)
-            .warning("%s should have non-private no-argument constructor to be supported as Builder extend/super type",
+            .warning(About.INCOMPAT,
+                "%s should have non-private no-argument constructor to be supported as Builder extend/super type",
                 t.getSimpleName());
 
         return false;

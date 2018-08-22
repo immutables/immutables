@@ -30,6 +30,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
 
 /**
  * It may grow later in some better abstraction, but as it stands now, currently it is
@@ -40,7 +41,8 @@ public final class ValueTypeComposer {
       CharMatcher.is('_')
           .or(CharMatcher.inRange('a', 'z'))
           .or(CharMatcher.inRange('A', 'Z'))
-          .or(CharMatcher.inRange('0', '9')).precomputed();
+          .or(CharMatcher.inRange('0', '9'))
+          .precomputed();
 
   void compose(ValueType type, Protoclass protoclass) {
     type.element = protoclass.sourceElement();
@@ -83,8 +85,9 @@ public final class ValueTypeComposer {
     for (ValueAttribute a : type.attributes) {
       if (!ATTRIBUTE_NAME_CHARS.matchesAllOf(a.name())) {
         a.report()
-            .warning("Name '%s' contains some unsupported characters (a-z,A-Z,0-9,_ are ok),"
-                + " name formatting might not work as expected",
+            .warning(About.INCOMPAT,
+                "Name '%s' contains some unsupported characters (a-z,A-Z,0-9,_ are ok),"
+                    + " name formatting might not work as expected",
                 a.name());
       }
     }
@@ -106,8 +109,9 @@ public final class ValueTypeComposer {
       for (ValueAttribute a : type.getConstructorExcluded()) {
         if (!a.isMandatory()) {
           a.report()
-              .warning("There is no way to initialize '%s' attribute to non-default value."
-                  + " Enable builder=true or copy=true or add it as a constructor @Value.Parameter",
+              .warning(About.INCOMPAT,
+                  "There is no way to initialize '%s' attribute to non-default value."
+                      + " Enable builder=true or copy=true or add it as a constructor @Value.Parameter",
                   a.name());
         }
       }
@@ -128,7 +132,8 @@ public final class ValueTypeComposer {
       if (!protoclass.constitution().generics().isEmpty()) {
         protoclass.report()
             .annotationNamed(ImmutableMirror.simpleName())
-            .warning("'singleton' or 'intern' features are automatically turned off when a type have generic parameters");
+            .warning(About.INCOMPAT,
+                "'singleton' or 'intern' features are automatically turned off when a type have generic parameters");
       }
     }
 
@@ -136,7 +141,8 @@ public final class ValueTypeComposer {
         && protoclass.styles().style().privateNoargConstructor()) {
       protoclass.report()
           .annotationNamed(ImmutableMirror.simpleName())
-          .warning("'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
+          .warning(About.INCOMPAT,
+              "'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
     }
     if (type.isUseConstructor()
         && protoclass.constitution().factoryOf().isNew()) {
@@ -166,10 +172,14 @@ public final class ValueTypeComposer {
     for (TypeElement s : supertypes) {
       if (!CachingElements.equals(element, s) && ImmutableMirror.isPresent(s)) {
         protoclass.report()
-            .error("Should not inherit %s which is a value type itself."
-                + " Avoid extending from another abstract value type."
-                + " Better to share common abstract class or interface which"
-                + " are not carrying @%s annotation", s, ImmutableMirror.simpleName());
+            .warning(About.SUBTYPE,
+                "Should not inherit %s which is a value type itself."
+                    + " Avoid extending from another abstract value type."
+                    + " Better to share common abstract class or interface which"
+                    + " are not carrying @%s annotation. If still extending from immutable"
+                    + " abstract type be ready to face some incoherences in generated types.",
+                s,
+                ImmutableMirror.simpleName());
       }
     }
   }
@@ -183,9 +193,12 @@ public final class ValueTypeComposer {
         Reporter report = protoclass.report();
         boolean ownField = CachingElements.equals(element, field.getEnclosingElement());
         if (ownField) {
-          report.withElement(field).warning("Avoid introduction of fields (except constants) in abstract value types");
+          report.withElement(field)
+              .warning(About.INCOMPAT,
+                  "Avoid introduction of fields (except constants) in abstract value types");
         } else {
-          report.warning("Abstract value type inherits mutable fields");
+          report.warning(About.INCOMPAT,
+              "Abstract value type inherits mutable fields");
         }
       }
     }

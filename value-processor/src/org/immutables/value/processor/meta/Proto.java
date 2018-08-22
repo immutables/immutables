@@ -59,6 +59,7 @@ import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.AnnotationInjections.AnnotationInjection;
 import org.immutables.value.processor.meta.AnnotationInjections.InjectionInfo;
+import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import static com.google.common.base.Verify.verify;
 
@@ -491,7 +492,8 @@ public class Proto {
 
       if (uniqueTypeNames.size() != typeMirrors.size()) {
         report().annotationNamed(IncludeMirror.simpleName())
-            .warning("Some types were ignored, non-supported for inclusion: duplicates,"
+            .warning(About.INCOMPAT,
+                "Some types were ignored, non-supported for inclusion: duplicates,"
                 + " non declared reference types, non-public");
       }
 
@@ -517,7 +519,8 @@ public class Proto {
 
       if (uniqueTypeNames.size() != typeMirrors.size()) {
         report().annotationNamed(IncludeMirror.simpleName())
-            .warning("Some types were ignored, non-supported for inclusion: duplicates,"
+            .warning(About.INCOMPAT,
+                "Some types were ignored, non-supported for inclusion: duplicates,"
                 + " non declared reference types, non-public");
       }
 
@@ -1242,7 +1245,8 @@ public class Proto {
           report()
               .withElement(typeDefining.get().element())
               .annotationNamed(TypeAdaptersMirror.simpleName())
-              .warning("@%s is also used on the package, this type level annotation is ignored",
+              .warning(About.INCOMPAT,
+                  "@%s is also used on the package, this type level annotation is ignored",
                   TypeAdaptersMirror.simpleName());
         }
         return Optional.<AbstractDeclaring>of(packageOf());
@@ -1484,7 +1488,8 @@ public class Proto {
 
     private void warnAboutIncompatibleStyles() {
       report().annotationNamed(StyleMirror.simpleName())
-          .warning("Use styles only on enclosing types."
+          .warning(About.INCOMPAT,
+              "Use styles only on enclosing types."
               + " All nested styles will inherit it."
               + " Nested immutables cannot deviate in style from enclosing type,"
               + " so generated stucture will be consistent");

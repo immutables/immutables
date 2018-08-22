@@ -40,6 +40,7 @@ import org.immutables.value.processor.encode.Instantiator;
 import org.immutables.value.processor.encode.Instantiator.InstantiationCreator;
 import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 
 final class AccessorAttributesCollector {
@@ -176,7 +177,8 @@ final class AccessorAttributesCollector {
 
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
-              .warning("Type inherits overriden 'equals' method but have some non-inherited attributes."
+              .warning(About.INCOMPAT,
+                  "Type inherits overriden 'equals' method but have some non-inherited attributes."
                   + " Please override 'equals' with abstract method to have it generate. Otherwise override"
                   + " with calling super implemtation to use custom implementation");
         }
@@ -193,7 +195,8 @@ final class AccessorAttributesCollector {
         // inherited non-abstract implementation
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
-              .warning("Type inherits non-default 'hashCode' method but have some non-inherited attributes."
+              .warning(About.INCOMPAT,
+                  "Type inherits non-default 'hashCode' method but have some non-inherited attributes."
                   + " Please override 'hashCode' with abstract method to have it generated. Otherwise override"
                   + " with calling super implemtation to use custom implementation");
         }
@@ -209,7 +212,8 @@ final class AccessorAttributesCollector {
         // inherited non-abstract implementation
         if (!definingType.equals(originalType) && hasNonInheritedAttributes && nonFinal) {
           report(originalType)
-              .warning("Type inherits non-default 'toString' method but have some non-inherited attributes."
+              .warning(About.INCOMPAT,
+                  "Type inherits non-default 'toString' method but have some non-inherited attributes."
                   + " Please override 'toString' with abstract method to have generate it. Otherwise override"
                   + " with calling super implementation to use custom implementation");
         }
@@ -280,7 +284,8 @@ final class AccessorAttributesCollector {
             if (attribute.isGenerateDefault) {
               report(attributeMethodCandidate)
                   .annotationNamed(DefaultMirror.simpleName())
-                  .warning("@Value.Default annotation is superflous for default annotation attribute");
+                  .warning(About.INCOMPAT,
+                      "@Value.Default annotation is superflous for default annotation attribute");
             } else {
               report(attributeMethodCandidate)
                   .annotationNamed(DefaultMirror.simpleName())
@@ -313,7 +318,8 @@ final class AccessorAttributesCollector {
         if (useDefaultAsDefault && attribute.isInterfaceDefaultMethod()) {
           report(attributeMethodCandidate)
               .annotationNamed(DefaultMirror.simpleName())
-              .warning("@Value.Default annotation is superflous for default annotation attribute"
+              .warning(About.INCOMPAT,
+                  "@Value.Default annotation is superflous for default annotation attribute"
                   + " when 'defaultAsDefault' style is enabled");
         }
       } else if (derivedAnnotationPresent) {

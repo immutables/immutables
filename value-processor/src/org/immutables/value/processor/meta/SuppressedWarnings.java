@@ -27,11 +27,19 @@ final class SuppressedWarnings {
   private static final String GENERATED = "generated";
   private static final String RAWTYPES = "rawtypes";
   private static final String DEPRECATION = "deprecation";
+  private static final String IMMUTABLES_FROM = "immutables:from";
+  private static final String IMMUTABLES_SUBTYPE = "immutables:subtype";
+  private static final String IMMUTABLES_UNTYPE = "immutables:untype";
+  private static final String IMMUTABLES_INCOMPAT = "immutables:incompat";
 
   final boolean all;
   final boolean immutables;
   final boolean generated;
   final boolean rawtypes;
+  final boolean from;
+  final boolean subtype;
+  final boolean untype;
+  final boolean incompat;
   final Set<String> generatedSuppressions;
 
   private SuppressedWarnings(
@@ -39,12 +47,20 @@ final class SuppressedWarnings {
       boolean immutables,
       boolean generated,
       boolean rawtypes,
+      boolean from,
+      boolean subtype,
+      boolean untype,
+      boolean incompat,
       Set<String> generatedSuppressions) {
     this.all = all;
     this.immutables = immutables;
     this.generated = generated;
     this.rawtypes = rawtypes;
     this.generatedSuppressions = generatedSuppressions;
+    this.from = from;
+    this.subtype = subtype;
+    this.untype = untype;
+    this.incompat = incompat;
   }
 
   static SuppressedWarnings forElement(
@@ -56,6 +72,10 @@ final class SuppressedWarnings {
     boolean generated = generateSuppressAllWarning;
     boolean rawtypes = false;
     boolean deprecated = hasDeprecatedMembers;
+    boolean from = false;
+    boolean subtype = false;
+    boolean untype = false;
+    boolean incompat = false;
 
     Set<String> generatedSuppressions = new LinkedHashSet<>();
 
@@ -66,12 +86,33 @@ final class SuppressedWarnings {
           switch (w) {
           case ALL:
             all = true;
+            from = true;
             immutables = true;
             generated = true;
             rawtypes = true;
+            from = true;
+            subtype = true;
+            untype = true;
+            incompat = true;
             break;
           case IMMUTABLES:
             immutables = true;
+            from = true;
+            subtype = true;
+            untype = true;
+            incompat = true;
+            break;
+          case IMMUTABLES_FROM:
+            from = true;
+            break;
+          case IMMUTABLES_SUBTYPE:
+            subtype = true;
+            break;
+          case IMMUTABLES_UNTYPE:
+            untype = true;
+            break;
+          case IMMUTABLES_INCOMPAT:
+            incompat = true;
             break;
           case GENERATED:
             generated = true;
@@ -102,6 +143,10 @@ final class SuppressedWarnings {
         immutables,
         generated,
         rawtypes,
+        from,
+        subtype,
+        untype,
+        incompat,
         generatedSuppressions);
   }
 }

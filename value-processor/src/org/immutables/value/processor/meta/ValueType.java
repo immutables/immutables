@@ -66,6 +66,7 @@ import org.immutables.value.processor.meta.Proto.DeclaringType;
 import org.immutables.value.processor.meta.Proto.Environment;
 import org.immutables.value.processor.meta.Proto.JacksonMode;
 import org.immutables.value.processor.meta.Proto.Protoclass;
+import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.TypeNames;
 import org.immutables.value.processor.meta.TypeStringProvider.SourceExtractionCache;
 
@@ -723,7 +724,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
             jacksonValue = v;
           } else {
             v.report()
-                .warning("Multiple attributes annotated with @JsonValue on the same type."
+                .warning(About.INCOMPAT,
+                    "Multiple attributes annotated with @JsonValue on the same type."
                     + " There should be only one to consider for mapping.");
           }
         }
@@ -739,7 +741,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         definingElements.add(attribute.element.getEnclosingElement());
       }
       if (definingElements.size() != 1) {
-        report().warning("Constructor parameters should be better defined on the same level of inheritance hierarchy, "
+        report().warning(About.SUBTYPE,
+            "Constructor parameters should be better defined on the same level of inheritance hierarchy, "
             + " otherwise generated constructor API would be unstable: "
             + " parameter list can change the order of arguments."
             + " It is better redeclare (override) each inherited"
@@ -1295,6 +1298,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     for (ValueAttribute a : getSettableAttributes()) {
       if (a.names.init.equals(names().from)) {
         a.report().warning(
+            About.FROM,
             "Attribute initializer named '%s' clashes with special builder method, "
                 + "which will not be generated to not have ambiguous overload or conflict",
             names().from);
@@ -1309,6 +1313,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     for (ValueAttribute a : getSettableAttributes()) {
       if (a.names.set().equals(names().from)) {
         a.report().warning(
+            About.FROM,
             "Attribute setter named '%s' clashes with special builder method, "
                 + "which will not be generated to not have ambiguous overload or conflict",
             names().from);

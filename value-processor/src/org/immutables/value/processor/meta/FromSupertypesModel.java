@@ -37,6 +37,7 @@ import javax.lang.model.util.ElementFilter;
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
+import org.immutables.value.processor.meta.Reporter.About;
 
 public final class FromSupertypesModel {
   private static final AtomicBoolean typeParseExceptionReported = new AtomicBoolean();
@@ -147,7 +148,8 @@ public final class FromSupertypesModel {
       }
     }
 
-    reporter.warning("Generated builder '.from' method will not copy from attribute '%s'"
+    reporter.warning(About.FROM,
+        "Generated builder '.from' method will not copy from attribute '%s'"
         + " because it has different return type in supertype"
         + " (And we cannot handle generic specialization or covariant overrides yet)."
         + " Sometimes it is possible to avoid this by providing abstract override method in this value object",
