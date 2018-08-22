@@ -835,10 +835,11 @@ public @interface Value {
 
     /**
      * Enabling {@code attributelessSingleton} switches to old behavior of 2.0.x version when
-     * immutables wich had no attributes defined acted as .
+     * immutables wich had no attributes defined acted as automatic singletons having
+     * {@link #instance()} accessor.
      * As of 2.1 we are more strict and explicit with singletons and are not generating it by
      * default, only when {@link Immutable#singleton()} is explicitly enabled.
-     * @return {@code true} no attribute immutables will be auto-singletons.
+     * @return {@code true} if auto singleton on new attributes (default is {@code false})
      */
     boolean attributelessSingleton() default false;
 
