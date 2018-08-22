@@ -22,14 +22,19 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import org.bson.BsonBinary;
+import org.bson.BsonRegularExpression;
+import org.bson.types.Decimal128;
+import org.bson.types.ObjectId;
+import org.immutables.metainf.Metainf;
+import org.immutables.mongo.bson4gson.BsonReader;
+import org.immutables.mongo.bson4gson.BsonWriter;
+
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
-import org.bson.types.Decimal128;
-import org.immutables.metainf.Metainf;
-import org.immutables.mongo.repository.internal.BsonReader;
-import org.immutables.mongo.repository.internal.BsonWriter;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -178,7 +183,8 @@ public final class TypeAdapters implements TypeAdapterFactory {
       if (value == null) {
         out.nullValue();
       } else if (out instanceof BsonWriter) {
-        ((BsonWriter) out).value(value);
+        ((BsonWriter) out).unwrap()
+                .writeRegularExpression(new BsonRegularExpression(value.pattern()));
       } else {
         out.value(value.toString());
       }
@@ -191,7 +197,9 @@ public final class TypeAdapters implements TypeAdapterFactory {
         return null;
       }
       if (in instanceof BsonReader) {
-        return ((BsonReader) in).nextPattern();
+        final String pattern = ((BsonReader) in).unwrap()
+                .readRegularExpression().getPattern();
+        return Pattern.compile(pattern);
       }
       return Pattern.compile(in.nextString());
     }
@@ -208,7 +216,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
       if (value == null) {
         out.nullValue();
       } else if (out instanceof BsonWriter) {
-        ((BsonWriter) out).value(value);
+        ((BsonWriter) out).unwrap().writeDecimal128(value);
       } else {
         out.value(value.toString());
       }
@@ -221,7 +229,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
         return null;
       }
       if (in instanceof BsonReader) {
-        return ((BsonReader) in).nextDecimal();
+        return ((BsonReader) in).unwrap().readDecimal128();
       }
       return Decimal128.parse(in.nextString());
     }
@@ -243,7 +251,7 @@ public final class TypeAdapters implements TypeAdapterFactory {
     @Override
     public BigDecimal read(JsonReader in) throws IOException {
       checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
-      return ((BsonReader) in).nextDecimal().bigDecimalValue();
+      return ((BsonReader) in).unwrap().readDecimal128().bigDecimalValue();
     }
 
     @Override
@@ -257,13 +265,14 @@ public final class TypeAdapters implements TypeAdapterFactory {
     public void write(JsonWriter out, Long value) throws IOException {
       checkArgument(out instanceof BsonWriter, "Should be BsonWriter, not some other JsonWriter");
       checkNotNull(value, "Value could not be null, delegate to #nullSafe() adapter if needed");
-      ((BsonWriter) out).valueTimeInstant(value);
+      ((BsonWriter) out).unwrap()
+              .writeDateTime(value);
     }
 
     @Override
     public Long read(JsonReader in) throws IOException {
       checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
-      return ((BsonReader) in).nextTimeInstant();
+      return ((BsonReader) in).unwrap().readDateTime();
     }
 
     @Override
@@ -277,13 +286,13 @@ public final class TypeAdapters implements TypeAdapterFactory {
     public void write(JsonWriter out, byte[] value) throws IOException {
       checkArgument(out instanceof BsonWriter, "Should be BsonWriter, not some other JsonWriter");
       checkNotNull(value, "Value could not be null, delegate to #nullSafe() adapter if needed");
-      ((BsonWriter) out).valueObjectId(value);
+      ((BsonWriter) out).unwrap().writeObjectId(new ObjectId(value));
     }
 
     @Override
     public byte[] read(JsonReader in) throws IOException {
       checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
-      return ((BsonReader) in).nextObjectId();
+      return ((BsonReader) in).unwrap().readObjectId().toByteArray();
     }
 
     @Override
@@ -297,13 +306,13 @@ public final class TypeAdapters implements TypeAdapterFactory {
     public void write(JsonWriter out, byte[] value) throws IOException {
       checkArgument(out instanceof BsonWriter, "Should be BsonWriter, not some other JsonWriter");
       checkNotNull(value, "Value could not be null, delegate to #nullSafe() adapter if needed");
-      ((BsonWriter) out).valueBinary(value);
+      ((BsonWriter) out).unwrap().writeBinaryData(new BsonBinary(value));
     }
 
     @Override
     public byte[] read(JsonReader in) throws IOException {
       checkArgument(in instanceof BsonReader, "Should be BsonReader, not some other JsonReader");
-      return ((BsonReader) in).nextBinary();
+      return ((BsonReader) in).unwrap().readBinaryData().getData();
     }
 
     @Override

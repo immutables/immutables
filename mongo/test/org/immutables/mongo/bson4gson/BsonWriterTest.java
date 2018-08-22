@@ -1,4 +1,4 @@
-package org.immutables.mongo.repository.internal;
+package org.immutables.mongo.bson4gson;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

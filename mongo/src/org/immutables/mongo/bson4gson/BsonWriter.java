@@ -13,20 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.mongo.repository.internal;
+package org.immutables.mongo.bson4gson;
 
 import com.google.gson.internal.LazilyParsedNumber;
+import org.bson.types.Decimal128;
+
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.regex.Pattern;
-import javax.annotation.concurrent.NotThreadSafe;
-import org.bson.BsonBinary;
-import org.bson.BsonRegularExpression;
-import org.bson.types.Decimal128;
-import org.bson.types.ObjectId;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -41,7 +39,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @see <a href="http://bsonspec.org/">BSON spec</a>
  */
 @NotThreadSafe
-public class BsonWriter extends com.google.gson.stream.JsonWriter {
+public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wrapper<org.bson.BsonWriter> {
+
   private static final Writer UNWRITABLE_WRITER = new Writer() {
     @Override public void write(char[] buffer, int offset, int counter) {
       throw new AssertionError();
@@ -59,6 +58,11 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
   BsonWriter(org.bson.BsonWriter delegate) {
     super(UNWRITABLE_WRITER);
     this.delegate = checkNotNull(delegate, "delegate");
+  }
+
+  @Override
+  public org.bson.BsonWriter unwrap() {
+    return this.delegate;
   }
 
   @Override
@@ -169,28 +173,34 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
       return value(value.longValue());
     }
     if (value instanceof BigDecimal) {
-      String string = ((BigDecimal) value).toPlainString();
+      final BigDecimal decimal = (BigDecimal) value;
       try {
-        return value(Decimal128.parse(string));
-      } catch (NumberFormatException ex) {
+        return value(new Decimal128(decimal));
+      } catch (NumberFormatException|AssertionError ex) {
+        // Decimal128 throws AssertionError instead of NumberFormatException for out of range values
+        // see https://jira.mongodb.org/browse/JAVA-2937
         // fallback to serializing to string
-        return value(string);
+        return value(decimal.toPlainString());
       }
     }
     if (value instanceof BigInteger) {
-      String string = value.toString();
+      final BigInteger integer = (BigInteger) value;
       try {
-        return value(Decimal128.parse(string));
-      } catch (NumberFormatException ex) {
+        // BigDecimal is a wrapper for BigInteger anyway
+        BigDecimal decimal = new BigDecimal(integer);
+        return value(new Decimal128(decimal));
+      } catch (NumberFormatException|AssertionError ex) {
+        // Decimal128 throws AssertionError instead of NumberFormatException for out of range values
+        // see https://jira.mongodb.org/browse/JAVA-2937
         // fallback to serializing to string
-        return value(string);
+        return value(integer.toString());
       }
     }
     // by default we resort to floating point 
     return value(value.doubleValue());
   }
 
-  public com.google.gson.stream.JsonWriter value(Decimal128 decimal) {
+  private com.google.gson.stream.JsonWriter value(Decimal128 decimal) {
     delegate.writeDecimal128(decimal);
     return this;
   }
@@ -207,19 +217,4 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter {
     }
   }
 
-  public void valueBinary(byte[] data) {
-    delegate.writeBinaryData(new BsonBinary(data));
-  }
-
-  public void valueObjectId(byte[] data) {
-    delegate.writeObjectId(new ObjectId(data));
-  }
-
-  public void value(Pattern pattern) {
-    delegate.writeRegularExpression(new BsonRegularExpression(pattern.pattern()));
-  }
-
-  public void valueTimeInstant(long value) {
-    delegate.writeDateTime(value);
-  }
 }

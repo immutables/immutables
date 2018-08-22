@@ -13,19 +13,19 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.mongo.repository.internal;
+package org.immutables.mongo.bson4gson;
 
 import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.regex.Pattern;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.AbstractBsonReader;
 import org.bson.AbstractBsonReader.State;
 import org.bson.BsonType;
-import org.bson.types.Decimal128;
+
+import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
+import java.io.Reader;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @see <a href="http://bsonspec.org/">BSON spec</a>
  */
 @NotThreadSafe
-public class BsonReader extends JsonReader {
+public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReader> {
 
   private static final Reader UNREADABLE_READER = new Reader() {
     @Override
@@ -70,6 +70,11 @@ public class BsonReader extends JsonReader {
   BsonReader(org.bson.AbstractBsonReader delegate) {
     super(UNREADABLE_READER);
     this.delegate = checkNotNull(delegate, "delegate");
+  }
+
+  @Override
+  public org.bson.BsonReader unwrap() {
+    return this.delegate;
   }
 
   private void advance() {
@@ -276,23 +281,4 @@ public class BsonReader extends JsonReader {
     delegate.skipValue();
   }
 
-  public Pattern nextPattern() {
-    return Pattern.compile(delegate.readRegularExpression().getPattern());
-  }
-
-  public long nextTimeInstant() {
-    return delegate.readDateTime();
-  }
-
-  public Decimal128 nextDecimal() {
-    return delegate.readDecimal128();
-  }
-
-  public byte[] nextObjectId() {
-    return delegate.readObjectId().toByteArray();
-  }
-
-  public byte[] nextBinary() {
-    return delegate.readBinaryData().getData();
-  }
 }

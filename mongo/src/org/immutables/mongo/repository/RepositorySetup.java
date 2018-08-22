@@ -15,6 +15,7 @@
  */
 package org.immutables.mongo.repository;
 
+import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -22,23 +23,29 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.immutables.mongo.bson4gson.Codecs;
+import org.immutables.mongo.repository.Repositories.Repository;
+import org.immutables.mongo.types.TypeAdapters;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
-import org.immutables.mongo.repository.Repositories.Repository;
-import org.immutables.mongo.types.TypeAdapters;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -46,7 +53,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * {@link RepositorySetup} combines driver's database, thread-pool and serialization configuration
- * ({@link Gson}) to configure repositories extended from {@link Repositories.Repository}. Setup can
+ * ({@link CodecRegistry}) to configure repositories extended from {@link Repositories.Repository}. Setup can
  * and usually should be shared between repositories which accesses the same database and share
  * other resources.
  * @see Repository
@@ -55,13 +62,81 @@ import static com.google.common.base.Preconditions.checkState;
 public final class RepositorySetup {
 
   final ListeningExecutorService executor;
-  final Gson gson;
+  final CodecRegistry codecRegistry;
   final MongoDatabase database;
+  final FieldNamingStrategy fieldNamingStrategy;
 
-  private RepositorySetup(ListeningExecutorService executor, MongoDatabase database, Gson gson) {
+  private RepositorySetup(ListeningExecutorService executor, MongoDatabase database,
+                          CodecRegistry codecRegistry,
+                          FieldNamingStrategy fieldNamingStrategy) {
     this.executor = executor;
     this.database = database;
-    this.gson = gson;
+    this.codecRegistry = codecRegistry;
+    this.fieldNamingStrategy = Preconditions.checkNotNull(fieldNamingStrategy, "fieldNamingStrategy");
+  }
+
+  /**
+   * <p>Customize how fields are <strong>(re)</strong>named in mongo queries.
+   *
+   * <p>When building criterias (eg. by using {@link org.immutables.mongo.repository.Repositories.Finder}) immutables
+   * doesn't have runtime information about final object format in the data-store
+   * (serialization is delegated to {@link CodecRegistry}). Therefore, it is important that fields in the
+   * query and mongo database match. This interface allows to hook codec logic into query construction so
+   * immutables is aware of correct naming.
+   *
+   * <h3>Example</h3>
+   * <p>Below is an example for <a href="https://github.com/google/gson">gson</a> which is
+   * using <a href="https://google.github.io/gson/apidocs/com/google/gson/annotations/SerializedName.html">@SerializedName</a>
+   * to control member naming.
+   * <pre>
+   * {@code
+   *  final Gson gson = ...
+   *  FieldNamingStrategy gsonStrategy = new FieldNamingStrategy() {
+   *       @Override
+   *       public String translateName(Member member) {
+   *         return gson.fieldNamingStrategy().translateName((Field) member);
+   *       }
+   *  };
+   * }
+   * </pre>
+   *
+   * <p>Don't forget to employ same codec(s) for POJO serialization and current naming strategy.
+   */
+  public interface FieldNamingStrategy {
+
+    /**
+     * Provide a name for this {@code member} when used in queries.
+     *
+     * @param member current property (can be field / method) which is being translated
+     * @return name of the property when serialized
+     */
+    String translateName(Member member);
+
+    /**
+     * Default implementation which uses same name of the property in queries.
+     */
+    FieldNamingStrategy DEFAULT = new FieldNamingStrategy() {
+      @Override
+      public String translateName(Member member) {
+        return member.getName();
+      }
+    };
+
+    /**
+     * Uses {@link Gson#fieldNamingStrategy()} to translate names.
+     */
+    class GsonNamingStrategy implements FieldNamingStrategy {
+      private final Gson gson;
+
+      private GsonNamingStrategy(Gson gson) {
+        this.gson = Preconditions.checkNotNull(gson, "gson");
+      }
+
+      @Override
+      public String translateName(Member member) {
+        return gson.fieldNamingStrategy().translateName((Field) member);
+      }
+    }
   }
 
   /**
@@ -81,10 +156,15 @@ public final class RepositorySetup {
   public static class Builder {
     @Nullable
     private ListeningExecutorService executor;
+
     @Nullable
     private MongoDatabase database;
+
     @Nullable
-    private Gson gson;
+    private CodecRegistry codecRegistry;
+
+    @Nullable
+    private FieldNamingStrategy fieldNamingStrategy;
 
     private Builder() {}
 
@@ -101,7 +181,7 @@ public final class RepositorySetup {
     }
 
     /**
-     * Configures repository to lookup {@link DBCollection collection} from the specified
+     * Configures repository to lookup {@link com.mongodb.client.MongoCollection collection} from the specified
      * {@code database} handle. Repository will inherit {@link WriteConcern} and
      * {@link ReadPreference} settings that was configured on supplied instance.
      * @param database database handle.
@@ -114,7 +194,8 @@ public final class RepositorySetup {
     }
 
     /**
-     * Configures {@link Gson} instance.
+     * Configures current repository setup with {@link Gson} serialization.
+     *
      * <p>
      * You could use service providers for {@link TypeAdapterFactory} interface to register type
      * adapters. This mechanism, while optional, used a lot in immutables and allows for easy
@@ -133,11 +214,70 @@ public final class RepositorySetup {
      * The factory registration shown above is done by default when using
      * {@link RepositorySetup#forUri(String)} to create setup.
      * @param gson configured {@link Gson} instance
+     * @see #codecRegistry(CodecRegistry) for other serialization options
      * @return {@code this}
      */
     public Builder gson(Gson gson) {
-      this.gson = checkNotNull(gson);
+      checkNotNull(gson, "gson");
+
+      // Will be used as a factory for BSON types (if Gson does not have one). By default, uses
+      // TypeAdapter(s) from Gson if they're explicitly defined (not a ReflectiveTypeAdapter).
+      // Otherwise delegate to BSON codec.
+      TypeAdapterFactory bsonAdapterFactory = Codecs.delegatingTypeAdapterFactory(
+              MongoClient.getDefaultCodecRegistry()
+      );
+
+      // Appending new TypeAdapterFactory to allow Gson and Bson adapters to co-exists.
+      // Depending on the type we may need to use one or another. For instance,
+      // Date should be serialized by Gson (even if Bson has codec for it).
+      // But ObjectId / Decimal128 by BSON (if Gson doesn't have a type adapter for it).
+      // Document or BsonDocument should only be handled by BSON (it's unlikely that users have direct dependency on them in POJOs).
+      // So newGson is a way to extend existing Gson instance with "BSON TypeAdapter(s)"
+      Gson newGson = gson.newBuilder()
+              .registerTypeAdapterFactory(bsonAdapterFactory)
+              .create();
+
+      // expose new Gson as CodecRegistry. Using fromRegistries() for caching
+      CodecRegistry codecRegistry = CodecRegistries.fromRegistries(Codecs.codecRegistryFromGson(newGson));
+
+      return codecRegistry(codecRegistry, new FieldNamingStrategy.GsonNamingStrategy(gson));
+    }
+
+    /**
+     * Register custom codec registry to serialize and deserialize entities using
+     *  <a href="http://mongodb.github.io/mongo-java-driver/3.8/bson/codecs/">BSON</a>.
+     *
+     * <p>Also allows user to register custom naming strategy if POJOs have different property names
+     * when serialized (important for correct querying).
+     *
+     * @param registry existing registry
+     * @param fieldNamingStrategy allows to customize property names in queries
+     * @return {@code this} same instance of the builder
+     * @throws NullPointerException if one of arguments is null
+     */
+    public Builder codecRegistry(CodecRegistry registry, FieldNamingStrategy fieldNamingStrategy) {
+      this.codecRegistry = checkNotNull(registry, "registry");
+      this.fieldNamingStrategy = checkNotNull(fieldNamingStrategy, "fieldNamingStrategy");
       return this;
+    }
+
+    /**
+     * Register custom codec registry to serialize and deserialize entities using
+     * <a href="http://mongodb.github.io/mongo-java-driver/3.8/bson/codecs/">BSON</a>.
+     *
+     * <p>Please note that if you employ custom property naming (eg {@code @PropertyName} for
+     * <a href="https://github.com/FasterXML/jackson">jackson</a>
+     * or {@code @SerializedName} for <a href="https://github.com/google/gson">gson</a>) you need
+     * to register {@link FieldNamingStrategy} otherwise mongo queries might not work correctly. Use
+     * {@link #codecRegistry(CodecRegistry, FieldNamingStrategy)} for that. For additional information
+     * consult documentation on {@link FieldNamingStrategy}.
+     *
+     * @param registry set of codecs to be used for serialization
+     * @return {@code this} same instance of the builder
+     * @throws NullPointerException if one of arguments is null
+     */
+    public Builder codecRegistry(CodecRegistry registry) {
+      return codecRegistry(registry, FieldNamingStrategy.DEFAULT);
     }
 
     /**
@@ -147,8 +287,10 @@ public final class RepositorySetup {
     public RepositorySetup build() {
       checkState(executor != null, "executor is not set");
       checkState(database != null, "database is not set");
-      checkState(gson != null, "gson is not set");
-      return new RepositorySetup(executor, database, gson);
+      checkState(codecRegistry != null, "codecRegistry is not set");
+      checkState(fieldNamingStrategy != null, "fieldNamingStrategy is not set");
+
+      return new RepositorySetup(executor, database, codecRegistry, fieldNamingStrategy);
     }
   }
 

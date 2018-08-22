@@ -23,23 +23,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Range;
-import com.google.gson.TypeAdapter;
 import com.mongodb.QueryOperators;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWriter;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.Encoder;
 import org.bson.codecs.EncoderContext;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
+
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -53,14 +55,14 @@ public final class Support {
    */
   public static Bson convertToBson(final Constraints.ConstraintHost fields) {
     if (fields instanceof JsonQuery) {
-      return Document.parse(((JsonQuery) fields).value);
+      return (Bson) fields;
     }
     return fields.accept(new ConstraintBuilder("")).asDocument();
   }
 
   public static String stringify(final Constraints.ConstraintHost constraints) {
     if (constraints instanceof JsonQuery) {
-      return ((JsonQuery) constraints).value;
+      return ((JsonQuery) constraints).toString();
     }
     return convertToBson(constraints).toString();
   }
@@ -210,11 +212,11 @@ public final class Support {
   }
 
   public static Constraints.ConstraintHost jsonQuery(String query) {
-    return new JsonQuery(query);
+    return new JsonQuery(Document.parse(query));
   }
 
-  public static <T> Object writable(TypeAdapter<T> adapter, T value) {
-    return new Adapted<>(adapter, value);
+  public static <T> Object writable(Encoder<T> encoder, T value) {
+    return new Adapted<>(encoder, value);
   }
 
   public static Object writable(Object value) {
@@ -222,20 +224,20 @@ public final class Support {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(TypeAdapter<T> adapter, Range<T> range) {
+  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(Encoder<T> encoder, Range<T> range) {
     if (range.hasLowerBound() && range.hasUpperBound()) {
       return Range.range(
-          (Comparable<Object>) writable(adapter, range.lowerEndpoint()),
+          (Comparable<Object>) writable(encoder, range.lowerEndpoint()),
           range.lowerBoundType(),
-          (Comparable<Object>) writable(adapter, range.upperEndpoint()),
+          (Comparable<Object>) writable(encoder, range.upperEndpoint()),
           range.upperBoundType());
     } else if (range.hasLowerBound()) {
       return Range.downTo(
-          (Comparable<Object>) writable(adapter, range.lowerEndpoint()),
+          (Comparable<Object>) writable(encoder, range.lowerEndpoint()),
           range.lowerBoundType());
     } else if (range.hasUpperBound()) {
       return Range.upTo(
-          (Comparable<Object>) writable(adapter, range.upperEndpoint()),
+          (Comparable<Object>) writable(encoder, range.upperEndpoint()),
           range.upperBoundType());
     }
     throw new AssertionError();
@@ -276,16 +278,16 @@ public final class Support {
     return String.valueOf(value);
   }
 
-  private static class JsonQuery implements Constraints.ConstraintHost {
-    private final String value;
+  private static class JsonQuery implements Constraints.ConstraintHost, Bson {
+    private final Document value;
 
-    JsonQuery(String value) {
+    JsonQuery(Document value) {
       this.value = checkNotNull(value, "value");
     }
 
     @Override
     public String toString() {
-      return value;
+      return value.toJson();
     }
 
     @Override
@@ -293,20 +295,23 @@ public final class Support {
       throw new UnsupportedOperationException(
           "Satisfied ConstraintSupport.ConstraintHost only for technical reasons and don't implements accept");
     }
+
+    @Override
+    public <TDocument> BsonDocument toBsonDocument(Class<TDocument> tDocumentClass, CodecRegistry codecRegistry) {
+      return value.toBsonDocument(tDocumentClass, codecRegistry);
+    }
   }
 
   static final class Adapted<T> implements Comparable<Adapted<T>> {
     final T value;
-    final TypeAdapter<T> adapter;
+    final Encoder<T> encoder;
 
-    Adapted(TypeAdapter<T> adapter, T value) {
-      this.adapter = adapter;
+    Adapted(Encoder<T> encoder, T value) {
+      this.encoder = encoder;
       this.value = value;
     }
 
     BsonValue toBson() {
-      @SuppressWarnings("unchecked")
-      Encoder<T> encoder = BsonEncoding.encoderFor((Class<T>) value.getClass(), adapter);
       BsonDocument bson = new BsonDocument();
       org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
       // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.

@@ -26,17 +26,18 @@ import com.google.gson.TypeAdapterFactory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoDatabase;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.ServiceLoader;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.immutables.mongo.types.TypeAdapters;
 import org.junit.rules.ExternalResource;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.util.ServiceLoader;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * JUnit rule which allows tests to access {@link RepositorySetup} backed by real database (fongo or MongoDB). It
@@ -113,6 +114,7 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
 
   private static com.google.gson.Gson createGson() {
     GsonBuilder gson = new GsonBuilder();
+
     // this one is no longer auto-registered
     gson.registerTypeAdapterFactory(new TypeAdapters());
 

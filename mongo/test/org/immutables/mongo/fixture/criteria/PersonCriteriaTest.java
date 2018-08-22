@@ -198,7 +198,23 @@ public class PersonCriteriaTest {
     check(repository.find(criteria().aliasesNonEmpty()).fetchAll().getUnchecked()).hasSize(1);
 
     check(repository.find(criteria().dateOfBirthNot(dob)).fetchAll().getUnchecked()).isEmpty();
+  }
 
+  @Test
+  public void nonScalar() {
+    // strip millis (for also testing Gson default Date TypeAdapter which doesn't store millis in string)
+    Date dob = new Date((System.currentTimeMillis() / 1000) * 1000);
+
+    Person john = ImmutablePerson.builder().id("p1").name("John").age(30).aliases(Collections.singleton("a1"))
+            .dateOfBirth(dob).build();
+    repository.insert(john).getUnchecked();
+
+    check(repository.find(criteria().dateOfBirth(dob)).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().dateOfBirthIn(Collections.singleton(dob))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
+    check(repository.find(criteria().dateOfBirth(new Date(dob.getTime() + 10_000))).fetchAll().getUnchecked()).isEmpty();
+
+    check(repository.find(criteria().dateOfBirthNot(dob)).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().dateOfBirthNot(new Date(dob.getTime() + 10_000))).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
   }
 
   @Test

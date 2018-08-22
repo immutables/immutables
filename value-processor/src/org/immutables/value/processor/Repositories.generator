@@ -40,9 +40,9 @@ import org.immutables.mongo.repository.RepositorySetup;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.repository.internal.Constraints;
 import org.immutables.mongo.repository.internal.Support;
-import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
+
+import org.bson.codecs.Encoder;
+import org.bson.codecs.configuration.CodecRegistry;
 [for starImport in type.requiredSourceStarImports]
 import [starImport];
 [/for]
@@ -82,7 +82,7 @@ import [starImport];
    */
   public [type.name]Repository(RepositorySetup configuration) {
     super(configuration, DOCUMENT_COLLECTION_NAME, [type.typeDocument].class);
-    this.serialization = new Serialization(getGson());
+    this.serialization = new Serialization(codecRegistry(), fieldNamingStrategy());
     this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
 
@@ -795,32 +795,32 @@ public static final class Criteria extends Repositories.Criteria {
 private static class Serialization {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-  final TypeAdapter<[a.elementType]> [a.name]TypeAdapter;
+  final Encoder<[a.elementType]> [a.name]Encoder;
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
-  final TypeAdapter<[a.secondaryElementType]> [a.name]SecondaryTypeAdapter;
+  final Encoder<[a.secondaryElementType]> [a.name]SecondaryEncoder;
     [/if]
   [/for]
-  final Gson gson;
+  final CodecRegistry registry;
   [for a in allAttributes]
   final String [a.name]Name;
   [/for]
 
-  Serialization(Gson gson) {
-    this.gson = gson;
+  Serialization(CodecRegistry registry, RepositorySetup.FieldNamingStrategy fieldNamingStrategy) {
+    this.registry = registry;
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
-    [getAdapterFromGson a false]
+    [getEncoder a false]
     [/if]
     [if a.requiresMarshalingSecondaryAdapter]
-    [getAdapterFromGson a true]
+    [getEncoder a true]
     [/if]
   [/for]
   [for a in allAttributes]
     [if a.serializedName]
     this.[a.name]Name = "[a.serializedName]";
     [else]
-    this.[a.name]Name = translateName("[a.name]");
+    this.[a.name]Name = translateName(fieldNamingStrategy, "[a.name]");
     [/if]
   [/for]
   }
@@ -831,9 +831,9 @@ private static class Serialization {
   [/for]
   }
 
-  private String translateName(String fieldName) {
+  private static String translateName(RepositorySetup.FieldNamingStrategy fieldNamingStrategy, String fieldName) {
     try {
-      return gson.fieldNamingStrategy().translateName(
+      return fieldNamingStrategy.translateName(
           [type.name]NamingFields.class.getField(fieldName));
     } catch (NoSuchFieldException noSuchField) {
       throw new AssertionError(noSuchField);
@@ -843,22 +843,22 @@ private static class Serialization {
 [/for]
 [/template]
 
-[template getAdapterFromGson Attribute a Boolean secondary]
+[template getEncoder Attribute a Boolean secondary]
 [for subs = a.expectedSubtypes,
     Boolean suppotedSubs = ((a.typeKind.mapKind and secondary) ornot a.typeKind.mapKind)]
   [if subs and suppotedSubs]
-this.[a.name][if secondary]Secondary[/if]TypeAdapter = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
+this.[a.name][if secondary]Secondary[/if]Encoder = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
     [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
     TypeToken.get([s].class)[/for]);
   [else]
-this.[a.name][if secondary]Secondary[/if]TypeAdapter = gson.getAdapter([if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if]);
+this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if]);
   [/if]
 [/for]
 [/template]
 
-[template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]TypeAdapter, [else]Support.writable([/if][/template]
+[template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]Encoder, [else]Support.writable([/if][/template]
 
-[template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryTypeAdapter, [else]Support.writable([/if][/template]
+[template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryEncoder, [else]Support.writable([/if][/template]
 
 [template atCheckReturnValue HasStyleInfo s][if s allowsClasspathAnnotation 'javax.annotation.CheckReturnValue']@javax.annotation.CheckReturnValue[/if][/template]
 
