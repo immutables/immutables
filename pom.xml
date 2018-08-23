@@ -27,7 +27,7 @@
     Java annotation processing toolkit. Focus is on immutability, type safety, fluent interfaces, high-performance.
   </description>
   <url>http://immutables.org</url>
-  
+
   <modules>
     <module>utility</module>
     <module>testing</module>
@@ -56,6 +56,27 @@
     <name>The Immutables.org authors</name>
     <url>http://immutables.org</url>
   </organization>
+
+  <developers>
+    <developer>
+      <id>elucash</id>
+      <name>Ievgen Lukash</name>
+      <email>e.lucash@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+    <developer>
+      <id>ivysharev</id>
+      <name>Ilya Vysharev</name>
+      <email>ivysharev@gmail.com</email>
+      <timezone>+2</timezone>
+    </developer>
+    <developer>
+      <id>augustotravillio</id>
+      <name>Augusto Travillio</name>
+      <email>augusto.travillio@gmail.com</email>
+      <timezone>-8</timezone>
+    </developer>
+  </developers>
 
   <licenses>
     <license>
