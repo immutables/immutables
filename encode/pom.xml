@@ -24,26 +24,4 @@
   <artifactId>encode</artifactId>
   <description />
   <name>${project.groupId}.${project.artifactId}</name>
-  <dependencies>
-    <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>testing</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables</groupId>
-      <artifactId>value</artifactId>
-      <version>${project.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-  </dependencies>
 </project>

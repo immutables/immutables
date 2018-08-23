@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
    Copyright 2014-2016 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>immutables</artifactId>
     <groupId>org.immutables</groupId>
@@ -33,6 +34,11 @@
   <dependencies>
     <dependency>
       <groupId>org.immutables</groupId>
+      <artifactId>value-annotations</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.immutables</groupId>
       <artifactId>value-processor</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -40,15 +46,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <compilerVersion>1.6</compilerVersion>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-
       <plugin>
         <groupId>org.immutables.tools</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -63,10 +60,12 @@
               <createDependencyReducedPom>true</createDependencyReducedPom>
               <shadedArtifactAttached>false</shadedArtifactAttached>
               <minimizeJar>true</minimizeJar>
+              <createSourcesJar>true</createSourcesJar>
 
               <artifactSet>
                 <includes>
                   <include>org.immutables:value</include>
+                  <include>org.immutables:value-annotations</include>
                   <include>org.immutables:value-processor</include>
                   <include>org.immutables:generator</include>
                   <include>com.google.guava:guava</include>
@@ -94,6 +93,20 @@
 
               <filters>
                 <filter>
+                  <artifact>org.immutables:value</artifact>
+                  <includes>
+                    <include>org/immutables/value/*</include>
+                  </includes>
+                </filter>
+
+                <filter>
+                  <artifact>org.immutables:value-annotation</artifact>
+                  <includes>
+                    <include>**</include>
+                  </includes>
+                </filter>
+
+                <filter>
                   <artifact>org.immutables:value-processor</artifact>
                   <includes>
                     <include>**</include>
@@ -102,16 +115,25 @@
                     <exclude>**/*.generator</exclude>
                   </excludes>
                 </filter>
+
                 <filter>
                   <artifact>com.google.guava:guava</artifact>
                   <excludes>
                     <exclude>META-INF/maven/**</exclude>
+                    <exclude>**/*.java</exclude>
                   </excludes>
                 </filter>
               </filters>
 
               <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Automatic-Module-Name>${module.name}</Automatic-Module-Name>
+                  </manifestEntries>
+                </transformer>
               </transformers>
             </configuration>
           </execution>
@@ -129,19 +151,22 @@
               <shadedClassifierName>annotations</shadedClassifierName>
 
               <artifactSet>
+                <excludes>
+                  <exclude>org.immutables:value</exclude>
+                </excludes>
                 <includes>
-                  <include>org.immutables:value</include>
+                  <include>org.immutables:value-annotations</include>
                 </includes>
               </artifactSet>
 
-              <filters>
-                <filter>
-                  <artifact>org.immutables:value</artifact>
-                  <includes>
-                    <include>org/immutables/value/*</include>
-                  </includes>
-                </filter>
-              </filters>
+              <transformers>
+                <transformer
+                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                  <manifestEntries>
+                    <Automatic-Module-Name>${module.name}.annotations</Automatic-Module-Name>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
             </configuration>
           </execution>
         </executions>

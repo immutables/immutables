@@ -27,6 +27,10 @@
   <name>${project.groupId}.${project.artifactId}</name>
   <description>Immutable objects processor, new generation</description>
 
+  <properties>
+    <module.name>${project.groupId}.value.processor</module.name>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.immutables.dependency</groupId>
