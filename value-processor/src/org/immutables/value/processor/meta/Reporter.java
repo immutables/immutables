@@ -98,6 +98,11 @@ public abstract class Reporter {
     default:
       break;
     }
+    if (warn == About.ANY) {
+      message = "(immutables) " + message;
+    } else {
+      message = "(immutables:" + warn.name().toLowerCase() + ") " + message;
+    }
     reportMessage(Diagnostic.Kind.MANDATORY_WARNING, message, parameters);
   }
 
