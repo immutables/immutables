@@ -50,6 +50,16 @@ License
 Changelog
 ---------
 
+### 2.7.1 (2018-08-25)
+- Thank you issue reports and PRs! Not many features here, but minor version increment was needed
+- Notable stuff
+  + Added `org.immutables:value-annotations` annotation only jar. Previously we had equivalent artifact `org.immutables:value:annotations` (classifier `annotations`). Apparently some tools have trouble with properly addressing jars with classifiers and attached sources. Both artifacts are released.
+  + `org.immutables.value.Generated` annotation (which auto added to generated classes / builders) is class-retention annotation now. Some tools (like osgi related) will not automatically add such annotation as runtime dependency.
+  + `Automatic-Module-Name` now have no dashes for `org.immutables.value.annotations` (annotation only) and `org.immutables.value.processor` (unshaded processor). Most used artifact/module `org.immutables.value` is obviously unchanged.
+  + Can suppress a bit finer categories of warnings `@Suppression("immutables:subtype")`, each warning message now contain such token in parentheses.
+  + Subtyping value type with another value type directly is now a warning, not an error. It's still better avoid it.
+- [Issues 2.7.1](https://github.com/immutables/immutables/milestone/70?closed=1)
+
 ### 2.6.3 (2018-07-21)
 * https://github.com/immutables/immutables/issues/784
 * https://github.com/immutables/immutables/issues/788
