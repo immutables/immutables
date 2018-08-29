@@ -70,8 +70,8 @@ public class IterableChecker<Z extends Iterable<T>, T> extends ObjectChecker<Z> 
     verifyUsingMatcher(Matchers.contains(elements));
   }
 
-  public void hasContentInAnyOrder(Iterable<?> elements) {
-    verifyUsingMatcher(Matchers.containsInAnyOrder(ImmutableList.copyOf(elements).toArray()));
+  public void hasContentInAnyOrder(Iterable<T> elements) {
+    verifyUsingMatcher(Matchers.containsInAnyOrder((T[]) Iterables.toArray(elements, Object.class)));
   }
 
   @SafeVarargs
