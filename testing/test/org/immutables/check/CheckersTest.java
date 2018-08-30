@@ -16,6 +16,7 @@
 package org.immutables.check;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,5 +37,11 @@ public class CheckersTest {
     check(new ArrayList<>()).isA(List.class);
     check(true);
     check((Void) null).isNull();
+  }
+
+  @Test
+  public void canCheckHasContentInAnyOrder() {
+    check(ImmutableList.of(1, 3, 2, 5, 4)).hasContentInAnyOrder(1, 2, 3, 4, 5);
+    check(ImmutableList.of(1, 3, 2, 5, 4)).hasContentInAnyOrder(ImmutableList.of(5, 4, 3, 2, 1));
   }
 }
