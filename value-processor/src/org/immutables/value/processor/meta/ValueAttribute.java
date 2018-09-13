@@ -820,7 +820,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   private static boolean isRegularMarshalableType(String name, boolean couldBeWrapped) {
     return String.class.getName().equals(name)
-        || (couldBeWrapped ? isPrimitiveOrWrapped(name) : isPrimitiveType(name));
+        || isPrimitiveType(name);
   }
 
   public boolean isRequiresMarshalingAdapter() {
@@ -830,6 +830,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean isRequiresMarshalingSecondaryAdapter() {
     return isMapType() && !isRegularMarshalableType(getSecondaryElementType(), true);
+  }
+
+  public boolean isRequiresMarshalingOptionalAdapter() {
+    return (isOptionalType() && !isRegularMarshalableType(getUnwrappedValueElementType(), false));
   }
 
   public boolean wrapArrayToIterable() {
