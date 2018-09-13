@@ -63,7 +63,7 @@
       <!-- Required. -->
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>3.5.0</version>
+      <version>3.8.1</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
