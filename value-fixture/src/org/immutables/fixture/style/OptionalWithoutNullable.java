@@ -28,4 +28,7 @@ public interface OptionalWithoutNullable {
   OptionalInt getJavaOptionalInt();
 
   com.google.common.base.Optional<String> getGuavaOptional();
+
+  @Value.Parameter
+  Optional<String> getJavaOptionalStringParameter();
 }

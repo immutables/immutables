@@ -140,6 +140,15 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return false;
   }
 
+  public boolean hasOptionalConstructorArguments() {
+    for (ValueAttribute attribute : getConstructorArguments()) {
+      if (attribute.isOptionalType()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public boolean hasEncodingAttributes() {
     for (ValueAttribute a : attributes()) {
       if (a.isEncoding()) {
