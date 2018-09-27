@@ -99,7 +99,7 @@
                 </filter>
 
                 <filter>
-                  <artifact>org.immutables:value-annotation</artifact>
+                  <artifact>org.immutables:value-annotations</artifact>
                   <includes>
                     <include>**</include>
                   </includes>
