@@ -577,7 +577,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
 
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
-        && !isGeneratePrivateNoargConstructor();
+        && !isGeneratePrivateNoargConstructor()
+        && !getEquivalenceAttributes().isEmpty();
   }
 
   public InnerBuilderDefinition getInnerBuilder() {

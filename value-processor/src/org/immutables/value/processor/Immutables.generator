@@ -2863,7 +2863,14 @@ private boolean equalTo([equalToTypeRaw] another) {
   return super.equals(another);
   [else]
     [if type.usePrehashed]
+      [if type.annotationType]
+  if (another instanceof [type.typeImmutable.relativeRaw]
+      && (([type.typeImmutable.relativeRaw]) another).hashCode != hashCode) {
+    return false;
+  }
+      [else]
   if (hashCode != another.hashCode) return false;
+      [/if]
     [/if]
   return [if not getters]true[/if][for v in getters][if not for.first]
       && [/if][equalsAttribute v type.annotationType][/for];
@@ -2872,7 +2879,9 @@ private boolean equalTo([equalToTypeRaw] another) {
 [/if]
 [let computeHashCodeBody]
 [let h][disambiguateField type 'h'][/let]
-[if type.annotationType]
+[if type.annotationType and getters.isEmpty]
+  return 0;
+[else if type.annotationType]
   [atVar type]int [h] = 0;
 [for v in getters]
 [if v.arrayType]
