@@ -1,6 +1,6 @@
 package org.immutables.mongo.repository.internal;
 
-import com.google.gson.internal.bind.DateTypeAdapter;
+import org.bson.codecs.DateCodec;
 import org.junit.Test;
 
 import java.util.Date;
@@ -20,7 +20,7 @@ public class SupportTest {
   @Test
   public void unwrapObject() throws Exception {
     Date date = new Date();
-    Support.Adapted<Date> adapted = new Support.Adapted<>(new DateTypeAdapter(), date);
+    Support.Adapted<Date> adapted = new Support.Adapted<>(new DateCodec(), date);
     Object result = Support.unwrapBsonable(adapted);
     check(result.toString()).isNonEmpty();
   }

@@ -1,4 +1,4 @@
-package org.immutables.mongo.repository.internal;
+package org.immutables.mongo.bson4gson;
 
 import com.google.gson.JsonObject;
 import com.google.gson.internal.bind.TypeAdapters;
@@ -10,6 +10,8 @@ import org.bson.codecs.BsonDocumentCodec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
+import org.immutables.mongo.bson4gson.BsonReader;
+import org.immutables.mongo.bson4gson.BsonWriter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

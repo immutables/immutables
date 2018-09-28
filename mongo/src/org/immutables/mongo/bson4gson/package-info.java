@@ -12,11 +12,14 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
- */
+*/
 
 /**
- * Classes in this package are internal to mongo adapter and are not supposed to be
- * used outside current module. The API is subject to change without any compatibility guarantees.
+ * This package adds support for <a href="http://bsonspec.org/">BSON</a> to
+ * <a href="https://github.com/google/gson">Gson</a> library.
+ *
+ * <p>Historically immutables mongo adapter required Gson to properly encode / decode POJOs, since
+ * migration to v3 driver this functionality has been delegated to a better suited
+ * {@link org.bson.codecs.configuration.CodecRegistry} which can be provided during repository setup.
  */
-@javax.annotation.ParametersAreNonnullByDefault
-package org.immutables.mongo.repository.internal;
+package org.immutables.mongo.bson4gson;

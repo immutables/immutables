@@ -12,11 +12,21 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
- */
+*/
+
+package org.immutables.mongo.bson4gson;
 
 /**
- * Classes in this package are internal to mongo adapter and are not supposed to be
- * used outside current module. The API is subject to change without any compatibility guarantees.
+ * Allows retrieving delegates to access non-standard methods which
+ * are usually not exposed by standard interface.
  */
-@javax.annotation.ParametersAreNonnullByDefault
-package org.immutables.mongo.repository.internal;
+public interface Wrapper<T> {
+
+  /**
+   * Returns delegate that is wrapped but this instance.
+   *
+   * @return wrapped object
+   */
+   T unwrap();
+
+}

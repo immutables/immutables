@@ -20,8 +20,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
-import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -33,21 +31,21 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
-import org.immutables.mongo.repository.internal.BsonEncoding;
 import org.immutables.mongo.repository.internal.Constraints;
+
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -72,6 +70,7 @@ public final class Repositories {
 
     private final RepositorySetup configuration;
     private final MongoCollection<T> collection;
+    private final RepositorySetup.FieldNamingStrategy fieldNamingStrategy;
 
     protected Repository(
         RepositorySetup configuration,
@@ -82,31 +81,26 @@ public final class Repositories {
       checkNotNull(collectionName, "collectionName");
       checkNotNull(type, "type");
 
-      final TypeAdapter<T> adapter = checkAdapter(configuration.gson.getAdapter(type), type);
-      final MongoCollection<Document> collection = configuration.database.getCollection(collectionName);
-      // combine default and immutables codec registries
-      final CodecRegistry registry = CodecRegistries.fromRegistries(collection.getCodecRegistry(), BsonEncoding.registryFor(type, adapter));
+      final MongoCollection<Document> collection = configuration.database
+              .getCollection(collectionName);
 
       this.collection = collection
-          .withCodecRegistry(registry)
+          .withCodecRegistry(configuration.codecRegistry)
           .withDocumentClass(type);
+
+      this.fieldNamingStrategy = configuration.fieldNamingStrategy;
     }
 
-    private static <A> TypeAdapter<A> checkAdapter(TypeAdapter<A> adapter, Class<A> type) {
-      if (adapter instanceof com.google.gson.internal.bind.ReflectiveTypeAdapterFactory.Adapter) {
-        throw new IllegalStateException(
-            String.format("Generated type adapter for type '%s' is not available."
-                + " This may happen when using default RepositorySetup.forUri and"
-                + " META-INF/services/..TypeAdapterFactory files are not compiled or accessible."
-                + " Alternatively this may happen if creating custom RepositorySetup with Gson instance,"
-                + " which does not have type adapters registered.",
-                type));
-      }
-      return adapter;
+    /**
+     * Codec used for current collection type.
+     * @return
+     */
+    protected final CodecRegistry codecRegistry() {
+      return collection.getCodecRegistry();
     }
 
-    protected final Gson getGson() {
-      return configuration.gson;
+    protected final RepositorySetup.FieldNamingStrategy fieldNamingStrategy() {
+      return fieldNamingStrategy;
     }
 
     private MongoCollection<T> collection() {
