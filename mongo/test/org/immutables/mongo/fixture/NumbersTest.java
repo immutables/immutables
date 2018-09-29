@@ -1,5 +1,6 @@
 package org.immutables.mongo.fixture;
 
+import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
 /**
  * A set of tests for entities with primitive numbers (byte, short, int, long ...) and more advanced number wrappers
@@ -90,6 +92,40 @@ public class NumbersTest {
     check(!doc2.atomicBoolean().get());
     check(doc2.atomicInteger().get()).is(doc.atomicInteger().get());
     check(doc2.atomicLong().get()).is(doc.atomicLong().get());
+  }
+
+  /**
+   * Serializing big numbers which can't be stored in {@link org.bson.types.Decimal128} format.
+   * They should be serialized as strings (or binary) in mongo.
+   */
+  @Test
+  public void larger_than_decimal128() {
+    final AdvancedRepository repo = new AdvancedRepository(context.setup());
+    final ObjectId id = ObjectId.get();
+    final BigInteger integer = BigInteger.valueOf(Long.MAX_VALUE).pow(4);
+
+    try {
+      new Decimal128(new BigDecimal(integer));
+      fail("Should fail for " + integer);
+    } catch (NumberFormatException ignore) {
+      // expected
+    }
+
+    final Advanced doc = ImmutableAdvanced.builder()
+            .id(id)
+            .bigDecimal(new BigDecimal(integer)) // make number big
+            .bigInteger(integer) // make it also big
+            .atomicBoolean(new AtomicBoolean(false))
+            .atomicInteger(new AtomicInteger(1))
+            .atomicLong(new AtomicLong(2))
+            .build();
+
+    repo.insert(doc).getUnchecked();
+
+    final Advanced doc2 = repo.findById(id).fetchFirst().getUnchecked().get();
+    check(doc2.bigDecimal().unscaledValue()).is(integer);
+    check(doc2.bigInteger()).is(integer);
+
   }
 
   @Mongo.Repository
