@@ -720,7 +720,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][if v.isOptionalType][unwrappedOptionalType v][else][v.type][/if] [v.name][/for]) {
-    return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][if v.isOptionalType][optionalOf v]([v.name])[else][v.name][/if][/for]);
+    return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][if v.isOptionalType andnot v.isJdkOptional][optionalOf v]([v.name])[else if v.isJdkOptional and type.kind.isFactory][optionalOf v]([v.name])[else][v.name][/if][/for]);
   }
   [/if]
   [/if]
@@ -745,7 +745,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for]) {
-    return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][if v.isOptionalType][optionalOf v]([v.name])[else][v.name][/if][/for])[/validated];
+    return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
   [/if]
 [/if]
@@ -2244,6 +2244,18 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
+[template valueFromValueNoOptional Attribute v String expression][output.trim]
+[if v.encoding]
+  [valueFromValue v expression]
+[else if v.jdkOptional]
+  [expression]
+[else if v.optionalType]
+  [optionalOf v]([expression])
+[else]
+  [valueFromValue v expression]
+[/if]
+[/output.trim][/template]
+
 [template deepCopyOf Attribute v String expression][if v.isAttributeBuilder][convertToValueType v.getAttributeBuilderDescriptor]([expression])[else][v.attributeValueType.factoryCopyOf]([expression])[/if][/template]
 
 [template valueFromBuilder Attribute v String expressionPrefix][valueFromBuilderAlt v true expressionPrefix][/template]
@@ -2382,8 +2394,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
-[if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
 
+[if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
   [if type.factoryOf.new]
   /**
    * Construct a new immutable {@code [type.name]} instance.
@@ -2421,9 +2433,49 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/if]
     [generateAfterConstruction type false]
   }
+
+[-- Additional constructors for Optional types --]
+[if type.hasOptionalConstructorArguments]
+  [if type.factoryOf.new]
+  /**
+   * Construct a new immutable {@code [type.name]} instance.
+  [for v in type.constructorArguments]
+   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
+  [/for]
+   */
+  [eachLine type.constructorAnnotations]
+  [eachLine type.constructorInjectedAnnotations]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
+  public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.constructorParameterAnnotations][v.atNullability][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for][/output.linesShortable]) {
+  [else]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
+  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.atNullability][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for][/output.linesShortable]) {
+  [/if]
+[if type.constructorOmited or (type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes))]
+  [let shim][disambiguateField type 'initShim'][/let]
+  [for v in type.constructorArguments, n = v.name]
+[if v.generateDefault and type.generateSafeDerived]
+    [shim].[v.names.init]([valueFromValueNoOptional v n]);
+[else if v.hasVirtualImpl]
+    [rr.virtualImpl v] = [valueFromValueNoOptional v n];
+[else]
+    this.[n] = [valueFromValueNoOptional v n];
+[/if]
+  [/for]
+    [generateConstructorDefaultAttributes type type.constructorOmited]
+    [generateDerivedConstruction type type.constructorArguments]
+[else][-- Alternatively a lot simpler implementation]
+  [for v in type.constructorArguments, n = v.name]
+    this.[n] = [valueFromValueNoOptional v n];
+  [/for]
+[/if]
+    [generateAfterConstruction type false]
+  }
+[/if]
 [/if]
 [if type.generateBuilderConstructor]
-
   private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
   [for v in getters if not (v.generateDerived or v.generateDefault), n = v.name]
     [if v.hasVirtualImpl]

@@ -809,7 +809,7 @@ public @interface Value {
     ImplementationVisibility visibility() default ImplementationVisibility.SAME;
 
     /**
-     * Specify whether init and copy methods for an unwrapped {@code X} of {@code Optional<X>}
+     * Specify whether init, copy and factory methods and constructors for an unwrapped {@code X} of {@code Optional<X>}
      * should accept {@code null} values as empty value. By default nulls are rejected in favor of
      * explicit conversion using {@code Optional.ofNullable}. Please note that initializers that
      * take explicit {@code Optional} value always reject nulls regardless of this setting.
