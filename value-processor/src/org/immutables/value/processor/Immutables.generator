@@ -2231,11 +2231,13 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 [/if]
 [/output.trim][/template]
 
-[template valueFromValueNoOptional Attribute v String expression][output.trim]
+[template valueFromValueNoOptional Type type Attribute v String expression][output.trim]
 [if v.encoding]
   [valueFromValue v expression]
+[else if v.jdkOptional and (v.jdkSpecializedOptional or v.optionalAcceptNullable)]
+  [maybeCopyOf v][expression][/maybeCopyOf]
 [else if v.jdkOptional]
-  [expression]
+  [maybeCopyOf v][requireNonNull type]([expression], "[expression]")[/maybeCopyOf]
 [else if v.optionalType]
   [optionalOf v]([expression])
 [else]
@@ -2446,18 +2448,18 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [let shim][disambiguateField type 'initShim'][/let]
   [for v in type.constructorArguments, n = v.name]
 [if v.generateDefault and type.generateSafeDerived]
-    [shim].[v.names.init]([valueFromValueNoOptional v n]);
+    [shim].[v.names.init]([valueFromValueNoOptional type v n]);
 [else if v.hasVirtualImpl]
-    [rr.virtualImpl v] = [valueFromValueNoOptional v n];
+    [rr.virtualImpl v] = [valueFromValueNoOptional type v n];
 [else]
-    this.[n] = [valueFromValueNoOptional v n];
+    this.[n] = [valueFromValueNoOptional type v n];
 [/if]
   [/for]
     [generateConstructorDefaultAttributes type type.constructorOmited]
     [generateDerivedConstruction type type.constructorArguments]
 [else][-- Alternatively a lot simpler implementation]
   [for v in type.constructorArguments, n = v.name]
-    this.[n] = [valueFromValueNoOptional v n];
+    this.[n] = [valueFromValueNoOptional type v n];
   [/for]
 [/if]
     [generateAfterConstruction type false]
