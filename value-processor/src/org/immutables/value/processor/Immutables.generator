@@ -702,9 +702,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
+[for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
-  [/for]
+[/for]
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][v.type] [v.name][/for]) {
@@ -714,21 +714,21 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
+[for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
-  [/for]
+[/for]
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
-
   [if type.hasOptionalConstructorArguments]
+
   /**
    * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
+[for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
-  [/for]
+[/for]
    * @return An immutable [type.name] instance
    */
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for]) {
@@ -2381,8 +2381,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
-
 [if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
+
   [if type.factoryOf.new]
   /**
    * Construct a new immutable {@code [type.name]} instance.
@@ -2420,9 +2420,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/if]
     [generateAfterConstruction type false]
   }
-
 [-- Additional constructors for Optional types --]
 [if type.hasOptionalConstructorArguments]
+
   [if type.factoryOf.new]
   /**
    * Construct a new immutable {@code [type.name]} instance.
@@ -2463,6 +2463,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/if]
 [/if]
 [if type.generateBuilderConstructor]
+
   private [type.typeImmutable.simple]([type.typeBuilderImpl.relative] builder) {
   [for v in getters if not (v.generateDerived or v.generateDefault), n = v.name]
     [if v.hasVirtualImpl]
