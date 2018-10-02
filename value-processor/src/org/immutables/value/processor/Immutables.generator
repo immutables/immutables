@@ -710,19 +710,6 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][v.type] [v.name][/for]) {
     return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][v.name][/for]);
   }
-
-  [if type.hasOptionalConstructorArguments]
-  /**
-   * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
-   * @param [v.name] The value for the {@code [v.name]} attribute
-  [/for]
-   * @return An immutable [type.name] instance
-   */
-  public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][if v.isOptionalType][unwrappedOptionalType v][else][v.type][/if] [v.name][/for]) {
-    return [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][if v.requiresAlternativeStrictConstructor]([constructorAcceptType v]) [/if][if v.isOptionalType andnot v.isJdkOptional][optionalOf v]([v.name])[else if v.isJdkOptional and type.kind.isFactory][optionalOf v]([v.name])[else][v.name][/if][/for]);
-  }
-  [/if]
   [/if]
 
   /**
