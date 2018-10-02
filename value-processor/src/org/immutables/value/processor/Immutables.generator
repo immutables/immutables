@@ -2381,6 +2381,8 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
+[-- There is a very similar block of code beneath this constructor generation
+    which needs to be taken into consideration when anything changes here]
 [if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
 
   [if type.factoryOf.new]
