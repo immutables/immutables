@@ -31,7 +31,7 @@ public class ThirdPartyImmutableWithBuilderInstanceCopyMethod {
       return new ThirdPartyImmutableWithBuilderInstanceCopyMethod(value);
     }
 
-    public Builder merge(ThirdPartyImmutableWithBuilderInstanceCopyMethod immutable) {
+    public Builder from(ThirdPartyImmutableWithBuilderInstanceCopyMethod immutable) {
       return setValue(immutable.getValue());
     }
   }

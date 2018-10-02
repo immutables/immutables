@@ -14,6 +14,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.util.Types;
+
 import org.immutables.value.Value.Derived;
 import org.immutables.value.Value.Immutable;
 import org.immutables.value.Value.Lazy;
@@ -339,12 +341,19 @@ public abstract class AttributeBuilderReflection {
         return false;
       }
 
+      if (!valueAttribute.containingType.names().possibleAttributeBuilder(possibleBuildMethod.getSimpleName())) {
+        return false;
+      }
+
+      Types typeUtils
+          = valueAttribute.containingType.constitution.protoclass().environment().processing().getTypeUtils();
+
       ExecutableElement candidateBuildMethod = (ExecutableElement) possibleBuildMethod;
       return !candidateBuildMethod.getModifiers().contains(Modifier.STATIC)
           && candidateBuildMethod.getModifiers().contains(Modifier.PUBLIC)
           && candidateBuildMethod.getTypeParameters().isEmpty()
           && candidateBuildMethod.getReturnType().getKind() == TypeKind.DECLARED
-          && (candidateBuildMethod.getReturnType()).equals(valueAttribute.containedTypeElement.asType());
+          && (typeUtils.isSameType(candidateBuildMethod.getReturnType(), valueAttribute.containedTypeElement.asType()));
     }
 
     /**
@@ -357,22 +366,19 @@ public abstract class AttributeBuilderReflection {
      */
     private static boolean isPossibleBuilderMethod(Element possibleBuilderMethod, boolean onValueType, ValueAttribute valueAttribute) {
       if (possibleBuilderMethod.getKind() == ElementKind.METHOD) {
-        String detectedAttributeBuilder = valueAttribute.containingType.names()
-            .rawFromAttributeBuilder(possibleBuilderMethod.getSimpleName().toString());
-
-        if (detectedAttributeBuilder.isEmpty()) {
+        if (!valueAttribute.containingType.names().possibleAttributeBuilder(possibleBuilderMethod.getSimpleName())) {
           return false;
         }
+
         ExecutableElement candidateMethod = (ExecutableElement) possibleBuilderMethod;
+
+        TypeKind kind = candidateMethod.getReturnType().getKind();
 
         return possibleBuilderMethod.getModifiers().containsAll(
             Arrays.asList(Modifier.STATIC, Modifier.PUBLIC))
             && candidateMethod.getParameters().isEmpty()
-            && candidateMethod
-            .getReturnType().getKind()
-            == TypeKind.DECLARED
-            && ((DeclaredType) candidateMethod.getReturnType())
-            .asElement().getKind() == ElementKind.CLASS;
+            && candidateMethod.getReturnType().getKind() == TypeKind.DECLARED
+            && !kind.isPrimitive() && kind != TypeKind.ARRAY;
 
       } else if (!onValueType && possibleBuilderMethod.getKind() == ElementKind.CONSTRUCTOR) {
         if (!valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
@@ -396,10 +402,9 @@ public abstract class AttributeBuilderReflection {
     private static boolean isPossibleBuilderClass(Element possibleBuilderClass, ValueAttribute valueAttribute) {
       if (possibleBuilderClass.getKind() == ElementKind.CLASS) {
 
-        if (valueAttribute.containingType.names().newTokenInAttributeBuilder()) {
-          return possibleBuilderClass.getModifiers().contains(Modifier.STATIC)
-              && possibleBuilderClass.getKind() == ElementKind.CLASS;
-        }
+      return possibleBuilderClass.getModifiers().contains(Modifier.STATIC)
+          && possibleBuilderClass.getKind() == ElementKind.CLASS
+          && valueAttribute.containingType.names().possibleAttributeBuilder(possibleBuilderClass.getSimpleName());
       }
 
       return false;
@@ -414,12 +419,20 @@ public abstract class AttributeBuilderReflection {
     protected static boolean isPossibleCopyMethod(ValueAttribute valueAttribute,
         Element possibleCopyMethod, boolean onValueType) {
       if (possibleCopyMethod.getKind() == ElementKind.METHOD) {
+        if (!valueAttribute.containingType.names().possibleAttributeBuilder(possibleCopyMethod.getSimpleName())) {
+          return false;
+        }
+
         ExecutableElement candidateCopyMethod = (ExecutableElement) possibleCopyMethod;
 
+        Types typeUtils
+            = valueAttribute.containingType.constitution.protoclass().environment().processing().getTypeUtils();
         if (candidateCopyMethod.getParameters().size() == 1
-            && candidateCopyMethod.getParameters().get(0).asType().equals(valueAttribute.containedTypeElement.asType())) {
+            && typeUtils.isSameType(candidateCopyMethod.getParameters().get(0).asType(),
+            valueAttribute.containedTypeElement.asType())) {
 
-          return true;
+          TypeKind kind = candidateCopyMethod.getReturnType().getKind();
+          return !kind.isPrimitive() && kind != TypeKind.ARRAY;
           // handle proto style toBuilder() copy method... lots of BuilderModels created because of this
         } else if (onValueType
             && candidateCopyMethod.getParameters().size() == 0

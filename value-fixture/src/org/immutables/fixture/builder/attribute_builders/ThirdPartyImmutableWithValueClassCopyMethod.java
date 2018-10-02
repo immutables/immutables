@@ -11,7 +11,7 @@ public class ThirdPartyImmutableWithValueClassCopyMethod {
     return new Builder();
   }
 
-  public static Builder geterateNewBuilderFrom(ThirdPartyImmutableWithValueClassCopyMethod third) {
+  public static Builder generateNewBuilder(ThirdPartyImmutableWithValueClassCopyMethod third) {
     return generateNewBuilder().setValue(third.getValue());
   }
 
@@ -19,6 +19,7 @@ public class ThirdPartyImmutableWithValueClassCopyMethod {
   public String getValue() {
     return value;
   }
+
   public static class Builder {
 
     private String value;
