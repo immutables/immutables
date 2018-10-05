@@ -257,4 +257,15 @@ public class ModifiablesTest {
     final ModifiableBeanFriendly second = new ModifiableBeanFriendly().from(first);
     check(second.getId()).is(42);
   }
+
+  @Test
+  public void testGeneric() {
+    final GenericHolder<String> tester = ImmutableGenericHolder.<String>builder()
+            .from(ModifiableGenericHolder.<String>create().setOptional("optional"))
+            .mandatory("mandatory")
+            .build();
+
+    check(tester.mandatory()).is("mandatory");
+    check(tester.optional()).is("optional");
+  }
 }
