@@ -581,6 +581,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && !containingType.serial.isSimple();
   }
 
+  public boolean isGenerateDerived() {
+    return isGenerateDerived;
+  }
+
   public boolean isGenerateEnumMap() {
     return typeKind.isEnumMap();
   }

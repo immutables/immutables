@@ -2670,6 +2670,9 @@ static final [output.linesShortable]class Json[type.generics]
   [signature] { throw new UnsupportedOperationException(); }
 [/for]
 [for v in type.allAccessibleAttributes]
+  [if v.isGenerateDerived]
+  @com.fasterxml.jackson.annotation.JsonIgnore
+  [/if]
   @Override[-- we actually don't need this implementation, signature is good enough --]
   [v.toSignature] { throw new UnsupportedOperationException(); }
 [/for]
