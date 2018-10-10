@@ -35,6 +35,9 @@ abstract class Immutables extends ValuesTemplate {
   @Generator.Typedef
   AttributeBuilderDescriptor AttributeBuilder;
 
+  @Generator.Typedef
+  Templates.Invokable Invokable;
+
   abstract Templates.Invokable arrayAsList();
 
   abstract Templates.Invokable arrayAsListSecondary();

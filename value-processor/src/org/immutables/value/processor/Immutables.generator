@@ -2213,6 +2213,14 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
 
 [template valueToBuilder AttributeBuilder n String expression][if n.isCopyMethodOnValueInstance][expression].[n.getQualifiedValueToBuilderMethod]()[else][n.getQualifiedValueToBuilderMethod]([expression])[/if][/template]
 
+[template valueFrom Type type Attribute v String expression Boolean withoutOptional][output.trim]
+  [if withoutOptional]
+    [valueFromValueNoOptional type v expression]
+  [else]
+    [valueFromValue v expression]
+  [/if]
+[/output.trim][/template]
+
 [template valueFromValue Attribute v String expression][output.trim]
 [if v.encoding]
   [rr.from v expression]
@@ -2383,87 +2391,13 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
     [generateAfterConstruction type false]
   [/output.collapsible]}
 [/if]
-[-- There is a very similar block of code beneath this constructor generation
-    which needs to be taken into consideration when anything changes here]
 [if type.useConstructor andnot type.generateConstructorUseCopyConstructor]
 
-  [if type.factoryOf.new]
-  /**
-   * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
-   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
-  [/for]
-   */
-  [eachLine type.constructorAnnotations]
-  [eachLine type.constructorInjectedAnnotations]
-  [suppressAnyCovariantCastForOptional type.constructorArguments]
-  public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
-      [v.constructorParameterAnnotations][v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
-  [else]
-  [suppressAnyCovariantCastForOptional type.constructorArguments]
-  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
-      [v.atNullability][constructorAcceptType v] [v.name][/for][/output.linesShortable]) {
-  [/if]
-[if type.constructorOmited or (type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes))]
-  [let shim][disambiguateField type 'initShim'][/let]
-  [for v in type.constructorArguments, n = v.name]
-[if v.generateDefault and type.generateSafeDerived]
-    [shim].[v.names.init]([valueFromValue v n]);
-[else if v.hasVirtualImpl]
-    [rr.virtualImpl v] = [valueFromValue v n];
-[else]
-    this.[n] = [valueFromValue v n];
-[/if]
-  [/for]
-    [generateConstructorDefaultAttributes type type.constructorOmited]
-    [generateDerivedConstruction type type.constructorArguments]
-[else][-- Alternatively a lot simpler implementation]
-  [for v in type.constructorArguments, n = v.name]
-    this.[n] = [valueFromValue v n];
-  [/for]
-[/if]
-    [generateAfterConstruction type false]
-  }
+[generateConstructor type false constructorAcceptType]
 [-- Additional constructors for Optional types --]
 [if type.hasOptionalConstructorArguments]
 
-  [if type.factoryOf.new]
-  /**
-   * Construct a new immutable {@code [type.name]} instance.
-  [for v in type.constructorArguments]
-   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
-  [/for]
-   */
-  [eachLine type.constructorAnnotations]
-  [eachLine type.constructorInjectedAnnotations]
-  [suppressAnyCovariantCastForOptional type.constructorArguments]
-  public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
-      [v.constructorParameterAnnotations][v.atNullability][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for][/output.linesShortable]) {
-  [else]
-  [suppressAnyCovariantCastForOptional type.constructorArguments]
-  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
-      [v.atNullability][if v.isOptionalType][unwrappedOptionalType v][else][constructorAcceptType v][/if] [v.name][/for][/output.linesShortable]) {
-  [/if]
-[if type.constructorOmited or (type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes))]
-  [let shim][disambiguateField type 'initShim'][/let]
-  [for v in type.constructorArguments, n = v.name]
-[if v.generateDefault and type.generateSafeDerived]
-    [shim].[v.names.init]([valueFromValueNoOptional type v n]);
-[else if v.hasVirtualImpl]
-    [rr.virtualImpl v] = [valueFromValueNoOptional type v n];
-[else]
-    this.[n] = [valueFromValueNoOptional type v n];
-[/if]
-  [/for]
-    [generateConstructorDefaultAttributes type type.constructorOmited]
-    [generateDerivedConstruction type type.constructorArguments]
-[else][-- Alternatively a lot simpler implementation]
-  [for v in type.constructorArguments, n = v.name]
-    this.[n] = [valueFromValueNoOptional type v n];
-  [/for]
-[/if]
-    [generateAfterConstruction type false]
-  }
+[generateConstructor type true constructorAcceptTypeNoOptional]
 [/if]
 [/if]
 [if type.generateBuilderConstructor]
@@ -2549,6 +2483,46 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 [/for]
 [/template]
 
+[template generateConstructor Type type Boolean withoutOptional Invokable constructorAcceptTypeInvokable]
+  [if type.factoryOf.new]
+  /**
+   * Construct a new immutable {@code [type.name]} instance.
+  [for v in type.constructorArguments]
+   * @param [v.name] The value for the {@code [v.name]} attribute[if v.nullable], can be {@code null}[/if]
+  [/for]
+   */
+  [eachLine type.constructorAnnotations]
+  [eachLine type.constructorInjectedAnnotations]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
+  public [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.constructorParameterAnnotations][v.atNullability][constructorAcceptTypeInvokable v] [v.name][/for][/output.linesShortable]) {
+  [else]
+  [suppressAnyCovariantCastForOptional type.constructorArguments]
+  private [type.typeImmutable.simple]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+      [v.atNullability][constructorAcceptTypeInvokable v] [v.name][/for][/output.linesShortable]) {
+  [/if]
+[if type.constructorOmited or (type.hasEncodingValueOrVirtualFields or (type.generateSafeDerived and type.hasDerivedAttributes))]
+  [let shim][disambiguateField type 'initShim'][/let]
+  [for v in type.constructorArguments, n = v.name]
+[if v.generateDefault and type.generateSafeDerived]
+    [shim].[v.names.init]([valueFrom type v n withoutOptional]);
+[else if v.hasVirtualImpl]
+    [rr.virtualImpl v] = [valueFrom type v n withoutOptional];
+[else]
+    this.[n] = [valueFrom type v n withoutOptional];
+[/if]
+  [/for]
+    [generateConstructorDefaultAttributes type type.constructorOmited]
+    [generateDerivedConstruction type type.constructorArguments]
+[else][-- Alternatively a lot simpler implementation]
+  [for v in type.constructorArguments, n = v.name]
+    this.[n] = [valueFrom type v n withoutOptional];
+  [/for]
+[/if]
+    [generateAfterConstruction type false]
+  }
+[/template]
+
 [template generateSafeDerivedShim Type type]
 [for deriveds = v for v in type.implementedAttributes if v.generateDefault or v.generateDerived]
 
@@ -2612,6 +2586,14 @@ private [v.atNullability][v.type] [invokeSuperGet]() {
 [/for]
 [/for]
 [/template]
+
+[template constructorAcceptTypeNoOptional Attribute a][output.trim]
+  [if a.isOptionalType]
+    [unwrappedOptionalType a]
+  [else]
+    [constructorAcceptType a]
+  [/if]
+[/output.trim][/template]
 
 [template constructorAcceptType Attribute a][output.trim]
 [if a.encoding]
