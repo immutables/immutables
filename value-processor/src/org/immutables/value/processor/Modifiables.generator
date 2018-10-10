@@ -218,7 +218,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     [for m in mandatories]
     if (![m.names.isSet]()) attributes.add("[m.names.raw]");
     [/for]
-    return "[type.name] in not initialized, some of the required attributes are not set " + attributes;
+    return "[type.name] is not initialized, some of the required attributes are not set " + attributes;
   }
   [/if]
 [if type.kind.isValue and (type.useCopyConstructor or (type.useBuilder or type.useConstructor))]
