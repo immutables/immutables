@@ -401,8 +401,27 @@ private void from(Object object) {
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [im.requireNonNull type](instance, "instance");
+  [im.dynamicFromModifiableCheck type 'instance' 'this']
 [for v in type.settableAttributes]
   [buildFromAttribute v]
+[/for]
+  [thisReturn type]
+}
+
+/**
+ * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relativeRaw]} instance.
+ * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
+ * Any of the instance's absent optional values will not be copied (will not override current values).
+[if type.hasSettableCollection or type.hasSettableMapping]
+ * Collection elements and entries will be added, not replaced.
+[/if]
+ * @param instance The instance from which to copy values
+ * @return {@code this} for use in a chained invocation
+ */
+public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
+  [im.requireNonNull type](instance, "instance");
+[for v in type.settableAttributes]
+  [im.buildFromMandatoryAttribute buildFromAttribute v 'instance']
 [/for]
   [thisReturn type]
 }

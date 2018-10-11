@@ -218,6 +218,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.typeImmutable();
   }
 
+  public NameForms typeModifiable() {
+    return constitution.typeModifiable();
+  }
+
   public NameForms typeEnclosing() {
     return constitution.typeEnclosing();
   }

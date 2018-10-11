@@ -1253,6 +1253,7 @@ public interface BuildFinal[type.generics] {
   @SuppressWarnings("unchecked")
 [/if]
   private void from(Object object) {
+    [dynamicFromModifiableCheck type 'object' '']
     [for l in bs.positions.longs]
     [atVar type]long bits[emptyIfZero l.index] = 0;
     [/for]
@@ -1298,6 +1299,7 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
+    [dynamicFromModifiableCheck type 'instance' 'this']
     [for v in setters]
     [buildFromAttribute v]
     [/for]
@@ -1307,8 +1309,25 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
+    [dynamicFromModifiableCheck type 'instance' 'this']
     [for v in setters]
     [buildFromAttribute v]
+    [/for]
+    return [builderReturnThis type];
+  }
+  [/if]
+  [if type.kind.isModifiable]
+
+  /**
+   * Fill a builder with attribute values from the provided {@code [type.typeModifiable]} instance.
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [atCanIgnoreReturnValue type]
+  public final [builderReturnType type] [type.names.from]([type.typeModifiable] instance) {
+    [requireNonNull type](instance, "instance");
+    [for v in setters]
+    [buildFromMandatoryAttribute buildFromAttribute v 'instance']
     [/for]
     return [builderReturnThis type];
   }
@@ -2477,6 +2496,25 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   [generateObjectUtilityMethods type]
   [generateJacksonMapped type]
 [/for]
+[/template]
+
+[template public buildFromMandatoryAttribute Invokable buildAttribute Attribute v String varName]
+[if v.isMandatory]
+if ([varName].[v.names.isSet]()) {
+  [buildAttribute v]
+}
+[else]
+[buildAttribute v]
+[/if]
+[/template]
+
+[template public dynamicFromModifiableCheck Type type String varName String returnValue]
+[if type.kind.isModifiable]
+if ([varName] instanceof [type.typeModifiable.relativeRaw][type.generics.unknown]) {
+  [type.names.from](([type.typeModifiable]) [varName]);
+  return[if returnValue] [returnValue][/if];
+}
+[/if]
 [/template]
 
 [template generateSafeDerivedShim Type type]

@@ -35,6 +35,9 @@ abstract class Immutables extends ValuesTemplate {
   @Generator.Typedef
   AttributeBuilderDescriptor AttributeBuilder;
 
+  @Generator.Typedef
+  Templates.Invokable Invokable;
+
   abstract Templates.Invokable arrayAsList();
 
   abstract Templates.Invokable arrayAsListSecondary();
@@ -54,4 +57,8 @@ abstract class Immutables extends ValuesTemplate {
   abstract Templates.Invokable primitiveHashCode();
 
   abstract Templates.Invokable javadocGenerics();
+
+  abstract Templates.Invokable dynamicFromModifiableCheck();
+
+  abstract Templates.Invokable buildFromMandatoryAttribute();
 }

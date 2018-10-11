@@ -231,4 +231,41 @@ public class ModifiablesTest {
         .putMap("key", null)
         .addList((String) null);
   }
+
+  @Test
+  public void composeBuilders() {
+    final ModifiableBeanFriendly first = new ModifiableBeanFriendly();
+    first.setPrimary(true);
+    first.setId(42);
+    final ModifiableBeanFriendly second = new ModifiableBeanFriendly();
+    second.setPrimary(false);
+    second.setDescription("foo");
+    final ImmutableBeanFriendly result = ImmutableBeanFriendly.builder()
+      .from(first)
+      .from(second)
+      .build();
+    check(result.getId()).is(42);
+    check(!result.isPrimary());
+    check(result.getDescription()).is("foo");
+  }
+
+  @Test
+  public void copyPartialModifiable() {
+    final ModifiableBeanFriendly first = new ModifiableBeanFriendly();
+    first.setPrimary(true);
+    first.setId(42);
+    final ModifiableBeanFriendly second = new ModifiableBeanFriendly().from(first);
+    check(second.getId()).is(42);
+  }
+
+  @Test
+  public void testGeneric() {
+    final GenericHolder<String> tester = ImmutableGenericHolder.<String>builder()
+            .from(ModifiableGenericHolder.<String>create().setOptional("optional"))
+            .mandatory("mandatory")
+            .build();
+
+    check(tester.mandatory()).is("mandatory");
+    check(tester.optional()).is("optional");
+  }
 }
