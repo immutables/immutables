@@ -6,7 +6,7 @@ import org.immutables.value.Value.Style;
 @Immutable
 @Style(
     attributeBuilderDetection = true,
-    attributeBuilder = {"*Builder", "builder"}
+    attributeBuilder = {"Builder", "*Builder", "builder", "from", "build", "*Build"}
 )
 public abstract class NoNewTokenAttributeBuilderParent implements NestedDetection {
 }

@@ -31,7 +31,7 @@ public class ThirdPartyImmutableWithBuilderClassCopyMethod {
       return new ThirdPartyImmutableWithBuilderClassCopyMethod(value);
     }
 
-    public static Builder builderFromValue(ThirdPartyImmutableWithBuilderClassCopyMethod immutable) {
+    public static Builder from(ThirdPartyImmutableWithBuilderClassCopyMethod immutable) {
       return new Builder().setValue(immutable.getValue());
     }
   }

@@ -16,8 +16,10 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.CaseFormat;
-import javax.lang.model.SourceVersion;
 import org.immutables.generator.Naming;
+
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.Name;
 
 public final class Styles {
   private final StyleInfo style;
@@ -245,6 +247,18 @@ public final class Styles {
 
         return false;
       }
+
+      public final boolean possibleAttributeBuilder(Name name) {
+        for (Naming pattern : scheme.attributeBuilder) {
+          String foundPattern = pattern.detect(name.toString());
+          if (!foundPattern.isEmpty()) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
     }
 
     public final class AttributeNames {
