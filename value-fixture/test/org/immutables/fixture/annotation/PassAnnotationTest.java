@@ -1,5 +1,5 @@
 /*
-   Copyright 2016 Immutables Authors and Contributors
+   Copyright 2016-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import nonimmutables.A1;
 import nonimmutables.A2;
 import nonimmutables.B1;
 import nonimmutables.C1;
-
+import nonimmutables.ImmutablePassAnnsTargeting;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -33,6 +33,15 @@ public class PassAnnotationTest {
     Parameter parameter = ImmutableValForPass.class.getConstructor(int.class).getParameters()[0];
     check(parameter.getAnnotation(A1.class)).notNull();
     check(parameter.getAnnotation(A2.class)).notNull();
+  }
+
+  @Test
+  public void passAnnotationsOnInterfacesAndDefaultMethods() throws Exception {
+    check(ImmutablePassAnnsTargeting.class.getAnnotation(A1.class)).notNull();
+    check(ImmutablePassAnnsTargeting.class.getAnnotation(A2.class)).notNull();
+    check(ImmutablePassAnnsTargeting.class.getDeclaredMethod("a").getAnnotation(A1.class)).notNull();
+    check(ImmutablePassAnnsTargeting.class.getDeclaredMethod("b").getAnnotation(A2.class)).notNull();
+    check(ImmutablePassAnnsTargeting.class.getDeclaredMethod("c").getAnnotation(A1.class)).notNull();
   }
 
   @Test
