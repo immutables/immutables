@@ -244,7 +244,6 @@ public final class Styles {
             return true;
           }
         }
-
         return false;
       }
 
@@ -255,7 +254,6 @@ public final class Styles {
             return true;
           }
         }
-
         return false;
       }
 
