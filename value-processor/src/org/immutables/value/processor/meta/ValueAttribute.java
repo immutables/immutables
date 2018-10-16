@@ -832,10 +832,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return isMapType() && !isRegularMarshalableType(getSecondaryElementType());
   }
 
-  public boolean isRequiresMarshalingOptionalAdapter() {
-    return (isOptionalType() && !isRegularMarshalableType(getUnwrappedValueElementType(), false));
-  }
-
   public boolean wrapArrayToIterable() {
     return containingType.isGenerateJdkOnly()
         || isUnwrappedElementPrimitiveType()

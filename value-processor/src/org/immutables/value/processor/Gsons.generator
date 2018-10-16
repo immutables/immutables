@@ -929,8 +929,6 @@ builder.[a.names.init](value);
 [else]
   [if attribute.requiresMarshalingAdapter]
 [attribute.name]TypeAdapter.write(out, [variableName]);
-  [else if attribute.requiresMarshalingOptionalAdapter]
-[attribute.name]TypeAdapter.write(out, [variableName]);
   [else]
 [simpleTypeWrite attribute.unwrappedElementType variableName]
   [/if]
