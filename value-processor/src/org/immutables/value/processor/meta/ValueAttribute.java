@@ -818,18 +818,18 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return isPrimitiveWrappedType(returnTypeName);
   }
 
-  private static boolean isRegularMarshalableType(String name, boolean couldBeWrapped) {
+  private static boolean isRegularMarshalableType(String name) {
     return String.class.getName().equals(name)
         || isPrimitiveType(name);
   }
 
   public boolean isRequiresMarshalingAdapter() {
-    return !isRegularMarshalableType(getElementType(), isContainerType())
+    return !isRegularMarshalableType(getElementType())
         || isPrimitiveArrayType();
   }
 
   public boolean isRequiresMarshalingSecondaryAdapter() {
-    return isMapType() && !isRegularMarshalableType(getSecondaryElementType(), true);
+    return isMapType() && !isRegularMarshalableType(getSecondaryElementType());
   }
 
   public boolean isRequiresMarshalingOptionalAdapter() {

@@ -1,5 +1,9 @@
 /*
+<<<<<<< HEAD
    Copyright 2015 Immutables Authors and Contributors
+=======
+   Copyright 2018 Immutables Authors and Contributors
+>>>>>>> #824 refinements over PR
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,15 +19,23 @@
  */
 package org.immutables.gson.adapter;
 
+<<<<<<< HEAD
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
 import java.util.List;
 import java.util.Map;
+=======
+>>>>>>> #824 refinements over PR
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+<<<<<<< HEAD
+=======
+import org.immutables.gson.Gson;
+import org.immutables.value.Value;
+>>>>>>> #824 refinements over PR
 
 @Gson.TypeAdapters
 @Value.Enclosing
@@ -71,6 +83,7 @@ public interface Optionals {
 
     @Gson.ExpectedSubtypes({B.class, C.class, D.class})
     Optional<A> aPoly();
+<<<<<<< HEAD
 
     @Gson.ExpectedSubtypes({})
     Map<String, A> mappedOptional();
@@ -78,5 +91,7 @@ public interface Optionals {
     @Gson.ExpectedSubtypes({})
     List<A> listOptional();
 
+=======
+>>>>>>> #824 refinements over PR
   }
 }
