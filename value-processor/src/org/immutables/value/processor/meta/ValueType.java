@@ -149,6 +149,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return false;
   }
 
+  public boolean isUseOptionalAcceptNullableConstructor() {
+    return style().optionalAcceptNullable()
+        && hasOptionalConstructorArguments();
+  }
+
   public boolean hasEncodingAttributes() {
     for (ValueAttribute a : attributes()) {
       if (a.isEncoding()) {

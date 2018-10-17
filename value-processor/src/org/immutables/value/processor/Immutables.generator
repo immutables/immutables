@@ -733,7 +733,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   public static [type.generics.spaceAfter][type.typeValue] [type.names.of]([for v in type.constructorArguments][if not for.first], [/if][v.atNullability][eachLine v.constructorParameterInjectedAnnotations][constructorAcceptType v] [v.name][/for]) {
     return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([for v in type.constructorArguments][if not for.first], [/if][v.name][/for])[/validated];
   }
-  [if type.hasOptionalConstructorArguments]
+  [if type.useOptionalAcceptNullableConstructor]
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
@@ -2431,7 +2431,7 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
 
 [generateConstructor type false constructorAcceptType]
 [-- Additional constructors for Optional types --]
-[if type.hasOptionalConstructorArguments]
+[if type.useOptionalAcceptNullableConstructor]
 
 [generateConstructor type true constructorAcceptTypeNoOptional]
 [/if]
