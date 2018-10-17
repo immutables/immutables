@@ -96,15 +96,14 @@ public class BsonCodecRepoTest {
       return Somebody.class;
     }
 
+    @SuppressWarnings("unchecked") // hopefully correct
     @Override
     public <T> Codec<T> get(Class<T> clazz) {
       if (!Somebody.class.isAssignableFrom(clazz)) {
         throw new CodecConfigurationException("Not supported " + clazz);
       }
-
       return (Codec<T>) this;
     }
-
   }
 
   @Value.Immutable
