@@ -259,6 +259,9 @@ private Object readResolve() throws java.io.ObjectStreamException {
  * data. Uses optional, nullable, and provides flexible handling of
  * collection attributes.
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[/if]
 [if type.generics]
 @SuppressWarnings("unchecked")
 [/if]
@@ -607,6 +610,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [if type.useInterned or type.generateOrdinalValue]
   [if not type.useSingletonOnly]
 
+  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+  [/if]
   private static class InternProxy {
     final [type.typeImmutable.relativeRaw] instance;
 
@@ -646,6 +652,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   /**
    * Instances of {@code [type.name]} will be interned and registered with the domain.
    */
+  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+  [/if]
   public static final class Domain
       extends org.immutables.ordinal.InterningOrdinalDomain<InternProxy, [type.typeAbstract]> {
 
@@ -904,6 +913,9 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [for nt in tb.stages, v = nt.attribute]
 [let builderReturn][if nt.next][toUpper nt.next.attribute.name]BuildStage[type.generics.args][else]BuildFinal[type.generics.args][/if][/let]
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[/if]
 public interface [toUpper v.name]BuildStage[type.generics] {
   /**
    * Initializes the value for the [sourceDocRef type v] attribute.
@@ -915,6 +927,9 @@ public interface [toUpper v.name]BuildStage[type.generics] {
 }
 [/for]
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[/if]
 public interface BuildFinal[type.generics] {
 [for v in tb.finals]
 [if v.encoding]
@@ -2529,6 +2544,9 @@ private static final byte STAGE_INITIALIZED = 1;
 [hiddenMutableState type]
 private transient volatile InitShim [disambiguateField type 'initShim'] = new InitShim();
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[/if]
 [-- dancing around errorprone --]
 [for f in deriveds if f.encoding]
 [if for.first][if type allowsClasspathAnnotation 'com.google.errorprone.annotations.CanIgnoreReturnValue']
@@ -2655,6 +2673,9 @@ static[type.generics.def] [type.typeImmutable.relative] fromJson([jval.type] jso
  * Utility type used to correctly read immutable object from JSON representation.
  * @deprecated Do not use this type directly, it exists only for the <em>Jackson</em>-binding infrastructure
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
+[/if]
 @Deprecated
 [-- The `Json` class implements or extends the immutable type, but is not
 itself immutable. Since it's private, that's benign. --]
