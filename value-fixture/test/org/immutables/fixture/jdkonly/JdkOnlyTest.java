@@ -1,5 +1,5 @@
 /*
-   Copyright 2015 Immutables Authors and Contributors
+   Copyright 2015-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -113,6 +113,12 @@ public class JdkOnlyTest {
     check(maps.navs().keySet()).isOf("33", "22");
     check(maps.just().keySet()).isOf(1L, 2L);
     check(maps.ords().keySet()).isOf(1, 2);
+  }
+
+  @Test
+  @SuppressWarnings("CheckReturnValue")
+  public void emptyEnumMapAndSet() {
+    ImmutableEmptyEnumMapAndSet.builder().build();
   }
 
   @Test

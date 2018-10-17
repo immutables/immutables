@@ -287,7 +287,7 @@ for (java.util.Map.Entry<String, JsonElement> other : instance.[other.names.get]
   [if a.optionalType]
 [a.type] [a.name]Optional = instance.[a.names.get]();
 if ([a.name]Optional.[optionalPresent a]) {
-  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
+  [maybeUnwrappedElementType a] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else {
   out.nullValue();
@@ -375,7 +375,7 @@ String key = [a.name]TypeAdapter.toJsonTree([expression]).getAsString();
 [a.type] [a.name]Optional = instance.[a.names.get]();
 if ([a.name]Optional.[optionalPresent a]) {
   out.name([serializedName a]);
-  [a.unwrappedElementType] [a.name]Value = [a.name]Optional.[optionalGet a];
+  [maybeUnwrappedElementType a] [a.name]Value = [a.name]Optional.[optionalGet a];
   [generateWriteAttributeValue type a (a.name 'Value') false]
 } else if (out.getSerializeNulls()) {
   out.name([serializedName a]);
@@ -419,7 +419,7 @@ out.name([serializedName a]);
 if ([if a.nullable][a.name]Elements != null && [/if][if a.arrayType][a.name]Elements.length != 0[else]![a.name]Elements.isEmpty()[/if]) {
   out.name([serializedName a]);
   out.beginArray();
-  for ([a.unwrappedElementType] e : [a.name]Elements) {
+  for ([maybeUnwrappedElementType a] e : [a.name]Elements) {
     [generateWriteAttributeValue type a 'e' false]
   }
   out.endArray();
@@ -441,7 +441,7 @@ if ([if a.nullable][a.name]Elements != null && [/if][if a.arrayType][a.name]Elem
 if ([a.name]Elements != null) {
   out.name([serializedName a]);
   out.beginArray();
-  for ([a.unwrappedElementType] e : [a.name]Elements) {
+  for ([maybeUnwrappedElementType a] e : [a.name]Elements) {
     [generateWriteAttributeValue type a 'e' false]
   }
   out.endArray();
@@ -452,7 +452,7 @@ if ([a.name]Elements != null) {
 [else]
 out.name([serializedName a]);
 out.beginArray();
-for ([a.unwrappedElementType] e : [a.name]Elements) {
+for ([maybeUnwrappedElementType a] e : [a.name]Elements) {
   [generateWriteAttributeValue type a 'e' false]
 }
 out.endArray();
@@ -621,7 +621,7 @@ if (t == JsonToken.NULL) {
 }
     [if a.jdkSpecializedOptional]
 return [a.rawType].of([simpleTypeNext a.unwrappedElementType]);
-    [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+    [else if a.elementType eq 'java.lang.String']
 return [a.rawType].<[a.elementType]>of([simpleTypeNext a.unwrappedElementType]);
     [else]
 [generateReadAttributeValue type a a.wrappedElementType false]
@@ -815,7 +815,10 @@ if (empty) {
 if (in.peek() == JsonToken.NULL) {
   in.nextNull();
 } else {
-    [if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
+    [if a.unwrappedElementPrimitiveType and a.requiresMarshalingAdapter]
+  [generateReadAttributeValue type a a.wrappedElementType false]
+  builder.[a.names.init](value);
+    [else if a.unwrappedElementPrimitiveType or (a.unwrappedElementType eq 'java.lang.String')]
   builder.[a.names.init]([simpleTypeNext a.unwrappedElementType]);
     [else]
   [generateReadAttributeValue type a a.wrappedElementType false]
@@ -974,6 +977,14 @@ out.value([variableName]);
   Iterable<[a.elementType]>
 [else]
   [a.type]
+[/if]
+[/output.trim][/template]
+
+[template maybeUnwrappedElementType Attribute a][output.trim]
+[if a.requiresMarshalingAdapter]
+  [a.wrappedElementType]
+[else]
+  [a.unwrappedElementType]
 [/if]
 [/output.trim][/template]
 

@@ -251,7 +251,7 @@ class TypeStringProvider {
   }
 
   private String computePath(ExecutableElement element) {
-    String path = element.getSimpleName().toString();// + "()";
+    String path = element.getSimpleName().toString();
     for (Element e = element.getEnclosingElement(); //
         e.getKind().isClass() || e.getKind().isInterface(); //
         e = e.getEnclosingElement()) {
@@ -346,7 +346,7 @@ class TypeStringProvider {
       buffer.append(type);
     }
     // workaround for Javac problem
-    if (type.getKind() == TypeKind.ERROR && buffer.toString().equals("<any>")) {
+    if (type.getKind() == TypeKind.ERROR && buffer.toString().contains("<any>")) {
       if (tryToUseSourceAsAWorkaround()) {
         ended = true;
       }

@@ -1280,9 +1280,10 @@ public @interface Value {
      * <em>This is detection pattern, not formatting pattern. It defines how to recognize a nested
      * builder.</em>
      * Only applies if {@link #attributeBuilderDetection()} is {@code true}.
+     *
      * @return naming template
      */
-    String[] attributeBuilder() default {"*Builder", "builder", "new"};
+    String[] attributeBuilder() default {"Builder", "*Builder", "builder", "from", "build", "*Build", "new"};
 
     /**
      * Naming template for retrieving a nested builder.

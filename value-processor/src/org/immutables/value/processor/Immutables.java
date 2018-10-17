@@ -57,4 +57,8 @@ abstract class Immutables extends ValuesTemplate {
   abstract Templates.Invokable primitiveHashCode();
 
   abstract Templates.Invokable javadocGenerics();
+
+  abstract Templates.Invokable dynamicFromModifiableCheck();
+
+  abstract Templates.Invokable buildFromMandatoryAttribute();
 }

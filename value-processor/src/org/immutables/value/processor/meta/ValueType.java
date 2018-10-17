@@ -227,6 +227,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.typeImmutable();
   }
 
+  public NameForms typeModifiable() {
+    return constitution.typeModifiable();
+  }
+
   public NameForms typeEnclosing() {
     return constitution.typeEnclosing();
   }
@@ -280,7 +284,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isUseSimpleReadResolve() {
-    return serial.isSimple() && (isUseValidation() || isUseSingletonOnly());
+    return serial.isSimple()
+        && (isUseValidation() || isUseSingletonOnly() || (isUsePrehashed() && isUseCopyConstructor()));
   }
 
   public boolean isOptionalAcceptNullable() {
@@ -587,7 +592,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
         && !isGeneratePrivateNoargConstructor()
-        && !getEquivalenceAttributes().isEmpty();
+        && !getEquivalenceAttributes().isEmpty()
+        && !simpleSerializableWithoutCopy();
+  }
+
+  boolean simpleSerializableWithoutCopy() {
+    return serial.isSimple() && !isUseCopyConstructor();
   }
 
   public InnerBuilderDefinition getInnerBuilder() {
@@ -736,7 +746,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
             v.report()
                 .warning(About.INCOMPAT,
                     "Multiple attributes annotated with @JsonValue on the same type."
-                    + " There should be only one to consider for mapping.");
+                        + " There should be only one to consider for mapping.");
           }
         }
       }
@@ -753,11 +763,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
       if (definingElements.size() != 1) {
         report().warning(About.SUBTYPE,
             "Constructor parameters should be better defined on the same level of inheritance hierarchy, "
-            + " otherwise generated constructor API would be unstable: "
-            + " parameter list can change the order of arguments."
-            + " It is better redeclare (override) each inherited"
-            + " attribute parameter in this abstract value type to avoid this warning."
-            + " Or better have constructor parameters defined by only single supertype.");
+                + " otherwise generated constructor API would be unstable: "
+                + " parameter list can change the order of arguments."
+                + " It is better redeclare (override) each inherited"
+                + " attribute parameter in this abstract value type to avoid this warning."
+                + " Or better have constructor parameters defined by only single supertype.");
       }
     }
   }
@@ -1016,7 +1026,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
       }
     }
     return throwForNullPointer;
-    
+
   }
 
   public List<ValueAttribute> getImplementedAttributes() {
@@ -1713,7 +1723,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     }
     return gsonTypeTokens;
   }
-  
+
   public @Nullable ValueAttribute getGsonOther() {
     for (ValueAttribute a : attributes) {
       if (a.isGsonOther()) {

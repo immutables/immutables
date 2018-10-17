@@ -218,7 +218,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
     [for m in mandatories]
     if (![m.names.isSet]()) attributes.add("[m.names.raw]");
     [/for]
-    return "[type.name] in not initialized, some of the required attributes are not set " + attributes;
+    return "[type.name] is not initialized, some of the required attributes are not set " + attributes;
   }
   [/if]
 [if type.kind.isValue and (type.useCopyConstructor or (type.useBuilder or type.useConstructor))]
@@ -325,7 +325,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [eachLine type.constructorAnnotations]
 [eachLine type.constructorInjectedAnnotations]
 public static[type.generics.def] [thisReturnType type] [type.names.create]([constructorParameters]) {
-  return new [type.names.typeModifiable][type.generics.args]()[for v in type.constructorArguments]
+  return new [type.typeModifiable.relative]()[for v in type.constructorArguments]
     [if v.collectionType]
       .[v.names.addAll]([v.name])[else if v.mapType]
       .[v.names.putAll]([v.name])[else]
@@ -364,14 +364,17 @@ public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
   [thisSetterReturn type]
 }
   [/for]
-
-private void from(Object object) {
 [for bs = type.buildFromTypes]
-[for l in bs.positions.longs]
+
+[if bs.hasWildcards andnot type.suppressesUncheckedWarning]
+@SuppressWarnings("unchecked")
+[/if]
+private void from(Object object) {
+  [for l in bs.positions.longs]
   long bits[emptyIfZero l.index] = 0;
   [/for]
 [for s in bs.supertypes if s.attributes]
-  if (object instanceof [s.type]) {
+  if (object instanceof [s.wildcard]) {
     [s.type] instance = ([s.type]) object;
     [for v in s.attributes, BitPosition pos = bs.positions v.name]
     [if pos]
@@ -401,8 +404,27 @@ private void from(Object object) {
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [im.requireNonNull type](instance, "instance");
+  [im.dynamicFromModifiableCheck type 'instance' 'this']
 [for v in type.settableAttributes]
   [buildFromAttribute v]
+[/for]
+  [thisReturn type]
+}
+
+/**
+ * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relativeRaw]} instance.
+ * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
+ * Any of the instance's absent optional values will not be copied (will not override current values).
+[if type.hasSettableCollection or type.hasSettableMapping]
+ * Collection elements and entries will be added, not replaced.
+[/if]
+ * @param instance The instance from which to copy values
+ * @return {@code this} for use in a chained invocation
+ */
+public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
+  [im.requireNonNull type](instance, "instance");
+[for v in type.settableAttributes]
+  [im.buildFromMandatoryAttribute buildFromAttribute v 'instance']
 [/for]
   [thisReturn type]
 }
@@ -941,7 +963,7 @@ if ([v.name]Value != null) {
 [template generateEqualsHashCode Type type]
 [for getters = type.equivalenceAttributes]
   [if not type.isEqualToFinal]
-[let equalToType][type.names.typeModifiable][/let]
+[let equalToType][type.typeModifiable.relativeRaw][type.generics.unknown][/let]
 
 /**
  * This instance is equal to all instances of {@code [equalToType]} that have equal attribute values.
@@ -1190,11 +1212,11 @@ import [starImport];
 
 [template thisReturn Type type]return this;[/template]
 
-[template thisReturnType Type type][type.names.typeModifiable][type.generics.args][/template]
+[template thisReturnType Type type][type.typeModifiable.relative][/template]
 
 [template thisSetterReturn Type type]return[if not type.beanFriendlyModifiable] this[/if];[/template]
 
-[template thisSetterReturnType Type type][if not type.beanFriendlyModifiable][type.names.typeModifiable][type.generics.args][else]void[/if][/template]
+[template thisSetterReturnType Type type][if not type.beanFriendlyModifiable][type.typeModifiable.relative][else]void[/if][/template]
 
 [template invokeSuper Attribute a][for di = a.defaultInterface][if di][di].[/if][/for]super[/template]
 
