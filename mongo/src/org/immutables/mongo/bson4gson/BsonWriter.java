@@ -17,6 +17,7 @@ package org.immutables.mongo.bson4gson;
 
 import com.google.gson.internal.LazilyParsedNumber;
 import org.bson.types.Decimal128;
+import org.immutables.mongo.Wrapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
@@ -176,9 +177,7 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wra
       final BigDecimal decimal = (BigDecimal) value;
       try {
         return value(new Decimal128(decimal));
-      } catch (NumberFormatException|AssertionError ex) {
-        // Decimal128 throws AssertionError instead of NumberFormatException for out of range values
-        // see https://jira.mongodb.org/browse/JAVA-2937
+      } catch (NumberFormatException ex) {
         // fallback to serializing to string
         return value(decimal.toPlainString());
       }
@@ -189,9 +188,7 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wra
         // BigDecimal is a wrapper for BigInteger anyway
         BigDecimal decimal = new BigDecimal(integer);
         return value(new Decimal128(decimal));
-      } catch (NumberFormatException|AssertionError ex) {
-        // Decimal128 throws AssertionError instead of NumberFormatException for out of range values
-        // see https://jira.mongodb.org/browse/JAVA-2937
+      } catch (NumberFormatException ex) {
         // fallback to serializing to string
         return value(integer.toString());
       }
