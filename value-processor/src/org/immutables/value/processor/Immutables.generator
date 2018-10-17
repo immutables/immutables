@@ -1251,7 +1251,7 @@ public interface BuildFinal[type.generics] {
       [/for]
 
 [for bs = type.buildFromTypes]
-[if bs.hasWildcards and (not type.suppressesUncheckedWarning)]
+[if bs.hasWildcards andnot type.suppressesUncheckedWarning]
   @SuppressWarnings("unchecked")
 [/if]
   private void from(Object object) {
@@ -2864,8 +2864,7 @@ public int ordinal() {
 [/template]
 
 [template generateObjectUtilityMethods Type type]
-[let equalToTypeRaw][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relativeRaw][type.generics.unknown][/if][/let]
-[let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relative][/if][/let]
+[let equalToType][if type.annotationType][type.typeAbstract.relativeRaw][else][type.typeImmutable.relativeRaw][type.generics.unknown][/if][/let]
 [for getters = type.equivalenceAttributes]
 [if not type.isEqualToFinal]
 [if type.useReferenceEquality ornot type.equalToDefined]
@@ -2888,8 +2887,8 @@ public boolean equals([atNullable type]Object another) {
   return this == another;
   [else]
   if (this == another) return true;
-  return another instanceof [equalToTypeRaw]
-      && equalTo(([equalToTypeRaw]) another);
+  return another instanceof [equalToType]
+      && equalTo(([equalToType]) another);
   [/if]
 }
 [/if]
@@ -2901,7 +2900,7 @@ public boolean equals([atNullable type]Object another) {
 [else]
 @SuppressWarnings("MethodCanBeStatic")
 [/if]
-private boolean equalTo([equalToTypeRaw] another) {
+private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
