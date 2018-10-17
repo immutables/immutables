@@ -56,3 +56,19 @@ interface JdkOptionalsSer extends Serializable {
   @Value.Parameter
   OptionalDouble d1();
 }
+
+@Value.Immutable(builder = false)
+@Value.Style(optionalAcceptNullable = true)
+interface JdkOptionalsWithNullable {
+  @Value.Parameter
+  Optional<String> v2();
+
+  @Value.Parameter
+  OptionalInt i1();
+
+  @Value.Parameter
+  OptionalLong l1();
+
+  @Value.Parameter
+  OptionalDouble d1();
+}
