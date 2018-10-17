@@ -3924,6 +3924,7 @@ private static <K, V> java.util.Map<K, V> createUnmodifiableMap(boolean checkNul
 [if type.useEnumMapUtility]
 
 private static <K extends Enum<K>, V> java.util.Map<K, V> createUnmodifiableEnumMap(boolean checkNulls, boolean skipNulls, java.util.Map<K, ? extends V> map) {
+  if (map.isEmpty()) return java.util.Collections.emptyMap();
   java.util.EnumMap<K, V> enumMap = new java.util.EnumMap[asDiamond 'K, V'](map);
   if (checkNulls || skipNulls) {
     java.util.Iterator<? extends V> it = map.values().iterator();
