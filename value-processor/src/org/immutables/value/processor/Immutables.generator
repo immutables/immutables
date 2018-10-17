@@ -243,6 +243,8 @@ implements java.io.Serializable {[/if]
 private Object readResolve() throws java.io.ObjectStreamException {
 [if type.useSingletonOnly][-- don't care about validation here, just substitute --]
   return INSTANCE;
+[else if type.usePrehashed and type.useCopyConstructor]
+  [generateReturnCopyRaw type '' '']
 [else]
   return [validated type false]this[/validated];
 [/if]
@@ -3122,11 +3124,13 @@ this.[disambiguateField type 'initShim'] = null;
   [/if]
 [/template]
 
-[template generateReturnCopy Type type Attribute modified String expression]
+[template generateReturnCopy Type type Attribute modified String expression][generateReturnCopyRaw type modified.name expression][/template]
+
+[template generateReturnCopyRaw Type type String modified String expression]
 return [validated type false]new [type.typeImmutable.relativeRaw][type.generics.diamond]([output.linesShortable]
     [if type.synthCopyConstructor]this,
     [/if][for a in type.implementedAttributes if not a.generateDerived][if not for.first],
-    [/if][if a.name eq modified.name][expression][else]this.[if a.hasVirtualImpl][a.names.get]()[else][a.name][/if][/if][/for][/output.linesShortable])[/validated];
+    [/if][if a.name eq modified][expression][else]this.[if a.hasVirtualImpl][a.names.get]()[else][a.name][/if][/if][/for][/output.linesShortable])[/validated];
 [/template]
 
 [template generateReturnCopyContextual Type type Attribute modified]

@@ -136,13 +136,19 @@ public final class ValueTypeComposer {
                 "'singleton' or 'intern' features are automatically turned off when a type have generic parameters");
       }
     }
-
-    if (protoclass.features().prehash()
-        && protoclass.styles().style().privateNoargConstructor()) {
-      protoclass.report()
-          .annotationNamed(ImmutableMirror.simpleName())
-          .warning(About.INCOMPAT,
-              "'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
+    if (protoclass.features().prehash()) {
+      if (protoclass.styles().style().privateNoargConstructor()) {
+        protoclass.report()
+            .annotationNamed(ImmutableMirror.simpleName())
+            .warning(About.INCOMPAT,
+                "'prehash' feature is automatically disabled when 'privateNoargConstructor' style is turned on");
+      }
+      if (type.simpleSerializableWithoutCopy()) {
+        protoclass.report()
+            .annotationNamed(ImmutableMirror.simpleName())
+            .warning(About.INCOMPAT,
+                "'prehash' feature is automatically disabled when type is Serializable and copy constructor is off");
+      }
     }
     if (type.isUseConstructor()
         && protoclass.constitution().factoryOf().isNew()) {
