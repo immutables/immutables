@@ -14,11 +14,11 @@
    limitations under the License.
 */
 
-package org.immutables.mongo.bson4gson;
+package org.immutables.mongo;
 
 /**
  * Allows retrieving delegates to access non-standard methods which
- * are usually not exposed by standard interface.
+ * are usually not exposed by common interface.
  */
 public interface Wrapper<T> {
 

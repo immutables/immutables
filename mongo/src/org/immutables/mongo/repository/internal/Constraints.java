@@ -18,10 +18,8 @@ package org.immutables.mongo.repository.internal;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-
-import javax.annotation.Nullable;
 import java.util.regex.Pattern;
-
+import javax.annotation.Nullable;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 

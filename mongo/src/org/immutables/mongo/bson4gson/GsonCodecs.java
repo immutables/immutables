@@ -36,9 +36,9 @@ import java.io.IOException;
  * <a href="https://github.com/google/gson">Gson</a> standard classes like
  * {@link TypeAdapter} / {@link Codec}(s).
  */
-public final class Codecs {
+public final class GsonCodecs {
 
-  private Codecs() {
+  private GsonCodecs() {
   }
 
   /**

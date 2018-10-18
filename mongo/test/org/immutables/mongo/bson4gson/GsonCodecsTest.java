@@ -14,16 +14,16 @@ import java.util.Date;
 
 import static org.immutables.check.Checkers.check;
 
-public class CodecsTest {
+public class GsonCodecsTest {
 
   @Test
   public void reflectiveTypeAdapter() {
-    check(!Codecs.isReflectiveTypeAdapter(new GsonBuilder().create().getAdapter(BigDecimal.class)));
+    check(!GsonCodecs.isReflectiveTypeAdapter(new GsonBuilder().create().getAdapter(BigDecimal.class)));
   }
 
   @Test
   public void dateCodec() throws IOException {
-    TypeAdapter<Date> adapter = Codecs.typeAdapterFromCodec(new DateCodec());
+    TypeAdapter<Date> adapter = GsonCodecs.typeAdapterFromCodec(new DateCodec());
     Date date = new Date();
     BsonDocument doc = new BsonDocument();
     BsonDocumentWriter writer = new BsonDocumentWriter(doc);

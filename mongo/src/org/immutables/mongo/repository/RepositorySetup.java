@@ -30,7 +30,7 @@ import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.immutables.mongo.bson4gson.Codecs;
+import org.immutables.mongo.bson4gson.GsonCodecs;
 import org.immutables.mongo.repository.Repositories.Repository;
 import org.immutables.mongo.types.TypeAdapters;
 
@@ -223,7 +223,7 @@ public final class RepositorySetup {
       // Will be used as a factory for BSON types (if Gson does not have one). By default, uses
       // TypeAdapter(s) from Gson if they're explicitly defined (not a ReflectiveTypeAdapter).
       // Otherwise delegate to BSON codec.
-      TypeAdapterFactory bsonAdapterFactory = Codecs.delegatingTypeAdapterFactory(
+      TypeAdapterFactory bsonAdapterFactory = GsonCodecs.delegatingTypeAdapterFactory(
               MongoClient.getDefaultCodecRegistry()
       );
 
@@ -238,7 +238,7 @@ public final class RepositorySetup {
               .create();
 
       // expose new Gson as CodecRegistry. Using fromRegistries() for caching
-      CodecRegistry codecRegistry = CodecRegistries.fromRegistries(Codecs.codecRegistryFromGson(newGson));
+      CodecRegistry codecRegistry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(newGson));
 
       return codecRegistry(codecRegistry, new FieldNamingStrategy.GsonNamingStrategy(gson));
     }

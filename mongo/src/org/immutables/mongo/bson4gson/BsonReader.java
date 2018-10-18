@@ -21,6 +21,7 @@ import com.google.gson.stream.JsonToken;
 import org.bson.AbstractBsonReader;
 import org.bson.AbstractBsonReader.State;
 import org.bson.BsonType;
+import org.immutables.mongo.Wrapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
