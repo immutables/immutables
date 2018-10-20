@@ -133,6 +133,9 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 [checkAttributes type]
 [for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Gsons")
+[/if]
 @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
 private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
@@ -165,6 +168,9 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
 [if type.gsonTypeAdapters.fieldNamingStrategy andnot type.useConstructorOnly]
   [if allAttributes]
 
+  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Gsons")
+  [/if]
   static class [type.name]NamingFields[type.generics] {
   [for a in allAttributes]
     public [a.type] [a.name];

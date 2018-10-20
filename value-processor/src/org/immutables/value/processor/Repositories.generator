@@ -232,6 +232,9 @@ public Finder find(Criteria criteria) {
  * Configure exclusion and sort ordering for results using the family of {@code exclude*()} and {@code orderBy*()} attribute-specific methods.
  * @see [type.name]Repository#find(Criteria)
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 [atNotThreadSafe type]
 public static final class Finder extends Repositories.[if type.repository.readonly]Finder[else]FinderWithDelete[/if]<[type.typeDocument], Finder> {
   private final Serialization serialization;
@@ -294,6 +297,9 @@ public Indexer index() {
  * An indexer used to create an index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
  * @see DBCollection#ensure(DBObject, DBObject)
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 [atNotThreadSafe type]
 public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
   private final Serialization serialization;
@@ -341,6 +347,9 @@ public Updater update(Criteria criteria) {
  * {@link #update(Criteria) Given} the criteria updater describes how to perform
  * update operations on sets of documents.
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 [atNotThreadSafe type]
 public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
   private final Serialization serialization;
@@ -356,6 +365,9 @@ public static final class Updater extends Repositories.Updater<[type.typeDocumen
 
 [template generateReplacer Type type]
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 [atNotThreadSafe type]
 public static final class Replacer extends Repositories.Replacer<[type.typeDocument], Replacer> {
   protected Replacer([type.name]Repository repository, [type.typeDocument] document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
@@ -366,6 +378,9 @@ public static final class Replacer extends Repositories.Replacer<[type.typeDocum
 
 [template generateModifier Type type]
 
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 [atNotThreadSafe type]
 public static final class Modifier extends Repositories.Modifier<[type.typeDocument], Modifier> {
   private final Serialization serialization;
@@ -615,6 +630,9 @@ public Criteria criteria() {
  * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
  * Call methods on the criteria to add constraints for search queries.
  */
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 @javax.annotation.concurrent.Immutable
 @SuppressWarnings("unchecked")
 public static final class Criteria extends Repositories.Criteria {
@@ -792,6 +810,9 @@ public static final class Criteria extends Repositories.Criteria {
 [template generateSerializationHelpers Type type]
 
 [for allAttributes = type.allMarshalingAttributes]
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+[/if]
 private static class Serialization {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
@@ -825,6 +846,9 @@ private static class Serialization {
   [/for]
   }
 
+  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
+  [/if]
   static final class [type.name]NamingFields[type.generics] {
   [for a in allAttributes]
     public [a.type] [a.name];
