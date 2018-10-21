@@ -18,8 +18,10 @@ package org.immutables.mongo.repository.internal;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Range;
-import java.util.regex.Pattern;
+
 import javax.annotation.Nullable;
+import java.util.regex.Pattern;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -236,5 +238,51 @@ public final class Constraints {
         "Prefix [%s] should be literal, otherwise use constructed regex Pattern",
         prefix);
     return Pattern.compile("^" + prefix);
+  }
+
+  /**
+   * Allows subclasses to implement (visit) just some methods of the interface.
+   */
+  static abstract class AbstractConstraintVisitor<T extends ConstraintVisitor<T>> implements ConstraintVisitor<T> {
+
+    @Override
+    public T in(String name, boolean negate, Iterable<?> values) {
+      return (T) this;
+    }
+
+    @Override
+    public T equal(String name, boolean negate, @Nullable Object value) {
+      return (T) this;
+    }
+
+    @Override
+    public T range(String name, boolean negate, Range<?> range) {
+      return (T) this;
+    }
+
+    @Override
+    public T size(String name, boolean negate, int size) {
+      return (T) this;
+    }
+
+    @Override
+    public T present(String name, boolean negate) {
+      return (T) this;
+    }
+
+    @Override
+    public T match(String name, boolean negate, Pattern pattern) {
+      return (T) this;
+    }
+
+    @Override
+    public T nested(String name, ConstraintHost constraints) {
+      return (T) this;
+    }
+
+    @Override
+    public T disjunction() {
+      return (T) this;
+    }
   }
 }

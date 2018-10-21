@@ -3,10 +3,17 @@ package org.immutables.mongo.fixture;
 import com.google.common.base.Preconditions;
 import com.mongodb.DuplicateKeyException;
 import com.mongodb.MongoBulkWriteException;
+import com.mongodb.MongoClient;
 import com.mongodb.MongoCommandException;
 import com.mongodb.MongoException;
 import com.mongodb.bulk.BulkWriteError;
+import org.bson.BsonDocument;
+import org.bson.Document;
+import org.immutables.mongo.repository.Repositories;
+import org.immutables.mongo.repository.internal.Constraints;
+import org.immutables.mongo.repository.internal.Support;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.immutables.check.Checkers.check;
@@ -15,7 +22,7 @@ import static org.junit.Assert.fail;
 /**
  * Collection of simple validation methods
  */
-final class MongoAsserts {
+public final class MongoAsserts {
 
   private MongoAsserts() {}
 
@@ -57,6 +64,29 @@ final class MongoAsserts {
     // if we got here means there is a problem (no duplicate key exception)
     fail("Should get duplicate key exception after " + exception);
   }
+
+  /**
+   * Convert criteria to mongo query (for testing). Currently using reflection (since exposed
+   * only in tests).
+   *
+   * @return Query (as {@link BsonDocument}) which will be sent to mongo.
+   */
+  public static BsonDocument extractQuery(Repositories.Criteria criteria) {
+    Preconditions.checkNotNull(criteria, "criteria");
+
+    try {
+      final Field field = criteria.getClass().getDeclaredField("constraint");
+      field.setAccessible(true);
+      Constraints.Constraint constraint = (Constraints.Constraint) field.get(criteria);
+      return Support.convertToBson(constraint)
+              .toBsonDocument(Document.class, MongoClient.getDefaultCodecRegistry());
+    } catch (NoSuchFieldException e) {
+      throw new RuntimeException("private field 'constraint' not found in " + criteria, e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 
 
 }
