@@ -133,9 +133,7 @@ public final class [typeAdaptersName] implements TypeAdapterFactory {
 [checkAttributes type]
 [for allAttributes = type.allMarshalingAttributes, t = type.typeAbstract, im = type.typeImmutable]
 
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Gsons")
-[/if]
+[atGenerated type]
 @SuppressWarnings({"unchecked", "raw"}) // safe unchecked, types are verified in runtime
 private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[t]> {
   [for a in allAttributes]
@@ -168,9 +166,7 @@ private static class [type.name]TypeAdapter[type.generics] extends TypeAdapter<[
 [if type.gsonTypeAdapters.fieldNamingStrategy andnot type.useConstructorOnly]
   [if allAttributes]
 
-  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Gsons")
-  [/if]
+  [atGenerated type]
   static class [type.name]NamingFields[type.generics] {
   [for a in allAttributes]
     public [a.type] [a.name];
@@ -1001,6 +997,12 @@ out.value([variableName]);
 @Gson.Ignore could not be used on mandatory attribute '[type.typeAbstract.relative].[a.name]'
 [/output.error]
 [/for]
+[/template]
+
+[template atGenerated Type type]
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Gsons")
+[/if]
 [/template]
 
 [template castBuildStagedBuilder Type type String expression][for tb = type.telescopicBuild][if tb](([type.typeBuilderImpl.relative]) [expression])[else][expression][/if][/for][/template]

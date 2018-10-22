@@ -55,6 +55,7 @@ import [starImport];
  * This repository was marked as readonly and therefore write operations have been disabled.
  [/if]
  */
+[atGenerated type]
 [if type.generateSuppressAllWarnings]@SuppressWarnings("all")[/if]
 [if type allowsClasspathAnnotation 'javax.annotation.ParametersAreNonnullByDefault']
 @javax.annotation.ParametersAreNonnullByDefault
@@ -63,9 +64,6 @@ import [starImport];
 @javax.annotation.processing.Generated("org.immutables.processor.ProxyProcessor")
 [else if type allowsClasspathAnnotation 'javax.annotation.Generated']
 @javax.annotation.Generated("org.immutables.processor.ProxyProcessor")
-[/if]
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
 [/if]
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
@@ -85,8 +83,8 @@ import [starImport];
     this.serialization = new Serialization(codecRegistry(), fieldNamingStrategy());
     this.anyCriteria = new Criteria(this.serialization, Constraints.nilConstraint());
   }
-
   [if not type.repository.readonly]
+
   /**
    * Inserts a single document into the collection.
    * @param document The [toLower type.name] to insert
@@ -116,12 +114,12 @@ import [starImport];
     return find(criteria());
   }
 
- /**
-  * Find documents by the criteria expressed as a JSON string. Use the returned {@link Finder} object to complete
-  * {@link Finder#fetchAll() fetch} or {@link Finder#fetchFirst() fetch} operations.
-  * @param jsonCriteria A JSON string for native criteria
-  * @return A finder object used to complete operations
-  */
+  /**
+   * Find documents by the criteria expressed as a JSON string. Use the returned {@link Finder} object to complete
+   * {@link Finder#fetchAll() fetch} or {@link Finder#fetchFirst() fetch} operations.
+   * @param jsonCriteria A JSON string for native criteria
+   * @return A finder object used to complete operations
+   */
   [atCheckReturnValue type]
   public Finder find(String jsonCriteria) {
     return new Finder(this, Support.jsonQuery(jsonCriteria));
@@ -143,8 +141,8 @@ import [starImport];
   public Finder findBy[toUpper a.name]([a.type] [a.name]) {
     return find(criteria().[a.name]([a.name]));
   }
-
   [if not type.repository.readonly]
+
   /**
    * Update or insert a document, matched by the identifier value of the '[a.name]' attribute.
    * @param document The [toLower type.name] to upsert
@@ -158,14 +156,14 @@ import [starImport];
 [/if]
 [/for]
   [generateFinder type]
-  [if not type.repository.readonly]
-    [generateUpdater type]
-    [generateModifier type]
-    [generateReplacer type]
-  [/if]
-  [if type.repository.index]
-    [generateIndexer type]
-  [/if]
+[if not type.repository.readonly]
+  [generateUpdater type]
+  [generateModifier type]
+  [generateReplacer type]
+[/if]
+[if type.repository.index]
+  [generateIndexer type]
+[/if]
   [generateCriteria type]
   [generateSerializationHelpers type]
 }
@@ -232,9 +230,7 @@ public Finder find(Criteria criteria) {
  * Configure exclusion and sort ordering for results using the family of {@code exclude*()} and {@code orderBy*()} attribute-specific methods.
  * @see [type.name]Repository#find(Criteria)
  */
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 [atNotThreadSafe type]
 public static final class Finder extends Repositories.[if type.repository.readonly]Finder[else]FinderWithDelete[/if]<[type.typeDocument], Finder> {
   private final Serialization serialization;
@@ -245,10 +241,10 @@ public static final class Finder extends Repositories.[if type.repository.readon
     this.serialization = repository.serialization;
   }
   [generateOrderingAndExcludes type 'Finder']
-  [if not type.repository.readonly]
-    [generateAndModifyFirst type]
-    [generateAndReplaceFirst type]
-  [/if]
+[if not type.repository.readonly]
+  [generateAndModifyFirst type]
+  [generateAndReplaceFirst type]
+[/if]
 }
 [/template]
 
@@ -297,9 +293,7 @@ public Indexer index() {
  * An indexer used to create an index on the {@code "[type.documentName]"} collection if it does not exist by one or more attributes.
  * @see DBCollection#ensure(DBObject, DBObject)
  */
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 [atNotThreadSafe type]
 public static final class Indexer extends Repositories.Indexer<[type.typeDocument], Indexer> {
   private final Serialization serialization;
@@ -347,9 +341,7 @@ public Updater update(Criteria criteria) {
  * {@link #update(Criteria) Given} the criteria updater describes how to perform
  * update operations on sets of documents.
  */
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 [atNotThreadSafe type]
 public static final class Updater extends Repositories.Updater<[type.typeDocument]> {
   private final Serialization serialization;
@@ -365,9 +357,7 @@ public static final class Updater extends Repositories.Updater<[type.typeDocumen
 
 [template generateReplacer Type type]
 
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 [atNotThreadSafe type]
 public static final class Replacer extends Repositories.Replacer<[type.typeDocument], Replacer> {
   protected Replacer([type.name]Repository repository, [type.typeDocument] document, Constraints.ConstraintHost criteria, Constraints.Constraint ordering) {
@@ -378,9 +368,7 @@ public static final class Replacer extends Repositories.Replacer<[type.typeDocum
 
 [template generateModifier Type type]
 
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 [atNotThreadSafe type]
 public static final class Modifier extends Repositories.Modifier<[type.typeDocument], Modifier> {
   private final Serialization serialization;
@@ -630,9 +618,7 @@ public Criteria criteria() {
  * {@code [type.name]Repository.Criteria} is a [type.name] document search query.
  * Call methods on the criteria to add constraints for search queries.
  */
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 @javax.annotation.concurrent.Immutable
 @SuppressWarnings("unchecked")
 public static final class Criteria extends Repositories.Criteria {
@@ -810,9 +796,7 @@ public static final class Criteria extends Repositories.Criteria {
 [template generateSerializationHelpers Type type]
 
 [for allAttributes = type.allMarshalingAttributes]
-[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-[/if]
+[atGenerated type]
 private static class Serialization {
   [for a in allAttributes]
     [if a.requiresMarshalingAdapter]
@@ -846,9 +830,7 @@ private static class Serialization {
   [/for]
   }
 
-  [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
-  @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
-  [/if]
+  [atGenerated type]
   static final class [type.name]NamingFields[type.generics] {
   [for a in allAttributes]
     public [a.type] [a.name];
@@ -889,5 +871,11 @@ this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if seconda
 [template atNotThreadSafe Type type]
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.NotThreadSafe']
 @javax.annotation.concurrent.NotThreadSafe
+[/if]
+[/template]
+
+[template atGenerated Type type]
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Repositories")
 [/if]
 [/template]
