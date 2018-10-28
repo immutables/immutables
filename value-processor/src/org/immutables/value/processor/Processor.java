@@ -16,6 +16,7 @@
 package org.immutables.value.processor;
 
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import java.util.Set;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -48,6 +49,19 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     EncodingMirror.QUALIFIED_NAME,
 })
 public final class Processor extends AbstractGenerator {
+
+  private static final String GRADLE_INCREMENTAL = "immutables.gradle.incremental";
+
+  @Override
+  public Set<String> getSupportedOptions() {
+    ImmutableSet.Builder<String> options = ImmutableSet.builder();
+    options.add(GRADLE_INCREMENTAL);
+    if (processingEnv.getOptions().containsKey(GRADLE_INCREMENTAL)) {
+      options.add("org.gradle.annotation.processing.isolating");
+    }
+    return options.build();
+  }
+
   @Override
   protected void process() {
 
