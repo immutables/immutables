@@ -3376,11 +3376,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.primitive or v.enumType]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
-      [if v.nullable or type.generatePrivateNoargConstructor]
-  if ([objectsEqual type](this.[v.name], value)) return this;
-      [else]
-  if (this.[v.name].equals(value)) return this;
-      [/if]
+    [-- moved to after value assignment --]
     [else]
   if (this.[v.name] == value) return this;
     [/if]
@@ -3391,10 +3387,28 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
       [/if]
   [generateReturnCopyContextual type v]
-    [else if v.nullable or v.primitive]
+    [else if v.primitive]
+  [generateReturnCopy type v 'value']
+    [else if v.nullable]
+    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [-- moved from conditions in the beginning of the method --]
+      [if v.nullable or type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+      [else]
+  if (this.[v.name].equals(value)) return this;
+      [/if]
+    [/if]
   [generateReturnCopy type v 'value']
     [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
+    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [-- moved from conditions in the beginning of the method --]
+      [if v.nullable or type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+      [else]
+  if (this.[v.name].equals(newValue)) return this;
+      [/if]
+    [/if]
   [generateReturnCopyContextual type v]
     [/if]
 }

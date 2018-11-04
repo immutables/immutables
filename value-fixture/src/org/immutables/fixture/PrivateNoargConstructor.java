@@ -32,9 +32,10 @@ interface PrivateNoargConstructorNominal {
   float f();
   double d();
   Object o();
+  String z();
 }
 
-@Value.Immutable(prehash=true)
+@Value.Immutable(prehash = true)
 @Style(privateNoargConstructor = true)
 interface PrivateNoargConstructorOverridePrehash {
 
@@ -47,9 +48,10 @@ interface PrivateNoargConstructorOverridePrehash {
   float f();
   double d();
   Object o();
+  String z();
 }
 
-@Value.Immutable(prehash=true)
+@Value.Immutable(prehash = true)
 @Style(privateNoargConstructor = false)
 interface PrivateNoargConstructorOptionFalseDoNotAffectPrehash {
 
@@ -62,6 +64,7 @@ interface PrivateNoargConstructorOptionFalseDoNotAffectPrehash {
   float f();
   double d();
   Object o();
+  String z();
 }
 
 
