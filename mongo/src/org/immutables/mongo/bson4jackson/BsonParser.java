@@ -106,9 +106,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return reader.readDecimal128().bigDecimalValue();
       case STRING:
         return new BigDecimal(reader.readString());
+      default:
+        throw new IllegalStateException(String.format("Can't convert %s to %s", type, Number.class.getName()));
     }
-
-    throw new IllegalStateException(String.format("Can't convert %s to %s", type, Number.class.getName()));
   }
 
   @Override
@@ -157,9 +157,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case DECIMAL128:
       case STRING:
         return (BigDecimal) getNumberValue();
+      default:
+        throw new IllegalStateException(String.format("Can't convert %s to %s", type, BigDecimal.class.getName()));
     }
-
-    throw new IllegalStateException(String.format("Can't convert %s to %s", type, BigDecimal.class.getName()));
   }
 
   private BsonType type() {
@@ -178,9 +178,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return NumberType.LONG;
       case DECIMAL128:
         return NumberType.BIG_DECIMAL;
+      default:
+        throw new IllegalStateException(String.format("Not a number type %s", type));
     }
-
-    throw new IllegalStateException(String.format("Not a number type %s", type));
   }
 
   @Override
@@ -188,7 +188,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     return _currToken = next();
   }
 
-  private JsonToken next() throws IOException {
+  private JsonToken next() {
     while (state() == AbstractBsonReader.State.TYPE) {
       reader.readBsonType();
     }
@@ -209,9 +209,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return null;
       case VALUE:
         return toJsonToken(type());
+      default:
+        throw new IllegalStateException(String.format("Unexpected state: %s currentType: %s", state(), type()));
     }
-
-    throw new IllegalStateException(String.format("Unexpected state: %s currentType: %s", state(), type()));
   }
 
   private JsonToken toJsonToken(BsonType type) {
@@ -247,9 +247,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return JsonToken.VALUE_NUMBER_FLOAT;
       case DOUBLE:
         return JsonToken.VALUE_NUMBER_FLOAT;
-    }
-
-    throw new IllegalStateException(String.format("Unknown type %s", type));
+      default:
+        throw new IllegalStateException(String.format("Unknown type %s", type));
+    }   
   }
 
   @Override
@@ -257,7 +257,8 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     final BsonType type = type();
     if (type == BsonType.SYMBOL) {
       return reader.readSymbol();
-    } else if (type == BsonType.STRING) {
+    }
+    if (type == BsonType.STRING) {
       return reader.readString();
     }
 

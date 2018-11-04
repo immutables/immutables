@@ -243,6 +243,7 @@ public final class Constraints {
   /**
    * Allows subclasses to implement (visit) just some methods of the interface.
    */
+  @SuppressWarnings("unchecked") // T must be self type
   static abstract class AbstractConstraintVisitor<T extends ConstraintVisitor<T>> implements ConstraintVisitor<T> {
 
     @Override

@@ -36,7 +36,6 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
@@ -45,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -65,26 +63,14 @@ public final class Support {
   }
 
   /**
-   * Builds bson with index definition.  The difference with
+   * Builds bson with index definition. The difference with
    * {@link #convertToBson(Constraints.ConstraintHost)} is that this method fails on duplicate
    * fields. Currently only one index is allowed per field.
-   *
    * @see <a href="https://docs.mongodb.com/manual/indexes/">Mongo Indexes</a>
    */
   public static Bson convertToIndex(final Constraints.ConstraintHost fields) {
     final Document document = new Document();
-
-    fields.accept(new Constraints.AbstractConstraintVisitor() {
-      @Override
-      public ConstraintVisitor equal(String name, boolean negate, @Nullable Object value) {
-        if (document.containsKey(name)) {
-          throw new IllegalArgumentException(String.format("Attribute %s is not unique: %s", name, document.get(name)));
-        }
-        document.put(name, value);
-        return this;
-      }
-    });
-
+    fields.accept(new ConvertToIndex(document));
     return document;
   }
 
@@ -95,13 +81,32 @@ public final class Support {
     return convertToBson(constraints).toString();
   }
 
+  private static final class ConvertToIndex
+      extends Constraints.AbstractConstraintVisitor<ConvertToIndex> {
+    private final Document document;
+
+    private ConvertToIndex(Document document) {
+      this.document = document;
+    }
+
+    @Override
+    public ConvertToIndex equal(String name, boolean negate, @Nullable Object value) {
+      if (document.containsKey(name)) {
+        throw new IllegalArgumentException(
+            String.format("Attribute %s is not unique: %s", name, document.get(name)));
+      }
+      document.put(name, value);
+      return this;
+    }
+  }
+
   @NotThreadSafe
   public static class ConstraintBuilder extends Constraints.AbstractConstraintVisitor<ConstraintBuilder> {
 
     private final String keyPrefix;
 
     private List<Document> conjunctions; // $and
-    private List<Document> disjunctions; // $or
+    private final List<Document> disjunctions; // $or
 
     private ConstraintBuilder(String keyPrefix) {
       this.keyPrefix = Preconditions.checkNotNull(keyPrefix, "keyPrefix");
@@ -191,7 +196,7 @@ public final class Support {
     private Document mergeConjunctions(List<Document> conjunctions) {
       final Multimap<String, Document> merged = LinkedHashMultimap.create();
 
-      for (Document doc: conjunctions) {
+      for (Document doc : conjunctions) {
         Preconditions.checkState(doc.keySet().size() == 1, "Invalid constraint %s", doc);
         final String key = doc.keySet().iterator().next();
         merged.put(key, doc);
@@ -199,7 +204,7 @@ public final class Support {
 
       final Document result = new Document();
 
-      for (Map.Entry<String, Collection<Document>> entry: merged.asMap().entrySet()) {
+      for (Map.Entry<String, Collection<Document>> entry : merged.asMap().entrySet()) {
         Preconditions.checkState(!entry.getValue().isEmpty(), "empty constraint: %s", entry);
 
         if (entry.getValue().size() == 1) {
@@ -258,7 +263,9 @@ public final class Support {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(Encoder<T> encoder, Range<T> range) {
+  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(
+      Encoder<T> encoder,
+      Range<T> range) {
     if (range.hasLowerBound() && range.hasUpperBound()) {
       return Range.range(
           (Comparable<Object>) writable(encoder, range.lowerEndpoint()),
@@ -348,7 +355,8 @@ public final class Support {
     BsonValue toBson() {
       BsonDocument bson = new BsonDocument();
       org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
-      // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.
+      // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a
+      // document.
       writer.writeStartDocument();
       writer.writeName("$");
       encoder.encode(writer, value, EncoderContext.builder().build());

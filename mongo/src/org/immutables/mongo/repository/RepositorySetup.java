@@ -89,7 +89,6 @@ public final class RepositorySetup {
    * using <a href="https://google.github.io/gson/apidocs/com/google/gson/annotations/SerializedName.html">@SerializedName</a>
    * to control member naming.
    * <pre>
-   * {@code
    *  final Gson gson = ...
    *  FieldNamingStrategy gsonStrategy = new FieldNamingStrategy() {
    *       @Override

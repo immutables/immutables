@@ -137,7 +137,7 @@ public final class JacksonCodecs {
       final IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
       final BsonParser parser = new BsonParser(ioContext, 0, (AbstractBsonReader) reader);
       try {
-        return (T) mapper.readValue(parser, getEncoderClass());
+        return mapper.readValue(parser, getEncoderClass());
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
