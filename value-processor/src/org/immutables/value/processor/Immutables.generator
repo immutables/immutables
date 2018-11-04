@@ -3284,7 +3284,11 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 [else]
   [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
   [if v.hasSimpleScalarElementType andnot v.enumType]
+    [if type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+    [else]
   if (this.[v.name].equals(newValue)) return this;
+    [/if]
   [else]
   if (this.[v.name].[optionalPresent v] && this.[v.name].[optionalGet v] == value) return this;
   [/if]
@@ -3318,7 +3322,11 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
   [/if]
 [else]
   [if v.hasSimpleScalarElementType]
+    [if type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+    [else]
   if (this.[v.name].equals(value)) return this;
+    [/if]
   [else]
   if (!this.[v.name].[optionalPresent v] && !value.[optionalPresent v]) return this;
   if (this.[v.name].[optionalPresent v] && value.[optionalPresent v] && this.[v.name].[optionalGet v] == value.[optionalGet v]) return this;
@@ -3368,7 +3376,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.primitive or v.enumType]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
-      [if v.nullable]
+      [if v.nullable or type.generatePrivateNoargConstructor]
   if ([objectsEqual type](this.[v.name], value)) return this;
       [else]
   if (this.[v.name].equals(value)) return this;
