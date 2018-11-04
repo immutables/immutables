@@ -50,6 +50,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.immutables.mongo.repository.internal.Support.convertToBson;
+import static org.immutables.mongo.repository.internal.Support.convertToIndex;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that
@@ -118,7 +119,7 @@ public final class Repositories {
       return submit(new Callable<Void>() {
         @Override
         public Void call() {
-          collection().createIndex(convertToBson(fields), options);
+          collection().createIndex(convertToIndex(fields), options);
           return null;
         }
       });

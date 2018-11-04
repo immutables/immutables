@@ -63,8 +63,8 @@ public class SimpleIndexerTest {
               .ensure()
               .getUnchecked();
       fail("Indexing on the same field not allowed");
-    } catch (Exception ignore) {
-      // ok
+    } catch (Exception e) {
+      check(e.getMessage()).contains("string");
     }
 
     try {
@@ -74,8 +74,8 @@ public class SimpleIndexerTest {
               .ensure()
               .getUnchecked();
       fail("both asc/desc on the same index not allowed");
-    } catch (Exception ignore) {
-      // ok
+    } catch (Exception e) {
+      check(e.getMessage()).contains("string");
     }
   }
 

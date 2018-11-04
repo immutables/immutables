@@ -49,6 +49,12 @@ public class PersonCriteriaTest {
     check(repository.find(criteria().ageLessThan(1)).fetchAll().getUnchecked()).isEmpty();
     check(repository.find(criteria().ageLessThan(30)).fetchAll().getUnchecked()).isEmpty();
     check(repository.find(criteria().ageLessThan(31)).fetchAll().getUnchecked()).hasSize(1);
+    check(repository.find(criteria().ageAtLeast(30).ageAtMost(31)).fetchAll().getUnchecked()).hasSize(1);
+    check(repository.find(criteria().ageLessThan(30).ageGreaterThan(31)).fetchAll().getUnchecked()).isEmpty();
+    // multiple filters on the same field
+    check(repository.find(criteria().age(30).ageGreaterThan(31)).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(criteria().age(30).ageNot(30).or().age(30)).fetchAll().getUnchecked()).hasSize(1);
+    check(repository.find(criteria().age(30).ageGreaterThan(30).or().age(31)).fetchAll().getUnchecked()).isEmpty();
 
     // add second person
     Person adam = ImmutablePerson.builder().id("p2").name("Adam").age(40).build();
@@ -235,7 +241,6 @@ public class PersonCriteriaTest {
     check(repository.find(criteria().name("a").or().name("b").or().name("c")).fetchAll().getUnchecked()).isEmpty();
     check(repository.find(criteria().id("p1").or().name("John").or().age(30)).fetchAll().getUnchecked()).hasContentInAnyOrder(john);
     check(repository.find(criteria().id("p1").or().idNot("p1")).fetchAll().getUnchecked()).hasContentInAnyOrder(john, adam);
-
   }
 
   @Test
