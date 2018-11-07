@@ -1,0 +1,2 @@
+org.immutables.processor.ProxyProcessor,dynamic
+org.immutables.value.processor.Processor,dynamic
