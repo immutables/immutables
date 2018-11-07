@@ -62,7 +62,6 @@ import static org.immutables.check.Checkers.check;
  * Tests for repository using <a href="https://github.com/FasterXML/jackson">Jackson</a> library.
  * @see JacksonCodecs
  */
-//@Gson.TypeAdapters // TODO perhaps compile warning (for missing @Gson annotation) can be removed ?
 public class JacksonRepoTest {
 
   private JacksonRepository repository;
