@@ -1398,7 +1398,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [eachLine v.initializerInjectedAnnotations]
   [deprecation v]
-  [builderInitAccess v]final [builderReturnType type] [v.names.add]([v.unwrappedElementType] element) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.add]([atElementNullable v][v.unwrappedElementType] element) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -1763,7 +1763,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [atCanIgnoreReturnValue type]
   [deprecation v]
   [if v.jacksonAnyGetter]@com.fasterxml.jackson.annotation.JsonAnySetter[/if]
-  [builderInitAccess v]final [builderReturnType type] [v.names.put]([uK] key, [uV] value) {
+  [builderInitAccess v]final [builderReturnType type] [v.names.put]([atElementNullable v][uK] key, [atElementNullable v][uV] value) {
     [if v.nullableCollector]
     if (this.[v.name] == null) {
       [defineOrResetBuildingFieldAlt v false false]
@@ -3284,7 +3284,11 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 [else]
   [immutableImplementationType v] newValue = [optionalOf v]([maybeCopyOf v]value[/maybeCopyOf]);
   [if v.hasSimpleScalarElementType andnot v.enumType]
+    [if type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+    [else]
   if (this.[v.name].equals(newValue)) return this;
+    [/if]
   [else]
   if (this.[v.name].[optionalPresent v] && this.[v.name].[optionalGet v] == value) return this;
   [/if]
@@ -3318,7 +3322,11 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
   [/if]
 [else]
   [if v.hasSimpleScalarElementType]
+    [if type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+    [else]
   if (this.[v.name].equals(value)) return this;
+    [/if]
   [else]
   if (!this.[v.name].[optionalPresent v] && !value.[optionalPresent v]) return this;
   if (this.[v.name].[optionalPresent v] && value.[optionalPresent v] && this.[v.name].[optionalGet v] == value.[optionalGet v]) return this;
@@ -3368,11 +3376,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
     [else if v.primitive or v.enumType]
   if (this.[v.name] == value) return this;
     [else if v.hasSimpleScalarElementType or v.isSuppressedOptional]
-      [if v.nullable]
-  if ([objectsEqual type](this.[v.name], value)) return this;
-      [else]
-  if (this.[v.name].equals(value)) return this;
-      [/if]
+    [-- moved to after value assignment --]
     [else]
   if (this.[v.name] == value) return this;
     [/if]
@@ -3383,10 +3387,28 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.ty
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
       [/if]
   [generateReturnCopyContextual type v]
-    [else if v.nullable or v.primitive]
+    [else if v.primitive]
+  [generateReturnCopy type v 'value']
+    [else if v.nullable]
+    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [-- moved from conditions in the beginning of the method --]
+      [if v.nullable or type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], value)) return this;
+      [else]
+  if (this.[v.name].equals(value)) return this;
+      [/if]
+    [/if]
   [generateReturnCopy type v 'value']
     [else]
   [v.atNullabilityLocal][immutableImplementationType v] newValue = [valueFromValue v 'value'];
+    [if v.hasSimpleScalarElementType or v.isSuppressedOptional]
+    [-- moved from conditions in the beginning of the method --]
+      [if v.nullable or type.generatePrivateNoargConstructor]
+  if ([objectsEqual type](this.[v.name], newValue)) return this;
+      [else]
+  if (this.[v.name].equals(newValue)) return this;
+      [/if]
+    [/if]
   [generateReturnCopyContextual type v]
     [/if]
 }
@@ -4155,6 +4177,8 @@ private static final long serialVersionUID = [literal serialVersion];
 @org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Immutables")
 [/if]
 [/template]
+
+[template atElementNullable Attribute a][if not a.nullElements.ban][atNullable a][/if][/template]
 
 [-- templates below are one-liners so they auto-inlined --]
 [template topSimplePrefix Type type][if topLevelSimple][topLevelSimple].[else][type.topSimple].[/if][/template]

@@ -50,6 +50,14 @@ License
 Changelog
 ---------
 
+### 2.7.2 (2018-11-05)
+- Many fixes and corrections! Thank you issue reports and PRs! 
+- [Issues 2.7.2](https://github.com/immutables/immutables/milestone/71?closed=1)
+- Notable stuff:
+  + Experimental support for Codecs and Jackson (along with Gson) for mapping to MongoDB repositories (#850, #817 by @asereda-gs)
+  + `Style.optionalAcceptNullable=true` now also generates alternative constructor accepting nullable input for `java.util.Optional` attributes (#843 by @ThLeu)
+  + `org.immutables.value.Generated` now covers generated nested classes (#854 by @before)
+
 ### 2.7.1 (2018-08-25)
 - Thank you issue reports and PRs! Not many features here, but minor version increment was needed
 - Notable stuff

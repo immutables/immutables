@@ -22,6 +22,8 @@ import com.google.common.collect.BoundType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Range;
 import com.mongodb.QueryOperators;
 import org.bson.BsonDocument;
@@ -34,14 +36,14 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.Repositories;
 import org.immutables.mongo.repository.internal.Constraints.ConstraintVisitor;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -60,27 +62,56 @@ public final class Support {
     return fields.accept(new ConstraintBuilder("")).asDocument();
   }
 
+  /**
+   * Builds bson with index definition. The difference with
+   * {@link #convertToBson(Constraints.ConstraintHost)} is that this method fails on duplicate
+   * fields. Currently only one index is allowed per field.
+   * @see <a href="https://docs.mongodb.com/manual/indexes/">Mongo Indexes</a>
+   */
+  public static Bson convertToIndex(final Constraints.ConstraintHost fields) {
+    final Document document = new Document();
+    fields.accept(new ConvertToIndex(document));
+    return document;
+  }
+
   public static String stringify(final Constraints.ConstraintHost constraints) {
     if (constraints instanceof JsonQuery) {
-      return ((JsonQuery) constraints).toString();
+      return constraints.toString();
     }
     return convertToBson(constraints).toString();
   }
 
-  @NotThreadSafe
-  public static class ConstraintBuilder implements Constraints.ConstraintVisitor<ConstraintBuilder> {
+  private static final class ConvertToIndex
+      extends Constraints.AbstractConstraintVisitor<ConvertToIndex> {
+    private final Document document;
 
-    private final String keyPrefix;
-    private Document constraints;
-    private List<Document> disjunction;
-
-    ConstraintBuilder(String keyPrefix) {
-      this(keyPrefix, new Document());
+    private ConvertToIndex(Document document) {
+      this.document = document;
     }
 
-    private ConstraintBuilder(String keyPrefix, Document constraints) {
-      this.keyPrefix = keyPrefix;
-      this.constraints = constraints;
+    @Override
+    public ConvertToIndex equal(String name, boolean negate, @Nullable Object value) {
+      if (document.containsKey(name)) {
+        throw new IllegalArgumentException(
+            String.format("Attribute %s is not unique: %s", name, document.get(name)));
+      }
+      document.put(name, value);
+      return this;
+    }
+  }
+
+  @NotThreadSafe
+  public static class ConstraintBuilder extends Constraints.AbstractConstraintVisitor<ConstraintBuilder> {
+
+    private final String keyPrefix;
+
+    private List<Document> conjunctions; // $and
+    private final List<Document> disjunctions; // $or
+
+    private ConstraintBuilder(String keyPrefix) {
+      this.keyPrefix = Preconditions.checkNotNull(keyPrefix, "keyPrefix");
+      this.conjunctions = new ArrayList<>();
+      this.disjunctions = new ArrayList<>();
     }
 
     private ConstraintBuilder newBuilderForKey(String key) {
@@ -88,13 +119,8 @@ public final class Support {
     }
 
     private void addContraint(String name, Object constraint) {
-      String path = keyPrefix.concat(name);
-      @Nullable Object existingConstraint = constraints.get(path);
-      if (existingConstraint != null) {
-        constraints.put(path, mergeConstraints(path, constraint, existingConstraint));
-      } else {
-        constraints.put(path, constraint);
-      }
+      final String path = keyPrefix.concat(name);
+      conjunctions.add(new Document(path, constraint));
     }
 
     @Override
@@ -160,10 +186,35 @@ public final class Support {
     }
 
     public Document asDocument() {
-      if (disjunction != null) {
-        return new Document(QueryOperators.OR, disjunction);
+      final List<Document> result = new ArrayList<>(disjunctions);
+      result.add(mergeConjunctions(conjunctions));
+
+      return result.size() == 1 ? result.get(0) : new Document(QueryOperators.OR, result);
+
+    }
+
+    private Document mergeConjunctions(List<Document> conjunctions) {
+      final Multimap<String, Document> merged = LinkedHashMultimap.create();
+
+      for (Document doc : conjunctions) {
+        Preconditions.checkState(doc.keySet().size() == 1, "Invalid constraint %s", doc);
+        final String key = doc.keySet().iterator().next();
+        merged.put(key, doc);
       }
-      return constraints;
+
+      final Document result = new Document();
+
+      for (Map.Entry<String, Collection<Document>> entry : merged.asMap().entrySet()) {
+        Preconditions.checkState(!entry.getValue().isEmpty(), "empty constraint: %s", entry);
+
+        if (entry.getValue().size() == 1) {
+          result.putAll(entry.getValue().iterator().next());
+        } else {
+          result.putAll(new Document(QueryOperators.AND, entry.getValue()));
+        }
+      }
+
+      return result;
     }
 
     @Override
@@ -186,29 +237,17 @@ public final class Support {
 
     @Override
     public ConstraintBuilder nested(String name, Constraints.ConstraintHost nestedConstraints) {
-      constraints.putAll(nestedConstraints.accept(newBuilderForKey(name)).asDocument());
+      conjunctions.add(nestedConstraints.accept(newBuilderForKey(name)).asDocument());
       return this;
     }
 
     @Override
     public ConstraintBuilder disjunction() {
-      if (disjunction == null) {
-        disjunction = new ArrayList<>(4);
-        disjunction.add(constraints);
-      }
-      constraints = new Document();
-      disjunction.add(constraints);
+      disjunctions.add(mergeConjunctions(conjunctions));
+      conjunctions = new ArrayList<>();
       return this;
     }
 
-    private Object mergeConstraints(String path, Object constraint, Object existingConstraint) {
-      Preconditions.checkState(false,
-          "Cannot add another contraint on '%s': %s. Existing: %s",
-          path,
-          constraint,
-          existingConstraint);
-      return constraint;
-    }
   }
 
   public static Constraints.ConstraintHost jsonQuery(String query) {
@@ -224,7 +263,9 @@ public final class Support {
   }
 
   @SuppressWarnings("unchecked")
-  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(Encoder<T> encoder, Range<T> range) {
+  public static <T extends Comparable<? super T>> Range<Comparable<Object>> writable(
+      Encoder<T> encoder,
+      Range<T> range) {
     if (range.hasLowerBound() && range.hasUpperBound()) {
       return Range.range(
           (Comparable<Object>) writable(encoder, range.lowerEndpoint()),
@@ -314,7 +355,8 @@ public final class Support {
     BsonValue toBson() {
       BsonDocument bson = new BsonDocument();
       org.bson.BsonWriter writer = new BsonDocumentWriter(bson);
-      // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a document.
+      // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a
+      // document.
       writer.writeStartDocument();
       writer.writeName("$");
       encoder.encode(writer, value, EncoderContext.builder().build());

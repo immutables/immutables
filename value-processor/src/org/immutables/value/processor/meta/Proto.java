@@ -1186,30 +1186,9 @@ public class Proto {
       if (!declaringType().isPresent()) {
         return Optional.absent();
       }
-
-      Optional<RepositoryMirror> repositoryMirror =
-          kind().isIncluded() || kind().isDefinedValue()
-              ? declaringType().get().repository()
-              : Optional.<RepositoryMirror>absent();
-
-      if (repositoryMirror.isPresent() && !typeAdaptersProvider().isPresent()) {
-        if (kind().isNested()) {
-          report().annotationNamed(RepositoryMirror.simpleName())
-              .error("@Mongo.%s should also have associated @Gson.%s on a top level type.",
-                  RepositoryMirror.simpleName(),
-                  TypeAdaptersMirror.simpleName());
-        } else {
-          report().annotationNamed(RepositoryMirror.simpleName())
-              .warning("@Mongo.%s types better have explicit @Gson.%s annotation"
-                  + " be placed on the class or enclosing package."
-                  + " It is also common to forget to generate type adapters"
-                  + " for nested document classes, which will fallback to reflective Gson adapter otherwise.",
-                  RepositoryMirror.simpleName(),
-                  TypeAdaptersMirror.simpleName());
-        }
-      }
-
-      return repositoryMirror;
+      return kind().isIncluded() || kind().isDefinedValue()
+          ? declaringType().get().repository()
+          : Optional.<RepositoryMirror>absent();
     }
 
     @Value.Lazy

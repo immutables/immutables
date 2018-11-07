@@ -1436,11 +1436,11 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
 
-    if (!isGenerateJdkOnly() && nullElements.allow()) {
-      report()
-          .warning(About.INCOMPAT,
-              "Guava collection implementation does not allow null elements, nullness annotation will be ignored."
-                  + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
+    if (!isGenerateJdkOnly() && !nullElements.ban()) {
+      report().warning(About.INCOMPAT,
+          "Guava collection implementation does not allow null elements,"
+              + " @AllowNulls/@SkipNulls annotation will be ignored."
+              + " Switch Style.jdkOnly=true to use collections that permit nulls as values");
     }
 
     if (isOptionalType()

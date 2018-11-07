@@ -11,7 +11,6 @@ import org.bson.conversions.Bson;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.junit.Before;
 import org.junit.Test;
-
 import static org.immutables.check.Checkers.check;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -28,19 +27,16 @@ import static org.mockito.Mockito.when;
  * @see <a href="https://docs.mongodb.com/v3.4/reference/method/cursor.close/">cursor.close</a>
  */
 public class MongoCursorIsClosedTest {
-
   private EntityRepository repository;
-
   private MongoCursor<Entity> cursor;
 
   @Before
   @SuppressWarnings("unchecked")
   public void setUp() throws Exception {
     MongoDatabase db = mock(MongoDatabase.class);
-    MongoCollection collection = mock(MongoCollection.class);
+    MongoCollection<Entity> collection = mock(MongoCollection.class);
 
-    when(db.getCollection(anyString())).thenReturn(collection);
-    when(collection.withDocumentClass(any(Class.class))).thenReturn(collection);
+    when(db.getCollection(anyString(), any(Class.class))).thenReturn(collection);
     when(collection.withCodecRegistry(any(CodecRegistry.class))).thenReturn(collection);
 
     RepositorySetup setup = RepositorySetup.builder().database(db)

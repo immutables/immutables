@@ -31,25 +31,23 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.Document;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.Constraints;
-
-import javax.annotation.Nonnegative;
-import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static org.immutables.mongo.repository.internal.Support.convertToBson;
+import static org.immutables.mongo.repository.internal.Support.convertToIndex;
 
 /**
  * Umbrella class which contains abstract super-types of repository and operation objects that
@@ -81,19 +79,17 @@ public final class Repositories {
       checkNotNull(collectionName, "collectionName");
       checkNotNull(type, "type");
 
-      final MongoCollection<Document> collection = configuration.database
-              .getCollection(collectionName);
+      MongoCollection<T> collection =
+          configuration.database.getCollection(collectionName, type);
 
-      this.collection = collection
-          .withCodecRegistry(configuration.codecRegistry)
-          .withDocumentClass(type);
+      this.collection = collection.withCodecRegistry(configuration.codecRegistry);
 
       this.fieldNamingStrategy = configuration.fieldNamingStrategy;
     }
 
     /**
      * Codec used for current collection type.
-     * @return
+     * @return registry
      */
     protected final CodecRegistry codecRegistry() {
       return collection.getCodecRegistry();
@@ -118,7 +114,7 @@ public final class Repositories {
       return submit(new Callable<Void>() {
         @Override
         public Void call() {
-          collection().createIndex(convertToBson(fields), options);
+          collection().createIndex(convertToIndex(fields), options);
           return null;
         }
       });
