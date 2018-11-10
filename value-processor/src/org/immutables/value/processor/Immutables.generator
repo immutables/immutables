@@ -1317,7 +1317,8 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
-    [dynamicFromModifiableCheck type 'instance' 'this']
+    [let dynamicFromReturnType][builderReturnThis type][/let]
+    [dynamicFromModifiableCheck type 'instance' dynamicFromReturnType]
     [for v in setters]
     [buildFromAttribute v]
     [/for]
@@ -1327,7 +1328,8 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
-    [dynamicFromModifiableCheck type 'instance' 'this']
+    [let dynamicFromReturnType][builderReturnThis type][/let]
+    [dynamicFromModifiableCheck type 'instance' dynamicFromReturnType]
     [for v in setters]
     [buildFromAttribute v]
     [/for]
