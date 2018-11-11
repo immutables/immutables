@@ -36,13 +36,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.BsonDocument;
-import org.bson.BsonNull;
-import org.bson.BsonReader;
-import org.bson.BsonType;
-import org.bson.BsonWriter;
+import org.bson.*;
+import org.bson.codecs.Codec;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.UuidCodec;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
-import org.immutables.gson.Gson;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.bson4jackson.BsonGenerator;
 import org.immutables.mongo.bson4jackson.BsonParser;
@@ -52,8 +51,10 @@ import org.immutables.value.Value;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.Date;
+import java.util.UUID;
 
 import static org.immutables.check.Checkers.check;
 
@@ -61,7 +62,6 @@ import static org.immutables.check.Checkers.check;
  * Tests for repository using <a href="https://github.com/FasterXML/jackson">Jackson</a> library.
  * @see JacksonCodecs
  */
-@Gson.TypeAdapters // TODO perhaps compile warning (for missing @Gson annotation) can be removed ?
 public class JacksonRepoTest {
 
   private JacksonRepository repository;
@@ -79,11 +79,16 @@ public class JacksonRepoTest {
     module.addSerializer(new DateSerializer());
     module.addDeserializer(ObjectId.class, new ObjectIdDeserializer());
     module.addSerializer(new ObjectIdSerializer());
+    module.addDeserializer(UUID.class, new UUIDDeserializer(UuidRepresentation.JAVA_LEGACY));
 
     ObjectMapper mapper = new ObjectMapper()
-            .registerModule(JacksonCodecs.module(MongoClient.getDefaultCodecRegistry()))
-            .registerModule(new GuavaModule())
-            .registerModule(module);
+            .registerModule(JacksonCodecs.module(
+                CodecRegistries.fromRegistries(
+                    MongoClient.getDefaultCodecRegistry()
+                )
+            ))
+        .registerModule(new GuavaModule())
+        .registerModule(module);
 
     RepositorySetup setup = RepositorySetup.builder()
             .database(database)
@@ -113,7 +118,7 @@ public class JacksonRepoTest {
     check(expected).is(actual);
 
     final BsonDocument doc = collection.find().first();
-    check(doc.keySet()).hasContentInAnyOrder("_id", "prop1", "prop2", "date");
+    check(doc.keySet()).hasContentInAnyOrder("_id", "prop1", "prop2", "date", "uuid");
     check(doc.get("date").asDateTime().getValue()).is(date.getTime());
     check(doc.get("_id").asObjectId().getValue()).is(id);
   }
@@ -137,7 +142,7 @@ public class JacksonRepoTest {
     check(expected.date().asSet()).isEmpty();
     check(expected).is(actual);
     final BsonDocument doc = collection.find().first();
-    check(doc.keySet()).hasContentInAnyOrder("_id", "prop1", "prop2", "date");
+    check(doc.keySet()).hasContentInAnyOrder("_id", "prop1", "prop2", "date", "uuid");
     check(doc.get("date")).is(BsonNull.VALUE);
   }
 
@@ -146,11 +151,13 @@ public class JacksonRepoTest {
     final Date date = new Date();
 
     final ObjectId id = ObjectId.get();
+    final UUID uuid = UUID.randomUUID();
     final Jackson expected = ImmutableJackson.builder()
             .id(id)
             .prop1("prop11")
             .prop2("prop22")
             .date(date)
+            .uuid(uuid)
             .build();
 
     repository.insert(expected).getUnchecked();
@@ -161,6 +168,8 @@ public class JacksonRepoTest {
     check(repository.find(repository.criteria().id(id)).fetchAll().getUnchecked()).hasContentInAnyOrder(expected);
     check(repository.find(repository.criteria().date(date)).fetchAll().getUnchecked()).hasContentInAnyOrder(expected);
     check(repository.find(repository.criteria().date(new Date(42))).fetchAll().getUnchecked()).isEmpty();
+    check(repository.find(repository.criteria().uuid(uuid)).fetchAll().getUnchecked()).hasContentInAnyOrder(expected);
+    check(repository.find(repository.criteria().uuid(UUID.randomUUID())).fetchAll().getUnchecked()).isEmpty();
   }
 
   @Mongo.Repository
@@ -179,6 +188,9 @@ public class JacksonRepoTest {
     String prop2();
 
     Optional<Date> date();
+
+    @Nullable
+    UUID uuid();
   }
 
   /**
@@ -245,5 +257,27 @@ public class JacksonRepoTest {
     }
   }
 
+
+
+  /**
+   * Custom deserializer for UUID (stored as {@link BsonType#BINARY})
+   */
+  private static class UUIDDeserializer extends StdScalarDeserializer<UUID> {
+
+    public static final DecoderContext DECODER_CONTEXT = DecoderContext.builder().build();
+
+    private final Codec<UUID> uuidCodec;
+
+    private UUIDDeserializer(UuidRepresentation uuidRepresentation) {
+      super(UUID.class);
+      uuidCodec = new UuidCodec(uuidRepresentation);
+    }
+
+    @Override
+    public UUID deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+      final BsonReader reader = ((BsonParser) parser).unwrap();
+      return uuidCodec.decode(reader, DECODER_CONTEXT);
+    }
+  }
 
 }

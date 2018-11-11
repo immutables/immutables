@@ -247,9 +247,11 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return JsonToken.VALUE_NUMBER_FLOAT;
       case DOUBLE:
         return JsonToken.VALUE_NUMBER_FLOAT;
+      case BINARY:
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
       default:
         throw new IllegalStateException(String.format("Unknown type %s", type));
-    }   
+    }
   }
 
   @Override
