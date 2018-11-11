@@ -18,6 +18,7 @@ package org.immutables.fixture.modifiable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
+import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
 import org.junit.Test;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.immutables.check.Checkers.check;
@@ -234,16 +235,16 @@ public class ModifiablesTest {
 
   @Test
   public void composeBuilders() {
-    final ModifiableBeanFriendly first = new ModifiableBeanFriendly();
+    ModifiableBeanFriendly first = new ModifiableBeanFriendly();
     first.setPrimary(true);
     first.setId(42);
-    final ModifiableBeanFriendly second = new ModifiableBeanFriendly();
+    ModifiableBeanFriendly second = new ModifiableBeanFriendly();
     second.setPrimary(false);
     second.setDescription("foo");
-    final ImmutableBeanFriendly result = ImmutableBeanFriendly.builder()
-      .from(first)
-      .from(second)
-      .build();
+    ImmutableBeanFriendly result = ImmutableBeanFriendly.builder()
+        .from(first)
+        .from(second)
+        .build();
     check(result.getId()).is(42);
     check(!result.isPrimary());
     check(result.getDescription()).is("foo");
@@ -251,21 +252,57 @@ public class ModifiablesTest {
 
   @Test
   public void copyPartialModifiable() {
-    final ModifiableBeanFriendly first = new ModifiableBeanFriendly();
+    ModifiableBeanFriendly first = new ModifiableBeanFriendly();
     first.setPrimary(true);
     first.setId(42);
-    final ModifiableBeanFriendly second = new ModifiableBeanFriendly().from(first);
+    ModifiableBeanFriendly second = new ModifiableBeanFriendly().from(first);
     check(second.getId()).is(42);
   }
 
   @Test
-  public void testGeneric() {
-    final GenericHolder<String> tester = ImmutableGenericHolder.<String>builder()
-            .from(ModifiableGenericHolder.<String>create().setOptional("optional"))
-            .mandatory("mandatory")
-            .build();
+  public void generics() {
+    GenericHolder<String> tester = ImmutableGenericHolder.<String>builder()
+        .from(ModifiableGenericHolder.<String>create().setOptional("optional"))
+        .mandatory("mandatory")
+        .build();
 
     check(tester.mandatory()).is("mandatory");
     check(tester.optional()).is("optional");
+  }
+
+  @Test
+  public void modifiablesMergeFrom() {
+    ModifiableFromType m = ModifiableFromType.create();
+
+    FromType f = new FromType.Builder()
+        .mergeFrom(m) // will not initialize anything but will not fail
+        .a(1)
+        .build();
+
+    FromType f2 = ModifiableFromType.create()
+        .mergeFrom(m) // will not initialize anything but will not fail
+        .setA(1)
+        .toImmutable();
+
+    check(f2).is(f);
+  }
+
+  @Test
+  public void modifiablesMergeFromManySupertypes() {
+    ModifiableFromManyTypes m = ModifiableFromManyTypes.create()
+        .setA(true);
+
+    ImmutableFromManyTypes f = ImmutableFromManyTypes.builder()
+        .mergeFrom(m) // will initialize a but not b, but will not fail
+        .b(1)
+        .build();
+
+    ImmutableFromManyTypes f2 = ModifiableFromManyTypes.create()
+        .mergeFrom(ModifiableFromManyTypes.create()) // will not initialize anything but will not
+        .mergeFrom(() -> true) // will initialize a
+        .setB(1)
+        .toImmutable();
+
+    check(f).is(f2);
   }
 }

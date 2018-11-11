@@ -364,12 +364,35 @@ public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
   [thisSetterReturn type]
 }
   [/for]
+
+/**
+ * Fill this modifiable instance with attribute values from the provided {@link [type.typeAbstract.relativeRaw]} instance.
+ * Regular attribute values will be overridden, i.e. replaced with ones of an instance.
+ * Any of the instance's absent optional values will not be copied (will not override current values).
+[if type.hasSettableCollection or type.hasSettableMapping]
+ * Collection elements and entries will be added, not replaced.
+[/if]
+ * @param instance The instance from which to copy values
+ * @return {@code this} for use in a chained invocation
+ */
+public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
+  [im.requireNonNull type](instance, "instance");
+  from((Object) instance);
+  [thisReturn type]
+}
 [for bs = type.buildFromTypes]
 
 [if bs.hasWildcards andnot type.suppressesUncheckedWarning]
 @SuppressWarnings("unchecked")
 [/if]
 private void from(Object object) {
+  if (object instanceof [type.typeModifiable.relativeRaw][type.generics.unknown]) {
+    [type.typeModifiable] instance = ([type.typeModifiable]) object;
+  [for v in type.settableAttributes]
+    [im.buildFromMandatoryAttribute buildFromAttribute v 'instance']
+  [/for]
+    return;
+  }
   [for l in bs.positions.longs]
   long bits[emptyIfZero l.index] = 0;
   [/for]
@@ -404,7 +427,12 @@ private void from(Object object) {
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [im.requireNonNull type](instance, "instance");
-  [im.dynamicFromModifiableCheck type 'instance' 'this']
+  [if type.kind.isModifiable]
+  if (instance instanceof [type.typeModifiable.relativeRaw][type.generics.unknown]) {
+    [type.names.from](([type.typeModifiable]) instance);
+    [thisReturn type]
+  }
+  [/if]
 [for v in type.settableAttributes]
   [buildFromAttribute v]
 [/for]

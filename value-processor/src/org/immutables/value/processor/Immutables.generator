@@ -1223,6 +1223,22 @@ public interface BuildFinal[type.generics] {
 [/if]
 [if type.kind.isValue]
   [if type.generateBuilderFrom]
+  [if type.kind.isModifiable]
+
+  /**
+   * Fill a builder with attribute values from the provided {@code [type.typeModifiable.simple]} instance.
+   * @param instance The instance from which to copy values
+   * @return {@code this} builder for use in a chained invocation
+   */
+  [atCanIgnoreReturnValue type]
+  public final [builderReturnType type] [type.names.from]([type.typeModifiable] instance) {
+    [requireNonNull type](instance, "instance");
+    [for v in setters]
+    [buildFromMandatoryAttribute buildFromAttribute v]
+    [/for]
+    return [builderReturnThis type];
+  }
+  [/if]
     [if type.buildFromTypes and type.buildFromTypes.hasManySupertypes]
       [for s in type.buildFromTypes.supertypes]
   [if type.constitution.isImplementationPrimary and (s.type eq type.typeAbstract.toString)]
@@ -1271,7 +1287,7 @@ public interface BuildFinal[type.generics] {
   @SuppressWarnings("unchecked")
 [/if]
   private void from(Object object) {
-    [dynamicFromModifiableCheck type 'object' '']
+    [dynamicFromModifiableCheck type 'object' 'return;']
     [for l in bs.positions.longs]
     [atVar type]long bits[emptyIfZero l.index] = 0;
     [/for]
@@ -1317,7 +1333,7 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   [type.typeAbstract.access]final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
-    [dynamicFromModifiableCheck type 'instance' 'this']
+    [dynamicFromModifiableCheck type 'instance' '']
     [for v in setters]
     [buildFromAttribute v]
     [/for]
@@ -1327,25 +1343,9 @@ public interface BuildFinal[type.generics] {
   [atCanIgnoreReturnValue type]
   public final [builderReturnType type] [type.names.from]([type.typeAbstract.relative] instance) {
     [requireNonNull type](instance, "instance");
-    [dynamicFromModifiableCheck type 'instance' 'this']
+    [dynamicFromModifiableCheck type 'instance' '']
     [for v in setters]
     [buildFromAttribute v]
-    [/for]
-    return [builderReturnThis type];
-  }
-  [/if]
-  [if type.kind.isModifiable]
-
-  /**
-   * Fill a builder with attribute values from the provided {@code [type.typeModifiable]} instance.
-   * @param instance The instance from which to copy values
-   * @return {@code this} builder for use in a chained invocation
-   */
-  [atCanIgnoreReturnValue type]
-  public final [builderReturnType type] [type.names.from]([type.typeModifiable] instance) {
-    [requireNonNull type](instance, "instance");
-    [for v in setters]
-    [buildFromMandatoryAttribute buildFromAttribute v 'instance']
     [/for]
     return [builderReturnThis type];
   }
@@ -2547,9 +2547,9 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   }
 [/template]
 
-[template public buildFromMandatoryAttribute Invokable buildAttribute Attribute v String varName]
+[template public buildFromMandatoryAttribute Invokable buildAttribute Attribute v]
 [if v.isMandatory]
-if ([varName].[v.names.isSet]()) {
+if (instance.[v.names.isSet]()) {
   [buildAttribute v]
 }
 [else]
@@ -2557,11 +2557,15 @@ if ([varName].[v.names.isSet]()) {
 [/if]
 [/template]
 
-[template public dynamicFromModifiableCheck Type type String varName String returnValue]
+[template dynamicFromModifiableCheck Type type String varName String returnStatement]
 [if type.kind.isModifiable]
 if ([varName] instanceof [type.typeModifiable.relativeRaw][type.generics.unknown]) {
+  [if returnStatement]
   [type.names.from](([type.typeModifiable]) [varName]);
-  return[if returnValue] [returnValue][/if];
+  [returnStatement]
+  [else]
+  return [type.names.from](([type.typeModifiable]) [varName]);
+  [/if]
 }
 [/if]
 [/template]
