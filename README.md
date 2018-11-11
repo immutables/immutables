@@ -50,6 +50,10 @@ License
 Changelog
 ---------
 
+### 2.7.3 (2018-11-10)
+- Important fix for Modifiables/Immutables/from (aka mergeFrom) methods broken in 2.7.2
+- [Issues #863 #864](https://github.com/immutables/immutables/milestone/72?closed=1)
+
 ### 2.7.2 (2018-11-05)
 - Many fixes and corrections! Thank you issue reports and PRs! 
 - [Issues 2.7.2](https://github.com/immutables/immutables/milestone/71?closed=1)
