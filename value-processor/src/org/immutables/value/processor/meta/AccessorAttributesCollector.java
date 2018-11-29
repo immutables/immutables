@@ -162,14 +162,14 @@ final class AccessorAttributesCollector {
     boolean nonFinal = !utilityMethodCandidate.getModifiers().contains(Modifier.FINAL);
     boolean nonAbstract = !utilityMethodCandidate.getModifiers().contains(Modifier.ABSTRACT);
 
-    if (definingType.getQualifiedName().contentEquals(Object.class.getName())) {
+    if (isJavaLangObjectType(definingType)) {
       // We ignore methods of java.lang.Object
       return;
     }
 
     if (name.contentEquals(EQUALS_METHOD)
         && parameters.size() == 1
-        && parameters.get(0).asType().toString().equals(Object.class.getName())) {
+        && isJavaLangObjectType(parameters.get(0).asType())) {
 
       if (nonAbstract) {
         type.isEqualToDefined = true;
@@ -220,6 +220,20 @@ final class AccessorAttributesCollector {
       }
       return;
     }
+  }
+
+  private boolean isJavaLangObjectType(TypeMirror typeMirror) {
+    if (typeMirror.getKind() == TypeKind.DECLARED) {
+      Element element = ((DeclaredType) typeMirror).asElement();
+      if (element.getKind().isClass()) {
+        return isJavaLangObjectType(((TypeElement) element));
+      }
+    }
+    return false;
+  }
+
+  private boolean isJavaLangObjectType(TypeElement definingType) {
+    return definingType.getQualifiedName().contentEquals(Object.class.getName());
   }
 
   private void processGenerationCandidateMethod(ExecutableElement attributeMethodCandidate, TypeElement originalType) {
@@ -320,7 +334,7 @@ final class AccessorAttributesCollector {
               .annotationNamed(DefaultMirror.simpleName())
               .warning(About.INCOMPAT,
                   "@Value.Default annotation is superflous for default annotation attribute"
-                  + " when 'defaultAsDefault' style is enabled");
+                      + " when 'defaultAsDefault' style is enabled");
         }
       } else if (derivedAnnotationPresent) {
         attribute.isGenerateDerived = true;

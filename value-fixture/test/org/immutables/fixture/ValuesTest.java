@@ -386,6 +386,15 @@ public class ValuesTest {
 
   @SuppressWarnings("unlikely-arg-type")
   @Test
+  public void underwriteEqualsWithTypeAnnotationOnParameter() {
+    // custom equals returns true even if null is passed
+    // if it will not be properly undewritten and the equals methid will be generated
+    // we will get false when passing null
+    check(ImmutableCustomEqualsWithTypeAnnotation.builder().build().equals(null));
+  }
+
+  @SuppressWarnings("unlikely-arg-type")
+  @Test
   public void noUnderwriteInheritedHashcodeToStringEquals() {
     ImmutableNoUnderwrite v =
         ImmutableNoUnderwrite.builder()
