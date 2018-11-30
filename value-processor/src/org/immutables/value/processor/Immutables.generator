@@ -772,10 +772,10 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     [if type.useWeakInterned]
     synchronized (INTERNER) {
       [atNullable type]java.lang.ref.WeakReference<[type.typeImmutable.relative]> reference = INTERNER.get(instance);
-      [atNullable type][type.typeImmutable.relative] interned;
-      if (reference == null || (interned = reference.get()) == null) {
+      [atNullable type][type.typeImmutable.relative] interned = reference != null : reference.get() : null;
+      if (interned == null) {
         INTERNER.put(instance, new java.lang.ref.WeakReference<>(instance));
-        return instance;
+        interned = instance;
       }
       return interned;
     }
