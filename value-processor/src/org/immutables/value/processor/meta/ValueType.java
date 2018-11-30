@@ -636,7 +636,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     if (isAnnotationType()) {
       return false;
     }
-    return isUseInterned()
+    return (isUseInterned() && !style().weakInterning())
         || isUseSingletonOnly()
         || useAttributelessSingleton()
         || isGenerateOrdinalValue();
