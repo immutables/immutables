@@ -603,7 +603,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [/template]
 
 [template generateInterning Type type]
-[if type.useInterned or type.generateOrdinalValue]
+[if type.useStrongInterned or type.generateOrdinalValue]
   [if not type.useSingletonOnly]
 
   [atGenerated type]
@@ -686,15 +686,19 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [else if type.useInterned]
 
   [if type.generateJdkOnly]
-    [if type.style.weakInterning]
-  private static final java.util.Map<InternProxy, java.lang.ref.WeakReference<[type.typeImmutable.simple]>> INTERNER =
-      new java.util.WeakHashMap<InternProxy, java.lang.ref.WeakReference<[type.typeImmutable.simple]>>();
+    [if type.useWeakInterned]
+  private static final java.util.Map<[type.typeImmutable.simple], java.lang.ref.WeakReference<[type.typeImmutable.simple]>> INTERNER =
+      new java.util.WeakHashMap<>();
     [else]
-    private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]> INTERNER =
-        new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.simple]>();
+  private static final java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.relative]> INTERNER =
+        new java.util.concurrent.ConcurrentHashMap<InternProxy, [type.typeImmutable.relative]>();
     [/if]
   [else]
-  private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.new[if type.style.weakInterning]Weak[else]Strong[/if]Interner();
+    [if type.useWeakInterned]
+  private static final [guava].collect.Interner<[type.typeImmutable.relative]> INTERNER = [guava].collect.Interners.newWeakInterner();
+    [else]
+  private static final [guava].collect.Interner<InternProxy> INTERNER = [guava].collect.Interners.newStrongInterner();
+    [/if]
   [/if]
 [/if]
 [/template]
@@ -740,8 +744,8 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [/if]
 [/if]
 [if type.useValidation]
-
 [if type.useJavaValidationApi]
+
   private static final javax.validation.Validator [disambiguateField type 'validator'] = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
 [/if]
 
@@ -765,13 +769,12 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     return ([type.typeImmutable.relative]) instance.domain.internOrdinal(new InternProxy(instance));
 [else if type.useInterned]
   [if type.generateJdkOnly]
-    [if type.style.weakInterning]
+    [if type.useWeakInterned]
     synchronized (INTERNER) {
-      InternProxy newProxy = new InternProxy(instance);
-      [atNullable type]java.lang.ref.WeakReference<[type.typeImmutable.relative]> reference = INTERNER.get(newProxy);
-      [atNullable type][type.typeImmutable.relative] interned = reference != null ? reference.get() : null;
-      if (interned == null) {
-        INTERNER.put(newProxy, new java.lang.ref.WeakReference<[type.typeImmutable.relative]>(instance));
+      [atNullable type]java.lang.ref.WeakReference<[type.typeImmutable.relative]> reference = INTERNER.get(instance);
+      [atNullable type][type.typeImmutable.relative] interned;
+      if (reference == null || (interned = reference.get()) == null) {
+        INTERNER.put(instance, new java.lang.ref.WeakReference<>(instance));
         return instance;
       }
       return interned;
@@ -781,7 +784,11 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
     return interned != null ? interned : instance;
     [/if]
   [else]
+    [if type.useWeakInterned]
+    return INTERNER.intern(instance);
+    [else]
     return INTERNER.intern(new InternProxy(instance)).instance;
+    [/if]
   [/if]
 [else if type.useSingleton]
   [if type.useSingletonOnlyForConstruction]
