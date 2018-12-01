@@ -307,7 +307,7 @@ public final class Output {
         if (identicalFileIsAlreadyGenerated(sourceCode)) {
           getMessager().printMessage(Kind.MANDATORY_WARNING, "Regenerated file with the same content: " + key);
         } else {
-          getMessager().printMessage(Kind.ERROR,
+          getMessager().printMessage(Kind.MANDATORY_WARNING,
               String.format(
                   "Generated source file name colission. Attempt to overwrite already generated file: %s, %s."
                       + " If this happens when using @Value.Immutable on same-named nested classes in the same package,"
