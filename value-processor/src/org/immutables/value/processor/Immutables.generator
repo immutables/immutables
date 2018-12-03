@@ -2201,14 +2201,10 @@ if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type
   [if v.encoding]
 [rr.builderCopyFrom v](instance.[v.names.get]());
   [else if v.collectionType]
-    [if v.nullable]
 [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
 if ([v.name]Value != null) {
   [v.names.addAll]([v.name]Value);
 }
-    [else]
-[v.names.addAll](instance.[v.names.get]());
-    [/if]
   [else if v.mapType]
     [if v.nullable]
 [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
@@ -2223,7 +2219,7 @@ if ([v.name]Value != null) {
 if ([v.name]Optional.[optionalPresent v]) {
   [v.names.init]([v.name]Optional);
 }
-  [else if v.nullable]
+  [else if not v.primitive]
 [v.atNullabilityLocal][v.type] [v.name]Value = instance.[v.names.get]();
 if ([v.name]Value != null) {
   [v.names.init]([v.name]Value);
