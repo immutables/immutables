@@ -257,4 +257,13 @@ public class NullableAttributesTest {
     check(r.i1()).isNull();
     check(r.l2()).isNull();
   }
+
+  @Test
+  public void sometimesNullableFrom() {
+    check(ImmutableNonnullAttribute.builder()
+        .attribute("foo")
+        .from(ImmutableNullableAttribute.builder().build())
+        .build())
+      .not().isNull();
+  }
 }
