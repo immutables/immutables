@@ -1,0 +1,132 @@
+[--
+   Copyright 2014-2018 Immutables Authors and Contributors
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+--]
+[template public generate]
+  [for type in values.values if type.generateCriteria]
+    [if type.kind.isValue andnot type.generics]
+[output.java type.package (type.name 'Criteria') type.element]
+[type.sourceHeader]
+[generateCriteria type]
+[/output.java]
+    [else]
+[output.error]
+Use @Criteria to annotate @Value.Immutable abstract value types with no type variables
+[/output.error]
+    [/if]
+  [/for]
+[/template]
+
+[template generateCriteria Type type]
+[if type.package]
+package [type.package];
+[/if]
+
+import org.immutables.criteria.Disjunction;
+import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.ValueCriteria;
+import org.immutables.criteria.constraints.CriteriaCreator;
+import org.immutables.criteria.constraints.Constraints;
+import org.immutables.criteria.constraints.OptionalCriteria;
+import org.immutables.criteria.constraints.ObjectCriteria;
+import org.immutables.criteria.constraints.StringCriteria;
+import org.immutables.criteria.constraints.BooleanCriteria;
+import org.immutables.criteria.constraints.ComparableCriteria;
+
+import com.google.common.base.Preconditions;
+
+[for starImport in type.requiredSourceStarImports]
+import [starImport];
+[/for]
+
+/**
+ * A {@code [type.name]Criteria} provides type-safe API for retrieving documents
+ * from a generic data-source.
+ * <p>This class is immutable and thus thread-safe.</p>
+ */
+[if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
+@javax.annotation.concurrent.ThreadSafe
+[/if]
+@javax.annotation.concurrent.Immutable
+[atGenerated type]
+[type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]>,
+                                        Disjunction<[type.name]Criteria, [type.name]>, Constraints.ConstraintHost {
+
+   private final Constraints.Constraint constraint;
+
+   // public fields
+   [for a in type.allMarshalingAttributes]
+   [if not a.collectionType]
+   public final [criteriaType a type] [a.name];
+   [/if]
+   [/for]
+
+   private [type.name]Criteria(Constraints.Constraint constraint) {
+       this.constraint = Preconditions.checkNotNull(constraint, "constraint");
+   [for a in type.allMarshalingAttributes]
+   [if not a.collectionType]
+       this.[a.name] = new [criteriaType a type]("[a.name]", constraint, creator());
+   [/if]
+   [/for]
+   }
+
+   public static [type.name]Criteria create() {
+        return new [type.name]Criteria(Constraints.nilConstraint());
+   }
+
+   @Override
+   public <V extends Constraints.ConstraintVisitor<V>> V accept(V visitor) {
+       return constraint.accept(visitor);
+   }
+
+   @Override
+   public [type.name]Criteria or() {
+       return new [type.name]Criteria(constraint.disjunction());
+   }
+
+   /**
+    * Used to construct this criteria based on existing {@link Constraints.Constraint}
+    */
+   private static CriteriaCreator<[type.name]Criteria, [type.name]> creator() {
+      return new CriteriaCreator<[type.name]Criteria, [type.name]>() {
+         @Override
+         public [type.name]Criteria create(Constraints.Constraint constraint) {
+            return new [type.name]Criteria(constraint);
+         }
+      };
+   }
+
+}
+[/template]
+
+
+[template criteriaType Attribute a Type type][output.trim]
+[if a.boolean]
+BooleanCriteria<[type.name]Criteria, [type.name]>
+[else if a.stringType]
+StringCriteria<[type.name]Criteria, [type.name]>
+[else if a.optionalType]
+OptionalCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+[else if a.comparable]
+ComparableCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+[else]
+ObjectCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+[/if]
+[/output.trim][/template]
+
+[template atGenerated Type type]
+[if type allowsClasspathAnnotation 'org.immutables.value.Generated']
+@org.immutables.value.Generated(from = "[type.typeAbstract.relativeRaw]", generator = "Criteria")
+[/if]
+[/template]

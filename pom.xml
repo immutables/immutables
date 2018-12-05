@@ -41,6 +41,7 @@
     <module>builder</module>
     <module>android-stub</module>
     <module>gson</module>
+    <module>criteria</module>
     <module>mongo</module>
     <module>func</module>
     <module>value-processor</module>

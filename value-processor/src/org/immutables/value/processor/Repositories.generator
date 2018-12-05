@@ -861,7 +861,6 @@ this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if seconda
   [/if]
 [/for]
 [/template]
-
 [template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]Encoder, [else]Support.writable([/if][/template]
 
 [template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryEncoder, [else]Support.writable([/if][/template]
