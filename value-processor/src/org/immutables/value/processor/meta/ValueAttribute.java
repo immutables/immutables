@@ -1195,14 +1195,15 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   public enum NullElements {
     BAN,
     ALLOW,
-    SKIP;
+    SKIP,
+    NOP;
 
     public boolean ban() {
       return this == BAN;
     }
 
     public boolean allow() {
-      return this == ALLOW;
+      return this == ALLOW || this == NOP;
     }
 
     public boolean skip() {
@@ -1436,7 +1437,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
           .error("@Value.Auxiliary cannot be used on annotation attribute to not violate annotation spec");
     }
 
-    if (!isGenerateJdkOnly() && !nullElements.ban()) {
+    if (!isGenerateJdkOnly()
+        && (nullElements == NullElements.ALLOW || nullElements == NullElements.SKIP)) {
       report().warning(About.INCOMPAT,
           "Guava collection implementation does not allow null elements,"
               + " @AllowNulls/@SkipNulls annotation will be ignored."
@@ -1506,7 +1508,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     if (isCollectionType()
         && nullElements == NullElements.BAN
         && protoclass().styles().style().validationMethod() == ValidationMethod.NONE) {
-      nullElements = NullElements.ALLOW;
+      nullElements = NullElements.NOP;
     }
     if (annotationInjections != null) {
       this.annotationInjections = annotationInjections.build();
