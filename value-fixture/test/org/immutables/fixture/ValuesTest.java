@@ -211,7 +211,7 @@ public class ValuesTest {
     check(includesAuxiliary.hashCode()).is(excludesAuxiliary.hashCode());
     check(includesAuxiliary).asString().not().contains("auxiliary");
   }
-  
+
   @Test
   public void auxiliaryOnForcedSingleton() {
     check(ImmutableAuxDefaultOnForcedSingleton.of().withAux(66).aux()).is(66);
@@ -554,5 +554,18 @@ public class ValuesTest {
         .build();
 
     check(m).hasToString("RedactedMaskJdkOnlyOpt{code=????}");
+  }
+
+  @Test
+  public void withStringEqualsRegardlessOfTypeAnnotation() {
+    ImmutableWithThisCheckForNoNilString o = ImmutableWithThisCheckForNoNilString.builder()
+        .a("a")
+        .b("b")
+        .build();
+    // with should use equals short-circuit check to return this, not reference equality
+    // so we create "new String"
+    check(o.withA(new String("a"))).same(o);
+    check(o.withB(new String("b"))).same(o);
+    check(o.withA("other")).not().same(o);
   }
 }

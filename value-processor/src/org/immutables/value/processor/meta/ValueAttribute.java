@@ -15,6 +15,7 @@
  */
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -165,8 +166,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public boolean hasSimpleScalarElementType() {
     ensureTypeIntrospected();
+
     String type = getWrappedElementType();
-    return type.equals(String.class.getName())
+    return isStringType()
+        || String.class.getName().equals(type)
         || isPrimitiveWrappedType(type)
         || hasEnumContainedElementType()
         || isEnumType()
@@ -591,7 +594,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public String getUnwrappedElementType() {
     return isContainerType() && nullElements.ban()
-        ? unwrapType(containmentTypeName())
+        ? unwrapType(firstTypeParameter())
         : getElementType();
   }
 
@@ -602,11 +605,16 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String getWrappedElementType() {
-    return wrapType(containmentTypeName());
+    if (returnType.getKind().isPrimitive()) {
+      return wrapType(Ascii.toLowerCase(returnType.getKind().name()));
+    }
+    return wrapType(hasContainedElementType()
+        ? firstTypeParameter()
+        : returnTypeName);
   }
 
-  private String containmentTypeName() {
-    return (isArrayType() || isContainerType()) ? firstTypeParameter() : returnTypeName;
+  private boolean hasContainedElementType() {
+    return isArrayType() || isContainerType();
   }
 
   public String getRawType() {
@@ -615,7 +623,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public String getConsumedElementType() {
     return (isUnwrappedElementPrimitiveType()
-        || String.class.getName().equals(containmentTypeName())
+        || isStringType()
+        || (hasContainedElementType() && firstTypeParameter().equals(String.class.getName()))
         || hasEnumFirstTypeParameter())
             ? getWrappedElementType()
             : "? extends " + getWrappedElementType();
@@ -656,7 +665,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public String getElementType() {
-    return containmentTypeName();
+    return hasContainedElementType() ? firstTypeParameter() : returnTypeName;
   }
 
   @Nullable
