@@ -15,8 +15,10 @@
  */
 package org.immutables.fixture;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.io.IOException;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Method;
@@ -24,6 +26,7 @@ import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.POST;
 import nonimmutables.GetterAnnotation;
@@ -33,6 +36,7 @@ import org.immutables.fixture.style.ImmutableOptionalWithNullable;
 import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
 public class ValuesTest {
 
@@ -567,5 +571,33 @@ public class ValuesTest {
     check(o.withA(new String("a"))).same(o);
     check(o.withB(new String("b"))).same(o);
     check(o.withA("other")).not().same(o);
+  }
+
+  @Test
+  public void lazyThrows() {
+    ImmutableThrowsClauses t = ImmutableThrowsClauses.builder()
+        .a(1)
+        .b("b")
+        .build();
+
+    Exception previousEx = null;
+    boolean returned = false;
+    try {
+      returned = t.d();
+      check(false);
+    } catch (IOException | ExecutionException ex) {
+      previousEx = ex;
+      check(ex.getMessage()).is("d");
+    }
+    // not memoising and thrown again new exception
+    try {
+      returned = t.d();
+      check(false);
+    } catch (IOException | ExecutionException ex) {
+      check(previousEx).notNull();
+      check(previousEx).not().same(ex);
+      check(ex.getMessage()).is("d");
+    }
+    check(!returned); // this is just for compiler error prone so that we read d() and also use it
   }
 }

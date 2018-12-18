@@ -427,6 +427,17 @@ public class Proto {
       }
       return instantiator;
     }
+
+    public boolean isCheckedException(TypeMirror throwable) {
+      return checkedExceptionProbe().isCheckedException(throwable);
+    }
+
+    @Value.Lazy
+    CheckedExceptionProbe checkedExceptionProbe() {
+      return new CheckedExceptionProbe(
+          processing().getTypeUtils(),
+          processing().getElementUtils());
+    }
   }
 
   /**
@@ -494,7 +505,7 @@ public class Proto {
         report().annotationNamed(IncludeMirror.simpleName())
             .warning(About.INCOMPAT,
                 "Some types were ignored, non-supported for inclusion: duplicates,"
-                + " non declared reference types, non-public");
+                    + " non declared reference types, non-public");
       }
 
       return typeElements.toList();
@@ -521,7 +532,7 @@ public class Proto {
         report().annotationNamed(IncludeMirror.simpleName())
             .warning(About.INCOMPAT,
                 "Some types were ignored, non-supported for inclusion: duplicates,"
-                + " non declared reference types, non-public");
+                    + " non declared reference types, non-public");
       }
 
       return typeElements.toList();
@@ -1474,9 +1485,9 @@ public class Proto {
       report().annotationNamed(StyleMirror.simpleName())
           .warning(About.INCOMPAT,
               "Use styles only on enclosing types."
-              + " All nested styles will inherit it."
-              + " Nested immutables cannot deviate in style from enclosing type,"
-              + " so generated stucture will be consistent");
+                  + " All nested styles will inherit it."
+                  + " Nested immutables cannot deviate in style from enclosing type,"
+                  + " so generated stucture will be consistent");
     }
 
     @Value.Derived

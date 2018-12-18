@@ -893,11 +893,22 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
    * <p>
    * Returns a lazily initialized value of the [sourceDocRef type l] attribute.
    * Initialized once and only once and stored for subsequent access with proper synchronization.
+   * In case of any exception or error thrown by the lazy value initializer,
+   * the result will not be memoised (i.e. remembered) and on next call computation
+   * will be attempted again.
    * @return A lazily initialized value of the {@code [l.name]} attribute
+  [for t in l.thrownCheckedExceptions]
+   * @throws [t] if undelying {@code [l.names.get]()} will throw it.
+  [/for]
    */
   [eachLine l.accessorInjectedAnnotations]
   @Override
+  [if l.thrownCheckedExceptions]
+  public [l.type] [output.linesShortable][l.names.get]()
+      throws [for t in l.thrownCheckedExceptions][if not for.first], [/if][t][/for] {[/output.linesShortable]
+  [else]
   public [l.type] [l.names.get]() {
+  [/if]
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
         if (([bitmapFieldName] & [maskConstantName]) == 0) {

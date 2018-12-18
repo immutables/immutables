@@ -20,18 +20,21 @@ import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
@@ -1125,6 +1128,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     initMiscellaneous();
 
     initSpecialAnnotations();
+    validateThrowsClause();
     validateTypeAndAnnotations();
 
     if (supportBuiltinContainerTypes()) {
@@ -1133,6 +1137,45 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     }
 
     initAttributeBuilder();
+  }
+
+  private Set<String> thrownCheckedExceptions = ImmutableSet.of();
+
+  private void validateThrowsClause() {
+    if (element.getKind() != ElementKind.METHOD) {
+      return;
+    }
+    ImmutableSet<String> checkedExceptions = collectThrownCheckedExceptions();
+    if (!checkedExceptions.isEmpty()) {
+      if (isGenerateLazy) {
+        this.thrownCheckedExceptions = checkedExceptions;
+      } else {
+        report().warning(About.INCOMPAT,
+            "Checked exceptions in 'throws' clause are not supported for regular abstract,"
+                + " @Value.Derived, and @Value.Default attributes due to implementation difficulties"
+                + " and unclear semantics. This message reported as a warning to preserve compatibility,"
+                + " but there are high chances you'll see compile error in generated classed caused by this."
+                + " NOTE: for @Value.Lazy attributes, checked exceptions are supported by simple propagation:"
+                + " neither runtime nor checked exceptions will not be memoised for lazy attributes,"
+                + " leading to lazy computation to be re-evaluated again and again until regular value"
+                + " returned and memoised.");
+      }
+    }
+  }
+
+  private ImmutableSet<String> collectThrownCheckedExceptions() {
+    Set<String> exceptions = new HashSet<>(2);
+    Environment env = protoclass().environment();
+    for (TypeMirror thrown : ((ExecutableElement) element).getThrownTypes()) {
+      if (env.isCheckedException(thrown)) {
+        exceptions.add(thrown.toString());
+      }
+    }
+    return ImmutableSet.copyOf(exceptions);
+  }
+
+  public Set<String> getThrownCheckedExceptions() {
+    return thrownCheckedExceptions;
   }
 
   private void initAttributeBuilder() {
