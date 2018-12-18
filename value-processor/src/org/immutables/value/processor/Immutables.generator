@@ -3323,9 +3323,6 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
  */
 [suppressCovariantCastForOptional v]
 [deprecation v]
-//E: [v.elementType]
-//W: [v.wrappedElementType]
-//U: [v.unwrappedElementType]
 public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.jdkSpecializedOptional]<[v.consumedElementType]>[/if] optional) {
   [immutableImplementationType v] value = [valueFromValue v 'optional'];
 [if v.jdkOptional]
@@ -3382,9 +3379,6 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
  * @return A modified copy of the {@code this} object
  */
 [deprecation v]
-//E: [v.elementType]
-//W: [v.wrappedElementType]
-//U: [v.unwrappedElementType]
 public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.type] value) {
     [if v.float]
   if (Float.floatToIntBits(this.[v.name]) == Float.floatToIntBits(value)) return this;
