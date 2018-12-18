@@ -723,7 +723,7 @@ public class Proto {
     @Value.Lazy
     Optional<DeclaringPackage> namedParentPackage() {
       String parentPackageName = SourceNames.parentPackageName(element());
-      if (!parentPackageName.isEmpty()) {
+      while (!parentPackageName.isEmpty()) {
         @Nullable PackageElement parentPackage =
             environment().processing()
                 .getElementUtils()
@@ -737,6 +737,11 @@ public class Proto {
                   .element(parentPackage)
                   .build()));
         }
+
+        // With JDK 9+ package elements are only returned for packages with a
+        // `package-info.class` file. So although the parent may not be found,
+        // there may be "ancestor packages" further up the hierarchy.
+        parentPackageName = SourceNames.parentPackageName(parentPackageName);
       }
       return Optional.absent();
     }

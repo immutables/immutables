@@ -46,7 +46,10 @@ final class SourceNames {
   }
 
   static String parentPackageName(PackageElement element) {
-    String qualifiedName = element.getQualifiedName().toString();
+    return parentPackageName(element.getQualifiedName().toString());
+  }
+
+  static String parentPackageName(String qualifiedName) {
     int lastIndexOfDot = qualifiedName.lastIndexOf('.');
     if (lastIndexOfDot > 0) {
       return qualifiedName.substring(0, lastIndexOfDot);
