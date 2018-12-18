@@ -904,10 +904,10 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   [eachLine l.accessorInjectedAnnotations]
   @Override
   [if l.thrownCheckedExceptions]
-  public [l.type] [output.linesShortable][l.names.get]()
+  [l.access][l.type] [output.linesShortable][l.names.get]()
       throws [for t in l.thrownCheckedExceptions][if not for.first], [/if][t][/for] {[/output.linesShortable]
   [else]
-  public [l.type] [l.names.get]() {
+  [l.access][l.type] [l.names.get]() {
   [/if]
     if (([bitmapFieldName] & [maskConstantName]) == 0) {
       synchronized (this) {
