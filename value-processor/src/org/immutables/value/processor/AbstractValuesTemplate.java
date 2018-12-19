@@ -2,6 +2,7 @@ package org.immutables.value.processor;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
+import javax.annotation.Nullable;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;
@@ -44,6 +45,15 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
     @Override
     public String apply(Object input) {
       return ObscureFeatures.noDiamonds() ? ("<" + input + ">") : "<>";
+    }
+  };
+
+  protected final Function<String, String> easierTypeName = new Function<String, String>() {
+    @Override
+    public String apply(String input) {
+      return input
+          .replace("java.lang.", "")
+          .replace("java.util.", "");
     }
   };
 

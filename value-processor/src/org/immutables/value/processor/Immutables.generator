@@ -183,6 +183,7 @@ import static [routine].immutableCopyOf;
 
   /**
    * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]}.
+  [javadocBuilderExample type]
   [javadocGenerics type]
   [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
@@ -1161,6 +1162,7 @@ public interface BuildFinal[type.generics] {
 [else]
    * Creates a builder for {@link [type.typeValue.relativeRaw] [type.typeValue.simple]} instances.
 [/if]
+  [javadocBuilderExample type]
 [for p in parameters]
    * @param [p.name] {@code [p.name]} parameter[if p.nullable], can be {@code null}[/if]
 [/for]
@@ -3511,6 +3513,28 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 }
     [/if]
   [/if]
+[/template]
+
+[template javadocBuilderExample Type type]
+ * <p>Example
+ * <pre>
+ * [type.factoryBuilder.relative]()
+[for v in type.settableAttributes]
+  [if v.encoding]
+ *    .[rr.builderCopyFrom v](: [easierTypeName v.type])
+  [else if v.nullable]
+ *    .[v.names.init](:nullable [easierTypeName v.type])
+  [else if v.collectionType]
+ *    .[v.names.add]|.[v.names.addAll](:zero-or-more [easierTypeName v.unwrappedElementType])
+  [else if v.mapType]
+ *    .[v.names.put]|.[v.names.putAll](:zero-or-more [easierTypeName v.unwrappedElementType] => [easierTypeName v.unwrappedSecondaryElementType])
+  [else]
+ *    .[v.names.init](:[if v.isMandatory]required[else]optional[/if] [easierTypeName v.type])
+  [/if]
+[/for]
+ *    .[type.names.build]();
+ * </pre>
+ * </p>
 [/template]
 
 [template immutableImplementationType Attribute v][output.trim]

@@ -15,7 +15,6 @@
  */
 package org.immutables.fixture;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
@@ -36,7 +35,6 @@ import org.immutables.fixture.style.ImmutableOptionalWithNullable;
 import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
-import static org.junit.Assert.fail;
 
 public class ValuesTest {
 
