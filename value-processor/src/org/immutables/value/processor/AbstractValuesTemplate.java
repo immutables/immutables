@@ -48,10 +48,12 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
     }
   };
 
-  protected final Function<String, String> easierTypeName = new Function<String, String>() {
+  protected final Function<String, String> typeSnippet = new Function<String, String>() {
     @Override
     public String apply(String input) {
       return input
+          .replace("<", "&lt;")
+          .replace(">", "&gt;")
           .replace("java.lang.", "")
           .replace("java.util.", "");
     }

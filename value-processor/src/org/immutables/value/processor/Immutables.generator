@@ -496,7 +496,7 @@ private Object writeReplace() {
       [if v.arrayType]
 
   /**
-   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
    * The array is cloned before being saved as attribute values.
    * @param elements The non-null elements for [v.name]
    * @return A modified copy of {@code this} object
@@ -506,7 +506,7 @@ private Object writeReplace() {
       [else if v.collectionType]
 
   /**
-   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
    * @param elements The elements to set
    * @return A modified copy of {@code this} object
    */
@@ -514,7 +514,7 @@ private Object writeReplace() {
   [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements);
 
   /**
-   * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+   * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
    * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
    * @param elements An iterable of [v.name] elements to set
    * @return A modified copy of {@code this} object
@@ -524,7 +524,7 @@ private Object writeReplace() {
       [else if v.optionalType]
 
   /**
-   * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+   * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef v] attribute.
    * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return A modified copy of {@code this} object
    */
@@ -532,7 +532,7 @@ private Object writeReplace() {
   [type.typeAbstract.relative] [v.names.with]([unwrappedOptionalType v] value);
 
   /**
-   * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+   * Copy the current immutable object by setting an optional value for the [sourceDocRef v] attribute.
    * A shallow reference equality check on the optional value is used to prevent copying of the same value by returning {@code this}.
    * @param optional A value for [v.name]
    * @return A modified copy of {@code this} object
@@ -543,7 +543,7 @@ private Object writeReplace() {
       [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
   /**
-   * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
+   * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
    * Nulls are not permitted as keys or values.
    * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
    * @param entries The entries to be added to the [v.name] map
@@ -555,7 +555,7 @@ private Object writeReplace() {
       [else]
 
   /**
-   * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
+   * Copy the current immutable object by setting a value for the [sourceDocRef v] attribute.
    [if v.primitive andnot v.floatType]
    * A value equality check is used to prevent copying of the same value by returning {@code this}.
    [else if not v.primitive]
@@ -892,7 +892,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
   /**
    * {@inheritDoc}
    * <p>
-   * Returns a lazily initialized value of the [sourceDocRef type l] attribute.
+   * Returns a lazily initialized value of the [sourceDocRef l] attribute.
    * Initialized once and only once and stored for subsequent access with proper synchronization.
    * In case of any exception or error thrown by the lazy value initializer,
    * the result will not be memoised (i.e. remembered) and on next call computation
@@ -940,7 +940,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 [atGenerated type]
 public interface [toUpper v.name]BuildStage[type.generics] {
   /**
-   * Initializes the value for the [sourceDocRef type v] attribute.
+   * Initializes the value for the [sourceDocRef v] attribute.
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
    */
@@ -957,7 +957,7 @@ public interface BuildFinal[type.generics] {
 [else if v.collectionType]
 
   /**
-   * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds one element to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param element A [v.name] element
    * @return {@code this} builder for use in a chained invocation
    */
@@ -965,7 +965,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.add]([v.unwrappedElementType] element);
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An array of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -973,7 +973,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.addv]([v.unwrappedElementType]... elements);
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -982,7 +982,7 @@ public interface BuildFinal[type.generics] {
 [else if v.optionalType]
 
   /**
-   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * Initializes the optional value [sourceDocRef v] to [v.name].
    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
@@ -990,7 +990,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.init]([unwrappedOptionalType v] [v.name]);
 
   /**
-   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * Initializes the optional value [sourceDocRef v] to [v.name].
    * @param [v.name] The value for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1001,7 +1001,7 @@ public interface BuildFinal[type.generics] {
     [if v.multimapType]
 
   /**
-   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * Put all mappings from the specified key to values for [sourceDocRef v] [toLower v.mapType]. Nulls are not permitted
    * @param key The key for [v.name]
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1010,7 +1010,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.putv]([uK] key, [uV]... values);
 
   /**
-   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * Put all mappings from the specified key to values for [sourceDocRef v] [toLower v.mapType]. Nulls are not permitted
    * @param key The key for [v.name]
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1020,7 +1020,7 @@ public interface BuildFinal[type.generics] {
     [/if]
 
   /**
-   * Put one entry to the [sourceDocRef type v] map.
+   * Put one entry to the [sourceDocRef v] map.
    * @param key The key in the [v.name] map
    * @param value The associated value in the [v.name] map
    * @return {@code this} builder for use in a chained invocation
@@ -1029,7 +1029,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.put]([uK] key, [uV] value);
 
   /**
-   * Put one entry to the [sourceDocRef type v] map. Nulls are not permitted
+   * Put one entry to the [sourceDocRef v] map. Nulls are not permitted
    * @param entry The key and value entry
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1037,7 +1037,7 @@ public interface BuildFinal[type.generics] {
   BuildFinal[type.generics.args] [v.names.put](java.util.Map.Entry<[gE], ? extends [wV]> entry);
 
   /**
-   * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+   * Put all mappings from the specified map as entries to [sourceDocRef v] map. Nulls are not permitted
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1047,9 +1047,9 @@ public interface BuildFinal[type.generics] {
 [else if v.arrayType]
 
   /**
-   * Initializes the value for the [sourceDocRef type v] attribute.
+   * Initializes the value for the [sourceDocRef v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef v].</em>
   [/if]
    * @param elements The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1059,9 +1059,9 @@ public interface BuildFinal[type.generics] {
 [else]
 
   /**
-   * Initializes the value for the [sourceDocRef type v] attribute.
+   * Initializes the value for the [sourceDocRef v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef v].</em>
   [/if]
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
@@ -1411,7 +1411,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [if not v.isBuilderParameter]
 
   /**
-   * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds one element to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param element A [v.name] element
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1447,7 +1447,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.constructorParameters]
 
   /**
-   * Constructs and adds an element for the [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Constructs and adds an element for the [sourceDocRef v] [toLower v.rawCollectionType].
   [for c in v.constructorParameters]
    * @param [c.name] The value for {@code [v.name].[c.name]} [if c.nullable](can be {@code null})[/if]
   [/for]
@@ -1461,7 +1461,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An array of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1501,7 +1501,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
 
   [if v.isAttributeBuilder]
   /**
-   * Adds a new builder to the [sourceDocRef type v] [toLower v.rawCollectionType] and returns
+   * Adds a new builder to the [sourceDocRef v] [toLower v.rawCollectionType] and returns
    * the builder.
    */
   [atCanIgnoreReturnValue type]
@@ -1519,7 +1519,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   }
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An array of [v.name] builder elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1554,7 +1554,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   }
 
   /**
-   * Gets the builder elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Gets the builder elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @return {@code this} unmodifiable list of modifiable builders.
    */
   [deprecation v]
@@ -1570,7 +1570,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
       [if not type.useStrictBuilder]
 
   /**
-   * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Sets or replaces all elements for [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1593,7 +1593,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An iterable of [v.name] elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1629,7 +1629,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.isAttributeBuilder]
 
   /**
-   * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
+   * Adds elements to [sourceDocRef v] [toLower v.rawCollectionType].
    * @param elements An iterable of [v.name] builder elements
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1663,7 +1663,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [if not v.isBuilderParameter]
 
   /**
-   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * Initializes the optional value [sourceDocRef v] to [v.name].
    * @param [v.name] The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
    * @return {@code this} builder for chained invocation
    */
@@ -1687,7 +1687,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.constructorParameters]
 
   /**
-   * Constructs and initializes the optional value for the [sourceDocRef type v] attribute.
+   * Constructs and initializes the optional value for the [sourceDocRef v] attribute.
   [for c in v.constructorParameters]
    * @param [c.name] The value for {@code [v.name].[c.name]} [if c.nullable](can be {@code null})[/if]
   [/for]
@@ -1703,7 +1703,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [/if]
 
   /**
-   * Initializes the optional value [sourceDocRef type v] to [v.name].
+   * Initializes the optional value [sourceDocRef v] to [v.name].
    * @param [v.name] The value for [v.name]
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1730,7 +1730,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
         [if not v.isBuilderParameter]
 
   /**
-   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * Put all mappings from the specified key to values for [sourceDocRef v] [toLower v.mapType]. Nulls are not permitted
    * @param key The key for [v.name]
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1751,7 +1751,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   }
 
   /**
-   * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
+   * Put all mappings from the specified key to values for [sourceDocRef v] [toLower v.mapType]. Nulls are not permitted
    * @param key The key for [v.name]
    * @param values The values for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1774,7 +1774,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
         [if not v.isBuilderParameter]
 
   /**
-   * Put one entry to the [sourceDocRef type v] map.
+   * Put one entry to the [sourceDocRef v] map.
    * @param key The key in the [v.name] map
    * @param value The associated value in the [v.name] map
    * @return {@code this} builder for use in a chained invocation
@@ -1807,7 +1807,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   }
 
   /**
-   * Put one entry to the [sourceDocRef type v] map. Nulls are not permitted
+   * Put one entry to the [sourceDocRef v] map. Nulls are not permitted
    * @param entry The key and value entry
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1841,7 +1841,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
           [if not type.useStrictBuilder]
 
   /**
-   * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map. Nulls are not permitted[if v.nullable] as keys or values, but parameter itself can be null[/if]
+   * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef v] map. Nulls are not permitted[if v.nullable] as keys or values, but parameter itself can be null[/if]
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1865,7 +1865,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
         [/if]
 
   /**
-   * Put all mappings from the specified map as entries to [sourceDocRef type v] map. Nulls are not permitted
+   * Put all mappings from the specified map as entries to [sourceDocRef v] map. Nulls are not permitted
    * @param entries The entries that will be added to the [v.name] map
    * @return {@code this} builder for use in a chained invocation
    */
@@ -1902,9 +1902,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [else if v.arrayType]
 
   /**
-   * Initializes the value for the [sourceDocRef type v] attribute.
+   * Initializes the value for the [sourceDocRef v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef v].</em>
   [/if]
    * @param [v.name] The elements for [v.name]
    * @return {@code this} builder for use in a chained invocation
@@ -1925,7 +1925,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.constructorParameters]
 
   /**
-   * Constructs and initializes the value for the [sourceDocRef type v] attribute.
+   * Constructs and initializes the value for the [sourceDocRef v] attribute.
   [for c in v.constructorParameters]
    * @param [c.name] The value for {@code [v.name].[c.name]} [if c.nullable](can be {@code null})[/if]
   [/for]
@@ -1940,9 +1940,9 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [/if]
 
   /**
-   * Initializes the value for the [sourceDocRef type v] attribute.
+   * Initializes the value for the [sourceDocRef v] attribute.
   [if v.generateDefault]
-   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef type v].</em>
+   * <p><em>If not set, this attribute will have a default value as returned by the initializer of [sourceDocRef v].</em>
   [/if]
    * @param [v.name] The value for [v.name] [if v.nullable](can be {@code null})[/if]
    * @return {@code this} builder for use in a chained invocation
@@ -1965,7 +1965,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [if v.isAttributeBuilder]
 
   /**
-   * Returns a builder for [sourceDocRef type v].
+   * Returns a builder for [sourceDocRef v].
    *
    * Once called, the attribute builder field is set to a new instance of the builder.
    * If called more than once, returns the same builder instance.
@@ -1983,7 +1983,7 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   }
 
   /**
-   * Sets [sourceDocRef type v] to the provided builder.
+   * Sets [sourceDocRef v] to the provided builder.
    */
   [atCanIgnoreReturnValue type]
   [eachLine v.builderAttributeAnnotation]
@@ -3234,7 +3234,7 @@ return [validated type true]new [type.typeImmutable.relativeRaw][type.generics.d
     [else if v.arrayType]
 
 /**
- * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
  * The array is cloned before being saved as attribute values.
  * @param elements The non-null elements for [v.name]
  * @return A modified copy of {@code this} object
@@ -3248,7 +3248,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.el
     [else if v.collectionType]
 
 /**
- * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
  * @param elements The elements to set
  * @return A modified copy of {@code this} object
  */
@@ -3273,7 +3273,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][v.un
 }
 
 /**
- * Copy the current immutable object with elements that replace the content of [sourceDocRef type v].
+ * Copy the current immutable object with elements that replace the content of [sourceDocRef v].
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param elements An iterable of [v.name] elements to set
  * @return A modified copy of {@code this} object
@@ -3287,7 +3287,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability]Itera
     [else if v.optionalType]
 
 /**
- * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef type v] attribute.
+ * Copy the current immutable object by setting a <i>present</i> value for the optional [sourceDocRef v] attribute.
  * @param value The value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
  * @return A modified copy of {@code this} object
  */
@@ -3321,7 +3321,7 @@ public final [type.typeImmutable.relative] [v.names.with]([unwrappedOptionalType
 }
 
 /**
- * Copy the current immutable object by setting an optional value for the [sourceDocRef type v] attribute.
+ * Copy the current immutable object by setting an optional value for the [sourceDocRef v] attribute.
 [if v.jdkOptional and v.hasSimpleScalarElementType]
  * An equality check is used on inner nullable value to prevent copying of the same value by returning {@code this}.
 [else if v.jdkOptional]
@@ -3362,7 +3362,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.rawType][if not v.j
     [for gE = v.consumedElementType, uK = v.unwrappedElementType, wK = v.wrappedElementType, uV = v.unwrappedSecondaryElementType, wV = v.wrappedSecondaryElementType]
 
 /**
- * Copy the current immutable object by replacing the [sourceDocRef type v] map with the specified map.
+ * Copy the current immutable object by replacing the [sourceDocRef v] map with the specified map.
  * Nulls are not permitted as keys or values.
  * A shallow reference equality check is used to prevent copying of the same value by returning {@code this}.
  * @param entries The entries to be added to the [v.name] map
@@ -3378,7 +3378,7 @@ public final [type.typeImmutable.relative] [v.names.with]([v.atNullability][if v
     [else]
 
 /**
- * Copy the current immutable object by setting a value for the [sourceDocRef type v] attribute.
+ * Copy the current immutable object by setting a value for the [sourceDocRef v] attribute.
  [if v.primitive and v.floatType]
  * A value strict bits equality used to prevent copying of the same value by returning {@code this}.
  [else if v.primitive or v.enumType]
@@ -3516,25 +3516,23 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 [/template]
 
 [template javadocBuilderExample Type type]
- * <p>Example
  * <pre>
  * [type.factoryBuilder.relative]()
 [for v in type.settableAttributes]
   [if v.encoding]
- *    .[rr.builderCopyFrom v](: [easierTypeName v.type])
+ *    .[rr.builderCopyFrom v]([typeSnippet v.type]) // [sourceDocRef v]
   [else if v.nullable]
- *    .[v.names.init](:nullable [easierTypeName v.type])
+ *    .[v.names.init]([typeSnippet v.type] | null) // nullable [sourceDocRef v]
   [else if v.collectionType]
- *    .[v.names.add]|.[v.names.addAll](:zero-or-more [easierTypeName v.unwrappedElementType])
+ *    .[v.names.add]|[v.names.addAll]([typeSnippet v.unwrappedElementType]) // [sourceDocRef v] elements
   [else if v.mapType]
- *    .[v.names.put]|.[v.names.putAll](:zero-or-more [easierTypeName v.unwrappedElementType] => [easierTypeName v.unwrappedSecondaryElementType])
+ *    .[v.names.put]|[v.names.putAll]([typeSnippet v.unwrappedElementType] => [typeSnippet v.unwrappedSecondaryElementType]) // [sourceDocRef v] mappings
   [else]
- *    .[v.names.init](:[if v.isMandatory]required[else]optional[/if] [easierTypeName v.type])
+ *    .[v.names.init]([typeSnippet v.elementType]) // [if v.isMandatory]required[else]optional[/if] [sourceDocRef v]
   [/if]
 [/for]
  *    .[type.names.build]();
  * </pre>
- * </p>
 [/template]
 
 [template immutableImplementationType Attribute v][output.trim]
@@ -4249,7 +4247,9 @@ private static final long serialVersionUID = [literal serialVersion];
 
 [template invokeSuperQualified Attribute a][a.containingType.typeImmutable.simple].super[/template]
 
-[template sourceDocRef Type t Attribute a][if t.kind.isValue]{@link [t.typeDocument.relativeRaw]#[a.names.get]() [a.names.raw]}[else]{@code [a.names.raw]}[/if][/template]
+[template sourceDocRef Attribute a][sourceDocLink a a.names.raw][/template]
+
+[template sourceDocLink Attribute a String label][if a.containingType.kind.isValue]{@link [a.containingType.typeDocument.relativeRaw]#[a.names.get]() [label]}[else]{@code [label]}[/if][/template]
 
 [template optionalGet Attribute a][if a.jdkSpecializedOptional]getAs[toUpper a.elementType][else]get[/if]()[/template]
 
