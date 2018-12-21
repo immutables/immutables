@@ -70,13 +70,7 @@ class ImportsTypeStringResolver implements Function<String, String> {
 
   @Nullable
   private String getFromSourceImports(String resolvable, boolean notTypeArgument) {
-    SourceExtraction.Imports[] importsSet = usingType == null && originType == null
-        ? new SourceExtraction.Imports[] {}
-        : usingType == null
-            ? new SourceExtraction.Imports[] {originType.sourceImports()}
-            : originType == null || usingType == originType
-                ? new SourceExtraction.Imports[] {usingType.sourceImports()}
-                : new SourceExtraction.Imports[] {originType.sourceImports(), usingType.sourceImports()};
+    SourceExtraction.Imports[] importsSet = takeImportSets();
 
     for (SourceExtraction.Imports imports : importsSet) {
       @Nullable String resolved = imports.classes.get(resolvable);
@@ -113,6 +107,26 @@ class ImportsTypeStringResolver implements Function<String, String> {
     }
 
     return null;
+  }
+
+  private SourceExtraction.Imports[] takeImportSets() {
+    if (usingType == null && originType == null) {
+      return new SourceExtraction.Imports[] {};
+    }
+    if (usingType == null) {
+      return new SourceExtraction.Imports[] {
+          originType.sourceImports()
+      };
+    }
+    if (originType == null || usingType == originType) {
+      return new SourceExtraction.Imports[] {
+          usingType.sourceImports()
+      };
+    }
+    return new SourceExtraction.Imports[] {
+        originType.sourceImports(),
+        usingType.sourceImports()
+    };
   }
 
   private boolean hasStarImports(SourceExtraction.Imports... importsSet) {

@@ -2,7 +2,6 @@ package org.immutables.value.processor;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import javax.annotation.Nullable;
 import org.immutables.generator.AbstractTemplate;
 import org.immutables.generator.Generator;
 import org.immutables.generator.Templates;

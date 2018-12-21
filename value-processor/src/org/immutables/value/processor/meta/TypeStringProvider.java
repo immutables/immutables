@@ -29,6 +29,7 @@ import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -163,7 +164,7 @@ class TypeStringProvider {
     if (unresolvedTypeHasOccured) {
       if (type == startType && forAttribute) {
         // special routine for top level type, opportunistically
-        // resolving not yet generated type assumit it
+        // resolving not yet generated type assuming it can be found in imports
         typeName = importsResolver.resolveTopForAttribute(typeName);
       } else {
         typeName = importsResolver.apply(typeName);
@@ -257,7 +258,10 @@ class TypeStringProvider {
         e = e.getEnclosingElement()) {
       path = e.getSimpleName() + "." + path;
     }
-    return path;
+    if (element.getModifiers().contains(Modifier.ABSTRACT)) {
+      return path;
+    }
+    return path + "()";
   }
 
   private Entry<String, List<String>> resolveTypes(Entry<String, List<String>> sourceTypes) {
@@ -346,7 +350,7 @@ class TypeStringProvider {
       buffer.append(type);
     }
     // workaround for Javac problem
-    if (type.getKind() == TypeKind.ERROR && buffer.toString().contains("<any>")) {
+    if (unresolvedTypeHasOccured && buffer.toString().contains("<any>")) {
       if (tryToUseSourceAsAWorkaround()) {
         ended = true;
       }
