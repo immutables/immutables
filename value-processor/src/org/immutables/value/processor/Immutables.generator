@@ -1317,7 +1317,13 @@ public interface BuildFinal[type.generics] {
       [for v in s.attributes, BitPosition pos = bs.positions v.name]
       [if pos]
       if ((bits[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
+        [if v.nullableInSupertypes]
+        if (instance.[v.names.get]() != null) {
+          [buildFromAttribute v]
+        }
+        [else]
         [buildFromAttribute v]
+        [/if]
         bits[emptyIfZero pos.index] |= [literal.hex pos.mask];
       }
       [else]

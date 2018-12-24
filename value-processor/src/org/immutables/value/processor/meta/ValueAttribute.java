@@ -19,12 +19,14 @@ import com.google.common.base.Ascii;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.lang.annotation.ElementType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -1519,6 +1521,18 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return false;
   }
 
+  boolean isNullableAccessor(Element element) {
+    for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
+      TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
+      Name simpleName = annotationElement.getSimpleName();
+      Name qualifiedName = annotationElement.getQualifiedName();
+      if (isNullableAnnotation(simpleName, qualifiedName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void initSpecialAnnotations() {
     Environment environment = containingType.constitution.protoclass().environment();
     ImmutableList.Builder<AnnotationInjection> annotationInjections = null;
@@ -1537,9 +1551,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
       Name qualifiedName = annotationElement.getQualifiedName();
-      if (qualifiedName.contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)
-          || qualifiedName.contentEquals(Annotations.JAVAX_NULLABLE)
-          || simpleName.contentEquals(containingType.names().nullableAnnotation)) {
+      if (isNullableAnnotation(simpleName, qualifiedName)) {
         nullability = ImmutableNullabilityAnnotationInfo.of(annotationElement);
       } else if (simpleName.contentEquals(TypeStringProvider.EPHEMERAL_ANNOTATION_ALLOW_NULLS)) {
         nullElements = NullElements.ALLOW;
@@ -1565,6 +1577,12 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     if (annotationInjections != null) {
       this.annotationInjections = annotationInjections.build();
     }
+  }
+
+  private boolean isNullableAnnotation(Name simpleName, Name qualifiedName) {
+    return qualifiedName.contentEquals(Annotations.JAVAX_CHECK_FOR_NULL)
+        || qualifiedName.contentEquals(Annotations.JAVAX_NULLABLE)
+        || simpleName.contentEquals(containingType.names().nullableAnnotation);
   }
 
   public boolean isNullableCollector() {
@@ -1659,6 +1677,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isGenerateImmutableCopyOf;
+  public boolean nullableInSupertypes;
 
   public Collection<TypeElement> getEnumElements() {
     if (isEnumType()) {

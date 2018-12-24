@@ -17,6 +17,7 @@ package org.immutables.fixture.nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
+import javax.annotation.Nullable;
 import org.junit.Test;
 import static org.immutables.check.Checkers.check;
 
@@ -115,8 +116,9 @@ public class NullableAttributesTest {
         .arr()
         .addAx("a")
         .addAx("b", "c")
-        .build().ax())
-        .isOf("a", "b", "c");
+        .build()
+        .ax())
+            .isOf("a", "b", "c");
   }
 
   @Test
@@ -256,5 +258,42 @@ public class NullableAttributesTest {
 
     check(r.i1()).isNull();
     check(r.l2()).isNull();
+  }
+
+  @Test
+  public void nullableFromSupertypes() {
+    ImmutableSubtype s = ImmutableSubtype.builder()
+        // default a, b
+        .from(new FromSupertypeNullable.Subtype() {
+          @Override
+          public String a() {
+            return "a";
+          }
+
+          @Override
+          public String b() {
+            return "b";
+          }
+        })
+        // would not trip on NPE from supertype which declares it nullable
+        .from(new FromSupertypeNullable.SuperA() {
+          @Override
+          @Nullable
+          public String a() {
+            return null;
+          }
+        })
+        // would not trip on NPE from supertype which declares it nullable
+        .from(new FromSupertypeNullable.SuperB() {
+          @Override
+          @Nullable
+          public String b() {
+            return null;
+          }
+        })
+        .build();
+
+    check(s.a()).is("a");
+    check(s.b()).is("b");
   }
 }
