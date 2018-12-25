@@ -33,6 +33,7 @@ import java.util.Objects;
 public class Builtins {
   public final boolean $$true = true;
   public final boolean $$false = false;
+  public final Void $$null = null;
 
   public final Output output = new Output();
   public final ClasspathAvailability classpath = new ClasspathAvailability();

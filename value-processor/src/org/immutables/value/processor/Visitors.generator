@@ -17,7 +17,7 @@
   [for type in values.values if type.generateVisitor]
     [if type.kind.isEnclosing]
 [for String visitorClassname = ((toUpper type.name) 'Visitor')]
-[output.java type.package visitorClassname]
+[output.java type.package visitorClassname type.element]
 [type.sourceHeader]
 [generateVisitor type visitorClassname]
 [/output.java]

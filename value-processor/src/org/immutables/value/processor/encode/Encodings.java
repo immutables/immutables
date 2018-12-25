@@ -131,7 +131,7 @@ public abstract class Encodings extends AbstractTemplate {
     private final Type encodingSelfType;
     private String builderInitCopy;
 
-    private final TypeElement typeEncoding;
+    final TypeElement typeEncoding;
     private @Nullable TypeElement typeBuilder;
 
     Encoding(TypeElement type) {

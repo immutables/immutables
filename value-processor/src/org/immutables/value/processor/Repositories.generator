@@ -16,7 +16,7 @@
 [template public generate]
   [for type in values.values if type.generateRepository]
     [if type.kind.isValue andnot type.generics]
-[output.java type.package (type.name 'Repository')]
+[output.java type.package (type.name 'Repository') type.element]
 [type.sourceHeader]
 [generateRepository type]
 [/output.java]

@@ -15,7 +15,7 @@
 --]
 [template public generate]
 [for enc in encodings]
-[output.java enc.package (enc.name 'Enabled')]
+[output.java enc.package (enc.name 'Enabled') enc.typeEncoding]
 [generateEncoding enc]
 [/output.java]
 [/for]

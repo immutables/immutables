@@ -1,6 +1,6 @@
 [template public generate]
   [for model in allMirrors]
-[output.java model.package (model.name 'Mirror')]
+[output.java model.package (model.name 'Mirror') model.element]
 [generateMirror model]
 [/output.java]
   [/for]

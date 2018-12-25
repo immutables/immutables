@@ -446,6 +446,10 @@ public class Proto {
   public static abstract class AbstractDeclaring extends Diagnosable {
     public abstract String name();
 
+    @Override
+    @Value.Auxiliary
+    public abstract Element element();
+
     public abstract DeclaringPackage packageOf();
 
     @Value.Lazy

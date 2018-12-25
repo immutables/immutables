@@ -47,10 +47,11 @@ import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
+import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Output {
   public static final String NO_IMPORTS = "//-no-import-rewrite";
@@ -167,9 +168,10 @@ public final class Output {
     public Invokable invoke(Invokation invokation, Object... parameters) {
       String packageName = parameters[0].toString();
       String simpleName = parameters[1].toString();
-      Invokable body = (Invokable) parameters[2];
+      Element originatingElement = (Element) parameters[2];
+      Invokable body = (Invokable) parameters[3];
 
-      ResourceKey key = new ResourceKey(packageName, simpleName);
+      ResourceKey key = new ResourceKey(packageName, simpleName, originatingElement);
       SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();
@@ -197,10 +199,17 @@ public final class Output {
 
     final String packageName;
     final String relativeName;
+    // not included in equals/hashcode
+    final @Nullable Element originatingElement;
 
     ResourceKey(String packageName, String simpleName) {
+      this(packageName, simpleName, null);
+    }
+
+    ResourceKey(String packageName, String simpleName, @Nullable Element originatingElement) {
       this.packageName = checkNotNull(packageName);
       this.relativeName = checkNotNull(simpleName);
+      this.originatingElement = originatingElement;
     }
 
     @Override
@@ -300,7 +309,11 @@ public final class Output {
     void complete() {
       CharSequence sourceCode = extractSourceCode();
       try {
-        try (Writer writer = getFiler().createSourceFile(key.toString()).openWriter()) {
+        JavaFileObject sourceFile = key.originatingElement != null
+            ? getFiler().createSourceFile(key.toString(), key.originatingElement)
+            : getFiler().createSourceFile(key.toString());
+
+        try (Writer writer = sourceFile.openWriter()) {
           writer.append(sourceCode);
         }
       } catch (FilerException ex) {

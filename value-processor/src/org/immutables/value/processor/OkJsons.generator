@@ -21,7 +21,7 @@
       String typeAdaptersName = ('JsonAdapters' capitalizedSimpleName)]
 
 [setCurrent adapters]
-[output.java packageName typeAdaptersName]
+[output.java packageName typeAdaptersName adapters.definedBy.element]
 [for d = adapters.definedBy,
      s in d.style if s.headerComments,
      t in d.asType]

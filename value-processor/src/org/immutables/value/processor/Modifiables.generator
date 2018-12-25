@@ -21,7 +21,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 [/output.error]
     [else]
 [setTopLevelSimple type.names.typeModifiable]
-[output.java type.package type.names.typeModifiable]
+[output.java type.package type.names.typeModifiable type.element]
 [generateModifiable type true]
 [/output.java]
     [/if]

@@ -1,7 +1,7 @@
 [template public main]
 [for e in elements, TypeElement t = e, PackageElement p = t.enclosingElement]
 [let x]Es[e.getSimpleName][/let]
-[output.java p.qualifiedName x]
+[output.java p.qualifiedName x t]
 package [p.qualifiedName];
 abstract class [x] implements java.lang.Iterable<java.lang.String>{
   private [x]() {}

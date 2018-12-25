@@ -17,7 +17,7 @@
   [for type in values.values if type.kind.isValue,
        func = type.functionalData]
     [if func.is]
-[output.java type.package (type.name 'Functions')]
+[output.java type.package (type.name 'Functions') type.element]
 [type.sourceHeader]
 [generateFunctions type func]
 [/output.java]
