@@ -140,11 +140,7 @@ public final class FromSupertypesModel {
       Type.Parser parser = new Type.Parser(tf, tf.parameters());
 
       if (parser.parse(ownType).equals(parser.parse(inheritedType))) {
-        if (!attr.isPrimitive()
-            && !attr.isNullable()
-            && attr.isNullableAccessor(accessor)) {
-          attr.nullableInSupertypes = true;
-        }
+        attr.initNullabilitySupertype(accessor);
         return true;
       }
     } catch (Exception typeParseException) {

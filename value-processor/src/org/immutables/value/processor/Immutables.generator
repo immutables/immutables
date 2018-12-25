@@ -1317,10 +1317,8 @@ public interface BuildFinal[type.generics] {
       [for v in s.attributes, BitPosition pos = bs.positions v.name]
       [if pos]
       if ((bits[emptyIfZero pos.index] & [literal.hex pos.mask]) == 0) {
-        [if v.nullableInSupertypes]
-        if (instance.[v.names.get]() != null) {
-          [buildFromAttribute v]
-        }
+        [if v.nullableInSupertype]
+        [buildFromAttributeNullableSupertype v]
         [else]
         [buildFromAttribute v]
         [/if]
@@ -2214,6 +2212,35 @@ if ([for l in positions.longs][if not for.first] || [/if][disambiguateField type
   throw new [type.throwForInvalidImmutableState](formatRequiredAttributesMessage());
   [/if]
 }
+[/template]
+
+[template buildFromAttributeNullableSupertype Attribute v]
+[if v.encoding]
+[v.atNullableInSupertypeLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [rr.builderCopyFrom v]([v.name]Value);
+}
+[else if v.collectionType]
+[v.atNullableInSupertypeLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.addAll]([v.name]Value);
+}
+[else if v.mapType]
+[v.atNullableInSupertypeLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.putAll]([v.name]Value);
+}
+[else if v.optionalType]
+[v.atNullableInSupertypeLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null && [v.name]Value.[optionalPresent v]) {
+  [v.names.init]([v.name]Value);
+}
+[else]
+[v.atNullableInSupertypeLocal][v.type] [v.name]Value = instance.[v.names.get]();
+if ([v.name]Value != null) {
+  [v.names.init]([v.name]Value);
+}
+[/if]
 [/template]
 
 [template buildFromAttribute Attribute v]

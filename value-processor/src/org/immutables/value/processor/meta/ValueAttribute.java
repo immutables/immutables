@@ -101,6 +101,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   @Nullable
   TypeElement containedTypeElement;
+
   @Nullable
   private TypeElement containedSecondaryTypeElement;
 
@@ -109,6 +110,9 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   @Nullable
   private NullabilityAnnotationInfo nullability;
+
+  @Nullable
+  private NullabilityAnnotationInfo nullabilityInSupertype;
 
   @Nullable
   private String rawTypeName;
@@ -1519,16 +1523,16 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return false;
   }
 
-  boolean isNullableAccessor(Element element) {
+  private @Nullable NullabilityAnnotationInfo isAccessorNullableAccessor(Element element) {
     for (AnnotationMirror annotation : element.getAnnotationMirrors()) {
       TypeElement annotationElement = (TypeElement) annotation.getAnnotationType().asElement();
       Name simpleName = annotationElement.getSimpleName();
       Name qualifiedName = annotationElement.getQualifiedName();
       if (isNullableAnnotation(simpleName, qualifiedName)) {
-        return true;
+        return ImmutableNullabilityAnnotationInfo.of(annotationElement);
       }
     }
-    return false;
+    return null;
   }
 
   private void initSpecialAnnotations() {
@@ -1675,7 +1679,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   }
 
   public boolean isGenerateImmutableCopyOf;
-  public boolean nullableInSupertypes;
 
   public Collection<TypeElement> getEnumElements() {
     if (isEnumType()) {
@@ -1780,5 +1783,19 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   @Override
   public String toString() {
     return "Attribute[" + name() + "]";
+  }
+
+  void initNullabilitySupertype(ExecutableElement accessor) {
+    if (nullabilityInSupertype == null && !isPrimitive() && !isNullable()) {
+      nullabilityInSupertype = isAccessorNullableAccessor(accessor);
+    }
+  }
+
+  public boolean isNullableInSupertype() {
+    return nullabilityInSupertype != null;
+  }
+
+  public String atNullableInSupertypeLocal() {
+    return nullabilityInSupertype != null ? nullabilityInSupertype.asLocalPrefix() : "";
   }
 }
