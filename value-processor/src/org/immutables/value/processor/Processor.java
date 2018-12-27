@@ -18,9 +18,17 @@ package org.immutables.value.processor;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Set;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.tools.FileObject;
+import javax.tools.JavaFileManager.Location;
 import org.immutables.generator.AbstractGenerator;
+import org.immutables.generator.ForwardingFiler;
+import org.immutables.generator.ForwardingProcessingEnvironment;
 import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Generator_Encodings;
 import org.immutables.value.processor.meta.CustomImmutableAnnotations;
@@ -49,19 +57,6 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     EncodingMirror.QUALIFIED_NAME,
 })
 public final class Processor extends AbstractGenerator {
-
-  private static final String GRADLE_INCREMENTAL = "immutables.gradle.incremental";
-
-  @Override
-  public Set<String> getSupportedOptions() {
-    ImmutableSet.Builder<String> options = ImmutableSet.builder();
-    options.add(GRADLE_INCREMENTAL);
-    if (processingEnv.getOptions().containsKey(GRADLE_INCREMENTAL)) {
-      options.add("org.gradle.annotation.processing.isolating");
-    }
-    return options.build();
-  }
-
   @Override
   protected void process() {
 
@@ -103,5 +98,66 @@ public final class Processor extends AbstractGenerator {
     return FluentIterable.from(super.getSupportedAnnotationTypes())
         .append(CustomImmutableAnnotations.annotations())
         .toSet();
+  }
+
+  private static final String GRADLE_INCREMENTAL = "immutables.gradle.incremental";
+
+  @Override
+  public Set<String> getSupportedOptions() {
+    ImmutableSet.Builder<String> options = ImmutableSet.builder();
+    options.add(GRADLE_INCREMENTAL);
+    if (processingEnv.getOptions().containsKey(GRADLE_INCREMENTAL)) {
+      options.add("org.gradle.annotation.processing.isolating");
+    }
+    return options.build();
+  }
+
+  @Override
+  public synchronized void init(final ProcessingEnvironment processingEnv) {
+    super.init(new RestrictingIncrementalProcessingEnvironment(processingEnv));
+  }
+
+  private final class RestrictingIncrementalProcessingEnvironment extends ForwardingProcessingEnvironment {
+    private final ProcessingEnvironment processingEnv;
+    boolean incrementalRestrictions;
+    private Filer restrictedFiler;
+
+    private RestrictingIncrementalProcessingEnvironment(ProcessingEnvironment processingEnv) {
+      this.processingEnv = processingEnv;
+      this.incrementalRestrictions = processingEnv.getOptions().containsKey(GRADLE_INCREMENTAL);
+    }
+
+    @Override
+    protected ProcessingEnvironment delegate() {
+      return processingEnv;
+    }
+
+    @Override
+    public Filer getFiler() {
+      final Filer filer = super.getFiler();
+      if (incrementalRestrictions) {
+        if (restrictedFiler == null) {
+          restrictedFiler = new ForwardingFiler() {
+            @Override
+            protected Filer delegate() {
+              return filer;
+            }
+
+            @Override
+            public FileObject getResource(Location location, CharSequence pkg, CharSequence relativeName)
+                throws IOException {
+              throw new FileNotFoundException(
+                  String.format("Restricted read %s/%s/%s (triggered by -A%s)",
+                      location,
+                      pkg,
+                      relativeName,
+                      GRADLE_INCREMENTAL));
+            }
+          };
+        }
+        return restrictedFiler;
+      }
+      return filer;
+    }
   }
 }
