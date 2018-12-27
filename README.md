@@ -53,7 +53,6 @@ Changelog
 ### 2.7.4 (2018-12-26)
 - Bugfix and refinements release! Thank you issue reports and PRs!
 - Notable stuff
-  + Experimental support for Gradle incremental annotation processing. Enabled by annotation processing switch `-Aimmutables.gradle.incremental`
   + Propagate checked exceptions in `throws` for lazy attributes (only for `@Value.Lazy`)
 - [Issues 2.7.4](https://github.com/immutables/immutables/milestone/73?closed=1)
 
