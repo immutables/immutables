@@ -31,9 +31,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import java.util.Collection;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
@@ -115,8 +118,8 @@ public final class SourceOrdering {
 
     @Override
     public Ordering<Element> enclosedBy(Element element) {
-      if (element instanceof ElementImpl &&
-          Iterables.all(element.getEnclosedElements(), Predicates.instanceOf(ElementImpl.class))) {
+      if (element instanceof ElementImpl
+          && Iterables.all(element.getEnclosedElements(), Predicates.instanceOf(ElementImpl.class))) {
 
         ElementImpl implementation = (ElementImpl) element;
         if (implementation._binding instanceof SourceTypeBinding) {
@@ -169,82 +172,82 @@ public final class SourceOrdering {
    * without handling complex cases.
    * @param elements the elements utility
    * @param types the types utility
-   * @param type the type to traverse
+   * @param originatingType the type to traverse
    * @return provider of all accessors in source order and mapping
    */
   public static AccessorProvider getAllAccessorsProvider(
       final Elements elements,
       final Types types,
-      final TypeElement type) {
+      final TypeElement originatingType) {
 
-    class CollectedOrdering
-        extends Ordering<Element> {
-
+    class CollectedOrdering extends Ordering<Element> {
       class Intratype {
-        Ordering<String> ordering;
-        int rank;
+        final String inType;
+        final Ordering<String> ordering;
+        final int rank;
+
+        Intratype(String inType, int rank, List<String> accessors) {
+          this.inType = inType;
+          this.rank = rank;
+          this.ordering = Ordering.explicit(accessors);
+        }
+
+        @Override
+        public String toString() {
+          return "(<=> " + inType + ", " + rank + ", " + ordering + ")";
+        }
       }
 
-      final Map<String, Intratype> accessorOrderings = Maps.newLinkedHashMap();
-      final List<TypeElement> linearizedTypes = Lists.newArrayList();
-      final Predicate<String> accessorNotYetInOrderings =
-          Predicates.not(Predicates.in(accessorOrderings.keySet()));
+      final Map<String, Intratype> accessorOrderings = new LinkedHashMap<>();
+      final Set<TypeElement> linearizedTypes = new LinkedHashSet<>();
       final ArrayListMultimap<String, TypeElement> accessorMapping = ArrayListMultimap.create();
 
       CollectedOrdering() {
-        traverse(type);
-        traverseObjectForInterface();
-      }
-
-      private void traverseObjectForInterface() {
-        if (type.getKind() == ElementKind.INTERFACE) {
-          traverse(elements.getTypeElement(Object.class.getName()));
-        }
+        traverse(originatingType);
+        collectAccessors();
       }
 
       void traverse(@Nullable TypeElement element) {
         if (element == null || isJavaLangObject(element)) {
           return;
         }
-        collectEnclosing(element);
-        traverse(asTypeElement(element.getSuperclass()));
         for (TypeMirror implementedInterface : element.getInterfaces()) {
-          traverse(asTypeElement(implementedInterface));
+          traverse(toElement(implementedInterface));
         }
+        if (element.getKind().isClass()) {
+          // collectEnclosing(element);
+          traverse(toElement(element.getSuperclass()));
+        }
+        // we add this after so we start with the deepest
+        linearizedTypes.add(element);
       }
 
       @Nullable
-      TypeElement asTypeElement(TypeMirror type) {
+      TypeElement toElement(TypeMirror type) {
         if (type.getKind() == TypeKind.DECLARED) {
           return (TypeElement) ((DeclaredType) type).asElement();
         }
         return null;
       }
 
-      void collectEnclosing(TypeElement type) {
-        FluentIterable<String> accessorsInType =
-            FluentIterable.from(SourceOrdering.getEnclosedElements(type))
-                .filter(IsParameterlessNonstaticNonobject.PREDICATE)
-                .transform(ToSimpleName.FUNCTION);
+      void collectAccessors() {
+        int i = 0;
+        for (TypeElement type : linearizedTypes) {
+          List<String> accessorsInType =
+              FluentIterable.from(SourceOrdering.getEnclosedElements(type))
+                  .filter(IsParameterlessNonstaticNonobject.PREDICATE)
+                  .transform(ToSimpleName.FUNCTION)
+                  .toList();
 
-        for (String accessor : accessorsInType) {
-          accessorMapping.put(accessor, type);
+          String typeTag = type.getSimpleName().toString();
+          Intratype intratype = new Intratype(typeTag, i++, accessorsInType);
+
+          for (String name : accessorsInType) {
+            // we override accessors by the ones redeclared in later types
+            accessorMapping.put(name, type);
+            accessorOrderings.put(name, intratype);
+          }
         }
-
-        List<String> accessors =
-            accessorsInType
-                .filter(accessorNotYetInOrderings)
-                .toList();
-
-        Intratype intratype = new Intratype();
-        intratype.rank = linearizedTypes.size();
-        intratype.ordering = Ordering.explicit(accessors);
-
-        for (String name : accessors) {
-          accessorOrderings.put(name, intratype);
-        }
-
-        linearizedTypes.add(type);
       }
 
       @Override
@@ -253,10 +256,6 @@ public final class SourceOrdering {
         String rightKey = ToSimpleName.FUNCTION.apply(right);
         Intratype leftIntratype = accessorOrderings.get(leftKey);
         Intratype rightIntratype = accessorOrderings.get(rightKey);
-        if (leftIntratype == null || rightIntratype == null) {
-          // FIXME figure out why it happens (null)
-          return Boolean.compare(leftIntratype == null, rightIntratype == null);
-        }
         return leftIntratype == rightIntratype
             ? leftIntratype.ordering.compare(leftKey, rightKey)
             : Integer.compare(leftIntratype.rank, rightIntratype.rank);
@@ -267,9 +266,8 @@ public final class SourceOrdering {
 
     final ImmutableList<ExecutableElement> sortedList =
         ordering.immutableSortedCopy(
-            disambiguateMethods(
-            ElementFilter.methodsIn(
-                elements.getAllMembers(type))));
+            disambiguateMethods(ElementFilter.methodsIn(
+                elements.getAllMembers(originatingType))));
 
     return new AccessorProvider() {
       ImmutableListMultimap<String, TypeElement> accessorMapping =
@@ -304,7 +302,7 @@ public final class SourceOrdering {
       if (values.size() == 1) {
         resolvedMethods.addAll(values);
       } else {
-        // Preferebly take the one coming from a class rather than interface
+        // Preferably take the one coming from a class rather than interface
         for (ExecutableElement v : values) {
           if (v.getEnclosingElement().getKind().isClass()) {
             resolvedMethods.add(v);

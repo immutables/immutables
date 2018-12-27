@@ -19,6 +19,9 @@ import org.immutables.value.Value;
 
 interface InheritedInterface {
   int b();
+
+  int y();
+
   int a();
 }
 
@@ -27,5 +30,6 @@ public abstract class SourceOrderingEntity implements InheritedInterface {
 
   public abstract int z();
 
+  @Override
   public abstract int y();
 }
