@@ -16,6 +16,7 @@
 package org.immutables.value.processor.meta;
 
 import com.google.common.base.Ascii;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -1774,6 +1775,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private Collection<String> collectInjections(Where target) {
     return AnnotationInjections.collectInjections(element,
         target,
+        Collections.singleton(name()),
         annotationInjections,
         containingType.getDeclaringTypeAnnotationInjections(),
         containingType.getDeclaringTypeEnclosingAnnotationInjections(),
@@ -1797,5 +1799,13 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
 
   public String atNullableInSupertypeLocal() {
     return nullabilityInSupertype != null ? nullabilityInSupertype.asLocalPrefix() : "";
+  }
+
+  enum ToName implements Function<ValueAttribute, String> {
+    FUNCTION;
+    @Override
+    public String apply(ValueAttribute input) {
+      return input.name();
+    }
   }
 }

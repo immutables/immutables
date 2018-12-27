@@ -106,6 +106,8 @@ public @interface InjectAnnotation {
    * attributes.
    * <li>{@code [[!name]]} inserts the simple name of the target attribute (or type) into annotation
    * code, insertions are literal, without any quoutes etc.
+   * <li>{@code [[*names]]} inserts the simple names of all attributes defined by abstract value
+   * type as as comma separated array initializer of quoted string literals. {@code {"a", "b", "c"}}
    * <li>{@code [[}<em>attr_name</em>{@code ]]} inserts source formatted value of injection
    * annotation into code, where <em>attr_name</em> is one of the name of injection annotation
    * attributes.

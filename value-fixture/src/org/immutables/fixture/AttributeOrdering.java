@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -17,19 +17,47 @@ package org.immutables.fixture;
 
 import org.immutables.value.Value;
 
-interface InheritedInterface {
-  int b();
+@Value.Enclosing
+public interface AttributeOrdering {
 
-  int y();
+  interface A {
+    int a1();
 
-  int a();
-}
+    int a2();
+  }
 
-@Value.Immutable
-public abstract class SourceOrderingEntity implements InheritedInterface {
+  interface B extends A {
+    int b1();
 
-  public abstract int z();
+    int b2();
+  }
 
-  @Override
-  public abstract int y();
+  interface C extends A {
+    int c1();
+
+    int c2();
+  }
+
+  @Value.Immutable
+  interface D extends B, C {
+    int d();
+  }
+
+  interface InheritedInterface {
+    int b();
+
+    int y();
+
+    int a();
+  }
+
+  @Value.Immutable
+  public abstract class SourceOrderingEntity implements InheritedInterface {
+
+    public abstract int z();
+
+    @Override
+    public abstract int y();
+  }
+
 }

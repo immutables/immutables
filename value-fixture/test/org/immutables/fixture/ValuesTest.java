@@ -184,14 +184,25 @@ public class ValuesTest {
 
   @Test
   public void sourceOrdering() {
-    SourceOrderingEntity v = ImmutableSourceOrderingEntity.builder()
+    check(ImmutableAttributeOrdering.SourceOrderingEntity.builder()
         .b(2) // b from inherited in source order
         .a(1) // a from inherited in source order, y skipped because overriden next
         .z(4) // z directly declared in source order
         .y(3) // y overriden here, in source order
-        .build();
+        .build()).hasToString("SourceOrderingEntity{b=2, a=1, z=4, y=3}");
+  }
 
-    check(v).hasToString("SourceOrderingEntity{b=2, a=1, z=4, y=3}");
+  @Test
+  public void moreSourceOrdering() {
+    check(ImmutableAttributeOrdering.D.builder()
+        .a1(1)
+        .a2(2)
+        .b1(3)
+        .b2(4)
+        .c1(5)
+        .c2(6)
+        .d(7)
+        .build()).hasToString("D{a1=1, a2=2, b1=3, b2=4, c1=5, c2=6, d=7}");
   }
 
   @Test

@@ -48,6 +48,13 @@ public class AnnotateTest {
   }
 
   @Test
+  public void attributeNamesArray() throws Exception {
+    ToInj a = ImmutableOnAccessorToField.class.getAnnotation(ToInj.class);
+    check(a.a()).is(0);
+    check(a.attrs()).isOf("a", "b");
+  }
+
+  @Test
   public void typeAndBuilderFromType() throws Exception {
     ToInj t = ImmutableOnTypeAndBuilder.class.getAnnotation(ToInj.class);
     check(t.a()).is(33);

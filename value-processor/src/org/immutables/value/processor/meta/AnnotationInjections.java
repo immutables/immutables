@@ -1,7 +1,9 @@
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Joiner.MapJoiner;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
@@ -16,6 +18,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import org.immutables.generator.AnnotationMirrors;
+import org.immutables.generator.StringLiterals;
 import org.immutables.mirror.Mirror;
 import org.immutables.value.processor.meta.AnnotationInjections.InjectAnnotation.Where;
 import org.immutables.value.processor.meta.Proto.Environment;
@@ -26,7 +29,9 @@ public final class AnnotationInjections {
   private static final String P_L = "[[";
   private static final String P_ALL = "[[*]]";
   private static final String P_SIMPLE_NAME = "[[!name]]";
-  private static final MapJoiner ATTR_JOINER = Joiner.on(", ").withKeyValueSeparator(" = ");
+  private static final String P_ALL_NAMES = "[[*names]]";
+  private static final Joiner COMMA_JOINER = Joiner.on(", ");
+  private static final MapJoiner ATTR_JOINER = COMMA_JOINER.withKeyValueSeparator(" = ");
 
   private AnnotationInjections() {}
 
@@ -77,11 +82,12 @@ public final class AnnotationInjections {
   public static Collection<String> collectInjections(
       Element element,
       Where target,
+      Collection<String> attributeNames,
       Iterable<AnnotationInjection>... injections) {
     Map<String, String> injectionCode = new HashMap<>();
     for (Iterable<AnnotationInjection> inj : injections) {
       for (AnnotationInjection a : inj) {
-        a.addIfApplicable(element, target, injectionCode);
+        a.addIfApplicable(element, target, attributeNames, injectionCode);
       }
     }
     return injectionCode.values();
@@ -96,7 +102,11 @@ public final class AnnotationInjections {
       this.literals = literals;
     }
 
-    void addIfApplicable(Element element, Where target, Map<String, String> annotationCode) {
+    void addIfApplicable(
+        Element element,
+        Where target,
+        Collection<String> attributeNames,
+        Map<String, String> annotationCode) {
       String simpleName = element.getSimpleName().toString();
 
       if (annotationCode.containsKey(info.deduplicationKey)) {
@@ -127,7 +137,7 @@ public final class AnnotationInjections {
       }
 
       String code = info.hasPlaceholders
-          ? interpolateCode(simpleName)
+          ? interpolateCode(simpleName, attributeNames)
           : info.code;
 
       annotationCode.put(
@@ -135,7 +145,7 @@ public final class AnnotationInjections {
           prependAnnotationTypeIfNecessary(code));
     }
 
-    private String interpolateCode(String simpleName) {
+    private String interpolateCode(String simpleName, Collection<String> attributeNames) {
       // The implementation is pretty dumb, sorry: no regex, parsing or fancy libraries
       String c = info.code;
 
@@ -148,6 +158,14 @@ public final class AnnotationInjections {
       }
 
       c = c.replace(P_SIMPLE_NAME, simpleName);
+
+      if (c.contains(P_ALL_NAMES)) {
+        String literals = FluentIterable.from(attributeNames)
+            .transform(ToLiteral.FUNCTION)
+            .join(COMMA_JOINER);
+
+        c = c.replace(P_ALL_NAMES, "{" + literals + "}");
+      }
 
       for (Entry<String, String> e : literals.entrySet()) {
         c = c.replace(P_L + e.getKey() + P_R, e.getValue());
@@ -223,6 +241,14 @@ public final class AnnotationInjections {
         return annotationType;
       }
       return code;
+    }
+  }
+
+  private enum ToLiteral implements Function<String, String> {
+    FUNCTION;
+    @Override
+    public String apply(String input) {
+      return StringLiterals.toLiteral(input);
     }
   }
 }

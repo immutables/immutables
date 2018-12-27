@@ -22,6 +22,7 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ForwardingCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -1834,6 +1835,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   private Collection<String> collectInjections(Where target) {
     return AnnotationInjections.collectInjections(element,
         target,
+        Lists.transform(attributes, ValueAttribute.ToName.FUNCTION),
         getDeclaringTypeAnnotationInjections(),
         getDeclaringTypeEnclosingAnnotationInjections(),
         getDeclaringPackageAnnotationInjections());

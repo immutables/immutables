@@ -27,6 +27,8 @@ public interface InjAnn {
     int a();
 
     String b() default "";
+
+    String[] attrs() default {};
   }
 
   @Retention(RetentionPolicy.RUNTIME)
@@ -40,8 +42,8 @@ public interface InjAnn {
   }
 
   @Retention(RetentionPolicy.RUNTIME)
-  @InjectAnnotation(code = "@org.immutable.fixture.annotate.InjAnn.ToInj"
-      + "(a=[[c]], b=[[d]])",
+  @InjectAnnotation(
+      code = "@org.immutable.fixture.annotate.InjAnn.ToInj(a=[[c]], b=[[d]])",
       target = Where.INITIALIZER)
   @interface Cn3 {
     int c();
@@ -56,7 +58,15 @@ public interface InjAnn {
   @interface ImB {}
 
   @Retention(RetentionPolicy.RUNTIME)
-  @InjectAnnotation(code = "(a=71, b=\"synthetic of [[!name]]\")",
+  @InjectAnnotation(
+      code = "(a=0, attrs=[[*names]])",
+      type = ToInj.class,
+      target = {Where.IMMUTABLE_TYPE})
+  @interface AtNames {}
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @InjectAnnotation(
+      code = "(a=71, b=\"synthetic of [[!name]]\")",
       type = ToInj.class,
       target = {Where.SYNTHETIC_FIELDS})
   @interface BmS {}
@@ -81,6 +91,7 @@ public interface InjAnn {
   }
 
   @Value.Immutable
+  @AtNames
   interface OnAccessorToField {
     @Bn2(a = 44)
     int a();
