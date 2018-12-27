@@ -47,12 +47,13 @@ public abstract class AbstractValuesTemplate extends AbstractTemplate {
     }
   };
 
-  protected final Function<String, String> typeSnippet = new Function<String, String>() {
+  protected final Function<Object, String> docEscaped = new Function<Object, String>() {
     @Override
-    public String apply(String input) {
-      return input
+    public String apply(Object input) {
+      return input.toString()
           .replace("<", "&lt;")
           .replace(">", "&gt;")
+          .replace("&", "&amp;")
           .replace("java.lang.", "")
           .replace("java.util.", "");
     }

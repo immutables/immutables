@@ -50,13 +50,19 @@ public final class FromSupertypesModel {
   public final static class FromSupertype {
     public final String type;
     public final String wildcard;
-    public final boolean hasWildcard;
+    public final boolean hasGenerics;
     public final ImmutableList<ValueAttribute> attributes;
+    public final String raw;
 
     FromSupertype(String type, Iterable<ValueAttribute> attribute) {
       this.type = type;
-      this.hasWildcard = type.indexOf('<') > 0;
-      this.wildcard = hasWildcard ? toRawWildcard(type) : type;
+      this.hasGenerics = type.indexOf('<') > 0;
+      Entry<String, List<String>> withArgs = SourceTypes.extract(type);
+      this.raw = withArgs.getKey();
+      this.wildcard = hasGenerics
+          ? SourceTypes.stringify(Maps.immutableEntry(withArgs.getKey(),
+              Collections.nCopies(withArgs.getValue().size(), "?")))
+          : type;
       this.attributes = ImmutableList.copyOf(attribute);
     }
 
@@ -167,19 +173,13 @@ public final class FromSupertypesModel {
     return null;
   }
 
-  private static String toRawWildcard(String type) {
-    Entry<String, List<String>> withArgs = SourceTypes.extract(type);
-    return SourceTypes.stringify(Maps.immutableEntry(withArgs.getKey(),
-        Collections.nCopies(withArgs.getValue().size(), "?")));
-  }
-
   public boolean hasManySupertypes() {
     return supertypes.size() > 1;
   }
 
   public boolean hasWildcards() {
     for (FromSupertype s : supertypes) {
-      if (s.hasWildcard) {
+      if (s.hasGenerics) {
         return true;
       }
     }

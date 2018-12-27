@@ -135,15 +135,15 @@ import static [routine].immutableCopyOf;
  * <p>
 [if type.useBuilder]
  * Use the builder to create immutable instances:
- * {@code [type.factoryBuilder.relative]()}.
+ * {@code [type.factoryBuilder.relativeRaw]()}.
 [/if]
 [if type.useConstructor]
  * Use the static factory method to create immutable instances:
- * {@code [type.factoryOf.relative]()}.
+ * {@code [type.factoryOf.relativeRaw]()}.
 [/if]
 [if type.useSingleton]
  * Use the static factory method to get the default singleton instance:
- * {@code [type.factoryInstance.relative]()}.
+ * {@code [type.factoryInstance.relativeRaw]()}.
 [/if]
   [/if]
  */
@@ -710,6 +710,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
+[javadocGenerics type]
 [for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
@@ -722,6 +723,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
+[javadocGenerics type]
 [for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
@@ -734,6 +736,7 @@ public [type.typeAbstract.relative] [v.names.with]([v.atNullability][v.type] val
 
   /**
    * Construct a new immutable {@code [type.name]} instance.
+  [javadocGenerics type]
 [for v in type.constructorArguments]
    * @param [v.name] The value for the {@code [v.name]} attribute
 [/for]
@@ -1289,7 +1292,7 @@ public interface BuildFinal[type.generics] {
   [else]
 
   /**
-   * Fill a builder with attribute values from the provided {@code [s.type]} instance.
+   * Fill a builder with attribute values from the provided {@code [s.raw]} instance.
    * @param instance The instance from which to copy values
    * @return {@code this} builder for use in a chained invocation
    */
@@ -3550,18 +3553,18 @@ public static[type.generics.def] [type.typeValue.relative] [type.factoryOf.simpl
 
 [template javadocBuilderExample Type type]
  * <pre>
- * [type.factoryBuilder.relative]()
+ * [docEscaped type.factoryBuilder.relative]()
 [for v in type.settableAttributes]
   [if v.encoding]
- *    .[rr.builderCopyFrom v]([typeSnippet v.type]) // [sourceDocRef v]
+ *    .[rr.builderCopyFrom v]([docEscaped v.type]) // [sourceDocRef v]
   [else if v.nullable]
- *    .[v.names.init]([typeSnippet v.type] | null) // nullable [sourceDocRef v]
+ *    .[v.names.init]([docEscaped v.type] | null) // nullable [sourceDocRef v]
   [else if v.collectionType]
- *    .[v.names.add]|[v.names.addAll]([typeSnippet v.unwrappedElementType]) // [sourceDocRef v] elements
+ *    .[v.names.add]|[v.names.addAll]([docEscaped v.unwrappedElementType]) // [sourceDocRef v] elements
   [else if v.mapType]
- *    .[v.names.put]|[v.names.putAll]([typeSnippet v.unwrappedElementType] => [typeSnippet v.unwrappedSecondaryElementType]) // [sourceDocRef v] mappings
+ *    .[v.names.put]|[v.names.putAll]([docEscaped v.unwrappedElementType] =&gt; [docEscaped v.unwrappedSecondaryElementType]) // [sourceDocRef v] mappings
   [else]
- *    .[v.names.init]([typeSnippet v.elementType]) // [if v.isMandatory]required[else]optional[/if] [sourceDocRef v]
+ *    .[v.names.init]([docEscaped v.elementType]) // [if v.isMandatory]required[else]optional[/if] [sourceDocRef v]
   [/if]
 [/for]
  *    .[type.names.build]();

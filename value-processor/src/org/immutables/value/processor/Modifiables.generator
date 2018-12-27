@@ -102,7 +102,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 
   /**
    * Clears the object by setting all attributes to their initial values.
-   * @return {@code this} for use in a chained invocation
+  [docReturnThis type]
    */
   [atCanIgnoreReturnValue type]
   public [thisSetterReturnType type] [type.names.clear]() {
@@ -170,7 +170,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
 
   /**
    * Reset an attribute to its initial value.
-   * @return {@code this} for use in a chained invocation
+  [docReturnThis type]
    */
   [atCanIgnoreReturnValue type]
   public final [thisSetterReturnType type] [unset m]() {
@@ -182,7 +182,7 @@ Use @Value.Modifiable cannot be used with @Value.Immutable which implements Ordi
   [for p in nondefaults, BitPosition pos = nondefaultsPositions p]
   /**
    * Reset an attribute to its initial value.
-   * @return {@code this} for use in a chained invocation
+  [docReturnThis type]
    */
   [atCanIgnoreReturnValue type]
   public final [thisSetterReturnType type] [unset p]() {
@@ -353,9 +353,9 @@ public static[type.generics.def] [thisReturnType type] [type.names.create]() {
   [for s in type.buildFromTypes.supertypes]
 
 /**
- * Fill this modifiable instance with attribute values from the provided {@link [s.type]} instance.
+ * Fill this modifiable instance with attribute values from the provided {@link [s.raw]} instance.
  * @param instance The instance from which to copy values
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [atCanIgnoreReturnValue type]
 public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
@@ -373,7 +373,7 @@ public [thisSetterReturnType type] [type.names.from]([s.type] instance) {
  * Collection elements and entries will be added, not replaced.
 [/if]
  * @param instance The instance from which to copy values
- * @return {@code this} for use in a chained invocation
+[docReturnThisAlways]
  */
 public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
   [im.requireNonNull type](instance, "instance");
@@ -423,7 +423,7 @@ private void from(Object object) {
  * Collection elements and entries will be added, not replaced.
 [/if]
  * @param instance The instance from which to copy values
- * @return {@code this} for use in a chained invocation
+[docReturnThisAlways]
  */
 public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
   [im.requireNonNull type](instance, "instance");
@@ -447,7 +447,7 @@ public [thisReturnType type] [type.names.from]([type.typeAbstract] instance) {
  * Collection elements and entries will be added, not replaced.
 [/if]
  * @param instance The instance from which to copy values
- * @return {@code this} for use in a chained invocation
+[docReturnThisAlways]
  */
 public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
   [im.requireNonNull type](instance, "instance");
@@ -541,7 +541,7 @@ public [thisReturnType type] [type.names.from]([type.typeModifiable] instance) {
 /**
  * Adds one element to [sourceDocRef type v] [toLower v.rawCollectionType].
  * @param element The [v.name] element
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
@@ -572,7 +572,7 @@ public [thisSetterReturnType type] [v.names.add]([v.unwrappedElementType] elemen
 /**
  * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
  * @param elements An array of [v.name] elements
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
@@ -593,7 +593,7 @@ public final [thisSetterReturnType type] [v.names.addv]([v.unwrappedElementType]
 /**
  * Sets or replaces all elements for [sourceDocRef type v] [toLower v.rawCollectionType].
  * @param elements An iterable of [v.name] elements[if v.nullable], can be {@code null}[/if]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -622,7 +622,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
 /**
  * Adds elements to [sourceDocRef type v] [toLower v.rawCollectionType].
  * @param elements An iterable of [v.name] elements
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -645,7 +645,7 @@ public [thisSetterReturnType type] [v.names.addAll](Iterable<[v.consumedElementT
 /**
  * Assigns a <i>present</i> value for the optional [sourceDocRef type v] attribute.
  * @param [v.name] A value for [v.name][if v.optionalAcceptNullable], {@code null} is accepted as {@code [optionalEmpty v]}[/if]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
@@ -659,7 +659,7 @@ public [thisSetterReturnType type] [v.names.set]([unwrappedOptionalType v] [v.na
 /**
  * Assigns an optional value for [sourceDocRef type v].
  * @param [v.name] A value for [v.name]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -677,7 +677,7 @@ public [thisSetterReturnType type] [v.names.set]([v.rawType][if not v.jdkSpecial
  * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
  * @param key The key for [v.name]
  * @param values The values for [v.name]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [varargsSafety v]
 [deprecation v]
@@ -692,7 +692,7 @@ public final [thisSetterReturnType type] [v.names.putv]([uK] key, [uV]... values
  * Put all mappings from the specified key to values for [sourceDocRef type v] [toLower v.mapType]. Nulls are not permitted
  * @param key The key for [v.name]
  * @param values The values for [v.name]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
@@ -724,7 +724,7 @@ public [thisSetterReturnType type] [v.names.putAll]([uK] key, Iterable<[wV]> val
  * Put one entry to the [sourceDocRef type v] map.
  * @param key The key in [v.name] map
  * @param value The associated value in the [v.name] map
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.elementInitializerInjectedAnnotations]
@@ -749,7 +749,7 @@ public [thisSetterReturnType type] [v.names.put]([uK] key, [uV] value) {
  * Sets or replaces all mappings from the specified map as entries for the [sourceDocRef type v] map.
  * Nulls are not permitted as keys or values.
  * @param entries The entries that will be added to the [v.name] map[if v.nullable], can be {@code null}[/if]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -790,7 +790,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
  * Put all mappings from the specified map as entries to the [sourceDocRef type v] map.
  * Nulls are not permitted as keys or values.
  * @param entries to be added to [v.name] map
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -821,7 +821,7 @@ public [thisSetterReturnType type] [v.names.putAll]([if v.multimapType][guava].c
  * <p><em>If not set, this attribute will have a default value as defined by [sourceDocRef type v].</em>
 [/if]
  * @param elements The elements for [v.name]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [varargsSafety v]
 [deprecation v]
@@ -841,7 +841,7 @@ public final [thisSetterReturnType type] [v.names.set]([v.elementType]... elemen
  * <p><em>If not set, this attribute will have a default value returned by the initializer of [sourceDocRef type v].</em>
 [/if]
  * @param [v.name] The value for [v.name][if v.nullable], can be {@code null}[/if]
- * @return {@code this} for use in a chained invocation
+[docReturnThis type]
  */
 [deprecation v]
 [eachLine v.initializerInjectedAnnotations]
@@ -1238,6 +1238,14 @@ import [starImport];
 [template eachLine Object... lines][for l in lines]
 [l]
 [/for][/template]
+
+[template docReturnThis Type type]
+[if not type.beanFriendlyModifiable]
+ * @return {@code this} for use in a chained invocation
+[/if]
+[/template]
+
+[template docReturnThisAlways] * @return {@code this} for use in a chained invocation[/template]
 
 [template isInitialized Type t][disambiguateAccessor t t.names.isInitialized][/template]
 
