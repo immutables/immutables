@@ -24,7 +24,9 @@ import java.util.Set;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.lang.model.element.Element;
 import javax.tools.FileObject;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileManager.Location;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.ForwardingFiler;
@@ -144,14 +146,19 @@ public final class Processor extends AbstractGenerator {
             }
 
             @Override
-            public FileObject getResource(Location location, CharSequence pkg, CharSequence relativeName)
+            public FileObject createResource(
+                Location location,
+                CharSequence pkg,
+                CharSequence relativeName,
+                Element... originatingElements)
                 throws IOException {
-              throw new FileNotFoundException(
-                  String.format("Restricted read %s/%s/%s (triggered by -A%s)",
-                      location,
-                      pkg,
-                      relativeName,
-                      GRADLE_INCREMENTAL));
+              String message = String.format("Suppressed writing of resource %s/%s/%s (triggered by enabling -A%s)",
+                  location,
+                  pkg,
+                  relativeName,
+                  GRADLE_INCREMENTAL);
+              getMessager().printMessage(Kind.MANDATORY_WARNING, message);
+              throw new FileNotFoundException(message);
             }
           };
         }
