@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2018 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.FileObject;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
+import org.immutables.generator.Delegated.Delegates;
 import org.immutables.generator.Templates.Invokable;
 import org.immutables.generator.Templates.Invokation;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -171,7 +172,7 @@ public final class Output {
       Element originatingElement = (Element) parameters[2];
       Invokable body = (Invokable) parameters[3];
 
-      ResourceKey key = new ResourceKey(packageName, simpleName, originatingElement);
+      ResourceKey key = new ResourceKey(packageName, simpleName, Delegates.unwrap(originatingElement));
       SourceFile javaFile = getFiles().sourceFiles.get(key);
       body.invoke(new Invokation(javaFile.consumer));
       javaFile.complete();

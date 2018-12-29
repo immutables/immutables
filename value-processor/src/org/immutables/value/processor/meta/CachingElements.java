@@ -37,6 +37,7 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.type.TypeVisitor;
+import org.immutables.generator.Delegated;
 
 /**
  * Some annotation processors have {@code javax.lang.model} being implemented using relatively
@@ -63,18 +64,12 @@ public final class CachingElements {
 
   @SuppressWarnings("unchecked")
   public static <E extends Element> E getDelegate(E element) {
-    if (element instanceof Caching) {
-      return (E) ((Caching) element).delegate();
-    }
-    return element;
+    return Delegated.Delegates.unwrap(element);
   }
 
   @SuppressWarnings("unchecked")
   public static <E extends AnnotationMirror> E getDelegate(E element) {
-    if (element instanceof Caching) {
-      return (E) ((Caching) element).delegate();
-    }
-    return element;
+    return Delegated.Delegates.unwrap(element);
   }
 
   public static PackageElement asCaching(PackageElement element) {
@@ -110,9 +105,7 @@ public final class CachingElements {
     return cachingMirrors;
   }
 
-  private interface Caching {
-    Object delegate();
-  }
+  private interface Caching extends Delegated {}
 
   private static class CachingExecutableElement extends CachingElement implements ExecutableElement {
     private final ExecutableElement delegate;
