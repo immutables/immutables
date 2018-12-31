@@ -53,7 +53,7 @@ public class NestedValuesTest {
 
   @Test
   public void marshalingOfNested() {
-    check(CharMatcher.WHITESPACE.removeFrom(
+    check(CharMatcher.whitespace().removeFrom(
         Marshaling.toJson(
             ImmutableGroupedClasses.NestedOne.builder().build()))).is("{}");
   }

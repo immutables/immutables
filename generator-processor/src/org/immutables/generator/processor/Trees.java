@@ -334,7 +334,7 @@ public class Trees {
     }
 
     public boolean isWhitespace() {
-      return CharMatcher.WHITESPACE.matchesAllOf(value());
+      return CharMatcher.whitespace().matchesAllOf(value());
     }
   }
 

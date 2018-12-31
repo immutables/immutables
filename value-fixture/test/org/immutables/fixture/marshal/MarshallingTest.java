@@ -68,7 +68,7 @@ public class MarshallingTest {
 
   @Test
   public void nullableMarshaling() {
-    check(CharMatcher.WHITESPACE.removeFrom(Marshaling.toJson(ImmutableHasNullable.of()))).is("{}");
+    check(CharMatcher.whitespace().removeFrom(Marshaling.toJson(ImmutableHasNullable.of()))).is("{}");
     check(Marshaling.fromJson("{}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of());
     check(Marshaling.fromJson("{\"in\":1}", ImmutableHasNullable.class)).is(ImmutableHasNullable.of(1));
     check(Marshaling.fromJson("{\"def\":\"1\"}", ImmutableHasNullable.class))
