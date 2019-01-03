@@ -82,11 +82,8 @@ public class JacksonRepoTest {
     module.addDeserializer(UUID.class, new UUIDDeserializer(UuidRepresentation.JAVA_LEGACY));
 
     ObjectMapper mapper = new ObjectMapper()
-            .registerModule(JacksonCodecs.module(
-                CodecRegistries.fromRegistries(
-                    MongoClient.getDefaultCodecRegistry()
-                )
-            ))
+        // to support bson types like: Document, BsonValue etc.
+        .registerModule(JacksonCodecs.module(MongoClient.getDefaultCodecRegistry()))
         .registerModule(new GuavaModule())
         .registerModule(module);
 
