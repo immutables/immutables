@@ -73,7 +73,7 @@ public final class Templates {
 
     public CharSequence getCurrentIndentation() {
       CharSequence sequence = currentLine();
-      return sequence.length() > 0 && CharMatcher.WHITESPACE.matchesAllOf(sequence)
+      return sequence.length() > 0 && CharMatcher.whitespace().matchesAllOf(sequence)
           ? sequence
           : indentation;
     }
@@ -105,7 +105,7 @@ public final class Templates {
     }
 
     private boolean wasBlankLine() {
-      return CharMatcher.WHITESPACE.matchesAllOf(currentLine());
+      return CharMatcher.whitespace().matchesAllOf(currentLine());
     }
 
     @Override

@@ -62,7 +62,7 @@ public final class Output {
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
       Messager messager = StaticEnvironment.processing().getMessager();
-      String message = CharMatcher.WHITESPACE.trimFrom(parameters[parameters.length - 1].toString());
+      String message = CharMatcher.whitespace().trimFrom(parameters[parameters.length - 1].toString());
       Element element = (Element) Iterators.find(
           Iterators.forArray(parameters),
           Predicates.instanceOf(Element.class),
@@ -80,7 +80,7 @@ public final class Output {
     @Override
     @Nullable
     public Invokable invoke(Invokation invokation, Object... parameters) {
-      String message = CharMatcher.WHITESPACE.trimFrom(parameters[0].toString());
+      String message = CharMatcher.whitespace().trimFrom(parameters[0].toString());
       // this is not a debug line, we are printing to system out
       System.out.println(message);
       return null;
@@ -126,7 +126,7 @@ public final class Output {
   public final Templates.Invokable trim = new OutputFilter() {
     @Override
     void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
-      invokation.out(CharMatcher.WHITESPACE.trimFrom(content));
+      invokation.out(CharMatcher.whitespace().trimFrom(content));
     }
   };
 
@@ -135,7 +135,7 @@ public final class Output {
 
     @Override
     void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
-      String collapsed = CharMatcher.WHITESPACE.trimAndCollapseFrom(content, ' ');
+      String collapsed = CharMatcher.whitespace().trimAndCollapseFrom(content, ' ');
       int estimatedLimitOnThisLine = LIMIT - invokation.consumer.getCurrentIndentation().length();
 
       if (collapsed.length() < estimatedLimitOnThisLine) {
@@ -153,7 +153,7 @@ public final class Output {
   public final Templates.Invokable collapsible = new OutputFilter() {
     @Override
     void apply(Invokation invokation, CharSequence content, @Nullable Templates.Invokable original) {
-      boolean hasNonWhitespace = !CharMatcher.WHITESPACE.matchesAllOf(content);
+      boolean hasNonWhitespace = !CharMatcher.whitespace().matchesAllOf(content);
       if (hasNonWhitespace) {
         if (original != null) {
           original.invoke(invokation);

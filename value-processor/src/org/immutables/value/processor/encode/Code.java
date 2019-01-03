@@ -32,7 +32,7 @@ final class Code {
   private Code() {}
 
   private static final CharMatcher DELIMITER = CharMatcher.anyOf("!\"#$%&'()*+,-./:;<=>?@[]^{|}~");
-  private static final CharMatcher WHITESPACE = CharMatcher.WHITESPACE;
+  private static final CharMatcher WHITESPACE = CharMatcher.whitespace();
   private static final CharMatcher LETTER_OR_DIGIT = CharMatcher.javaLetterOrDigit().or(CharMatcher.anyOf("$_"));
   private static final CharMatcher IDENTIFIER_START = CharMatcher.javaLetter().or(CharMatcher.anyOf("$_"));
 

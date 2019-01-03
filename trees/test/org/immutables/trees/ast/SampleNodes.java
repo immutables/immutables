@@ -234,7 +234,7 @@ public interface SampleNodes {
     public abstract String value();
 
     public boolean isWhitespace() {
-      return CharMatcher.WHITESPACE.matchesAllOf(value());
+      return CharMatcher.whitespace().matchesAllOf(value());
     }
   }
 
