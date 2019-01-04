@@ -310,12 +310,14 @@ public final class Output {
     void complete() {
       CharSequence sourceCode = extractSourceCode();
       try {
-        JavaFileObject sourceFile = key.originatingElement != null
-            ? getFiler().createSourceFile(key.toString(), key.originatingElement)
-            : getFiler().createSourceFile(key.toString());
+        if (!identicalFileIsAlreadyGenerated(sourceCode)) {
+            JavaFileObject sourceFile = key.originatingElement != null
+                ? getFiler().createSourceFile(key.toString(), key.originatingElement)
+                : getFiler().createSourceFile(key.toString());
 
-        try (Writer writer = sourceFile.openWriter()) {
-          writer.append(sourceCode);
+            try (Writer writer = sourceFile.openWriter()) {
+                writer.append(sourceCode);
+            }
         }
       } catch (FilerException ex) {
         if (identicalFileIsAlreadyGenerated(sourceCode)) {
