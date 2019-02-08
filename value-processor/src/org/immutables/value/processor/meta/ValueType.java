@@ -432,6 +432,10 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return !kind().isNested();
   }
 
+  public boolean isGenerateCriteria() {
+    return constitution.protoclass().criteria().isPresent();
+  }
+
   public boolean isGenerateRepository() {
     return constitution.protoclass().repository().isPresent();
   }

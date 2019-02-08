@@ -329,6 +329,12 @@ public class Proto {
       return findElement(Proto.JACKSON_DESERIALIZE) != null;
     }
 
+
+    @Value.Lazy
+    public boolean hasCriteriaModule() {
+      return findElement(CriteriaMirror.qualifiedName()) != null;
+    }
+
     @Value.Lazy
     public boolean hasMongoModule() {
       return findElement(RepositoryMirror.qualifiedName()) != null;
@@ -909,6 +915,11 @@ public class Proto {
     }
 
     @Value.Lazy
+    public Optional<CriteriaMirror> criteria() {
+      return CriteriaMirror.find(element());
+    }
+
+    @Value.Lazy
     public Optional<RepositoryMirror> repository() {
       return RepositoryMirror.find(element());
     }
@@ -1200,6 +1211,16 @@ public class Proto {
      * @return declaring type
      */
     public abstract Optional<DeclaringType> declaringType();
+
+    @Value.Lazy
+    public Optional<CriteriaMirror> criteria() {
+      if (!declaringType().isPresent()) {
+        return Optional.absent();
+      }
+      return kind().isIncluded() || kind().isDefinedValue()
+              ? declaringType().get().criteria()
+              : Optional.<CriteriaMirror>absent();
+    }
 
     @Value.Lazy
     public Optional<RepositoryMirror> repository() {
