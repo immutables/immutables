@@ -18,10 +18,10 @@ package org.immutables.criteria.constraints;
 import org.immutables.criteria.DocumentCriteria;
 
 /**
- * Creates document criteria from a constraint.
+ * Creates document criteria from existing expression.
  */
 public interface CriteriaCreator<C extends DocumentCriteria<C, T>, T> {
 
-  C create(Constraints.Constraint constraint);
+  C create(Expression<T> expression);
 
 }

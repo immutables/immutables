@@ -33,22 +33,20 @@ import java.util.List;
  */
 public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements ValueCriteria<C, T> {
 
-  final String name;
-  final Constraints.Constraint constraint;
+  final Expression<T> expression;
   final CriteriaCreator<C, T> creator;
 
-  ObjectCriteria(String name, Constraints.Constraint constraint, CriteriaCreator<C, T> creator) {
-    this.name = Preconditions.checkNotNull(name, "name");
-    this.constraint = Preconditions.checkNotNull(constraint, "constraint");
+  ObjectCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
+    this.expression = Preconditions.checkNotNull(expression, "expression");
     this.creator = Preconditions.checkNotNull(creator, "creator");
   }
 
   public C isEqualTo(V value) {
-    return creator.create(constraint.equal(name, false, value));
+    return creator.create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(value)));
   }
 
   public C isNotEqualTo(V value) {
-    return creator.create(constraint.equal(name, true, value));
+    return creator.create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal(value)));
   }
 
   public C isIn(V v1, V v2, V ... rest) {
@@ -75,12 +73,12 @@ public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements V
 
   public C isIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return creator.create(constraint.in(name, false, ImmutableList.copyOf(values)));
+    return creator.create(Expressions.<T>call(Operators.IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
   public C isNotIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return creator.create(constraint.in(name, true, ImmutableList.copyOf(values)));
+    return creator.create(Expressions.<T>call(Operators.NOT_IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
 }
