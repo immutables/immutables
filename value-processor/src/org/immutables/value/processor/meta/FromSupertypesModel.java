@@ -166,7 +166,7 @@ public final class FromSupertypesModel {
 
   private @Nullable ExecutableElement findMethod(TypeElement typeElement, String getter) {
     for (ExecutableElement m : ElementFilter.methodsIn(typeElement.getEnclosedElements())) {
-      if (m.getSimpleName().contentEquals(getter)) {
+      if (m.getSimpleName().contentEquals(getter) && m.getParameters().isEmpty()) {
         return m;
       }
     }
