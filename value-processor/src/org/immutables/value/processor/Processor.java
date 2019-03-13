@@ -1,5 +1,5 @@
 /*
-   Copyright 2014 Immutables Authors and Contributors
+   Copyright 2014-2019 Immutables Authors and Contributors
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ import org.immutables.value.processor.meta.IncludeMirror;
 import org.immutables.value.processor.meta.ModifiableMirror;
 import org.immutables.value.processor.meta.Proto.DeclaringPackage;
 import org.immutables.value.processor.meta.Round;
+import org.immutables.value.processor.meta.UnshadeGuava;
 import org.immutables.value.processor.meta.ValueType;
 import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
@@ -61,6 +62,7 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 public final class Processor extends AbstractGenerator {
   @Override
   protected void process() {
+    prepareOptions();
 
     Round round = ImmutableRound.builder()
         .addAllAnnotations(annotations())
@@ -98,6 +100,10 @@ public final class Processor extends AbstractGenerator {
     }
   }
 
+  private void prepareOptions() {
+    UnshadeGuava.overridePrefix(processing().getOptions().get(GUAVA_PREFIX));
+  }
+
   @Override
   public Set<String> getSupportedAnnotationTypes() {
     return FluentIterable.from(super.getSupportedAnnotationTypes())
@@ -106,6 +112,7 @@ public final class Processor extends AbstractGenerator {
   }
 
   private static final String GRADLE_INCREMENTAL = "immutables.gradle.incremental";
+  private static final String GUAVA_PREFIX = "immutables.guava.prefix";
 
   @Override
   public Set<String> getSupportedOptions() {
@@ -114,6 +121,7 @@ public final class Processor extends AbstractGenerator {
     if (processingEnv.getOptions().containsKey(GRADLE_INCREMENTAL)) {
       options.add("org.gradle.annotation.processing.isolating");
     }
+    options.add(GUAVA_PREFIX);
     return options.build();
   }
 
