@@ -65,8 +65,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]>,
-                                        Expression<[type.name]> {
+[type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]> {
 
    private final Expression<[type.name]> expression;
 
@@ -90,19 +89,10 @@ import [starImport];
         return new [type.name]Criteria(Expressions.<[type.name]>path(""));
    }
 
-  @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
-     if (expression instanceof Path) {
-       return visitor.visit((Path<?>) expression);
-     } else if (expression instanceof Call) {
-       return visitor.visit((Call<?>) expression);
-     } else if (expression instanceof Literal) {
-       return visitor.visit((Literal<?>) expression);
-     }
-
-     throw new UnsupportedOperationException(String.format("Unknown expression type %s for %s",
-             expression.getClass().getName(), getClass()));
-  }
+   @Override
+   public Expression<[type.name]> expression() {
+       return this.expression;
+   }
 
    /**
     * Used to construct this criteria based on existing {@link Constraints.Constraint}
