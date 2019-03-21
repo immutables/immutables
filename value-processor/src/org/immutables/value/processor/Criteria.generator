@@ -33,16 +33,21 @@ Use @Criteria to annotate @Value.Immutable abstract value types with no type var
 package [type.package];
 [/if]
 
-import org.immutables.criteria.Disjunction;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.ValueCriteria;
 import org.immutables.criteria.constraints.CriteriaCreator;
-import org.immutables.criteria.constraints.Constraints;
 import org.immutables.criteria.constraints.OptionalCriteria;
 import org.immutables.criteria.constraints.ObjectCriteria;
 import org.immutables.criteria.constraints.StringCriteria;
 import org.immutables.criteria.constraints.BooleanCriteria;
 import org.immutables.criteria.constraints.ComparableCriteria;
+import org.immutables.criteria.constraints.Expression;
+import org.immutables.criteria.constraints.ExpressionVisitor;
+import org.immutables.criteria.constraints.Expressions;
+import org.immutables.criteria.constraints.Literal;
+import org.immutables.criteria.constraints.Path;
+import org.immutables.criteria.constraints.Call;
+
 
 import com.google.common.base.Preconditions;
 
@@ -61,9 +66,9 @@ import [starImport];
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
 [type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]>,
-                                        Disjunction<[type.name]Criteria, [type.name]>, Constraints.ConstraintHost {
+                                        Expression<[type.name]> {
 
-   private final Constraints.Constraint constraint;
+   private final Expression<[type.name]> expression;
 
    // public fields
    [for a in type.allMarshalingAttributes]
@@ -72,28 +77,32 @@ import [starImport];
    [/if]
    [/for]
 
-   private [type.name]Criteria(Constraints.Constraint constraint) {
-       this.constraint = Preconditions.checkNotNull(constraint, "constraint");
+   private [type.name]Criteria(Expression<[type.name]> expression) {
+       this.expression = Preconditions.checkNotNull(expression, "expression");
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
-       this.[a.name] = new [criteriaType a type]("[a.name]", constraint, creator());
+       this.[a.name] = new [criteriaType a type](Expressions.<[type.name]>path("[type.name]"), creator());
    [/if]
    [/for]
    }
 
    public static [type.name]Criteria create() {
-        return new [type.name]Criteria(Constraints.nilConstraint());
+        return new [type.name]Criteria(Expressions.<[type.name]>path(""));
    }
 
-   @Override
-   public <V extends Constraints.ConstraintVisitor<V>> V accept(V visitor) {
-       return constraint.accept(visitor);
-   }
+  @Override
+  public <R> R accept(ExpressionVisitor<R> visitor) {
+     if (expression instanceof Path) {
+       return visitor.visit((Path<?>) expression);
+     } else if (expression instanceof Call) {
+       return visitor.visit((Call<?>) expression);
+     } else if (expression instanceof Literal) {
+       return visitor.visit((Literal<?>) expression);
+     }
 
-   @Override
-   public [type.name]Criteria or() {
-       return new [type.name]Criteria(constraint.disjunction());
-   }
+     throw new UnsupportedOperationException(String.format("Unknown expression type %s for %s",
+             expression.getClass().getName(), getClass()));
+  }
 
    /**
     * Used to construct this criteria based on existing {@link Constraints.Constraint}
@@ -101,8 +110,8 @@ import [starImport];
    private static CriteriaCreator<[type.name]Criteria, [type.name]> creator() {
       return new CriteriaCreator<[type.name]Criteria, [type.name]>() {
          @Override
-         public [type.name]Criteria create(Constraints.Constraint constraint) {
-            return new [type.name]Criteria(constraint);
+         public [type.name]Criteria create(Expression<[type.name]> expression) {
+            return new [type.name]Criteria(expression);
          }
       };
    }

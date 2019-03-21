@@ -1,4 +1,6 @@
-This module generates Criteria classes based on immutable model.
+This module generates Criteria classes based on immutable model. 
+
+The functionality is work in progress and API is not stable yet (use at your own risk).
 
 Generated classes allow type-safe query building which can be evaluated on destination data-source.
 

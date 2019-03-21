@@ -16,7 +16,6 @@
 package org.immutables.criteria.constraints;
 
 
-import com.google.common.collect.Range;
 import org.immutables.criteria.DocumentCriteria;
 
 /**
@@ -25,30 +24,16 @@ import org.immutables.criteria.DocumentCriteria;
 public class ComparableCriteria<V extends Comparable<V>, C extends DocumentCriteria<C, T>, T>
         extends ObjectCriteria<V, C, T> {
 
-  public ComparableCriteria(String name, Constraints.Constraint constraint, CriteriaCreator<C, T> creator) {
-    super(name, constraint, creator);
+  public ComparableCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
+    super(expression, creator);
   }
 
-  /**
-   * Checks that attribute is in {@code range}.
-   */
-  public C isIn(Range<V> range) {
-    return creator.create(constraint.range(name, false, range));
-  }
-
-  /**
-   * Checks that attribute is <i>not</i> in {@code range}.
-   */
-  public C isNotIn(Range<V> range) {
-    return creator.create(constraint.range(name, true, range));
-  }
-
-  /**
+  /**]
    * Checks that attribute is less than (but not equal to) {@code upper}.
    * <p>Use {@link #isAtMost(Comparable)} for less <i>or equal</i> comparison</p>
    */
   public C isLessThan(V upper) {
-    return isIn(Range.lessThan(upper));
+    return creator.create(Expressions.<T>call(Operators.LESS_THAN, expression, Expressions.literal(upper)));
   }
 
   /**
@@ -56,21 +41,21 @@ public class ComparableCriteria<V extends Comparable<V>, C extends DocumentCrite
    * <p>Use {@link #isAtLeast(Comparable)} for greater <i>or equal</i> comparison</p>
    */
   public C isGreaterThan(V lower) {
-    return isIn(Range.greaterThan(lower));
+    return creator.create(Expressions.<T>call(Operators.GREATER_THAN, expression, Expressions.literal(lower)));
   }
 
   /**
    * Checks that attribute is less than or equal to {@code upperInclusive}.
    */
   public C isAtMost(V upperInclusive) {
-    return isIn(Range.atMost(upperInclusive));
+    return creator.create(Expressions.<T>call(Operators.LESS_THAN_OR_EQUAL, expression, Expressions.literal(upperInclusive)));
   }
 
   /**
    * Checks that attribute is greater or equal to {@code lowerInclusive}.
    */
   public C isAtLeast(V lowerInclusive) {
-    return isIn(Range.atLeast(lowerInclusive));
+    return creator.create(Expressions.<T>call(Operators.GREATER_THAN_OR_EQUAL, expression, Expressions.literal(lowerInclusive)));
   }
 
 }
