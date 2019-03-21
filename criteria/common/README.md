@@ -16,7 +16,7 @@ Conversion between criteria and native query is happening at runtime using visit
     user.friends.allMatch(FriendCriteria.create().age().greaterThan(22));
    
     // something similar for optionals
-    ```
+    ``` 
 2. Combining criterias (using `AND`s / `OR`s)
 3. Nested criterias
 4. Projections
