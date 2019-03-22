@@ -78,15 +78,16 @@ import [starImport];
 
    private [type.name]Criteria(Expression<[type.name]> expression) {
        this.expression = Preconditions.checkNotNull(expression, "expression");
+       final CriteriaCreator<[type.name]Criteria, [type.name]> creator = creator();
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
-       this.[a.name] = new [criteriaType a type](Expressions.<[type.name]>path("[type.name]"), creator());
+       this.[a.name] = new [criteriaType a type](expression, Expressions.<[type.name]>path("[a.name]"), creator);
    [/if]
    [/for]
    }
 
    public static [type.name]Criteria create() {
-        return new [type.name]Criteria(Expressions.<[type.name]>path(""));
+        return new [type.name]Criteria(Expressions.empty());
    }
 
    @Override

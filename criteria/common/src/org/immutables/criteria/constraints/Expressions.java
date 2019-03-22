@@ -73,5 +73,11 @@ public final class Expressions {
     };
   }
 
+  /**
+   * Used as {@code null} object
+   */
+  public static <T> Expression<T> empty() {
+    return path("");
+  }
 
 }

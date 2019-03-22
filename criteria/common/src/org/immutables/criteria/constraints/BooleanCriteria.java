@@ -23,16 +23,16 @@ import org.immutables.criteria.DocumentCriteria;
  */
 public class BooleanCriteria<C extends DocumentCriteria<C, T>, T> extends ObjectCriteria<Boolean, C, T> {
 
-  public BooleanCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
-    super(expression, creator);
+  public BooleanCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
+    super(left, expression, creator);
   }
 
   public C isTrue() {
-    return creator.create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(Boolean.TRUE)));
+    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(Boolean.TRUE)));
   }
 
   public C isFalse() {
-    return creator.create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(Boolean.FALSE)));
+    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(Boolean.FALSE)));
   }
 
 }

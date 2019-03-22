@@ -24,16 +24,16 @@ import org.immutables.criteria.DocumentCriteria;
 // TODO what should be the type of V be in ObjectCriteria ? java8.util.Optional<V> or guava.Optional<V> ?
 public class OptionalCriteria<V, C extends DocumentCriteria<C, T>, T> extends ObjectCriteria<V, C, T> {
 
-  public OptionalCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
-    super(expression, creator);
+  public OptionalCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
+    super(left, expression, creator);
   }
 
   public C isPresent() {
-    return creator.create(Expressions.<T>call(Operators.IS_PRESENT, expression));
+    return create(Expressions.<T>call(Operators.IS_PRESENT, expression));
   }
 
   public C isEmpty() {
-    return creator.create(Expressions.<T>call(Operators.IS_ABSENT, expression));
+    return create(Expressions.<T>call(Operators.IS_ABSENT, expression));
   }
 
 }

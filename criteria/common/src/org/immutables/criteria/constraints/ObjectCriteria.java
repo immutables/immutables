@@ -33,20 +33,35 @@ import java.util.List;
  */
 public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements ValueCriteria<C, T> {
 
+  final Expression<T> left;
   final Expression<T> expression;
   final CriteriaCreator<C, T> creator;
 
-  ObjectCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
+  ObjectCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
+    this.left = Preconditions.checkNotNull(left, "left");
     this.expression = Preconditions.checkNotNull(expression, "expression");
     this.creator = Preconditions.checkNotNull(creator, "creator");
   }
 
+  /**
+   * Combines existing {@code left} expression with new one
+   * @param expression new expression
+   */
+  protected C create(Expression<T> expression) {
+    Expression<T> combined = isEmptyExpression(left) ? expression : Expressions.call(Operators.AND, left, expression);
+    return creator.create(combined);
+  }
+
+  private static boolean isEmptyExpression(Expression<?> expression) {
+    return (expression instanceof Path) && ((Path) expression).path().equals("");
+  }
+
   public C isEqualTo(V value) {
-    return creator.create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(value)));
+    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(value)));
   }
 
   public C isNotEqualTo(V value) {
-    return creator.create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal(value)));
+    return create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal(value)));
   }
 
   public C isIn(V v1, V v2, V ... rest) {
@@ -73,12 +88,12 @@ public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements V
 
   public C isIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return creator.create(Expressions.<T>call(Operators.IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(Expressions.<T>call(Operators.IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
   public C isNotIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return creator.create(Expressions.<T>call(Operators.NOT_IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(Expressions.<T>call(Operators.NOT_IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
 }

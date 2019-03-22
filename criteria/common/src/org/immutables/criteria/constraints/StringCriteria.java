@@ -23,16 +23,16 @@ import org.immutables.criteria.DocumentCriteria;
  */
 public class StringCriteria<C extends DocumentCriteria<C, T>, T> extends ComparableCriteria<String, C, T> {
 
-  public StringCriteria(Expression<T> expression, CriteriaCreator<C, T> creator) {
-    super(expression, creator);
+  public StringCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
+    super(left, expression, creator);
   }
 
   public C isEmpty() {
-    return creator.create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal("")));
+    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal("")));
   }
 
   public C isNotEmpty() {
-    return creator.create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal("")));
+    return create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal("")));
   }
 
   public C contains(CharSequence other) {
