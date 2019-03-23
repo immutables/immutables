@@ -30,17 +30,20 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.github.fakemongo.Fongo;
 import com.google.common.base.Optional;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.*;
+import org.bson.BsonDocument;
+import org.bson.BsonNull;
+import org.bson.BsonReader;
+import org.bson.BsonType;
+import org.bson.BsonWriter;
+import org.bson.UuidRepresentation;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.UuidCodec;
-import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.types.ObjectId;
 import org.immutables.mongo.Mongo;
 import org.immutables.mongo.bson4jackson.BsonGenerator;
@@ -49,6 +52,7 @@ import org.immutables.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.mongo.repository.RepositorySetup;
 import org.immutables.value.Value;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
@@ -64,14 +68,15 @@ import static org.immutables.check.Checkers.check;
  */
 public class JacksonRepoTest {
 
-  private JacksonRepository repository;
+  @Rule
+  public final MongoContext context = MongoContext.create();
 
+  private JacksonRepository repository;
   private MongoCollection<BsonDocument> collection;
 
   @Before
   public void setUp() throws Exception {
-    MongoDatabase database = new Fongo("myname").getDatabase("foo");
-
+    final MongoDatabase database = context.database();
     this.collection = database.getCollection("jackson").withDocumentClass(BsonDocument.class);
 
     SimpleModule module = new SimpleModule(); // for our local serializers of Date and ObjectId

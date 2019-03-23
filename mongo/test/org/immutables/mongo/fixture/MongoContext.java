@@ -15,8 +15,8 @@
  */
 package org.immutables.mongo.fixture;
 
-import com.github.fakemongo.Fongo;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -25,7 +25,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
+import de.bwaldvogel.mongo.MongoServer;
+import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import org.immutables.mongo.fixture.holder.Holder;
 import org.immutables.mongo.fixture.holder.HolderJsonSerializer;
 import org.immutables.mongo.fixture.holder.ImmutableHolder;
@@ -40,8 +43,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * JUnit rule which allows tests to access {@link RepositorySetup} backed by real database (fongo or MongoDB). It
- * is a good habit to run tests on different versions of the database. By default Fongo is used.
+ * JUnit rule which allows tests to access {@link RepositorySetup} backed by real database (embedded but fake or remote MongoDB). It
+ * is a good habit to run tests on different versions of the database. By default embedded (in memory) java server
+ * is used.
  *
  * <p>If you want to connect to external mongo database use system property {@code mongo}.
  * With maven it will look something like this:
@@ -49,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  * {@code $ mvn test -DargLine="-Dmongo=mongodb://localhost"}
  * </pre>
  *
- * @see <a href="https://github.com/fakemongo/fongo">Fongo</a>
+ * @see <a href="https://github.com/bwaldvogel/mongo-java-server">Mongo Java Server</a>
  **/
 public class MongoContext extends ExternalResource implements AutoCloseable  {
 
@@ -59,11 +63,9 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
   private final RepositorySetup setup;
   private final MongoDatabase database;
 
-  private MongoContext(final MongoClient client) {
+  private MongoContext(final MongoClient client, Closer closer) {
     Preconditions.checkNotNull(client, "client");
-
-    // allows to cleanup resources after each test
-    final Closer closer = Closer.create();
+    Preconditions.checkNotNull(closer, "closer");
 
     closer.register(new Closeable() {
       @Override
@@ -131,17 +133,24 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
   }
 
   public static MongoContext create() {
-      return new MongoContext(createClient());
-  }
+    final String uri = System.getProperty("mongo");
+    final Closer closer = Closer.create();
+    if (uri != null) {
+      // remote mongo server
+      return new MongoContext(new MongoClient(new MongoClientURI(uri)), closer);
+    }
 
-  /**
-   * Allows to switch between Fongo and MongoDB based on system parameter {@code mongo}.
-   */
-  private static MongoClient createClient() {
-    String uri = System.getProperty("mongo");
-    return uri != null
-        ? new MongoClient(new MongoClientURI(uri))
-        : new Fongo("FakeMongo").getMongo();
+    final MongoServer server = new MongoServer(new MemoryBackend());
+    closer.register(new Closeable() {
+      @Override
+      public void close() throws IOException {
+        server.shutdownNow();
+      }
+    });
+
+    final MongoClient client = new MongoClient(new ServerAddress(server.bind()));
+    final MongoContext context = new MongoContext(client, closer);
+    return context;
   }
 
   /**
@@ -152,6 +161,7 @@ public class MongoContext extends ExternalResource implements AutoCloseable  {
     try {
       close();
     } catch (Exception e) {
+      Throwables.propagateIfPossible(e);
       throw new RuntimeException(e);
     }
   }

@@ -31,6 +31,7 @@ public class FlagsTest {
     repo.findAll().deleteAll().getUnchecked();
     repo.findAll().deleteFirst().getUnchecked();
     repo.findAll().andModifyFirst().setName("foo").update();
+    repo.insert(ImmutableStandard.builder().id("id1").name("foo").build()).getUnchecked();
     repo.findAll().andReplaceFirst(ImmutableStandard.builder().id("id1").build()).upsert().getUnchecked();
 
   }
