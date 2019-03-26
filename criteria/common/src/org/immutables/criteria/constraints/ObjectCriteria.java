@@ -22,7 +22,9 @@ import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.ValueCriteria;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 /**
  * Comparing directly values of an attribute.
@@ -33,44 +35,32 @@ import java.util.List;
  */
 public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements ValueCriteria<C, T> {
 
-  final Expression<T> left;
-  final Expression<T> expression;
   final CriteriaCreator<C, T> creator;
 
-  ObjectCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
-    this.left = Preconditions.checkNotNull(left, "left");
-    this.expression = Preconditions.checkNotNull(expression, "expression");
+  ObjectCriteria(CriteriaCreator<C, T> creator) {
     this.creator = Preconditions.checkNotNull(creator, "creator");
   }
 
   /**
    * Combines existing {@code left} expression with new one
-   * @param expression new expression
    */
-  protected C create(Expression<T> expression) {
-    Expression<T> combined = isEmptyExpression(left) ? expression : Expressions.call(Operators.AND, left, expression);
-    return creator.create(combined);
-  }
-
-  private static boolean isEmptyExpression(Expression<?> expression) {
-    return (expression instanceof Path) && ((Path) expression).path().equals("");
+  protected C create(UnaryOperator<Expression<T>> fn) {
+    return creator.create(fn);
   }
 
   public C isEqualTo(V value) {
-    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal(value)));
+    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal(value)));
   }
 
   public C isNotEqualTo(V value) {
-    return create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal(value)));
+    return create(e -> Expressions.<T>call(Operators.NOT_EQUAL, e, Expressions.literal(value)));
   }
 
   public C isIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
-    for (V v: rest) {
-      values.add(v);
-    }
+    values.addAll(Arrays.asList(rest));
 
     return isIn(values);
   }
@@ -79,21 +69,19 @@ public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements V
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
-    for (V v: rest) {
-      values.add(v);
-    }
+    values.addAll(Arrays.asList(rest));
 
     return isNotIn(values);
   }
 
   public C isIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(Expressions.<T>call(Operators.IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.<T>call(Operators.IN, e, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
   public C isNotIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(Expressions.<T>call(Operators.NOT_IN, expression, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.<T>call(Operators.NOT_IN, e, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
 }

@@ -38,6 +38,11 @@ public interface DocumentCriteria<C extends DocumentCriteria<C, T>, T> extends E
    */
   Expression<T> expression();
 
+  /**
+   * Builds a disjunction
+   */
+  C or();
+
   @Nullable
   @Override
   default <R> R accept(ExpressionVisitor<R> visitor) {

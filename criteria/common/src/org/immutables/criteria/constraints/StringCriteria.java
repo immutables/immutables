@@ -19,20 +19,20 @@ package org.immutables.criteria.constraints;
 import org.immutables.criteria.DocumentCriteria;
 
 /**
- * String specific criterias like {@code isEmpty}, {@code contains} etc.
+ * String specific criterias like {@code isAbsent}, {@code contains} etc.
  */
 public class StringCriteria<C extends DocumentCriteria<C, T>, T> extends ComparableCriteria<String, C, T> {
 
-  public StringCriteria(Expression<T> left, Expression<T> expression, CriteriaCreator<C, T> creator) {
-    super(left, expression, creator);
+  public StringCriteria(CriteriaCreator<C, T> creator) {
+    super(creator);
   }
 
   public C isEmpty() {
-    return create(Expressions.<T>call(Operators.EQUAL, expression, Expressions.literal("")));
+    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal("")));
   }
 
   public C isNotEmpty() {
-    return create(Expressions.<T>call(Operators.NOT_EQUAL, expression, Expressions.literal("")));
+    return create(e -> Expressions.<T>call(Operators.NOT_EQUAL, e, Expressions.literal("")));
   }
 
   public C contains(CharSequence other) {

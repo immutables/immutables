@@ -45,6 +45,8 @@ import org.immutables.criteria.constraints.Expression;
 import org.immutables.criteria.constraints.ExpressionVisitor;
 import org.immutables.criteria.constraints.Expressions;
 import org.immutables.criteria.constraints.Literal;
+import org.immutables.criteria.constraints.Operators;
+import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Path;
 import org.immutables.criteria.constraints.Call;
 
@@ -68,6 +70,7 @@ import [starImport];
 [type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]> {
 
    private final Expression<[type.name]> expression;
+   private final Operator operator;
 
    // public fields
    [for a in type.allMarshalingAttributes]
@@ -77,34 +80,43 @@ import [starImport];
    [/for]
 
    private [type.name]Criteria(Expression<[type.name]> expression) {
+       this(Operators.AND, expression);
+   }
+
+   private [type.name]Criteria(Operator operator, Expression<[type.name]> expression) {
        this.expression = Preconditions.checkNotNull(expression, "expression");
-       final CriteriaCreator<[type.name]Criteria, [type.name]> creator = creator();
+       this.operator = Preconditions.checkNotNull(operator, "operator");
+
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
-       this.[a.name] = new [criteriaType a type](expression, Expressions.<[type.name]>path("[a.name]"), creator);
+       this.[a.name] = new [criteriaType a type](creatorFor("[a.name]"));
    [/if]
    [/for]
    }
 
+   public [type.name]Criteria or() {
+     if (operator == Operators.OR) {
+       // can also do "or().or()" yuck :(
+       // for cases like or().or().or() return same instance
+       return this;
+     }
+
+     return new [type.name]Criteria(Operators.OR, expression);
+   }
+
+
    public static [type.name]Criteria create() {
-        return new [type.name]Criteria(Expressions.empty());
+     return new [type.name]Criteria(Expressions.empty());
    }
 
    @Override
    public Expression<[type.name]> expression() {
-       return this.expression;
+     return this.expression;
    }
 
-   /**
-    * Used to construct this criteria based on existing {@link Constraints.Constraint}
-    */
-   private static CriteriaCreator<[type.name]Criteria, [type.name]> creator() {
-      return new CriteriaCreator<[type.name]Criteria, [type.name]>() {
-         @Override
-         public [type.name]Criteria create(Expression<[type.name]> expression) {
-            return new [type.name]Criteria(expression);
-         }
-      };
+   private CriteriaCreator<[type.name]Criteria, [type.name]> creatorFor(String name) {
+       // use Disjunctive Normal Form
+       return fn -> new [type.name]Criteria(Expressions.dnf(operator, expression, fn.apply(Expressions.<[type.name]>path(name))));
    }
 
 }

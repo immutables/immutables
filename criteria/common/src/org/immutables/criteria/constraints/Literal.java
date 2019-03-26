@@ -1,7 +1,7 @@
 package org.immutables.criteria.constraints;
 
 /**
- * Constant value
+ * A constant. {@code true}, {@code 1}, {@code "foo"} etc.
  */
 public interface Literal<T> extends Expression<T> {
 
