@@ -1,4 +1,4 @@
-package org.immutables.criteria.fixture;
+package org.immutables.criteria;
 
 import com.google.common.base.Optional;
 import org.immutables.criteria.Criteria;

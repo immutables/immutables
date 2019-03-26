@@ -7,13 +7,10 @@ import java.util.List;
  */
 public interface Call<T> extends Expression<T> {
 
-
   /**
-   * Get the arguments of this operation
-   *
-   * @return arguments
+   * Get arguments of this operation
    */
-  List<Expression<?>> getOperands();
+  List<Expression<?>> getArguments();
 
   /**
    * Get the operator symbol for this operation
