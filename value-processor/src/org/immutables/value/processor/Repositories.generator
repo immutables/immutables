@@ -853,14 +853,16 @@ private static class Serialization {
 [for subs = a.expectedSubtypes,
     Boolean suppotedSubs = ((a.typeKind.mapKind and secondary) ornot a.typeKind.mapKind)]
   [if subs and suppotedSubs]
-this.[a.name][if secondary]Secondary[/if]Encoder = org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson,
-    [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs],
-    TypeToken.get([s].class)[/for]);
+[output.error a.originalElement]Repositories do not support inline @Gson.ExpectedSubtypes, please put this annotations
+on the interface nested in class covered with @Gson.TypeAdapters. Or manually register on GsonBuilder following adapter:
+org.immutables.gson.adapter.ExpectedSubtypesAdapter.create(gson, [if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if][for s in subs], TypeToken.get([s].class)[/for])
+[/output.error]
   [else]
 this.[a.name][if secondary]Secondary[/if]Encoder = this.registry.get([if secondary][a.typeTokenOfSecondaryElement][else][a.typeTokenOfElement][/if]);
   [/if]
 [/for]
 [/template]
+
 [template wrapMarshalable Attribute a][if a.requiresMarshalingAdapter]Support.writable(serialization.[a.name]Encoder, [else]Support.writable([/if][/template]
 
 [template wrapSecondaryMarshalable Attribute a][if a.requiresMarshalingSecondaryAdapter]Support.writable(serialization.[a.name]SecondaryEncoder, [else]Support.writable([/if][/template]
