@@ -1,7 +1,6 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.constraints.DebugExpressionVisitor;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.PrintWriter;
@@ -12,24 +11,32 @@ import static org.immutables.check.Checkers.check;
 public class ReflectionTest {
 
   @Test
-  @Ignore
   public void reflection() {
     final PersonCriteria crit = PersonCriteria.create();
     final ImmutablePerson person = ImmutablePerson.builder().firstName("John").age(22).isMarried(false).build();
 
     check(evaluate(crit, person));
     check(!evaluate(crit.age.isEqualTo(11), person));
+    check(evaluate(crit.age.isNotEqualTo(11), person));
     check(evaluate(crit.age.isEqualTo(11), person.withAge(11)));
     check(evaluate(crit.age.isEqualTo(22).firstName.isEqualTo("John"), person));
     check(!evaluate(crit.age.isEqualTo(22).firstName.isEqualTo("Marry"), person));
 
     check(!evaluate(crit.age.isIn(1, 2, 3), person));
+    check(evaluate(crit.age.isNotIn(1, 2, 3), person));
     check(evaluate(crit.age.isIn(22, 23, 24), person));
+    check(!evaluate(crit.age.isNotIn(22, 23, 24), person));
     check(!evaluate(crit.isMarried.isTrue(), person));
     check(evaluate(crit.isMarried.isFalse(), person));
     check(evaluate(crit.isMarried.isFalse(), person));
 
     check(evaluate(crit.age.isAtLeast(22), person));
+    check(evaluate(crit.age.isAtLeast(21), person));
+    check(!evaluate(crit.age.isAtLeast(23), person));
+    check(evaluate(crit.age.isAtMost(22), person));
+    check(!evaluate(crit.age.isLessThan(22), person));
+    check(!evaluate(crit.age.isGreaterThan(22), person));
+
     check(!evaluate(crit.age.isAtLeast(23), person));
     check(evaluate(crit.lastName.isAbsent(), person));
     check(!evaluate(crit.lastName.isPresent(), person));
@@ -50,6 +57,6 @@ public class ReflectionTest {
   }
 
   private static boolean evaluate(PersonCriteria criteria, Person person) {
-    return true;
+    return InMemoryExpressionEvaluator.of(criteria.expression()).test(person);
   }
 }
