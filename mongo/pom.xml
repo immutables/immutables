@@ -74,7 +74,7 @@
     <dependency>
       <groupId>de.bwaldvogel</groupId>
       <artifactId>mongo-java-server</artifactId>
-      <version>1.13.0</version>
+      <version>1.14.0</version>
       <scope>test</scope>
     </dependency>
     <!-- mongo-java-server dependency -->
