@@ -45,8 +45,8 @@ public final class MongoAsserts {
       String codeName = ((MongoCommandException) exception).getResponse().get("codeName").asString().getValue();
       int errorCode = ((MongoCommandException) exception).getErrorCode();
 
-      // 11000 stands for DuplicateKeyException
-      check(errorCode).is(11000);
+      check(codeName).is("DuplicateKey");
+      check(errorCode).is(11000); // code 11000 stands for DuplicateKeyException
 
       // all good here (can return)
       return;
