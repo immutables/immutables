@@ -64,11 +64,11 @@ public final class Expressions {
   }
 
   private static <T> Expression<T> reduce(Operator operator, Iterable<? extends Expression<T>> expressions) {
-    final Iterable<? extends Expression<T>> filtered = Iterables.filter(expressions, e -> !isEmpty(e) );
+    final Iterable<? extends Expression<T>> filtered = Iterables.filter(expressions, e -> !isNil(e) );
     final int size = Iterables.size(filtered);
 
     if (size == 0) {
-      return empty();
+      return nil();
     } else if (size == 1) {
       return filtered.iterator().next();
     }
@@ -85,7 +85,7 @@ public final class Expressions {
               Arrays.asList(Operators.AND, Operators.OR), operator));
     }
 
-    if (isEmpty(existing)) {
+    if (isNil(existing)) {
       return DnfExpression.<T>create(newExpression);
     }
 
@@ -125,15 +125,15 @@ public final class Expressions {
   }
 
   /**
-   * Used as {@code null} object
+   * Used as sentinel for {@code noop} expression.
    */
   @SuppressWarnings("unchecked")
-  public static <T> Expression<T> empty() {
-    return (Expression<T>) EmptyExpression.INSTANCE;
+  public static <T> Expression<T> nil() {
+    return (Expression<T>) NilExpression.INSTANCE;
   }
 
-  public static boolean isEmpty(Expression<?> expression) {
-    return expression == EmptyExpression.INSTANCE;
+  public static boolean isNil(Expression<?> expression) {
+    return expression == NilExpression.INSTANCE;
   }
 
 }
