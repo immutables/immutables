@@ -132,6 +132,8 @@ StringCriteria<[type.name]Criteria, [type.name]>
 OptionalCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
 [else if a.comparable]
 ComparableCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+[else if a.hasCriteria]
+[a.attributeValueType.name]Criteria
 [else]
 ObjectCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
 [/if]

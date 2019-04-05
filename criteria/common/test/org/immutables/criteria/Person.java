@@ -15,4 +15,5 @@ public interface Person {
 
   int age();
 
+  Friend friend();
 }

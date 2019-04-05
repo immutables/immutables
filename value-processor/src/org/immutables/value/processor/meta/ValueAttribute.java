@@ -1136,12 +1136,17 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     validateThrowsClause();
     validateTypeAndAnnotations();
 
+    initAttributeValueType();
+
     if (supportBuiltinContainerTypes()) {
-      initAttributeValueType();
       initImmutableCopyOf();
     }
 
     initAttributeBuilder();
+  }
+
+  public boolean hasCriteria() {
+    return attributeValueType != null && attributeValueType.isGenerateCriteria();
   }
 
   private Set<String> thrownCheckedExceptions = ImmutableSet.of();
@@ -1271,7 +1276,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private void initAttributeValueType() {
 
     if ((style().deepImmutablesDetection()
-        || style().attributeBuilderDetection())
+        || style().attributeBuilderDetection()
+        || containingType.isGenerateCriteria())
         && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
