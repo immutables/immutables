@@ -16,20 +16,17 @@
 
 package org.immutables.criteria;
 
-import org.immutables.criteria.constraints.Expressional;
-
 /**
  * Base class of Criteria API. Right now used as a marker interface.
  * Generated code extends this class.
  *
- * @param <C> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
- * @param <T> type of the document being evaluated by this criteria
+ * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public interface DocumentCriteria<C extends DocumentCriteria<C, T>, T> extends Expressional<T> {
+public interface DocumentCriteria<R extends DocumentCriteria<R>>  {
 
   /**
    * Builds a disjunction
    */
-  C or();
+  R or();
 
 }

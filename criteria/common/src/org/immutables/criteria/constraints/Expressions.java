@@ -86,7 +86,7 @@ public final class Expressions {
     }
 
     if (isNil(existing)) {
-      return DnfExpression.<T>create(newExpression);
+      return DnfExpression.<T>create().and(newExpression);
     }
 
     if (!(existing instanceof DnfExpression)) {
