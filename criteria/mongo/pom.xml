@@ -33,5 +33,11 @@
             <artifactId>criteria-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <!-- Required. -->
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${mongo-java-driver.version}</version>
+        </dependency>
     </dependencies>
 </project>
