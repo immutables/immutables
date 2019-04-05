@@ -16,13 +16,7 @@
 
 package org.immutables.criteria;
 
-import org.immutables.criteria.constraints.Call;
-import org.immutables.criteria.constraints.Expression;
-import org.immutables.criteria.constraints.ExpressionVisitor;
-import org.immutables.criteria.constraints.Literal;
-import org.immutables.criteria.constraints.Path;
-
-import javax.annotation.Nullable;
+import org.immutables.criteria.constraints.Expressional;
 
 /**
  * Base class of Criteria API. Right now used as a marker interface.
@@ -31,33 +25,11 @@ import javax.annotation.Nullable;
  * @param <C> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  * @param <T> type of the document being evaluated by this criteria
  */
-public interface DocumentCriteria<C extends DocumentCriteria<C, T>, T> extends Expression<T> {
-
-  /**
-   * Expose expression used by this criteria
-   */
-  Expression<T> expression();
+public interface DocumentCriteria<C extends DocumentCriteria<C, T>, T> extends Expressional<T> {
 
   /**
    * Builds a disjunction
    */
   C or();
 
-  @Nullable
-  @Override
-  default <R> R accept(ExpressionVisitor<R> visitor) {
-    final Expression<T> expression = expression();
-
-    if (expression instanceof Path) {
-      return visitor.visit((Path<?>) expression);
-    } else if (expression instanceof Call) {
-      return visitor.visit((Call<?>) expression);
-    } else if (expression instanceof Literal) {
-      return visitor.visit((Literal<?>) expression);
-    }
-
-    throw new UnsupportedOperationException(String.format("Unknown expression type %s for %s",
-            expression.getClass().getName(), getClass()));
-
-  }
 }
