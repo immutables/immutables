@@ -63,7 +63,7 @@
       <!-- Required. -->
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>3.10.1</version>
+      <version>${mongo-java-driver.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>
@@ -74,36 +74,36 @@
     <dependency>
       <groupId>de.bwaldvogel</groupId>
       <artifactId>mongo-java-server</artifactId>
-      <version>1.14.0</version>
+      <version>${mongo-java-server.version}</version>
       <scope>test</scope>
     </dependency>
     <!-- mongo-java-server dependency -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.25</version>
+      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>1.10.19</version>
+      <version>${mockito.verion}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.8.11</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.8.11.1</version>
+      <version>${jackson-databind.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-guava</artifactId>
-      <version>2.8.11</version>
+      <version>${jackson.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

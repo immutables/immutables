@@ -28,7 +28,7 @@
     <dependency><!-- making non-optional dependency to guava as otherwise generated function would not compile -->
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>

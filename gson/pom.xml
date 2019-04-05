@@ -33,7 +33,7 @@
       <!-- Required Gson dependency -->
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.8.5</version>
+      <version>${gson.version}</version>
     </dependency>
     <dependency>
       <!-- Compile only META-INF/services generator -->
@@ -47,7 +47,7 @@
       <!-- Compile only annotations. Used to document and statically verify code properties. -->
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-      <version>1.3.9</version>
+      <version>${jsr305.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -55,7 +55,7 @@
       <!-- Compile only annotations. Used to document and statically verify code properties. -->
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>19.0</version>
+      <version>${guava.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -63,7 +63,7 @@
       <!-- Optional. Jackson used to speedup Gson's streaming if performance absolutely matters -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.8.11</version>
+      <version>${jackson.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -71,7 +71,7 @@
       <!-- Optional. Jackson binding have utility used when using polymorhic marshaling with jackson-core implementation -->
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.8.11.1</version>
+      <version>${jackson-databind.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
