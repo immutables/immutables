@@ -202,6 +202,13 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         && !(isPrimitive() && protoclass().styles().style().validationMethod() != ValidationMethod.SIMPLE);
   }
 
+  /**
+   * Checks if type defined by this attribute has associated criteria (see {@code @Criteria})
+   */
+  public boolean hasCriteria() {
+    return attributeValueType != null && attributeValueType.isGenerateCriteria();
+  }
+
   public boolean isNullable() {
     return nullability != null;
   }
@@ -1136,8 +1143,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     validateThrowsClause();
     validateTypeAndAnnotations();
 
+    initAttributeValueType();
     if (supportBuiltinContainerTypes()) {
-      initAttributeValueType();
       initImmutableCopyOf();
     }
 
@@ -1271,7 +1278,8 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private void initAttributeValueType() {
 
     if ((style().deepImmutablesDetection()
-        || style().attributeBuilderDetection())
+        || style().attributeBuilderDetection()
+        || containingType.isGenerateCriteria())
         && containedTypeElement != null) {
       // prevent recursion in case we have the same type
       if (CachingElements.equals(containedTypeElement, containingType.element)) {
