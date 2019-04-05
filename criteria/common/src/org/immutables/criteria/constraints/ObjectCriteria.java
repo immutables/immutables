@@ -19,7 +19,6 @@ package org.immutables.criteria.constraints;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.ValueCriteria;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,33 +29,32 @@ import java.util.function.UnaryOperator;
  * Comparing directly values of an attribute.
  *
  * @param <V> attribute type for which criteria is applied
- * @param <C> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
- * @param <T> type of the document being evaluated by this criteria
+ * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements ValueCriteria<C, T> {
+public class ObjectCriteria<R extends DocumentCriteria<R>, V> {
 
-  final CriteriaCreator<C, T> creator;
+  private final CriteriaContext<R> context;
 
-  ObjectCriteria(CriteriaCreator<C, T> creator) {
-    this.creator = Preconditions.checkNotNull(creator, "creator");
+  ObjectCriteria(CriteriaContext<R> context) {
+    this.context = Preconditions.checkNotNull(context, "context");
   }
 
   /**
-   * Combines existing {@code left} expression with new one
+   * Use context to create new root DocumentCriteria
    */
-  protected C create(UnaryOperator<Expression<T>> fn) {
-    return creator.create(fn);
+  protected R create(UnaryOperator<Expression<?>> fn) {
+    return (R) context.create(fn);
   }
 
-  public C isEqualTo(V value) {
-    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal(value)));
+  public R isEqualTo(V value) {
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(value)));
   }
 
-  public C isNotEqualTo(V value) {
-    return create(e -> Expressions.<T>call(Operators.NOT_EQUAL, e, Expressions.literal(value)));
+  public R isNotEqualTo(V value) {
+    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.literal(value)));
   }
 
-  public C isIn(V v1, V v2, V ... rest) {
+  public R isIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
@@ -65,7 +63,7 @@ public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements V
     return isIn(values);
   }
 
-  public C isNotIn(V v1, V v2, V ... rest) {
+  public R isNotIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
@@ -74,14 +72,14 @@ public class ObjectCriteria<V, C extends DocumentCriteria<C, T>, T> implements V
     return isNotIn(values);
   }
 
-  public C isIn(Iterable<? super V> values) {
+  public R isIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.<T>call(Operators.IN, e, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.call(Operators.IN, e, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
-  public C isNotIn(Iterable<? super V> values) {
+  public R isNotIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.<T>call(Operators.NOT_IN, e, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.literal(ImmutableList.copyOf(values))));
   }
 
 }

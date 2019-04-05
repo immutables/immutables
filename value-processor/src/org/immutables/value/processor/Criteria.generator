@@ -35,6 +35,7 @@ package [type.package];
 
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.ValueCriteria;
+import org.immutables.criteria.constraints.CriteriaContext;
 import org.immutables.criteria.constraints.CriteriaCreator;
 import org.immutables.criteria.constraints.OptionalCriteria;
 import org.immutables.criteria.constraints.ObjectCriteria;
@@ -42,6 +43,7 @@ import org.immutables.criteria.constraints.StringCriteria;
 import org.immutables.criteria.constraints.BooleanCriteria;
 import org.immutables.criteria.constraints.ComparableCriteria;
 import org.immutables.criteria.constraints.Expression;
+import org.immutables.criteria.constraints.Expressional;
 import org.immutables.criteria.constraints.ExpressionVisitor;
 import org.immutables.criteria.constraints.Expressions;
 import org.immutables.criteria.constraints.Literal;
@@ -50,8 +52,13 @@ import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Path;
 import org.immutables.criteria.constraints.Call;
 
+import java.util.Objects;
 
-import com.google.common.base.Preconditions;
+[for a in type.allMarshalingAttributes]
+[if a.hasCriteria]
+import [a.unwrappedElementType]Criteria;
+[/if]
+[/for]
 
 [for starImport in type.requiredSourceStarImports]
 import [starImport];
@@ -67,56 +74,53 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access]final class [type.name]Criteria implements DocumentCriteria<[type.name]Criteria, [type.typeDocument]> {
+[type.typeDocument.access] class [type.name]Criteria<R extends DocumentCriteria<R>> implements DocumentCriteria<R>, Expressional<[type.name]> {
 
-   private final Expression<[type.name]> expression;
-   private final Operator operator;
+   private final CriteriaContext<R> context;
 
-   // public fields
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
    public final [criteriaType a type] [a.name];
    [/if]
    [/for]
 
-   private [type.name]Criteria(Expression<[type.name]> expression) {
-       this(Operators.AND, expression);
+   /** TODO this should be top-level class */
+   public static final class Start extends [type.name]Criteria<Start> {
+
+    private Start() {
+      this(new CriteriaContext<Start>(creator()));
+    }
+
+    private Start(CriteriaContext<Start> context) {
+      super(context);
+    }
+
+    private static CriteriaCreator<Start> creator() {
+      return (CriteriaContext<Start> ctx) ->  new Start(ctx);
+    }
    }
 
-   private [type.name]Criteria(Operator operator, Expression<[type.name]> expression) {
-       this.expression = Preconditions.checkNotNull(expression, "expression");
-       this.operator = Preconditions.checkNotNull(operator, "operator");
 
+   public [type.name]Criteria(CriteriaContext<R> context) {
+       this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
-       this.[a.name] = new [criteriaType a type](creatorFor("[a.name]"));
+       this.[a.name] = new [criteriaType a type](context.add(Expressions.path("[a.name]")));
    [/if]
    [/for]
    }
 
-   public [type.name]Criteria or() {
-     if (operator == Operators.OR) {
-       // can also do "or().or()" yuck :(
-       // for cases like or().or().or() return same instance
-       return this;
-     }
-
-     return new [type.name]Criteria(Operators.OR, expression);
+   public R or() {
+      return context.or().create();
    }
 
-
-   public static [type.name]Criteria create() {
-     return new [type.name]Criteria(Expressions.nil());
+   public static Start create() {
+     return new Start();
    }
 
    @Override
    public Expression<[type.name]> expression() {
-     return this.expression;
-   }
-
-   private CriteriaCreator<[type.name]Criteria, [type.name]> creatorFor(String name) {
-       // use Disjunctive Normal Form
-       return fn -> new [type.name]Criteria(Expressions.dnf(operator, expression, fn.apply(Expressions.<[type.name]>path(name))));
+     return (Expression<[type.name]>) this.context.expression();
    }
 
 }
@@ -125,15 +129,17 @@ import [starImport];
 
 [template criteriaType Attribute a Type type][output.trim]
 [if a.boolean]
-BooleanCriteria<[type.name]Criteria, [type.name]>
+BooleanCriteria<R>
 [else if a.stringType]
-StringCriteria<[type.name]Criteria, [type.name]>
+StringCriteria<R>
 [else if a.optionalType]
-OptionalCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+OptionalCriteria<R, [a.wrappedElementType]>
 [else if a.comparable]
-ComparableCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+ComparableCriteria<R, [a.wrappedElementType]>
+[else if a.hasCriteria]
+[a.unwrappedElementType]Criteria<R>
 [else]
-ObjectCriteria<[a.wrappedElementType], [type.name]Criteria, [type.name]>
+ObjectCriteria<R, [a.wrappedElementType]>
 [/if]
 [/output.trim][/template]
 

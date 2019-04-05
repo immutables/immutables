@@ -21,41 +21,41 @@ import org.immutables.criteria.DocumentCriteria;
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */
-public class ComparableCriteria<V extends Comparable<V>, C extends DocumentCriteria<C, T>, T>
-        extends ObjectCriteria<V, C, T> {
+public class ComparableCriteria<R extends DocumentCriteria<R>, V extends Comparable<V>>
+        extends ObjectCriteria<R, V> {
 
-  public ComparableCriteria(CriteriaCreator<C, T> creator) {
-    super(creator);
+  public ComparableCriteria(CriteriaContext<R> context) {
+    super(context);
   }
 
   /**]
    * Checks that attribute is less than (but not equal to) {@code upper}.
    * <p>Use {@link #isAtMost(Comparable)} for less <i>or equal</i> comparison</p>
    */
-  public C isLessThan(V upper) {
-    return create(e -> Expressions.<T>call(Operators.LESS_THAN, e, Expressions.literal(upper)));
+  public R isLessThan(V upper) {
+    return create(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.literal(upper)));
   }
 
   /**
    * Checks that attribute is greater than (but not equal to)  {@code lower}.
    * <p>Use {@link #isAtLeast(Comparable)} for greater <i>or equal</i> comparison</p>
    */
-  public C isGreaterThan(V lower) {
-    return create(e -> Expressions.<T>call(Operators.GREATER_THAN, e, Expressions.literal(lower)));
+  public R isGreaterThan(V lower) {
+    return create(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.literal(lower)));
   }
 
   /**
    * Checks that attribute is less than or equal to {@code upperInclusive}.
    */
-  public C isAtMost(V upperInclusive) {
-    return create(e -> Expressions.<T>call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.literal(upperInclusive)));
+  public R isAtMost(V upperInclusive) {
+    return create(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.literal(upperInclusive)));
   }
 
   /**
    * Checks that attribute is greater or equal to {@code lowerInclusive}.
    */
-  public C isAtLeast(V lowerInclusive) {
-    return create(e -> Expressions.<T>call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.literal(lowerInclusive)));
+  public R isAtLeast(V lowerInclusive) {
+    return create(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.literal(lowerInclusive)));
   }
 
 }

@@ -24,9 +24,8 @@ class DnfExpression<T> implements Expression<T> {
     this.disjunctions = ImmutableList.copyOf(disjunctions);
   }
 
-  static <T> DnfExpression<T> create(Expression<T> existing) {
-    Objects.requireNonNull(existing, "existing");
-    return new DnfExpression<>(ImmutableList.of(existing), Collections.emptyList());
+  static <T> DnfExpression<T> create() {
+    return new DnfExpression<>(Collections.emptyList(), Collections.emptyList());
   }
 
   @Nullable
@@ -45,13 +44,13 @@ class DnfExpression<T> implements Expression<T> {
   }
 
 
-  Expression<T> and(Expression<T> expression) {
+  DnfExpression<T> and(Expression<T> expression) {
     Objects.requireNonNull(expression, "expression");
     ImmutableList<Expression<T>> newConjunctions = ImmutableList.<Expression<T>>builder().addAll(conjunctions).add(expression).build();
     return new DnfExpression<T>(newConjunctions, disjunctions);
   }
 
-  Expression<T> or(Expression<T> expression) {
+  DnfExpression<T> or(Expression<T> expression) {
     Objects.requireNonNull(expression, "expression");
     List<Expression<T>> newDisjunction = ImmutableList.<Expression<T>>builder().addAll(disjunctions).add(Expressions.and(conjunctions)).build();
     return new DnfExpression<>(ImmutableList.of(expression), newDisjunction);

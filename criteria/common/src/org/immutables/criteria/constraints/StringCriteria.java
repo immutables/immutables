@@ -21,29 +21,29 @@ import org.immutables.criteria.DocumentCriteria;
 /**
  * String specific criterias like {@code isAbsent}, {@code contains} etc.
  */
-public class StringCriteria<C extends DocumentCriteria<C, T>, T> extends ComparableCriteria<String, C, T> {
+public class StringCriteria<R extends DocumentCriteria<R>> extends ComparableCriteria<R, String> {
 
-  public StringCriteria(CriteriaCreator<C, T> creator) {
-    super(creator);
+  public StringCriteria(CriteriaContext<R> context) {
+    super(context);
   }
 
-  public C isEmpty() {
-    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal("")));
+  public R isEmpty() {
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal("")));
   }
 
-  public C isNotEmpty() {
-    return create(e -> Expressions.<T>call(Operators.NOT_EQUAL, e, Expressions.literal("")));
+  public R isNotEmpty() {
+    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.literal("")));
   }
 
-  public C contains(CharSequence other) {
+  public R contains(CharSequence other) {
     throw new UnsupportedOperationException();
   }
 
-  public C startsWith(CharSequence prefix) {
+  public R startsWith(CharSequence prefix) {
     throw new UnsupportedOperationException();
   }
 
-  public C endsWith(CharSequence suffix) {
+  public R endsWith(CharSequence suffix) {
     throw new UnsupportedOperationException();
   }
 

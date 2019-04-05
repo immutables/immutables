@@ -21,18 +21,18 @@ import org.immutables.criteria.DocumentCriteria;
 /**
  * Very simple criteria for booleans just has {@code true} / {@code false} checks.
  */
-public class BooleanCriteria<C extends DocumentCriteria<C, T>, T> extends ObjectCriteria<Boolean, C, T> {
+public class BooleanCriteria<R extends DocumentCriteria<R>> extends ObjectCriteria<R, Boolean> {
 
-  public BooleanCriteria(CriteriaCreator<C, T> creator) {
-    super(creator);
+  public BooleanCriteria(CriteriaContext<R> context) {
+    super(context);
   }
 
-  public C isTrue() {
-    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal(Boolean.TRUE)));
+  public R isTrue() {
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(Boolean.TRUE)));
   }
 
-  public C isFalse() {
-    return create(e -> Expressions.<T>call(Operators.EQUAL, e, Expressions.literal(Boolean.FALSE)));
+  public R isFalse() {
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(Boolean.FALSE)));
   }
 
 }

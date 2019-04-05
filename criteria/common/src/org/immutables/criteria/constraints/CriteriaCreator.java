@@ -17,13 +17,11 @@ package org.immutables.criteria.constraints;
 
 import org.immutables.criteria.DocumentCriteria;
 
-import java.util.function.UnaryOperator;
-
 /**
  * Creates document criteria from existing expression.
  */
-public interface CriteriaCreator<C extends DocumentCriteria<C, T>, T> {
+public interface CriteriaCreator<R extends DocumentCriteria<R>> {
 
-  C create(UnaryOperator<Expression<T>> expr);
+  R create(CriteriaContext<R> context);
 
 }

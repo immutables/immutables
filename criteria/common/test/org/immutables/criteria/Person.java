@@ -3,6 +3,8 @@ package org.immutables.criteria;
 import com.google.common.base.Optional;
 import org.immutables.value.Value;
 
+import java.util.List;
+
 @Value.Immutable
 @Criteria
 public interface Person {
@@ -14,5 +16,9 @@ public interface Person {
   boolean isMarried();
 
   int age();
+
+  Friend bestFriend();
+
+  List<Friend> friends();
 
 }
