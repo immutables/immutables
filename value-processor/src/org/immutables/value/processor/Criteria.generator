@@ -136,7 +136,12 @@ BooleanCriteria<R>
 [else if a.stringType]
 StringCriteria<R>
 [else if a.optionalType]
-OptionalCriteria<R, [a.wrappedElementType]>
+[if a.hasSimpleScalarElementType]
+[-- TODO need to make it work with any scalar criteria. Eg. BooleanCriteria / ComparableCriteria --]
+OptionalCriteria<R, [a.wrappedElementType], StringCriteria<R>>
+[else if a.hasCriteria]
+OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
+[/if]
 [else if a.comparable]
 ComparableCriteria<R, [a.wrappedElementType]>
 [else if a.hasCriteria]

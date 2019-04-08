@@ -18,11 +18,14 @@ package org.immutables.criteria.constraints;
 
 import org.immutables.criteria.DocumentCriteria;
 
+import java.util.Optional;
+import java.util.function.Consumer;
+
 /**
  * Criteria for optional attributes.
  */
-// TODO what should be the type of V be in ObjectCriteria ? java8.util.Optional<V> or guava.Optional<V> ?
-public class OptionalCriteria<R extends DocumentCriteria<R>, V> extends ObjectCriteria<R, V> {
+// TODO do we really need to extend from ObjectCriteria ? perhaps just make ValueCriteria ?
+public class OptionalCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>> extends ObjectCriteria<R, Optional<V>> {
 
   public OptionalCriteria(CriteriaContext<R> context) {
     super(context);
@@ -34,6 +37,14 @@ public class OptionalCriteria<R extends DocumentCriteria<R>, V> extends ObjectCr
 
   public R isAbsent() {
     return create(e -> Expressions.call(Operators.IS_ABSENT, e));
+  }
+
+  public S value() {
+    throw new UnsupportedOperationException();
+  }
+
+  public R value(Consumer<S> consumer) {
+    throw new UnsupportedOperationException();
   }
 
 }
