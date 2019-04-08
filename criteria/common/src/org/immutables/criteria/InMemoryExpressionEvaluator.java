@@ -27,6 +27,11 @@ import java.util.stream.StreamSupport;
  */
 public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
+  /**
+   * Sentinel used for Three-Valued Logic: true / false / unknown
+   */
+  private static final Object UNKNOWN = new Object();
+
   private final Expression<T> expression;
 
   private InMemoryExpressionEvaluator(Expression<T> expression) {
@@ -70,6 +75,10 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         final Object left = args.get(0).accept(this);
         final Object right = args.get(1).accept(this);
 
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
         final boolean equals = Objects.equals(left, right);
         return (op == Operators.EQUAL) == equals;
       }
@@ -77,6 +86,9 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       if (op == Operators.IN || op == Operators.NOT_IN) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
+        if (left == UNKNOWN) {
+          return UNKNOWN;
+        }
         @SuppressWarnings("unchecked")
         final Iterable<Object> right = (Iterable<Object>) args.get(1).accept(this);
         Preconditions.checkNotNull(right, "not expected to be null %s", args.get(1));
@@ -100,13 +112,45 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
           return (op == Operators.IS_ABSENT) != opt.isPresent();
         }
 
+        if (left == UNKNOWN) {
+         return (op == Operators.IS_ABSENT);
+        }
 
         return (op == Operators.IS_ABSENT) ? Objects.isNull(left) : Objects.nonNull(left);
       }
 
-      if (op == Operators.AND || op == Operators.OR) {
-        final Stream<Object> stream = args.stream().map(a -> a.accept(this));
-        return op == Operators.AND ? stream.noneMatch(Boolean.FALSE::equals) : stream.anyMatch(Boolean.TRUE::equals);
+      if (op == Operators.AND) {
+        Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
+        boolean prev = Boolean.TRUE;
+        for (Expression<?> exp:args) {
+          Object result = exp.accept(this);
+          if (Boolean.FALSE.equals(result)) {
+            return Boolean.FALSE;
+          } else if (result == null || result == UNKNOWN) {
+            return UNKNOWN;
+          } else {
+            prev = prev && (Boolean) result;
+          }
+        }
+
+        return prev;
+      }
+
+      if (op == Operators.OR) {
+        Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
+        boolean prev = Boolean.FALSE;
+        for (Expression<?> exp:args) {
+          Object result = exp.accept(this);
+          if (Boolean.TRUE.equals(result)) {
+            return Boolean.TRUE;
+          } else if (result == null || result == UNKNOWN) {
+            return UNKNOWN;
+          } else {
+            prev = prev || (Boolean) result;
+          }
+        }
+
+        return prev;
       }
 
       // comparables
@@ -117,10 +161,14 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
         @SuppressWarnings("unchecked")
         Comparable<Object> left = (Comparable<Object>) args.get(0).accept(this);
-        Preconditions.checkNotNull(left, "left");
+        if (left == UNKNOWN || left == null) {
+          return UNKNOWN;
+        }
         @SuppressWarnings("unchecked")
         Comparable<Object> right = (Comparable<Object>) args.get(1).accept(this);
-        Preconditions.checkNotNull(right, "right");
+        if (right == UNKNOWN || right == null) {
+          return UNKNOWN;
+        }
 
         final int compare = left.compareTo(right);
 
@@ -151,28 +199,50 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
   private interface ValueExtractor<T> {
     @Nullable
-    Object extract(String name);
+    Object extract(String property);
   }
 
   private static class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
     private final T object;
-    private final Class<T> klass;
 
     private ReflectionFieldExtractor(T object) {
       this.object = object;
-      this.klass = (Class<T>) object.getClass();
     }
 
     @Nullable
     @Override
-    public Object extract(String name) {
+    public Object extract(String property) {
+      Objects.requireNonNull(property, "property");
+
+      Object result = object;
+
+      for (String name:property.split("\\.")) {
+        result = extract(result, name);
+        if (result == UNKNOWN) {
+          break;
+        }
+      }
+
+      return result;
+
+    }
+
+    private static Object extract(Object instance, String property) {
+      if (property.isEmpty()) {
+        return instance;
+      }
+
+      if (instance == null) {
+        return UNKNOWN;
+      }
+
       try {
         // TODO caching
-        final Field field = klass.getDeclaredField(name);
+        final Field field = instance.getClass().getDeclaredField(property);
         if (!field.isAccessible()) {
           field.setAccessible(true);
         }
-        return field.get(object);
+        return field.get(instance);
       } catch (NoSuchFieldException | IllegalAccessException e) {
         throw new RuntimeException(e);
       }
