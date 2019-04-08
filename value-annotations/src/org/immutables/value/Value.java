@@ -61,7 +61,7 @@ public @interface Value {
      * <p>
      * This requires that all attributes have default value (including collections which can be left
      * empty). If some required attributes exist it will result in compilation error. Note that in
-     * case object do not have attributes, singleton instance will be generated automatically.
+     * case object does not have attributes, singleton instance will be generated automatically.
      * <p>
      * Note that {@code singleton=true} does not imply that only one instance of given abstract
      * type. But it does mean that only one "default" instance of the immutable implementation type
@@ -79,8 +79,8 @@ public @interface Value {
 
     /**
      * If {@code copy=false} then generation of copying methods will be disabled.
-     * This appies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods
-     * which returns modified copy using structural sharing where possible.
+     * This applies to static "copyOf" methods as well as modify-by-copy "withAttributeName" methods
+     * which return modified copy using structural sharing where possible.
      * Default value is {@literal true}, i.e generate copy methods.
      * @return if generate copy methods
      */
