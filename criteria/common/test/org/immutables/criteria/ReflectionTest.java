@@ -64,7 +64,9 @@ public class ReflectionTest {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
             .friends.any(f -> f.nickName.isNotEmpty().isMarried.isTrue())
-            .aliases.none().contains("foo");
+            .aliases.none().contains("foo")
+            .lastName.value().isNotEmpty();
+
   }
 
   @Test
