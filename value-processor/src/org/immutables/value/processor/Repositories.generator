@@ -68,7 +68,7 @@ import [starImport];
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
 [/if]
-[type.typeDocument.access]final class [type.name]Repository extends Repositories.Repository<[type.typeDocument]> {
+[type.typeDocument.access]class [type.name]Repository extends Repositories.Repository<[type.typeDocument]> {
   private static final String DOCUMENT_COLLECTION_NAME = "[type.documentName]";
 
   private final Serialization serialization;
