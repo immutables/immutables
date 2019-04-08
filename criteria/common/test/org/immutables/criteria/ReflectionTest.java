@@ -59,8 +59,17 @@ public class ReflectionTest {
   }
 
   @Test
+  @Ignore("used for compile-time testing only")
+  public void collection() {
+    PersonCriteria.create()
+            .friends.any().nickName.isNotEmpty()
+            .friends.any(f -> f.nickName.isNotEmpty().isMarried.isTrue())
+            .aliases.none().contains("foo");
+  }
+
+  @Test
   public void debug() {
-    PersonCriteria.Start crit = PersonCriteria.create()
+    PersonCriteria<PersonCriteria.Start> crit = PersonCriteria.create()
             .lastName.isAbsent()
             .bestFriend.nickName.isNotEmpty()
             .or().or() // yuck :(

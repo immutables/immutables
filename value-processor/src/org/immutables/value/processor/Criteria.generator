@@ -37,9 +37,11 @@ import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.ValueCriteria;
 import org.immutables.criteria.constraints.CriteriaContext;
 import org.immutables.criteria.constraints.CriteriaCreator;
+import org.immutables.criteria.constraints.CollectionCriteria;
 import org.immutables.criteria.constraints.OptionalCriteria;
 import org.immutables.criteria.constraints.ObjectCriteria;
 import org.immutables.criteria.constraints.StringCriteria;
+import org.immutables.criteria.constraints.ValueCriteria;
 import org.immutables.criteria.constraints.BooleanCriteria;
 import org.immutables.criteria.constraints.ComparableCriteria;
 import org.immutables.criteria.constraints.Expression;
@@ -74,14 +76,13 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R extends DocumentCriteria<R>> implements DocumentCriteria<R>, Expressional<[type.name]> {
+[type.typeDocument.access] class [type.name]Criteria<R extends DocumentCriteria<R>> implements
+DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Expressional<[type.name]> {
 
    private final CriteriaContext<R> context;
 
    [for a in type.allMarshalingAttributes]
-   [if not a.collectionType]
    public final [criteriaType a type] [a.name];
-   [/if]
    [/for]
 
    /** TODO this should be top-level class */
@@ -106,6 +107,8 @@ import [starImport];
    [for a in type.allMarshalingAttributes]
    [if not a.collectionType]
        this.[a.name] = new [criteriaType a type](context.add(Expressions.path("[a.name]")));
+   [else]
+        this.[a.name] = null;
    [/if]
    [/for]
    }
@@ -137,7 +140,14 @@ OptionalCriteria<R, [a.wrappedElementType]>
 [else if a.comparable]
 ComparableCriteria<R, [a.wrappedElementType]>
 [else if a.hasCriteria]
+[if a.collectionType]
+CollectionCriteria<R, [a.unwrappedElementType], [a.unwrappedElementType]Criteria<R>>
+[else]
 [a.unwrappedElementType]Criteria<R>
+[/if]
+[else if a.collectionType and a.hasSimpleScalarElementType]
+[-- TODO need to make it work with any scalar criteria. Eg. BooleanCriteria / ComparableCriteria --]
+CollectionCriteria<R, [a.unwrappedElementType], StringCriteria<R>>
 [else]
 ObjectCriteria<R, [a.wrappedElementType]>
 [/if]

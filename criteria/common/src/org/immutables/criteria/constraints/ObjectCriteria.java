@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectCriteria<R extends DocumentCriteria<R>, V> {
+public class ObjectCriteria<R extends DocumentCriteria<R>, V> implements ValueCriteria<R, V> {
 
   private final CriteriaContext<R> context;
 
