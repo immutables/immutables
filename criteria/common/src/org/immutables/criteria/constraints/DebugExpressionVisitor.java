@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Used to output expression tree as string. Useful for debugging expressions.
  */
-public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
+public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void, Void> {
 
   private final PrintWriter writer;
 
@@ -18,27 +18,27 @@ public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
   }
 
   @Override
-  public Void visit(Call<?> call) {
+  public Void visit(Call<?> call, Void context) {
     writer.println();
     writer.print(String.join("", Collections.nCopies(depth * 2, " ")));
     writer.print("call op=" + call.getOperator());
     for (Expression<?> expr: call.getArguments()) {
       depth++;
-      expr.accept(this);
+      expr.accept(this, null);
       depth--;
     }
     return null;
   }
 
   @Override
-  public Void visit(Literal<?> literal) {
+  public Void visit(Literal<?> literal, Void context) {
     writer.print(" literal=");
     writer.print(literal.value());
     return null;
   }
 
   @Override
-  public Void visit(Path<?> path) {
+  public Void visit(Path<?> path, Void context) {
     writer.print(" path=");
     writer.print(path.path());
     return null;

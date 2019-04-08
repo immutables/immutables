@@ -79,7 +79,7 @@ public class ReflectionTest {
             .firstName.isEqualTo("John");
 
     StringWriter out = new StringWriter();
-    crit.expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
+    crit.expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)), null);
     check(out.toString()).isNonEmpty();
   }
 

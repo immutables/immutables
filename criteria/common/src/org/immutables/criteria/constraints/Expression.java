@@ -11,6 +11,6 @@ import javax.annotation.Nullable;
 public interface Expression<T> {
 
   @Nullable
-  <R> R accept(ExpressionVisitor<R> visitor);
+  <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context);
 
 }

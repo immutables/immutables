@@ -15,7 +15,7 @@ final class NilExpression<T> implements Expression<T> {
 
   @Nullable
   @Override
-  public <R> R accept(ExpressionVisitor<R> visitor) {
+  public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
     throw new UnsupportedOperationException(String.format("Can't visit %s", getClass().getSimpleName()));
   }
 

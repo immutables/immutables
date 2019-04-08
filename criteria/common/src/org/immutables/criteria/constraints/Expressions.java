@@ -26,8 +26,8 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visit(this);
+      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+        return visitor.visit(this, context);
       }
     };
   }
@@ -41,8 +41,8 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visit(this);
+      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+        return visitor.visit(this, context);
       }
     };
   }
@@ -118,8 +118,8 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R> R accept(ExpressionVisitor<R> visitor) {
-        return visitor.visit(this);
+      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+        return visitor.visit(this, context);
       }
     };
   }

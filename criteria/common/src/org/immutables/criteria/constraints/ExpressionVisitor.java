@@ -1,11 +1,18 @@
 package org.immutables.criteria.constraints;
 
-public interface ExpressionVisitor<V> {
+import javax.annotation.Nullable;
 
-  V visit(Call<?> call);
+/**
+ *
+ * @param <V> visitor return type
+ * @param <C> context type
+ */
+public interface ExpressionVisitor<V, C> {
 
-  V visit(Literal<?> literal);
+  V visit(Call<?> call, @Nullable C context);
 
-  V visit(Path<?> path);
+  V visit(Literal<?> literal, @Nullable C context);
+
+  V visit(Path<?> path, @Nullable C context);
 
 }
