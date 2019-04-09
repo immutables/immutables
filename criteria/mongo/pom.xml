@@ -24,20 +24,46 @@
     <artifactId>criteria-mongo</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>
     <description>
-        Criteria support for MongoDB
+      Mongo Adapter for Criteria
     </description>
 
     <dependencies>
         <dependency>
             <groupId>org.immutables</groupId>
             <artifactId>criteria-common</artifactId>
+            <type>jar</type>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <!-- Required. -->
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>${mongo-java-driver.version}</version>
+            <artifactId>mongodb-driver-reactivestreams</artifactId>
+            <version>${mongodb-driver-reactivestreams.version}</version>
         </dependency>
+        <dependency>
+            <groupId>de.bwaldvogel</groupId>
+            <artifactId>mongo-java-server</artifactId>
+            <version>${mongo-java-server.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.immutables</groupId>
+            <artifactId>testing</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.immutables</groupId>
+            <artifactId>criteria-common</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava2.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 </project>
