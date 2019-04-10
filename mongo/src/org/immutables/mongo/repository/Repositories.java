@@ -99,7 +99,7 @@ public final class Repositories {
       return fieldNamingStrategy;
     }
 
-    protected MongoCollection<T> collection() {
+    protected final MongoCollection<T> collection() {
       return collection;
     }
 
