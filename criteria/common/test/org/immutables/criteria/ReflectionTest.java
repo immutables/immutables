@@ -63,10 +63,10 @@ public class ReflectionTest {
   public void collection() {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
-            .friends.any(f -> f.nickName.isNotEmpty().isMarried.isTrue())
+            .friends.any(f -> f.nickName.isNotEmpty())
             .aliases.none().contains("foo")
-            .lastName.value().isNotEmpty();
-
+            .lastName.value().isNotEmpty()
+            .bestFriend.nickName.startsWith("foo");
   }
 
   @Test

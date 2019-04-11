@@ -35,7 +35,7 @@ public class ObjectCriteria<R extends DocumentCriteria<R>, V> implements ValueCr
 
   private final CriteriaContext<R> context;
 
-  ObjectCriteria(CriteriaContext<R> context) {
+  public ObjectCriteria(CriteriaContext<R> context) {
     this.context = Preconditions.checkNotNull(context, "context");
   }
 
