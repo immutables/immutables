@@ -20,6 +20,7 @@ import org.immutables.criteria.DocumentCriteria;
 
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Criteria for optional attributes.

@@ -105,11 +105,7 @@ DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Expressional<[type.name]> {
    public [type.name]Criteria(CriteriaContext<R> context) {
        this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-   [if not a.collectionType]
        this.[a.name] = new [criteriaType a type](context.add(Expressions.path("[a.name]")));
-   [else]
-        this.[a.name] = null;
-   [/if]
    [/for]
    }
 
@@ -131,30 +127,43 @@ DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Expressional<[type.name]> {
 
 
 [template criteriaType Attribute a Type type][output.trim]
-[if a.boolean]
+[if (a.boolean or (a.type eq 'java.lang.Boolean'))]
 BooleanCriteria<R>
 [else if a.stringType]
 StringCriteria<R>
 [else if a.optionalType]
-[if a.hasSimpleScalarElementType]
-[-- TODO need to make it work with any scalar criteria. Eg. BooleanCriteria / ComparableCriteria --]
-OptionalCriteria<R, [a.wrappedElementType], StringCriteria<R>>
-[else if a.hasCriteria]
-OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
-[/if]
+  [if a.hasSimpleScalarElementType]
+    OptionalCriteria<R, [a.wrappedElementType], [scalarElementCriteria a]>
+  [else if a.hasCriteria]
+    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
+  [/if]
 [else if a.comparable]
-ComparableCriteria<R, [a.wrappedElementType]>
+  ComparableCriteria<R, [a.wrappedElementType]>
+[else if a.collectionType]
+  [if a.hasSimpleScalarElementType]
+      CollectionCriteria<R, [a.wrappedElementType], [scalarElementCriteria a]>
+  [else if a.hasCriteria]
+      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
+  [else]
+     [output.error]Can't create criteria for collection [a.name] [a.unwrappedElementType][/output.error]
+  [/if]
 [else if a.hasCriteria]
-[if a.collectionType]
-CollectionCriteria<R, [a.unwrappedElementType], [a.unwrappedElementType]Criteria<R>>
+  [a.unwrappedElementType]Criteria<R>
 [else]
-[a.unwrappedElementType]Criteria<R>
+  ObjectCriteria<R, [a.wrappedElementType]>
 [/if]
-[else if a.collectionType and a.hasSimpleScalarElementType]
-[-- TODO need to make it work with any scalar criteria. Eg. BooleanCriteria / ComparableCriteria --]
-CollectionCriteria<R, [a.unwrappedElementType], StringCriteria<R>>
+[/output.trim][/template]
+
+[-- Used to create criteria for T (eg. List<T>) when T is a scalar / comparable--]
+[template scalarElementCriteria Attribute a][output.trim]
+[if a.unwrappedElementType eq 'boolean']
+  BooleanCriteria<R>
+[else if a.unwrappedElementType eq 'java.lang.String']
+  StringCriteria<R>
+[else if a.isMaybeComparableKey]
+  ComparableCriteria<R, [a.wrappedElementType]>
 [else]
-ObjectCriteria<R, [a.wrappedElementType]>
+  [output.error]unexpected type [a.name] [a.unwrappedElementType], not a simple one[/output.error]
 [/if]
 [/output.trim][/template]
 

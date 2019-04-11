@@ -2,9 +2,16 @@ package org.immutables.criteria.constraints;
 
 import org.immutables.criteria.DocumentCriteria;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>> {
+
+  private final CriteriaContext<R> context;
+
+  public CollectionCriteria(CriteriaContext<R> context) {
+    this.context = Objects.requireNonNull(context, "context");
+  }
 
   public S all() {
     throw new UnsupportedOperationException();
