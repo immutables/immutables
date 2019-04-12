@@ -56,4 +56,12 @@ interface TypeHolder {
   List<Byte> bytes();
   List<Character> chars();
 
+  enum Foo {
+    ONE, TWO
+  }
+
+  Foo foo();
+  Optional<Foo> optFoo();
+  List<Foo> foos();
+
 }

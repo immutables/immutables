@@ -72,4 +72,13 @@ public class TypeHolderTest {
             .chars.isEmpty()
             .chars.any().isGreaterThan('A');
   }
+
+  @Test
+  public void enumCheck() {
+      TypeHolderCriteria.create()
+              .foos.none().isEqualTo(TypeHolder.Foo.TWO)
+              .foo.isEqualTo(TypeHolder.Foo.ONE)
+              .optFoo.isPresent()
+              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE);
+  }
 }
