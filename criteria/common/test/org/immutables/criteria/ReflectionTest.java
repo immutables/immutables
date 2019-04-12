@@ -66,6 +66,7 @@ public class ReflectionTest {
             .friends.any(f -> f.nickName.isNotEmpty())
             .aliases.none().contains("foo")
             .lastName.value().isNotEmpty()
+            .lastName.value().hasSize(2)
             .bestFriend.nickName.startsWith("foo");
   }
 

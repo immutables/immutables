@@ -47,4 +47,8 @@ public class StringCriteria<R extends DocumentCriteria<R>> extends ComparableCri
     throw new UnsupportedOperationException();
   }
 
+  public R hasSize(int size) {
+    throw new UnsupportedOperationException();
+  }
+
 }

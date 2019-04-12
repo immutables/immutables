@@ -41,4 +41,8 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends Valu
     throw new UnsupportedOperationException();
   }
 
+  public R hasSize(int size) {
+    throw new UnsupportedOperationException();
+  }
+
 }
