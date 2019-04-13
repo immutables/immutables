@@ -1,6 +1,7 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.constraints.DebugExpressionVisitor;
+import org.immutables.criteria.constraints.StringCriteria;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -63,10 +64,11 @@ public class ReflectionTest {
   public void collection() {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
-            .friends.any(f -> f.nickName.isNotEmpty())
+            .friends.any(f -> f.nickName.isNotEmpty().nickName.isEmpty())
             .aliases.none().contains("foo")
             .lastName.value().isNotEmpty()
             .lastName.value().hasSize(2)
+            .lastName.value(StringCriteria::isNotEmpty)
             .bestFriend.nickName.startsWith("foo");
   }
 
