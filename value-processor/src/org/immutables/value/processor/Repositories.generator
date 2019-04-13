@@ -43,6 +43,7 @@ import org.immutables.mongo.repository.internal.Support;
 
 import org.bson.codecs.Encoder;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 [for starImport in type.requiredSourceStarImports]
 import [starImport];
 [/for]
@@ -612,6 +613,11 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
  */
 public Criteria criteria() {
   return anyCriteria;
+}
+
+@com.google.common.annotations.Beta
+Bson toBson(Criteria criteria) {
+  return Support.convertToBson(criteria.constraint);
 }
 
 /**
