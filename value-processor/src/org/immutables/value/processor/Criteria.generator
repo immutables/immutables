@@ -38,6 +38,7 @@ import org.immutables.criteria.ValueCriteria;
 import org.immutables.criteria.constraints.CriteriaContext;
 import org.immutables.criteria.constraints.CriteriaCreator;
 import org.immutables.criteria.constraints.CollectionCriteria;
+import org.immutables.criteria.constraints.Disjunction;
 import org.immutables.criteria.constraints.OptionalCriteria;
 import org.immutables.criteria.constraints.ObjectCriteria;
 import org.immutables.criteria.constraints.StringCriteria;
@@ -77,7 +78,7 @@ import [starImport];
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
 [type.typeDocument.access] class [type.name]Criteria<R extends DocumentCriteria<R>> implements
-DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Expressional<[type.name]> {
+DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional<[type.name]> {
 
    private final CriteriaContext<R> context;
 
@@ -109,6 +110,7 @@ DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Expressional<[type.name]> {
    [/for]
    }
 
+   @Override
    public R or() {
       return context.or().create();
    }

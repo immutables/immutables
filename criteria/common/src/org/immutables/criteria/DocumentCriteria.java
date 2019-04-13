@@ -24,9 +24,4 @@ package org.immutables.criteria;
  */
 public interface DocumentCriteria<R extends DocumentCriteria<R>>  {
 
-  /**
-   * Builds a disjunction
-   */
-  R or();
-
 }
