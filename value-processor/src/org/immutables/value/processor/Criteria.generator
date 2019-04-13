@@ -87,18 +87,18 @@ DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional
    [/for]
 
    /** TODO this should be top-level class */
-   public static final class Start extends [type.name]Criteria<Start> {
+   public static final class Self extends [type.name]Criteria<Self> {
 
-    private Start() {
-      this(new CriteriaContext<Start>(creator()));
+    private Self() {
+      this(new CriteriaContext<Self>(creator()));
     }
 
-    private Start(CriteriaContext<Start> context) {
+    private Self(CriteriaContext<Self> context) {
       super(context);
     }
 
-    private static CriteriaCreator<Start> creator() {
-      return (CriteriaContext<Start> ctx) ->  new Start(ctx);
+    private static CriteriaCreator<Self> creator() {
+      return (CriteriaContext<Self> ctx) ->  new Self(ctx);
     }
    }
 
@@ -115,8 +115,8 @@ DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional
       return context.or().create();
    }
 
-   public static Start create() {
-     return new Start();
+   public static Self create() {
+     return new Self();
    }
 
    @Override
@@ -137,7 +137,7 @@ StringCriteria<R>
   [if a.hasSimpleScalarElementType]
     OptionalCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
   [else if a.hasCriteria]
-    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Start>
+    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [/if]
 [else if a.comparable]
   ComparableCriteria<R, [a.wrappedElementType]>
@@ -145,7 +145,7 @@ StringCriteria<R>
   [if a.hasSimpleScalarElementType]
       CollectionCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
   [else if a.hasCriteria]
-      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Start>
+      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [else]
      [output.error]Can't create criteria for collection [a.name] [a.unwrappedElementType][/output.error]
   [/if]

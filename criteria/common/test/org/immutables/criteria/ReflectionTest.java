@@ -15,7 +15,7 @@ public class ReflectionTest {
   @Test
   public void reflection() {
     // TODO this inner class is ugly
-    final PersonCriteria.Start crit = PersonCriteria.create();
+    final PersonCriteria.Self crit = PersonCriteria.create();
 
     final ImmutablePerson person = ImmutablePerson.builder().firstName("John").age(22)
             .bestFriend(ImmutableFriend.builder().nickName("aaa").build())
@@ -74,7 +74,7 @@ public class ReflectionTest {
 
   @Test
   public void debug() {
-    PersonCriteria<PersonCriteria.Start> crit = PersonCriteria.create()
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create()
             .lastName.isAbsent()
             .bestFriend.nickName.isNotEmpty()
             .or().or() // yuck :(
