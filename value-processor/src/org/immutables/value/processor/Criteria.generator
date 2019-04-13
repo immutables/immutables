@@ -133,17 +133,17 @@ BooleanCriteria<R>
 StringCriteria<R>
 [else if a.optionalType]
   [if a.hasSimpleScalarElementType]
-    OptionalCriteria<R, [a.wrappedElementType], [scalarElementCriteria a]>
+    OptionalCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
   [else if a.hasCriteria]
-    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
+    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Start>
   [/if]
 [else if a.comparable]
   ComparableCriteria<R, [a.wrappedElementType]>
 [else if a.collectionType]
   [if a.hasSimpleScalarElementType]
-      CollectionCriteria<R, [a.wrappedElementType], [scalarElementCriteria a]>
+      CollectionCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
   [else if a.hasCriteria]
-      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>>
+      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Start>
   [else]
      [output.error]Can't create criteria for collection [a.name] [a.unwrappedElementType][/output.error]
   [/if]
@@ -155,15 +155,15 @@ StringCriteria<R>
 [/output.trim][/template]
 
 [-- Used to create criteria for T (eg. List<T>) when T is a scalar / comparable--]
-[template scalarElementCriteria Attribute a][output.trim]
+[template scalarElementCriteria Attribute a String elementName][output.trim]
 [if a.unwrappedElementType eq 'boolean']
-  BooleanCriteria<R>
+  BooleanCriteria<[elementName]>
 [else if a.unwrappedElementType eq 'java.lang.String']
-  StringCriteria<R>
+  StringCriteria<[elementName]>
 [else if a.isMaybeComparableKey]
-  ComparableCriteria<R, [a.wrappedElementType]>
+  ComparableCriteria<[elementName], [a.wrappedElementType]>
 [else]
-  [output.error]unexpected type [a.name] [a.unwrappedElementType], not a simple one[/output.error]
+  [output.error]unexpected type [a.name] [a.unwrappedElementType]<[elementName]>, not a simple one[/output.error]
 [/if]
 [/output.trim][/template]
 

@@ -5,7 +5,7 @@ import org.immutables.criteria.DocumentCriteria;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>> {
+public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>, C extends ValueCriteria<?, V>> {
 
   private final CriteriaContext<R> context;
 
@@ -17,7 +17,15 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends Valu
     throw new UnsupportedOperationException();
   }
 
+  public R all(Consumer<C> consumer) {
+    throw new UnsupportedOperationException();
+  }
+
   public S none() {
+    throw new UnsupportedOperationException();
+  }
+
+  public R none(Consumer<C> consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -25,7 +33,7 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends Valu
     throw new UnsupportedOperationException();
   }
 
-  public R any(Consumer<S> consumer) {
+  public R any(Consumer<C> consumer) {
     throw new UnsupportedOperationException();
   }
 
