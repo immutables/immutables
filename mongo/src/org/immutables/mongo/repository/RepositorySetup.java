@@ -28,6 +28,8 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.bson.codecs.Codec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.mongo.bson4gson.GsonCodecs;
@@ -236,8 +238,13 @@ public final class RepositorySetup {
               .registerTypeAdapterFactory(bsonAdapterFactory)
               .create();
 
+      // To enable the projection of fields to custom types the Document type must be deserialized
+      // with the default Mongo codec.
+      Codec<Document> documentCodec = MongoClient.getDefaultCodecRegistry().get(Document.class);
+      CodecRegistry firstClassCodecs = CodecRegistries.fromCodecs(documentCodec);
+
       // expose new Gson as CodecRegistry. Using fromRegistries() for caching
-      CodecRegistry codecRegistry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(newGson));
+      CodecRegistry codecRegistry = CodecRegistries.fromRegistries(firstClassCodecs, GsonCodecs.codecRegistryFromGson(newGson));
 
       return codecRegistry(codecRegistry, new FieldNamingStrategy.GsonNamingStrategy(gson));
     }

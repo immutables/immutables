@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -38,6 +39,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.mongo.concurrent.FluentFuture;
@@ -46,6 +48,8 @@ import org.immutables.mongo.repository.internal.Constraints;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.mongodb.client.model.Projections.fields;
+import static com.mongodb.client.model.Projections.include;
 import static org.immutables.mongo.repository.internal.Support.convertToBson;
 import static org.immutables.mongo.repository.internal.Support.convertToIndex;
 
@@ -317,6 +321,80 @@ public final class Repositories {
         }
       });
     }
+
+    protected final <U> FluentFuture<List<U>> doFetch(
+            final @Nullable Constraints.ConstraintHost criteria,
+            final Constraints.Constraint ordering,
+            final @Nullable Projection<U> projection,
+            final @Nonnegative int skip,
+            final @Nonnegative int limit) {
+      return submit(new Callable<List<U>>() {
+        @SuppressWarnings("resource")
+        @Override
+        public List<U> call() throws Exception {
+          @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
+
+          FindIterable<Document> cursor = collection().withDocumentClass(Document.class).find(query);
+
+          cursor.projection(projection.toBson());
+
+          if (!ordering.isNil()) {
+            cursor.sort(convertToBson(ordering));
+          }
+
+          cursor.skip(skip);
+
+          if (limit != 0) {
+            cursor.limit(limit);
+            if (limit <= LARGE_BATCH_SIZE) {
+              // if limit specified and is smaller than reasonable large batch size
+              // then we force batch size to be the same as limit,
+              // but negative, this force cursor to close right after result is sent
+              cursor.batchSize(-limit);
+            }
+          }
+
+          // close properly
+          try (MongoCursor<Document> iterator = cursor.iterator()) {
+            return FluentIterable.from(ImmutableList.copyOf(iterator)).transform(projection.resultMapper()).toList();
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Specifies the fields to include in the resulting documents that match the query filter.
+   * <p>
+   * The mapper function is applied to each document in the result set.
+   * @param <T> result type
+   */
+  public static abstract class Projection<T> {
+
+    public static <T> Projection<T> of(final Function<Document, T> resultMapper, String... fieldsToInclude) {
+      checkNotNull(resultMapper);
+      final List<String> fieldNames = ImmutableList.copyOf(fieldsToInclude);
+      return new Projection<T>() {
+        @Override
+        List<String> fieldNames() {
+          return fieldNames;
+        }
+
+        @Override
+        Function<Document, T> resultMapper() {
+          return resultMapper;
+        }
+      };
+    }
+
+    abstract List<String> fieldNames();
+
+    abstract Function<Document, T> resultMapper();
+
+    final Bson toBson() {
+      return fields(include(fieldNames()));
+    }
+
   }
 
   /**
@@ -720,6 +798,24 @@ public final class Repositories {
     }
 
     /**
+     * Fetches result list with at most as {@code limitSize} matching documents. It could
+     * be used together with {@link #skip(int)} to paginate results.
+     * <p>
+     * Zero limit ({@code fetchWithLimit(0)}) is equivalent to {@link #fetchAll()}.
+     * <p>
+     * As an performance optimization, when limit is "not so large", then batch size will be set to
+     * a negative limit: this forces a MongoDB to sent results in a single batch and immediately
+     * closes cursor.
+     * @param limitSize specify limit on the number of document in result.
+     * @param projection specify which fields to project onto a result type to be specified
+     * @return future of matching document list
+     */
+    public final <U> FluentFuture<List<U>> fetchWithLimit(@Nonnegative int limitSize, Projection<U> projection) {
+      checkArgument(limitSize >= 0, "limit cannot be negative");
+      return repository.doFetch(criteria, ordering, projection, numberToSkip, limitSize);
+    }
+
+    /**
      * Fetches all matching documents list.
      * <p>
      * If number or results could be very large, then prefer to use {@link #fetchWithLimit(int)} to
@@ -728,6 +824,18 @@ public final class Repositories {
      */
     public final FluentFuture<List<T>> fetchAll() {
       return fetchWithLimit(0);
+    }
+
+    /**
+     * Fetches all matching documents list.
+     * <p>
+     * If number or results could be very large, then prefer to use {@link #fetchWithLimit(int, Projection)} to
+     * always limit result to some large but reasonable size.
+     * @param projection specify which fields to project onto a result type to be specified
+     * @return future of matching document list
+     */
+    public final <U> FluentFuture<List<U>> fetchAll(Projection<U> projection) {
+      return fetchWithLimit(0, projection);
     }
 
     /**
@@ -743,5 +851,21 @@ public final class Repositories {
         }
       });
     }
+
+    /**
+     * Fetches first matching document. If none of the documents matches, then
+     * {@link Optional#absent()} will be returned.
+     * @param projection specify which fields to project onto a result type to be specified
+     * @return future of optional matching document
+     */
+    public final <U> FluentFuture<Optional<U>> fetchFirst(Projection<U> projection) {
+      return fetchWithLimit(1, projection).transform(new Function<List<U>, Optional<U>>() {
+        @Override
+        public Optional<U> apply(List<U> input) {
+          return FluentIterable.from(input).first();
+        }
+      });
+    }
+
   }
 }
