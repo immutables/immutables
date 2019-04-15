@@ -37,7 +37,9 @@ public class MongoCursorIsClosedTest {
     MongoCollection<Entity> collection = mock(MongoCollection.class);
 
     when(db.getCollection(anyString(), any(Class.class))).thenReturn(collection);
+    when(collection.getDocumentClass()).thenReturn(Entity.class);
     when(collection.withCodecRegistry(any(CodecRegistry.class))).thenReturn(collection);
+    when(collection.withDocumentClass(any(Class.class))).thenReturn(collection);
 
     RepositorySetup setup = RepositorySetup.builder().database(db)
             .executor(MoreExecutors.newDirectExecutorService())
