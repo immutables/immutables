@@ -19,7 +19,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.gson.Gson;
 import com.mongodb.client.FindIterable;
@@ -35,19 +34,15 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
-import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.immutables.mongo.bson4gson.GsonCodecs;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.Constraints;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.mongodb.client.model.Projections.fields;
-import static com.mongodb.client.model.Projections.include;
 import static org.immutables.mongo.repository.internal.Support.convertToBson;
 import static org.immutables.mongo.repository.internal.Support.convertToIndex;
 
@@ -292,8 +287,8 @@ public final class Repositories {
 
           MongoCollection<T> collection = collection();
 
-          if(projection.gson() != null) {
-            CodecRegistry registry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(projection.gson()), codecRegistry());
+          if(projection.codecRegistry() != null) {
+            CodecRegistry registry = CodecRegistries.fromRegistries(codecRegistry(), projection.codecRegistry());
             collection = collection().withCodecRegistry(registry);
           }
 
@@ -342,10 +337,10 @@ public final class Repositories {
     }
 
     public static <T> Projection<T> of(final Class<T> resultType, List<String> fieldsToInclude) {
-      final Bson fields = fieldsToInclude.isEmpty()
+      final Bson projection = fieldsToInclude.isEmpty()
               ? null
               : Projections.fields(Projections.excludeId(), Projections.include(fieldsToInclude));
-      return of(resultType, fields);
+      return of(resultType, projection);
     }
 
     public static <T> Projection<T> of(final Class<T> resultType, @Nullable final Bson projection) {
@@ -353,8 +348,8 @@ public final class Repositories {
       return new Projection<T>() {
         @Nullable
         @Override
-        protected Gson gson() {
-            return null;
+        protected CodecRegistry codecRegistry() {
+          return null;
         }
 
         @Nullable
@@ -371,10 +366,10 @@ public final class Repositories {
     }
 
     /**
-     * @return optional {@link Gson} instance to use to be able to to decode to the specified result documents
+     * @return optional {@link CodecRegistry} to enable the decoding of an unknown type of result documents
      */
     @Nullable
-    protected abstract Gson gson();
+    protected abstract CodecRegistry codecRegistry();
 
     /**
      * @return fields to include in the result documents

@@ -5,7 +5,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mongodb.client.model.Projections;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.immutables.mongo.bson4gson.GsonCodecs;
 import org.immutables.mongo.fixture.MongoContext;
 import org.immutables.mongo.repository.Repositories.Projection;
 import org.immutables.value.Value;
@@ -75,8 +77,8 @@ public class ProjectionTest {
     };
     Projection<NameAgeTuple> projection = new Projection<NameAgeTuple>() {
       @Override
-      protected Gson gson() {
-        return new GsonBuilder().registerTypeAdapter(NameAgeTuple.class, new JsonDeserializer<NameAgeTuple>() {
+      protected CodecRegistry codecRegistry() {
+        Gson gson = new GsonBuilder().registerTypeAdapter(NameAgeTuple.class, new JsonDeserializer<NameAgeTuple>() {
           @Override
           public NameAgeTuple deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject obj = json.getAsJsonObject();
@@ -85,6 +87,7 @@ public class ProjectionTest {
             return ImmutableNameAgeTuple.of(name, age);
           }
         }).create();
+        return GsonCodecs.codecRegistryFromGson(gson);
       }
 
       @Override
