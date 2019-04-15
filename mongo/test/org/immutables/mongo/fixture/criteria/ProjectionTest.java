@@ -1,6 +1,7 @@
 package org.immutables.mongo.fixture.criteria;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mongodb.client.model.Projections;
 import org.bson.Document;
@@ -27,29 +28,33 @@ public class ProjectionTest {
   private final PersonRepository repository = new PersonRepository(context.setup());
 
   @Test
-  public void projectWhenEmptyResult() throws Exception {
-    Projection<Document> projection = new Projection<Document>() {
-      @Override
-      protected Gson gson() {
-        return null;
-      }
-
-      @Override
-      protected Bson fields() {
-        return Projections.include("name");
-      }
-
-      @Override
-      protected Class<Document> resultType() {
-        return Document.class;
-      }
-    };
+  public void projectToDocument() throws Exception {
+    Projection<Document> projection = Projection.of(Document.class, "name");
     check(repository.findAll().fetchFirst(projection).getUnchecked()).isAbsent();
     check(repository.findAll().fetchAll(projection).getUnchecked()).isEmpty();
+
+    Person adam = ImmutablePerson.builder().id("p1").name("adam").dateOfBirth(new Date())
+            .aliases(Arrays.asList("a1"))
+            .age(35)
+            .build();
+    Person john = ImmutablePerson.builder().id("p2").name("john").dateOfBirth(new Date())
+            .aliases(Arrays.asList("j1", "j2"))
+            .age(30)
+            .build();
+
+    repository.insert(adam).getUnchecked();
+    repository.insert(john).getUnchecked();
+
+    Document adamDoc = new Document("name", "adam");
+    Document johnDoc = new Document("name", "john");
+    check(repository.findAll().fetchFirst(projection).getUnchecked()).isOf(adamDoc);
+    check(repository.findAll().fetchAll(projection).getUnchecked()).hasContentInAnyOrder(adamDoc, johnDoc);
+    check(repository.findAll().fetchWithLimit(1, projection).getUnchecked()).hasContentInAnyOrder(adamDoc);
+    check(repository.findAll().skip(1).fetchWithLimit(1, projection).getUnchecked()).hasContentInAnyOrder(johnDoc);
   }
 
   @Test
-  public void project() throws Exception {
+  public void projectToCustomResultType() throws Exception {
     Person adam = ImmutablePerson.builder().id("p1").name("adam").dateOfBirth(new Date())
             .aliases(Arrays.asList("a1"))
             .age(35)

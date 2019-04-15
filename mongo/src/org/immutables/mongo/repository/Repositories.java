@@ -376,8 +376,44 @@ public final class Repositories {
    */
   public static abstract class Projection<T> {
 
+    public static <T> Projection<T> of(final Class<T> resultType, String... fieldsToInclude) {
+      List<String> fields = fieldsToInclude == null
+              ? ImmutableList.<String> of()
+              : ImmutableList.copyOf(fieldsToInclude);
+      return of(resultType, fields);
+    }
+
+    public static <T> Projection<T> of(final Class<T> resultType, List<String> fieldsToInclude) {
+      final Bson fields = fieldsToInclude.isEmpty()
+              ? null
+              : Projections.fields(Projections.excludeId(), Projections.include(fieldsToInclude));
+      return of(resultType, fields);
+    }
+
+    public static <T> Projection<T> of(final Class<T> resultType, @Nullable final Bson projection) {
+      checkNotNull(resultType);
+      return new Projection<T>() {
+        @Nullable
+        @Override
+        protected Gson gson() {
+            return null;
+        }
+
+        @Nullable
+        @Override
+        protected Bson fields() {
+          return projection;
+        }
+
+        @Override
+        protected Class<T> resultType() {
+          return resultType;
+        }
+      };
+    }
+
     /**
-     * @return optional Gson instance to use to be able to to decode to the specified result documents
+     * @return optional {@link Gson} instance to use to be able to to decode to the specified result documents
      */
     @Nullable
     protected abstract Gson gson();
