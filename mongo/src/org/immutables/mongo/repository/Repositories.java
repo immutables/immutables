@@ -278,48 +278,6 @@ public final class Repositories {
       });
     }
 
-    protected final FluentFuture<List<T>> doFetch(
-        final @Nullable Constraints.ConstraintHost criteria,
-        final Constraints.Constraint ordering,
-        final Constraints.Constraint exclusion,
-        final @Nonnegative int skip,
-        final @Nonnegative int limit) {
-      return submit(new Callable<List<T>>() {
-        @SuppressWarnings("resource")
-        @Override
-        public List<T> call() throws Exception {
-          @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
-
-          FindIterable<T> cursor = collection().find(query);
-
-          if (!exclusion.isNil()) {
-            cursor.projection(convertToBson(exclusion));
-          }
-
-          if (!ordering.isNil()) {
-            cursor.sort(convertToBson(ordering));
-          }
-
-          cursor.skip(skip);
-
-          if (limit != 0) {
-            cursor.limit(limit);
-            if (limit <= LARGE_BATCH_SIZE) {
-              // if limit specified and is smaller than reasonable large batch size
-              // then we force batch size to be the same as limit,
-              // but negative, this force cursor to close right after result is sent
-              cursor.batchSize(-limit);
-            }
-          }
-
-          // close properly
-          try (MongoCursor<T> iterator = cursor.iterator()) {
-            return ImmutableList.copyOf(iterator);
-          }
-        }
-      });
-    }
-
     protected final <U> FluentFuture<List<U>> doFetch(
         final @Nullable Constraints.ConstraintHost criteria,
         final Constraints.Constraint ordering,
@@ -828,7 +786,7 @@ public final class Repositories {
      */
     public final FluentFuture<List<T>> fetchWithLimit(@Nonnegative int limitSize) {
       checkArgument(limitSize >= 0, "limit cannot be negative");
-      return repository.doFetch(criteria, ordering, exclusion, numberToSkip, limitSize);
+      return repository.doFetch(criteria, ordering, Projection.of(repository.collection.getDocumentClass(), convertToBson(exclusion)), numberToSkip, limitSize);
     }
 
     /**
