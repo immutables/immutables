@@ -279,12 +279,21 @@ public final class Repositories {
         final Projection<U> projection,
         final @Nonnegative int skip,
         final @Nonnegative int limit) {
+      @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
+      @Nullable Bson sort = !ordering.isNil() ? convertToBson(ordering) : null;
+      return doFetch(query, sort, projection, skip, limit);
+    }
+
+    protected final <U> FluentFuture<List<U>> doFetch(
+            final @Nullable Bson query,
+            final @Nullable Bson sort,
+            final Projection<U> projection,
+            final @Nonnegative int skip,
+            final @Nonnegative int limit) {
       return submit(new Callable<List<U>>() {
         @SuppressWarnings("resource")
         @Override
         public List<U> call() throws Exception {
-          @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
-
           MongoCollection<T> collection = collection();
 
           if(projection.codecRegistry() != null) {
@@ -298,8 +307,8 @@ public final class Repositories {
             cursor.projection(projection.fields());
           }
 
-          if (!ordering.isNil()) {
-            cursor.sort(convertToBson(ordering));
+          if (sort != null) {
+            cursor.sort(sort);
           }
 
           cursor.skip(skip);
