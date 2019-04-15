@@ -21,15 +21,11 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
+import com.google.gson.Gson;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.FindOneAndDeleteOptions;
-import com.mongodb.client.model.FindOneAndReplaceOptions;
-import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.ReturnDocument;
-import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import java.util.List;
@@ -40,8 +36,10 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
+import org.immutables.mongo.bson4gson.GsonCodecs;
 import org.immutables.mongo.concurrent.FluentFuture;
 import org.immutables.mongo.concurrent.FluentFutures;
 import org.immutables.mongo.repository.internal.Constraints;
@@ -323,20 +321,29 @@ public final class Repositories {
     }
 
     protected final <U> FluentFuture<List<U>> doFetch(
-            final @Nullable Constraints.ConstraintHost criteria,
-            final Constraints.Constraint ordering,
-            final @Nullable Projection<U> projection,
-            final @Nonnegative int skip,
-            final @Nonnegative int limit) {
+        final @Nullable Constraints.ConstraintHost criteria,
+        final Constraints.Constraint ordering,
+        final Projection<U> projection,
+        final @Nonnegative int skip,
+        final @Nonnegative int limit) {
       return submit(new Callable<List<U>>() {
         @SuppressWarnings("resource")
         @Override
         public List<U> call() throws Exception {
           @Nullable Bson query = criteria != null ? convertToBson(criteria) : null;
 
-          FindIterable<Document> cursor = collection().withDocumentClass(Document.class).find(query);
+          MongoCollection<T> collection = collection();
 
-          cursor.projection(projection.toBson());
+          if(projection.gson() != null) {
+            CodecRegistry registry = CodecRegistries.fromRegistries(GsonCodecs.codecRegistryFromGson(projection.gson()), codecRegistry());
+            collection = collection().withCodecRegistry(registry);
+          }
+
+          FindIterable<U> cursor = collection.withDocumentClass(projection.resultType()).find(query);
+
+          if(projection.fields() != null) {
+            cursor.projection(projection.fields());
+          }
 
           if (!ordering.isNil()) {
             cursor.sort(convertToBson(ordering));
@@ -355,8 +362,8 @@ public final class Repositories {
           }
 
           // close properly
-          try (MongoCursor<Document> iterator = cursor.iterator()) {
-            return FluentIterable.from(ImmutableList.copyOf(iterator)).transform(projection.resultMapper()).toList();
+          try (MongoCursor<U> iterator = cursor.iterator()) {
+            return ImmutableList.copyOf(iterator);
           }
         }
       });
@@ -365,35 +372,26 @@ public final class Repositories {
 
   /**
    * Specifies the fields to include in the resulting documents that match the query filter.
-   * <p>
-   * The mapper function is applied to each document in the result set.
    * @param <T> result type
    */
   public static abstract class Projection<T> {
 
-    public static <T> Projection<T> of(final Function<Document, T> resultMapper, String... fieldsToInclude) {
-      checkNotNull(resultMapper);
-      final List<String> fieldNames = ImmutableList.copyOf(fieldsToInclude);
-      return new Projection<T>() {
-        @Override
-        List<String> fieldNames() {
-          return fieldNames;
-        }
+    /**
+     * @return optional Gson instance to use to be able to to decode to the specified result documents
+     */
+    @Nullable
+    protected abstract Gson gson();
 
-        @Override
-        Function<Document, T> resultMapper() {
-          return resultMapper;
-        }
-      };
-    }
+    /**
+     * @return fields to include in the result documents
+     */
+    @Nullable
+    protected abstract Bson fields();
 
-    abstract List<String> fieldNames();
-
-    abstract Function<Document, T> resultMapper();
-
-    final Bson toBson() {
-      return fields(include(fieldNames()));
-    }
+    /**
+     * @return type of the result documents
+     */
+    protected abstract Class<T> resultType();
 
   }
 

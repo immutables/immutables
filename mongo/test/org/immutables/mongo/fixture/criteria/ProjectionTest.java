@@ -1,13 +1,17 @@
 package org.immutables.mongo.fixture.criteria;
 
 import com.google.common.base.Function;
+import com.google.gson.*;
+import com.mongodb.client.model.Projections;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.immutables.mongo.fixture.MongoContext;
 import org.immutables.mongo.repository.Repositories.Projection;
 import org.immutables.value.Value;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -24,13 +28,22 @@ public class ProjectionTest {
 
   @Test
   public void projectWhenEmptyResult() throws Exception {
-    Function<Document, String> resultMapper = new Function<Document, String>() {
+    Projection<Document> projection = new Projection<Document>() {
       @Override
-      public String apply(Document document) {
-        return document.getString("name");
+      protected Gson gson() {
+        return null;
+      }
+
+      @Override
+      protected Bson fields() {
+        return Projections.include("name");
+      }
+
+      @Override
+      protected Class<Document> resultType() {
+        return Document.class;
       }
     };
-    Projection<String> projection = Projection.of(resultMapper, "name");
     check(repository.findAll().fetchFirst(projection).getUnchecked()).isAbsent();
     check(repository.findAll().fetchAll(projection).getUnchecked()).isEmpty();
   }
@@ -55,7 +68,30 @@ public class ProjectionTest {
         return ImmutableNameAgeTuple.of(document.getString("name"), document.getLong("age"));
       }
     };
-    Projection<NameAgeTuple> projection = Projection.of(resultMapper, "name", "age");
+    Projection<NameAgeTuple> projection = new Projection<NameAgeTuple>() {
+      @Override
+      protected Gson gson() {
+        return new GsonBuilder().registerTypeAdapter(NameAgeTuple.class, new JsonDeserializer<NameAgeTuple>() {
+          @Override
+          public NameAgeTuple deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            JsonObject obj = json.getAsJsonObject();
+            String name = obj.get("name").getAsString();
+            long age = obj.get("age").getAsLong();
+            return ImmutableNameAgeTuple.of(name, age);
+          }
+        }).create();
+      }
+
+      @Override
+      protected Bson fields() {
+        return Projections.fields(Projections.include("name", "age"));
+      }
+
+      @Override
+      protected Class<NameAgeTuple> resultType() {
+        return NameAgeTuple.class;
+      }
+    };
 
     NameAgeTuple adamTuple = ImmutableNameAgeTuple.of("adam", 35);
     NameAgeTuple johnTuple = ImmutableNameAgeTuple.of("john", 30);
