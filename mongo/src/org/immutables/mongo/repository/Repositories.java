@@ -357,18 +357,18 @@ public final class Repositories {
       return new Projection<T>() {
         @Nullable
         @Override
-        protected CodecRegistry codecRegistry() {
+        public CodecRegistry codecRegistry() {
           return null;
         }
 
         @Nullable
         @Override
-        protected Bson fields() {
+        public Bson fields() {
           return projection;
         }
 
         @Override
-        protected Class<T> resultType() {
+        public Class<T> resultType() {
           return resultType;
         }
       };
@@ -378,18 +378,18 @@ public final class Repositories {
      * @return optional {@link CodecRegistry} to enable the decoding of an unknown type of result documents
      */
     @Nullable
-    protected abstract CodecRegistry codecRegistry();
+    public abstract CodecRegistry codecRegistry();
 
     /**
      * @return fields to include in the result documents
      */
     @Nullable
-    protected abstract Bson fields();
+    public abstract Bson fields();
 
     /**
      * @return type of the result documents
      */
-    protected abstract Class<T> resultType();
+    public abstract Class<T> resultType();
 
   }
 

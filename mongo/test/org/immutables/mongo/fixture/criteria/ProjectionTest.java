@@ -77,7 +77,7 @@ public class ProjectionTest {
     };
     Projection<NameAgeTuple> projection = new Projection<NameAgeTuple>() {
       @Override
-      protected CodecRegistry codecRegistry() {
+      public CodecRegistry codecRegistry() {
         Gson gson = new GsonBuilder().registerTypeAdapter(NameAgeTuple.class, new JsonDeserializer<NameAgeTuple>() {
           @Override
           public NameAgeTuple deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -91,12 +91,12 @@ public class ProjectionTest {
       }
 
       @Override
-      protected Bson fields() {
+      public Bson fields() {
         return Projections.fields(Projections.include("name", "age"));
       }
 
       @Override
-      protected Class<NameAgeTuple> resultType() {
+      public Class<NameAgeTuple> resultType() {
         return NameAgeTuple.class;
       }
     };
