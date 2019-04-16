@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 /**
  * Criteria for optional attributes.
  */
-public class OptionalCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>, C extends ValueCriteria<?, V>>  {
+public class OptionalCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<?>>  {
 
   private final CriteriaContext<R> context;
 

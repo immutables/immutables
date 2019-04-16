@@ -5,7 +5,7 @@ import org.immutables.criteria.DocumentCriteria;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends ValueCriteria<R, V>, C extends ValueCriteria<?, V>> {
+public class CollectionCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<?>> implements DocumentCriteria<R> {
 
   private final CriteriaContext<R> context;
 
@@ -51,6 +51,12 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, V, S extends Valu
 
   public R hasSize(int size) {
     throw new UnsupportedOperationException();
+  }
+
+  public static class Self extends CollectionCriteria<Self, Self, Self> {
+    public Self(CriteriaContext<Self> context) {
+      super(context);
+    }
   }
 
 }

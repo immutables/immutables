@@ -58,4 +58,10 @@ public class ComparableCriteria<R extends DocumentCriteria<R>, V extends Compara
     return create(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.literal(lowerInclusive)));
   }
 
+  public static class Self<V extends Comparable<V>> extends ComparableCriteria<Self<V>, V> {
+    public Self(CriteriaContext<ComparableCriteria.Self<V>> context) {
+      super(context);
+    }
+  }
+
 }

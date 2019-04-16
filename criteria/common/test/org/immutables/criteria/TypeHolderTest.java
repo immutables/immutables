@@ -68,23 +68,29 @@ public class TypeHolderTest {
             .shorts.any().isEqualTo((short) 22)
             .shorts.hasSize(1)
             .integers.any().isAtLeast(11)
+            .integers.any(i -> i.isLessThan(22))
             .integers.isNotEmpty()
             .integers.hasSize(1)
             .longs.none().isGreaterThan(11L)
+            .longs.none(l -> l.isGreaterThan(22L).isLessThan(23L))
             .longs.hasSize(2)
             .doubles.none().isLessThan(1D)
             .doubles.hasSize(2)
             .floats.all().isGreaterThan(22F)
             .chars.isEmpty()
-            .chars.any().isGreaterThan('A');
+            .chars.any().isGreaterThan('A')
+            .chars.none(c -> c.isIn('a', 'b', 'c').isLessThan('t'));
   }
 
   @Test
   public void enumCheck() {
       TypeHolderCriteria.create()
               .foos.none().isEqualTo(TypeHolder.Foo.TWO)
+              .foos.none(e -> e.isNotEqualTo(TypeHolder.Foo.ONE).isLessThan(TypeHolder.Foo.TWO))
               .foo.isEqualTo(TypeHolder.Foo.ONE)
               .optFoo.isPresent()
-              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE);
+              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE)
+              .optFoo.value(e -> e.isIn(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO));
+
   }
 }

@@ -68,6 +68,8 @@ public class ReflectionTest {
             .aliases.none().contains("foo")
             .lastName.value().isNotEmpty()
             .lastName.value().hasSize(2)
+            .lastName.value(f -> f.startsWith("foo").endsWith("bar"))
+            .lastName.value(f -> f.isNotEmpty().isGreaterThan("aaa"))
             .lastName.value(StringCriteria::isNotEmpty)
             .bestFriend.nickName.startsWith("foo");
   }

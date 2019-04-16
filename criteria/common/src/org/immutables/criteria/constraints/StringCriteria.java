@@ -51,4 +51,10 @@ public class StringCriteria<R extends DocumentCriteria<R>> extends ComparableCri
     throw new UnsupportedOperationException();
   }
 
+  public static class Self extends StringCriteria<Self> {
+    public Self(CriteriaContext<StringCriteria.Self> context) {
+      super(context);
+    }
+  }
+
 }

@@ -35,4 +35,10 @@ public class BooleanCriteria<R extends DocumentCriteria<R>> extends ObjectCriter
     return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(Boolean.FALSE)));
   }
 
+  public static class Self extends BooleanCriteria<Self> {
+    public Self(CriteriaContext<BooleanCriteria.Self> context) {
+      super(context);
+    }
+  }
+
 }

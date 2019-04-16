@@ -34,7 +34,6 @@ package [type.package];
 [/if]
 
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.ValueCriteria;
 import org.immutables.criteria.constraints.CriteriaContext;
 import org.immutables.criteria.constraints.CriteriaCreator;
 import org.immutables.criteria.constraints.CollectionCriteria;
@@ -135,17 +134,17 @@ BooleanCriteria<R>
 StringCriteria<R>
 [else if a.optionalType]
   [if a.hasSimpleScalarElementType]
-    OptionalCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
+    OptionalCriteria<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
-    OptionalCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+    OptionalCriteria<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [/if]
 [else if a.comparable]
   ComparableCriteria<R, [a.wrappedElementType]>
 [else if a.collectionType]
   [if a.hasSimpleScalarElementType]
-      CollectionCriteria<R, [a.wrappedElementType], [scalarElementCriteria a 'R'], [scalarElementCriteria a '?']>
+      CollectionCriteria<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
-      CollectionCriteria<R, [a.wrappedElementType], [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+      CollectionCriteria<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [else]
      [output.error]Can't create criteria for collection [a.name] [a.unwrappedElementType][/output.error]
   [/if]
@@ -159,11 +158,11 @@ StringCriteria<R>
 [-- Used to create criteria for T (eg. List<T>) when T is a scalar / comparable--]
 [template scalarElementCriteria Attribute a String elementName][output.trim]
 [if a.unwrappedElementType eq 'boolean']
-  BooleanCriteria<[elementName]>
+  [if elementName eq 'Self']BooleanCriteria.Self[else]BooleanCriteria<[elementName]>[/if]
 [else if a.unwrappedElementType eq 'java.lang.String']
-  StringCriteria<[elementName]>
+  [if elementName eq 'Self']StringCriteria.Self[else]StringCriteria<[elementName]>[/if]
 [else if a.isMaybeComparableKey]
-  ComparableCriteria<[elementName], [a.wrappedElementType]>
+  [if elementName eq 'Self']ComparableCriteria.Self<[a.wrappedElementType]>[else]ComparableCriteria<[elementName], [a.wrappedElementType]>[/if]
 [else]
   [output.error]unexpected type [a.name] [a.unwrappedElementType]<[elementName]>, not a simple one[/output.error]
 [/if]

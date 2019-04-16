@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectCriteria<R extends DocumentCriteria<R>, V> implements ValueCriteria<R, V> {
+public class ObjectCriteria<R extends DocumentCriteria<R>, V> implements DocumentCriteria<R> {
 
   private final CriteriaContext<R> context;
 
@@ -81,5 +81,12 @@ public class ObjectCriteria<R extends DocumentCriteria<R>, V> implements ValueCr
     Preconditions.checkNotNull(values, "values");
     return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.literal(ImmutableList.copyOf(values))));
   }
+
+  public static class Self<V> extends ObjectCriteria<Self<V>, V> {
+    public Self(CriteriaContext<Self<V>> context) {
+      super(context);
+    }
+  }
+
 
 }
