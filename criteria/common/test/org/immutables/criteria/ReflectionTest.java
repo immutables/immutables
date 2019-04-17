@@ -65,7 +65,7 @@ public class ReflectionTest {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
             .friends.any(f -> f.nickName.isNotEmpty().nickName.isEmpty())
-            .friends.none(f -> f.nickName.hasSize(3))
+            .friends.none(f -> f.nickName.hasSize(3).nickName.startsWith("a"))
             .aliases.none().contains("foo")
             .lastName.value().isNotEmpty()
             .lastName.value().hasSize(2)

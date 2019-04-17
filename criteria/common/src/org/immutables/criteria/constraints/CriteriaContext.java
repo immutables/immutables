@@ -1,13 +1,11 @@
 package org.immutables.criteria.constraints;
 
-import org.immutables.criteria.DocumentCriteria;
-
 import java.util.function.UnaryOperator;
 
 /**
  * Link between front-end (codegened Criteria) and back-end (built {@link Expression}).
  */
-public final class CriteriaContext<R extends DocumentCriteria<R>> {
+public final class CriteriaContext<R> {
 
   private final CriteriaCreator<R> creator;
   private final DnfExpression<?> expression;

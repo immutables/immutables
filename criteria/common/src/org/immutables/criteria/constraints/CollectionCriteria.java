@@ -5,7 +5,7 @@ import org.immutables.criteria.DocumentCriteria;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class CollectionCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<C>> implements DocumentCriteria<R> {
+public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
 
   private final CriteriaContext<R> context;
 

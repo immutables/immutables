@@ -76,8 +76,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R extends DocumentCriteria<R>> implements
-DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional<[type.name]> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional<[type.name]> {
 
    private final CriteriaContext<R> context;
 

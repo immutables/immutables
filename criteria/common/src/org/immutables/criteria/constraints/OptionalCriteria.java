@@ -16,15 +16,13 @@
 
 package org.immutables.criteria.constraints;
 
-import org.immutables.criteria.DocumentCriteria;
-
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
  * Criteria for optional attributes.
  */
-public class OptionalCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<C>>  {
+public class OptionalCriteria<R, S, C>  {
 
   private final CriteriaContext<R> context;
 

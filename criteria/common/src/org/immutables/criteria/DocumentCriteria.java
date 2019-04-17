@@ -22,6 +22,6 @@ package org.immutables.criteria;
  *
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public interface DocumentCriteria<R extends DocumentCriteria<R>>  {
+public interface DocumentCriteria<R>  {
 
 }

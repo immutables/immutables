@@ -15,12 +15,10 @@
  */
 package org.immutables.criteria.constraints;
 
-import org.immutables.criteria.DocumentCriteria;
-
 /**
  * Creates document criteria from existing expression.
  */
-public interface CriteriaCreator<R extends DocumentCriteria<R>> {
+public interface CriteriaCreator<R> {
 
   R create(CriteriaContext<R> context);
 

@@ -16,12 +16,10 @@
 
 package org.immutables.criteria.constraints;
 
-import org.immutables.criteria.DocumentCriteria;
-
 /**
  * String specific criterias like {@code isAbsent}, {@code contains} etc.
  */
-public class StringCriteria<R extends DocumentCriteria<R>> extends ComparableCriteria<R, String> {
+public class StringCriteria<R> extends ComparableCriteria<R, String> {
 
   public StringCriteria(CriteriaContext<R> context) {
     super(context);

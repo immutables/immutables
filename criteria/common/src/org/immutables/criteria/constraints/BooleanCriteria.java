@@ -16,12 +16,10 @@
 package org.immutables.criteria.constraints;
 
 
-import org.immutables.criteria.DocumentCriteria;
-
 /**
  * Very simple criteria for booleans just has {@code true} / {@code false} checks.
  */
-public class BooleanCriteria<R extends DocumentCriteria<R>> extends ObjectCriteria<R, Boolean> {
+public class BooleanCriteria<R> extends ObjectCriteria<R, Boolean> {
 
   public BooleanCriteria(CriteriaContext<R> context) {
     super(context);

@@ -16,12 +16,10 @@
 package org.immutables.criteria.constraints;
 
 
-import org.immutables.criteria.DocumentCriteria;
-
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */
-public class ComparableCriteria<R extends DocumentCriteria<R>, V extends Comparable<V>>
+public class ComparableCriteria<R, V extends Comparable<V>>
         extends ObjectCriteria<R, V> {
 
   public ComparableCriteria(CriteriaContext<R> context) {
