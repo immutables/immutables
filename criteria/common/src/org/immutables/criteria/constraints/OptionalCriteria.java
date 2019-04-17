@@ -24,7 +24,7 @@ import java.util.function.UnaryOperator;
 /**
  * Criteria for optional attributes.
  */
-public class OptionalCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<?>>  {
+public class OptionalCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<C>>  {
 
   private final CriteriaContext<R> context;
 

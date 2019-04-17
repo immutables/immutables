@@ -146,7 +146,7 @@ StringCriteria<R>
   [else if a.hasCriteria]
       CollectionCriteria<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [else]
-     [output.error]Can't create criteria for collection [a.name] [a.unwrappedElementType][/output.error]
+     [output.error]Can't create criteria for collection [type.name].[a.name] [a.unwrappedElementType][/output.error]
   [/if]
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria<R>
