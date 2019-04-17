@@ -19,7 +19,7 @@ package org.immutables.criteria.constraints;
 import org.immutables.criteria.DocumentCriteria;
 
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 /**
  * Criteria for optional attributes.
@@ -44,7 +44,7 @@ public class OptionalCriteria<R extends DocumentCriteria<R>, S extends DocumentC
     throw new UnsupportedOperationException();
   }
 
-  public R value(Consumer<C> consumer) {
+  public R value(UnaryOperator<C> consumer) {
     throw new UnsupportedOperationException();
   }
 

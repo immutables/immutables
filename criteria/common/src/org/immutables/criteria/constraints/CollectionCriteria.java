@@ -3,7 +3,7 @@ package org.immutables.criteria.constraints;
 import org.immutables.criteria.DocumentCriteria;
 
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 public class CollectionCriteria<R extends DocumentCriteria<R>, S extends DocumentCriteria<R>, C extends DocumentCriteria<?>> implements DocumentCriteria<R> {
 
@@ -17,7 +17,7 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, S extends Documen
     throw new UnsupportedOperationException();
   }
 
-  public R all(Consumer<C> consumer) {
+  public R all(UnaryOperator<C> consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -25,7 +25,7 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, S extends Documen
     throw new UnsupportedOperationException();
   }
 
-  public R none(Consumer<C> consumer) {
+  public R none(UnaryOperator<C> consumer) {
     throw new UnsupportedOperationException();
   }
 
@@ -33,7 +33,7 @@ public class CollectionCriteria<R extends DocumentCriteria<R>, S extends Documen
     throw new UnsupportedOperationException();
   }
 
-  public R any(Consumer<C> consumer) {
+  public R any(UnaryOperator<C> consumer) {
     throw new UnsupportedOperationException();
   }
 
