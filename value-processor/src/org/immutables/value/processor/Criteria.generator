@@ -41,7 +41,6 @@ import org.immutables.criteria.constraints.Disjunction;
 import org.immutables.criteria.constraints.OptionalCriteria;
 import org.immutables.criteria.constraints.ObjectCriteria;
 import org.immutables.criteria.constraints.StringCriteria;
-import org.immutables.criteria.constraints.ValueCriteria;
 import org.immutables.criteria.constraints.BooleanCriteria;
 import org.immutables.criteria.constraints.ComparableCriteria;
 import org.immutables.criteria.constraints.Expression;
@@ -76,7 +75,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<R>, ValueCriteria<R, [type.name]>, Disjunction<R>, Expressional<[type.name]> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<R>, Disjunction<R>, Expressional<[type.name]> {
 
    private final CriteriaContext<R> context;
 
