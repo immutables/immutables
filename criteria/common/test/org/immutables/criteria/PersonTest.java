@@ -10,12 +10,12 @@ import java.io.StringWriter;
 
 import static org.immutables.check.Checkers.check;
 
-public class ReflectionTest {
+public class PersonTest {
 
   @Test
   public void reflection() {
     // TODO this inner class is ugly
-    final PersonCriteria.Self crit = PersonCriteria.create();
+    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
 
     final ImmutablePerson person = ImmutablePerson.builder().firstName("John").age(22)
             .bestFriend(ImmutableFriend.builder().nickName("aaa").build())
@@ -33,6 +33,7 @@ public class ReflectionTest {
     check(!evaluate(crit.age.isNotIn(22, 23, 24), person));
     check(!evaluate(crit.isMarried.isTrue(), person));
     check(evaluate(crit.isMarried.isFalse(), person));
+    check(evaluate(crit.isMarried.isTrue().or().isMarried.isFalse(), person));
     check(evaluate(crit.isMarried.isFalse().or()
             .isMarried.isTrue()
             .lastName.isAbsent(), person));
@@ -64,9 +65,13 @@ public class ReflectionTest {
   public void collection() {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
-            .friends.any(f -> f.nickName.isNotEmpty().nickName.isEmpty())
+            .or()//.or() should not work
+            .isMarried.isTrue()
+            .or()
+            .friends.any(f -> f.nickName.isEmpty().or().nickName.hasSize(2))
             .friends.none(f -> f.nickName.hasSize(3).nickName.startsWith("a"))
             .aliases.none().contains("foo")
+            .or()
             .lastName.value().isNotEmpty()
             .lastName.value().hasSize(2)
             .lastName.value(f -> f.startsWith("foo").endsWith("bar"))
@@ -79,8 +84,9 @@ public class ReflectionTest {
   public void debug() {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create()
             .lastName.isAbsent()
+            .or()
             .bestFriend.nickName.isNotEmpty()
-            .or().or() // yuck :(
+            .or()
             .age.isGreaterThan(22)
             .firstName.isEqualTo("John");
 

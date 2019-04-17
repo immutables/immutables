@@ -75,16 +75,17 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<R>, Disjunction<R>, Expressional<[type.name]> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<R>, Expressional<[type.name]> {
 
-   private final CriteriaContext<R> context;
+   final CriteriaContext<R> context;
 
    [for a in type.allMarshalingAttributes]
    public final [criteriaType a type] [a.name];
    [/for]
 
+
    /** TODO this should be top-level class */
-   public static final class Self extends [type.name]Criteria<Self> {
+   public static final class Self extends [type.name]Criteria<Self> implements Disjunction<[type.name]Criteria<Self>> {
 
     private Self() {
       this(new CriteriaContext<Self>(creator()));
@@ -97,8 +98,12 @@ import [starImport];
     private static CriteriaCreator<Self> creator() {
       return (CriteriaContext<Self> ctx) ->  new Self(ctx);
     }
-   }
 
+    @Override
+    public [type.name]Criteria<Self> or() {
+      return context.or().create();
+    }
+   }
 
    public [type.name]Criteria(CriteriaContext<R> context) {
        this.context = Objects.requireNonNull(context, "context");
@@ -107,12 +112,7 @@ import [starImport];
    [/for]
    }
 
-   @Override
-   public R or() {
-      return context.or().create();
-   }
-
-   public static Self create() {
+   public static [type.name]Criteria<Self> create() {
      return new Self();
    }
 
