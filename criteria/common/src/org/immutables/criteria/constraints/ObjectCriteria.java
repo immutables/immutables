@@ -33,7 +33,7 @@ import java.util.function.UnaryOperator;
  */
 public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
 
-  private final CriteriaContext<R> context;
+  protected final CriteriaContext<R> context;
 
   public ObjectCriteria(CriteriaContext<R> context) {
     this.context = Preconditions.checkNotNull(context, "context");

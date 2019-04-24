@@ -49,9 +49,14 @@ public class StringCriteria<R> extends ComparableCriteria<R, String> {
     throw new UnsupportedOperationException();
   }
 
-  public static class Self extends StringCriteria<Self> {
+  public static class Self extends StringCriteria<Self> implements Disjunction<StringCriteria<Self>> {
     public Self(CriteriaContext<StringCriteria.Self> context) {
       super(context);
+    }
+
+    @Override
+    public StringCriteria<StringCriteria.Self> or() {
+      return context.or().create();
     }
   }
 
