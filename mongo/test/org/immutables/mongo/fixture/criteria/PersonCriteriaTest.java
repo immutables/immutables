@@ -248,4 +248,10 @@ public class PersonCriteriaTest {
     check(repository.findAll().fetchAll().getUnchecked()).isEmpty();
     check(repository.find(criteria()).fetchAll().getUnchecked()).isEmpty();
   }
+
+  @Test
+  public void toBson() {
+    check(repository.toBson(repository.criteria())).is(new org.bson.Document());
+    check(repository.toBson(repository.criteria().age(35))).is(new org.bson.Document("age", 35));
+  }
 }
