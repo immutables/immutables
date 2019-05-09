@@ -43,7 +43,7 @@ public abstract class SomeSer implements Serializable {
   interface OthSer extends Serializable {}
 }
 
-@Value.Immutable
+@Value.Immutable(serialForm = true)
 abstract class CollectionSer implements Serializable {
     abstract Set<String> strings();
     abstract List<CollectionSer> list01();
