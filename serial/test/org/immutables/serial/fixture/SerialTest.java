@@ -42,7 +42,7 @@ public class SerialTest {
 
   @Test
   public void serializablePrehashReadResolve() throws Exception {
-    Method readResolve = ImmutableEnabledWithReadResolve.ImmutableSerialForm.class.getDeclaredMethod("readResolve");
+    Method readResolve = ImmutableEnabledWithReadResolve.class.getDeclaredMethod("readResolve");
     check(readResolve.getModifiers() & Modifier.PRIVATE).is(Modifier.PRIVATE);
   }
 }

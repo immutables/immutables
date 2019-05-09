@@ -597,6 +597,12 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         && immutableFeatures.intern()
         && !isUseSingletonOnly();
   }
+  
+  public boolean isGenerateSerialForm() {
+      return immutableFeatures.serialForm()
+              && serial.isEnabled()
+              && !serial.isStructural();
+  }
 
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
@@ -1413,7 +1419,7 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     public boolean isEnabled() {
       return this != NONE;
     }
-
+    
     public boolean isStructural() {
       return this == STRUCTURAL
           || this == STRUCTURAL_IMPLEMENTS;

@@ -36,6 +36,8 @@ public final class ValueMirrors {
     boolean prehash() default false;
 
     boolean builder() default true;
+    
+    boolean serialForm() default false;
   }
 
   @Mirror.Annotation("org.immutables.value.Value.Include")

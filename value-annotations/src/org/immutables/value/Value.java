@@ -103,6 +103,16 @@ public @interface Value {
      * @return if generate builder
      */
     boolean builder() default true;
+    
+    /**
+     * If {@code serialForm=true} and abstract value type implements {@link java.io.Serializable},
+     * causes generation of {@code ImmutableSerialForm} class and
+     * {@code writeReplace()} method that returns an instance of {@code ImmutableSerialForm}.
+     * In general it should be true by default so that deserialization of the value type cannot
+     * break invariants. Set to false by default as otherwise classes already implementing
+     * {@code }writeReplace()) would be broken.
+     */
+    boolean serialForm() default false;
   }
 
   /**

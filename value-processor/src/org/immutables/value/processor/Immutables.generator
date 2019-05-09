@@ -237,6 +237,7 @@ implements java.io.Serializable {[/if]
 [template generateSerialization Type type]
 [serialVersionUID type]
 [if type.serial.simple]
+[if type.generateSerialForm]
 /**
  * Serialized form.
  */
@@ -313,6 +314,20 @@ private Object writeReplace() throws java.io.ObjectStreamException {
 private void readObject(final java.io.ObjectInputStream ois) throws java.io.IOException {
   throw new java.io.StreamCorruptedException("[type.name] instance can only be deserialized from its serial form.");
 }
+[else]
+  [if type.useSimpleReadResolve]
+
+private Object readResolve() throws java.io.ObjectStreamException {
+[if type.useSingletonOnly][-- don't care about validation here, just substitute --]
+  return INSTANCE;
+[else if type.usePrehashed and type.useCopyConstructor]
+  [generateReturnCopyRaw type '' '']
+[else]
+  return [validated type false]this[/validated];
+[/if]
+}
+  [/if]
+[/if]
 [/if]
 [if type.serial.structural]
 
