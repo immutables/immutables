@@ -237,18 +237,82 @@ implements java.io.Serializable {[/if]
 [template generateSerialization Type type]
 [serialVersionUID type]
 [if type.serial.simple]
-  [if type.useSimpleReadResolve]
-
-private Object readResolve() throws java.io.ObjectStreamException {
-[if type.useSingletonOnly][-- don't care about validation here, just substitute --]
-  return INSTANCE;
-[else if type.usePrehashed and type.useCopyConstructor]
-  [generateReturnCopyRaw type '' '']
-[else]
-  return [validated type false]this[/validated];
+/**
+ * Serialized form.
+ */
+[atGenerated type]
+[if type.generics]
+@SuppressWarnings("unchecked")
 [/if]
-}
+static class ImmutableSerialForm[type.generics] implements java.io.Serializable {
+  [for v in type.constructableAttributes]
+  [if v.optionalType]
+	private final [v.wrappedElementType] [v.name];
+  [else if v.collectionType]
+    private final [v.unwrappedElementType]['[]'] [v.name];
+  [else if v.mapType]
+    private final [v.wrappedElementType]['[]'] [v.name]Keys;
+    private final [v.wrappedSecondaryElementType]['[]'] [v.name]Values;
+  [else]
+	private final [v.type] [v.name];
   [/if]
+  [/for]
+  private ImmutableSerialForm(final [type.typeImmutable] instance)
+  {
+  	[for v in type.constructableAttributes]
+	  [if v.optionalType]
+	  	this.[v.name] = instance.[v.names.get]().[optionalPresent v] ? instance.[v.names.get]().[optionalGet v] : null;
+      [else if v.collectionType]
+        [if v.unwrappedElementPrimitiveType]
+        this.[v.name] = [guava].primitives.[toUpper v.unwrappedElementType]s.toArray(instance.[v.names.get]());
+        [else]
+        this.[v.name] = instance.[v.names.get]().toArray(new [v.unwrappedElementType]['[']instance.[v.names.get]().size()[']']);
+        [/if]
+	  [else if v.mapType]
+        this.[v.name]Keys = instance.[v.names.get]().keySet().toArray(new [v.wrappedElementType]['[']instance.[v.names.get]().keySet().size()[']']);
+        this.[v.name]Values = instance.[v.names.get]().values().toArray(new [v.wrappedSecondaryElementType]['[']instance.[v.names.get]().values().size()[']']);
+	  [else]
+	    this.[v.name] = instance.[v.names.get]();
+	  [/if]
+	[/for]
+  }
+  
+  private final Object readResolve() throws java.io.ObjectStreamException
+  {
+  [if type.useBuilder]
+    [type.typeBuilder] builder = [castBuildStagedBuilder type][type.factoryBuilder.relative]()[/castBuildStagedBuilder];
+  	[for v in type.constructableAttributes]
+    [if v.optionalType]
+	  if (this.[v.name] != null) {
+	    builder.[v.names.init](this.[v.name]);
+	  }
+    [else if v.collectionType]
+      builder.[v.names.add](this.[v.name]);
+	[else if v.mapType]
+	  for (int i = 0; i < [v.name]Keys.length; ++i) {
+	    builder.[v.names.put]([v.name]Keys['[']i[']'], [v.name]Values['[']i[']']);
+	  }
+    [else]
+      builder.[v.names.init](this.[v.name]);
+    [/if]
+	[/for]
+	return builder.[type.names.build]();
+  [else if type.useConstructor]
+    return [type.factoryOf.relative]([output.linesShortable][for v in type.constructorArguments][if not for.first],[/if]
+        [if v.collectionType or v.mapType][if v.nullable][v.name]Builder == null ? null : [/if][createBuiltCollection type v][v.name]Builder[/createBuiltCollection][else][v.name]Value[/if][/for]);[/output.linesShortable]
+  [else if type.useSingleton]
+    return [type.factoryInstance.relative]();
+  [else]
+    [output.error]Cannot generate code when there are no builder, constructor or singleton available[/output.error]
+  [/if]  
+  }
+}
+private Object writeReplace() throws java.io.ObjectStreamException {
+  return new ImmutableSerialForm(this);
+}
+private void readObject(final java.io.ObjectInputStream ois) throws java.io.IOException {
+  throw new java.io.StreamCorruptedException("[type.name] instance can only be deserialized from its serial form.");
+}
 [/if]
 [if type.serial.structural]
 

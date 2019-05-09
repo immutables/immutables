@@ -16,6 +16,10 @@
 package org.immutables.fixture.serial;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.immutables.value.Value;
 
 @Value.Modifiable
@@ -37,4 +41,12 @@ public abstract class SomeSer implements Serializable {
   @Value.Modifiable
   @Value.Immutable(singleton = true)
   interface OthSer extends Serializable {}
+}
+
+@Value.Immutable
+abstract class CollectionSer implements Serializable {
+    abstract Set<String> strings();
+    abstract List<CollectionSer> list01();
+    abstract Map<Integer, String> intToStringMap();
+    abstract Set<Long> longCollection();
 }
