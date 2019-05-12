@@ -511,6 +511,7 @@ private Object writeReplace() {
    * @return A modified copy of {@code this} object
    */
   [deprecation v]
+  [varargsSafetyAbstract v]
   [type.typeAbstract.relative] [v.names.with]([v.unwrappedElementType]... elements);
 
   /**
@@ -4314,6 +4315,8 @@ private static final long serialVersionUID = [literal serialVersion];
 [template typeDeprecation Type t][if t.deprecated]@Deprecated[/if][/template]
 
 [template varargsSafety Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SafeVarargs @SuppressWarnings("varargs")[/if][/template]
+
+[template varargsSafetyAbstract Attribute a][if a.nonRawElementType or a.hasTypeVariables]@SuppressWarnings("varargs")[/if][/template]
 
 [template functionClass][if classpath.isJava8]java.util.function.Function[else][guava].base.Function[/if][/template]
 
