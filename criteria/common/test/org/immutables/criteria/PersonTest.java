@@ -92,7 +92,7 @@ public class PersonTest {
             .firstName.isEqualTo("John");
 
     StringWriter out = new StringWriter();
-    crit.expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)), null);
+    crit.expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
     check(out.toString()).isNonEmpty();
   }
 

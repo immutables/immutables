@@ -16,7 +16,7 @@ final class Mongos {
    */
   static <T> Bson toBson(CodecRegistry registry, Expression expression) {
     MongoVisitor visitor = new MongoVisitor(registry);
-    return expression.accept(visitor, null).asDocument();
+    return expression.accept(visitor).asDocument();
   }
 
 }

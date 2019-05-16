@@ -27,7 +27,7 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+      public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
         return visitor.visit(this, context);
       }
     };
@@ -52,7 +52,7 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+      public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
         return visitor.visit(this, context);
       }
     };
@@ -88,9 +88,31 @@ public final class Expressions {
   }
 
   /**
+   * Converts a {@link ExpressionVisitor} into a {@link ExpressionBiVisitor} (with ignored payload).
+   */
+  static <V> ExpressionBiVisitor<V, Void> toBiVisitor(ExpressionVisitor<V> visitor) {
+    return new ExpressionBiVisitor<V, Void>() {
+      @Override
+      public V visit(Call call, @Nullable Void context) {
+        return visitor.visit(call);
+      }
+
+      @Override
+      public V visit(Literal literal, @Nullable Void context) {
+        return visitor.visit(literal);
+      }
+
+      @Override
+      public V visit(Path path, @Nullable Void context) {
+        return visitor.visit(path);
+      }
+    };
+  }
+
+  /**
    * Combines expressions <a href="https://en.wikipedia.org/wiki/Disjunctive_normal_form">Disjunctive normal form</a>
    */
-  public static  Expression dnf(Operator operator, Expression existing, Expression newExpression) {
+  public static Expression dnf(Operator operator, Expression existing, Expression newExpression) {
     if (!(operator == Operators.AND || operator == Operators.OR)) {
       throw new IllegalArgumentException(String.format("Expected %s for operator but got %s",
               Arrays.asList(Operators.AND, Operators.OR), operator));
@@ -129,7 +151,7 @@ public final class Expressions {
 
       @Nullable
       @Override
-      public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+      public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
         return visitor.visit(this, context);
       }
     };
