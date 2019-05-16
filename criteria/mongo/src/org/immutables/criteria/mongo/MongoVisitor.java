@@ -36,9 +36,9 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonValue visit(Call<?> call, @Nullable Void context) {
+  public BsonValue visit(Call call, @Nullable Void context) {
     final Operator op = call.getOperator();
-    final List<Expression<?>> args = call.getArguments();
+    final List<Expression> args = call.getArguments();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
@@ -72,7 +72,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonValue visit(Literal<?> literal, @Nullable Void context) {
+  public BsonValue visit(Literal literal, @Nullable Void context) {
     final Object value = literal.value();
 
     if (value == null) {
@@ -96,7 +96,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonString visit(Path<?> path, @Nullable Void context) {
+  public BsonString visit(Path path, @Nullable Void context) {
     return new BsonString(path.path());
   }
 }

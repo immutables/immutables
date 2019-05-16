@@ -9,10 +9,10 @@ import javax.annotation.Nullable;
  */
 public interface ExpressionVisitor<V, C> {
 
-  V visit(Call<?> call, @Nullable C context);
+  V visit(Call call, @Nullable C context);
 
-  V visit(Literal<?> literal, @Nullable C context);
+  V visit(Literal literal, @Nullable C context);
 
-  V visit(Path<?> path, @Nullable C context);
+  V visit(Path path, @Nullable C context);
 
 }

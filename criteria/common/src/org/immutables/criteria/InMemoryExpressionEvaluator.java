@@ -32,16 +32,16 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
    */
   private static final Object UNKNOWN = new Object();
 
-  private final Expression<T> expression;
+  private final Expression expression;
 
-  private InMemoryExpressionEvaluator(Expression<T> expression) {
+  private InMemoryExpressionEvaluator(Expression expression) {
     this.expression = Objects.requireNonNull(expression, "expression");
   }
 
   /**
    * Factory method to create evaluator instance
    */
-  public static <T> Predicate<T> of(Expression<T> expression) {
+  public static <T> Predicate<T> of(Expression expression) {
     if (Expressions.isNil(expression)) {
       // always true
       return instance -> true;
@@ -66,9 +66,9 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     }
 
     @Override
-    public Object visit(Call<?> call, Void context) {
+    public Object visit(Call call, Void context) {
       final Operator op = call.getOperator();
-      final List<Expression<?>> args = call.getArguments();
+      final List<Expression> args = call.getArguments();
 
       if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
@@ -122,7 +122,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       if (op == Operators.AND) {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.TRUE;
-        for (Expression<?> exp:args) {
+        for (Expression exp:args) {
           Object result = exp.accept(this, null);
           if (Boolean.FALSE.equals(result)) {
             return Boolean.FALSE;
@@ -139,7 +139,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       if (op == Operators.OR) {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.FALSE;
-        for (Expression<?> exp:args) {
+        for (Expression exp:args) {
           Object result = exp.accept(this, null);
           if (Boolean.TRUE.equals(result)) {
             return Boolean.TRUE;
@@ -187,12 +187,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     }
 
     @Override
-    public Object visit(Literal<?> literal, Void context) {
+    public Object visit(Literal literal, Void context) {
       return literal.value();
     }
 
     @Override
-    public Object visit(Path<?> path, Void context) {
+    public Object visit(Path path, Void context) {
       return extractor.extract(path.path());
     }
   }
