@@ -23,6 +23,7 @@
     [else]
 [output.error]
 Use @Criteria to annotate @Value.Immutable abstract value types with no type variables
+Use @Criteria to annotate @Value.Immutable abstract value types with no type variables
 [/output.error]
     [/if]
   [/for]
@@ -117,8 +118,8 @@ import [starImport];
    }
 
    @Override
-   public Expression<[type.name]> expression() {
-     return (Expression<[type.name]>) this.context.expression();
+   public Expression expression() {
+     return this.context.expression();
    }
 
 }

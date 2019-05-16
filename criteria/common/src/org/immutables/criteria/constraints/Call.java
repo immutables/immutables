@@ -5,12 +5,12 @@ import java.util.List;
 /**
  * An expression formed by a call to an operator (eg. {@link Operators#EQUAL}) with zero or more arguments.
  */
-public interface Call<T> extends Expression<T> {
+public interface Call extends Expression {
 
   /**
    * Get arguments of this operation
    */
-  List<Expression<?>> getArguments();
+  List<Expression> getArguments();
 
   /**
    * Get the operator symbol for this operation

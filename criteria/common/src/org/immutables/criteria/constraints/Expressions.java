@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -15,10 +16,10 @@ public final class Expressions {
 
   private Expressions() {}
 
-  public static <T> Path<T> path(final String path) {
+  public static Path path(final String path) {
     Preconditions.checkNotNull(path, "path");
 
-    return new Path<T>() {
+    return new Path() {
       @Override
       public String path() {
         return path;
@@ -32,11 +33,21 @@ public final class Expressions {
     };
   }
 
-  public static <T> Literal<T> literal(final T value) {
-    return new Literal<T>() {
+  public static Literal nullLiteral(Class<?> type) {
+    return NullLiteral.ofType(type);
+  }
+
+  public static Literal literal(final Object value) {
+    Preconditions.checkArgument(value != null, "Use nullLiteral() factory method for nulls");
+    return new Literal() {
       @Override
-      public T value() {
+      public Object value() {
         return value;
+      }
+
+      @Override
+      public Type valueType() {
+        return value.getClass();
       }
 
       @Nullable
@@ -47,24 +58,24 @@ public final class Expressions {
     };
   }
 
-  public static <T> Expression<T> and(Expression<T> first, Expression<T> second) {
+  public static Expression and(Expression first, Expression second) {
     return and(Arrays.asList(first, second));
   }
 
-  public static <T> Expression<T> and(Iterable<? extends Expression<T>> expressions) {
+  public static  Expression and(Iterable<? extends Expression> expressions) {
     return reduce(Operators.AND, expressions);
   }
 
-  public static <T> Expression<T> or(Expression<T> first, Expression<T> second) {
+  public static  Expression or(Expression first, Expression second) {
     return or(Arrays.asList(first ,second));
   }
 
-  public static <T> Expression<T> or(Iterable<? extends Expression<T>> expressions) {
+  public static  Expression or(Iterable<? extends Expression> expressions) {
     return reduce(Operators.OR, expressions);
   }
 
-  private static <T> Expression<T> reduce(Operator operator, Iterable<? extends Expression<T>> expressions) {
-    final Iterable<? extends Expression<T>> filtered = Iterables.filter(expressions, e -> !isNil(e) );
+  private static  Expression reduce(Operator operator, Iterable<? extends Expression> expressions) {
+    final Iterable<? extends Expression> filtered = Iterables.filter(expressions, e -> !isNil(e) );
     final int size = Iterables.size(filtered);
 
     if (size == 0) {
@@ -79,14 +90,14 @@ public final class Expressions {
   /**
    * Combines expressions <a href="https://en.wikipedia.org/wiki/Disjunctive_normal_form">Disjunctive normal form</a>
    */
-  public static <T> Expression<T> dnf(Operator operator, Expression<T> existing, Expression<T> newExpression) {
+  public static  Expression dnf(Operator operator, Expression existing, Expression newExpression) {
     if (!(operator == Operators.AND || operator == Operators.OR)) {
       throw new IllegalArgumentException(String.format("Expected %s for operator but got %s",
               Arrays.asList(Operators.AND, Operators.OR), operator));
     }
 
     if (isNil(existing)) {
-      return DnfExpression.<T>create().and(newExpression);
+      return DnfExpression.create().and(newExpression);
     }
 
     if (!(existing instanceof DnfExpression)) {
@@ -95,19 +106,19 @@ public final class Expressions {
     }
 
     @SuppressWarnings("unchecked")
-    final DnfExpression<T> conjunction = (DnfExpression<T>) existing;
+    final DnfExpression conjunction = (DnfExpression) existing;
     return operator == Operators.AND ? conjunction.and(newExpression) : conjunction.or(newExpression);
   }
 
-  public static <T> Call<T> call(final Operator operator, Expression<?> ... operands) {
+  public static  Call call(final Operator operator, Expression ... operands) {
     return call(operator, Arrays.asList(operands));
   }
 
-  public static <T> Call<T> call(final Operator operator, final Iterable<? extends Expression<?>> operands) {
-    final List<Expression<?>> ops = ImmutableList.copyOf(operands);
-    return new Call<T>() {
+  public static  Call call(final Operator operator, final Iterable<? extends Expression> operands) {
+    final List<Expression> ops = ImmutableList.copyOf(operands);
+    return new Call() {
       @Override
-      public List<Expression<?>> getArguments() {
+      public List<Expression> getArguments() {
         return ops;
       }
 
@@ -128,11 +139,11 @@ public final class Expressions {
    * Used as sentinel for {@code noop} expression.
    */
   @SuppressWarnings("unchecked")
-  public static <T> Expression<T> nil() {
-    return (Expression<T>) NilExpression.INSTANCE;
+  public static  Expression nil() {
+    return NilExpression.INSTANCE;
   }
 
-  public static boolean isNil(Expression<?> expression) {
+  public static boolean isNil(Expression expression) {
     return expression == NilExpression.INSTANCE;
   }
 

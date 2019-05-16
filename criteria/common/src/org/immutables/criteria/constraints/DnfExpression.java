@@ -14,18 +14,18 @@ import java.util.Objects;
  *
  *  <p>Example: {@code (A and B or C and D or E)}
  */
-class DnfExpression<T> implements Expression<T> {
+class DnfExpression implements Expression {
 
-  private final List<Expression<T>> conjunctions;
-  private final List<Expression<T>> disjunctions;
+  private final List<Expression> conjunctions;
+  private final List<Expression> disjunctions;
 
-  private DnfExpression(List<Expression<T>> conjunctions, List<Expression<T>> disjunctions) {
+  private DnfExpression(List<Expression> conjunctions, List<Expression> disjunctions) {
     this.conjunctions = ImmutableList.copyOf(conjunctions);
     this.disjunctions = ImmutableList.copyOf(disjunctions);
   }
 
-  static <T> DnfExpression<T> create() {
-    return new DnfExpression<>(Collections.emptyList(), Collections.emptyList());
+  static DnfExpression create() {
+    return new DnfExpression(Collections.emptyList(), Collections.emptyList());
   }
 
   @Nullable
@@ -34,8 +34,8 @@ class DnfExpression<T> implements Expression<T> {
     return simplify().accept(visitor, context);
   }
 
-  private Expression<T> simplify() {
-    final List<Expression<T>> expressions = new ArrayList<>(disjunctions);
+  private Expression simplify() {
+    final List<Expression> expressions = new ArrayList<>(disjunctions);
     if (!conjunctions.isEmpty()) {
       expressions.add(Expressions.and(conjunctions));
     }
@@ -44,16 +44,16 @@ class DnfExpression<T> implements Expression<T> {
   }
 
 
-  DnfExpression<T> and(Expression<T> expression) {
+  DnfExpression and(Expression expression) {
     Objects.requireNonNull(expression, "expression");
-    ImmutableList<Expression<T>> newConjunctions = ImmutableList.<Expression<T>>builder().addAll(conjunctions).add(expression).build();
-    return new DnfExpression<T>(newConjunctions, disjunctions);
+    ImmutableList<Expression> newConjunctions = ImmutableList.<Expression>builder().addAll(conjunctions).add(expression).build();
+    return new DnfExpression(newConjunctions, disjunctions);
   }
 
-  DnfExpression<T> or(Expression<T> expression) {
+  DnfExpression or(Expression expression) {
     Objects.requireNonNull(expression, "expression");
-    List<Expression<T>> newDisjunction = ImmutableList.<Expression<T>>builder().addAll(disjunctions).add(Expressions.and(conjunctions)).build();
-    return new DnfExpression<>(ImmutableList.of(expression), newDisjunction);
+    List<Expression> newDisjunction = ImmutableList.<Expression>builder().addAll(disjunctions).add(Expressions.and(conjunctions)).build();
+    return new DnfExpression(ImmutableList.of(expression), newDisjunction);
   }
 
 }

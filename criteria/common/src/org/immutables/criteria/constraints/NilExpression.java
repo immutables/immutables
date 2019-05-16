@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
  *
  * <p>Not supposed to be visited at runtime</p>
  */
-final class NilExpression<T> implements Expression<T> {
+final class NilExpression implements Expression {
 
   static final NilExpression INSTANCE = new NilExpression();
 

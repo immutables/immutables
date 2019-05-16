@@ -9,6 +9,6 @@ public interface Expressional<T> {
   /**
    * Expose expression used by an object.
    */
-  Expression<T> expression();
+  Expression expression();
 
 }

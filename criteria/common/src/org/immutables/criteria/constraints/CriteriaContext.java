@@ -3,20 +3,21 @@ package org.immutables.criteria.constraints;
 import java.util.function.UnaryOperator;
 
 /**
- * Link between front-end (codegened Criteria) and back-end (built {@link Expression}).
+ * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
+ * (internally known as {@link Expression}).
  */
 public final class CriteriaContext<R> {
 
   private final CriteriaCreator<R> creator;
-  private final DnfExpression<?> expression;
-  private final Path<?> path;
+  private final DnfExpression expression;
+  private final Path path;
   private final Operator operator;
 
   public CriteriaContext(CriteriaCreator<R> creator) {
     this(Operators.AND, DnfExpression.create(), null, creator);
   }
 
-  private CriteriaContext(Operator operator, DnfExpression<?> expression, Path<?> path, CriteriaCreator<R> creator) {
+  private CriteriaContext(Operator operator, DnfExpression expression, Path path, CriteriaCreator<R> creator) {
     this.creator = creator;
     this.expression = expression;
     this.path = path;
@@ -30,8 +31,8 @@ public final class CriteriaContext<R> {
   /**
    *  adds an intermediate step (list of paths usually)
    */
-  public CriteriaContext<R> add(Path<?> path) {
-    final Path<?> newPath = this.path != null ? Expressions.path(this.path.path() + "." + path.path()) : path;
+  public CriteriaContext<R> add(Path path) {
+    final Path newPath = this.path != null ? Expressions.path(this.path.path() + "." + path.path()) : path;
     return new CriteriaContext<>(operator, expression, newPath, creator);
   }
 
@@ -43,15 +44,15 @@ public final class CriteriaContext<R> {
     return new CriteriaContext<>(Operators.OR, expression, path, creator);
   }
 
-  public Expression<?> expression() {
+  public Expression expression() {
     return this.expression;
   }
 
   @SuppressWarnings("unchecked")
-  public R create(UnaryOperator<Expression<?>> operator) {
-    final Expression<Object> apply = (Expression<Object>) operator.apply(path);
-    final DnfExpression<Object> existing = (DnfExpression<Object>) expression;
-    final DnfExpression<?> newExpression = this.operator == Operators.AND ? existing.and(apply) : existing.or(apply);
+  public R create(UnaryOperator<Expression> operator) {
+    final Expression apply = operator.apply(path);
+    final DnfExpression existing = expression;
+    final DnfExpression newExpression = this.operator == Operators.AND ? existing.and(apply) : existing.or(apply);
     return new CriteriaContext<R>(Operators.AND, newExpression, null, creator).create();
   }
 

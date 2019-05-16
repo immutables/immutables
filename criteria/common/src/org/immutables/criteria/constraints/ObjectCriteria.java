@@ -42,7 +42,7 @@ public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
   /**
    * Use context to create new root DocumentCriteria
    */
-  protected R create(UnaryOperator<Expression<?>> fn) {
+  protected R create(UnaryOperator<Expression> fn) {
     return (R) context.create(fn);
   }
 
