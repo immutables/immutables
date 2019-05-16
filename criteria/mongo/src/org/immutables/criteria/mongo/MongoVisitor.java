@@ -19,7 +19,6 @@ import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Operators;
 import org.immutables.criteria.constraints.Path;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Generates mongo query using visitor API.
  */
-class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
+class MongoVisitor implements ExpressionVisitor<BsonValue> {
 
   private final CodecRegistry registry;
 
@@ -36,7 +35,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonValue visit(Call call, @Nullable Void context) {
+  public BsonValue visit(Call call) {
     final Operator op = call.getOperator();
     final List<Expression> args = call.getArguments();
 
@@ -45,8 +44,8 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
       Preconditions.checkArgument(args.get(0) instanceof Path, "first argument should be path access");
       Preconditions.checkArgument(args.get(1) instanceof Literal, "second argument should be literal");
 
-      BsonValue field = args.get(0).accept(this, null);
-      BsonValue value = args.get(1).accept(this, null);
+      BsonValue field = args.get(0).accept(this);
+      BsonValue value = args.get(1).accept(this);
       Preconditions.checkNotNull(field, "field");
       Preconditions.checkNotNull(value, "value");
 
@@ -60,7 +59,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
       final BsonDocument doc = new BsonDocument();
 
       final BsonArray array = call.getArguments().stream()
-              .map(a -> a.accept(this, null))
+              .map(a -> a.accept(this))
               .collect(Collectors.toCollection(BsonArray::new));
 
       doc.put(op == Operators.AND ? "$and" : "$or", array);
@@ -72,7 +71,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonValue visit(Literal literal, @Nullable Void context) {
+  public BsonValue visit(Literal literal) {
     final Object value = literal.value();
 
     if (value == null) {
@@ -96,7 +95,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue, Void> {
   }
 
   @Override
-  public BsonString visit(Path path, @Nullable Void context) {
+  public BsonString visit(Path path) {
     return new BsonString(path.path());
   }
 }

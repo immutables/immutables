@@ -1,18 +1,18 @@
 package org.immutables.criteria.constraints;
 
-import javax.annotation.Nullable;
-
 /**
+ * Visitor pattern for traversing a tree of expressions.
+ *
+ * Consider using {@link ExpressionBiVisitor} if you need to propagate some context / payload.
  *
  * @param <V> visitor return type
- * @param <C> context type
  */
-public interface ExpressionVisitor<V, C> {
+public interface ExpressionVisitor<V> {
 
-  V visit(Call call, @Nullable C context);
+  V visit(Call call);
 
-  V visit(Literal literal, @Nullable C context);
+  V visit(Literal literal);
 
-  V visit(Path path, @Nullable C context);
+  V visit(Path path);
 
 }

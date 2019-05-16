@@ -54,10 +54,10 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
   public boolean test(T instance) {
     Objects.requireNonNull(instance, "instance");
     final LocalVisitor visitor = new LocalVisitor(instance);
-    return Boolean.TRUE.equals(expression.accept(visitor, null));
+    return Boolean.TRUE.equals(expression.accept(visitor));
   }
 
-  private static class LocalVisitor implements ExpressionVisitor<Object, Void> {
+  private static class LocalVisitor implements ExpressionVisitor<Object> {
 
     private final ValueExtractor<Object> extractor;
 
@@ -66,14 +66,14 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     }
 
     @Override
-    public Object visit(Call call, Void context) {
+    public Object visit(Call call) {
       final Operator op = call.getOperator();
       final List<Expression> args = call.getArguments();
 
       if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-        final Object left = args.get(0).accept(this, null);
-        final Object right = args.get(1).accept(this, null);
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
 
         if (left == UNKNOWN || right == UNKNOWN) {
           return UNKNOWN;
@@ -85,12 +85,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
       if (op == Operators.IN || op == Operators.NOT_IN) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-        final Object left = args.get(0).accept(this, null);
+        final Object left = args.get(0).accept(this);
         if (left == UNKNOWN) {
           return UNKNOWN;
         }
         @SuppressWarnings("unchecked")
-        final Iterable<Object> right = (Iterable<Object>) args.get(1).accept(this, null);
+        final Iterable<Object> right = (Iterable<Object>) args.get(1).accept(this);
         Preconditions.checkNotNull(right, "not expected to be null %s", args.get(1));
         final Stream<Object> stream = StreamSupport.stream(right.spliterator(), false);
 
@@ -99,7 +99,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
       if (op == Operators.IS_ABSENT || op == Operators.IS_PRESENT) {
         Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-        final Object left = args.get(0).accept(this, null);
+        final Object left = args.get(0).accept(this);
 
         if (left instanceof java.util.Optional) {
           Optional<?> opt = (java.util.Optional<?>) left;
@@ -123,7 +123,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.TRUE;
         for (Expression exp:args) {
-          Object result = exp.accept(this, null);
+          Object result = exp.accept(this);
           if (Boolean.FALSE.equals(result)) {
             return Boolean.FALSE;
           } else if (result == null || result == UNKNOWN) {
@@ -140,7 +140,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.FALSE;
         for (Expression exp:args) {
-          Object result = exp.accept(this, null);
+          Object result = exp.accept(this);
           if (Boolean.TRUE.equals(result)) {
             return Boolean.TRUE;
           } else if (result == null || result == UNKNOWN) {
@@ -160,12 +160,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
 
         @SuppressWarnings("unchecked")
-        Comparable<Object> left = (Comparable<Object>) args.get(0).accept(this, null);
+        Comparable<Object> left = (Comparable<Object>) args.get(0).accept(this);
         if (left == UNKNOWN || left == null) {
           return UNKNOWN;
         }
         @SuppressWarnings("unchecked")
-        Comparable<Object> right = (Comparable<Object>) args.get(1).accept(this, null);
+        Comparable<Object> right = (Comparable<Object>) args.get(1).accept(this);
         if (right == UNKNOWN || right == null) {
           return UNKNOWN;
         }
@@ -187,12 +187,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     }
 
     @Override
-    public Object visit(Literal literal, Void context) {
+    public Object visit(Literal literal) {
       return literal.value();
     }
 
     @Override
-    public Object visit(Path path, Void context) {
+    public Object visit(Path path) {
       return extractor.extract(path.path());
     }
   }

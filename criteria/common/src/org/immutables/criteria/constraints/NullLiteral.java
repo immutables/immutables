@@ -29,7 +29,7 @@ class NullLiteral implements Literal {
 
   @Nullable
   @Override
-  public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+  public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return visitor.visit(this, context);
   }
 }

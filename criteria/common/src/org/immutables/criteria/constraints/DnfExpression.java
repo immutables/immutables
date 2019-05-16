@@ -30,7 +30,7 @@ class DnfExpression implements Expression {
 
   @Nullable
   @Override
-  public <R, C> R accept(ExpressionVisitor<R, C> visitor, @Nullable C context) {
+  public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return simplify().accept(visitor, context);
   }
 
