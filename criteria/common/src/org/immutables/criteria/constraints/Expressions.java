@@ -5,9 +5,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A set of predefined utilities and factories for expressions like {@link Literal} or {@link Call}
@@ -85,6 +87,30 @@ public final class Expressions {
     }
 
     return call(operator, expressions);
+  }
+
+  /**
+   * Hacky (and temporary) reflection until we define proper sub-classes for criterias
+   * (to hide Expressional implementation).
+   */
+  static Expression extract(Object object) {
+    Objects.requireNonNull(object, "object");
+    try {
+      Class<?> current = object.getClass();
+      while(current.getSuperclass() != null){
+        if (Arrays.stream(current.getDeclaredFields()).anyMatch(f -> f.getName().equals("context"))) {
+          Field field = current.getDeclaredField("context");
+          field.setAccessible(true);
+          CriteriaContext<?> context = (CriteriaContext<?>) field.get(object);
+          return context.expression();
+        }
+        current = current.getSuperclass();
+      }
+    } catch (NoSuchFieldException|IllegalAccessException e) {
+      throw new RuntimeException("No field in " + object.getClass().getName(), e);
+    }
+
+    throw new UnsupportedOperationException("No field context found in " + object.getClass().getName());
   }
 
   /**

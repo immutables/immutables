@@ -34,7 +34,7 @@ class DnfExpression implements Expression {
     return simplify().accept(visitor, context);
   }
 
-  private Expression simplify() {
+  Expression simplify() {
     final List<Expression> expressions = new ArrayList<>(disjunctions);
     if (!conjunctions.isEmpty()) {
       expressions.add(Expressions.and(conjunctions));
