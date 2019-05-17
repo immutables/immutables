@@ -1,5 +1,6 @@
 package org.immutables.criteria.constraints;
 
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
@@ -24,6 +25,11 @@ public final class CriteriaContext<R> {
     this.operator = operator;
   }
 
+  public <S> CriteriaContext<S> withCreator(CriteriaCreator<S> creator) {
+    Objects.requireNonNull(creator, "creator");
+    return new CriteriaContext<S>(operator, expression, path, creator);
+  }
+
   public R create() {
     return creator.create(this);
   }
@@ -45,7 +51,7 @@ public final class CriteriaContext<R> {
   }
 
   public Expression expression() {
-    return this.expression;
+    return this.expression.simplify();
   }
 
   @SuppressWarnings("unchecked")

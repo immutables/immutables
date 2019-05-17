@@ -8,9 +8,13 @@ import java.util.function.UnaryOperator;
 public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
 
   private final CriteriaContext<R> context;
+  private final CriteriaCreator<S> inner;
+  private final CriteriaCreator<C> outer;
 
-  public CollectionCriteria(CriteriaContext<R> context) {
+  public CollectionCriteria(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
     this.context = Objects.requireNonNull(context, "context");
+    this.inner = Objects.requireNonNull(inner, "inner");
+    this.outer = Objects.requireNonNull(outer, "outer");
   }
 
   public S all() {
@@ -55,7 +59,7 @@ public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
 
   public static class Self extends CollectionCriteria<Self, Self, Self> {
     public Self(CriteriaContext<Self> context) {
-      super(context);
+      super(context, Self::new, Self::new);
     }
   }
 

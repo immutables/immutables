@@ -24,10 +24,16 @@ import java.util.function.UnaryOperator;
  */
 public class OptionalCriteria<R, S, C>  {
 
-  private final CriteriaContext<R> context;
+  final CriteriaContext<R> context;
 
-  public OptionalCriteria(CriteriaContext<R> context) {
+  private final CriteriaCreator<S> inner;
+
+  private final CriteriaCreator<C> outer;
+
+  public OptionalCriteria(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
    this.context = Objects.requireNonNull(context, "context");
+   this.inner = Objects.requireNonNull(inner, "inner");
+   this.outer = Objects.requireNonNull(outer, "outer");
   }
 
   public R isPresent() {
@@ -39,11 +45,18 @@ public class OptionalCriteria<R, S, C>  {
   }
 
   public S value() {
-    throw new UnsupportedOperationException();
+    return inner.create((CriteriaContext<S>) context);
   }
 
   public R value(UnaryOperator<C> consumer) {
-    throw new UnsupportedOperationException();
+    // convert UnaryOperator<C> into UnaryOperator<Expression>
+    final UnaryOperator<Expression> fn = expression -> {
+      final C initial = context.withCreator(outer).create();
+      final C changed = consumer.apply(initial);
+      return Expressions.extract(changed);
+    };
+
+    return context.create(fn);
   }
 
 }

@@ -48,16 +48,30 @@ public class PersonTest {
     check(!evaluate(crit.lastName.isPresent(), person));
     check(evaluate(crit.lastName.isPresent(), person.withLastName("Smith")));
     check(!evaluate(crit.lastName.isAbsent(), person.withLastName("Smith")));
+
+    // == value().$expr
+    check(evaluate(crit.lastName.value().isEqualTo("Smith"), person.withLastName("Smith")));
+    check(!evaluate(crit.lastName.value().isNotEqualTo("Smith"), person.withLastName("Smith")));
+    check(evaluate(crit.lastName.value().isIn("Smith", "Nobody"), person.withLastName("Smith")));
+    check(!evaluate(crit.lastName.value().isIn("Nobody", "Sky"), person.withLastName("Smith")));
+    check(evaluate(crit.lastName.value().isNotIn("Nobody", "Sky"), person.withLastName("Smith")));
+
+    // == value($expr)
+    check(evaluate(crit.lastName.value(v -> v.isEqualTo("Smith")), person.withLastName("Smith")));
+    check(!evaluate(crit.lastName.value(v -> v.isNotEqualTo("Smith")), person.withLastName("Smith")));
+    check(evaluate(crit.lastName.value(v -> v.isIn("Smith", "Nobody")), person.withLastName("Smith")));
+    check(!evaluate(crit.lastName.value(v -> v.isIn("Nobody", "Sky")), person.withLastName("Smith")));
+    check(evaluate(crit.lastName.value(v -> v.isNotIn("Nobody", "Sky")), person.withLastName("Smith")));
   }
 
   @Test
-  @Ignore("TODO correct handling of empty / nil expressions")
   public void empty() {
     final ImmutablePerson person = ImmutablePerson.builder().firstName("John").age(22)
             .bestFriend(ImmutableFriend.builder().nickName("aaa").build())
             .isMarried(false).build();
 
     check(evaluate(PersonCriteria.create(), person));
+    check(evaluate(PersonCriteria.create(), person.withLastName("llll")));
   }
 
   @Test
@@ -78,6 +92,7 @@ public class PersonTest {
             .lastName.value(f -> f.startsWith("foo").or().endsWith("bar"))
             .lastName.value(f -> f.isNotEmpty().isGreaterThan("aaa"))
             .lastName.value(StringCriteria::isNotEmpty)
+            .firstName.hasSize(2)
             .bestFriend.nickName.startsWith("foo");
   }
 

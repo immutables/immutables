@@ -109,7 +109,7 @@ import [starImport];
    public [type.name]Criteria(CriteriaContext<R> context) {
        this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-       this.[a.name] = new [criteriaType a type](context.add(Expressions.path("[a.name]")));
+     this.[a.name] = new [criteriaType a type]([constructorArgs a type]);
    [/for]
    }
 
@@ -151,6 +151,18 @@ StringCriteria<R>
   [a.unwrappedElementType]Criteria<R>
 [else]
   ObjectCriteria<R, [a.wrappedElementType]>
+[/if]
+[/output.trim][/template]
+
+[template constructorArgs Attribute a Type type][output.trim]
+[if a.optionalType or a.collectionType]
+  [if a.hasSimpleScalarElementType]
+    context.add(Expressions.path("[a.name]")), ctx -> new [scalarElementCriteria a 'R']((CriteriaContext<R>)  ctx), ctx -> new [scalarElementCriteria a 'Self'](ctx)
+  [else if a.hasCriteria]
+    context.add(Expressions.path("[a.name]")), ctx -> new [a.unwrappedElementType]Criteria<R>((CriteriaContext<R>) ctx), ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create()
+  [/if]
+[else]
+context.add(Expressions.path("[a.name]"))
 [/if]
 [/output.trim][/template]
 
