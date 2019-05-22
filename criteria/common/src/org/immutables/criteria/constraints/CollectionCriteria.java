@@ -18,27 +18,33 @@ public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
   }
 
   public S all() {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, e);
+    return inner.create((CriteriaContext<S>) context.create(expr));
   }
 
   public R all(UnaryOperator<C> consumer) {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, toExpressionOperator(consumer).apply(e));
+    return context.create(expr);
   }
 
   public S none() {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE, e);
+    return inner.create((CriteriaContext<S>) context.create(expr));
   }
 
   public R none(UnaryOperator<C> consumer) {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE, toExpressionOperator(consumer).apply(e));
+    return context.create(expr);
   }
 
   public S any() {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, e);
+    return inner.create((CriteriaContext<S>) context.create(expr));
   }
 
   public R any(UnaryOperator<C> consumer) {
-    throw new UnsupportedOperationException();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, toExpressionOperator(consumer).apply(e));
+    return context.create(expr);
   }
 
   public S at(int index) {
@@ -46,15 +52,23 @@ public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
   }
 
   public R isEmpty() {
-    throw new UnsupportedOperationException();
+    return context.create(e -> Expressions.call(Operators.EMPTY, e));
   }
 
   public R isNotEmpty() {
-    throw new UnsupportedOperationException();
+    return context.create(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
   }
 
   public R hasSize(int size) {
-    throw new UnsupportedOperationException();
+    return context.create(e -> Expressions.call(Operators.SIZE, e, Expressions.literal(size)));
+  }
+
+  private UnaryOperator<Expression> toExpressionOperator(UnaryOperator<C> operator) {
+    return expression -> {
+      final C initial = context.withCreator(outer).create();
+      final C changed = operator.apply(initial);
+      return Expressions.extract(changed);
+    };
   }
 
   public static class Self extends CollectionCriteria<Self, Self, Self> {

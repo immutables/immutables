@@ -158,8 +158,12 @@ public final class Expressions {
     return operator == Operators.AND ? conjunction.and(newExpression) : conjunction.or(newExpression);
   }
 
-  public static  Call call(final Operator operator, Expression ... operands) {
-    return call(operator, Arrays.asList(operands));
+  public static Call not(Call call) {
+    return Expressions.call(Operators.NOT, call);
+  }
+
+  public static Call call(final Operator operator, Expression ... operands) {
+    return call(operator, ImmutableList.copyOf(operands));
   }
 
   public static  Call call(final Operator operator, final Iterable<? extends Expression> operands) {

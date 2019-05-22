@@ -1,7 +1,6 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.constraints.DebugExpressionVisitor;
-import org.immutables.criteria.constraints.StringCriteria;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -79,21 +78,16 @@ public class PersonTest {
   public void collection() {
     PersonCriteria.create()
             .friends.any().nickName.isNotEmpty()
+            .aliases.none().contains("foo")
             .or()//.or() should not work
             .isMarried.isTrue()
             .or()
+            .friends.all().nickName.isNotEmpty()
+            .friends.any().nickName.isEmpty()
+            .friends.none().nickName.hasSize(3)
+            .friends.all(f -> f.nickName.isEmpty().or().nickName.hasSize(2))
             .friends.any(f -> f.nickName.isEmpty().or().nickName.hasSize(2))
-            .friends.none(f -> f.nickName.hasSize(3).nickName.startsWith("a"))
-            .aliases.none().contains("foo")
-            .or()
-            .lastName.value().isNotEmpty()
-            .lastName.value().hasSize(2)
-            .lastName.value(f -> f.startsWith("foo").endsWith("bar"))
-            .lastName.value(f -> f.startsWith("foo").or().endsWith("bar"))
-            .lastName.value(f -> f.isNotEmpty().isGreaterThan("aaa"))
-            .lastName.value(StringCriteria::isNotEmpty)
-            .firstName.hasSize(2)
-            .bestFriend.nickName.startsWith("foo");
+            .friends.none(f -> f.nickName.hasSize(3).nickName.startsWith("a"));
   }
 
   @Test

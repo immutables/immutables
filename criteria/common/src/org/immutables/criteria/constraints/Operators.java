@@ -5,8 +5,14 @@ public enum Operators implements Operator {
   EQUAL,
   NOT_EQUAL,
 
+  // collection
   IN,
   NOT_IN,
+  ALL,   // all elements match
+  NONE, // no elements match
+  ANY, // some elements match (at least one)
+  EMPTY, // means collection is empty
+  SIZE, // size of the collection
 
   // boolean ops
   AND,
