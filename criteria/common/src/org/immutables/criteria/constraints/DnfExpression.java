@@ -14,7 +14,7 @@ import java.util.Objects;
  *
  *  <p>Example: {@code (A and B or C and D or E)}
  */
-class DnfExpression implements Expression {
+class DnfExpression implements Expressional<DnfExpression>, Expression {
 
   private final List<Expression> conjunctions;
   private final List<Expression> disjunctions;
@@ -31,10 +31,15 @@ class DnfExpression implements Expression {
   @Nullable
   @Override
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
-    return simplify().accept(visitor, context);
+    return expression().accept(visitor, context);
   }
 
-  Expression simplify() {
+  @Override
+  public Expression expression() {
+    return simplify();
+  }
+
+  private Expression simplify() {
     final List<Expression> expressions = new ArrayList<>(disjunctions);
     if (!conjunctions.isEmpty()) {
       expressions.add(Expressions.and(conjunctions));
@@ -42,7 +47,6 @@ class DnfExpression implements Expression {
 
     return Expressions.or(expressions);
   }
-
 
   DnfExpression and(Expression expression) {
     Objects.requireNonNull(expression, "expression");

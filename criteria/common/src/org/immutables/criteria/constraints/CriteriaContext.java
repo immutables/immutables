@@ -7,7 +7,7 @@ import java.util.function.UnaryOperator;
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
  * (internally known as {@link Expression}).
  */
-public final class CriteriaContext<R> {
+public final class CriteriaContext<R> implements Expressional<R> {
 
   private final CriteriaCreator<R> creator;
   private final DnfExpression expression;
@@ -50,8 +50,9 @@ public final class CriteriaContext<R> {
     return new CriteriaContext<>(Operators.OR, expression, path, creator);
   }
 
+  @Override
   public Expression expression() {
-    return this.expression.simplify();
+    return this.expression.expression();
   }
 
   @SuppressWarnings("unchecked")
