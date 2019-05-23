@@ -3,6 +3,7 @@ package org.immutables.criteria.mongo;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.Success;
 import org.bson.conversions.Bson;
+import org.immutables.criteria.Repository;
 import org.immutables.criteria.constraints.Expressional;
 import org.reactivestreams.Publisher;
 
@@ -13,7 +14,7 @@ import java.util.Objects;
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
-class MongoRepository<T> {
+class MongoRepository<T> implements Repository<T> {
 
   private final MongoCollection<T> collection;
 
@@ -22,6 +23,7 @@ class MongoRepository<T> {
   }
 
 
+  @Override
   public Publisher<T> query(Expressional<T> expressional) {
     final Bson filter = Mongos.toBson(collection.getCodecRegistry(), expressional.expression());
     return collection.find(filter);
