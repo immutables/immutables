@@ -41,12 +41,6 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.immutables</groupId>
-            <artifactId>testing</artifactId>
-            <version>${project.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-client</artifactId>
             <version>${elasticsearch.version}</version>

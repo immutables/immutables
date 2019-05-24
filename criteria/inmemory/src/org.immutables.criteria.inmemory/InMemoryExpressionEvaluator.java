@@ -1,4 +1,4 @@
-package org.immutables.criteria;
+package org.immutables.criteria.inmemory;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.constraints.Call;
