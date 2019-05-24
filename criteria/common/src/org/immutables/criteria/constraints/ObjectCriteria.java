@@ -47,11 +47,11 @@ public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
   }
 
   public R isEqualTo(V value) {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(value)));
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
   public R isNotEqualTo(V value) {
-    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.literal(value)));
+    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
   public R isIn(V v1, V v2, V ... rest) {
@@ -74,12 +74,12 @@ public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
 
   public R isIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.call(Operators.IN, e, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   public R isNotIn(Iterable<? super V> values) {
     Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.literal(ImmutableList.copyOf(values))));
+    return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   public static class Self<V> extends ObjectCriteria<Self<V>, V> {

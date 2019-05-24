@@ -2,9 +2,9 @@ package org.immutables.criteria.elasticsearch;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.constraints.Call;
+import org.immutables.criteria.constraints.Constant;
 import org.immutables.criteria.constraints.Expression;
 import org.immutables.criteria.constraints.ExpressionVisitor;
-import org.immutables.criteria.constraints.Literal;
 import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Operators;
 import org.immutables.criteria.constraints.Path;
@@ -36,7 +36,7 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
   }
 
   @Override
-  public QueryBuilders.QueryBuilder visit(Literal literal) {
+  public QueryBuilders.QueryBuilder visit(Constant constant) {
     return null;
   }
 
@@ -53,8 +53,8 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
     }
 
     @Override
-    public Object visit(Literal literal) {
-      return literal.value();
+    public Object visit(Constant constant) {
+      return constant.value();
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
     }
 
     @Override
-    public String visit(Literal literal) {
+    public String visit(Constant constant) {
       throw new UnsupportedOperationException();
     }
 

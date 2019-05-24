@@ -26,11 +26,11 @@ public class BooleanCriteria<R> extends ObjectCriteria<R, Boolean> {
   }
 
   public R isTrue() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(Boolean.TRUE)));
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.TRUE)));
   }
 
   public R isFalse() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal(Boolean.FALSE)));
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
   public static class Self extends BooleanCriteria<Self> {

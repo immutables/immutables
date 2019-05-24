@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -36,7 +35,7 @@ public final class Path implements Expression {
 
   public static Path of(String path) {
     Objects.requireNonNull(path);
-    return new Path(Collections.singletonList(path));
+    return new Path(ImmutableList.of(path));
   }
 
   /**

@@ -26,11 +26,11 @@ public class StringCriteria<R> extends ComparableCriteria<R, String> {
   }
 
   public R isEmpty() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.literal("")));
+    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
   }
 
   public R isNotEmpty() {
-    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.literal("")));
+    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
   }
 
   public R contains(CharSequence other) {

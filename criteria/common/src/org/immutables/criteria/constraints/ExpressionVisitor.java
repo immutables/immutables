@@ -11,7 +11,7 @@ public interface ExpressionVisitor<V> {
 
   V visit(Call call);
 
-  V visit(Literal literal);
+  V visit(Constant constant);
 
   V visit(Path path);
 

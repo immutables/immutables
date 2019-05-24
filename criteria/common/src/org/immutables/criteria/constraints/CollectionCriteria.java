@@ -60,7 +60,7 @@ public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
   }
 
   public R hasSize(int size) {
-    return context.create(e -> Expressions.call(Operators.SIZE, e, Expressions.literal(size)));
+    return context.create(e -> Expressions.call(Operators.SIZE, e, Expressions.constant(size)));
   }
 
   private UnaryOperator<Expression> toExpressionOperator(UnaryOperator<C> operator) {

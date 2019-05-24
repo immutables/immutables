@@ -48,7 +48,7 @@ import org.immutables.criteria.constraints.Expression;
 import org.immutables.criteria.constraints.Expressional;
 import org.immutables.criteria.constraints.ExpressionVisitor;
 import org.immutables.criteria.constraints.Expressions;
-import org.immutables.criteria.constraints.Literal;
+import org.immutables.criteria.constraints.Constant;
 import org.immutables.criteria.constraints.Operators;
 import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Path;

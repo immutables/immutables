@@ -6,13 +6,12 @@ import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * A set of predefined utilities and factories for expressions like {@link Literal} or {@link Call}
+ * A set of predefined utilities and factories for expressions like {@link Constant} or {@link Call}
  */
 public final class Expressions {
 
@@ -22,29 +21,8 @@ public final class Expressions {
     return Path.of(path);
   }
 
-  public static Literal nullLiteral(Class<?> type) {
-    return NullLiteral.ofType(type);
-  }
-
-  public static Literal literal(final Object value) {
-    Preconditions.checkArgument(value != null, "Use nullLiteral() factory method for nulls");
-    return new Literal() {
-      @Override
-      public Object value() {
-        return value;
-      }
-
-      @Override
-      public Type valueType() {
-        return value.getClass();
-      }
-
-      @Nullable
-      @Override
-      public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
-        return visitor.visit(this, context);
-      }
-    };
+  public static Constant constant(final Object value) {
+    return Constant.of(value);
   }
 
   public static Expression and(Expression first, Expression second) {
@@ -111,8 +89,8 @@ public final class Expressions {
       }
 
       @Override
-      public V visit(Literal literal, @Nullable Void context) {
-        return visitor.visit(literal);
+      public V visit(Constant constant, @Nullable Void context) {
+        return visitor.visit(constant);
       }
 
       @Override

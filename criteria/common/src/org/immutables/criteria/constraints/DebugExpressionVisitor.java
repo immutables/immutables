@@ -31,9 +31,9 @@ public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
   }
 
   @Override
-  public Void visit(Literal literal) {
-    writer.print(" literal=");
-    writer.print(literal.value());
+  public Void visit(Constant constant) {
+    writer.print(" constant=");
+    writer.print(constant.value());
     return null;
   }
 

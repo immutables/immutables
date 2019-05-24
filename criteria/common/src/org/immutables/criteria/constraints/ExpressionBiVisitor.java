@@ -12,7 +12,7 @@ public interface ExpressionBiVisitor<V, C> {
 
   V visit(Call call, @Nullable C context);
 
-  V visit(Literal literal, @Nullable C context);
+  V visit(Constant constant, @Nullable C context);
 
   V visit(Path path, @Nullable C context);
 

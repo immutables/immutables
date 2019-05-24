@@ -12,9 +12,9 @@ import org.bson.codecs.Encoder;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.constraints.Call;
+import org.immutables.criteria.constraints.Constant;
 import org.immutables.criteria.constraints.Expression;
 import org.immutables.criteria.constraints.ExpressionVisitor;
-import org.immutables.criteria.constraints.Literal;
 import org.immutables.criteria.constraints.Operator;
 import org.immutables.criteria.constraints.Operators;
 import org.immutables.criteria.constraints.Path;
@@ -42,7 +42,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       Preconditions.checkArgument(args.get(0) instanceof Path, "first argument should be path access");
-      Preconditions.checkArgument(args.get(1) instanceof Literal, "second argument should be literal");
+      Preconditions.checkArgument(args.get(1) instanceof Constant, "second argument should be constant");
 
       BsonValue field = args.get(0).accept(this);
       BsonValue value = args.get(1).accept(this);
@@ -71,8 +71,8 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
   }
 
   @Override
-  public BsonValue visit(Literal literal) {
-    final Object value = literal.value();
+  public BsonValue visit(Constant constant) {
+    final Object value = constant.value();
 
     if (value == null) {
       return BsonNull.VALUE;

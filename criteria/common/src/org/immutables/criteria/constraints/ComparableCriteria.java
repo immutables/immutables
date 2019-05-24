@@ -31,7 +31,7 @@ public class ComparableCriteria<R, V extends Comparable<V>>
    * <p>Use {@link #isAtMost(Comparable)} for less <i>or equal</i> comparison</p>
    */
   public R isLessThan(V upper) {
-    return create(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.literal(upper)));
+    return create(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
   }
 
   /**
@@ -39,21 +39,21 @@ public class ComparableCriteria<R, V extends Comparable<V>>
    * <p>Use {@link #isAtLeast(Comparable)} for greater <i>or equal</i> comparison</p>
    */
   public R isGreaterThan(V lower) {
-    return create(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.literal(lower)));
+    return create(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
   }
 
   /**
    * Checks that attribute is less than or equal to {@code upperInclusive}.
    */
   public R isAtMost(V upperInclusive) {
-    return create(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.literal(upperInclusive)));
+    return create(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
   }
 
   /**
    * Checks that attribute is greater or equal to {@code lowerInclusive}.
    */
   public R isAtLeast(V lowerInclusive) {
-    return create(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.literal(lowerInclusive)));
+    return create(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
   public static class Self<V extends Comparable<V>> extends ComparableCriteria<Self<V>, V> {
