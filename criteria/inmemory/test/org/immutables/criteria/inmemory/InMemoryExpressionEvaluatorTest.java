@@ -13,7 +13,6 @@ public class InMemoryExpressionEvaluatorTest {
 
   @Test
   public void reflection() {
-    // TODO this inner class is ugly
     final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
 
     final ImmutablePerson person = ImmutablePerson.builder().firstName("John").age(22)
@@ -61,6 +60,22 @@ public class InMemoryExpressionEvaluatorTest {
     check(evaluate(crit.lastName.value(v -> v.isIn("Smith", "Nobody")), person.withLastName("Smith")));
     check(!evaluate(crit.lastName.value(v -> v.isIn("Nobody", "Sky")), person.withLastName("Smith")));
     check(evaluate(crit.lastName.value(v -> v.isNotIn("Nobody", "Sky")), person.withLastName("Smith")));
+  }
+
+  @Test
+  public void booleans() {
+    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+
+    final ImmutablePerson person = ImmutablePerson.builder().firstName("A").age(1)
+            .bestFriend(ImmutableFriend.builder().nickName("B").build())
+            .isMarried(false).build();
+
+    check(evaluate(crit.lastName.isAbsent().or().lastName.isPresent(), person));
+    check(!evaluate(crit.lastName.isAbsent().lastName.isPresent(), person));
+    check(!evaluate(crit.firstName.isEqualTo("A").firstName.isEqualTo("B"), person));
+    check(evaluate(crit.firstName.isEqualTo("B").or().firstName.isEqualTo("A"), person));
+    check(!evaluate(crit.firstName.isEqualTo("B").or().firstName.isEqualTo("C"), person));
+    check(!evaluate(crit.firstName.isEqualTo("A").firstName.isEqualTo("C"), person));
   }
 
   @Test

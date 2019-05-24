@@ -119,32 +119,21 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return (op == Operators.IS_ABSENT) ? Objects.isNull(left) : Objects.nonNull(left);
       }
 
-      if (op == Operators.AND) {
+      if (op == Operators.AND || op == Operators.OR) {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
-        boolean prev = Boolean.TRUE;
+        final boolean shortCircuit = op == Operators.OR;
+        boolean prev = !shortCircuit;
         for (Expression exp:args) {
-          final Object result = exp.accept(this);
-          if (!prev || Boolean.FALSE.equals(result)) {
-            return Boolean.FALSE;
-          } else if (result == null || result == UNKNOWN) {
-            return UNKNOWN;
-          } else {
-            prev = (Boolean) result;
+          if (prev == shortCircuit) {
+            // continue evaluation ?
+            return shortCircuit;
           }
-        }
 
-        return prev;
-      }
-
-      if (op == Operators.OR) {
-        Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
-        boolean prev = Boolean.FALSE;
-        for (Expression exp:args) {
           final Object result = exp.accept(this);
-          if (prev || Boolean.TRUE.equals(result)) {
-            return Boolean.TRUE;
-          } else if (result == null || result == UNKNOWN) {
+          if (result == null || result == UNKNOWN) {
             return UNKNOWN;
+          } else if (Objects.equals(shortCircuit, result)) {
+            return shortCircuit;
           } else {
             prev = (Boolean) result;
           }
