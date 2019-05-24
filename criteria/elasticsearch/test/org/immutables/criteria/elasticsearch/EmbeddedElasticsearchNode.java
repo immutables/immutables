@@ -107,12 +107,26 @@ class EmbeddedElasticsearchNode implements Closeable {
     for (String name: Arrays.asList("path.data", "path.home")) {
       final String path = node.settings().get(name);
       if (path != null) {
-        File file = new File(path);
-        if (file.exists()) {
-          file.delete();
-        }
+        deleteRecursively(new File(path));
       }
     }
+  }
+
+  /**
+   * Deletes current file or (if a directory) all files recursively.
+   */
+  private static void deleteRecursively(File path) {
+    if (!path.exists()) {
+      return;
+    }
+
+    if (path.isDirectory()){
+      for (File f : path.listFiles()){
+        deleteRecursively(f);
+      }
+    }
+
+    path.delete();
   }
 
   /**

@@ -75,6 +75,8 @@ public class IntegrationTest {
     assertCount(crit.string.isEqualTo("foo"), 1);
     assertCount(crit.string.isEqualTo("bar"), 1);
     assertCount(crit.string.isEqualTo("hello"), 0);
+    assertCount(crit.optionalString.value().isEqualTo("optFoo"), 1);
+    assertCount(crit.optionalString.value().isEqualTo("missing"), 0);
 
   }
 
@@ -83,7 +85,6 @@ public class IntegrationTest {
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValueCount(count);
-
   }
 
 }
