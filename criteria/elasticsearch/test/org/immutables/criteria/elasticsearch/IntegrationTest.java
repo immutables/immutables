@@ -6,15 +6,14 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
 import io.reactivex.Observable;
-import io.reactivex.observers.TestObserver;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static org.immutables.check.Checkers.check;
 
 /**
  * Start embedded ES instance. Insert document(s) then query it.
@@ -30,8 +29,10 @@ public class IntegrationTest {
 
   private static final String INDEX_NAME = "mymodel";
 
+  private ElasticsearchRepository<ElasticModel> repository;
+
   @BeforeClass
-  public static void setUp() throws Exception {
+  public static void setupElastic() throws Exception {
     final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), new ObjectMapper());
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
@@ -43,30 +44,46 @@ public class IntegrationTest {
 
     ops.createIndex(INDEX_NAME, model);
 
-    ObjectNode doc = MAPPER.createObjectNode();
-    doc.put("string", "str");
-    doc.put("optionalString", "opt");
-    doc.put("bool", true);
-    doc.put("intNumber", 42);
-    ops.insertDocument(INDEX_NAME, doc);
+    ObjectNode doc1 = MAPPER.createObjectNode()
+                .put("string", "foo")
+                .put("optionalString", "optFoo")
+                .put("bool", true)
+                .put("intNumber", 42);
+
+    ObjectNode doc2 = MAPPER.createObjectNode()
+                .put("string", "bar")
+                .put("optionalString", "optBar")
+                .put("bool", false)
+                .put("intNumber", 44);
+
+    ops.insertBulk(INDEX_NAME, Arrays.asList(doc1, doc2));
+  }
+
+  @Before
+  public void setupRepository() throws Exception {
+    repository = new ElasticsearchRepository<>(RESOURCE.restClient(),
+            ElasticModel.class, MAPPER, INDEX_NAME);
+
   }
 
   @Test
-  public void basic() throws Exception {
-    ElasticsearchRepository<ElasticModel> repo = new ElasticsearchRepository<>(RESOURCE.restClient(),
-            ElasticModel.class, MAPPER, INDEX_NAME);
+  public void criteria() {
+    ElasticModelCriteria<ElasticModelCriteria.Self> crit = ElasticModelCriteria.create();
 
-    Observable<ElasticModel> obs = Observable.fromPublisher(repo.query(ElasticModelCriteria.create()));
-
-    TestObserver<ElasticModel> test = obs.test();
-
-    test.awaitTerminalEvent(1, TimeUnit.SECONDS);
-    test.assertComplete().assertValueCount(1);
-
-    ElasticModel result = test.values().get(0);
-
-    check(result.string()).is("str");
-    check(result.intNumber()).is(42);
+    assertCount(crit, 2);
+    assertCount(crit.intNumber.isEqualTo(1), 0);
+    assertCount(crit.string.isEqualTo("foo"), 1);
+    assertCount(crit.string.isEqualTo("bar"), 1);
+    assertCount(crit.string.isEqualTo("hello"), 0);
 
   }
+
+  private void assertCount(ElasticModelCriteria<?> crit, int count) {
+    Observable.fromPublisher(repository.query(crit))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertValueCount(count);
+
+  }
+
 }

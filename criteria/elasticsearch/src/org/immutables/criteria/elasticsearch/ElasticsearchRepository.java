@@ -1,5 +1,6 @@
 package org.immutables.criteria.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -15,6 +16,9 @@ import org.reactivestreams.Publisher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -51,18 +55,27 @@ public class ElasticsearchRepository<T> implements Repository<T> {
 
   private Publisher<T> queryInternal(Expressional<T> expressional) throws Exception {
     final Request request = new Request("POST", String.format("/%s/_search", index));
-    final String json = Elasticsearch.toQuery(expressional.expression());
+    final String json = Elasticsearch.toQuery(mapper, expressional.expression());
     request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
-    return Publishers.map(new AsyncRestPublisher(restClient, request), converter());
+    return Publishers.flatMapIterable(Publishers.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
   }
 
-  private Function<Response, T> converter() {
+  private Function<Response, List<T>> converter() {
     return response -> {
       try (InputStream is = response.getEntity().getContent()) {
         final ObjectNode root = mapper.readValue(is, ObjectNode.class);
+        if (root.path("hits").path("hits").isMissingNode()) {
+          return Collections.emptyList();
+        }
+
         final ArrayNode array = (ArrayNode) root.get("hits").get("hits");
-        return mapper.treeToValue(array.get(0).get("_source"), type);
+        final List<T> result = new ArrayList<>();
+        for (JsonNode node: array) {
+          result.add(mapper.treeToValue(node.get("_source"), type));
+        }
+
+        return result;
       } catch (IOException e) {
         final String message = String.format("Couldn't parse HTTP response %s into %s", response, type);
         throw new UncheckedIOException(message, e);
