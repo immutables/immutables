@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -24,6 +25,13 @@ final class Publishers {
 
   static <T> Publisher<T> error(Supplier<? extends Throwable> errorSupplier) {
     return new ErrorPublisher<>(errorSupplier);
+  }
+
+  /**
+   * Used to convert {@code Publisher<Iterable<U>>} into {@code Publisher<U>}
+   */
+  static  <T, U> Publisher<U> flatMapIterable(Publisher<T> publisher, final Function<? super T, ? extends Iterable<? extends U>> mapper) {
+      return new FlattenIterablePublisher<>(publisher, mapper);
   }
 
   static <T> Publisher<T> error(Throwable e) {
@@ -122,6 +130,102 @@ final class Publishers {
     public void cancel() {
       // nop
     }
+  }
+
+  private static class FlattenIterablePublisher<T, U> implements Publisher<U> {
+    private final Publisher<T> source;
+    private final Function<? super T, ? extends Iterable<? extends U>> mapper;
+
+    private FlattenIterablePublisher(Publisher<T> source, Function<? super T, ? extends Iterable<? extends U>> mapper) {
+      this.source = Objects.requireNonNull(source, "source");
+      this.mapper = Objects.requireNonNull(mapper, "mapper");
+    }
+
+    @Override
+    public void subscribe(Subscriber<? super U> downstream) {
+      source.subscribe(new FlattenSubscriber<>(mapper, downstream));
+    }
+
+    private final static class FlattenSubscriber<T, U> implements Subscriber<T> {
+
+      private final Function<? super T, ? extends Iterable<? extends U>> mapper;
+      private final Subscriber<? super U> downstream;
+      private boolean done;
+
+      private FlattenSubscriber(Function<? super T, ? extends Iterable<? extends U>> mapper, Subscriber<? super U> downstream) {
+        this.mapper = mapper;
+        this.downstream = downstream;
+      }
+
+      @Override
+      public void onSubscribe(Subscription s) {
+        downstream.onSubscribe(s);
+      }
+
+      @Override
+      public void onNext(T value) {
+        if (done) {
+          return;
+        }
+
+        Iterator<? extends U> it;
+
+        try {
+          it = mapper.apply(value).iterator();
+        } catch (Throwable ex) {
+          onError(ex);
+          return;
+        }
+
+        Subscriber<? super U> d = downstream;
+
+        for (;;) {
+          boolean hasNext;
+
+          try {
+            hasNext = it.hasNext();
+          } catch (Throwable ex) {
+            onError(ex);
+            return;
+          }
+
+          if (hasNext) {
+            U v;
+
+            try {
+              v = Objects.requireNonNull(it.next(), "The iterator returned a null value");
+            } catch (Throwable ex) {
+              onError(ex);
+              return;
+            }
+
+            d.onNext(v);
+          } else {
+            break;
+          }
+        }
+
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        if (done) {
+          return;
+        }
+        done = true;
+        downstream.onError(t);
+      }
+
+      @Override
+      public void onComplete() {
+        if (done) {
+          return;
+        }
+        done = true;
+        downstream.onComplete();
+      }
+    }
+
   }
 
 }
