@@ -123,13 +123,13 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.TRUE;
         for (Expression exp:args) {
-          Object result = exp.accept(this);
-          if (Boolean.FALSE.equals(result)) {
+          final Object result = exp.accept(this);
+          if (!prev || Boolean.FALSE.equals(result)) {
             return Boolean.FALSE;
           } else if (result == null || result == UNKNOWN) {
             return UNKNOWN;
           } else {
-            prev = prev && (Boolean) result;
+            prev = (Boolean) result;
           }
         }
 
@@ -140,13 +140,13 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(!args.isEmpty(), "empty args for %s", op);
         boolean prev = Boolean.FALSE;
         for (Expression exp:args) {
-          Object result = exp.accept(this);
-          if (Boolean.TRUE.equals(result)) {
+          final Object result = exp.accept(this);
+          if (prev || Boolean.TRUE.equals(result)) {
             return Boolean.TRUE;
           } else if (result == null || result == UNKNOWN) {
             return UNKNOWN;
           } else {
-            prev = prev || (Boolean) result;
+            prev = (Boolean) result;
           }
         }
 
@@ -160,12 +160,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
 
         @SuppressWarnings("unchecked")
-        Comparable<Object> left = (Comparable<Object>) args.get(0).accept(this);
+        final Comparable<Object> left = (Comparable<Object>) args.get(0).accept(this);
         if (left == UNKNOWN || left == null) {
           return UNKNOWN;
         }
         @SuppressWarnings("unchecked")
-        Comparable<Object> right = (Comparable<Object>) args.get(1).accept(this);
+        final Comparable<Object> right = (Comparable<Object>) args.get(1).accept(this);
         if (right == UNKNOWN || right == null) {
           return UNKNOWN;
         }
