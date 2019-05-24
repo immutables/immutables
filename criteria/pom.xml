@@ -37,6 +37,7 @@
     <!-- TODO exclude from release -->
     <modules>
         <module>common</module>
+        <module>inmemory</module>
         <module>mongo</module>
         <module>elasticsearch</module>
     </modules>
