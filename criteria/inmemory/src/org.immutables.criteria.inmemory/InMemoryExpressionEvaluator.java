@@ -193,13 +193,13 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Override
     public Object visit(Path path) {
-      return extractor.extract(path.path());
+      return extractor.extract(path);
     }
   }
 
   private interface ValueExtractor<T> {
     @Nullable
-    Object extract(String property);
+    Object extract(Path path);
   }
 
   private static class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
@@ -211,12 +211,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Nullable
     @Override
-    public Object extract(String property) {
-      Objects.requireNonNull(property, "property");
+    public Object extract(Path path) {
+      Objects.requireNonNull(path, "path");
 
       Object result = object;
 
-      for (String name:property.split("\\.")) {
+      for (String name:path.paths()) {
         result = extract(result, name);
         if (result == UNKNOWN) {
           break;
@@ -224,7 +224,6 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       }
 
       return result;
-
     }
 
     private static Object extract(Object instance, String property) {
@@ -247,6 +246,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         throw new RuntimeException(e);
       }
     }
+
   }
 
 }

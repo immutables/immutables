@@ -19,20 +19,7 @@ public final class Expressions {
   private Expressions() {}
 
   public static Path path(final String path) {
-    Preconditions.checkNotNull(path, "path");
-
-    return new Path() {
-      @Override
-      public String path() {
-        return path;
-      }
-
-      @Nullable
-      @Override
-      public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
-        return visitor.visit(this, context);
-      }
-    };
+    return Path.of(path);
   }
 
   public static Literal nullLiteral(Class<?> type) {

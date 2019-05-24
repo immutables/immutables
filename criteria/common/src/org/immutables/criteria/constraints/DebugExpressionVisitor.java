@@ -40,7 +40,7 @@ public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
   @Override
   public Void visit(Path path) {
     writer.print(" path=");
-    writer.print(path.path());
+    writer.print(path.toStringPath());
     return null;
   }
 }

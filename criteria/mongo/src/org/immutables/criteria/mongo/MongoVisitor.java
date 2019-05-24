@@ -96,6 +96,6 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
 
   @Override
   public BsonString visit(Path path) {
-    return new BsonString(path.path());
+    return new BsonString(path.toStringPath());
   }
 }

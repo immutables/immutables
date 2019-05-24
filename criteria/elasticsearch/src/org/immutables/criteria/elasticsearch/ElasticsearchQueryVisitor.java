@@ -77,7 +77,7 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
 
     @Override
     public String visit(Path path) {
-      return path.path();
+      return path.toStringPath();
     }
   }
 }

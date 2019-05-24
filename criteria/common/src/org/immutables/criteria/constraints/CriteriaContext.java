@@ -38,7 +38,7 @@ public final class CriteriaContext<R> implements Expressional<R> {
    *  adds an intermediate step (list of paths usually)
    */
   public CriteriaContext<R> add(Path path) {
-    final Path newPath = this.path != null ? Expressions.path(this.path.path() + "." + path.path()) : path;
+    final Path newPath = this.path != null ? this.path.concat(path) : path;
     return new CriteriaContext<>(operator, expression, newPath, creator);
   }
 
