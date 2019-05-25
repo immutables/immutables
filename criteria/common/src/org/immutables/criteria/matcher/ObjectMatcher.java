@@ -16,16 +16,14 @@
 
 package org.immutables.criteria.matcher;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.UnaryOperator;
+import java.util.Objects;
 
 /**
  * Comparing directly values of an attribute.
@@ -33,30 +31,18 @@ import java.util.function.UnaryOperator;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectMatcher<R, V> {
+public interface ObjectMatcher<R, V> {
 
-  protected final CriteriaContext<R> context;
 
-  public ObjectMatcher(CriteriaContext<R> context) {
-    this.context = Preconditions.checkNotNull(context, "context");
+  default R isEqualTo(V value) {
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
-  /**
-   * Use context to create new root criteria
-   */
-  protected R create(UnaryOperator<Expression> fn) {
-    return (R) context.create(fn);
+  default R isNotEqualTo(V value) {
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
-  public R isEqualTo(V value) {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
-  }
-
-  public R isNotEqualTo(V value) {
-    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
-  }
-
-  public R isIn(V v1, V v2, V ... rest) {
+  default R isIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
@@ -65,7 +51,7 @@ public class ObjectMatcher<R, V> {
     return isIn(values);
   }
 
-  public R isNotIn(V v1, V v2, V ... rest) {
+  default R isNotIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
@@ -74,21 +60,16 @@ public class ObjectMatcher<R, V> {
     return isNotIn(values);
   }
 
-  public R isIn(Iterable<? super V> values) {
-    Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+  default R isIn(Iterable<? super V> values) {
+    Objects.requireNonNull(values, "values");
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  public R isNotIn(Iterable<? super V> values) {
-    Preconditions.checkNotNull(values, "values");
-    return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+  default R isNotIn(Iterable<? super V> values) {
+    Objects.requireNonNull(values, "values");
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  public static class Self<V> extends ObjectMatcher<Self<V>, V> {
-    public Self(CriteriaContext<Self<V>> context) {
-      super(context);
-    }
-  }
-
+  interface Self<V> extends ObjectMatcher<Self<V>, V> {}
 
 }

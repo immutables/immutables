@@ -20,46 +20,39 @@ import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
 /**
- * String specific criterias like {@code isAbsent}, {@code contains} etc.
+ * String specific criterias like {@code startsWith}, {@code contains} etc.
  */
-public class StringMatcher<R> extends ComparableMatcher<R, String> {
+public interface StringMatcher<R> extends ComparableMatcher<R, String> {
 
-  public StringMatcher(CriteriaContext<R> context) {
-    super(context);
+  default R isEmpty() {
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
   }
 
-  public R isEmpty() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
+  default R isNotEmpty() {
+    return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
   }
 
-  public R isNotEmpty() {
-    return create(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
-  }
-
-  public R contains(CharSequence other) {
+  default R contains(CharSequence other) {
     throw new UnsupportedOperationException();
   }
 
-  public R startsWith(CharSequence prefix) {
+  default R startsWith(CharSequence prefix) {
     throw new UnsupportedOperationException();
   }
 
-  public R endsWith(CharSequence suffix) {
+  default R endsWith(CharSequence suffix) {
     throw new UnsupportedOperationException();
   }
 
-  public R hasSize(int size) {
+  default R hasSize(int size) {
     throw new UnsupportedOperationException();
   }
 
-  public static class Self extends StringMatcher<Self> implements Disjunction<StringMatcher<Self>> {
-    public Self(CriteriaContext<StringMatcher.Self> context) {
-      super(context);
-    }
+  interface Self extends StringMatcher<Self>, Disjunction<StringMatcher<Self>> {
 
     @Override
-    public StringMatcher<StringMatcher.Self> or() {
-      return context.or().create();
+    default StringMatcher<StringMatcher.Self> or() {
+      return Matchers.extract(this).or().<StringMatcher.Self>factory1().create1();
     }
   }
 

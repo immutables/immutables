@@ -22,24 +22,18 @@ import org.immutables.criteria.expression.Operators;
 /**
  * Very simple matcher for booleans just has {@code true} / {@code false} checks.
  */
-public class BooleanMatcher<R> extends ObjectMatcher<R, Boolean> {
+public interface BooleanMatcher<R>  {
 
-  public BooleanMatcher(CriteriaContext<R> context) {
-    super(context);
+  default R isTrue() {
+    return Matchers.extract(this).<R>factory1()
+            .create1(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.TRUE)));
   }
 
-  public R isTrue() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.TRUE)));
+  default R isFalse() {
+    return Matchers.extract(this).<R>factory1()
+            .create1(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
-  public R isFalse() {
-    return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
-  }
-
-  public static class Self extends BooleanMatcher<Self> {
-    public Self(CriteriaContext<BooleanMatcher.Self> context) {
-      super(context);
-    }
-  }
+  interface Self extends BooleanMatcher<Self> {}
 
 }

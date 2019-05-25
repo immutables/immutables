@@ -39,6 +39,7 @@ import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.CollectionMatcher;
 import org.immutables.criteria.matcher.Disjunction;
+import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.OptionalMatcher;
 import org.immutables.criteria.matcher.ObjectMatcher;
 import org.immutables.criteria.matcher.StringMatcher;
@@ -78,7 +79,7 @@ import [starImport];
 [atGenerated type]
 [type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]>, Expressional {
 
-   final CriteriaContext<R> context;
+   final CriteriaContext context;
 
    [for a in type.allMarshalingAttributes]
    public final [criteriaType a type] [a.name];
@@ -89,27 +90,27 @@ import [starImport];
    public static final class Self extends [type.name]Criteria<Self> implements Disjunction<[type.name]Criteria<Self>> {
 
     private Self() {
-      this(new CriteriaContext<Self>(creator()));
+      this(new CriteriaContext(creator()));
     }
 
-    private Self(CriteriaContext<Self> context) {
+    private Self(CriteriaContext context) {
       super(context);
     }
 
     private static CriteriaCreator<Self> creator() {
-      return (CriteriaContext<Self> ctx) ->  new Self(ctx);
+      return (CriteriaContext ctx) ->  new Self(ctx);
     }
 
     @Override
     public [type.name]Criteria<Self> or() {
-      return context.or().create();
+      return context.or().<Self>factory1().create1();
     }
    }
 
-   public [type.name]Criteria(CriteriaContext<R> context) {
-       this.context = Objects.requireNonNull(context, "context");
+   public [type.name]Criteria(CriteriaContext context) {
+     this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-     this.[a.name] = new [criteriaType a type]([constructorArgs a type]);
+     this.[a.name] = ([criteriaType a type]) [createMatcher a type];
    [/for]
    }
 
@@ -124,7 +125,6 @@ import [starImport];
 
 }
 [/template]
-
 
 [template criteriaType Attribute a Type type][output.trim]
 [if (a.boolean or (a.type eq 'java.lang.Boolean'))]
@@ -141,9 +141,9 @@ StringMatcher<R>
   ComparableMatcher<R, [a.wrappedElementType]>
 [else if a.collectionType]
   [if a.hasSimpleScalarElementType]
-      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
+      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
   [else if a.hasCriteria]
-      CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+      CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
   [else]
      [output.error]Can't create criteria for collection [type.name].[a.name] [a.unwrappedElementType][/output.error]
   [/if]
@@ -154,15 +154,39 @@ StringMatcher<R>
 [/if]
 [/output.trim][/template]
 
+[template createMatcher Attribute a Type type][output.trim]
+[if (a.boolean or (a.type eq 'java.lang.Boolean'))]
+Matchers.create(BooleanMatcher.class, [constructorArgs a type])
+[else if a.stringType]
+Matchers.create(StringMatcher.class, [constructorArgs a type])
+[else if a.optionalType]
+   Matchers.create(OptionalMatcher.class, [constructorArgs a type])
+[else if a.comparable]
+   Matchers.create(ComparableMatcher.class, [constructorArgs a type])
+[else if a.collectionType]
+   Matchers.create(CollectionMatcher.class, [constructorArgs a type])
+[else if a.hasCriteria]
+  new [a.unwrappedElementType]Criteria<R>([constructorArgs a type])
+[else]
+   Matchers.create(ObjectMatcher.class, [constructorArgs a type])
+[/if]
+[/output.trim][/template]
+
 [template constructorArgs Attribute a Type type][output.trim]
 [if a.optionalType or a.collectionType]
   [if a.hasSimpleScalarElementType]
-    context.add(Expressions.path("[a.name]")), ctx -> new [scalarElementCriteria a 'R']((CriteriaContext<R>)  ctx), ctx -> new [scalarElementCriteria a 'Self'](ctx)
+    context.withPath("[a.name]")
+           .withCreators(ctx -> new [type.name]Criteria.Self(ctx),
+                           ctx -> Matchers.create([scalarMatcherType a].class, ctx),
+                          ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
   [else if a.hasCriteria]
-    context.add(Expressions.path("[a.name]")), ctx -> new [a.unwrappedElementType]Criteria<R>((CriteriaContext<R>) ctx), ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create()
+    context.withPath("[a.name]")
+           .withCreators(ctx -> new [type.name]Criteria.Self(ctx),
+                         ctx -> new [a.unwrappedElementType]Criteria<R>((CriteriaContext) ctx),
+                         ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create())
   [/if]
 [else]
-context.add(Expressions.path("[a.name]"))
+context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.Self(ctx))
 [/if]
 [/output.trim][/template]
 
@@ -178,6 +202,19 @@ context.add(Expressions.path("[a.name]"))
   [output.error]unexpected type [a.name] [a.unwrappedElementType]<[elementName]>, not a simple one[/output.error]
 [/if]
 [/output.trim][/template]
+
+[template scalarMatcherType Attribute a][output.trim]
+[if a.unwrappedElementType eq 'boolean']
+  BooleanMatcher
+[else if a.unwrappedElementType eq 'java.lang.String']
+  StringMatcher
+[else if a.isMaybeComparableKey]
+  ComparableMatcher
+[else]
+  ObjectMatcher
+[/if]
+[/output.trim]
+[/template]
 
 [template atGenerated Type type]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']

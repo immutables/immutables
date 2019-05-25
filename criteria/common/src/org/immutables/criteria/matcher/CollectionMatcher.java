@@ -7,76 +7,67 @@ import org.immutables.criteria.expression.Operators;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class CollectionMatcher<R, S, C>  {
+public interface CollectionMatcher<R, S, C, V> {
 
-  private final CriteriaContext<R> context;
-  private final CriteriaCreator<S> inner;
-  private final CriteriaCreator<C> outer;
-
-  public CollectionMatcher(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
-    this.context = Objects.requireNonNull(context, "context");
-    this.inner = Objects.requireNonNull(inner, "inner");
-    this.outer = Objects.requireNonNull(outer, "outer");
-  }
-
-  public S all() {
+  default S all() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, e);
-    return inner.create((CriteriaContext<S>) context.create(expr));
+    return Matchers.extract(this).<R, S, C>factory3().create2(expr);
   }
 
-  public R all(UnaryOperator<C> consumer) {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, toExpressionOperator(consumer).apply(e));
-    return context.create(expr);
+  default R all(UnaryOperator<C> consumer) {
+    final CriteriaCreator.TriFactory<R, S, C> factory3 = Matchers.extract(this).<R, S, C>factory3();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL,
+            Matchers.toExpressionOperator(factory3::create3, consumer).apply(e));
+    return factory3.create1(expr);
   }
 
-  public S none() {
+  default S none() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE, e);
-    return inner.create((CriteriaContext<S>) context.create(expr));
+    return Matchers.extract(this).<R, S, C>factory3().create2(expr);
   }
 
-  public R none(UnaryOperator<C> consumer) {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE, toExpressionOperator(consumer).apply(e));
-    return context.create(expr);
+  default R none(UnaryOperator<C> consumer) {
+    final CriteriaCreator.TriFactory<R, S, C> factory3 = Matchers.extract(this).<R, S, C>factory3();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE,
+            Matchers.toExpressionOperator(factory3::create3, consumer).apply(e));
+    return factory3.create1(expr);
   }
 
-  public S any() {
+  default S any() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, e);
-    return inner.create((CriteriaContext<S>) context.create(expr));
+    return Matchers.extract(this).<R, S, C>factory3().create2(expr);
   }
 
-  public R any(UnaryOperator<C> consumer) {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, toExpressionOperator(consumer).apply(e));
-    return context.create(expr);
+  default R any(UnaryOperator<C> consumer) {
+    final CriteriaCreator.TriFactory<R, S, C> factory3 = Matchers.extract(this).<R, S, C>factory3();
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY,
+            Matchers.toExpressionOperator(factory3::create3, consumer).apply(e));
+    return factory3.create1(expr);
   }
 
-  public S at(int index) {
+  default S at(int index) {
     throw new UnsupportedOperationException();
   }
 
-  public R isEmpty() {
-    return context.create(e -> Expressions.call(Operators.EMPTY, e));
+  default R contains(V value) {
+    return Matchers.extract(this).<R, S, C>factory3().create1(e -> Expressions.call(Operators.CONTAINS, e));
   }
 
-  public R isNotEmpty() {
-    return context.create(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
+  default R isEmpty() {
+    return Matchers.extract(this).<R, S, C>factory3().create1(e -> Expressions.call(Operators.EMPTY, e));
   }
 
-  public R hasSize(int size) {
-    return context.create(e -> Expressions.call(Operators.SIZE, e, Expressions.constant(size)));
+  default R isNotEmpty() {
+    return Matchers.extract(this).<R, S, C>factory3().create1(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
   }
 
-  private UnaryOperator<Expression> toExpressionOperator(UnaryOperator<C> operator) {
-    return expression -> {
-      final C initial = context.withCreator(outer).create();
-      final C changed = operator.apply(initial);
-      return Matchers.extract(changed);
-    };
+  default R hasSize(int size) {
+    UnaryOperator<Expression> expr = e -> Expressions.call(Operators.SIZE, e, Expressions.constant(size));
+    return Matchers.extract(this).<R, S, C>factory3().create1(expr);
+
   }
 
-  public static class Self extends CollectionMatcher<Self, Self, Self> {
-    public Self(CriteriaContext<Self> context) {
-      super(context, Self::new, Self::new);
-    }
-  }
+
+  interface Self<V> extends CollectionMatcher<Self, Self, Self, V> {}
 
 }
