@@ -1,5 +1,12 @@
 package org.immutables.criteria.constraints;
 
+import org.immutables.criteria.expression.DnfExpression;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.expression.Operator;
+import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.Path;
+
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 

@@ -1,8 +1,8 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.expression;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.immutables.criteria.constraints.CriteriaContext;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -58,7 +58,7 @@ public final class Expressions {
    * Hacky (and temporary) reflection until we define proper sub-classes for criterias
    * (to hide Expressional implementation).
    */
-  static Expression extract(Object object) {
+  public static Expression extract(Object object) {
     Objects.requireNonNull(object, "object");
     try {
       Class<?> current = object.getClass();

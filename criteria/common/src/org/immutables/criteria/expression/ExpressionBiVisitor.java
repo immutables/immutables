@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.expression;
 
 import javax.annotation.Nullable;
 

@@ -1,13 +1,13 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.google.common.base.Preconditions;
-import org.immutables.criteria.constraints.Call;
-import org.immutables.criteria.constraints.Constant;
-import org.immutables.criteria.constraints.Expression;
-import org.immutables.criteria.constraints.ExpressionVisitor;
-import org.immutables.criteria.constraints.Operator;
-import org.immutables.criteria.constraints.Operators;
-import org.immutables.criteria.constraints.Path;
+import org.immutables.criteria.expression.Call;
+import org.immutables.criteria.expression.Constant;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ExpressionVisitor;
+import org.immutables.criteria.expression.Operator;
+import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.Path;
 
 import java.util.List;
 

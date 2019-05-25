@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.expression;
 
 import java.io.PrintWriter;
 import java.util.Collections;

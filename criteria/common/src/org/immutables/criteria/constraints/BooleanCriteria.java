@@ -16,6 +16,9 @@
 package org.immutables.criteria.constraints;
 
 
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operators;
+
 /**
  * Very simple criteria for booleans just has {@code true} / {@code false} checks.
  */

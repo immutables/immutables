@@ -2,8 +2,8 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.immutables.criteria.constraints.Expression;
-import org.immutables.criteria.constraints.Expressions;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 
 import java.io.IOException;
 import java.io.StringWriter;
