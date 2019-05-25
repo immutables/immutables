@@ -2,7 +2,7 @@ package org.immutables.criteria.mongo;
 
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.constraints.Expression;
+import org.immutables.criteria.expression.Expression;
 
 /**
  * Util methods for mongo adapter.

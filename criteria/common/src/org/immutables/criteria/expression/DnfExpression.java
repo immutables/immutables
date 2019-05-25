@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.expression;
 
 import com.google.common.collect.ImmutableList;
 
@@ -14,7 +14,7 @@ import java.util.Objects;
  *
  *  <p>Example: {@code (A and B or C and D or E)}
  */
-class DnfExpression implements Expressional<DnfExpression>, Expression {
+public class DnfExpression implements Expressional<DnfExpression>, Expression {
 
   private final List<Expression> conjunctions;
   private final List<Expression> disjunctions;
@@ -24,7 +24,7 @@ class DnfExpression implements Expressional<DnfExpression>, Expression {
     this.disjunctions = ImmutableList.copyOf(disjunctions);
   }
 
-  static DnfExpression create() {
+  public static DnfExpression create() {
     return new DnfExpression(Collections.emptyList(), Collections.emptyList());
   }
 
@@ -48,13 +48,13 @@ class DnfExpression implements Expressional<DnfExpression>, Expression {
     return Expressions.or(expressions);
   }
 
-  DnfExpression and(Expression expression) {
+  public DnfExpression and(Expression expression) {
     Objects.requireNonNull(expression, "expression");
     ImmutableList<Expression> newConjunctions = ImmutableList.<Expression>builder().addAll(conjunctions).add(expression).build();
     return new DnfExpression(newConjunctions, disjunctions);
   }
 
-  DnfExpression or(Expression expression) {
+  public DnfExpression or(Expression expression) {
     Objects.requireNonNull(expression, "expression");
     List<Expression> newDisjunction = ImmutableList.<Expression>builder().addAll(disjunctions).add(Expressions.and(conjunctions)).build();
     return new DnfExpression(ImmutableList.of(expression), newDisjunction);

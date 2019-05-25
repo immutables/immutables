@@ -16,6 +16,9 @@
 package org.immutables.criteria.constraints;
 
 
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operators;
+
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */

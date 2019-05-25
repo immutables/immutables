@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.expression;
 
 /**
  * Visitor pattern for traversing a tree of expressions.

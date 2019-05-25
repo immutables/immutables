@@ -4,7 +4,7 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.Success;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Repository;
-import org.immutables.criteria.constraints.Expressional;
+import org.immutables.criteria.expression.Expressional;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;

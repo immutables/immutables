@@ -10,7 +10,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Repository;
-import org.immutables.criteria.constraints.Expressional;
+import org.immutables.criteria.expression.Expressional;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;

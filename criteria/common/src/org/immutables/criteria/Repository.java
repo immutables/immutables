@@ -1,6 +1,6 @@
 package org.immutables.criteria;
 
-import org.immutables.criteria.constraints.Expressional;
+import org.immutables.criteria.expression.Expressional;
 import org.reactivestreams.Publisher;
 
 /**

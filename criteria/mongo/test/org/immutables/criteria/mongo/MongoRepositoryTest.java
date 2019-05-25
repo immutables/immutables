@@ -8,7 +8,7 @@ import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
 import org.immutables.criteria.Person;
 import org.immutables.criteria.PersonCriteria;
-import org.immutables.criteria.constraints.Expressional;
+import org.immutables.criteria.expression.Expressional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

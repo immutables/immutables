@@ -19,6 +19,9 @@ package org.immutables.criteria.constraints;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operators;
 
 import java.util.ArrayList;
 import java.util.Arrays;

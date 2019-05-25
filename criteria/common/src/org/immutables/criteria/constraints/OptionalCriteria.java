@@ -16,6 +16,10 @@
 
 package org.immutables.criteria.constraints;
 
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operators;
+
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
