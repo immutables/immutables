@@ -20,47 +20,32 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
-import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
  * Matcher for optional attributes
  */
-public class OptionalMatcher<R, S, C>  {
+public interface OptionalMatcher<R, S, C>  {
 
-  final CriteriaContext<R> context;
-
-  private final CriteriaCreator<S> inner;
-
-  private final CriteriaCreator<C> outer;
-
-  public OptionalMatcher(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
-   this.context = Objects.requireNonNull(context, "context");
-   this.inner = Objects.requireNonNull(inner, "inner");
-   this.outer = Objects.requireNonNull(outer, "outer");
+  default R isPresent() {
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);
+    return Matchers.extract(this).<R, S, C>factory3().create1(expr);
   }
 
-  public R isPresent() {
-    return context.create(e -> Expressions.call(Operators.IS_PRESENT, e));
+  default R isAbsent() {
+    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_ABSENT, e);
+    return Matchers.extract(this).<R, S, C>factory3().create1(expr);
   }
 
-  public R isAbsent() {
-    return context.create(e -> Expressions.call(Operators.IS_ABSENT, e));
+  default S value() {
+    return Matchers.extract(this).<R, S, C>factory3().create2();
   }
 
-  public S value() {
-    return inner.create((CriteriaContext<S>) context);
-  }
-
-  public R value(UnaryOperator<C> consumer) {
-    // convert UnaryOperator<C> into UnaryOperator<Expression>
-    final UnaryOperator<Expression> fn = expression -> {
-      final C initial = context.withCreator(outer).create();
-      final C changed = consumer.apply(initial);
-      return Matchers.extract(changed);
-    };
-
-    return context.create(fn);
+  default R value(UnaryOperator<C> consumer) {
+    final CriteriaContext context = Matchers.extract(this);
+    final CriteriaCreator.TriFactory<R, S, C> factory3 = context.<R, S, C>factory3();
+    final UnaryOperator<Expression> expr = e -> Matchers.toExpressionOperator3(context, consumer).apply(e);
+    return factory3.create1(expr);
   }
 
 }

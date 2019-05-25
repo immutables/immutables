@@ -15,7 +15,6 @@ public class TypeHolderTest {
     // primitives
     TypeHolderCriteria.create()
             .booleanPrimitive.isTrue()
-            .booleanPrimitive.isEqualTo(false)
             .booleanPrimitive.isFalse()
             .intPrimitive.isEqualTo(0)
             .intPrimitive.isGreaterThan(22)

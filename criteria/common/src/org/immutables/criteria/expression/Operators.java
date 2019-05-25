@@ -13,6 +13,7 @@ public enum Operators implements Operator {
   ANY, // some elements match (at least one)
   EMPTY, // means collection is empty
   SIZE, // size of the collection
+  CONTAINS,
 
   // boolean ops
   AND,
