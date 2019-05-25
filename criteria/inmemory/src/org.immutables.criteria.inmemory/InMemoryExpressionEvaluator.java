@@ -124,17 +124,13 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         final boolean shortCircuit = op == Operators.OR;
         boolean prev = !shortCircuit;
         for (Expression exp:args) {
-          if (prev == shortCircuit) {
-            // continue evaluation ?
-            return shortCircuit;
-          }
-
           final Object result = exp.accept(this);
           if (result == null || result == UNKNOWN) {
             return UNKNOWN;
-          } else if (Objects.equals(shortCircuit, result)) {
+          } else if (prev == shortCircuit || Objects.equals(shortCircuit, result)) {
             return shortCircuit;
           } else {
+            // continue evaluating
             prev = (Boolean) result;
           }
         }
