@@ -13,18 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
 /**
- * Very simple criteria for booleans just has {@code true} / {@code false} checks.
+ * Very simple matcher for booleans just has {@code true} / {@code false} checks.
  */
-public class BooleanCriteria<R> extends ObjectCriteria<R, Boolean> {
+public class BooleanMatcher<R> extends ObjectMatcher<R, Boolean> {
 
-  public BooleanCriteria(CriteriaContext<R> context) {
+  public BooleanMatcher(CriteriaContext<R> context) {
     super(context);
   }
 
@@ -36,8 +36,8 @@ public class BooleanCriteria<R> extends ObjectCriteria<R, Boolean> {
     return create(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
-  public static class Self extends BooleanCriteria<Self> {
-    public Self(CriteriaContext<BooleanCriteria.Self> context) {
+  public static class Self extends BooleanMatcher<Self> {
+    public Self(CriteriaContext<BooleanMatcher.Self> context) {
       super(context);
     }
   }

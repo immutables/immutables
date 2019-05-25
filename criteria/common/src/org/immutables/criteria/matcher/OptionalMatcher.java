@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
@@ -24,9 +24,9 @@ import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
- * Criteria for optional attributes.
+ * Matcher for optional attributes
  */
-public class OptionalCriteria<R, S, C>  {
+public class OptionalMatcher<R, S, C>  {
 
   final CriteriaContext<R> context;
 
@@ -34,7 +34,7 @@ public class OptionalCriteria<R, S, C>  {
 
   private final CriteriaCreator<C> outer;
 
-  public OptionalCriteria(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
+  public OptionalMatcher(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
    this.context = Objects.requireNonNull(context, "context");
    this.inner = Objects.requireNonNull(inner, "inner");
    this.outer = Objects.requireNonNull(outer, "outer");
@@ -57,7 +57,7 @@ public class OptionalCriteria<R, S, C>  {
     final UnaryOperator<Expression> fn = expression -> {
       final C initial = context.withCreator(outer).create();
       final C changed = consumer.apply(initial);
-      return Expressions.extract(changed);
+      return Matchers.extract(changed);
     };
 
     return context.create(fn);

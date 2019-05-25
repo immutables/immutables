@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.DnfExpression;
 import org.immutables.criteria.expression.Expression;

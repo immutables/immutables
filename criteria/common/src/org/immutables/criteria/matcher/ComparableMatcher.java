@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 
 import org.immutables.criteria.expression.Expressions;
@@ -22,10 +22,10 @@ import org.immutables.criteria.expression.Operators;
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */
-public class ComparableCriteria<R, V extends Comparable<V>>
-        extends ObjectCriteria<R, V> {
+public class ComparableMatcher<R, V extends Comparable<V>>
+        extends ObjectMatcher<R, V> {
 
-  public ComparableCriteria(CriteriaContext<R> context) {
+  public ComparableMatcher(CriteriaContext<R> context) {
     super(context);
   }
 
@@ -59,8 +59,8 @@ public class ComparableCriteria<R, V extends Comparable<V>>
     return create(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
-  public static class Self<V extends Comparable<V>> extends ComparableCriteria<Self<V>, V> {
-    public Self(CriteriaContext<ComparableCriteria.Self<V>> context) {
+  public static class Self<V extends Comparable<V>> extends ComparableMatcher<Self<V>, V> {
+    public Self(CriteriaContext<ComparableMatcher.Self<V>> context) {
       super(context);
     }
   }
