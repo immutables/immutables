@@ -6,9 +6,9 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
+import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Person;
 import org.immutables.criteria.PersonCriteria;
-import org.immutables.criteria.expression.Expressional;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class MongoRepositoryTest {
 
   }
 
-  private void execute(Expressional expr) {
+  private void execute(DocumentCriteria<Person> expr) {
 
     Flowable.fromPublisher(repository.query(expr))
             .test()

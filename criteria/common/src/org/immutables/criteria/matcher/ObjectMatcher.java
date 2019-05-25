@@ -18,7 +18,6 @@ package org.immutables.criteria.matcher;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
@@ -34,7 +33,7 @@ import java.util.function.UnaryOperator;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectMatcher<R, V> implements DocumentCriteria<R> {
+public class ObjectMatcher<R, V> {
 
   protected final CriteriaContext<R> context;
 
@@ -43,7 +42,7 @@ public class ObjectMatcher<R, V> implements DocumentCriteria<R> {
   }
 
   /**
-   * Use context to create new root DocumentCriteria
+   * Use context to create new root criteria
    */
   protected R create(UnaryOperator<Expression> fn) {
     return (R) context.create(fn);

@@ -9,6 +9,7 @@ import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Expressional;
 import org.reactivestreams.Publisher;
@@ -44,10 +45,10 @@ public class ElasticsearchRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Publisher<T> query(Expressional expressional) {
-    Objects.requireNonNull(expressional, "expressional");
+  public Publisher<T> query(DocumentCriteria<T> criteria) {
+    Objects.requireNonNull(criteria, "criteria");
     try {
-      return queryInternal(expressional);
+      return queryInternal((Expressional) criteria);
     } catch (Exception e) {
       return Publishers.error(e);
     }

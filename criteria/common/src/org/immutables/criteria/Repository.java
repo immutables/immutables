@@ -1,6 +1,5 @@
 package org.immutables.criteria;
 
-import org.immutables.criteria.expression.Expressional;
 import org.reactivestreams.Publisher;
 
 /**
@@ -9,6 +8,6 @@ import org.reactivestreams.Publisher;
  */
 public interface Repository<T> {
 
-    Publisher<T> query(Expressional expressional);
+    Publisher<T> query(DocumentCriteria<T> criteria);
 
 }

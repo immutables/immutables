@@ -1,6 +1,5 @@
 package org.immutables.criteria.matcher;
 
-import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
@@ -8,7 +7,7 @@ import org.immutables.criteria.expression.Operators;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class CollectionMatcher<R, S, C> implements DocumentCriteria<R> {
+public class CollectionMatcher<R, S, C>  {
 
   private final CriteriaContext<R> context;
   private final CriteriaCreator<S> inner;
