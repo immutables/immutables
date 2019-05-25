@@ -1,4 +1,4 @@
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.expression.Expression;
@@ -8,13 +8,13 @@ import org.immutables.criteria.expression.Operators;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
+public class CollectionMatcher<R, S, C> implements DocumentCriteria<R> {
 
   private final CriteriaContext<R> context;
   private final CriteriaCreator<S> inner;
   private final CriteriaCreator<C> outer;
 
-  public CollectionCriteria(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
+  public CollectionMatcher(CriteriaContext<R> context, CriteriaCreator<S> inner, CriteriaCreator<C> outer) {
     this.context = Objects.requireNonNull(context, "context");
     this.inner = Objects.requireNonNull(inner, "inner");
     this.outer = Objects.requireNonNull(outer, "outer");
@@ -70,11 +70,11 @@ public class CollectionCriteria<R, S, C> implements DocumentCriteria<R> {
     return expression -> {
       final C initial = context.withCreator(outer).create();
       final C changed = operator.apply(initial);
-      return Expressions.extract(changed);
+      return Matchers.extract(changed);
     };
   }
 
-  public static class Self extends CollectionCriteria<Self, Self, Self> {
+  public static class Self extends CollectionMatcher<Self, Self, Self> {
     public Self(CriteriaContext<Self> context) {
       super(context, Self::new, Self::new);
     }

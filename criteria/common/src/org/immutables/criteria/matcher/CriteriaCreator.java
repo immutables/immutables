@@ -13,7 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 /**
  * Creates document criteria from existing expression.

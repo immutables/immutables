@@ -35,15 +35,15 @@ package [type.package];
 [/if]
 
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.constraints.CriteriaContext;
-import org.immutables.criteria.constraints.CriteriaCreator;
-import org.immutables.criteria.constraints.CollectionCriteria;
-import org.immutables.criteria.constraints.Disjunction;
-import org.immutables.criteria.constraints.OptionalCriteria;
-import org.immutables.criteria.constraints.ObjectCriteria;
-import org.immutables.criteria.constraints.StringCriteria;
-import org.immutables.criteria.constraints.BooleanCriteria;
-import org.immutables.criteria.constraints.ComparableCriteria;
+import org.immutables.criteria.matcher.CriteriaContext;
+import org.immutables.criteria.matcher.CriteriaCreator;
+import org.immutables.criteria.matcher.CollectionMatcher;
+import org.immutables.criteria.matcher.Disjunction;
+import org.immutables.criteria.matcher.OptionalMatcher;
+import org.immutables.criteria.matcher.ObjectMatcher;
+import org.immutables.criteria.matcher.StringMatcher;
+import org.immutables.criteria.matcher.BooleanMatcher;
+import org.immutables.criteria.matcher.ComparableMatcher;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressional;
 import org.immutables.criteria.expression.ExpressionVisitor;
@@ -128,29 +128,29 @@ import [starImport];
 
 [template criteriaType Attribute a Type type][output.trim]
 [if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-BooleanCriteria<R>
+BooleanMatcher<R>
 [else if a.stringType]
-StringCriteria<R>
+StringMatcher<R>
 [else if a.optionalType]
   [if a.hasSimpleScalarElementType]
-    OptionalCriteria<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
+    OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
-    OptionalCriteria<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+    OptionalMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [/if]
 [else if a.comparable]
-  ComparableCriteria<R, [a.wrappedElementType]>
+  ComparableMatcher<R, [a.wrappedElementType]>
 [else if a.collectionType]
   [if a.hasSimpleScalarElementType]
-      CollectionCriteria<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
+      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
-      CollectionCriteria<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+      CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
   [else]
      [output.error]Can't create criteria for collection [type.name].[a.name] [a.unwrappedElementType][/output.error]
   [/if]
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria<R>
 [else]
-  ObjectCriteria<R, [a.wrappedElementType]>
+  ObjectMatcher<R, [a.wrappedElementType]>
 [/if]
 [/output.trim][/template]
 
@@ -169,11 +169,11 @@ context.add(Expressions.path("[a.name]"))
 [-- Used to create criteria for T (eg. List<T>) when T is a scalar / comparable--]
 [template scalarElementCriteria Attribute a String elementName][output.trim]
 [if a.unwrappedElementType eq 'boolean']
-  [if elementName eq 'Self']BooleanCriteria.Self[else]BooleanCriteria<[elementName]>[/if]
+  [if elementName eq 'Self']BooleanMatcher.Self[else]BooleanMatcher<[elementName]>[/if]
 [else if a.unwrappedElementType eq 'java.lang.String']
-  [if elementName eq 'Self']StringCriteria.Self[else]StringCriteria<[elementName]>[/if]
+  [if elementName eq 'Self']StringMatcher.Self[else]StringMatcher<[elementName]>[/if]
 [else if a.isMaybeComparableKey]
-  [if elementName eq 'Self']ComparableCriteria.Self<[a.wrappedElementType]>[else]ComparableCriteria<[elementName], [a.wrappedElementType]>[/if]
+  [if elementName eq 'Self']ComparableMatcher.Self<[a.wrappedElementType]>[else]ComparableMatcher<[elementName], [a.wrappedElementType]>[/if]
 [else]
   [output.error]unexpected type [a.name] [a.unwrappedElementType]<[elementName]>, not a simple one[/output.error]
 [/if]

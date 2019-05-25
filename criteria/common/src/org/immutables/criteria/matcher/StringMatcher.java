@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
@@ -22,9 +22,9 @@ import org.immutables.criteria.expression.Operators;
 /**
  * String specific criterias like {@code isAbsent}, {@code contains} etc.
  */
-public class StringCriteria<R> extends ComparableCriteria<R, String> {
+public class StringMatcher<R> extends ComparableMatcher<R, String> {
 
-  public StringCriteria(CriteriaContext<R> context) {
+  public StringMatcher(CriteriaContext<R> context) {
     super(context);
   }
 
@@ -52,13 +52,13 @@ public class StringCriteria<R> extends ComparableCriteria<R, String> {
     throw new UnsupportedOperationException();
   }
 
-  public static class Self extends StringCriteria<Self> implements Disjunction<StringCriteria<Self>> {
-    public Self(CriteriaContext<StringCriteria.Self> context) {
+  public static class Self extends StringMatcher<Self> implements Disjunction<StringMatcher<Self>> {
+    public Self(CriteriaContext<StringMatcher.Self> context) {
       super(context);
     }
 
     @Override
-    public StringCriteria<StringCriteria.Self> or() {
+    public StringMatcher<StringMatcher.Self> or() {
       return context.or().create();
     }
   }

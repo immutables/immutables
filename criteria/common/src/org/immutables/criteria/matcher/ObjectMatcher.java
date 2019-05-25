@@ -14,7 +14,7 @@
    limitations under the License.
  */
 
-package org.immutables.criteria.constraints;
+package org.immutables.criteria.matcher;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -34,11 +34,11 @@ import java.util.function.UnaryOperator;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
+public class ObjectMatcher<R, V> implements DocumentCriteria<R> {
 
   protected final CriteriaContext<R> context;
 
-  public ObjectCriteria(CriteriaContext<R> context) {
+  public ObjectMatcher(CriteriaContext<R> context) {
     this.context = Preconditions.checkNotNull(context, "context");
   }
 
@@ -85,7 +85,7 @@ public class ObjectCriteria<R, V> implements DocumentCriteria<R> {
     return create(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  public static class Self<V> extends ObjectCriteria<Self<V>, V> {
+  public static class Self<V> extends ObjectMatcher<Self<V>, V> {
     public Self(CriteriaContext<Self<V>> context) {
       super(context);
     }
