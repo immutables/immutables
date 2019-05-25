@@ -14,7 +14,7 @@ import java.util.Objects;
  *
  *  <p>Example: {@code (A and B or C and D or E)}
  */
-public class DnfExpression implements Expressional<DnfExpression>, Expression {
+public class DnfExpression implements Expressional, Expression {
 
   private final List<Expression> conjunctions;
   private final List<Expression> disjunctions;

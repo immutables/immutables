@@ -14,7 +14,7 @@ import java.util.function.UnaryOperator;
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
  * (internally known as {@link Expression}).
  */
-public final class CriteriaContext<R> implements Expressional<R> {
+public final class CriteriaContext<R> implements Expressional {
 
   private final CriteriaCreator<R> creator;
   private final DnfExpression expression;

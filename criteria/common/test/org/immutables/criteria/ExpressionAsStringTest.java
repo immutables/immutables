@@ -29,7 +29,7 @@ public class ExpressionAsStringTest {
                     "  call op=EQUAL path=firstName constant=Marry");
   }
 
-  private static void assertExpressional(Expressional<?> expressional, String expected) {
+  private static void assertExpressional(Expressional expressional, String expected) {
     final StringWriter out = new StringWriter();
     expressional.expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
     Assert.assertEquals(out.toString().trim(), expected);

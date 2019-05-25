@@ -9,6 +9,6 @@ import org.reactivestreams.Publisher;
  */
 public interface Repository<T> {
 
-    Publisher<T> query(Expressional<T> expressional);
+    Publisher<T> query(Expressional expressional);
 
 }

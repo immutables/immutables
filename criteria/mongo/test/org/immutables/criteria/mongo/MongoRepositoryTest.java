@@ -53,7 +53,7 @@ public class MongoRepositoryTest {
 
   }
 
-  private void execute(Expressional<Person> expr) {
+  private void execute(Expressional expr) {
 
     Flowable.fromPublisher(repository.query(expr))
             .test()

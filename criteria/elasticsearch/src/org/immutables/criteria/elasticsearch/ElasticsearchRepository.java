@@ -44,7 +44,7 @@ public class ElasticsearchRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Publisher<T> query(Expressional<T> expressional) {
+  public Publisher<T> query(Expressional expressional) {
     Objects.requireNonNull(expressional, "expressional");
     try {
       return queryInternal(expressional);
@@ -53,7 +53,7 @@ public class ElasticsearchRepository<T> implements Repository<T> {
     }
   }
 
-  private Publisher<T> queryInternal(Expressional<T> expressional) throws Exception {
+  private Publisher<T> queryInternal(Expressional expressional) throws Exception {
     final Request request = new Request("POST", String.format("/%s/_search", index));
     final String json = Elasticsearch.toQuery(mapper, expressional.expression());
     request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));

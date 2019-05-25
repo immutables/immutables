@@ -24,7 +24,7 @@ class MongoRepository<T> implements Repository<T> {
 
 
   @Override
-  public Publisher<T> query(Expressional<T> expressional) {
+  public Publisher<T> query(Expressional expressional) {
     final Bson filter = Mongos.toBson(collection.getCodecRegistry(), expressional.expression());
     return collection.find(filter);
   }
