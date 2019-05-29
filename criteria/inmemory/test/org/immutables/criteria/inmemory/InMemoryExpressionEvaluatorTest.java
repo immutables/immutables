@@ -1,5 +1,6 @@
 package org.immutables.criteria.inmemory;
 
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.ImmutableFriend;
 import org.immutables.criteria.ImmutablePerson;
 import org.immutables.criteria.Person;
@@ -89,7 +90,7 @@ public class InMemoryExpressionEvaluatorTest {
   }
 
   private static boolean evaluate(PersonCriteria criteria, Person person) {
-    return InMemoryExpressionEvaluator.of(criteria.expression()).test(person);
+    return InMemoryExpressionEvaluator.of(Criterias.toExpressional(criteria).expression()).test(person);
   }
 
 }

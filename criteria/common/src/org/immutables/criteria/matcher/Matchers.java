@@ -9,8 +9,9 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-public class Matchers {
+public final class Matchers {
 
+  private Matchers() {}
 
   interface HasContext {
     CriteriaContext context();
