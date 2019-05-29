@@ -77,7 +77,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]>, Expressional {
+[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]> {
 
    final CriteriaContext context;
 
@@ -87,24 +87,37 @@ import [starImport];
 
 
    /** TODO this should be top-level class */
-   public static final class Self extends [type.name]Criteria<Self> implements Disjunction<[type.name]Criteria<Self>> {
-
-    private Self() {
-      this(new CriteriaContext(creator()));
-    }
+   public static class Self extends [type.name]Criteria<Self> implements Disjunction<[type.name]Criteria<Self>> {
 
     private Self(CriteriaContext context) {
       super(context);
-    }
-
-    private static CriteriaCreator<Self> creator() {
-      return (CriteriaContext ctx) ->  new Self(ctx);
     }
 
     @Override
     public [type.name]Criteria<Self> or() {
       return context.or().<Self>factory1().create1();
     }
+
+   }
+
+   /** Similar to {@link Self} but exposes {@link Expressional} interface */
+   private final static class ExpressionalSelf extends Self implements Expressional {
+      private ExpressionalSelf() {
+         this(new CriteriaContext(creator()));
+      }
+
+      private ExpressionalSelf(CriteriaContext context) {
+       super(context);
+      }
+
+      private static CriteriaCreator<Self> creator() {
+        return (CriteriaContext ctx) ->  new Self(ctx);
+      }
+
+      @Override
+      public Expression expression() {
+        return this.context.expression();
+      }
    }
 
    public [type.name]Criteria(CriteriaContext context) {
@@ -115,12 +128,7 @@ import [starImport];
    }
 
    public static [type.name]Criteria<Self> create() {
-     return new Self();
-   }
-
-   @Override
-   public Expression expression() {
-     return this.context.expression();
+     return new ExpressionalSelf();
    }
 
 }
@@ -176,17 +184,17 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [if a.optionalType or a.collectionType]
   [if a.hasSimpleScalarElementType]
     context.withPath("[a.name]")
-           .withCreators(ctx -> new [type.name]Criteria.Self(ctx),
+           .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                            ctx -> Matchers.create([scalarMatcherType a].class, ctx),
                           ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
   [else if a.hasCriteria]
     context.withPath("[a.name]")
-           .withCreators(ctx -> new [type.name]Criteria.Self(ctx),
+           .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                          ctx -> new [a.unwrappedElementType]Criteria<R>((CriteriaContext) ctx),
                          ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create())
   [/if]
 [else]
-context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.Self(ctx))
+context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
 [/if]
 [/output.trim][/template]
 
@@ -213,8 +221,7 @@ context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.Self(ct
 [else]
   ObjectMatcher
 [/if]
-[/output.trim]
-[/template]
+[/output.trim][/template]
 
 [template atGenerated Type type]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']
