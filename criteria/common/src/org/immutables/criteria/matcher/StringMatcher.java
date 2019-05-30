@@ -22,7 +22,7 @@ import org.immutables.criteria.expression.Operators;
 /**
  * String specific criterias like {@code startsWith}, {@code contains} etc.
  */
-public interface StringMatcher<R> extends ComparableMatcher<R, String> {
+public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatcher<R, StringMatcher<StringMatcher.Self>> {
 
   default R isEmpty() {
     return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));

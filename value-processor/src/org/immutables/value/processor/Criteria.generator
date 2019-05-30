@@ -44,6 +44,7 @@ import org.immutables.criteria.matcher.OptionalMatcher;
 import org.immutables.criteria.matcher.ObjectMatcher;
 import org.immutables.criteria.matcher.StringMatcher;
 import org.immutables.criteria.matcher.BooleanMatcher;
+import org.immutables.criteria.matcher.NotMatcher;
 import org.immutables.criteria.matcher.ComparableMatcher;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressional;
@@ -77,7 +78,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]>, NotMatcher<R, [type.name]Criteria.Self> {
 
    final CriteriaContext context;
 
