@@ -3,6 +3,8 @@ package org.immutables.criteria;
 
 import org.immutables.value.Value;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -75,5 +77,13 @@ interface TypeHolder {
   Optional<java.util.Date> optUtilDate();
   List<java.util.Date> utilDates();
 
+  // BigInteger and BigDecimal
+  BigInteger bigInteger();
+  Optional<BigInteger> optBigInteger();
+  List<BigInteger> bigIntegers();
+
+  BigDecimal bigDecimal();
+  Optional<BigDecimal> optBigDecimal();
+  List<BigDecimal> bigDecimals();
 
 }
