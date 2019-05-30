@@ -22,7 +22,7 @@ import org.immutables.criteria.expression.Operators;
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */
-public interface ComparableMatcher<R, V extends Comparable<V>> extends ObjectMatcher<R, V> {
+public interface ComparableMatcher<R, V extends Comparable<? super V>> extends ObjectMatcher<R, V> {
 
   /**
    * Checks that attribute is less than (but not equal to) {@code upper}.
@@ -54,6 +54,6 @@ public interface ComparableMatcher<R, V extends Comparable<V>> extends ObjectMat
     return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
-  interface Self<V extends Comparable<V>> extends ComparableMatcher<Self<V>, V> {}
+  interface Self<V extends Comparable<? super V>> extends ComparableMatcher<Self<V>, V> {}
 
 }
