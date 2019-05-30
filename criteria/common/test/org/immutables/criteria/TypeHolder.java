@@ -3,6 +3,7 @@ package org.immutables.criteria;
 
 import org.immutables.value.Value;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -63,5 +64,16 @@ interface TypeHolder {
   Foo foo();
   Optional<Foo> optFoo();
   List<Foo> foos();
+
+  // java.time.*
+  LocalDate localDate();
+  Optional<LocalDate> optLocalDate();
+  List<LocalDate> localDates();
+
+  // java.util.Date
+  java.util.Date utilDate();
+  Optional<java.util.Date> optUtilDate();
+  List<java.util.Date> utilDates();
+
 
 }

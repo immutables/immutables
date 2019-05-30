@@ -121,6 +121,7 @@ import [starImport];
       }
    }
 
+   @SuppressWarnings("unchecked")
    public [type.name]Criteria(CriteriaContext context) {
      this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
@@ -141,7 +142,7 @@ BooleanMatcher<R>
 [else if a.stringType]
 StringMatcher<R>
 [else if a.optionalType]
-  [if a.hasSimpleScalarElementType]
+  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
     OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
     OptionalMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
@@ -149,7 +150,7 @@ StringMatcher<R>
 [else if a.comparable]
   ComparableMatcher<R, [a.wrappedElementType]>
 [else if a.collectionType]
-  [if a.hasSimpleScalarElementType]
+  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
       CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
   [else if a.hasCriteria]
       CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
@@ -183,7 +184,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 
 [template constructorArgs Attribute a Type type][output.trim]
 [if a.optionalType or a.collectionType]
-  [if a.hasSimpleScalarElementType]
+  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
     context.withPath("[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                            ctx -> Matchers.create([scalarMatcherType a].class, ctx),
@@ -191,8 +192,10 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
   [else if a.hasCriteria]
     context.withPath("[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
-                         ctx -> new [a.unwrappedElementType]Criteria<R>((CriteriaContext) ctx),
+                         ctx -> new [a.unwrappedElementType]Criteria<R>(ctx),
                          ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create())
+  [else]
+    [output.error]Can't build constructor args for type [a.name] [a.unwrappedElementType][/output.error]
   [/if]
 [else]
 context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
@@ -208,7 +211,7 @@ context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.Express
 [else if a.isMaybeComparableKey]
   [if elementName eq 'Self']ComparableMatcher.Self<[a.wrappedElementType]>[else]ComparableMatcher<[elementName], [a.wrappedElementType]>[/if]
 [else]
-  [output.error]unexpected type [a.name] [a.unwrappedElementType]<[elementName]>, not a simple one[/output.error]
+  [if elementName eq 'Self']ObjectMatcher.Self<[a.wrappedElementType]>[else]ObjectMatcher<[elementName], [a.wrappedElementType]>[/if]
 [/if]
 [/output.trim][/template]
 

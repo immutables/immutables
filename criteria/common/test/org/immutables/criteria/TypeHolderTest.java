@@ -3,6 +3,10 @@ package org.immutables.criteria;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
 /**
  * Used only for compilation tests. Not executed at runtime.
  */
@@ -79,6 +83,27 @@ public class TypeHolderTest {
             .chars.isEmpty()
             .chars.any().isGreaterThan('A')
             .chars.none(c -> c.isIn('a', 'b', 'c').isLessThan('t'));
+  }
+
+  @Test
+  public void dates() {
+    TypeHolderCriteria.create()
+            .localDate.isAtMost(LocalDate.MIN)
+            .optLocalDate.value().isAtMost(LocalDate.MAX)
+            .optLocalDate.value(d -> d.isAtMost(LocalDate.MAX))
+            .localDates.contains(LocalDate.MAX)
+            .localDates.all(d -> d.isLessThan(LocalDate.MIN));
+  }
+
+  @Test
+  public void javaUtilDate() {
+
+    final Date date = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10));
+
+    TypeHolderCriteria.create()
+            .utilDate.isAtMost(date)
+            .optUtilDate.value().isAtMost(date)
+            .utilDates.all().isAtLeast(date);
   }
 
   @Test

@@ -3,6 +3,8 @@ package org.immutables.criteria;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.time.LocalDate;
+
 public class PersonTest {
 
   @Test
@@ -22,6 +24,7 @@ public class PersonTest {
             .friends.all(f -> f.nickName.isEmpty().or().nickName.hasSize(2))
             .friends.any(f -> f.nickName.isEmpty().or().nickName.hasSize(2))
             .not(p -> p.friends.hasSize(2))
+            .dateOfBirth.value().isAtMost(LocalDate.MAX)
             .aliases.contains("test")
             .friends.none(f -> f.nickName.hasSize(3).nickName.startsWith("a"));
   }

@@ -2,6 +2,7 @@ package org.immutables.criteria;
 
 import org.immutables.value.Value;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ public interface Person {
 
   Optional<String> lastName();
 
+  Optional<LocalDate> dateOfBirth();
 
   boolean isMarried();
 
