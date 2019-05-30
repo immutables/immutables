@@ -3,6 +3,8 @@ package org.immutables.criteria;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -104,6 +106,28 @@ public class TypeHolderTest {
             .utilDate.isAtMost(date)
             .optUtilDate.value().isAtMost(date)
             .utilDates.all().isAtLeast(date);
+  }
+
+  /**
+   * Test for BigInteger and BigDecimal
+   */
+  @Test
+  public void bigIntegerAndDecimal() {
+    TypeHolderCriteria.create()
+            .bigDecimal.isAtLeast(BigDecimal.ONE)
+            .optBigDecimal.value().isAtLeast(BigDecimal.ONE)
+            .optBigDecimal.value(b -> b.isGreaterThan(BigDecimal.TEN))
+            .bigDecimals.contains(BigDecimal.TEN)
+            .bigDecimals.isNotEmpty()
+            .bigDecimals.any().isAtLeast(BigDecimal.ONE);
+
+    TypeHolderCriteria.create()
+            .bigInteger.isAtLeast(BigInteger.ONE)
+            .optBigInteger.value().isAtLeast(BigInteger.ONE)
+            .optBigInteger.value(b -> b.isGreaterThan(BigInteger.TEN))
+            .bigIntegers.contains(BigInteger.TEN)
+            .bigIntegers.isNotEmpty()
+            .bigIntegers.any().isAtLeast(BigInteger.ONE);
   }
 
   @Test
