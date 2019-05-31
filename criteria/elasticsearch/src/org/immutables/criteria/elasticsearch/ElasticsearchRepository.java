@@ -66,11 +66,12 @@ public class ElasticsearchRepository<T> implements Repository<T> {
     return response -> {
       try (InputStream is = response.getEntity().getContent()) {
         final ObjectNode root = mapper.readValue(is, ObjectNode.class);
-        if (root.path("hits").path("hits").isMissingNode()) {
+        final JsonNode hits = root.path("hits").path("hits");
+        if (hits.isMissingNode()) {
           return Collections.emptyList();
         }
 
-        final ArrayNode array = (ArrayNode) root.get("hits").get("hits");
+        final ArrayNode array = (ArrayNode) hits;
         final List<T> result = new ArrayList<>();
         for (JsonNode node: array) {
           result.add(mapper.treeToValue(node.get("_source"), type));

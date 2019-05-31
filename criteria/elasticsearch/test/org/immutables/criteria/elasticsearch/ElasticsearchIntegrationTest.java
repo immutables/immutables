@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Start embedded ES instance. Insert document(s) then query it.
  */
-public class IntegrationTest {
+public class ElasticsearchIntegrationTest {
 
   @ClassRule
   public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
@@ -73,10 +73,16 @@ public class IntegrationTest {
     assertCount(crit, 2);
     assertCount(crit.intNumber.isEqualTo(1), 0);
     assertCount(crit.string.isEqualTo("foo"), 1);
+    assertCount(crit.string.isIn("foo", "bar"), 2);
+    assertCount(crit.string.isNotIn("foo", "bar"), 0);
+    assertCount(crit.string.isIn("foo", "foo2"), 1);
+    assertCount(crit.string.isIn("not", "not"), 0);
     assertCount(crit.string.isEqualTo("bar"), 1);
     assertCount(crit.string.isEqualTo("hello"), 0);
     assertCount(crit.optionalString.value().isEqualTo("optFoo"), 1);
     assertCount(crit.optionalString.value().isEqualTo("missing"), 0);
+    assertCount(crit.intNumber.isAtMost(42).string.isEqualTo("foo"), 1);
+    assertCount(crit.intNumber.isAtMost(11), 0);
 
   }
 
