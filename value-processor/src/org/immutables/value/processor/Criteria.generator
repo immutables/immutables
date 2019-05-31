@@ -146,16 +146,16 @@ StringMatcher<R>
     OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [else if a.hasCriteria]
     OptionalMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
+  [else]
+    OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
   [/if]
 [else if a.comparable]
   ComparableMatcher<R, [a.wrappedElementType]>
 [else if a.collectionType]
-  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
-  [else if a.hasCriteria]
+  [if a.hasCriteria]
       CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
   [else]
-     [output.error]Can't create criteria for collection [type.name].[a.name] [a.unwrappedElementType][/output.error]
+      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
   [/if]
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria<R>

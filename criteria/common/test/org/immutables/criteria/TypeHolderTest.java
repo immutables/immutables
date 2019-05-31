@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -139,6 +140,13 @@ public class TypeHolderTest {
               .optFoo.isPresent()
               .optFoo.value().isEqualTo(TypeHolder.Foo.ONE)
               .optFoo.value(e -> e.isIn(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO));
+  }
 
+  @Test
+  public void timeZones() {
+    TypeHolderCriteria.create()
+            .timeZone.isEqualTo(TimeZone.getDefault())
+            .optTimeZone.value().isEqualTo(TimeZone.getDefault())
+            .timeZones.contains(TimeZone.getDefault());
   }
 }

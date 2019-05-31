@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
+import java.util.TimeZone;
 
 @Value.Immutable
 @Criteria
@@ -85,5 +86,10 @@ interface TypeHolder {
   BigDecimal bigDecimal();
   Optional<BigDecimal> optBigDecimal();
   List<BigDecimal> bigDecimals();
+
+  // TimeZone
+  TimeZone timeZone();
+  Optional<TimeZone> optTimeZone();
+  List<TimeZone> timeZones();
 
 }
