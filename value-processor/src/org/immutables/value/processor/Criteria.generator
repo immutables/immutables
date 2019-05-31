@@ -183,22 +183,19 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [/output.trim][/template]
 
 [template constructorArgs Attribute a Type type][output.trim]
-[if a.optionalType or a.collectionType]
-  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-    context.withPath("[a.name]")
-           .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
-                           ctx -> Matchers.create([scalarMatcherType a].class, ctx),
-                          ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
-  [else if a.hasCriteria]
-    context.withPath("[a.name]")
+[if a.hasCriteria]
+  context.withPath("[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                          ctx -> new [a.unwrappedElementType]Criteria<R>(ctx),
                          ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create())
-  [else]
-    [output.error]Can't build constructor args for type [a.name] [a.unwrappedElementType][/output.error]
-  [/if]
+
+[else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
+  context.withPath("[a.name]")
+           .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
+                           ctx -> Matchers.create([scalarMatcherType a].class, ctx),
+                          ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
 [else]
-context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
+  context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
 [/if]
 [/output.trim][/template]
 

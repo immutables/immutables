@@ -1,8 +1,8 @@
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
 
 import java.util.function.UnaryOperator;
 
@@ -18,10 +18,11 @@ import java.util.function.UnaryOperator;
 public interface NotMatcher<R, C> {
 
   default R not(UnaryOperator<C> operator) {
-    final CriteriaCreator.TriFactory<R, ?, C> factory3 = Matchers.extract(this).<R, Object, C>factory3();
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NOT,
-            Matchers.toExpressionOperator(factory3::create3, operator).apply(e));
+    final CriteriaContext context = Matchers.extract(this);
+    final CriteriaCreator.TriFactory<R, ?, C> factory3 = context.<R, Object, C>factory3();
+    final UnaryOperator<Expression> expr = e -> Expressions.not((Call) Matchers.toExpressionOperator3(context, operator).apply(e));
     return factory3.create1(expr);
+
   }
 
 }
