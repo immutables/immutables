@@ -37,12 +37,18 @@ public class ExpressionAsStringTest {
             "call op=NOT\n" +
                     "  call op=EQUAL path=firstName constant=John");
 
+    assertExpressional(crit.not(f -> f.firstName.isEqualTo("John").lastName.isPresent()),
+            "call op=NOT\n" +
+                    "  call op=AND\n" +
+                    "    call op=EQUAL path=firstName constant=John\n" +
+                    "    call op=IS_PRESENT path=lastName");
+
   }
 
   private static void assertExpressional(DocumentCriteria<?> crit, String expected) {
     final StringWriter out = new StringWriter();
     Criterias.toExpressional(crit).expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
-    Assert.assertEquals(out.toString().trim(), expected);
+    Assert.assertEquals(expected, out.toString().trim());
   }
 
 }
