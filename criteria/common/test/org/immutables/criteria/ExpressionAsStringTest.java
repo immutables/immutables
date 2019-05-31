@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * Tests that expression is built correctly by "serializing" it to string
@@ -23,8 +25,8 @@ public class ExpressionAsStringTest {
     assertExpressional(crit.firstName.isIn("n1", "n2"), "call op=IN path=firstName constant=[n1, n2]");
 
     assertExpressional(crit.firstName.isEqualTo("John").or().firstName.isEqualTo("Marry"),
-            "call op=OR\n" +
-                    "  call op=EQUAL path=firstName constant=John\n" +
+            "call op=OR",
+                    "  call op=EQUAL path=firstName constant=John",
                     "  call op=EQUAL path=firstName constant=Marry");
 
   }
@@ -34,20 +36,21 @@ public class ExpressionAsStringTest {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
 
     assertExpressional(crit.firstName.not(n -> n.isEqualTo("John")),
-            "call op=NOT\n" +
+            "call op=NOT",
                     "  call op=EQUAL path=firstName constant=John");
 
     assertExpressional(crit.not(f -> f.firstName.isEqualTo("John").lastName.isPresent()),
-            "call op=NOT\n" +
-                    "  call op=AND\n" +
-                    "    call op=EQUAL path=firstName constant=John\n" +
+            "call op=NOT",
+                    "  call op=AND",
+                    "    call op=EQUAL path=firstName constant=John",
                     "    call op=IS_PRESENT path=lastName");
 
   }
 
-  private static void assertExpressional(DocumentCriteria<?> crit, String expected) {
+  private static void assertExpressional(DocumentCriteria<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
     Criterias.toExpressional(crit).expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
+    final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
     Assert.assertEquals(expected, out.toString().trim());
   }
 
