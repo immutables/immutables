@@ -1,7 +1,6 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.expression.DebugExpressionVisitor;
-import org.immutables.criteria.expression.Expressional;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,6 +26,17 @@ public class ExpressionAsStringTest {
             "call op=OR\n" +
                     "  call op=EQUAL path=firstName constant=John\n" +
                     "  call op=EQUAL path=firstName constant=Marry");
+
+  }
+
+  @Test
+  public void not() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+
+    assertExpressional(crit.firstName.not(n -> n.isEqualTo("John")),
+            "call op=NOT\n" +
+                    "  call op=EQUAL path=firstName constant=John");
+
   }
 
   private static void assertExpressional(DocumentCriteria<?> crit, String expected) {
