@@ -108,12 +108,12 @@ public final class Expressions {
     final List<Expression> ops = ImmutableList.copyOf(operands);
     return new Call() {
       @Override
-      public List<Expression> getArguments() {
+      public List<Expression> arguments() {
         return ops;
       }
 
       @Override
-      public Operator getOperator() {
+      public Operator operator() {
         return operator;
       }
 
