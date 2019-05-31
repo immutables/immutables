@@ -10,12 +10,12 @@ public interface Call extends Expression {
   /**
    * Get arguments of this operation
    */
-  List<Expression> getArguments();
+  List<Expression> arguments();
 
   /**
    * Get the operator symbol for this operation
    *
    * @return operator
    */
-  Operator getOperator();
+  Operator operator();
 }

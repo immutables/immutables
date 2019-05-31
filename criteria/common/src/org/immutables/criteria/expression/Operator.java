@@ -6,4 +6,13 @@ package org.immutables.criteria.expression;
  */
 public interface Operator {
 
+  /**
+   * Name of the operator can be {@code =} or {@code <} etc.
+   */
+  String name();
+
+  /**
+   * Expected return type
+   */
+  Class<?> returnType();
 }

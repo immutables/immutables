@@ -21,8 +21,8 @@ public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
   public Void visit(Call call) {
     writer.println();
     writer.print(String.join("", Collections.nCopies(depth * 2, " ")));
-    writer.print("call op=" + call.getOperator());
-    for (Expression expr: call.getArguments()) {
+    writer.print("call op=" + call.operator().name());
+    for (Expression expr: call.arguments()) {
       depth++;
       expr.accept(this);
       depth--;

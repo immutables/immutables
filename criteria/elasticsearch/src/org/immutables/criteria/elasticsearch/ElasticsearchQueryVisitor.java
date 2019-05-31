@@ -16,8 +16,8 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
 
   @Override
   public QueryBuilders.QueryBuilder visit(Call call) {
-    final Operator op = call.getOperator();
-    final List<Expression> args = call.getArguments();
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());

@@ -36,8 +36,8 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
 
   @Override
   public BsonValue visit(Call call) {
-    final Operator op = call.getOperator();
-    final List<Expression> args = call.getArguments();
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
@@ -58,7 +58,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
     if (op == Operators.AND || op == Operators.OR) {
       final BsonDocument doc = new BsonDocument();
 
-      final BsonArray array = call.getArguments().stream()
+      final BsonArray array = call.arguments().stream()
               .map(a -> a.accept(this))
               .collect(Collectors.toCollection(BsonArray::new));
 
@@ -67,7 +67,7 @@ class MongoVisitor implements ExpressionVisitor<BsonValue> {
       return doc;
     }
 
-    throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.getOperator(), call));
+    throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
 
   @Override
