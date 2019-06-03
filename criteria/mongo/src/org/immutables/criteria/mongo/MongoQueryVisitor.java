@@ -26,11 +26,11 @@ import java.util.stream.Collectors;
 /**
  * Generates mongo query using visitor API.
  */
-class MongoVisitor implements ExpressionVisitor<BsonValue> {
+class MongoQueryVisitor implements ExpressionVisitor<BsonValue> {
 
   private final CodecRegistry registry;
 
-  MongoVisitor(CodecRegistry registry) {
+  MongoQueryVisitor(CodecRegistry registry) {
     this.registry = Objects.requireNonNull(registry, "registry");
   }
 
