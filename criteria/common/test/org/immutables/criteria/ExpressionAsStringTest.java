@@ -29,6 +29,9 @@ public class ExpressionAsStringTest {
                     "  call op=EQUAL path=firstName constant=John",
                     "  call op=EQUAL path=firstName constant=Marry");
 
+    assertExpressional(crit.bestFriend.nickName.isEqualTo("John"),
+                    "call op=EQUAL path=bestFriend.nickName constant=John");
+
   }
 
   @Test
