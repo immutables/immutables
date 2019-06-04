@@ -7,8 +7,8 @@ import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Person;
-import org.immutables.criteria.PersonCriteria;
+import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +47,8 @@ public class MongoRepositoryTest {
 
   @Test
   public void basic() {
-    execute(PersonCriteria.create().firstName.isEqualTo("aaa"));
-    execute(PersonCriteria.create().firstName.isEqualTo("aaa")
+    execute(PersonCriteria.create().fullName.isEqualTo("aaa"));
+    execute(PersonCriteria.create().fullName.isEqualTo("aaa")
             .age.isNotEqualTo(22));
 
   }
