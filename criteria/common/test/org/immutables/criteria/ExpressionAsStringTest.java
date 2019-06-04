@@ -1,5 +1,6 @@
 package org.immutables.criteria;
 
+import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,18 +19,18 @@ public class ExpressionAsStringTest {
   public void string() {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
 
-    assertExpressional(crit.lastName.isPresent(), "call op=IS_PRESENT path=lastName");
-    assertExpressional(crit.lastName.isAbsent(), "call op=IS_ABSENT path=lastName");
-    assertExpressional(crit.lastName.value().isEqualTo("aaa"), "call op=EQUAL path=lastName constant=aaa");
-    assertExpressional(crit.lastName.value(f -> f.isEqualTo("bbb")), "call op=EQUAL path=lastName constant=bbb");
-    assertExpressional(crit.firstName.isIn("n1", "n2"), "call op=IN path=firstName constant=[n1, n2]");
+    assertExpressional(crit.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
+    assertExpressional(crit.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
+    assertExpressional(crit.bestFriend.value().nickName.isEqualTo("aa"), "call op=EQUAL path=bestFriend.nickName constant=aa");
+//    assertExpressional(crit.bestFriend.value(f -> f.nickName.isEqualTo("bbb")), "call op=EQUAL path=bestFriend.nickName constant=bbb");
+    assertExpressional(crit.fullName.isIn("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
 
-    assertExpressional(crit.firstName.isEqualTo("John").or().firstName.isEqualTo("Marry"),
+    assertExpressional(crit.fullName.isEqualTo("John").or().fullName.isEqualTo("Marry"),
             "call op=OR",
-                    "  call op=EQUAL path=firstName constant=John",
-                    "  call op=EQUAL path=firstName constant=Marry");
+                    "  call op=EQUAL path=fullName constant=John",
+                    "  call op=EQUAL path=fullName constant=Marry");
 
-    assertExpressional(crit.bestFriend.nickName.isEqualTo("John"),
+    assertExpressional(crit.bestFriend.value().nickName.isEqualTo("John"),
                     "call op=EQUAL path=bestFriend.nickName constant=John");
 
   }
@@ -38,15 +39,15 @@ public class ExpressionAsStringTest {
   public void not() {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
 
-    assertExpressional(crit.firstName.not(n -> n.isEqualTo("John")),
+    assertExpressional(crit.fullName.not(n -> n.isEqualTo("John")),
             "call op=NOT",
-                    "  call op=EQUAL path=firstName constant=John");
+                    "  call op=EQUAL path=fullName constant=John");
 
-    assertExpressional(crit.not(f -> f.firstName.isEqualTo("John").lastName.isPresent()),
+    assertExpressional(crit.not(f -> f.fullName.isEqualTo("John").bestFriend.isPresent()),
             "call op=NOT",
                     "  call op=AND",
-                    "    call op=EQUAL path=firstName constant=John",
-                    "    call op=IS_PRESENT path=lastName");
+                    "    call op=EQUAL path=fullName constant=John",
+                    "    call op=IS_PRESENT path=bestFriend");
 
   }
 
