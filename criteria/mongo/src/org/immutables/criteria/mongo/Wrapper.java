@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.personmodel;
+package org.immutables.criteria.mongo;
 
-import java.time.LocalDate;
-import java.util.Objects;
-
-public final class PersonGenerator {
-
-  private PersonGenerator() {}
+/**
+ * Allows retrieving delegates to access non-standard methods which
+ * are usually not exposed by common interface.
+ *
+ * <p>This is an internal interface</p>
+ */
+public interface Wrapper<T> {
 
   /**
-   * Creates a simple person directly from fullName
+   * Returns delegate that is wrapped but this instance.
+   *
+   * @return wrapped object
    */
-  public static Person of(String fullName) {
-    Objects.requireNonNull(fullName, "fullName");
-    return ImmutablePerson.builder()
-            .fullName(fullName)
-            .id(Integer.toHexString(fullName.hashCode()))
-            .dateOfBirth(LocalDate.of(1997, 4, 15))
-            .isActive(true)
-            .age(22)
-            .build();
-  }
+   T unwrap();
 
 }
