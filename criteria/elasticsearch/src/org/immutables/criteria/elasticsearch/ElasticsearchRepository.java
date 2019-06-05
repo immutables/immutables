@@ -9,6 +9,7 @@ import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Expressional;
@@ -45,12 +46,26 @@ public class ElasticsearchRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Publisher<T> query(DocumentCriteria<T> criteria) {
+  public Repository.Finder<T> find(DocumentCriteria<T> criteria) {
     Objects.requireNonNull(criteria, "criteria");
-    try {
-      return queryInternal((Expressional) criteria);
-    } catch (Exception e) {
-      return Publishers.error(e);
+    return new Finder(criteria);
+  }
+
+  private class Finder implements Repository.Finder<T> {
+
+    private final DocumentCriteria<T> criteria;
+
+    private Finder(DocumentCriteria<T> criteria) {
+      this.criteria = criteria;
+    }
+
+    @Override
+    public Publisher<T> fetch() {
+      try {
+        return queryInternal(Criterias.toExpressional(criteria));
+      } catch (Exception e) {
+        return Publishers.error(e);
+      }
     }
   }
 

@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Start embedded ES instance. Insert document(s) then query it.
+ * Start embedded ES instance. Insert document(s) then find it.
  */
 public class ElasticsearchIntegrationTest {
 
@@ -87,7 +87,7 @@ public class ElasticsearchIntegrationTest {
   }
 
   private void assertCount(ElasticModelCriteria<?> crit, int count) {
-    Observable.fromPublisher(repository.query(crit))
+    Observable.fromPublisher(repository.find(crit).fetch())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValueCount(count);

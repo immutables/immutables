@@ -76,7 +76,7 @@ public class MongoRepositoryTest {
 
   private void execute(DocumentCriteria<Person> expr, int count) {
 
-    Flowable.fromPublisher(repository.query(expr))
+    Flowable.fromPublisher(repository.find(expr).fetch())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValueCount(count);
