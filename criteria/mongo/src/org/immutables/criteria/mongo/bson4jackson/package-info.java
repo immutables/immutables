@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.personmodel;
+/**
+ * <p>This package adds support for <a href="http://bsonspec.org/">BSON</a> to
+ * <a href="https://github.com/FasterXML/jackson">Jackson</a> library.
+ *
+ * <p>Jackson support is currently experimental and subject to change (or removal).
+ */
+package org.immutables.criteria.mongo.bson4jackson;
 
-import java.time.LocalDate;
-import java.util.Objects;
-
-public final class PersonGenerator {
-
-  private PersonGenerator() {}
-
-  /**
-   * Creates a simple person directly from fullName
-   */
-  public static Person of(String fullName) {
-    Objects.requireNonNull(fullName, "fullName");
-    return ImmutablePerson.builder()
-            .fullName(fullName)
-            .id(Integer.toHexString(fullName.hashCode()))
-            .dateOfBirth(LocalDate.of(1997, 4, 15))
-            .isActive(true)
-            .age(22)
-            .build();
-  }
-
-}
