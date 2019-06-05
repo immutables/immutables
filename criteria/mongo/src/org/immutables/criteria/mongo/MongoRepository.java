@@ -11,7 +11,7 @@ import org.reactivestreams.Publisher;
 import java.util.Objects;
 
 /**
- * Allows to query mongo documents using criteria API.
+ * Allows to query and modify mongo documents using criteria API.
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
@@ -23,15 +23,30 @@ class MongoRepository<T> implements Repository<T> {
     this.collection = Objects.requireNonNull(collection, "collection");
   }
 
-
   @Override
-  public Publisher<T> query(DocumentCriteria<T> criteria) {
-    final Bson filter = Mongos.toBson(collection.getCodecRegistry(), Criterias.toExpression(criteria));
-    return collection.find(filter);
+  public Finder<T> find(DocumentCriteria<T> criteria) {
+    return new Finder<>(collection, criteria);
   }
 
   public Publisher<Success> insert(T entity) {
     return collection.insertOne(entity);
+  }
+
+  public static class Finder<T> implements Repository.Finder<T> {
+
+    private final DocumentCriteria<T> criteria;
+    private final MongoCollection<T> collection;
+
+    private Finder(MongoCollection<T> collection, DocumentCriteria<T> criteria) {
+      this.criteria = Objects.requireNonNull(criteria, "criteria");
+      this.collection = Objects.requireNonNull(collection, "collection");
+    }
+
+    @Override
+    public Publisher<T> fetch() {
+      final Bson filter = Mongos.toBson(collection.getCodecRegistry(), Criterias.toExpression(criteria));
+      return collection.find(filter);
+    }
   }
 
 }

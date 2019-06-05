@@ -32,8 +32,22 @@ public class GeodeRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Publisher<T> query(DocumentCriteria<T> criteria) {
-    throw new UnsupportedOperationException();
+  public Finder<T> find(DocumentCriteria<T> criteria) {
+    return new Finder<>(criteria);
+  }
+
+  private static class Finder<T> implements Repository.Finder<T> {
+
+    private final DocumentCriteria<T> criteria;
+
+    private Finder(DocumentCriteria<T> criteria) {
+      this.criteria = criteria;
+    }
+
+    @Override
+    public Publisher<T> fetch() {
+      throw new UnsupportedOperationException();
+    }
   }
 
 }

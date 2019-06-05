@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Check that internal queries are correctly converted to ES search query (as JSON)
+ * Check that internal queries are correctly converted to ES search find (as JSON)
  */
 public class QueryBuildersTest {
 

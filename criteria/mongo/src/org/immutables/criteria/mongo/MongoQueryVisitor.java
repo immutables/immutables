@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Generates mongo query using visitor API.
+ * Generates mongo find using visitor API.
  */
 class MongoQueryVisitor implements ExpressionVisitor<BsonValue> {
 

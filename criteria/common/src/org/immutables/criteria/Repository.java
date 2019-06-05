@@ -8,6 +8,13 @@ import org.reactivestreams.Publisher;
  */
 public interface Repository<T> {
 
-    Publisher<T> query(DocumentCriteria<T> criteria);
+    Finder<T> find(DocumentCriteria<T> criteria);
+
+    /**
+     * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
+     */
+    interface Finder<T> {
+       Publisher<T> fetch();
+    }
 
 }
