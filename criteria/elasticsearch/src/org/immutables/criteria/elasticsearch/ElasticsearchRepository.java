@@ -13,6 +13,7 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.internal.Reactive;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;
@@ -64,7 +65,7 @@ public class ElasticsearchRepository<T> implements Repository<T> {
       try {
         return queryInternal(Criterias.toExpressional(criteria));
       } catch (Exception e) {
-        return Publishers.error(e);
+        return Reactive.error(e);
       }
     }
   }
@@ -74,7 +75,7 @@ public class ElasticsearchRepository<T> implements Repository<T> {
     final String json = Elasticsearch.toQuery(mapper, expressional.expression());
     request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
-    return Publishers.flatMapIterable(Publishers.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
+    return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
   }
 
   private Function<Response, List<T>> converter() {
