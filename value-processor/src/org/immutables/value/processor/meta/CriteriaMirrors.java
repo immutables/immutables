@@ -21,8 +21,15 @@ public final class CriteriaMirrors {
   private CriteriaMirrors() {}
 
   @Mirror.Annotation("org.immutables.criteria.Criteria")
-  public @interface Criteria {
+  public @interface Criteria {}
 
-  }
+  @Mirror.Annotation("org.immutables.criteria.Criteria.Repository")
+  // different name because of collision with @Mongo.Repository
+  public @interface CriteriaRepository {}
+
+  @Mirror.Annotation("org.immutables.criteria.Criteria.Id")
+  // different name because of collision with @Mongo.Id
+  public @interface CriteriaId {}
+
 
 }

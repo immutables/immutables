@@ -925,6 +925,11 @@ public class Proto {
     }
 
     @Value.Lazy
+    public Optional<CriteriaRepositoryMirror> criteriaRepository() {
+      return CriteriaRepositoryMirror.find(element());
+    }
+
+    @Value.Lazy
     public Optional<DeclaringType> enclosingOf() {
       Optional<DeclaringType> topLevel = enclosingTopLevel();
       if (topLevel.isPresent() && topLevel.get().isEnclosing()) {
@@ -1231,6 +1236,17 @@ public class Proto {
           ? declaringType().get().repository()
           : Optional.<RepositoryMirror>absent();
     }
+
+    @Value.Lazy
+    public Optional<CriteriaRepositoryMirror> criteriaRepository() {
+      if (!declaringType().isPresent()) {
+        return Optional.absent();
+      }
+      return kind().isIncluded() || kind().isDefinedValue()
+              ? declaringType().get().criteriaRepository()
+              : Optional.<CriteriaRepositoryMirror>absent();
+    }
+
 
     @Value.Lazy
     public Optional<TypeAdaptersMirror> gsonTypeAdapters() {
