@@ -437,11 +437,16 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public boolean isGenerateRepository() {
-    return constitution.protoclass().repository().isPresent();
+    return constitution.protoclass().repository().isPresent()
+            || constitution.protoclass().criteriaRepository().isPresent();
   }
 
   public MongoMirrors.Repository getRepository() {
     return constitution.protoclass().repository().get();
+  }
+
+  public CriteriaMirrors.CriteriaRepository getCriteriaRepository() {
+    return constitution.protoclass().criteriaRepository().get();
   }
 
   public boolean isAnnotationType() {

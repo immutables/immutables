@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.personmodel;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.criteria.Criteria;
@@ -34,9 +33,9 @@ import java.util.Set;
  */
 @Value.Immutable
 @Criteria
+@Criteria.Repository
 @JsonSerialize(as = ImmutablePerson.class)
 @JsonDeserialize(as = ImmutablePerson.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public interface Person {
 
   @Criteria.Id

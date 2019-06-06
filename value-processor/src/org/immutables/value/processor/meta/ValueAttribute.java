@@ -25,24 +25,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.lang.annotation.ElementType;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.annotation.Nullable;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.ArrayType;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import org.immutables.generator.AnnotationMirrors;
 import org.immutables.generator.StringLiterals;
 import org.immutables.generator.TypeHierarchyCollector;
@@ -60,6 +42,25 @@ import org.immutables.value.processor.meta.Reporter.About;
 import org.immutables.value.processor.meta.Styles.UsingName.AttributeNames;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ImplementationVisibility;
 import org.immutables.value.processor.meta.ValueMirrors.Style.ValidationMethod;
+
+import javax.annotation.Nullable;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import java.lang.annotation.ElementType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * It's pointless to refactor this mess until
@@ -1097,9 +1098,17 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
     return IdMirror.isPresent(element);
   }
 
+  /**
+   * Is it marked as {@code Criteria.Id} ?
+   */
+  private boolean isMarkedAsCriteriaId() {
+    return CriteriaMirror.isPresent(element);
+  }
+
   boolean isIdAttribute() {
     return isMarkedAsMongoId()
-        || ID_ATTRIBUTE_NAME.equals(getSerializedName());
+            || isMarkedAsCriteriaId()
+            || ID_ATTRIBUTE_NAME.equals(getSerializedName());
   }
 
   private boolean isRedacted() {

@@ -81,6 +81,7 @@ public final class Processor extends AbstractGenerator {
     }
     if (round.environment().hasCriteriaModule()) {
       invoke(new Generator_Criteria().usingValues(values).generate());
+      invoke(new Generator_CriteriaRepository().usingValues(values).generate());
     }
     if (round.environment().hasMongoModule()) {
       invoke(new Generator_Repositories().usingValues(values).generate());
