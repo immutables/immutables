@@ -4,6 +4,7 @@ import static org.immutables.check.Checkers.check;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyWithBuilderExtension;
@@ -90,6 +91,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ImmutableFirstPartyImmutable.Builder _firstPartyBuilder =
           builder.firstPartyImmutableBuilder().value("first party through attributeBuilder");
@@ -106,6 +109,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ImmutableFirstPartyImmutableWithDifferentStyle.Abonabon _firstPartyBuilderWithDifferentStyle =
           builder.firstPartyImmutableWithDifferentStyleBuilder()
@@ -124,6 +129,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ThirdPartyImmutable.Builder thirdPartyImmutableBuilder =
           builder.thirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
@@ -140,6 +147,8 @@ public class AttributeBuilderTest {
       //builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ImmutableFirstPartyImmutable.Builder firstPartyBuilder =
           builder.addFirstPartyImmutableBuilder().value("first party through attributeBuilder");
@@ -158,6 +167,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       //builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ThirdPartyImmutable.Builder thirdPartyBuilder =
           builder.addThirdPartyImmutableBuilder().setValue("third party through attributeBuilder");
@@ -176,6 +187,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       //builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ThirdPartyImmutableWithPrimitive.Builder thirdPartyBuilder =
           builder.thirdPartyImmutableWithPrimitiveBuilder().setValue(2);
@@ -184,6 +197,50 @@ public class AttributeBuilderTest {
       check(copy.thirdPartyImmutableWithPrimitive().getValue())
           .is(2);
 
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      //builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(false);
+
+      ImmutableFirstPartyImmutable.Builder _firstPartyBuilder =
+              builder.optionalFirstPartyImmutableBuilder().value("first party through attributeBuilder");
+
+      copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(true);
+      check(copy.optionalFirstPartyImmutable().get().value()).is("first party through attributeBuilder");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      // builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.nullableFirstPartyImmutable() == null)).is(true);
+
+      ImmutableFirstPartyImmutable.Builder _firstPartyBuilder =
+              builder.nullableFirstPartyImmutableBuilder().value("first party through attributeBuilder");
+
+      copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.nullableFirstPartyImmutable() == null)).is(false);
+      check(copy.nullableFirstPartyImmutable().value()).is("first party through attributeBuilder");
     }
 
     // builder setter api
@@ -195,6 +252,8 @@ public class AttributeBuilderTest {
       builder.addFirstPartyImmutable(firstPartyImmutable);
       builder.addThirdPartyImmutable(thirdPartyImmutable);
       builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
 
       ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
           .builder().value("first party through setter");
@@ -208,6 +267,90 @@ public class AttributeBuilderTest {
       ImmutableClassT copy2 = copyFunction.copy(builder.build());
       check(copy2.firstPartyImmutable().value()).is("another value");
     }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      //builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
+              .builder().value("first party through setter");
+      builder.optionalFirstPartyImmutableBuilder(firstPartyBuilder);
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(true);
+      check(copy.optionalFirstPartyImmutable().get().value()).is("first party through setter");
+
+      // Make sure that we aren't copying the builder we set.
+      firstPartyBuilder.value("another value");
+      ImmutableClassT copy2 = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy2.optionalFirstPartyImmutable().isPresent())).is(true);
+      check(copy2.optionalFirstPartyImmutable().get().value()).is("another value");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      //builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
+              .builder().value("first party built through setter");
+      builder.optionalFirstPartyImmutable(firstPartyBuilder.build());
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(true);
+      check(copy.optionalFirstPartyImmutable().get().value()).is("first party built through setter");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      //builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      ImmutableFirstPartyImmutable.Builder firstPartyBuilder = ImmutableFirstPartyImmutable
+              .builder().value("first party optional through setter");
+      builder.optionalFirstPartyImmutable(Optional.of(firstPartyBuilder.build()));
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(true);
+      check(copy.optionalFirstPartyImmutable().get().value()).is("first party optional through setter");
+    }
+
+    {
+      AttributeBuilderBuilderI<AbstractClassT> builder = newBuilder.newBuilder();
+      builder.firstPartyImmutable(firstPartyImmutable);
+      builder.firstPartyImmutableWithDifferentStyle(firstPartyImmutableWithDifferentStyle);
+      builder.thirdPartyImmutable(thirdPartyImmutable);
+      builder.addFirstPartyImmutable(firstPartyImmutable);
+      builder.addThirdPartyImmutable(thirdPartyImmutable);
+      builder.thirdPartyImmutableWithPrimitive(thirdPartyImmutableWithPrimitive);
+      //builder.optionalFirstPartyImmutable(firstPartyImmutable);
+      builder.nullableFirstPartyImmutable(firstPartyImmutable);
+
+      builder.optionalFirstPartyImmutable(Optional.empty());
+
+      ImmutableClassT copy = copyFunction.copy(builder.build());
+      check(Boolean.valueOf(copy.optionalFirstPartyImmutable().isPresent())).is(false);
+    }
+
 
     // Builder List modification
     {

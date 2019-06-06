@@ -2,6 +2,7 @@ package org.immutables.fixture.builder.functional;
 
 import java.util.List;
 
+import java.util.Optional;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ImmutableFirstPartyImmutable;
@@ -44,6 +45,18 @@ public interface AttributeBuilderBuilderI<ValueT> {
   AttributeBuilderBuilderI addThirdPartyImmutable(ThirdPartyImmutable thirdPartyImmutable);
 
   ThirdPartyImmutable.Builder addThirdPartyImmutableBuilder();
+
+  ImmutableFirstPartyImmutable.Builder optionalFirstPartyImmutableBuilder();
+
+  AttributeBuilderBuilderI optionalFirstPartyImmutableBuilder(ImmutableFirstPartyImmutable.Builder firstPartyImmutable);
+
+  AttributeBuilderBuilderI optionalFirstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
+
+  AttributeBuilderBuilderI optionalFirstPartyImmutable(Optional<? extends FirstPartyImmutable> optionalFirstPartyImmutable);
+
+  ImmutableFirstPartyImmutable.Builder nullableFirstPartyImmutableBuilder();
+
+  AttributeBuilderBuilderI nullableFirstPartyImmutable(FirstPartyImmutable firstPartyImmutable);
 
   ValueT build();
 }
