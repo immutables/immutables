@@ -39,6 +39,7 @@ import java.util.Set;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface Person {
 
+  @Criteria.Id
   String id();
 
   boolean isActive();

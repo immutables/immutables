@@ -23,13 +23,39 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Immutable classes annotated with this annotation will have Criteria class automatically generated.
+ * An immutable class annotated with {@code @Criteria} will have Criteria class automatically generated.
  *
- * <p>New class can be used to query various data-sources like Mongo, Elastic etc. in a type-safe manner.</p>
+ * Generated criteria class is a type-safe query DSL modeled after current type.
  */
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Criteria {
+
+  /**
+   * Marks attribute as id (primary key) for a particular class.
+   */
+  @Documented
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  @interface Id {}
+
+  /**
+   * <p>
+   * Classes annotated with this annotation will have repository generated to
+   * store and retrieve documents. Repository classes are generated in the same package and
+   * and have same visibility as original class (public / package private). They are named
+   * after annotated value type: {@code [name_of_annotated_type]Repository}.
+   * </p>
+   * <p>
+   * {@code @Criteria.Repository} should only be used with value types annotated with
+   * {@code @Value.Immutable}.
+   * </p>
+   */
+  @Documented
+  @Target(ElementType.TYPE)
+  @Retention(RetentionPolicy.SOURCE)
+  @interface Repository {}
+
 
 }
