@@ -19,12 +19,12 @@ package org.immutables.criteria.internal;
 import org.reactivestreams.Publisher;
 
 /**
- * Abstraction of a asynchronous service used by adapters modeled as a function.
+ * Abstraction of a asynchronous service used by adapters and modeled as a simple function (SAM).
  *
  * @param <Q> type of the query. Can be string or something more complicated
  * @param <T> type of the result (computation)
  */
-public interface Service<Q, T> {
+public interface Backend<Q, T> {
 
   /**
    * Fetch (possibly unbounded) result of a computation.
