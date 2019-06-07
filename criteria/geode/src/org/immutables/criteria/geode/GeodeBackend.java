@@ -23,7 +23,7 @@ import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
-public class GeodeBackend<T> implements Backend<Query, T> {
+public class GeodeBackend<T> implements Backend<T> {
 
   private final Region<?, ?> region;
 
@@ -32,7 +32,7 @@ public class GeodeBackend<T> implements Backend<Query, T> {
   }
 
   @Override
-  public Publisher<T> execute(Query query) {
+  public Publisher<T> execute(Operation query) {
     throw new UnsupportedOperationException();
   }
 

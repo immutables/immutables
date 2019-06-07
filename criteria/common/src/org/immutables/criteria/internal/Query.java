@@ -25,7 +25,7 @@ import java.util.OptionalLong;
  * Query sent to a backend
  */
 @Value.Immutable
-public interface Query {
+public interface Query extends Backend.Operation {
 
   @Value.Parameter
   DocumentCriteria<?> criteria();

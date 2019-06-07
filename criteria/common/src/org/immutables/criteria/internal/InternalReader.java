@@ -28,13 +28,13 @@ import java.util.Objects;
 public class InternalReader<T> implements Repository.Reader<T> {
 
   private final ImmutableQuery query;
-  private final Backend<Query, T> backend;
+  private final Backend<T> backend;
 
-  public InternalReader(DocumentCriteria<T> criteria, Backend<Query, T> backend) {
+  public InternalReader(DocumentCriteria<T> criteria, Backend<T> backend) {
     this(ImmutableQuery.of(criteria), backend);
   }
 
-  private InternalReader(ImmutableQuery query, Backend<Query, T> backend) {
+  private InternalReader(ImmutableQuery query, Backend<T> backend) {
     this.query = Objects.requireNonNull(query, "query");
     this.backend = Objects.requireNonNull(backend, "backend");
   }

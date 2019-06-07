@@ -31,7 +31,7 @@ import java.util.Objects;
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
-class MongoBackend<T> implements Backend<Query, T> {
+class MongoBackend<T> implements Backend<T> {
 
   private final MongoCollection<T> collection;
 
@@ -45,8 +45,8 @@ class MongoBackend<T> implements Backend<Query, T> {
   }
 
   @Override
-  public Publisher<T> execute(Query query) {
-    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(query.criteria()));
+  public Publisher<T> execute(Operation operation) {
+    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(((Query) operation).criteria()));
     return collection.find(filter);
   }
 

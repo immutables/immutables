@@ -57,9 +57,9 @@ import java.util.Objects;
 [/if]
 [type.typeDocument.access] class [type.name]Repository implements Repository.Readable<[type.name]> {
 
-  private final Backend<Query, [type.name]> backend;
+  private final Backend<[type.name]> backend;
 
-  public [type.name]Repository(Backend<Query, [type.name]> backend) {
+  public [type.name]Repository(Backend<[type.name]> backend) {
      this.backend = Objects.requireNonNull(backend, "backend");
   }
 

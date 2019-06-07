@@ -45,7 +45,7 @@ import java.util.function.Function;
  * Queries <a href="https://www.elastic.co/">ElasticSearch</a> data-store.
  * @param <T>
  */
-public class ElasticBackend<T> implements Backend<Query, T> {
+public class ElasticBackend<T> implements Backend<T> {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
@@ -63,10 +63,10 @@ public class ElasticBackend<T> implements Backend<Query, T> {
   }
 
   @Override
-  public Publisher<T> execute(Query query) {
+  public Publisher<T> execute(Operation query) {
     Objects.requireNonNull(query, "query");
 
-    return queryInternal(query);
+    return queryInternal((Query) query);
   }
 
   private Publisher<T> queryInternal(Query query) {
