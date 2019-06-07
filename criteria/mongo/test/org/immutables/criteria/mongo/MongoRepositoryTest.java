@@ -31,6 +31,7 @@ import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
+import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +49,8 @@ public class MongoRepositoryTest {
 
   private MongoCollection<Person> collection;
 
-  private MongoRepository<Person> repository;
+  private MongoBackend<Person> backend;
+  private PersonRepository repository;
 
   @Before
   public void setUp() throws Exception {
@@ -67,13 +69,13 @@ public class MongoRepositoryTest {
             .withDocumentClass(Person.class)
             .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
 
-    this.repository = new MongoRepository<>(this.collection);
+    this.backend = new MongoBackend<>(this.collection);
+    this.repository = new PersonRepository(backend);
 
-    Flowable.fromPublisher(repository.insert(PersonGenerator.of("test")))
+    Flowable.fromPublisher(backend.insert(PersonGenerator.of("test")))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
-
   }
 
   @After

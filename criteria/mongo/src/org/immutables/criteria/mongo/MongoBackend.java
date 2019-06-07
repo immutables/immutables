@@ -20,8 +20,8 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.Success;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Repository;
+import org.immutables.criteria.internal.Backend;
+import org.immutables.criteria.internal.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -31,17 +31,12 @@ import java.util.Objects;
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
-class MongoRepository<T> implements Repository<T> {
+class MongoBackend<T> implements Backend<Query, T> {
 
   private final MongoCollection<T> collection;
 
-  MongoRepository(MongoCollection<T> collection) {
+  MongoBackend(MongoCollection<T> collection) {
     this.collection = Objects.requireNonNull(collection, "collection");
-  }
-
-  @Override
-  public Finder<T> find(DocumentCriteria<T> criteria) {
-    return new Finder<>(collection, criteria);
   }
 
   // which one is _id ?
@@ -49,21 +44,10 @@ class MongoRepository<T> implements Repository<T> {
     return collection.insertOne(entity);
   }
 
-  public static class Finder<T> implements Repository.Finder<T> {
-
-    private final DocumentCriteria<T> criteria;
-    private final MongoCollection<T> collection;
-
-    private Finder(MongoCollection<T> collection, DocumentCriteria<T> criteria) {
-      this.criteria = Objects.requireNonNull(criteria, "criteria");
-      this.collection = Objects.requireNonNull(collection, "collection");
-    }
-
-    @Override
-    public Publisher<T> fetch() {
-      final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(criteria));
-      return collection.find(filter);
-    }
+  @Override
+  public Publisher<T> execute(Query query) {
+    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(query.criteria));
+    return collection.find(filter);
   }
 
 }
