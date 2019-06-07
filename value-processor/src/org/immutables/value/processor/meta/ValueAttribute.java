@@ -1102,7 +1102,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
    * Is it marked as {@code Criteria.Id} ?
    */
   private boolean isMarkedAsCriteriaId() {
-    return CriteriaMirror.isPresent(element);
+    return CriteriaIdMirror.isPresent(element);
   }
 
   boolean isIdAttribute() {
