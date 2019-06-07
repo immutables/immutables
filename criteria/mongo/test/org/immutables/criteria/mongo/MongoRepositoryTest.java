@@ -71,8 +71,9 @@ public class MongoRepositoryTest {
 
     this.backend = new MongoBackend<>(this.collection);
     this.repository = new PersonRepository(backend);
+    PersonGenerator generator = new PersonGenerator();
 
-    Flowable.fromPublisher(backend.insert(PersonGenerator.of("test")))
+    Flowable.fromPublisher(backend.insert(generator.next().withFullName("test")))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
@@ -93,7 +94,6 @@ public class MongoRepositoryTest {
   }
 
   private void execute(DocumentCriteria<Person> expr, int count) {
-
     Flowable.fromPublisher(repository.find(expr).fetch())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
