@@ -34,8 +34,18 @@ Use @Criteria.Repository to annotate @Value.Immutable abstract value types with 
 package [type.package];
 [/if]
 
+[for starImport in type.requiredSourceStarImports]
+import [starImport];
+[/for]
+
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.internal.Query;
+import org.immutables.criteria.internal.Backend;
+
+import org.reactivestreams.Publisher;
+
+import java.util.Objects;
 
 /**
  * A {@code [type.name]Repository} provides access for storing and retrieving objects
@@ -44,11 +54,27 @@ import org.immutables.criteria.DocumentCriteria;
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
 [/if]
-[type.typeDocument.access] class [type.name]Repository implements Repository<[type.name]> {
+[type.typeDocument.access] class [type.name]Repository implements Repository.Readable<[type.name]> {
+
+  private final Backend<Query, [type.name]> backend;
+
+  public [type.name]Repository(Backend<Query, [type.name]> backend) {
+     this.backend = Objects.requireNonNull(backend, "backend");
+  }
 
   @Override
-  public Repository.Finder<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
-    throw new UnsupportedOperationException();
+  public Repository.Reader<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
+   return new Reader<[type.name]>() {
+     @Override
+     public Publisher<[type.name]> fetch() {
+       return backend.execute(new Query(criteria));
+     }
+   };
+  }
+
+  @Override
+  public Repository.Reader<[type.name]> findAll() {
+    return find([type.name]Criteria.create());
   }
 }
 

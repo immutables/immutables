@@ -26,9 +26,9 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.internal.Backend;
+import org.immutables.criteria.internal.Query;
 import org.immutables.criteria.internal.Reactive;
 import org.reactivestreams.Publisher;
 
@@ -45,17 +45,17 @@ import java.util.function.Function;
  * Queries <a href="https://www.elastic.co/">ElasticSearch</a> data-store.
  * @param <T>
  */
-public class ElasticsearchRepository<T> implements Repository<T> {
+public class ElasticBackend<T> implements Backend<Query, T> {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
   private final Class<T> type;
   private final String index;
 
-  public ElasticsearchRepository(RestClient restClient,
-                                 Class<T> type,
-                                 ObjectMapper mapper,
-                                 String index) {
+  public ElasticBackend(RestClient restClient,
+                        Class<T> type,
+                        ObjectMapper mapper,
+                        String index) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.type = Objects.requireNonNull(type, "type");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
@@ -63,30 +63,13 @@ public class ElasticsearchRepository<T> implements Repository<T> {
   }
 
   @Override
-  public Repository.Finder<T> find(DocumentCriteria<T> criteria) {
-    Objects.requireNonNull(criteria, "criteria");
-    return new Finder(criteria);
+  public Publisher<T> execute(Query query) {
+    Objects.requireNonNull(query, "query");
+
+    return queryInternal(Criterias.toExpressional(query.criteria));
   }
 
-  private class Finder implements Repository.Finder<T> {
-
-    private final DocumentCriteria<T> criteria;
-
-    private Finder(DocumentCriteria<T> criteria) {
-      this.criteria = criteria;
-    }
-
-    @Override
-    public Publisher<T> fetch() {
-      try {
-        return queryInternal(Criterias.toExpressional(criteria));
-      } catch (Exception e) {
-        return Reactive.error(e);
-      }
-    }
-  }
-
-  private Publisher<T> queryInternal(Expressional expressional) throws Exception {
+  private Publisher<T> queryInternal(Expressional expressional) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
 
     final String json = Elasticsearch.converter(mapper).convert(expressional.expression());

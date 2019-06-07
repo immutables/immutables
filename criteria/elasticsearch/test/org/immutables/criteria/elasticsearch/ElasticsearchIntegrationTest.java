@@ -45,7 +45,8 @@ public class ElasticsearchIntegrationTest {
 
   private static final String INDEX_NAME = "mymodel";
 
-  private ElasticsearchRepository<ElasticModel> repository;
+  private ElasticBackend<ElasticModel> backend;
+  private ElasticModelRepository repository;
 
   @BeforeClass
   public static void setupElastic() throws Exception {
@@ -77,9 +78,8 @@ public class ElasticsearchIntegrationTest {
 
   @Before
   public void setupRepository() throws Exception {
-    repository = new ElasticsearchRepository<>(RESOURCE.restClient(),
-            ElasticModel.class, MAPPER, INDEX_NAME);
-
+    this.backend = new ElasticBackend<>(RESOURCE.restClient(),  ElasticModel.class, MAPPER, INDEX_NAME);
+    this.repository = new ElasticModelRepository(backend);
   }
 
   @Test

@@ -19,18 +19,40 @@ package org.immutables.criteria;
 import org.reactivestreams.Publisher;
 
 /**
- * Access abstraction to a data-source.
+ * Access abstractions to a data-source.
+ *
  * @param <T>
  */
 public interface Repository<T> {
 
-    Finder<T> find(DocumentCriteria<T> criteria);
+  /**
+   * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
+   *
+   * TODO: Think about Reader vs Finder which also has delete methods
+   */
+  interface Reader<T> {
+    Publisher<T> fetch();
+  }
 
-    /**
-     * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
-     */
-    interface Finder<T> {
-       Publisher<T> fetch();
-    }
+  interface Readable<T> extends Repository<T> {
+
+    Reader<T> find(DocumentCriteria<T> criteria);
+
+    Reader<T> findAll();
+
+  }
+
+  interface Streamer<T> {
+    Publisher<T> stream();
+  }
+
+  /**
+   * Means current repository supports streaming (as in pub/sub).
+   */
+  interface Streamable<T> extends Repository<T> {
+    Streamer<T> observe(DocumentCriteria<T> criteria);
+  }
+
+  // TODO think about Updater / Replacer interfaces
 
 }

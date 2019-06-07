@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.elasticsearch;
+package org.immutables.criteria.internal;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.immutables.criteria.Criteria;
-import org.immutables.value.Value;
+import org.immutables.criteria.DocumentCriteria;
 
-import java.util.Optional;
+import java.util.Objects;
 
-@Value.Immutable
-@Criteria
-@Criteria.Repository
-@JsonSerialize(as = ImmutableElasticModel.class)
-@JsonDeserialize(as = ImmutableElasticModel.class)
-public interface ElasticModel {
+/**
+ * Query sent to a backend
+ */
+public class Query {
 
-  String string();
+  public final DocumentCriteria<?> criteria;
 
-  Optional<String> optionalString();
-
-  boolean bool();
-
-  int intNumber();
-
+  public Query(DocumentCriteria<?> criteria) {
+    this.criteria = Objects.requireNonNull(criteria, "criteria");
+  }
 }

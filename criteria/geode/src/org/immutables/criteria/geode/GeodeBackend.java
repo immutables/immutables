@@ -17,37 +17,24 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Region;
-import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Repository;
+import org.immutables.criteria.internal.Backend;
+import org.immutables.criteria.internal.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
-public class GeodeRepository<T> implements Repository<T> {
+public class GeodeBackend<T> implements Backend<Query, T> {
 
   private final Region<?, ?> region;
 
-  public GeodeRepository(Region<?, ?> region) {
+  public GeodeBackend(Region<?, ?> region) {
     this.region = Objects.requireNonNull(region, "cache is null");
   }
 
   @Override
-  public Finder<T> find(DocumentCriteria<T> criteria) {
-    return new Finder<>(criteria);
+  public Publisher<T> execute(Query query) {
+    throw new UnsupportedOperationException();
   }
 
-  private static class Finder<T> implements Repository.Finder<T> {
-
-    private final DocumentCriteria<T> criteria;
-
-    private Finder(DocumentCriteria<T> criteria) {
-      this.criteria = criteria;
-    }
-
-    @Override
-    public Publisher<T> fetch() {
-      throw new UnsupportedOperationException();
-    }
-  }
 
 }
