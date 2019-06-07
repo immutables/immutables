@@ -26,7 +26,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.internal.Backend;
 import org.immutables.criteria.internal.Query;
 import org.immutables.criteria.internal.Reactive;
@@ -66,16 +66,15 @@ public class ElasticBackend<T> implements Backend<Query, T> {
   public Publisher<T> execute(Query query) {
     Objects.requireNonNull(query, "query");
 
-    return queryInternal(Criterias.toExpressional(query.criteria()));
+    return queryInternal(query);
   }
 
-  private Publisher<T> queryInternal(Expressional expressional) {
+  private Publisher<T> queryInternal(Query query) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
 
-    final String json = Elasticsearch.converter(mapper).convert(expressional.expression());
-
-    request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-
+    final Expression expression = Criterias.toExpression(query.criteria());
+    final ObjectNode json = Elasticsearch.converter(mapper).convert(expression);
+    request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
     return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
   }
 

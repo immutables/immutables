@@ -15,13 +15,9 @@
  */
 package org.immutables.criteria.elasticsearch;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -166,17 +162,12 @@ public class QueryBuildersTest {
   }
 
   @Test
-  public void matchAll() throws IOException {
+  public void matchAll() {
     assertEquals("{\"match_all\":{}}",
             toJson(QueryBuilders.matchAll()));
   }
 
-  private String toJson(QueryBuilders.QueryBuilder builder) throws IOException {
-    StringWriter writer = new StringWriter();
-    JsonGenerator gen = mapper.getFactory().createGenerator(writer);
-    builder.writeJson(gen);
-    gen.flush();
-    gen.close();
-    return writer.toString();
+  private String toJson(QueryBuilders.QueryBuilder builder)  {
+    return builder.toJson(mapper).toString();
   }
 }

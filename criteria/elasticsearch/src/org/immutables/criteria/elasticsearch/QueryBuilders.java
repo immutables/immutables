@@ -15,9 +15,11 @@
  */
 package org.immutables.criteria.elasticsearch;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -188,10 +190,8 @@ class QueryBuilders {
 
     /**
      * Convert existing query to JSON format using jackson API.
-     * @param generator used to generate JSON elements
-     * @throws IOException if IO error occurred
      */
-    abstract void writeJson(JsonGenerator generator) throws IOException;
+    abstract ObjectNode toJson(ObjectMapper mapper);
   }
 
   /**
@@ -227,33 +227,29 @@ class QueryBuilders {
       return this;
     }
 
-    @Override protected void writeJson(JsonGenerator gen) throws IOException {
-      gen.writeStartObject();
-      gen.writeFieldName("bool");
-      gen.writeStartObject();
-      writeJsonArray("must", mustClauses, gen);
-      writeJsonArray("filter", filterClauses, gen);
-      writeJsonArray("must_not", mustNotClauses, gen);
-      writeJsonArray("should", shouldClauses, gen);
-      gen.writeEndObject();
-      gen.writeEndObject();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      ObjectNode bool = result.with("bool");
+      writeJsonArray("must", mustClauses, bool, mapper);
+      writeJsonArray("filter", filterClauses, bool, mapper);
+      writeJsonArray("must_not", mustNotClauses, bool, mapper);
+      writeJsonArray("should", shouldClauses, bool, mapper);
+      return result;
     }
 
-    private void writeJsonArray(String field, List<QueryBuilder> clauses, JsonGenerator gen)
-            throws IOException {
+    private void writeJsonArray(String field, List<QueryBuilder> clauses, ObjectNode node, ObjectMapper mapper) {
       if (clauses.isEmpty()) {
         return;
       }
 
       if (clauses.size() == 1) {
-        gen.writeFieldName(field);
-        clauses.get(0).writeJson(gen);
+        node.set(field, clauses.get(0).toJson(mapper));
       } else {
-        gen.writeArrayFieldStart(field);
+        final ArrayNode arrayNode = node.withArray(field);
         for (QueryBuilder clause: clauses) {
-          clause.writeJson(gen);
+          arrayNode.add(clause.toJson(mapper));
         }
-        gen.writeEndArray();
       }
     }
   }
@@ -270,14 +266,11 @@ class QueryBuilders {
       this.value = Objects.requireNonNull(value, "value");
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
-      generator.writeStartObject();
-      generator.writeFieldName("term");
-      generator.writeStartObject();
-      generator.writeFieldName(fieldName);
-      writeObject(generator, value);
-      generator.writeEndObject();
-      generator.writeEndObject();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      result.with("term").set(fieldName, toJsonValue(value, mapper));
+      return result;
     }
   }
 
@@ -293,31 +286,15 @@ class QueryBuilders {
       this.values = Objects.requireNonNull(values, "values");
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
-      generator.writeStartObject();
-      generator.writeFieldName("terms");
-      generator.writeStartObject();
-      generator.writeFieldName(fieldName);
-      generator.writeStartArray();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper)  {
+      ObjectNode result = mapper.createObjectNode();
+      final ArrayNode terms = result.with("terms").withArray(fieldName);
       for (Object value: values) {
-        writeObject(generator, value);
+        terms.add(toJsonValue(value, mapper));
       }
-      generator.writeEndArray();
-      generator.writeEndObject();
-      generator.writeEndObject();
+      return result;
     }
-  }
-
-  /**
-   * Write usually simple (scalar) value (string, number, boolean or null) to json output.
-   * In case of complex objects delegates to jackson serialization.
-   *
-   * @param generator api to generate JSON document
-   * @param value JSON value to write
-   * @throws IOException if can't write to output
-   */
-  private static void writeObject(JsonGenerator generator, Object value) throws IOException {
-    generator.writeObject(value);
   }
 
   /**
@@ -370,36 +347,29 @@ class QueryBuilders {
       return this;
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
       if (lt == null && gt == null) {
         throw new IllegalStateException("Either lower or upper bound should be provided");
       }
 
-      generator.writeStartObject();
-      generator.writeFieldName("range");
-      generator.writeStartObject();
-      generator.writeFieldName(fieldName);
-      generator.writeStartObject();
-
+      final ObjectNode result = mapper.createObjectNode();
+      final ObjectNode range = result.with("range").with(fieldName);
       if (gt != null) {
         final String op = gte ? "gte" : "gt";
-        generator.writeFieldName(op);
-        writeObject(generator, gt);
+        range.set(op, toJsonValue(gt, mapper));
       }
 
       if (lt != null) {
         final String op = lte ? "lte" : "lt";
-        generator.writeFieldName(op);
-        writeObject(generator, lt);
+        range.set(op, toJsonValue(lt, mapper));
       }
 
       if (format != null) {
-        generator.writeStringField("format", format);
+        range.put("format", format);
       }
 
-      generator.writeEndObject();
-      generator.writeEndObject();
-      generator.writeEndObject();
+      return result;
     }
   }
 
@@ -415,7 +385,8 @@ class QueryBuilders {
       this.value = value;
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
       throw new UnsupportedOperationException();
     }
   }
@@ -430,13 +401,11 @@ class QueryBuilders {
       this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
-      generator.writeStartObject();
-      generator.writeFieldName("exists");
-      generator.writeStartObject();
-      generator.writeStringField("field", fieldName);
-      generator.writeEndObject();
-      generator.writeEndObject();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      result.with("exists").put("field", fieldName);
+      return result;
     }
   }
 
@@ -452,14 +421,11 @@ class QueryBuilders {
       this.builder = Objects.requireNonNull(builder, "builder");
     }
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
-      generator.writeStartObject();
-      generator.writeFieldName("constant_score");
-      generator.writeStartObject();
-      generator.writeFieldName("filter");
-      builder.writeJson(generator);
-      generator.writeEndObject();
-      generator.writeEndObject();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      result.with("constant_score").set("filter", builder.toJson(mapper));
+      return result;
     }
   }
 
@@ -475,13 +441,26 @@ class QueryBuilders {
 
     private MatchAllQueryBuilder() {}
 
-    @Override void writeJson(final JsonGenerator generator) throws IOException {
-      generator.writeStartObject();
-      generator.writeFieldName("match_all");
-      generator.writeStartObject();
-      generator.writeEndObject();
-      generator.writeEndObject();
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode node = mapper.createObjectNode();
+      node.putObject("match_all");
+      return node;
     }
+  }
+
+  /**
+   * Write usually simple (scalar) value (string, number, boolean or null) to json output.
+   * In case of complex objects delegates to jackson serialization.
+   *
+   * @param value JSON value to write
+   */
+  private static JsonNode toJsonValue(Object value, ObjectMapper mapper) {
+    if (value == null) {
+      return mapper.getNodeFactory().nullNode();
+    }
+
+    return mapper.convertValue(value, JsonNode.class);
   }
 }
 
