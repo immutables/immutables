@@ -19,19 +19,20 @@ package org.immutables.criteria.internal;
 import org.reactivestreams.Publisher;
 
 /**
- * Abstraction of a asynchronous service used by adapters and modeled as a simple function (SAM).
+ * Abstraction of a asynchronous service used by adapters and modeled as a single abstract method (SAM).
  *
- * @param <Q> type of the query. Can be string or something more complicated
+ * @param <O> type of the operation. Can be query / delete / update etc.
  * @param <T> type of the result (computation)
  */
-public interface Backend<Q, T> {
+public interface Backend<O, T> {
 
   /**
-   * Fetch (possibly unbounded) result of a computation.
+   * Apply an operation on the back-end. {@code operation} in this context can mean query / update
+   * / insert  / index etc.
    *
-   * @param query payload
-   * @return empty or unbounded flow of events
+   * @param operation operation to be performed on the back-end.
+   * @return empty or unbounded flow of events (can also be a single response)
    */
-  Publisher<T> execute(Q query);
+  Publisher<T> execute(O operation);
 
 }
