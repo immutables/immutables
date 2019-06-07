@@ -30,7 +30,7 @@ public interface Query {
   @Value.Parameter
   DocumentCriteria<?> criteria();
 
-  OptionalLong skip();
+  OptionalLong limit();
 
   OptionalLong offset();
 

@@ -71,9 +71,10 @@ public class ElasticBackend<T> implements Backend<Query, T> {
 
   private Publisher<T> queryInternal(Query query) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
-
     final Expression expression = Criterias.toExpression(query.criteria());
     final ObjectNode json = Elasticsearch.converter(mapper).convert(expression);
+    query.limit().ifPresent(limit -> json.put("size", limit));
+    query.offset().ifPresent(offset -> json.put("start", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
     return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
   }

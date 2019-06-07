@@ -40,8 +40,8 @@ public class InternalReader<T> implements Repository.Reader<T> {
   }
 
   @Override
-  public Repository.Reader<T> skip(long skip) {
-    return new InternalReader<T>(query.withSkip(skip), backend);
+  public Repository.Reader<T> limit(long limit) {
+    return new InternalReader<T>(query.withLimit(limit), backend);
   }
 
   @Override
