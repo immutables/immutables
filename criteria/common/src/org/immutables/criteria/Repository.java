@@ -46,15 +46,15 @@ public interface Repository<T> {
 
   }
 
-  interface Streamer<T> {
-    Publisher<T> stream();
+  interface Watcher<T> {
+    Publisher<T> watch();
   }
 
   /**
    * Means current repository supports streaming (as in pub/sub).
    */
-  interface Streamable<T> extends Repository<T> {
-    Streamer<T> observe(DocumentCriteria<T> criteria);
+  interface Watchable<T> extends Repository<T> {
+    Watcher<T> watcher(DocumentCriteria<T> criteria);
   }
 
   // TODO think about Updater / Replacer interfaces
