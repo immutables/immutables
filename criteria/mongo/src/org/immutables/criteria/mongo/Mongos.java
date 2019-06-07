@@ -16,9 +16,13 @@
 
 package org.immutables.criteria.mongo;
 
+import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.expression.Expressions;
+
+import java.util.Objects;
 
 /**
  * Util methods for mongo adapter.
@@ -30,9 +34,15 @@ final class Mongos {
   /**
    * Convert existing expression to Bson
    */
-  static <T> Bson toBson(CodecRegistry registry, Expression expression) {
-    MongoQueryVisitor visitor = new MongoQueryVisitor(registry);
-    return expression.accept(visitor).asDocument();
+  static ExpressionConverter<Bson> converter(CodecRegistry registry) {
+    Objects.requireNonNull(registry, "registry");
+    return expression -> {
+      if (Expressions.isNil(expression)) {
+        return new Document();
+      }
+      MongoQueryVisitor visitor = new MongoQueryVisitor(registry);
+      return expression.accept(visitor).asDocument();
+    };
   }
 
 }

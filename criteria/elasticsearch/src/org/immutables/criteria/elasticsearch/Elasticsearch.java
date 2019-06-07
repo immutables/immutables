@@ -19,34 +19,40 @@ package org.immutables.criteria.elasticsearch;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Expressions;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 
 final class Elasticsearch {
 
   private  Elasticsearch() {}
 
+  static ExpressionConverter<String> converter(ObjectMapper mapper) {
+    Objects.requireNonNull(mapper, "expression");
 
-  static String toQuery(ObjectMapper mapper, Expression expression) throws IOException  {
-    Objects.requireNonNull(expression, "expression");
-    if (Expressions.isNil(expression)) {
-      return mapper.createObjectNode().toString();
-    }
-    ElasticsearchQueryVisitor visitor = new ElasticsearchQueryVisitor();
-    final QueryBuilders.QueryBuilder builder = expression.accept(visitor);
+    return expression -> {
+      if (Expressions.isNil(expression)) {
+        return mapper.createObjectNode().toString();
+      }
+      ElasticsearchQueryVisitor visitor = new ElasticsearchQueryVisitor();
+      final QueryBuilders.QueryBuilder builder = expression.accept(visitor);
 
-    try (StringWriter writer = new StringWriter();
-         JsonGenerator generator = mapper.getFactory().createGenerator(writer)) {
-      generator.writeStartObject();
-      generator.writeFieldName("query");
-      QueryBuilders.constantScoreQuery(builder).writeJson(generator);
-      generator.writeEndObject();
-      generator.flush();
-      return writer.toString();
-    }
+      try (StringWriter writer = new StringWriter();
+           JsonGenerator generator = mapper.getFactory().createGenerator(writer)) {
+        generator.writeStartObject();
+        generator.writeFieldName("query");
+        QueryBuilders.constantScoreQuery(builder).writeJson(generator);
+        generator.writeEndObject();
+        generator.flush();
+        return writer.toString();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    };
   }
 
 }

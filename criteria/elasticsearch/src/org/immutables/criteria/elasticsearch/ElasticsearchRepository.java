@@ -88,7 +88,9 @@ public class ElasticsearchRepository<T> implements Repository<T> {
 
   private Publisher<T> queryInternal(Expressional expressional) throws Exception {
     final Request request = new Request("POST", String.format("/%s/_search", index));
-    final String json = Elasticsearch.toQuery(mapper, expressional.expression());
+
+    final String json = Elasticsearch.converter(mapper).convert(expressional.expression());
+
     request.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
 
     return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);

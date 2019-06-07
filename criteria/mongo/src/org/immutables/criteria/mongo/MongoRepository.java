@@ -61,7 +61,7 @@ class MongoRepository<T> implements Repository<T> {
 
     @Override
     public Publisher<T> fetch() {
-      final Bson filter = Mongos.toBson(collection.getCodecRegistry(), Criterias.toExpression(criteria));
+      final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(criteria));
       return collection.find(filter);
     }
   }
