@@ -31,6 +31,10 @@ public interface Repository<T> {
    * TODO: Think about Reader vs Finder which also has delete methods
    */
   interface Reader<T> {
+    Reader<T> skip(long skip);
+
+    Reader<T> offset(long offset);
+
     Publisher<T> fetch();
   }
 

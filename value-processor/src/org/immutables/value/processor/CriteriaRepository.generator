@@ -42,6 +42,7 @@ import org.immutables.criteria.Repository;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.internal.Query;
 import org.immutables.criteria.internal.Backend;
+import org.immutables.criteria.internal.InternalReader;
 
 import org.reactivestreams.Publisher;
 
@@ -64,12 +65,7 @@ import java.util.Objects;
 
   @Override
   public Repository.Reader<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
-   return new Reader<[type.name]>() {
-     @Override
-     public Publisher<[type.name]> fetch() {
-       return backend.execute(new Query(criteria));
-     }
-   };
+    return new InternalReader<>(criteria, backend);
   }
 
   @Override

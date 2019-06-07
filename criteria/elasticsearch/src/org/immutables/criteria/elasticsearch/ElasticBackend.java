@@ -66,7 +66,7 @@ public class ElasticBackend<T> implements Backend<Query, T> {
   public Publisher<T> execute(Query query) {
     Objects.requireNonNull(query, "query");
 
-    return queryInternal(Criterias.toExpressional(query.criteria));
+    return queryInternal(Criterias.toExpressional(query.criteria()));
   }
 
   private Publisher<T> queryInternal(Expressional expressional) {

@@ -17,17 +17,21 @@
 package org.immutables.criteria.internal;
 
 import org.immutables.criteria.DocumentCriteria;
+import org.immutables.value.Value;
 
-import java.util.Objects;
+import java.util.OptionalLong;
 
 /**
  * Query sent to a backend
  */
-public class Query {
+@Value.Immutable
+public interface Query {
 
-  public final DocumentCriteria<?> criteria;
+  @Value.Parameter
+  DocumentCriteria<?> criteria();
 
-  public Query(DocumentCriteria<?> criteria) {
-    this.criteria = Objects.requireNonNull(criteria, "criteria");
-  }
+  OptionalLong skip();
+
+  OptionalLong offset();
+
 }

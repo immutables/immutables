@@ -46,7 +46,7 @@ class MongoBackend<T> implements Backend<Query, T> {
 
   @Override
   public Publisher<T> execute(Query query) {
-    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(query.criteria));
+    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(query.criteria()));
     return collection.find(filter);
   }
 
