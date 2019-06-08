@@ -18,17 +18,16 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.internal.Backend;
-import org.immutables.criteria.internal.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
-public class GeodeBackend<T> implements Backend {
+public class GeodeBackend implements Backend {
 
   private final Region<?, ?> region;
 
   public GeodeBackend(Region<?, ?> region) {
-    this.region = Objects.requireNonNull(region, "cache is null");
+    this.region = Objects.requireNonNull(region, "region is null");
   }
 
   @Override
