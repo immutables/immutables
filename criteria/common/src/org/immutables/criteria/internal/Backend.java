@@ -20,25 +20,25 @@ import org.reactivestreams.Publisher;
 
 /**
  * Abstraction of a asynchronous service used by adapters and modeled as a single abstract method (SAM).
- *
- * @param <T> type of the result (computation)
  */
-public interface Backend<T> {
+public interface Backend {
 
   /**
    * Apply an operation on the back-end. {@code operation} in this context can mean query / update
    * / insert  / index etc.
    *
+   * <p>Produced publisher can represent empty, single, multiple or unbounded event flow.
+   *
    * @param operation operation to be performed on the back-end.
-   * @return empty or unbounded flow of events (can also be a single response)
+   * @return empty, single, multiple or unbounded event flow
    */
-  Publisher<T> execute(Operation operation);
+  <T> Publisher<T> execute(Operation<T> operation);
 
   /**
    * Generic operation to be executed on the back-end. Typical operations include
    * query, update, delete etc.
    */
-  interface Operation {
+  interface Operation<T> {
 
   }
 

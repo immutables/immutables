@@ -43,43 +43,42 @@ import java.util.function.Function;
 
 /**
  * Queries <a href="https://www.elastic.co/">ElasticSearch</a> data-store.
- * @param <T>
  */
-public class ElasticBackend<T> implements Backend<T> {
+public class ElasticBackend implements Backend {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
-  private final Class<T> type;
+  private final Class<?> type;
   private final String index;
 
   public ElasticBackend(RestClient restClient,
-                        Class<T> type,
                         ObjectMapper mapper,
+                        Class<?> type,
                         String index) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
-    this.type = Objects.requireNonNull(type, "type");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
+    this.type = type;
     this.index = Objects.requireNonNull(index, "index");
   }
 
   @Override
-  public Publisher<T> execute(Operation query) {
+  public <T> Publisher<T> execute(Operation<T> query) {
     Objects.requireNonNull(query, "query");
 
-    return queryInternal((Query) query);
+    return queryInternal((Query<T>) query);
   }
 
-  private Publisher<T> queryInternal(Query query) {
+  private <T> Publisher<T> queryInternal(Query<T> query) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
     final Expression expression = Criterias.toExpression(query.criteria());
     final ObjectNode json = Elasticsearch.converter(mapper).convert(expression);
     query.limit().ifPresent(limit -> json.put("size", limit));
     query.offset().ifPresent(offset -> json.put("start", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
-    return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter()), x -> x);
+    return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter((Class<T>) type)), x -> x);
   }
 
-  private Function<Response, List<T>> converter() {
+  private <T> Function<Response, List<T>> converter(Class<T> type) {
     return response -> {
       try (InputStream is = response.getEntity().getContent()) {
         final ObjectNode root = mapper.readValue(is, ObjectNode.class);

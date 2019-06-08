@@ -25,10 +25,10 @@ import java.util.OptionalLong;
  * Query sent to a backend
  */
 @Value.Immutable
-public interface Query extends Backend.Operation {
+public interface Query<T> extends Backend.Operation<T> {
 
   @Value.Parameter
-  DocumentCriteria<?> criteria();
+  DocumentCriteria<T> criteria();
 
   OptionalLong limit();
 
