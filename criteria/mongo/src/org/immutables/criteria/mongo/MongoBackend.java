@@ -17,7 +17,6 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoCollection;
-import com.mongodb.reactivestreams.client.Success;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.internal.Backend;
@@ -31,21 +30,18 @@ import java.util.Objects;
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
-class MongoBackend<T> implements Backend<T> {
+class MongoBackend implements Backend {
 
-  private final MongoCollection<T> collection;
+  private final MongoCollection<?> collection;
 
-  MongoBackend(MongoCollection<T> collection) {
+  MongoBackend(MongoCollection<?> collection) {
     this.collection = Objects.requireNonNull(collection, "collection");
   }
 
-  // which one is _id ?
-  public Publisher<Success> insert(T entity) {
-    return collection.insertOne(entity);
-  }
-
   @Override
-  public Publisher<T> execute(Operation operation) {
+  public <T> Publisher<T> execute(Operation<T> operation) {
+    @SuppressWarnings("unchecked")
+    final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
     final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(((Query) operation).criteria()));
     return collection.find(filter);
   }

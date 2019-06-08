@@ -49,7 +49,7 @@ public class MongoRepositoryTest {
 
   private MongoCollection<Person> collection;
 
-  private MongoBackend<Person> backend;
+  private MongoBackend backend;
   private PersonRepository repository;
 
   @Before
@@ -69,11 +69,11 @@ public class MongoRepositoryTest {
             .withDocumentClass(Person.class)
             .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
 
-    this.backend = new MongoBackend<>(this.collection);
+    this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    PersonGenerator generator = new PersonGenerator();
+    final PersonGenerator generator = new PersonGenerator();
 
-    Flowable.fromPublisher(backend.insert(generator.next().withFullName("test")))
+    Flowable.fromPublisher(collection.insertOne(generator.next().withFullName("test")))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
