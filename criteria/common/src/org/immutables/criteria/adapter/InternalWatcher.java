@@ -17,25 +17,24 @@
 package org.immutables.criteria.adapter;
 
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.value.Value;
+import org.immutables.criteria.Repository;
+import org.reactivestreams.Publisher;
 
-import java.util.OptionalLong;
+import java.util.Objects;
 
-/**
- * Query sent to a backend
- */
-@Value.Immutable
-public interface Query<T> extends Backend.Operation<T> {
+public final class InternalWatcher<T> implements Repository.Watcher<T> {
 
-  @Value.Parameter
-  DocumentCriteria<?> criteria();
+  private final Backend backend;
+  private final DocumentCriteria<?> criteria;
 
-  @Value.Parameter
-  Class<T> returnType();
+  public InternalWatcher(DocumentCriteria<?> criteria, Backend backend) {
+    this.backend = Objects.requireNonNull(backend, "backend");
+    this.criteria = Objects.requireNonNull(criteria, "criteria");
+  }
 
-  OptionalLong limit();
-
-  OptionalLong offset();
-
+  @Override
+  public Publisher<T> watch() {
+    return backend.execute(ImmutableWatch.of(criteria));
+  }
 
 }

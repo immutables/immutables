@@ -33,7 +33,7 @@ import java.util.Set;
  */
 @Value.Immutable
 @Criteria
-@Criteria.Repository
+@Criteria.Repository(watch = true)
 @JsonSerialize(as = ImmutablePerson.class)
 @JsonDeserialize(as = ImmutablePerson.class)
 public interface Person {

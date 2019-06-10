@@ -38,11 +38,16 @@ package [type.package];
 import [starImport];
 [/for]
 
+import com.google.common.collect.ImmutableList;
+
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.adapter.Query;
+import org.immutables.criteria.adapter.ImmutableQuery;
+import org.immutables.criteria.adapter.ImmutableInsert;
+import org.immutables.criteria.adapter.ImmutableDelete;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.InternalReader;
+import org.immutables.criteria.adapter.InternalWatcher;
 
 import org.reactivestreams.Publisher;
 
@@ -55,7 +60,11 @@ import java.util.Objects;
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
 [/if]
-[type.typeDocument.access] class [type.name]Repository implements Repository.Readable<[type.name]> {
+[type.typeDocument.access] class [type.name]Repository implements [output.trim]
+Repository.Readable<[type.name]>
+[if not type.criteriaRepository.readonly], Repository.Writable<[type.name]>[/if]
+[if type.criteriaRepository.watch], Repository.Watchable<[type.name]>[/if]
+ {[/output.trim]
 
   private static final Class<[type.name]> ENTITY_CLASS =  [type.name].class;
 
@@ -74,6 +83,26 @@ import java.util.Objects;
   public Repository.Reader<[type.name]> findAll() {
     return find([type.name]Criteria.create());
   }
+
+[if not type.criteriaRepository.readonly]
+  @Override
+  public Publisher<Success> insert(Iterable<? extends [type.name]> docs) {
+    return backend.execute(ImmutableInsert.of(ImmutableList.copyOf(docs)));
+  }
+
+  @Override
+  public Publisher<Success> delete(DocumentCriteria<[type.name]> criteria) {
+    return backend.execute(ImmutableDelete.of(criteria));
+  }
+[/if]
+
+[if type.criteriaRepository.watch]
+  @Override
+  public Repository.Watcher<[type.name]> watcher(DocumentCriteria<[type.name]> criteria) {
+    return new InternalWatcher<>(criteria, backend);
+  }
+[/if]
+
 }
 
 [/template]

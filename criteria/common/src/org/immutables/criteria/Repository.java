@@ -27,8 +27,6 @@ public interface Repository<T> {
 
   /**
    * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
-   *
-   * TODO: Think about Reader vs Finder which also has delete methods
    */
   interface Reader<T> {
     Reader<T> limit(long limit);
@@ -46,6 +44,20 @@ public interface Repository<T> {
 
   }
 
+  /**
+   * Marker for a successful operation
+   */
+  enum Success {
+    SUCCESS
+  }
+
+  interface Writable<T> extends Repository<T> {
+    Publisher<Success> insert(Iterable<? extends T> docs);
+
+    Publisher<Success> delete(DocumentCriteria<T> criteria);
+
+  }
+
   interface Watcher<T> {
     Publisher<T> watch();
   }
@@ -56,7 +68,5 @@ public interface Repository<T> {
   interface Watchable<T> extends Repository<T> {
     Watcher<T> watcher(DocumentCriteria<T> criteria);
   }
-
-  // TODO think about Updater / Replacer interfaces
 
 }

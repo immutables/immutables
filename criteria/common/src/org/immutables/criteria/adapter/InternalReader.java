@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Simple implementation of reader interface. Keeps immutable query internally.
  */
-public class InternalReader<T> implements Repository.Reader<T> {
+public final class InternalReader<T> implements Repository.Reader<T> {
 
   private final ImmutableQuery<T> query;
   private final Backend backend;

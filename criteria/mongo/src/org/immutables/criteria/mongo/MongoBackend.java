@@ -16,13 +16,20 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.MongoCollection;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Query;
+import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.adapter.Reactive;
+import org.immutables.criteria.expression.ExpressionConverter;
 import org.reactivestreams.Publisher;
 
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -33,17 +40,55 @@ import java.util.Objects;
 class MongoBackend implements Backend {
 
   private final MongoCollection<?> collection;
+  private final ExpressionConverter<Bson> converter;
 
   MongoBackend(MongoCollection<?> collection) {
     this.collection = Objects.requireNonNull(collection, "collection");
+    this.converter = Mongos.converter(collection.getCodecRegistry());
+  }
+
+  private Bson toBson(DocumentCriteria<?> criteria) {
+    return converter.convert(Criterias.toExpression(criteria));
   }
 
   @Override
   public <T> Publisher<T> execute(Operation<T> operation) {
+    if (operation instanceof Operations.Query) {
+      return query((Operations.Query<T>) operation);
+    } else if (operation instanceof Operations.Insert) {
+      return (Publisher<T>) insert((Operations.Insert) operation);
+    } else if (operation instanceof Operations.Delete) {
+      return (Publisher<T>) delete((Operations.Delete) operation);
+    } else if (operation instanceof Operations.Watch) {
+      return watch((Operations.Watch<T>) operation);
+    }
+
+    return Reactive.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
+  }
+
+  private <T> Publisher<T> query(Operations.Query<T> query) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    final Bson filter = Mongos.converter(collection.getCodecRegistry()).convert(Criterias.toExpression(((Query) operation).criteria()));
-    return collection.find(filter);
+    return collection.find(toBson(query.criteria()));
+  }
+
+  private Publisher<Repository.Success> delete(Operations.Delete delete) {
+    final Bson filter = toBson(delete.criteria());
+    return Reactive.map(collection.deleteMany(filter), r -> Repository.Success.SUCCESS);
+  }
+
+  private Publisher<Repository.Success> insert(Operations.Insert insert) {
+    final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
+    return Reactive.map(collection.insertMany(insert.entities()), r -> Repository.Success.SUCCESS);
+  }
+
+  private <T> Publisher<T> watch(Operations.Watch<T> operation) {
+    final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
+    final Bson filter = new Document("fullDocument", toBson(operation.criteria()));
+    return collection.watch(Collections.singletonList(filter))
+            .fullDocument(FullDocument.UPDATE_LOOKUP)
+            .withDocumentClass(collection.getDocumentClass());
+
   }
 
 }
