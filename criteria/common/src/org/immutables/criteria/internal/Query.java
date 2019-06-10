@@ -28,10 +28,14 @@ import java.util.OptionalLong;
 public interface Query<T> extends Backend.Operation<T> {
 
   @Value.Parameter
-  DocumentCriteria<T> criteria();
+  DocumentCriteria<?> criteria();
+
+  @Value.Parameter
+  Class<T> returnType();
 
   OptionalLong limit();
 
   OptionalLong offset();
+
 
 }
