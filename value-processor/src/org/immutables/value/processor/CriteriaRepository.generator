@@ -40,9 +40,9 @@ import [starImport];
 
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.internal.Query;
-import org.immutables.criteria.internal.Backend;
-import org.immutables.criteria.internal.InternalReader;
+import org.immutables.criteria.adapter.Query;
+import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.InternalReader;
 
 import org.reactivestreams.Publisher;
 

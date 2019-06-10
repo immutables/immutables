@@ -27,9 +27,9 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.internal.Backend;
-import org.immutables.criteria.internal.Query;
-import org.immutables.criteria.internal.Reactive;
+import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Query;
+import org.immutables.criteria.adapter.Reactive;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.internal;
+package org.immutables.criteria.adapter;
 
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;

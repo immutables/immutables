@@ -14,28 +14,8 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.internal;
-
-import org.immutables.criteria.DocumentCriteria;
-import org.immutables.value.Value;
-
-import java.util.OptionalLong;
 
 /**
- * Query sent to a backend
+ * Code specific to adapters and criteria.
  */
-@Value.Immutable
-public interface Query<T> extends Backend.Operation<T> {
-
-  @Value.Parameter
-  DocumentCriteria<?> criteria();
-
-  @Value.Parameter
-  Class<T> returnType();
-
-  OptionalLong limit();
-
-  OptionalLong offset();
-
-
-}
+package org.immutables.criteria.adapter;

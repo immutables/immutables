@@ -17,7 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Region;
-import org.immutables.criteria.internal.Backend;
+import org.immutables.criteria.adapter.Backend;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
