@@ -18,6 +18,8 @@ package org.immutables.criteria;
 
 import org.reactivestreams.Publisher;
 
+import java.util.Arrays;
+
 /**
  * Access abstractions to a data-source.
  *
@@ -52,6 +54,11 @@ public interface Repository<T> {
   }
 
   interface Writable<T> extends Repository<T> {
+
+    default Publisher<Success> insert(T ... docs) {
+      return insert(Arrays.asList(docs));
+    }
+
     Publisher<Success> insert(Iterable<? extends T> docs);
 
     Publisher<Success> delete(DocumentCriteria<T> criteria);

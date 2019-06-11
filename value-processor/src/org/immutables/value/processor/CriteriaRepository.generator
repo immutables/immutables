@@ -74,6 +74,24 @@ Repository.Readable<[type.name]>
      this.backend = Objects.requireNonNull(backend, "backend");
   }
 
+[for a = type.idAttribute]
+[if a]
+  /**
+   * Find all [type.name](s) given their ids {@code [a.name]}
+   */
+  public Repository.Reader<[type.name]> findById([a.type] ... [a.name]s) {
+    return findById(java.util.Arrays.asList([a.name]s));
+  }
+
+  /**
+   * Find all [type.name](s) given their ids {@code [a.name]}
+   */
+  public Repository.Reader<[type.name]> findById(Iterable<? super [a.type]> [a.name]s) {
+    return find([type.name]Criteria.create().[a.name].isIn([a.name]s));
+  }
+[/if]
+[/for]
+
   @Override
   public Repository.Reader<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
     return new InternalReader<>(criteria, ENTITY_CLASS, backend);
