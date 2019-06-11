@@ -86,7 +86,7 @@ Repository.Readable<[type.name]>
   /**
    * Find all [type.name](s) given their ids {@code [a.name]}
    */
-  public Repository.Reader<[type.name]> findById(Iterable<? super [a.type]> [a.name]s) {
+  public Repository.Reader<[type.name]> findById(Iterable<? extends [a.type]> [a.name]s) {
     return find([type.name]Criteria.create().[a.name].isIn([a.name]s));
   }
 [/if]

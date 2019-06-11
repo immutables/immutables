@@ -60,12 +60,12 @@ public interface ObjectMatcher<R, V> {
     return isNotIn(values);
   }
 
-  default R isIn(Iterable<? super V> values) {
+  default R isIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
     return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  default R isNotIn(Iterable<? super V> values) {
+  default R isNotIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
     return Matchers.extract(this).<R>factory1().create1(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
