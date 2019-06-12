@@ -34,6 +34,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava2.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.geode</groupId>
             <artifactId>geode-core</artifactId>
             <version>${geode.version}</version>
@@ -49,12 +54,6 @@
             <artifactId>criteria-common</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex.rxjava2</groupId>
-            <artifactId>rxjava</artifactId>
-            <version>${rxjava2.version}</version>
             <scope>test</scope>
         </dependency>
 
