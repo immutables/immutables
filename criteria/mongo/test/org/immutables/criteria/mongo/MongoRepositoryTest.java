@@ -71,9 +71,9 @@ public class MongoRepositoryTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    final PersonGenerator generator = new PersonGenerator();
+    final Person person = new PersonGenerator().next().withFullName("test");
 
-    Flowable.fromPublisher(collection.insertOne(generator.next().withFullName("test")))
+    Flowable.fromPublisher(repository.insert(person))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
