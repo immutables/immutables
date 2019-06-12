@@ -18,6 +18,7 @@ package org.immutables.criteria.mongo;
 
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.MongoCollection;
+import io.reactivex.Flowable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criterias;
@@ -25,15 +26,12 @@ import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.adapter.Reactive;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Allows to query and modify mongo documents using criteria API.
@@ -66,7 +64,7 @@ class MongoBackend implements Backend {
       return watch((Operations.Watch<T>) operation);
     }
 
-    return Reactive.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
+    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
   private <T> Publisher<T> query(Operations.Query<T> query) {
@@ -77,13 +75,14 @@ class MongoBackend implements Backend {
 
   private Publisher<Repository.Success> delete(Operations.Delete delete) {
     final Bson filter = toBson(delete.criteria());
-    return Reactive.map(collection.deleteMany(filter), r -> Repository.Success.SUCCESS);
+    return Flowable.fromPublisher(collection.deleteMany(filter))
+            .map(r -> Repository.Success.SUCCESS);
   }
 
   private Publisher<Repository.Success> insert(Operations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = (List<Object>) insert.values();
-    return Reactive.map(collection.insertMany(values), r -> Repository.Success.SUCCESS);
+    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> Repository.Success.SUCCESS);
   }
 
   private <T> Publisher<T> watch(Operations.Watch<T> operation) {

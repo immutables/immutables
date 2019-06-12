@@ -20,16 +20,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.reactivex.Flowable;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Reactive;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;
@@ -68,14 +68,16 @@ public class ElasticsearchBackend implements Backend {
     return queryInternal((Operations.Query<T>) query);
   }
 
-  private <T> Publisher<T> queryInternal(Operations.Query<T> query) {
+  private <T> Flowable<T> queryInternal(Operations.Query<T> query) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
     final Expression expression = Criterias.toExpression(query.criteria());
     final ObjectNode json = Elasticsearch.converter(mapper).convert(expression);
     query.limit().ifPresent(limit -> json.put("size", limit));
     query.offset().ifPresent(offset -> json.put("start", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
-    return Reactive.flatMapIterable(Reactive.map(new AsyncRestPublisher(restClient, request), converter((Class<T>) type)), x -> x);
+    return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
+            .map(r -> converter((Class<T>) type).apply(r))
+            .flatMapIterable(x -> x);
   }
 
   private <T> Function<Response, List<T>> converter(Class<T> type) {
