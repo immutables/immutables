@@ -44,17 +44,17 @@ import java.util.function.Function;
 /**
  * Queries <a href="https://www.elastic.co/">ElasticSearch</a> data-store.
  */
-public class ElasticBackend implements Backend {
+public class ElasticsearchBackend implements Backend {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
   private final Class<?> type;
   private final String index;
 
-  public ElasticBackend(RestClient restClient,
-                        ObjectMapper mapper,
-                        Class<?> type,
-                        String index) {
+  public ElasticsearchBackend(RestClient restClient,
+                              ObjectMapper mapper,
+                              Class<?> type,
+                              String index) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.type = type;

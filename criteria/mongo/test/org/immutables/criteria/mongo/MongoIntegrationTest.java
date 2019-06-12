@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Basic tests of mongo adapter
  */
-public class MongoRepositoryTest {
+public class MongoIntegrationTest {
 
 
   private final MongoServer server = new MongoServer(new MemoryBackend());
