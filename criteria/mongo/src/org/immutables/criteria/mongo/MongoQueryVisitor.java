@@ -17,101 +17,61 @@
 package org.immutables.criteria.mongo;
 
 import com.google.common.base.Preconditions;
-import org.bson.BsonArray;
-import org.bson.BsonDocument;
-import org.bson.BsonDocumentWriter;
-import org.bson.BsonNull;
-import org.bson.BsonString;
-import org.bson.BsonValue;
-import org.bson.BsonWriter;
-import org.bson.codecs.Encoder;
-import org.bson.codecs.EncoderContext;
-import org.bson.codecs.configuration.CodecRegistry;
+import com.mongodb.client.model.Filters;
+import org.bson.conversions.Bson;
+import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
-import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * Generates mongo find using visitor API.
  */
-class MongoQueryVisitor implements ExpressionVisitor<BsonValue> {
+class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
-  private final CodecRegistry registry;
-
-  MongoQueryVisitor(CodecRegistry registry) {
-    this.registry = Objects.requireNonNull(registry, "registry");
+  MongoQueryVisitor() {
+    super(e -> { throw new UnsupportedOperationException(); });
   }
 
   @Override
-  public BsonValue visit(Call call) {
+  public Bson visit(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      Preconditions.checkArgument(args.get(0) instanceof Path, "first argument should be path access");
-      Preconditions.checkArgument(args.get(1) instanceof Constant, "second argument should be constant");
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
 
-      BsonValue field = args.get(0).accept(this);
-      BsonValue value = args.get(1).accept(this);
-      Preconditions.checkNotNull(field, "field");
-      Preconditions.checkNotNull(value, "value");
-
-      BsonDocument doc = new BsonDocument();
-      doc.put(field.asString().getValue(), op == Operators.NOT_EQUAL ? new BsonDocument("$ne", value) : value);
-
-      return doc;
+      return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
     }
 
+    if (op == Operators.IN || op == Operators.NOT_IN) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      @SuppressWarnings("unchecked")
+      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
+      Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
+
+      return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
+    }
+
+
     if (op == Operators.AND || op == Operators.OR) {
-      final BsonDocument doc = new BsonDocument();
-
-      final BsonArray array = call.arguments().stream()
+      final List<Bson> list = call.arguments().stream()
               .map(a -> a.accept(this))
-              .collect(Collectors.toCollection(BsonArray::new));
+              .collect(Collectors.toList());
 
-      doc.put(op == Operators.AND ? "$and" : "$or", array);
-
-      return doc;
+      return op == Operators.AND ? Filters.and(list) : Filters.or(list);
     }
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
 
-  @Override
-  public BsonValue visit(Constant constant) {
-    final Object value = constant.value();
 
-    if (value == null) {
-      return BsonNull.VALUE;
-    }
-
-
-    @SuppressWarnings("unchecked")
-    final Encoder<Object> encoder = (Encoder<Object>) registry.get(value.getClass());
-
-    final BsonDocument bson = new BsonDocument();
-    final BsonWriter writer = new BsonDocumentWriter(bson);
-    // Bson doesn't allow to write directly scalars / primitives, they have to be embedded in a
-    // document.
-    writer.writeStartDocument();
-    writer.writeName("$");
-    encoder.encode(writer, value, EncoderContext.builder().build());
-    writer.writeEndDocument();
-    writer.flush();
-    return bson.get("$");
-  }
-
-  @Override
-  public BsonString visit(Path path) {
-    return new BsonString(path.toStringPath());
-  }
 }

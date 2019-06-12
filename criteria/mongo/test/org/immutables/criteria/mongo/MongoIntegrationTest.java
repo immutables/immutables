@@ -88,9 +88,12 @@ public class MongoIntegrationTest {
   @Test
   public void basic() {
     execute(PersonCriteria.create().fullName.isEqualTo("test"), 1);
+    execute(PersonCriteria.create().fullName.isNotEqualTo("test"), 0);
     execute(PersonCriteria.create().fullName.isEqualTo("test")
             .age.isNotEqualTo(1), 1);
     execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
+    execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
+    execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
   }
 
   private void execute(DocumentCriteria<Person> expr, int count) {

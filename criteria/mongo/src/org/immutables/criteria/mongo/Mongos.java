@@ -40,8 +40,7 @@ final class Mongos {
       if (Expressions.isNil(expression)) {
         return new Document();
       }
-      MongoQueryVisitor visitor = new MongoQueryVisitor(registry);
-      return expression.accept(visitor).asDocument();
+      return expression.accept(new MongoQueryVisitor());
     };
   }
 

@@ -16,14 +16,30 @@
 
 package org.immutables.criteria.expression;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
+/**
+ * Utilities to simplify visiting {@link ExpressionVisitor} and processing an {@link Expression}.
+ */
 public final class Visitors {
 
   private Visitors() {}
 
+  /**
+   * Function which returns an exception (to be thrown) when an expressin does not match expected type
+   */
+  private static final BiFunction<? super Expression, Class<? extends Expression>, IllegalArgumentException> ERROR_FN =
+          (e, type) -> new IllegalArgumentException(String.format("Expression %s is not of type %s", e, type.getSimpleName()));
 
+
+  /**
+   * If {@code expression} is {@link Path} returns optional describing found constant
+   * otherwise it is an empty optional.
+   */
   public static Optional<Path> maybePath(Expression expression) {
+    Objects.requireNonNull(expression, "expression");
     return expression.accept(new AbstractExpressionVisitor<Optional<Path>>(Optional.empty()) {
       @Override
       public Optional<Path> visit(Path path) {
@@ -32,7 +48,19 @@ public final class Visitors {
     });
   }
 
+  /**
+   * Assumes current expression is a {@link Path}. Throws exception when it is not.
+   */
+  public static Path toPath(Expression expression) {
+    return maybePath(expression).orElseThrow(() -> ERROR_FN.apply(expression, Path.class));
+  }
+
+  /**
+   * If {@code expression} is {@link Constant} returns optional describing found constant
+   * otherwise it is an empty optional.
+   */
   public static Optional<Constant> maybeConstant(Expression expression) {
+    Objects.requireNonNull(expression, "expression");
     return expression.accept(new AbstractExpressionVisitor<Optional<Constant>>(Optional.empty()) {
       @Override
       public Optional<Constant> visit(Constant constant) {
@@ -40,5 +68,13 @@ public final class Visitors {
       }
     });
   };
+
+  /**
+   * Assumes current expression is a {@link Constant}. Throws exception when it is not.
+   */
+  public static Constant toConstant(Expression expression) {
+    return maybeConstant(expression)
+            .orElseThrow(() -> ERROR_FN.apply(expression, Constant.class));
+  }
 
 }
