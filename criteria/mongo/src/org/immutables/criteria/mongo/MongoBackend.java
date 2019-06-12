@@ -25,15 +25,13 @@ import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.adapter.Reactive;
+import org.immutables.criteria.internal.reactive.Reactive;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Allows to query and modify mongo documents using criteria API.

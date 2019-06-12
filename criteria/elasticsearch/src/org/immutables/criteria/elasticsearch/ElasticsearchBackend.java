@@ -29,7 +29,7 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Reactive;
+import org.immutables.criteria.internal.reactive.Reactive;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;
