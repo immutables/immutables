@@ -30,7 +30,10 @@ import org.immutables.criteria.expression.ExpressionConverter;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Allows to query and modify mongo documents using criteria API.
@@ -79,7 +82,8 @@ class MongoBackend implements Backend {
 
   private Publisher<Repository.Success> insert(Operations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
-    return Reactive.map(collection.insertMany(insert.entities()), r -> Repository.Success.SUCCESS);
+    final List<Object> values = (List<Object>) insert.values();
+    return Reactive.map(collection.insertMany(values), r -> Repository.Success.SUCCESS);
   }
 
   private <T> Publisher<T> watch(Operations.Watch<T> operation) {
