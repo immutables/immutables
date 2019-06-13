@@ -17,10 +17,10 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
@@ -31,9 +31,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-class GeodeQueryVisitor implements ExpressionVisitor<String> {
+class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
   GeodeQueryVisitor() {
+    super(e -> { throw new UnsupportedOperationException(); });
   }
 
   @Override
@@ -44,8 +45,8 @@ class GeodeQueryVisitor implements ExpressionVisitor<String> {
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
 
-      final Path path = Visitors.maybePath(args.get(0)).orElseThrow(() -> new IllegalArgumentException("Expected path. Got : " + args.get(0)));
-      final Constant constant = Visitors.maybeConstant(args.get(1)).orElseThrow(() -> new IllegalArgumentException("Expected constant. Got " + args.get(1)));
+      final Path path = Visitors.toPath(args.get(0));
+      final Constant constant = Visitors.toConstant(args.get(1));
       return String.format("%s = %s", path.toStringPath(), toString(constant.value()));
     }
 
@@ -57,41 +58,25 @@ class GeodeQueryVisitor implements ExpressionVisitor<String> {
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final Path field = Visitors.maybePath(args.get(0)).orElseThrow(() -> new IllegalArgumentException("Expected path. Got : " + args.get(0)));
+      final Path field = Visitors.toPath(args.get(0));
       @SuppressWarnings("unchecked")
-      final Iterable<Object> values = (Iterable<Object>) Visitors.maybeConstant(args.get(1))
-              .orElseThrow(() -> new IllegalArgumentException("Expected constant. Got " + args.get(1))).value();
+      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
 
-
-      String valuesAsString = StreamSupport.stream(values.spliterator(), false)
+      final String valuesAsString = StreamSupport.stream(values.spliterator(), false)
               .map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
 
-      String query = String.format("%s in SET(%s)", field.toStringPath(), valuesAsString);
+      final String query = String.format("%s in SET(%s)", field.toStringPath(), valuesAsString);
 
-      if (op == Operators.NOT_IN) {
-        query = "NOT " + query;
-      }
-
-      return query;
+      return op == Operators.NOT_IN ? "NOT " + query : query;
     }
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
-  @Override
-  public String visit(Constant constant) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public String visit(Path path) {
-    throw new UnsupportedOperationException();
-  }
-
   private static String toString(Object value) {
     if (value == null) {
       return "null";
-    } else if (value instanceof String) {
+    } else if (value instanceof CharSequence) {
       return "'" + value + "'";
     } else {
       return Objects.toString(value);
