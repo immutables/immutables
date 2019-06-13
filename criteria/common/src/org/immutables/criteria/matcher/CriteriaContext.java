@@ -41,8 +41,8 @@ public final class CriteriaContext implements Expressional {
   private final Path path;
   private final Operator operator;
 
-  public CriteriaContext(CriteriaCreator<?> creator) {
-    this(Operators.AND, DnfExpression.create(), null, ImmutableList.of(creator));
+  public CriteriaContext(Class<?> entityClass, CriteriaCreator<?> creator) {
+    this(Operators.AND, DnfExpression.create(Expressions.root(entityClass)), null, ImmutableList.of(creator));
   }
 
   private CriteriaContext(Operator operator, DnfExpression expression, Path path, List<CriteriaCreator<?>> creators) {

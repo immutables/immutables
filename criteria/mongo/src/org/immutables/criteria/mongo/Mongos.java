@@ -17,7 +17,6 @@
 package org.immutables.criteria.mongo;
 
 import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Expressions;
@@ -34,14 +33,10 @@ final class Mongos {
   /**
    * Convert existing expression to Bson
    */
-  static ExpressionConverter<Bson> converter(CodecRegistry registry) {
-    Objects.requireNonNull(registry, "registry");
-    return expression -> {
-      if (Expressions.isNil(expression)) {
-        return new Document();
-      }
-      return expression.accept(new MongoQueryVisitor());
-    };
+  static ExpressionConverter<Bson> converter() {
+    return expression -> Expressions.extractPredicate(expression)
+            .map(e -> e.accept(new MongoQueryVisitor()))
+            .orElseGet(Document::new);
   }
 
 }

@@ -22,6 +22,7 @@ import com.google.common.collect.Iterables;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A set of predefined utilities and factories for expressions like {@link Constant} or {@link Call}
@@ -54,14 +55,17 @@ public final class Expressions {
     return reduce(Operators.OR, expressions);
   }
 
+  public static Root root(Class<?> entityClass) {
+    return Root.of(entityClass);
+  }
+
   private static  Expression reduce(Operator operator, Iterable<? extends Expression> expressions) {
-    final Iterable<? extends Expression> filtered = Iterables.filter(expressions, e -> !isNil(e) );
-    final int size = Iterables.size(filtered);
+    final int size = Iterables.size(expressions);
 
     if (size == 0) {
-      return nil();
+      throw new IllegalArgumentException("Empty iterator");
     } else if (size == 1) {
-      return filtered.iterator().next();
+      return expressions.iterator().next();
     }
 
     return call(operator, expressions);
@@ -86,33 +90,26 @@ public final class Expressions {
       public V visit(Path path, @Nullable Void context) {
         return visitor.visit(path);
       }
+
+      @Override
+      public V visit(Root root, @Nullable Void context) {
+        return visitor.visit(root);
+      }
     };
   }
 
-  /**
-   * Combines expressions <a href="https://en.wikipedia.org/wiki/Disjunctive_normal_form">Disjunctive normal form</a>
-   */
-  public static Expression dnf(Operator operator, Expression existing, Expression newExpression) {
-    if (!(operator == Operators.AND || operator == Operators.OR)) {
-      throw new IllegalArgumentException(String.format("Expected %s for operator but got %s",
-              Arrays.asList(Operators.AND, Operators.OR), operator));
+  public static Optional<Expression> extractPredicate(Expression expression) {
+    if (expression instanceof Root) {
+      return ((Root) expression).expression();
     }
 
-    if (isNil(existing)) {
-      return DnfExpression.create().and(newExpression);
-    }
-
-    if (!(existing instanceof DnfExpression)) {
-      throw new IllegalStateException(String.format("Expected existing expression to be %s but was %s",
-              DnfExpression.class.getName(), existing.getClass().getName()));
-    }
-
-    @SuppressWarnings("unchecked")
-    final DnfExpression conjunction = (DnfExpression) existing;
-    return operator == Operators.AND ? conjunction.and(newExpression) : conjunction.or(newExpression);
+    return Optional.of(expression);
   }
 
-  public static Call not(Call call) {
+  public static Expression not(Expression call) {
+    if (call instanceof Root) {
+      return ((Root) call).transform(e -> call(Operators.NOT, e));
+    }
     return Expressions.call(Operators.NOT, call);
   }
 
@@ -139,18 +136,6 @@ public final class Expressions {
         return visitor.visit(this, context);
       }
     };
-  }
-
-  /**
-   * Used as sentinel for {@code noop} expression.
-   */
-  @SuppressWarnings("unchecked")
-  public static  Expression nil() {
-    return NilExpression.INSTANCE;
-  }
-
-  public static boolean isNil(Expression expression) {
-    return expression == NilExpression.INSTANCE;
   }
 
 }

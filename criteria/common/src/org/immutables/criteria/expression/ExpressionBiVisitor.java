@@ -32,4 +32,6 @@ public interface ExpressionBiVisitor<V, C> {
 
   V visit(Path path, @Nullable C context);
 
+  V visit(Root root, @Nullable C context);
+
 }

@@ -104,7 +104,7 @@ import [starImport];
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
    private final static class ExpressionalSelf extends Self implements Expressional {
       private ExpressionalSelf() {
-         this(new CriteriaContext(creator()).withCreators(creator(), creator(), creator()));
+         this(new CriteriaContext([type.name].class, creator()).withCreators(creator(), creator(), creator()));
       }
 
       private ExpressionalSelf(CriteriaContext context) {

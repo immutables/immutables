@@ -45,7 +45,7 @@ class MongoBackend implements Backend {
 
   MongoBackend(MongoCollection<?> collection) {
     this.collection = Objects.requireNonNull(collection, "collection");
-    this.converter = Mongos.converter(collection.getCodecRegistry());
+    this.converter = Mongos.converter();
   }
 
   private Bson toBson(DocumentCriteria<?> criteria) {

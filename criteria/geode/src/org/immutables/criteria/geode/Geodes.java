@@ -32,11 +32,8 @@ class Geodes {
    */
   static ExpressionConverter<String> converter() {
     return expression -> {
-      if (Expressions.isNil(expression)) {
-        return "";
-      }
-
-      return expression.accept(new GeodeQueryVisitor());
+      return Expressions.extractPredicate(expression).map(e -> e.accept(new GeodeQueryVisitor()))
+              .orElse("");
     };
   }
 }
