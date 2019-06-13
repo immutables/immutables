@@ -24,10 +24,13 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.expression.Expressions;
 import org.reactivestreams.Publisher;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class GeodeBackend implements Backend {
 
@@ -43,9 +46,12 @@ public class GeodeBackend implements Backend {
       return query((Operations.Query<T>) operation);
     } else if (operation instanceof Operations.Insert) {
       return (Publisher<T>) insert((Operations.Insert) operation);
+    } else if (operation instanceof Operations.Delete) {
+      return (Publisher<T>) delete((Operations.Delete) operation);
     }
 
-    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
+    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported by %s",
+            operation, GeodeBackend.class.getSimpleName())));
   }
 
   private <T> Flowable<T> query(Operations.Query<T> op) {
@@ -74,10 +80,21 @@ public class GeodeBackend implements Backend {
               Criteria.Id.class.getName()));
     }
 
-
-    Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
-    Region<Object, T> region = (Region<Object, T>) this.region;
+    final Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
+    final Region<Object, T> region = (Region<Object, T>) this.region;
     return Completable.fromRunnable(() -> region.putAll(insert.toMap())).toFlowable();
+  }
+
+  private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
+    if (!Geodes.hasPredicate(op.criteria())) {
+      // means delete all (clear region)
+      return Completable.fromRunnable(region::clear)
+              .toSingleDefault(Repository.Success.SUCCESS)
+              .toFlowable();
+    }
+
+    // id only
+    throw new UnsupportedOperationException("Only deleteAll() currently supported. Not " + op.criteria());
   }
 
 }
