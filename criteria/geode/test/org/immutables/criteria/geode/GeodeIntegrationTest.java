@@ -16,18 +16,71 @@
 
 package org.immutables.criteria.geode;
 
+import io.reactivex.Flowable;
+import org.apache.geode.cache.Cache;
+import org.apache.geode.cache.Region;
+import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.personmodel.PersonGenerator;
+import org.immutables.criteria.personmodel.PersonRepository;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
+import java.util.concurrent.TimeUnit;
+
+import static org.immutables.check.Checkers.check;
+
 public class GeodeIntegrationTest {
 
   @ClassRule
   public static final GeodeResource GEODE = GeodeResource.create();
 
+  private static Region<String, Person> region;
+
+  private PersonRepository repository;
+
+  private PersonGenerator generator = new PersonGenerator();
+
+  @BeforeClass
+  public static void setup() {
+    Cache cache = GEODE.cache();
+    region =  cache.<String, Person>createRegionFactory()
+            .setKeyConstraint(String.class)
+            .setValueConstraint(Person.class)
+            .create("mytest");
+  }
+
+  @Before
+  public void setUp() throws Exception {
+    repository = new PersonRepository(new GeodeBackend(region));
+  }
+
   @Test
   public void basic() {
+    Flowable.fromPublisher(repository.insert(generator.next().withId("one")))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete();
 
+    Person person= Flowable.fromPublisher(repository.findById("one").fetch())
+            .blockingFirst();
+
+    check(person.id()).is("one");
+
+    region.clear();
+
+    // nothing returned
+    Flowable.fromPublisher(repository.findById("one").fetch())
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValueCount(0);
+
+    Flowable.fromPublisher(repository.findAll().fetch())
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValueCount(0);
   }
 }

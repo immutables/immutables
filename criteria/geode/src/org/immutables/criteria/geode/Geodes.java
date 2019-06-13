@@ -17,20 +17,28 @@
 package org.immutables.criteria.geode;
 
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 
 /**
  * Util class for Geode
  */
 class Geodes {
 
-  public static String toGeodeQuery(String regionName, Expression expression) {
-    final String query = expression.accept(new GeodeQueryVisitor()).toString();
+  static String toGeodeQuery(String regionName, Expression expression) {
 
-    if (query.isEmpty()) {
-      return String.format("select * from /%s", regionName);
+    final String emptyQuery = String.format("select * from /%s", regionName);
+
+    if (Expressions.isNil(expression)) {
+      return emptyQuery;
     }
 
-    return String.format("select * from /%s where %s", regionName, query);
+    final String predicate = expression.accept(new GeodeQueryVisitor());
+
+    if (predicate.isEmpty()) {
+      return emptyQuery;
+    }
+
+    return String.format("select * from /%s where %s", regionName, predicate);
   }
 
 }

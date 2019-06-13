@@ -16,10 +16,17 @@
 
 package org.immutables.criteria.geode;
 
+import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import org.apache.geode.cache.Region;
+import org.immutables.criteria.Criteria;
+import org.immutables.criteria.Criterias;
+import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Operations;
 import org.reactivestreams.Publisher;
 
+import java.util.Collection;
 import java.util.Objects;
 
 public class GeodeBackend implements Backend {
@@ -31,9 +38,41 @@ public class GeodeBackend implements Backend {
   }
 
   @Override
-  public <T> Publisher<T> execute(Operation<T> query) {
-    throw new UnsupportedOperationException();
+  public <T> Publisher<T> execute(Operation<T> operation) {
+    if (operation instanceof Operations.Query) {
+      return query((Operations.Query<T>) operation);
+    } else if (operation instanceof Operations.Insert) {
+      return (Publisher<T>) insert((Operations.Insert) operation);
+    }
+
+    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
+  private <T> Flowable<T> query(Operations.Query<T> op) {
+    StringBuilder query = new StringBuilder();
+
+    query.append(Geodes.toGeodeQuery(region.getName(), Criterias.toExpression(op.criteria())));
+
+    op.limit().ifPresent(limit -> query.append(" LIMIT ").append(limit));
+    op.offset().ifPresent(offset -> query.append(" OFFSET ").append(offset));
+
+    return Flowable.<Collection<T>>fromCallable(() -> region.query(query.toString()))
+            .flatMapIterable(x -> x);
+  }
+
+  private <T> Flowable<Repository.Success> insert(Operations.Insert<T> op) {
+    if (!(op instanceof Operations.KeyedInsert)) {
+      throw new UnsupportedOperationException(
+              String.format("%s supports only %s. Did you define a key (@%s) on your domain class ?",
+              GeodeBackend.class.getSimpleName(),
+              Operations.KeyedInsert.class.getSimpleName(),
+              Criteria.Id.class.getName()));
+    }
+
+
+    Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
+    Region<Object, T> region = (Region<Object, T>) this.region;
+    return Completable.fromRunnable(() -> region.putAll(insert.toMap())).toFlowable();
+  }
 
 }
