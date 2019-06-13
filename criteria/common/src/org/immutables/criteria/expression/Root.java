@@ -42,6 +42,10 @@ public final class Root implements Expression {
     return visitor.visit(this, context);
   }
 
+  public Class<?> entityClass() {
+    return this.entityClass;
+  }
+
   public Optional<Expression> expression() {
     return Optional.ofNullable(expression);
   }

@@ -19,7 +19,9 @@ package org.immutables.criteria.geode;
 import io.reactivex.Flowable;
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
+import org.immutables.criteria.Repository;
 import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
@@ -63,6 +65,8 @@ public class GeodeIntegrationTest {
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
 
+    check(region.keySet()).hasSize(1);
+
     Person person= Flowable.fromPublisher(repository.findById("one").fetch())
             .blockingFirst();
 
@@ -82,5 +86,29 @@ public class GeodeIntegrationTest {
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete()
             .assertValueCount(0);
+  }
+
+  @Test
+  public void delete() {
+    check(region.values()).isEmpty();
+
+    Flowable.fromPublisher(repository.findAll().fetch())
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertValueCount(0)
+            .assertComplete();
+
+    // delete all
+    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).is(Repository.Success.SUCCESS);
+    check(region.keySet()).isEmpty();
+
+    Flowable.fromPublisher(repository.insert(generator.next()))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete();
+
+    check(region.keySet()).hasSize(1);
+    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).is(Repository.Success.SUCCESS);
+    check(region.keySet()).hasSize(0);
   }
 }
