@@ -25,6 +25,7 @@ import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Root;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -58,12 +59,9 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
    * Factory method to create evaluator instance
    */
   public static <T> Predicate<T> of(Expression expression) {
-    if (Expressions.isNil(expression)) {
-      // always true
-      return instance -> true;
-    }
-
-    return new InMemoryExpressionEvaluator<>(expression);
+    return Expressions.extractPredicate(expression)
+            .<Predicate<T>>map(InMemoryExpressionEvaluator::new)
+            .orElse(e -> Boolean.TRUE);
   }
 
   @Override
@@ -195,6 +193,11 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     @Override
     public Object visit(Path path) {
       return extractor.extract(path);
+    }
+
+    @Override
+    public Object visit(Root root) {
+      return root.expression().map(e -> e.accept(this)).orElse(Boolean.TRUE);
     }
   }
 

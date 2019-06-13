@@ -49,4 +49,9 @@ public class AbstractExpressionVisitor<T> implements ExpressionVisitor<T> {
   public T visit(Path path) {
     return mapper.apply(path);
   }
+
+  @Override
+  public T visit(Root root) {
+    return root.expression().map(e -> e.accept(this)).orElseGet(() -> mapper.apply(root));
+  }
 }

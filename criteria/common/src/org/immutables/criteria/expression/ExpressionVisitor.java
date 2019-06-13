@@ -31,4 +31,6 @@ public interface ExpressionVisitor<V> {
 
   V visit(Path path);
 
+  V visit(Root root);
+
 }

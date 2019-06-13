@@ -17,26 +17,24 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.google.common.base.Preconditions;
+import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
-import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Evaluating expression into <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html">Elastic Query DSL</a>
  */
-public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilders.QueryBuilder> {
+class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.QueryBuilder> {
 
+  ElasticsearchQueryVisitor() {
+    super(e -> { throw new UnsupportedOperationException(); });
+  }
 
   @Override
   public QueryBuilders.QueryBuilder visit(Call call) {
@@ -45,8 +43,8 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = args.get(0).accept(new PathVisitor());
-      final Object right = args.get(1).accept(new ConstantVisitor());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object right = Visitors.toConstant(args.get(1)).value();
 
       QueryBuilders.QueryBuilder builder = QueryBuilders.termQuery(field, right);
       if (op == Operators.NOT_EQUAL) {
@@ -58,9 +56,9 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = args.get(0).accept(new PathVisitor());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
       @SuppressWarnings("unchecked")
-      final Iterable<Object> values = (Iterable<Object>) args.get(1).accept(new ConstantVisitor());
+      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
       Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
 
       QueryBuilders.QueryBuilder builder = QueryBuilders.termsQuery(field, values);
@@ -90,8 +88,8 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
 
     if (OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = args.get(0).accept(new PathVisitor());
-      final Object value = args.get(1).accept(new ConstantVisitor());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
       final QueryBuilders.RangeQueryBuilder builder = QueryBuilders.rangeQuery(field);
 
       if (op == Operators.GREATER_THAN) {
@@ -113,49 +111,4 @@ public class ElasticsearchQueryVisitor implements ExpressionVisitor<QueryBuilder
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
-  @Override
-  public QueryBuilders.QueryBuilder visit(Constant constant) {
-    return null;
-  }
-
-  @Override
-  public QueryBuilders.QueryBuilder visit(Path path) {
-    return null;
-  }
-
-  private static class ConstantVisitor implements ExpressionVisitor<Object> {
-
-    @Override
-    public Object visit(Call call) {
-      throw new UnsupportedOperationException("Expected a constant");
-    }
-
-    @Override
-    public Object visit(Constant constant) {
-      return constant.value();
-    }
-
-    @Override
-    public Object visit(Path path) {
-      throw new UnsupportedOperationException("Expected a constant");
-    }
-  }
-
-  private static class PathVisitor implements ExpressionVisitor<String> {
-
-    @Override
-    public String visit(Call call) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String visit(Constant constant) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String visit(Path path) {
-      return path.toStringPath();
-    }
-  }
 }

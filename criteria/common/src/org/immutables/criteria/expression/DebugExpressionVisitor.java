@@ -23,13 +23,14 @@ import java.util.Objects;
 /**
  * Used to output expression tree as string. Useful for debugging expressions.
  */
-public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
+public class DebugExpressionVisitor<Void> extends AbstractExpressionVisitor<Void> {
 
   private final PrintWriter writer;
 
   private int depth;
 
   public DebugExpressionVisitor(PrintWriter writer) {
+    super(e -> { throw new UnsupportedOperationException(); });
     this.writer = Objects.requireNonNull(writer, "writer");
   }
 
@@ -58,5 +59,10 @@ public class DebugExpressionVisitor<Void> implements ExpressionVisitor<Void> {
     writer.print(" path=");
     writer.print(path.toStringPath());
     return null;
+  }
+
+  @Override
+  public Void visit(Root root) {
+    return root.expression().map(e -> e.accept(this)).orElse(null);
   }
 }

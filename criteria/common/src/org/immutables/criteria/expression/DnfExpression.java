@@ -32,16 +32,18 @@ import java.util.Objects;
  */
 public class DnfExpression implements Expressional, Expression {
 
+  private final Root root;
   private final List<Expression> conjunctions;
   private final List<Expression> disjunctions;
 
-  private DnfExpression(List<Expression> conjunctions, List<Expression> disjunctions) {
+  private DnfExpression(Root root, List<Expression> conjunctions, List<Expression> disjunctions) {
+    this.root = root;
     this.conjunctions = ImmutableList.copyOf(conjunctions);
     this.disjunctions = ImmutableList.copyOf(disjunctions);
   }
 
-  public static DnfExpression create() {
-    return new DnfExpression(Collections.emptyList(), Collections.emptyList());
+  public static DnfExpression create(Root root) {
+    return new DnfExpression(root, Collections.emptyList(), Collections.emptyList());
   }
 
   @Nullable
@@ -61,19 +63,23 @@ public class DnfExpression implements Expressional, Expression {
       expressions.add(Expressions.and(conjunctions));
     }
 
-    return Expressions.or(expressions);
+    if (disjunctions.isEmpty() && conjunctions.isEmpty()) {
+      return root;
+    }
+
+    return root.withExpression(Expressions.or(expressions));
   }
 
   public DnfExpression and(Expression expression) {
     Objects.requireNonNull(expression, "expression");
     ImmutableList<Expression> newConjunctions = ImmutableList.<Expression>builder().addAll(conjunctions).add(expression).build();
-    return new DnfExpression(newConjunctions, disjunctions);
+    return new DnfExpression(root, newConjunctions, disjunctions);
   }
 
   public DnfExpression or(Expression expression) {
     Objects.requireNonNull(expression, "expression");
     List<Expression> newDisjunction = ImmutableList.<Expression>builder().addAll(disjunctions).add(Expressions.and(conjunctions)).build();
-    return new DnfExpression(ImmutableList.of(expression), newDisjunction);
+    return new DnfExpression(root, ImmutableList.of(expression), newDisjunction);
   }
 
 }
