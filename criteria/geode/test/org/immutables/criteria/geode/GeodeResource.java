@@ -33,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Manages embedded Geode instance using native {@link ServerLauncher}.
  */
-public class GeodeResource extends ExternalResource {
+class GeodeResource extends ExternalResource {
 
   private final ServerLauncher launcher;
 

@@ -100,6 +100,13 @@ public final class Operations {
 
     List<Map.Entry<K, V>> entries();
 
+    /**
+     * Convert events to a map (assumes no duplicate keys)
+     */
+    default Map<K, V> toMap() {
+      return entries().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
     @Override
     default List<V> values() {
       return entries().stream().map(Map.Entry::getValue).collect(Collectors.toList());
