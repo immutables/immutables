@@ -49,9 +49,14 @@ public class GeodeBackend implements Backend {
   }
 
   private <T> Flowable<T> query(Operations.Query<T> op) {
-    StringBuilder query = new StringBuilder();
+    final StringBuilder query = new StringBuilder();
 
-    query.append(Geodes.toGeodeQuery(region.getName(), Criterias.toExpression(op.criteria())));
+    query.append("SELECT * FROM ").append(region.getFullPath());
+
+    final String predicate = Geodes.converter().convert(Criterias.toExpression(op.criteria()));
+    if (!predicate.isEmpty()) {
+      query.append(" WHERE ").append(predicate);
+    }
 
     op.limit().ifPresent(limit -> query.append(" LIMIT ").append(limit));
     op.offset().ifPresent(offset -> query.append(" OFFSET ").append(offset));

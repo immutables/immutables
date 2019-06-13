@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.geode;
 
-import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Expressions;
 
 /**
@@ -24,21 +24,19 @@ import org.immutables.criteria.expression.Expressions;
  */
 class Geodes {
 
-  static String toGeodeQuery(String regionName, Expression expression) {
 
-    final String emptyQuery = String.format("select * from /%s", regionName);
+  /**
+   * Returns only predicate part to be appended to {@code WHERE} clause.
+   *
+   * @return predicate, empty string if no predicate
+   */
+  static ExpressionConverter<String> converter() {
+    return expression -> {
+      if (Expressions.isNil(expression)) {
+        return "";
+      }
 
-    if (Expressions.isNil(expression)) {
-      return emptyQuery;
-    }
-
-    final String predicate = expression.accept(new GeodeQueryVisitor());
-
-    if (predicate.isEmpty()) {
-      return emptyQuery;
-    }
-
-    return String.format("select * from /%s where %s", regionName, predicate);
+      return expression.accept(new GeodeQueryVisitor());
+    };
   }
-
 }
