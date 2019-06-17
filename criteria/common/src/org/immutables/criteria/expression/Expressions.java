@@ -31,10 +31,6 @@ public final class Expressions {
 
   private Expressions() {}
 
-  public static Path path(final String path) {
-    return Path.of(path);
-  }
-
   public static Constant constant(final Object value) {
     return Constant.of(value);
   }

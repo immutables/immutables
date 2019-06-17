@@ -16,49 +16,67 @@
 
 package org.immutables.criteria.expression;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Member;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Access to a property possibly via several paths like {@code foo.bar.qux}
  */
 public final class Path implements Expression {
 
-  private final ImmutableList<String> paths;
+  private final Path parent;
+  private final Member member;
 
-  private Path(List<String> paths) {
-    this.paths = ImmutableList.copyOf(paths);
+  private Path(Path parent, Member member) {
+    this.parent = parent;
+    this.member = Objects.requireNonNull(member, "member");
   }
 
-  public List<String> paths() {
-    return paths;
+  public Optional<Path> parent() {
+    return Optional.ofNullable(parent);
   }
 
-  public Path add(String path) {
-    Objects.requireNonNull(path, "path");
-    Preconditions.checkArgument(!path.isEmpty(), "empty path");
-    return new Path(ImmutableList.<String>builder().addAll(paths).add(path).build());
+  public Member member() {
+    return member;
   }
 
-  public Path concat(Path other) {
-    Objects.requireNonNull(other, "other");
-    return new Path(ImmutableList.<String>builder().addAll(this.paths).addAll(other.paths).build());
+  /**
+   * Paths from root to current element
+   */
+  public List<Member> paths() {
+    Path current = this;
+    final ImmutableList.Builder<Member> parents = ImmutableList.builder();
+    do {
+      parents.add(current.member());
+      current = current.parent;
+    } while (current != null);
+
+    return parents.build().reverse();
   }
 
-  public static Path of(String path) {
-    Objects.requireNonNull(path);
-    return new Path(ImmutableList.of(path));
+  public Path with(Member member) {
+    Objects.requireNonNull(member, "member");
+    return new Path(this, member);
+  }
+
+  public static Path of(Member member) {
+    return new Path(null, member);
   }
 
   /**
    * Returns current path in java bean format: {@code foo.bar.qux}
    */
   public String toStringPath() {
-    return String.join(".", paths());
+    return paths().stream().map(Member::getName).collect(Collectors.joining("."));
   }
 
   @Override

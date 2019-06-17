@@ -28,6 +28,8 @@ public class PersonTest {
   public void collection() {
     PersonCriteria.create()
             .pets.any().name.isNotEmpty()
+            .age.isAtMost(22)
+            .isActive.isFalse()
             .interests.none().startsWith("foo")
             .or()//.or() should not work
             .isActive.isTrue()

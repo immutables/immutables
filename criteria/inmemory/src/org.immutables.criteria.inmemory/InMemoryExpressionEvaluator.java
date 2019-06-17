@@ -29,6 +29,9 @@ import org.immutables.criteria.expression.Root;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -47,7 +50,12 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
   /**
    * Sentinel used for Three-Valued Logic: true / false / unknown
    */
-  private static final Object UNKNOWN = new Object();
+  private static final Object UNKNOWN = new Object() {
+    @Override
+    public String toString() {
+      return "UNKNOWN";
+    }
+  };
 
   private final Expression expression;
 
@@ -192,7 +200,18 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Override
     public Object visit(Path path) {
-      return extractor.extract(path);
+      final Object extracted = extractor.extract(path);
+
+      // unwrap optional
+      if (extracted instanceof java.util.Optional) {
+        return ((java.util.Optional) extracted).orElse(UNKNOWN);
+      }
+
+      if (extracted instanceof com.google.common.base.Optional) {
+        return ((com.google.common.base.Optional) extracted).or(UNKNOWN);
+      }
+
+      return extracted;
     }
 
     @Override
@@ -220,8 +239,8 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
       Object result = object;
 
-      for (String name:path.paths()) {
-        result = extract(result, name);
+      for (Member member: path.paths()) {
+        result = extract(result, member);
         if (result == UNKNOWN) {
           break;
         }
@@ -230,23 +249,32 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       return result;
     }
 
-    private static Object extract(Object instance, String property) {
-      if (property.isEmpty()) {
-        return instance;
-      }
-
+    private static Object extract(Object instance, Member member) {
       if (instance == null) {
         return UNKNOWN;
       }
 
       try {
         // TODO caching
-        final Field field = instance.getClass().getDeclaredField(property);
-        if (!field.isAccessible()) {
-          field.setAccessible(true);
+        final Object result;
+        if (member instanceof Method) {
+          final Method method = (Method) member;
+          if (!method.isAccessible()) {
+            method.setAccessible(true);
+          }
+          result = method.invoke(instance);
+        } else if (member instanceof Field) {
+          Field field = (Field) member;
+          if (!field.isAccessible()) {
+            field.setAccessible(true);
+          }
+          result = field.get(instance);
+        } else {
+          throw new IllegalArgumentException(String.format("%s is not field or method", member));
         }
-        return field.get(instance);
-      } catch (NoSuchFieldException | IllegalAccessException e) {
+
+        return result;
+      } catch (IllegalAccessException | InvocationTargetException e) {
         throw new RuntimeException(e);
       }
     }
