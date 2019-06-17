@@ -18,13 +18,13 @@ package org.immutables.criteria.geode;
 
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.expression.Expressions;
 import org.reactivestreams.Publisher;
 
 import java.util.Collection;
@@ -32,12 +32,15 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Backend for
+ */
 public class GeodeBackend implements Backend {
 
-  private final Region<?, ?> region;
+  private final Region<Object, Object> region;
 
   public GeodeBackend(Region<?, ?> region) {
-    this.region = Objects.requireNonNull(region, "region is null");
+    this.region = Objects.requireNonNull((Region<Object, Object>) region, "region is null");
   }
 
   @Override
@@ -87,14 +90,32 @@ public class GeodeBackend implements Backend {
 
   private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
     if (!Geodes.hasPredicate(op.criteria())) {
-      // means delete all (clear region)
+      // means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
               .toSingleDefault(Repository.Success.SUCCESS)
               .toFlowable();
     }
 
-    // id only
-    throw new UnsupportedOperationException("Only deleteAll() currently supported. Not " + op.criteria());
+    final Optional<List<?>> ids = Geodes.canDeleteByKey(op.criteria());
+    // list of ids is present in the expression
+    if (ids.isPresent()) {
+      // delete by key: map.remove(key)
+      return Completable.fromRunnable(() -> region.removeAll(ids.get()))
+              .toSingleDefault(Repository.Success.SUCCESS)
+              .toFlowable();
+    }
+
+
+    final String predicate = Criterias.toExpression(op.criteria())
+            .accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
+
+    final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), predicate);
+
+    return Single.fromCallable(() -> region.query(query))
+            .flatMapCompletable(list -> Completable.fromRunnable(() -> region.removeAll((Collection<Object>) list)))
+            .toSingleDefault(Repository.Success.SUCCESS)
+            .toFlowable();
   }
+
 
 }

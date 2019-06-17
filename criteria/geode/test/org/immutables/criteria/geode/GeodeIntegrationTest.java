@@ -56,6 +56,7 @@ public class GeodeIntegrationTest {
   @Before
   public void setUp() throws Exception {
     repository = new PersonRepository(new GeodeBackend(region));
+    region.clear();
   }
 
   @Test
@@ -102,13 +103,27 @@ public class GeodeIntegrationTest {
     check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).is(Repository.Success.SUCCESS);
     check(region.keySet()).isEmpty();
 
-    Flowable.fromPublisher(repository.insert(generator.next()))
+    Flowable.fromPublisher(repository.insert(generator.next().withId("test")))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
 
     check(region.keySet()).hasSize(1);
-    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).is(Repository.Success.SUCCESS);
+    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create().id.isIn("testBAD", "test")))
+            .blockingFirst()).is(Repository.Success.SUCCESS);
     check(region.keySet()).hasSize(0);
+
+    // insert again
+    Flowable.fromPublisher(repository.insert(generator.next().withId("test").withNickName("nick123")))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete();
+    check(region.keySet()).hasSize(1);
+    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create().nickName.value().isEqualTo("nick123")))
+            .blockingFirst()).is(Repository.Success.SUCCESS);
+
+    // delete by query doesn't work yet
+    // check(region.keySet()).hasSize(0);
+
   }
 }

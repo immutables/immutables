@@ -28,13 +28,21 @@ import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
+  private final Function<Path, String> pathFn;
+
   GeodeQueryVisitor() {
+    this(Path::toStringPath);
+  }
+
+  GeodeQueryVisitor(Function<Path, String> pathFn) {
     super(e -> { throw new UnsupportedOperationException(); });
+    this.pathFn = Objects.requireNonNull(pathFn, "pathFn");
   }
 
   @Override
@@ -47,7 +55,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
       final Path path = Visitors.toPath(args.get(0));
       final Constant constant = Visitors.toConstant(args.get(1));
-      return String.format("%s = %s", path.toStringPath(), toString(constant.value()));
+      return String.format("%s = %s", pathFn.apply(path), toString(constant.value()));
     }
 
     if (op == Operators.AND || op == Operators.OR) {
@@ -65,7 +73,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
       final String valuesAsString = StreamSupport.stream(values.spliterator(), false)
               .map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
 
-      final String query = String.format("%s in SET(%s)", field.toStringPath(), valuesAsString);
+      final String query = String.format("%s in SET(%s)", pathFn.apply(field), valuesAsString);
 
       return op == Operators.NOT_IN ? "NOT " + query : query;
     }
@@ -74,9 +82,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
   }
 
   private static String toString(Object value) {
-    if (value == null) {
-      return "null";
-    } else if (value instanceof CharSequence) {
+    if (value instanceof CharSequence) {
       return "'" + value + "'";
     } else {
       return Objects.toString(value);

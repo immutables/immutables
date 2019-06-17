@@ -37,7 +37,7 @@ public @interface Criteria {
    */
   @Documented
   @Target(ElementType.METHOD)
-  @Retention(RetentionPolicy.SOURCE)
+  @Retention(RetentionPolicy.RUNTIME)
   @interface Id {}
 
   /**

@@ -17,6 +17,8 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import org.immutables.criteria.Criteria;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.expression.Call;
@@ -25,9 +27,11 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
-import org.immutables.criteria.expression.Root;
+import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Visitors;
 
-import java.nio.file.Path;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -103,9 +107,24 @@ class Geodes {
       return Optional.empty();
     }
 
-    // field should be id
-    final Class<?> entityClass = ((Root) Criterias.toExpression(criteria)).entityClass();
+    final Path path = Visitors.toPath(predicate.arguments().get(0));
 
-    return Optional.empty();
+    if (!(path.paths().size() == 1 && isIdAttribute(path.paths().get(0)))) {
+      return Optional.empty();
+    }
+
+    final Object value = Visitors.toConstant(predicate.arguments().get(1)).value();
+    final List<?> values = value instanceof Iterable ? ImmutableList.copyOf((Iterable<?>) value) : ImmutableList.of(value);
+    return Optional.of(values);
+  }
+
+  private static boolean isIdAttribute(Member member) {
+    if (!(member instanceof AnnotatedElement)) {
+      return false;
+    }
+
+    final AnnotatedElement annotated = (AnnotatedElement) member;
+
+    return annotated.isAnnotationPresent(Criteria.Id.class);
   }
 }
