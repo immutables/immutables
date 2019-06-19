@@ -63,6 +63,6 @@ public class DebugExpressionVisitor<Void> extends AbstractExpressionVisitor<Void
 
   @Override
   public Void visit(Query query) {
-    return query.expression().map(e -> e.accept(this)).orElse(null);
+    return query.filter().map(e -> e.accept(this)).orElse(null);
   }
 }

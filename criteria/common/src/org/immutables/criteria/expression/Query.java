@@ -22,17 +22,16 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
- * Main criteria expression (always present as root element). Predicate
- * is sub-element of this expression.
+ * Query which is composed of predicates, projections, group by and order by expressions.
  */
 public final class Query implements Expression {
 
   private final EntityPath entityPath;
-  private final Expression expression;
+  private final Expression filter;
 
-  private Query(EntityPath entityPath, Expression expression) {
+  private Query(EntityPath entityPath, Expression filter) {
     this.entityPath = Objects.requireNonNull(entityPath, "entityPath");
-    this.expression = expression;
+    this.filter = filter;
   }
 
   @Nullable
@@ -44,22 +43,22 @@ public final class Query implements Expression {
   public EntityPath entityPath() {
     return this.entityPath;
   }
-
-  public Optional<Expression> expression() {
-    return Optional.ofNullable(expression);
+  
+  public Optional<Expression> filter() {
+    return Optional.ofNullable(filter);
   }
 
   static Query of(Class<?> entityClass) {
     return new Query(EntityPath.of(entityClass), null);
   }
 
-  Query withExpression(Expression expression) {
-    Objects.requireNonNull(expression, "expression");
-    return new Query(entityPath, expression);
+  Query withFilter(Expression filter) {
+    Objects.requireNonNull(filter, "filter");
+    return new Query(entityPath, filter);
   }
 
   public Query transform(UnaryOperator<Expression> operator) {
-    return expression().map(e -> withExpression(operator.apply(e))).orElse(this);
+    return filter().map(e -> withFilter(operator.apply(e))).orElse(this);
   }
 
 }

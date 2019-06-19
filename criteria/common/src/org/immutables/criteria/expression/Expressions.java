@@ -96,7 +96,7 @@ public final class Expressions {
 
   public static Optional<Expression> extractPredicate(Expression expression) {
     if (expression instanceof Query) {
-      return ((Query) expression).expression();
+      return ((Query) expression).filter();
     }
 
     return Optional.of(expression);

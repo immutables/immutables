@@ -67,7 +67,7 @@ public class DnfExpression implements Expressional, Expression {
       return root;
     }
 
-    return root.withExpression(Expressions.or(expressions));
+    return root.withFilter(Expressions.or(expressions));
   }
 
   public DnfExpression and(Expression expression) {

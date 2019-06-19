@@ -217,7 +217,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Override
     public Object visit(Query query) {
-      return query.expression().map(e -> e.accept(this)).orElse(Boolean.TRUE);
+      return query.filter().map(e -> e.accept(this)).orElse(Boolean.TRUE);
     }
   }
 
