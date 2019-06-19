@@ -40,7 +40,7 @@ public final class Operations {
    * Query sent to a backend
    */
   @Value.Immutable
-  public interface Query<T> extends Backend.Operation<T> {
+  public interface Select<T> extends Backend.Operation<T> {
 
     @Value.Parameter
     DocumentCriteria<?> criteria();
@@ -121,6 +121,10 @@ public final class Operations {
     @Value.Parameter
     DocumentCriteria<?> criteria();
 
+
+    static Delete of(DocumentCriteria<?> criteria) {
+      return ImmutableDelete.of(criteria);
+    }
   }
 
   @Value.Immutable

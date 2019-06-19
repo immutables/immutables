@@ -43,9 +43,6 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.adapter.ImmutableQuery;
-import org.immutables.criteria.adapter.ImmutableInsert;
-import org.immutables.criteria.adapter.ImmutableDelete;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.InternalReader;
 import org.immutables.criteria.adapter.InternalWatcher;
@@ -124,7 +121,7 @@ import java.util.function.Function;
 
   @Override
   public Publisher<Success> delete(DocumentCriteria<[type.name]> criteria) {
-    return backend.execute(ImmutableDelete.of(criteria));
+    return backend.execute(Operations.Delete.of(criteria));
   }
 [/if]
 

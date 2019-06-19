@@ -29,7 +29,6 @@ import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
@@ -66,10 +65,10 @@ public class ElasticsearchBackend implements Backend {
   public <T> Publisher<T> execute(Operation<T> query) {
     Objects.requireNonNull(query, "query");
 
-    return queryInternal((Operations.Query<T>) query);
+    return queryInternal((Operations.Select<T>) query);
   }
 
-  private <T> Flowable<T> queryInternal(Operations.Query<T> op) {
+  private <T> Flowable<T> queryInternal(Operations.Select<T> op) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
     final Query query = Criterias.toQuery(op.criteria());
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);

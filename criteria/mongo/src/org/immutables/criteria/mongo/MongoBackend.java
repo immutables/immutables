@@ -54,8 +54,8 @@ class MongoBackend implements Backend {
 
   @Override
   public <T> Publisher<T> execute(Operation<T> operation) {
-    if (operation instanceof Operations.Query) {
-      return query((Operations.Query<T>) operation);
+    if (operation instanceof Operations.Select) {
+      return query((Operations.Select<T>) operation);
     } else if (operation instanceof Operations.Insert) {
       return (Publisher<T>) insert((Operations.Insert) operation);
     } else if (operation instanceof Operations.Delete) {
@@ -67,10 +67,10 @@ class MongoBackend implements Backend {
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
-  private <T> Publisher<T> query(Operations.Query<T> query) {
+  private <T> Publisher<T> query(Operations.Select<T> select) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    return collection.find(toBson(query.criteria()));
+    return collection.find(toBson(select.criteria()));
   }
 
   private Publisher<Repository.Success> delete(Operations.Delete delete) {

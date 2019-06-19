@@ -46,8 +46,8 @@ public class GeodeBackend implements Backend {
 
   @Override
   public <T> Publisher<T> execute(Operation<T> operation) {
-    if (operation instanceof Operations.Query) {
-      return query((Operations.Query<T>) operation);
+    if (operation instanceof Operations.Select) {
+      return query((Operations.Select<T>) operation);
     } else if (operation instanceof Operations.Insert) {
       return (Publisher<T>) insert((Operations.Insert) operation);
     } else if (operation instanceof Operations.Delete) {
@@ -58,7 +58,7 @@ public class GeodeBackend implements Backend {
             operation, GeodeBackend.class.getSimpleName())));
   }
 
-  private <T> Flowable<T> query(Operations.Query<T> op) {
+  private <T> Flowable<T> query(Operations.Select<T> op) {
     final StringBuilder oql = new StringBuilder();
     final Query query = Criterias.toQuery(op.criteria());
 
