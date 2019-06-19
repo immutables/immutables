@@ -17,7 +17,6 @@
 package org.immutables.criteria;
 
 import com.google.common.base.Preconditions;
-import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 
@@ -38,12 +37,5 @@ public final class Criterias {
 
     return ((Queryable) criteria).query();
   }
-
-  /**
-   * Extract directly filter from a criteria
-   */
-  public static Expression toFilterExpression(DocumentCriteria<?> criteria) {
-    return toQuery(criteria).filter().orElseThrow(() -> new IllegalArgumentException("no defined filter for " + criteria));
-  }
-
+  
 }

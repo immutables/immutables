@@ -16,8 +16,9 @@
 
 package org.immutables.criteria;
 
-import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.expression.DebugExpressionVisitor;
+import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -69,7 +70,8 @@ public class ExpressionAsStringTest {
 
   private static void assertExpressional(DocumentCriteria<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
-    Criterias.toFilterExpression(crit).accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
+    Query query = Criterias.toQuery(crit);
+    query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
     Assert.assertEquals(expected, out.toString().trim());
   }
