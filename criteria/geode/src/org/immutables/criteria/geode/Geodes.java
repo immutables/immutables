@@ -17,7 +17,6 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
@@ -113,8 +112,7 @@ class Geodes {
       return Optional.empty();
     }
 
-    final Object value = Visitors.toConstant(predicate.arguments().get(1)).value();
-    final List<?> values = value instanceof Iterable ? ImmutableList.copyOf((Iterable<?>) value) : ImmutableList.of(value);
+    final List<Object> values = Visitors.toConstant(predicate.arguments().get(1)).values();
     return Optional.of(values);
   }
 

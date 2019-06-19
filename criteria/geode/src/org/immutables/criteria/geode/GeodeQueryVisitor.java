@@ -56,7 +56,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
       final Path path = Visitors.toPath(args.get(0));
       final Constant constant = Visitors.toConstant(args.get(1));
-      return String.format("%s = %s", pathFn.apply(path), toString(constant.value()));
+      final String operator = op == Operators.EQUAL ? "=" : "!=";
+      return String.format("%s %s %s", pathFn.apply(path), operator, toString(constant.value()));
     }
 
     if (op == Operators.AND || op == Operators.OR) {
