@@ -23,6 +23,7 @@ import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
+import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Visitors;
 
@@ -69,6 +70,29 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
       return op == Operators.AND ? Filters.and(list) : Filters.or(list);
     }
+    if (op == Operators.NOT) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+      return Filters.not(args.get(0).accept(this));
+    }
+
+    if (OperatorTables.COMPARISON.contains(op)) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
+
+      if (op == Operators.GREATER_THAN) {
+        return Filters.gt(field, value);
+      } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+        return Filters.gte(field, value);
+      } else if (op == Operators.LESS_THAN) {
+        return Filters.lt(field, value);
+      } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+        return Filters.lte(field, value);
+      }
+
+      throw new UnsupportedOperationException("Unknown comparison " + call);
+    }
+
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }

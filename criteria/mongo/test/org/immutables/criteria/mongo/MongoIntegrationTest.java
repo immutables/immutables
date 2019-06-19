@@ -71,7 +71,7 @@ public class MongoIntegrationTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    final Person person = new PersonGenerator().next().withFullName("test");
+    final Person person = new PersonGenerator().next().withFullName("test").withAge(22);
 
     Flowable.fromPublisher(repository.insert(person))
             .test()
@@ -94,6 +94,14 @@ public class MongoIntegrationTest {
     execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
     execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
     execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
+  }
+
+  @Test
+  public void comparison() {
+    execute(PersonCriteria.create().age.isAtLeast(22), 1);
+    execute(PersonCriteria.create().age.isGreaterThan(22), 0);
+    execute(PersonCriteria.create().age.isLessThan(22), 0);
+    execute(PersonCriteria.create().age.isAtMost(22), 1);
   }
 
   private void execute(DocumentCriteria<Person> expr, int count) {
