@@ -22,6 +22,7 @@ import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
+import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
@@ -60,8 +61,8 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
     if (op == Operators.AND || op == Operators.OR) {
       Preconditions.checkArgument(!args.isEmpty(), "Size should be >=1 for %s but was %s", op, args.size());
-
-      return args.stream().map(a -> a.accept(this)).collect(Collectors.joining(op.name()));
+      final String join = " " + op.name() + " ";
+      return args.stream().map(a -> a.accept(this)).collect(Collectors.joining(join));
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
@@ -77,6 +78,30 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
 
       return op == Operators.NOT_IN ? "NOT " + query : query;
     }
+
+    if (op == Operators.NOT) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+      return "NOT " + args.get(0).accept(this);
+    }
+
+    if (OperatorTables.COMPARISON.contains(op)) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String fieldAsString = pathFn.apply(Visitors.toPath(args.get(0)));
+      final String valueAsString = toString(Visitors.toConstant(args.get(1)).value());
+
+      if (op == Operators.GREATER_THAN) {
+        return String.format("%s > %s", fieldAsString, valueAsString);
+      } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+        return String.format("%s >= %s", fieldAsString, valueAsString);
+      } else if (op == Operators.LESS_THAN) {
+        return String.format("%s < %s", fieldAsString, valueAsString);
+      } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+        return String.format("%s <= %s", fieldAsString, valueAsString);
+      }
+
+      throw new UnsupportedOperationException("Unknown comparison " + call);
+    }
+
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }

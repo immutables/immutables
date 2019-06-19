@@ -90,6 +90,29 @@ public class GeodeIntegrationTest {
   }
 
   @Test
+  public void comparison() {
+    Flowable.fromPublisher(repository.insert(generator.next().withId("one").withAge(22)))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete();
+
+    check(region.keySet()).hasSize(1);
+
+    Flowable.fromPublisher(repository.find(PersonCriteria.create().age.isAtLeast(22)).fetch())
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValueCount(1);
+
+    Flowable.fromPublisher(repository.find(PersonCriteria.create().age.isAtLeast(23).id.isEqualTo("one")).fetch())
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete()
+            .assertValueCount(0);
+
+  }
+
+  @Test
   public void delete() {
     check(region.values()).isEmpty();
 
