@@ -21,11 +21,9 @@ import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionVisitor;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Query;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
@@ -68,9 +66,7 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
    * Factory method to create evaluator instance
    */
   public static <T> Predicate<T> of(Expression expression) {
-    return Expressions.extractPredicate(expression)
-            .<Predicate<T>>map(InMemoryExpressionEvaluator::new)
-            .orElse(e -> Boolean.TRUE);
+    return instance -> Boolean.TRUE.equals(expression.accept(new LocalVisitor(instance)));
   }
 
   @Override
@@ -215,10 +211,6 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       return extracted;
     }
 
-    @Override
-    public Object visit(Query query) {
-      return query.filter().map(e -> e.accept(this)).orElse(Boolean.TRUE);
-    }
   }
 
   private interface ValueExtractor<T> {

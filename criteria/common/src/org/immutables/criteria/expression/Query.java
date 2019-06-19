@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.expression;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -24,7 +23,7 @@ import java.util.function.UnaryOperator;
 /**
  * Query which is composed of predicates, projections, group by and order by expressions.
  */
-public final class Query implements Expression {
+public final class Query  {
 
   private final EntityPath entityPath;
   private final Expression filter;
@@ -34,16 +33,10 @@ public final class Query implements Expression {
     this.filter = filter;
   }
 
-  @Nullable
-  @Override
-  public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
-    return visitor.visit(this, context);
-  }
-
   public EntityPath entityPath() {
     return this.entityPath;
   }
-  
+
   public Optional<Expression> filter() {
     return Optional.ofNullable(filter);
   }

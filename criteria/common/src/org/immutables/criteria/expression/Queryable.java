@@ -18,13 +18,13 @@ package org.immutables.criteria.expression;
 
 
 /**
- * Means an object can be expressed as Abstract Syntax Tree (AST).
+ * Allows to expose current query
  */
-public interface Expressional {
+public interface Queryable {
 
   /**
    * Expose expression used by an object.
    */
-  Expression expression();
+  Query query();
 
 }

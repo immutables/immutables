@@ -20,11 +20,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.expression.DnfExpression;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressional;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Queryable;
 
 import java.lang.reflect.Member;
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.function.UnaryOperator;
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
  * (internally known as {@link Expression}).
  */
-public final class CriteriaContext implements Expressional {
+public final class CriteriaContext implements Queryable {
 
   private final List<CriteriaCreator<?>> creators;
   private final DnfExpression expression;
@@ -159,8 +160,8 @@ public final class CriteriaContext implements Expressional {
   }
 
   @Override
-  public Expression expression() {
-    return this.expression.expression();
+  public Query query() {
+    return this.expression.query();
   }
 
   public CriteriaContext withOperator(UnaryOperator<Expression> operator) {

@@ -17,6 +17,7 @@
 package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.Criterias;
+import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.personmodel.Address;
 import org.immutables.criteria.personmodel.ImmutableAddress;
 import org.immutables.criteria.personmodel.ImmutablePerson;
@@ -113,7 +114,7 @@ public class InMemoryExpressionEvaluatorTest {
   }
 
   private static boolean evaluate(PersonCriteria criteria, Person person) {
-    return InMemoryExpressionEvaluator.of(Criterias.toExpressional(criteria).expression()).test(person);
+    return Criterias.toQuery(criteria).filter().map(f -> InMemoryExpressionEvaluator.of(f).test(person)).orElse(true);
   }
 
 }

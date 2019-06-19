@@ -30,6 +30,7 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.io.IOException;
@@ -68,12 +69,12 @@ public class ElasticsearchBackend implements Backend {
     return queryInternal((Operations.Query<T>) query);
   }
 
-  private <T> Flowable<T> queryInternal(Operations.Query<T> query) {
+  private <T> Flowable<T> queryInternal(Operations.Query<T> op) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
-    final Expression expression = Criterias.toExpression(query.criteria());
-    final ObjectNode json = Elasticsearch.converter(mapper).convert(expression);
-    query.limit().ifPresent(limit -> json.put("size", limit));
-    query.offset().ifPresent(offset -> json.put("start", offset));
+    final Query query = Criterias.toQuery(op.criteria());
+    final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
+    op.limit().ifPresent(limit -> json.put("size", limit));
+    op.offset().ifPresent(offset -> json.put("start", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
     return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
             .map(r -> converter((Class<T>) type).apply(r))

@@ -16,12 +16,8 @@
 
 package org.immutables.criteria.mongo;
 
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.expression.ExpressionConverter;
-import org.immutables.criteria.expression.Expressions;
-
-import java.util.Objects;
 
 /**
  * Util methods for mongo adapter.
@@ -34,9 +30,7 @@ final class Mongos {
    * Convert existing expression to Bson
    */
   static ExpressionConverter<Bson> converter() {
-    return expression -> Expressions.extractPredicate(expression)
-            .map(e -> e.accept(new MongoQueryVisitor()))
-            .orElseGet(Document::new);
+    return expression -> expression.accept(new MongoQueryVisitor());
   }
 
 }

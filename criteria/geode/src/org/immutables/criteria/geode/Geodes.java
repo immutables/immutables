@@ -24,9 +24,9 @@ import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
 
 import java.lang.reflect.AnnotatedElement;
@@ -47,16 +47,7 @@ class Geodes {
    * @return predicate, empty string if no predicate
    */
   static ExpressionConverter<String> converter() {
-    return expression -> Expressions.extractPredicate(expression)
-            .map(e -> e.accept(new GeodeQueryVisitor()))
-            .orElse("");
-  }
-
-  /**
-   * Checks if current criteria has any predicate expressions defined (like {@code foo = 123}).
-   */
-  static boolean hasPredicate(DocumentCriteria<?> criteria) {
-    return Expressions.extractPredicate(Criterias.toExpression(criteria)).isPresent();
+    return expression -> expression.accept(new GeodeQueryVisitor());
   }
 
   /**
@@ -79,12 +70,12 @@ class Geodes {
    *
    */
   static Optional<List<?>> canDeleteByKey(DocumentCriteria<?> criteria) {
-    if (!hasPredicate(criteria)) {
+    final Query query = Criterias.toQuery(criteria);
+    if (!query.filter().isPresent()) {
       return Optional.of(Collections.emptyList());
     }
 
-    final Expression expr = Expressions.extractPredicate(Criterias.toExpression(criteria))
-            .orElseThrow(() -> new IllegalStateException("Shouldn't get here"));
+    final Expression expr = query.filter().get();
 
     if (!(expr instanceof Call)) {
       return Optional.empty();

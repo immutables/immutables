@@ -18,7 +18,6 @@ package org.immutables.criteria.expression;
 
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +29,7 @@ import java.util.Objects;
  *
  *  <p>Example: {@code (A and B or C and D or E)}
  */
-public class DnfExpression implements Expressional, Expression {
+public class DnfExpression implements Queryable {
 
   private final Query root;
   private final List<Expression> conjunctions;
@@ -46,18 +45,12 @@ public class DnfExpression implements Expressional, Expression {
     return new DnfExpression(root, Collections.emptyList(), Collections.emptyList());
   }
 
-  @Nullable
   @Override
-  public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
-    return expression().accept(visitor, context);
-  }
-
-  @Override
-  public Expression expression() {
+  public Query query() {
     return simplify();
   }
 
-  private Expression simplify() {
+  private Query simplify() {
     final List<Expression> expressions = new ArrayList<>(disjunctions);
     if (!conjunctions.isEmpty()) {
       expressions.add(Expressions.and(conjunctions));
