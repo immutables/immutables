@@ -69,8 +69,7 @@ class Geodes {
    *
    *
    */
-  static Optional<List<?>> canDeleteByKey(DocumentCriteria<?> criteria) {
-    final Query query = Criterias.toQuery(criteria);
+  static Optional<List<?>> canDeleteByKey(Query query) {
     if (!query.filter().isPresent()) {
       return Optional.of(Collections.emptyList());
     }

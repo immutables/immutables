@@ -18,19 +18,23 @@ package org.immutables.criteria.expression;
 
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.UnaryOperator;
+import java.util.OptionalLong;
 
 /**
- * Query which is composed of predicates, projections, group by and order by expressions.
+ * Query which is composed of predicates, projections, limit, offset, group by and order by expressions.
  */
 public final class Query  {
 
   private final EntityPath entityPath;
   private final Expression filter;
+  private final Long limit;
+  private final Long offset;
 
-  private Query(EntityPath entityPath, Expression filter) {
+  private Query(EntityPath entityPath, Expression filter, Long limit, Long offset) {
     this.entityPath = Objects.requireNonNull(entityPath, "entityPath");
     this.filter = filter;
+    this.limit = limit;
+    this.offset = offset;
   }
 
   public EntityPath entityPath() {
@@ -41,17 +45,29 @@ public final class Query  {
     return Optional.ofNullable(filter);
   }
 
+  public OptionalLong limit() {
+    return limit == null ? OptionalLong.empty() : OptionalLong.of(limit);
+  }
+
+  public Query withLimit(long limit) {
+    return new Query(entityPath, filter, limit, offset);
+  }
+
+  public OptionalLong offset() {
+    return offset == null ? OptionalLong.empty() : OptionalLong.of(offset);
+  }
+
+  public Query withOffset(long offset) {
+    return new Query(entityPath, filter, limit, offset);
+  }
+
   static Query of(Class<?> entityClass) {
-    return new Query(EntityPath.of(entityClass), null);
+    return new Query(EntityPath.of(entityClass), null, null, null);
   }
 
   Query withFilter(Expression filter) {
     Objects.requireNonNull(filter, "filter");
-    return new Query(entityPath, filter);
+    return new Query(entityPath, filter, limit, offset);
   }
-
-  public Query transform(UnaryOperator<Expression> operator) {
-    return filter().map(e -> withFilter(operator.apply(e))).orElse(this);
-  }
-
+  
 }

@@ -78,7 +78,7 @@ public class ElasticsearchIntegrationTest {
 
   @Before
   public void setupRepository() throws Exception {
-    this.backend = new ElasticsearchBackend(RESOURCE.restClient(),  MAPPER, ElasticModel.class, INDEX_NAME);
+    this.backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, INDEX_NAME);
     this.repository = new ElasticModelRepository(backend);
   }
 

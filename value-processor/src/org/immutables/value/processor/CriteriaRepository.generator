@@ -64,8 +64,6 @@ import java.util.function.Function;
 , Repository.Readable<[type.name]>[if not type.criteriaRepository.readonly], Repository.Writable<[type.name]>[/if][if type.criteriaRepository.watch], Repository.Watchable<[type.name]>[/if]
  {[/output.trim]
 
-  private static final Class<[type.name]> ENTITY_CLASS = [type.name].class;
-
 [for a = type.idAttribute]
 [if a]
   /** Function to extract {@code [a.name]} attribute from {@link [type.name]} */
@@ -99,7 +97,7 @@ import java.util.function.Function;
 
   @Override
   public Repository.Reader<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
-    return new InternalReader<>(criteria, ENTITY_CLASS, backend);
+    return new InternalReader<>(criteria, backend);
   }
 
   @Override

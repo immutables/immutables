@@ -21,7 +21,6 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
@@ -60,14 +59,14 @@ public class GeodeBackend implements Backend {
 
   private <T> Flowable<T> query(Operations.Select<T> op) {
     final StringBuilder oql = new StringBuilder();
-    final Query query = Criterias.toQuery(op.criteria());
+    final Query query = op.query();
 
     oql.append("SELECT * FROM ").append(region.getFullPath());
 
     query.filter().ifPresent(e -> oql.append(" WHERE ").append(Geodes.converter().convert(e)));
 
-    op.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
-    op.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
+    op.query().limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
+    op.query().offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
 
     return Flowable.<Collection<T>>fromCallable(() -> region.query(oql.toString()))
             .flatMapIterable(x -> x);
@@ -88,14 +87,14 @@ public class GeodeBackend implements Backend {
   }
 
   private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
-    if (!Criterias.toQuery(op.criteria()).filter().isPresent()) {
+    if (!op.query().filter().isPresent()) {
       // means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
               .toSingleDefault(Repository.Success.SUCCESS)
               .toFlowable();
     }
 
-    final Optional<List<?>> ids = Geodes.canDeleteByKey(op.criteria());
+    final Optional<List<?>> ids = Geodes.canDeleteByKey(op.query());
     // list of ids is present in the expression
     if (ids.isPresent()) {
       // delete by key: map.remove(key)
@@ -105,7 +104,7 @@ public class GeodeBackend implements Backend {
     }
 
 
-    final String predicate = Criterias.toFilterExpression(op.criteria())
+    final String predicate = op.query().filter().get()
             .accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
 
     final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), predicate);
