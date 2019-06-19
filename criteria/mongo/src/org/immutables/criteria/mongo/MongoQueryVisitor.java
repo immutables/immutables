@@ -55,8 +55,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
-      @SuppressWarnings("unchecked")
-      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
+      final List<Object> values = Visitors.toConstant(args.get(1)).values();
       Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
 
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);

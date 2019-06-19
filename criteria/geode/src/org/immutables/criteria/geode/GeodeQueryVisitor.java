@@ -68,10 +68,9 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final Path field = Visitors.toPath(args.get(0));
-      @SuppressWarnings("unchecked")
-      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
+      final List<Object> values = Visitors.toConstant(args.get(1)).values();
 
-      final String valuesAsString = StreamSupport.stream(values.spliterator(), false)
+      final String valuesAsString = values.stream()
               .map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
 
       final String query = String.format("%s in SET(%s)", pathFn.apply(field), valuesAsString);

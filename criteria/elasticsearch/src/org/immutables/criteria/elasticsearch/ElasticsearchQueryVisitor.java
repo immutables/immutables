@@ -57,9 +57,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
-      @SuppressWarnings("unchecked")
-      final Iterable<Object> values = (Iterable<Object>) Visitors.toConstant(args.get(1)).value();
-      Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
+      final List<Object> values = Visitors.toConstant(args.get(1)).values();
 
       QueryBuilders.QueryBuilder builder = QueryBuilders.termsQuery(field, values);
 

@@ -16,7 +16,10 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * A constant. {@code true}, {@code 1}, {@code "foo"}, {@code null} etc.
@@ -29,8 +32,31 @@ public final class Constant implements Expression {
     this.value = value;
   }
 
+  /**
+   * Value of current constant (can be {@code null})
+   */
   public Object value() {
     return value;
+  }
+
+  /**
+   * Converts current value to list (if it is not already). If value
+   * is iterable returns that list (which is most likely ImmutableList already).
+   *
+   * @return singleton list with current value or immutable list of values depending on type
+   * of current value.
+   */
+  public List<Object> values() {
+    if (value instanceof Iterable) {
+      // most likely ImmutableList already (if Iterable)
+      return ImmutableList.copyOf((Iterable<?>) value);
+    }
+
+    if (value == null) {
+      throw new NullPointerException("value is null");
+    }
+
+    return ImmutableList.of(value);
   }
 
   public static Constant of(Object value) {
