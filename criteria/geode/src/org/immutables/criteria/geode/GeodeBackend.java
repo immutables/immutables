@@ -25,6 +25,7 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Collection;
@@ -33,7 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Backend for
+ * Backend for <a href="https://geode.apache.org/">Apache Geode</a>
  */
 public class GeodeBackend implements Backend {
 
@@ -58,19 +59,17 @@ public class GeodeBackend implements Backend {
   }
 
   private <T> Flowable<T> query(Operations.Query<T> op) {
-    final StringBuilder query = new StringBuilder();
+    final StringBuilder oql = new StringBuilder();
+    final Query query = Criterias.toQuery(op.criteria());
 
-    query.append("SELECT * FROM ").append(region.getFullPath());
+    oql.append("SELECT * FROM ").append(region.getFullPath());
 
-    final String predicate = Geodes.converter().convert(Criterias.toExpression(op.criteria()));
-    if (!predicate.isEmpty()) {
-      query.append(" WHERE ").append(predicate);
-    }
+    query.filter().ifPresent(e -> oql.append(" WHERE ").append(Geodes.converter().convert(e)));
 
-    op.limit().ifPresent(limit -> query.append(" LIMIT ").append(limit));
-    op.offset().ifPresent(offset -> query.append(" OFFSET ").append(offset));
+    op.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
+    op.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
 
-    return Flowable.<Collection<T>>fromCallable(() -> region.query(query.toString()))
+    return Flowable.<Collection<T>>fromCallable(() -> region.query(oql.toString()))
             .flatMapIterable(x -> x);
   }
 
@@ -89,7 +88,7 @@ public class GeodeBackend implements Backend {
   }
 
   private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
-    if (!Geodes.hasPredicate(op.criteria())) {
+    if (!Criterias.toQuery(op.criteria()).filter().isPresent()) {
       // means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
               .toSingleDefault(Repository.Success.SUCCESS)
@@ -106,7 +105,7 @@ public class GeodeBackend implements Backend {
     }
 
 
-    final String predicate = Criterias.toExpression(op.criteria())
+    final String predicate = Criterias.toFilterExpression(op.criteria())
             .accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
 
     final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), predicate);

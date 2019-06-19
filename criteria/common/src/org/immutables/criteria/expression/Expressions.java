@@ -22,7 +22,6 @@ import com.google.common.collect.Iterables;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A set of predefined utilities and factories for expressions like {@link Constant} or {@link Call}
@@ -87,25 +86,10 @@ public final class Expressions {
         return visitor.visit(path);
       }
 
-      @Override
-      public V visit(Query root, @Nullable Void context) {
-        return visitor.visit(root);
-      }
     };
   }
 
-  public static Optional<Expression> extractPredicate(Expression expression) {
-    if (expression instanceof Query) {
-      return ((Query) expression).filter();
-    }
-
-    return Optional.of(expression);
-  }
-
   public static Expression not(Expression call) {
-    if (call instanceof Query) {
-      return ((Query) call).transform(e -> call(Operators.NOT, e));
-    }
     return Expressions.call(Operators.NOT, call);
   }
 

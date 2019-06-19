@@ -18,12 +18,9 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
-import org.immutables.criteria.expression.Expressions;
 
 import java.util.Objects;
-import java.util.Optional;
 
 final class Elasticsearch {
 
@@ -33,15 +30,9 @@ final class Elasticsearch {
     Objects.requireNonNull(mapper, "expression");
 
     return expression -> {
-      Optional<Expression> predicate = Expressions.extractPredicate(expression);
-
-      if (!predicate.isPresent()) {
-        return mapper.createObjectNode();
-      }
-
       final ObjectNode query = mapper.createObjectNode();
       final ElasticsearchQueryVisitor visitor = new ElasticsearchQueryVisitor();
-      final QueryBuilders.QueryBuilder builder = predicate.get().accept(visitor);
+      final QueryBuilders.QueryBuilder builder = expression.accept(visitor);
       query.set("query", QueryBuilders.constantScoreQuery(builder).toJson(mapper));
       return query;
     };

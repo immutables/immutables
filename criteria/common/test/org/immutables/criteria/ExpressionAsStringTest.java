@@ -69,7 +69,7 @@ public class ExpressionAsStringTest {
 
   private static void assertExpressional(DocumentCriteria<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
-    Criterias.toExpressional(crit).expression().accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
+    Criterias.toFilterExpression(crit).accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
     Assert.assertEquals(expected, out.toString().trim());
   }

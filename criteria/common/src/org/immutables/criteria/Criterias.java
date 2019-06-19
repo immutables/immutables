@@ -16,8 +16,10 @@
 
 package org.immutables.criteria;
 
+import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Queryable;
 
 import java.util.Objects;
 
@@ -26,19 +28,22 @@ public final class Criterias {
   private Criterias() {}
 
   /**
-   * Extracts {@link Expressional} interface from a criteria. Any criteria implements
-   * {@code Expressional} interface at runtime.
+   * Extracts {@link Query} from a criteria. Any criteria implements
+   * {@code Queryable} interface at runtime.
    */
-  public static Expressional toExpressional(DocumentCriteria<?> criteria) {
+  public static Query toQuery(DocumentCriteria<?> criteria) {
     Objects.requireNonNull(criteria, "criteria");
-    return (Expressional) criteria;
+    Preconditions.checkArgument(criteria instanceof Queryable, "%s should implement %s",
+            criteria.getClass().getName(), Queryable.class.getName());
+
+    return ((Queryable) criteria).query();
   }
 
   /**
-   * Extract directly expression from a criteria
+   * Extract directly filter from a criteria
    */
-  public static Expression toExpression(DocumentCriteria<?> criteria) {
-    return toExpressional(criteria).expression();
+  public static Expression toFilterExpression(DocumentCriteria<?> criteria) {
+    return toQuery(criteria).filter().orElseThrow(() -> new IllegalArgumentException("no defined filter for " + criteria));
   }
 
 }

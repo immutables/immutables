@@ -47,7 +47,8 @@ import org.immutables.criteria.matcher.BooleanMatcher;
 import org.immutables.criteria.matcher.NotMatcher;
 import org.immutables.criteria.matcher.ComparableMatcher;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressional;
+import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Queryable;
 import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Constant;
@@ -102,7 +103,7 @@ import [starImport];
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
-   private final static class ExpressionalSelf extends Self implements Expressional {
+   private final static class ExpressionalSelf extends Self implements Queryable {
       private ExpressionalSelf() {
          this(new CriteriaContext([type.name].class, creator()).withCreators(creator(), creator(), creator()));
       }
@@ -116,8 +117,8 @@ import [starImport];
       }
 
       @Override
-      public Expression expression() {
-        return this.context.expression();
+      public Query query() {
+        return this.context.query();
       }
    }
 

@@ -139,7 +139,7 @@ public final class Matchers {
 
   /**
    * Hacky (and temporary) reflection until we define proper sub-classes for criterias
-   * (to hide Expressional implementation).
+   * (to hide Queryable implementation).
    */
   static CriteriaContext extract(Object object) {
     Objects.requireNonNull(object, "object");
@@ -156,7 +156,7 @@ public final class Matchers {
     return expression -> {
       final C initial = supplier.get();
       final C changed = expr.apply(initial);
-      return Matchers.extract(changed).expression();
+      return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };
   }
 
@@ -168,7 +168,7 @@ public final class Matchers {
       final CriteriaCreator.TriFactory<?, ?, C> factory = context.factory3();
       final C initial = (C) context.withCreators(factory.creator3(), factory.creator2(), factory.creator3()).factory3().create3();
       final C changed = expr.apply(initial);
-      return Matchers.extract(changed).expression();
+      return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };
   }
 

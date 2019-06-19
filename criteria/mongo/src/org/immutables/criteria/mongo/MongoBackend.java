@@ -49,7 +49,7 @@ class MongoBackend implements Backend {
   }
 
   private Bson toBson(DocumentCriteria<?> criteria) {
-    return converter.convert(Criterias.toExpression(criteria));
+    return converter.convert(Criterias.toFilterExpression(criteria));
   }
 
   @Override
