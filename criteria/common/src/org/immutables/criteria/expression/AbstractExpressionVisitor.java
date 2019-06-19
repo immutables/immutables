@@ -51,7 +51,7 @@ public class AbstractExpressionVisitor<T> implements ExpressionVisitor<T> {
   }
 
   @Override
-  public T visit(Root root) {
-    return root.expression().map(e -> e.accept(this)).orElseGet(() -> mapper.apply(root));
+  public T visit(Query query) {
+    return query.expression().map(e -> e.accept(this)).orElseGet(() -> mapper.apply(query));
   }
 }

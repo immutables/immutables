@@ -32,17 +32,17 @@ import java.util.Objects;
  */
 public class DnfExpression implements Expressional, Expression {
 
-  private final Root root;
+  private final Query root;
   private final List<Expression> conjunctions;
   private final List<Expression> disjunctions;
 
-  private DnfExpression(Root root, List<Expression> conjunctions, List<Expression> disjunctions) {
+  private DnfExpression(Query root, List<Expression> conjunctions, List<Expression> disjunctions) {
     this.root = root;
     this.conjunctions = ImmutableList.copyOf(conjunctions);
     this.disjunctions = ImmutableList.copyOf(disjunctions);
   }
 
-  public static DnfExpression create(Root root) {
+  public static DnfExpression create(Query root) {
     return new DnfExpression(root, Collections.emptyList(), Collections.emptyList());
   }
 

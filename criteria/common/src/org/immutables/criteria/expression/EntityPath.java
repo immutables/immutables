@@ -16,21 +16,31 @@
 
 package org.immutables.criteria.expression;
 
+import java.util.Objects;
+
 /**
- * Visitor pattern for traversing a tree of expressions.
+ * Used to access concrete entity (class). Different from property
+ * access of that class.
  *
- * Consider using {@link ExpressionBiVisitor} if you need to propagate some context / payload.
- *
- * @param <V> visitor return type
+ * <p> Example
+ * <pre>
+ *   {@code Person} - EntityPath
+ *   {@code Person.age} - simple Path
+ * </pre>
  */
-public interface ExpressionVisitor<V> {
+public class EntityPath extends Path {
 
-  V visit(Call call);
+  private final Class<?> entityClass;
 
-  V visit(Constant constant);
+  EntityPath(Class<?> entityClass) {
+    super(null, entityClass);
+    this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
+  }
 
-  V visit(Path path);
+  @Override
+  public Class<?> annotatedElement() {
+    return entityClass;
+  }
 
-  V visit(Query query);
 
 }

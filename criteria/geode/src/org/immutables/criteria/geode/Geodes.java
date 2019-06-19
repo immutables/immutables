@@ -30,7 +30,6 @@ import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -116,13 +115,7 @@ class Geodes {
     return Optional.of(values);
   }
 
-  private static boolean isIdAttribute(Member member) {
-    if (!(member instanceof AnnotatedElement)) {
-      return false;
-    }
-
-    final AnnotatedElement annotated = (AnnotatedElement) member;
-
-    return annotated.isAnnotationPresent(Criteria.Id.class);
+  private static boolean isIdAttribute(AnnotatedElement element) {
+    return element.isAnnotationPresent(Criteria.Id.class);
   }
 }

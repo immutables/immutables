@@ -25,9 +25,10 @@ import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Root;
+import org.immutables.criteria.expression.Query;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
@@ -215,8 +216,8 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     }
 
     @Override
-    public Object visit(Root root) {
-      return root.expression().map(e -> e.accept(this)).orElse(Boolean.TRUE);
+    public Object visit(Query query) {
+      return query.expression().map(e -> e.accept(this)).orElse(Boolean.TRUE);
     }
   }
 
@@ -239,8 +240,8 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
       Object result = object;
 
-      for (Member member: path.paths()) {
-        result = extract(result, member);
+      for (AnnotatedElement member: path.paths()) {
+        result = extract(result, (Member) member);
         if (result == UNKNOWN) {
           break;
         }

@@ -51,8 +51,8 @@ public final class Expressions {
     return reduce(Operators.OR, expressions);
   }
 
-  public static Root root(Class<?> entityClass) {
-    return Root.of(entityClass);
+  public static Query root(Class<?> entityClass) {
+    return Query.of(entityClass);
   }
 
   private static  Expression reduce(Operator operator, Iterable<? extends Expression> expressions) {
@@ -88,23 +88,23 @@ public final class Expressions {
       }
 
       @Override
-      public V visit(Root root, @Nullable Void context) {
+      public V visit(Query root, @Nullable Void context) {
         return visitor.visit(root);
       }
     };
   }
 
   public static Optional<Expression> extractPredicate(Expression expression) {
-    if (expression instanceof Root) {
-      return ((Root) expression).expression();
+    if (expression instanceof Query) {
+      return ((Query) expression).expression();
     }
 
     return Optional.of(expression);
   }
 
   public static Expression not(Expression call) {
-    if (call instanceof Root) {
-      return ((Root) call).transform(e -> call(Operators.NOT, e));
+    if (call instanceof Query) {
+      return ((Query) call).transform(e -> call(Operators.NOT, e));
     }
     return Expressions.call(Operators.NOT, call);
   }

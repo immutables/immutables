@@ -16,47 +16,47 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Access to a property possibly via several paths like {@code foo.bar.qux}
+ * Access to a property or entity (class) possibly via several paths like {@code foo.bar.qux}
  */
-public final class Path implements Expression {
+public class Path implements Expression {
 
   private final Path parent;
-  private final Member member;
+  private final AnnotatedElement annotatedElement;
 
-  private Path(Path parent, Member member) {
+  Path(Path parent, AnnotatedElement annotatedElement) {
     this.parent = parent;
-    this.member = Objects.requireNonNull(member, "member");
+    this.annotatedElement = Objects.requireNonNull(annotatedElement, "annotatedElement");
   }
 
   public Optional<Path> parent() {
     return Optional.ofNullable(parent);
   }
 
-  public Member member() {
-    return member;
+  public AnnotatedElement annotatedElement() {
+    return annotatedElement;
   }
 
   /**
    * Paths from root to current element
    */
-  public List<Member> paths() {
+  public List<AnnotatedElement> paths() {
     Path current = this;
-    final ImmutableList.Builder<Member> parents = ImmutableList.builder();
+    final ImmutableList.Builder<AnnotatedElement> parents = ImmutableList.builder();
     do {
-      parents.add(current.member());
+      parents.add(current.annotatedElement());
       current = current.parent;
     } while (current != null);
 
@@ -64,19 +64,44 @@ public final class Path implements Expression {
   }
 
   public Path with(Member member) {
-    Objects.requireNonNull(member, "member");
-    return new Path(this, member);
+    Objects.requireNonNull(annotatedElement, "annotatedElement");
+    return new Path(this, (AnnotatedElement) member);
   }
 
   public static Path of(Member member) {
-    return new Path(null, member);
+    Objects.requireNonNull(member, "member");
+    Preconditions.checkArgument(member instanceof AnnotatedElement, "%s instanceof %s",
+            member.getClass().getName(),
+            AnnotatedElement.class.getSimpleName());
+    return of((AnnotatedElement) member);
+  }
+
+  public static Path of(AnnotatedElement annotatedElement) {
+    if (annotatedElement instanceof Class) {
+      return of((Class<?>) annotatedElement);
+    }
+    return new Path(null, annotatedElement);
+  }
+
+  public static EntityPath of(Class<?> entity) {
+    return new EntityPath(entity);
   }
 
   /**
    * Returns current path in java bean format: {@code foo.bar.qux}
    */
   public String toStringPath() {
-    return paths().stream().map(Member::getName).collect(Collectors.joining("."));
+    final Function<AnnotatedElement, String> fn = elem -> {
+      if (elem instanceof Member) {
+        return ((Member) elem).getName();
+      } else if (elem instanceof Class) {
+        return ((Class) elem).getSimpleName();
+      }
+
+      throw new IllegalArgumentException("Unknown element " + elem);
+    };
+
+    return paths().stream().map(fn).collect(Collectors.joining("."));
   }
 
   @Override
