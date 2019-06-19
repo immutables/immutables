@@ -24,6 +24,7 @@ import org.immutables.criteria.Criteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
@@ -88,13 +89,14 @@ public class GeodeBackend implements Backend {
 
   private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
     if (!op.query().filter().isPresent()) {
-      // means delete all (ie clear whole region)
+      // no filter means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
               .toSingleDefault(Repository.Success.SUCCESS)
               .toFlowable();
     }
 
-    final Optional<List<?>> ids = Geodes.canDeleteByKey(op.query());
+    final Expression filter = op.query().filter().orElseThrow(() -> new IllegalStateException("For " + op));
+    final Optional<List<?>> ids = Geodes.canDeleteByKey(filter);
     // list of ids is present in the expression
     if (ids.isPresent()) {
       // delete by key: map.remove(key)
@@ -104,8 +106,7 @@ public class GeodeBackend implements Backend {
     }
 
 
-    final String predicate = op.query().filter().get()
-            .accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
+    final String predicate = filter.accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
 
     final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), predicate);
 

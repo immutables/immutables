@@ -18,19 +18,14 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
 
-import java.lang.reflect.AnnotatedElement;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,15 +62,9 @@ class Geodes {
    *  }
    * </pre>
    *
-   *
+   * @param expr filter applied on entries for deletion
    */
-  static Optional<List<?>> canDeleteByKey(Query query) {
-    if (!query.filter().isPresent()) {
-      return Optional.of(Collections.emptyList());
-    }
-
-    final Expression expr = query.filter().get();
-
+  static Optional<List<?>> canDeleteByKey(Expression expr) {
     if (!(expr instanceof Call)) {
       return Optional.empty();
     }
@@ -97,15 +86,11 @@ class Geodes {
 
     final Path path = Visitors.toPath(predicate.arguments().get(0));
 
-    if (!(path.paths().size() == 1 && isIdAttribute(path.paths().get(0)))) {
+    if (!(path.paths().size() == 1 && path.paths().get(0).isAnnotationPresent(Criteria.Id.class))) {
       return Optional.empty();
     }
 
     final List<Object> values = Visitors.toConstant(predicate.arguments().get(1)).values();
     return Optional.of(values);
-  }
-
-  private static boolean isIdAttribute(AnnotatedElement element) {
-    return element.isAnnotationPresent(Criteria.Id.class);
   }
 }
