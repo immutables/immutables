@@ -26,7 +26,6 @@ import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
-import org.immutables.criteria.Criterias;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Query;
@@ -48,16 +47,13 @@ public class ElasticsearchBackend implements Backend {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
-  private final Class<?> type;
   private final String index;
 
   public ElasticsearchBackend(RestClient restClient,
                               ObjectMapper mapper,
-                              Class<?> type,
                               String index) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
-    this.type = type;
     this.index = Objects.requireNonNull(index, "index");
   }
 
@@ -70,13 +66,13 @@ public class ElasticsearchBackend implements Backend {
 
   private <T> Flowable<T> queryInternal(Operations.Select<T> op) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
-    final Query query = Criterias.toQuery(op.criteria());
+    final Query query = op.query();
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
-    op.limit().ifPresent(limit -> json.put("size", limit));
-    op.offset().ifPresent(offset -> json.put("start", offset));
+    query.limit().ifPresent(limit -> json.put("size", limit));
+    query.offset().ifPresent(offset -> json.put("start", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
     return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
-            .map(r -> converter((Class<T>) type).apply(r))
+            .map(r -> converter((Class<T>) query.entityPath().annotatedElement()).apply(r))
             .flatMapIterable(x -> x);
   }
 

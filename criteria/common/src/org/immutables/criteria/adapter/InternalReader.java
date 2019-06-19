@@ -16,8 +16,10 @@
 
 package org.immutables.criteria.adapter;
 
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -27,14 +29,14 @@ import java.util.Objects;
  */
 public final class InternalReader<T> implements Repository.Reader<T> {
 
-  private final ImmutableSelect<T> query;
+  private final Query query;
   private final Backend backend;
 
-  public InternalReader(DocumentCriteria<T> criteria, Class<T> returnType, Backend backend) {
-    this(ImmutableSelect.of(criteria, returnType), backend);
+  public InternalReader(DocumentCriteria<T> criteria, Backend backend) {
+    this(Criterias.toQuery(criteria), backend);
   }
 
-  private InternalReader(ImmutableSelect<T> query, Backend backend) {
+  private InternalReader(Query query, Backend backend) {
     this.query = Objects.requireNonNull(query, "query");
     this.backend = Objects.requireNonNull(backend, "backend");
   }
@@ -51,7 +53,7 @@ public final class InternalReader<T> implements Repository.Reader<T> {
 
   @Override
   public Publisher<T> fetch() {
-    return backend.execute(query);
+    return backend.execute(Operations.Select.of(query));
   }
 
 }

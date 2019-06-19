@@ -16,8 +16,10 @@
 
 package org.immutables.criteria.adapter;
 
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -25,16 +27,16 @@ import java.util.Objects;
 public final class InternalWatcher<T> implements Repository.Watcher<T> {
 
   private final Backend backend;
-  private final DocumentCriteria<?> criteria;
+  private final Query query;
 
   public InternalWatcher(DocumentCriteria<?> criteria, Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
-    this.criteria = Objects.requireNonNull(criteria, "criteria");
+    this.query = Criterias.toQuery(Objects.requireNonNull(criteria, "criteria"));
   }
 
   @Override
   public Publisher<T> watch() {
-    return backend.execute(ImmutableWatch.of(criteria));
+    return backend.execute(ImmutableWatch.of(query));
   }
 
 }

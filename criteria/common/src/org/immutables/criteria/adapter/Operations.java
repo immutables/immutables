@@ -17,14 +17,15 @@
 package org.immutables.criteria.adapter;
 
 import com.google.common.collect.ImmutableList;
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
+import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
 
 import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -37,20 +38,17 @@ public final class Operations {
   private Operations() {}
 
   /**
-   * Query sent to a backend
+   * Query sent to a backend similar to SQL {@code SELECT} clause.
    */
   @Value.Immutable
   public interface Select<T> extends Backend.Operation<T> {
 
     @Value.Parameter
-    DocumentCriteria<?> criteria();
+    Query query();
 
-    @Value.Parameter
-    Class<T> returnType();
-
-    OptionalLong limit();
-
-    OptionalLong offset();
+    static <T> ImmutableSelect<T> of(Query query) {
+      return ImmutableSelect.of(query);
+    }
   }
 
   /**
@@ -119,18 +117,17 @@ public final class Operations {
   @Value.Immutable
   public interface Delete extends Backend.Operation<Repository.Success> {
     @Value.Parameter
-    DocumentCriteria<?> criteria();
-
+    Query query();
 
     static Delete of(DocumentCriteria<?> criteria) {
-      return ImmutableDelete.of(criteria);
+      return ImmutableDelete.of(Criterias.toQuery(criteria));
     }
   }
 
   @Value.Immutable
   public interface Watch<T> extends Backend.Operation<T> {
     @Value.Parameter
-    DocumentCriteria<?> criteria();
+    Query query();
 
   }
 

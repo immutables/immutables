@@ -19,14 +19,14 @@ package org.immutables.criteria.mongo;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.reactivex.Flowable;
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -48,8 +48,8 @@ class MongoBackend implements Backend {
     this.converter = Mongos.converter();
   }
 
-  private Bson toBson(DocumentCriteria<?> criteria) {
-    return converter.convert(Criterias.toFilterExpression(criteria));
+  private Bson toBson(Query query) {
+    return query.filter().map(converter::convert).orElseGet(BsonDocument::new);
   }
 
   @Override
@@ -70,11 +70,11 @@ class MongoBackend implements Backend {
   private <T> Publisher<T> query(Operations.Select<T> select) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    return collection.find(toBson(select.criteria()));
+    return collection.find(toBson(select.query()));
   }
 
   private Publisher<Repository.Success> delete(Operations.Delete delete) {
-    final Bson filter = toBson(delete.criteria());
+    final Bson filter = toBson(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
             .map(r -> Repository.Success.SUCCESS);
   }
@@ -87,7 +87,7 @@ class MongoBackend implements Backend {
 
   private <T> Publisher<T> watch(Operations.Watch<T> operation) {
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    final Bson filter = new Document("fullDocument", toBson(operation.criteria()));
+    final Bson filter = new Document("fullDocument", toBson(operation.query()));
     return collection.watch(Collections.singletonList(filter))
             .fullDocument(FullDocument.UPDATE_LOOKUP)
             .withDocumentClass(collection.getDocumentClass());
