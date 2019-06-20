@@ -23,7 +23,7 @@ import java.util.Arrays;
 /**
  * Access abstractions to a data-source.
  *
- * @param <T>
+ * @param <T> entity type
  */
 public interface Repository<T> {
 
@@ -34,15 +34,13 @@ public interface Repository<T> {
     Reader<T> limit(long limit);
 
     Reader<T> offset(long offset);
-
-    Publisher<T> fetch();
   }
 
-  interface Readable<T> extends Repository<T> {
+  interface Readable<T, R extends Reader<T>> extends Repository<T> {
 
-    Reader<T> find(DocumentCriteria<T> criteria);
+    R find(DocumentCriteria<T> criteria);
 
-    Reader<T> findAll();
+    R findAll();
 
   }
 
@@ -53,15 +51,15 @@ public interface Repository<T> {
     SUCCESS
   }
 
-  interface Writable<T> extends Repository<T> {
+  interface Writable<T, R> extends Repository<T> {
 
-    default Publisher<Success> insert(T ... docs) {
+    default R insert(T ... docs) {
       return insert(Arrays.asList(docs));
     }
 
-    Publisher<Success> insert(Iterable<? extends T> docs);
+    R insert(Iterable<? extends T> docs);
 
-    Publisher<Success> delete(DocumentCriteria<T> criteria);
+    R delete(DocumentCriteria<T> criteria);
 
   }
 

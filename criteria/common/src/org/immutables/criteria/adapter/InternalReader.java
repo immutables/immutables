@@ -18,8 +18,10 @@ package org.immutables.criteria.adapter;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.ReactiveRepository;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Queryable;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -27,7 +29,7 @@ import java.util.Objects;
 /**
  * Simple implementation of reader interface. Keeps immutable query internally.
  */
-public final class InternalReader<T> implements Repository.Reader<T> {
+public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Queryable {
 
   private final Query query;
   private final Backend backend;
@@ -56,4 +58,8 @@ public final class InternalReader<T> implements Repository.Reader<T> {
     return backend.execute(Operations.Select.of(query));
   }
 
+  @Override
+  public Query query() {
+    return query;
+  }
 }
