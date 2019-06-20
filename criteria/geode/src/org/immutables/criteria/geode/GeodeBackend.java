@@ -21,9 +21,10 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.Repository;
+import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.adapter.UnknownWriteResult;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
@@ -73,7 +74,7 @@ public class GeodeBackend implements Backend {
             .flatMapIterable(x -> x);
   }
 
-  private <T> Flowable<Repository.Success> insert(Operations.Insert<T> op) {
+  private <T> Flowable<WriteResult> insert(Operations.Insert<T> op) {
     if (!(op instanceof Operations.KeyedInsert)) {
       throw new UnsupportedOperationException(
               String.format("%s supports only %s. Did you define a key (@%s) on your domain class ?",
@@ -87,11 +88,11 @@ public class GeodeBackend implements Backend {
     return Completable.fromRunnable(() -> region.putAll(insert.toMap())).toFlowable();
   }
 
-  private <T> Flowable<Repository.Success> delete(Operations.Delete op) {
+  private <T> Flowable<WriteResult> delete(Operations.Delete op) {
     if (!op.query().filter().isPresent()) {
       // no filter means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
-              .toSingleDefault(Repository.Success.SUCCESS)
+              .toSingleDefault(UnknownWriteResult.INSTANCE)
               .toFlowable();
     }
 
@@ -101,7 +102,7 @@ public class GeodeBackend implements Backend {
     if (ids.isPresent()) {
       // delete by key: map.remove(key)
       return Completable.fromRunnable(() -> region.removeAll(ids.get()))
-              .toSingleDefault(Repository.Success.SUCCESS)
+              .toSingleDefault(UnknownWriteResult.INSTANCE)
               .toFlowable();
     }
 
@@ -112,7 +113,7 @@ public class GeodeBackend implements Backend {
 
     return Single.fromCallable(() -> region.query(query))
             .flatMapCompletable(list -> Completable.fromRunnable(() -> region.removeAll((Collection<Object>) list)))
-            .toSingleDefault(Repository.Success.SUCCESS)
+            .toSingleDefault(UnknownWriteResult.INSTANCE)
             .toFlowable();
   }
 

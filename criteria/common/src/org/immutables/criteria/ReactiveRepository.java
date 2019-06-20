@@ -36,7 +36,7 @@ public interface ReactiveRepository<T> extends Repository<T> {
 
   }
 
-  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, Publisher<Success>> {
+  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, Publisher<WriteResult>> {
 
   }
 

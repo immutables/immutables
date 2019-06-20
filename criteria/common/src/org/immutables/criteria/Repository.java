@@ -44,13 +44,6 @@ public interface Repository<T> {
 
   }
 
-  /**
-   * Marker for a successful operation
-   */
-  enum Success {
-    SUCCESS
-  }
-
   interface Writable<T, R> extends Repository<T> {
 
     default R insert(T ... docs) {
