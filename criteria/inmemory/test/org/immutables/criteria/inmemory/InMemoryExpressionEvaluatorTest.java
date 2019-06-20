@@ -17,7 +17,6 @@
 package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.personmodel.Address;
 import org.immutables.criteria.personmodel.ImmutableAddress;
 import org.immutables.criteria.personmodel.ImmutablePerson;

@@ -22,7 +22,6 @@ import io.reactivex.Flowable;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.Repository;
 import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
