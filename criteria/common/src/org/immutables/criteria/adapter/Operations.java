@@ -19,7 +19,7 @@ package org.immutables.criteria.adapter;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Repository;
+import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
 
@@ -55,7 +55,7 @@ public final class Operations {
    * Insert operation for a list of objects.
    */
   @Value.Immutable
-  public interface Insert<V> extends Backend.Operation<Repository.Success> {
+  public interface Insert<V> extends Backend.Operation<WriteResult> {
 
     /**
      * List of values to be inserted
@@ -115,7 +115,7 @@ public final class Operations {
    * Delete documents using some criteria
    */
   @Value.Immutable
-  public interface Delete extends Backend.Operation<Repository.Success> {
+  public interface Delete extends Backend.Operation<WriteResult> {
     @Value.Parameter
     Query query();
 

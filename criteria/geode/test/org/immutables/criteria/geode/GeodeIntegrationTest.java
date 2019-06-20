@@ -20,7 +20,6 @@ import io.reactivex.Flowable;
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.DocumentCriteria;
-import org.immutables.criteria.Repository;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -108,20 +107,20 @@ public class GeodeIntegrationTest {
 
 
     // delete all
-    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).is(Repository.Success.SUCCESS);
+    check(Flowable.fromPublisher(repository.delete(PersonCriteria.create())).blockingFirst()).notNull();
     check(region.keySet()).isEmpty();
 
     insert(generator.next().withId("test"));
 
     check(Flowable.fromPublisher(repository.delete(PersonCriteria.create().id.isIn("testBAD", "test")))
-            .blockingFirst()).is(Repository.Success.SUCCESS);
+            .blockingFirst()).notNull();
     check(region.keySet()).hasSize(0);
 
     // insert again
     insert(generator.next().withId("test").withNickName("nick123"));
 
     check(Flowable.fromPublisher(repository.delete(PersonCriteria.create().nickName.value().isEqualTo("nick123")))
-            .blockingFirst()).is(Repository.Success.SUCCESS);
+            .blockingFirst()).notNull();
 
     // delete by query doesn't work yet
     // check(region.keySet()).hasSize(0);

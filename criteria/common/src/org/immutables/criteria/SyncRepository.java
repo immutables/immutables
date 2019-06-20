@@ -35,7 +35,7 @@ public interface SyncRepository<T> extends Repository<T> {
 
   }
 
-  interface Writable<T> extends SyncRepository<T>, Repository.Writable<T, Repository.Success> {
+  interface Writable<T> extends SyncRepository<T>, Repository.Writable<T, WriteResult> {
 
   }
 

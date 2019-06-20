@@ -23,8 +23,10 @@ import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Repository;
+import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.adapter.UnknownWriteResult;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
@@ -73,16 +75,16 @@ class MongoBackend implements Backend {
     return collection.find(toBson(select.query()));
   }
 
-  private Publisher<Repository.Success> delete(Operations.Delete delete) {
+  private Publisher<WriteResult> delete(Operations.Delete delete) {
     final Bson filter = toBson(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
-            .map(r -> Repository.Success.SUCCESS);
+            .map(r -> UnknownWriteResult.INSTANCE);
   }
 
-  private Publisher<Repository.Success> insert(Operations.Insert insert) {
+  private Publisher<WriteResult> insert(Operations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = (List<Object>) insert.values();
-    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> Repository.Success.SUCCESS);
+    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> UnknownWriteResult.INSTANCE);
   }
 
   private <T> Publisher<T> watch(Operations.Watch<T> operation) {
