@@ -20,11 +20,12 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Queryable;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
-public final class InternalWatcher<T> implements Repository.Watcher<T> {
+public final class InternalWatcher<T> implements Repository.Watcher<T>, Queryable {
 
   private final Backend backend;
   private final Query query;
@@ -39,4 +40,8 @@ public final class InternalWatcher<T> implements Repository.Watcher<T> {
     return backend.execute(ImmutableWatch.of(query));
   }
 
+  @Override
+  public Query query() {
+    return query;
+  }
 }

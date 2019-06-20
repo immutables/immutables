@@ -37,5 +37,5 @@ public final class Criterias {
 
     return ((Queryable) criteria).query();
   }
-  
+
 }
