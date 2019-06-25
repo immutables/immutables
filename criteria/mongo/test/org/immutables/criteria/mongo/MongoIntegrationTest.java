@@ -116,6 +116,8 @@ public class MongoIntegrationTest {
     final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
     check(persons).hasSize(1);
     check(persons.get(0).id()).is("id123");
+
+
   }
 
   @Test
@@ -124,6 +126,12 @@ public class MongoIntegrationTest {
     execute(PersonCriteria.create().age.isGreaterThan(22), 0);
     execute(PersonCriteria.create().age.isLessThan(22), 0);
     execute(PersonCriteria.create().age.isAtMost(22), 1);
+
+    // look up using id
+    execute(PersonCriteria.create().id.isEqualTo("id123"), 1);
+    execute(PersonCriteria.create().id.isIn("foo", "bar", "id123"), 1);
+    execute(PersonCriteria.create().id.isIn("foo", "bar", "qux"), 0);
+
   }
 
   private void execute(DocumentCriteria<Person> expr, int count) {

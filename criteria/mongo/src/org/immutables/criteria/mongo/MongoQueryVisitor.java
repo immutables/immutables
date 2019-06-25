@@ -16,22 +16,28 @@
 
 package org.immutables.criteria.mongo;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.conversions.Bson;
+import org.immutables.criteria.Criteria;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Generates mongo find using visitor API.
+ * Generates mongo find BSON using visitor API.
  */
 class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
@@ -46,7 +52,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Object value = Visitors.toConstant(args.get(1)).value();
 
       return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
@@ -54,7 +60,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final List<Object> values = Visitors.toConstant(args.get(1)).values();
       Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
 
@@ -76,7 +82,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Object value = Visitors.toConstant(args.get(1)).value();
 
       if (op == Operators.GREATER_THAN) {
@@ -94,6 +100,24 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
+  }
+
+  private static String toMongoFieldName(Path path) {
+    Function<AnnotatedElement, String> toStringFn = a -> {
+      Objects.requireNonNull(a, "null element");
+      if (a.isAnnotationPresent(Criteria.Id.class)) {
+        return "_id";
+      } else if (a instanceof Member) {
+        return ((Member) a).getName();
+      } else if (a instanceof Class) {
+        return ((Class) a).getSimpleName();
+      }
+
+      throw new IllegalArgumentException("Don't know how to name " + a);
+    };
+
+
+    return path.paths().stream().map(toStringFn::apply).collect(Collectors.joining("."));
   }
 
 
