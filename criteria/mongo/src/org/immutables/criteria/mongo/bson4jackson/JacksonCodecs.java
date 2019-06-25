@@ -60,7 +60,7 @@ public final class JacksonCodecs {
     return new CodecRegistry() {
       @Override
       public <T> Codec<T> get(final Class<T> clazz) {
-        final JavaType javaType = TypeFactory.defaultInstance().constructType(clazz);
+        final JavaType javaType = mapper.getTypeFactory().constructType(clazz);
         if (!mapper.canSerialize(clazz) || !mapper.canDeserialize(javaType)) {
           throw new CodecConfigurationException(String.format("%s (javaType: %s) not supported by Jackson Mapper", clazz, javaType));
         }
