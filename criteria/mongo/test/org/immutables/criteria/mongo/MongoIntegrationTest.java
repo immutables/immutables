@@ -26,7 +26,9 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
+import org.bson.Document;
 import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
@@ -36,7 +38,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.immutables.check.Checkers.check;
 
 /**
  * Basic tests of mongo adapter
@@ -57,7 +62,8 @@ public class MongoIntegrationTest {
     final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new JavaTimeModule()) // need to support native BSON codecs
             .registerModule(new GuavaModule())
-            .registerModule(new Jdk8Module());
+            .registerModule(new Jdk8Module())
+            .registerModule(new IdAnnotationModule());
 
     Flowable.fromPublisher(client.getDatabase("test").createCollection("test"))
             .test()
@@ -71,7 +77,7 @@ public class MongoIntegrationTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    final Person person = new PersonGenerator().next().withFullName("test").withAge(22);
+    final Person person = new PersonGenerator().next().withId("id123").withFullName("test").withAge(22);
 
     Flowable.fromPublisher(repository.insert(person))
             .test()
@@ -94,6 +100,22 @@ public class MongoIntegrationTest {
     execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
     execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
     execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
+  }
+
+  /**
+   * Test that {@code _id} attribute is persisted instead of {@code id}
+   */
+  @Test
+  public void idAttribute() {
+    // query directly
+    final List<Document> docs = Flowable.fromPublisher(collection.withDocumentClass(Document.class).find()).toList().blockingGet();
+    check(docs).hasSize(1);
+    check(docs.get(0).get("_id")).is("id123");
+
+    // query using repository
+    final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
+    check(persons).hasSize(1);
+    check(persons.get(0).id()).is("id123");
   }
 
   @Test
