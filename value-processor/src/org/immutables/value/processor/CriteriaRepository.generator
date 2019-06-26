@@ -42,7 +42,7 @@ import com.google.common.collect.ImmutableList;
 
 import org.immutables.criteria.ReactiveRepository;
 import org.immutables.criteria.WriteResult;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.InternalReader;
@@ -97,7 +97,7 @@ import java.util.function.Function;
 [/for]
 
   @Override
-  public ReactiveRepository.Reader<[type.name]> find(DocumentCriteria<[type.name]> criteria) {
+  public ReactiveRepository.Reader<[type.name]> find(Criterion<[type.name]> criteria) {
     return new InternalReader<>(criteria, backend);
   }
 
@@ -119,14 +119,14 @@ import java.util.function.Function;
   }
 
   @Override
-  public Publisher<WriteResult> delete(DocumentCriteria<[type.name]> criteria) {
+  public Publisher<WriteResult> delete(Criterion<[type.name]> criteria) {
     return backend.execute(Operations.Delete.of(criteria));
   }
 [/if]
 
 [if type.criteriaRepository.watch]
   @Override
-  public ReactiveRepository.Watcher<[type.name]> watcher(DocumentCriteria<[type.name]> criteria) {
+  public ReactiveRepository.Watcher<[type.name]> watcher(Criterion<[type.name]> criteria) {
     return new InternalWatcher<>(criteria, backend);
   }
 [/if]

@@ -17,7 +17,7 @@
 package org.immutables.criteria.adapter;
 
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
@@ -30,7 +30,7 @@ public final class InternalWatcher<T> implements Repository.Watcher<T>, Queryabl
   private final Backend backend;
   private final Query query;
 
-  public InternalWatcher(DocumentCriteria<?> criteria, Backend backend) {
+  public InternalWatcher(Criterion<?> criteria, Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
     this.query = Criterias.toQuery(Objects.requireNonNull(criteria, "criteria"));
   }

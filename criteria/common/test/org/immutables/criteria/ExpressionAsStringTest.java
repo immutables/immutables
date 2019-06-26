@@ -68,7 +68,7 @@ public class ExpressionAsStringTest {
 
   }
 
-  private static void assertExpressional(DocumentCriteria<?> crit, String ... expectedLines) {
+  private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
     Query query = Criterias.toQuery(crit);
     query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));

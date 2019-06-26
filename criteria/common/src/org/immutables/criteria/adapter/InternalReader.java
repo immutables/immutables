@@ -17,9 +17,8 @@
 package org.immutables.criteria.adapter;
 
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.ReactiveRepository;
-import org.immutables.criteria.Repository;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 import org.reactivestreams.Publisher;
@@ -34,7 +33,7 @@ public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Qu
   private final Query query;
   private final Backend backend;
 
-  public InternalReader(DocumentCriteria<T> criteria, Backend backend) {
+  public InternalReader(Criterion<T> criteria, Backend backend) {
     this(Criterias.toQuery(criteria), backend);
   }
 

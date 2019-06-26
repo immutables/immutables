@@ -30,7 +30,7 @@ public final class Criterias {
    * Extracts {@link Query} from a criteria. Any criteria implements
    * {@code Queryable} interface at runtime.
    */
-  public static Query toQuery(DocumentCriteria<?> criteria) {
+  public static Query toQuery(Criterion<?> criteria) {
     Objects.requireNonNull(criteria, "criteria");
     Preconditions.checkArgument(criteria instanceof Queryable, "%s should implement %s",
             criteria.getClass().getName(), Queryable.class.getName());

@@ -34,7 +34,7 @@ Use @Criteria to annotate @Value.Immutable abstract value types with no type var
 package [type.package];
 [/if]
 
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.CollectionMatcher;
@@ -79,7 +79,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements DocumentCriteria<[type.name]>, NotMatcher<R, [type.name]Criteria.Self> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>, NotMatcher<R, [type.name]Criteria.Self> {
 
    final CriteriaContext context;
 

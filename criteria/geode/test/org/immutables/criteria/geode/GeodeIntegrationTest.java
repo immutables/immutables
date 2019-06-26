@@ -19,7 +19,7 @@ package org.immutables.criteria.geode;
 import io.reactivex.Flowable;
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -131,7 +131,7 @@ public class GeodeIntegrationTest {
     return find(PersonCriteria.create());
   }
 
-  private List<Person> find(DocumentCriteria<Person> criteria) {
+  private List<Person> find(Criterion<Person> criteria) {
     return Flowable.fromPublisher(repository.find(criteria).fetch()).test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete()

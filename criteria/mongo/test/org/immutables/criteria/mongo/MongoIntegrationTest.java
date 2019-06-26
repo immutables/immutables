@@ -31,7 +31,7 @@ import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.Person;
@@ -42,7 +42,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.print.Doc;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -193,7 +192,7 @@ public class MongoIntegrationTest {
 
   }
 
-  private void execute(DocumentCriteria<Person> expr, int count) {
+  private void execute(Criterion<Person> expr, int count) {
     Flowable.fromPublisher(repository.find(expr).fetch())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)

@@ -18,7 +18,7 @@ package org.immutables.criteria.adapter;
 
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterias;
-import org.immutables.criteria.DocumentCriteria;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
@@ -119,7 +119,7 @@ public final class Operations {
     @Value.Parameter
     Query query();
 
-    static Delete of(DocumentCriteria<?> criteria) {
+    static Delete of(Criterion<?> criteria) {
       return ImmutableDelete.of(Criterias.toQuery(criteria));
     }
   }

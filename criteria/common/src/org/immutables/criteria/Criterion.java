@@ -17,11 +17,10 @@
 package org.immutables.criteria;
 
 /**
- * Base class of Criteria API. Right now used as a marker interface.
- * Generated code extends this class.
+ * Marker interface for instances which are created using criteria DSL.
  *
- * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
+ * @param <T> entity type
  */
-public interface DocumentCriteria<R>  {
+public interface Criterion<T>  {
 
 }

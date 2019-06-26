@@ -48,7 +48,7 @@ public interface Repository<T> {
    */
   interface Readable<T, R extends Reader<T, R>> extends Repository<T> {
 
-    R find(DocumentCriteria<T> criteria);
+    R find(Criterion<T> criteria);
 
     R findAll();
 
@@ -68,7 +68,7 @@ public interface Repository<T> {
 
     R insert(Iterable<? extends T> docs);
 
-    R delete(DocumentCriteria<T> criteria);
+    R delete(Criterion<T> criteria);
 
   }
 
@@ -85,7 +85,7 @@ public interface Repository<T> {
    * the flow of events is unbounded.
    */
   interface Watchable<T> extends Repository<T> {
-    Watcher<T> watcher(DocumentCriteria<T> criteria);
+    Watcher<T> watcher(Criterion<T> criteria);
   }
 
 }
