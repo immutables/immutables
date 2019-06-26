@@ -19,12 +19,17 @@ package org.immutables.criteria;
 import java.util.List;
 
 /**
- * Synchronous (blocking operation) repository
+ * Synchronous (blocking operation) repository.
+ * Final operations return {@link List}, {@link Void} or other non-deferred results.
  *
  * @param <T> entity type
  */
 public interface SyncRepository<T> extends Repository<T> {
 
+  /**
+   * Synchronous reader which returns simple list
+   * @param <T> entity type
+   */
   interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
     List<T> fetch();

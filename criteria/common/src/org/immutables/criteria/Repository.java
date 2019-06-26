@@ -21,14 +21,16 @@ import org.reactivestreams.Publisher;
 import java.util.Arrays;
 
 /**
- * Access abstractions to a data-source.
+ * Access abstractions to a data-source. Read /  Write / Watch features can be added
+ * declaratively by implementing special interfaces (eg {@link Readable}).
  *
  * @param <T> entity type
  */
 public interface Repository<T> {
 
   /**
-   * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
+   * Allows chaining operations (like adding {@code offset} / {@code limit}) on some particular query.
+   * Subclasses may add other attributes specific to their repository.
    *
    * @param <T> entity type
    * @param <R> reader type (self type)
@@ -39,6 +41,11 @@ public interface Repository<T> {
     R offset(long offset);
   }
 
+  /**
+   * Means repository can perform find operations (similar to SQL {@code SELECT} statement)
+   * @param <T> entity type
+   * @param <R> self-type of reader
+   */
   interface Readable<T, R extends Reader<T, R>> extends Repository<T> {
 
     R find(DocumentCriteria<T> criteria);
@@ -47,6 +54,12 @@ public interface Repository<T> {
 
   }
 
+  /**
+   * Declares repository as writable. Means objects can be inserted / updated / deleted.
+   *
+   * @param <T> entity type
+   * @param <R> self return type
+   */
   interface Writable<T, R> extends Repository<T> {
 
     default R insert(T ... docs) {
@@ -59,16 +72,20 @@ public interface Repository<T> {
 
   }
 
+  /**
+   * Observer for, potentially, unbounded flow of events
+   * @param <T> entity type
+   */
   interface Watcher<T> {
     Publisher<T> watch();
   }
 
   /**
-   * Means current repository supports streaming (as in pub/sub).
+   * Means current repository supports streaming (as in pub/sub). In this case
+   * the flow of events is unbounded.
    */
   interface Watchable<T> extends Repository<T> {
     Watcher<T> watcher(DocumentCriteria<T> criteria);
   }
-
 
 }

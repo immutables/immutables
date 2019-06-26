@@ -19,7 +19,8 @@ package org.immutables.criteria;
 import org.reactivestreams.Publisher;
 
 /**
- * Repository based on <a href="https://www.reactive-streams.org/">Reactive Streams</a>
+ * Repository based on <a href="https://www.reactive-streams.org/">Reactive Streams</a>.
+ * All final operations will return {@link Publisher}.
  *
  * @param <T> entity type
  * @see Publisher
