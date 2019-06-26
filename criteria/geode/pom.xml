@@ -44,6 +44,11 @@
             <version>${geode.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.geode</groupId>
+            <artifactId>geode-cq</artifactId>
+            <version>${geode.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.immutables</groupId>
             <artifactId>testing</artifactId>
             <version>${project.version}</version>

@@ -16,10 +16,14 @@
 
 package org.immutables.criteria.geode;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
 import io.reactivex.Single;
 import org.apache.geode.cache.Region;
+import org.apache.geode.cache.query.CqAttributesFactory;
+import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
@@ -53,24 +57,17 @@ public class GeodeBackend implements Backend {
       return (Publisher<T>) insert((Operations.Insert) operation);
     } else if (operation instanceof Operations.Delete) {
       return (Publisher<T>) delete((Operations.Delete) operation);
+    } else if (operation instanceof Operations.Watch) {
+      return watch((Operations.Watch<T>) operation);
     }
+
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported by %s",
             operation, GeodeBackend.class.getSimpleName())));
   }
 
   private <T> Flowable<T> query(Operations.Select<T> op) {
-    final StringBuilder oql = new StringBuilder();
-    final Query query = op.query();
-
-    oql.append("SELECT * FROM ").append(region.getFullPath());
-
-    query.filter().ifPresent(e -> oql.append(" WHERE ").append(Geodes.converter().convert(e)));
-
-    op.query().limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
-    op.query().offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
-
-    return Flowable.<Collection<T>>fromCallable(() -> region.query(oql.toString()))
+    return Flowable.<Collection<T>>fromCallable(() -> region.query(toOql(op.query())))
             .flatMapIterable(x -> x);
   }
 
@@ -106,7 +103,6 @@ public class GeodeBackend implements Backend {
               .toFlowable();
     }
 
-
     final String predicate = filter.accept(new GeodeQueryVisitor(path -> String.format("e.value.%s", path.toStringPath())));
 
     final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), predicate);
@@ -117,5 +113,25 @@ public class GeodeBackend implements Backend {
             .toFlowable();
   }
 
+  private <T> Publisher<T> watch(Operations.Watch<T> operation) {
+    return Flowable.create(e -> {
+      final FlowableEmitter<T> emitter = e.serialize();
+      final String oql = toOql(operation.query());
+      final CqAttributesFactory factory = new CqAttributesFactory();
+      factory.addCqListener(new GeodeEventListener<>(oql, emitter));
+      final CqQuery cqQuery = region.getRegionService().getQueryService().newCq(oql, factory.create());
+      emitter.setDisposable(new CqDisposable(cqQuery));
+      cqQuery.execute();
+    }, BackpressureStrategy.ERROR);
+  }
+
+  private String toOql(Query query) {
+    final StringBuilder oql = new StringBuilder();
+    oql.append("SELECT * FROM ").append(region.getFullPath());
+    query.filter().ifPresent(e -> oql.append(" WHERE ").append(Geodes.converter().convert(e)));
+    query.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
+    query.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
+    return oql.toString();
+  }
 
 }
