@@ -17,17 +17,23 @@
 package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.Deserializers;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -40,10 +46,14 @@ import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecConfigurationException;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.immutables.criteria.mongo.Wrapper;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Objects;
 
 /**
  * Utility class to convert to / from {@link CodecRegistry} and {@link ObjectMapper}.
@@ -70,10 +80,23 @@ public final class JacksonCodecs {
   }
 
   public static <T> JsonSerializer<T> serializer(final Codec<T> codec) {
+    Objects.requireNonNull(codec, "codec");
     return new CodecSerializer<>(codec);
   }
 
+  public static <T> JsonDeserializer<T> deserializer(final Codec<T> codec) {
+    Objects.requireNonNull(codec, "codec");
+    return new JsonDeserializer<T>() {
+      @Override
+      public T deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        final BsonReader reader = ((Wrapper<BsonReader>) parser).unwrap();
+        return codec.decode(reader, DecoderContext.builder().build());
+      }
+    };
+  }
+
   public static Serializers serializers(final CodecRegistry registry) {
+    Objects.requireNonNull(registry, "registry");
     return new Serializers.Base() {
       @Override
       public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type, BeanDescription beanDesc) {
@@ -85,6 +108,28 @@ public final class JacksonCodecs {
         }
       }
     };
+  }
+
+  public static Deserializers deserializers(final CodecRegistry registry) {
+    Objects.requireNonNull(registry, "registry");
+    return new Deserializers.Base() {
+      @Override
+      public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config, BeanDescription beanDesc) throws JsonMappingException {
+        try {
+          final Codec<?> codec = registry.get(type.getRawClass());
+          return deserializer(codec);
+        } catch (CodecConfigurationException ignore) {
+          return null;
+        }
+      }
+    };
+  }
+
+  /**
+   * Create module from existing provider
+   */
+  public static Module module(CodecProvider provider) {
+    return module(CodecRegistries.fromProviders(provider));
   }
 
   public static Module module(final CodecRegistry registry) {
@@ -103,6 +148,7 @@ public final class JacksonCodecs {
       @Override
       public void setupModule(SetupContext context) {
         context.addSerializers(serializers(registry));
+        context.addDeserializers(deserializers(registry));
       }
     };
   }

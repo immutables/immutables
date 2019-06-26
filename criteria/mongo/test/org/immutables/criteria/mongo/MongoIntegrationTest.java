@@ -19,7 +19,6 @@ package org.immutables.criteria.mongo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
@@ -27,9 +26,11 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
+import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
+import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
@@ -41,6 +42,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -63,7 +66,7 @@ public class MongoIntegrationTest {
   @Before
   public void setUp() throws Exception {
     final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule()) // need to support native BSON codecs
+            .registerModule(JacksonCodecs.module(new Jsr310CodecProvider()))
             .registerModule(new GuavaModule())
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
@@ -80,7 +83,10 @@ public class MongoIntegrationTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    final Person person = new PersonGenerator().next().withId("id123").withFullName("test").withAge(22);
+    final Person person = new PersonGenerator().next().withId("id123")
+            .withFullName("test")
+            .withDateOfBirth(LocalDate.of(1990, 2, 2))
+            .withAge(22);
 
     Flowable.fromPublisher(repository.insert(person))
             .test()
@@ -96,6 +102,12 @@ public class MongoIntegrationTest {
 
   @Test
   public void basic() {
+    // query directly
+    final List<BsonDocument> docs = Flowable.fromPublisher(collection
+            .withDocumentClass(BsonDocument.class)
+            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
+            .find()).toList().blockingGet();
+
     execute(PersonCriteria.create().fullName.isEqualTo("test"), 1);
     execute(PersonCriteria.create().fullName.isNotEqualTo("test"), 0);
     execute(PersonCriteria.create().fullName.isEqualTo("test")
@@ -124,6 +136,20 @@ public class MongoIntegrationTest {
     final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
     check(persons).hasSize(1);
     check(persons.get(0).id()).is("id123");
+  }
+
+  @Test
+  public void jsr310() {
+    // query directly
+    final List<BsonDocument> docs = Flowable.fromPublisher(collection
+            .withDocumentClass(BsonDocument.class)
+            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
+            .find()).toList().blockingGet();
+
+    check(docs).hasSize(1);
+    final LocalDate expected = LocalDate.of(1990, 2, 2);
+    final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+    check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
   }
 
   @Test
