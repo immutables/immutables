@@ -22,6 +22,7 @@ import com.google.common.collect.ImmutableList;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -43,6 +44,7 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
   
   private final AtomicLong index;
   private final Clock clock;
+  private final int size;
 
   public PersonGenerator() {
     this(Clock.systemDefaultZone());
@@ -53,18 +55,24 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
             FIRST_NAMES.size(), LAST_NAMES.size());
     this.index = new AtomicLong();
     this.clock = clock;
+    this.size = FIRST_NAMES.size();
   }
 
+  /**
+   * Generates next valid instance of {@link Person}
+   *
+   * @return new {@link Person} instance
+   */
   public ImmutablePerson next() {
-    return get((int) index.getAndIncrement() % FIRST_NAMES.size());
+    return get((int) index.getAndIncrement() % size);
   }
 
   /**
    * Generate person at particular "index"
    */
   private ImmutablePerson get(int index) {
-    Preconditions.checkArgument(index < FIRST_NAMES.size(),
-            "expected index %s < %s", index, FIRST_NAMES.size());
+    Preconditions.checkArgument(index < size,
+            "expected index %s < %s", index, size);
 
     // add variation to ages so it doesn't look too consecutive 20, 21, 22 etc.
     final int age = 20 + (index * 37 >> 4) % 30;
@@ -88,10 +96,10 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
   }
 
   /**
-   * Returns an infinite iterator over generated entries. You're advised to use a limiting function
-   * like {@code Iterators.limit(...)}.
+   * Returns an iterator over generated entries. Number of elements depends on
+   * internal constants like {@link #FIRST_NAMES}.
    *
-   * @return unbounded iterator with valid entries
+   * @return iterator with valid entries
    */
   @Override
   public Iterator<ImmutablePerson> iterator() {
@@ -99,11 +107,14 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
       private int index;
       @Override
       public boolean hasNext() {
-        return index < FIRST_NAMES.size();
+        return index < size;
       }
 
       @Override
       public ImmutablePerson next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException("At index " + index + " while size is " + size);
+        }
         return get(index++);
       }
     };
