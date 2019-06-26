@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +37,8 @@ import java.util.Set;
 @Criteria.Repository(watch = true)
 @JsonSerialize(as = ImmutablePerson.class)
 @JsonDeserialize(as = ImmutablePerson.class)
-public interface Person {
+public interface Person extends Serializable // serializable needed for Geode temporarily
+{
 
   @Criteria.Id
   String id();
@@ -58,6 +60,5 @@ public interface Person {
   Optional<Friend> bestFriend();
 
   List<Pet> pets();
-
 
 }
