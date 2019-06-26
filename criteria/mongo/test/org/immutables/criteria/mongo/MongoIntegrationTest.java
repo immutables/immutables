@@ -42,6 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.print.Doc;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -150,6 +151,7 @@ public class MongoIntegrationTest {
     final LocalDate expected = LocalDate.of(1990, 2, 2);
     final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
+
   }
 
   @Test
@@ -163,6 +165,13 @@ public class MongoIntegrationTest {
     execute(PersonCriteria.create().id.isEqualTo("id123"), 1);
     execute(PersonCriteria.create().id.isIn("foo", "bar", "id123"), 1);
     execute(PersonCriteria.create().id.isIn("foo", "bar", "qux"), 0);
+
+    // jsr310. dates and time
+    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1)), 1);
+    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1)), 0);
+    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2)), 1);
+    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1)), 0);
+    execute(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2)), 1);
 
   }
 
