@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.client.model.changestream.FullDocument;
+import com.mongodb.reactivestreams.client.FindPublisher;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.reactivex.Flowable;
 import org.bson.BsonDocument;
@@ -71,7 +72,10 @@ class MongoBackend implements Backend {
   private <T> Publisher<T> query(Operations.Select<T> select) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    return collection.find(toBson(select.query()));
+    final FindPublisher<T> find = collection.find(toBson(select.query()));
+    select.query().limit().ifPresent(limit -> find.limit((int) limit));
+    select.query().offset().ifPresent(offset -> find.skip((int) offset));
+    return find;
   }
 
   private Publisher<WriteResult> delete(Operations.Delete delete) {

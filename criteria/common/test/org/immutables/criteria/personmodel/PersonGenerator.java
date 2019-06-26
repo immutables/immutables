@@ -96,14 +96,15 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
   @Override
   public Iterator<ImmutablePerson> iterator() {
     return new Iterator<ImmutablePerson>() {
+      private int index;
       @Override
       public boolean hasNext() {
-        return false;
+        return index < FIRST_NAMES.size();
       }
 
       @Override
       public ImmutablePerson next() {
-        return PersonGenerator.this.next();
+        return get(index++);
       }
     };
   }

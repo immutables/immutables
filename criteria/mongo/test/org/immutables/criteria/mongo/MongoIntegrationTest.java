@@ -47,6 +47,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.immutables.check.Checkers.check;
 
@@ -151,6 +152,23 @@ public class MongoIntegrationTest {
     final LocalDate expected = LocalDate.of(1990, 2, 2);
     final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
+  }
+
+  /**
+   * limit and offset
+   */
+  @Test
+  public void limit() {
+    Flowable.fromPublisher(repository.insert(new PersonGenerator().stream().limit(5).collect(Collectors.toList())))
+            .singleOrError()
+            .blockingGet();
+
+    check(Flowable.fromPublisher(repository.findAll().limit(1).fetch()).toList().blockingGet()).hasSize(1);
+    check(Flowable.fromPublisher(repository.findAll().limit(2).fetch()).toList().blockingGet()).hasSize(2);
+
+    check(Flowable.fromPublisher(repository.findAll().limit(1).offset(1).fetch()).toList().blockingGet()).hasSize(1);
+    check(Flowable.fromPublisher(repository.findAll().limit(2).offset(2).fetch()).toList().blockingGet()).hasSize(2);
+    check(Flowable.fromPublisher(repository.findAll().limit(1).offset(10).fetch()).toList().blockingGet()).isEmpty();
 
   }
 
