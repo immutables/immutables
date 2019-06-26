@@ -20,13 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
-import org.bson.Document;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
+import org.bson.BsonString;
 import org.immutables.criteria.DocumentCriteria;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
@@ -108,16 +111,19 @@ public class MongoIntegrationTest {
   @Test
   public void idAttribute() {
     // query directly
-    final List<Document> docs = Flowable.fromPublisher(collection.withDocumentClass(Document.class).find()).toList().blockingGet();
+    final List<BsonDocument> docs = Flowable.fromPublisher(collection
+            .withDocumentClass(BsonDocument.class)
+            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
+            .find()).toList().blockingGet();
+
     check(docs).hasSize(1);
-    check(docs.get(0).get("_id")).is("id123");
+    check(docs.get(0).get("_id")).is(new BsonString("id123"));
+    check(docs.get(0).get("age")).is(new BsonInt32(22));
 
     // query using repository
     final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
     check(persons).hasSize(1);
     check(persons.get(0).id()).is("id123");
-
-
   }
 
   @Test
