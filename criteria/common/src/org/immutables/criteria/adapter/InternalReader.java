@@ -44,12 +44,12 @@ public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Qu
   }
 
   @Override
-  public Repository.Reader<T> limit(long limit) {
+  public ReactiveRepository.Reader<T> limit(long limit) {
     return new InternalReader<T>(query.withLimit(limit), backend);
   }
 
   @Override
-  public Repository.Reader<T> offset(long offset) {
+  public ReactiveRepository.Reader<T> offset(long offset) {
     return new InternalReader<T>(query.withOffset(offset), backend);
   }
 

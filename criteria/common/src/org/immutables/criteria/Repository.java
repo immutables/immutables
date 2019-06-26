@@ -29,14 +29,17 @@ public interface Repository<T> {
 
   /**
    * Allows to chain operations (like adding {@code offset} / {@code limit}) on some particular query.
+   *
+   * @param <T> entity type
+   * @param <R> reader type (self type)
    */
-  interface Reader<T> {
-    Reader<T> limit(long limit);
+  interface Reader<T, R> {
+    R limit(long limit);
 
-    Reader<T> offset(long offset);
+    R offset(long offset);
   }
 
-  interface Readable<T, R extends Reader<T>> extends Repository<T> {
+  interface Readable<T, R extends Reader<T, R>> extends Repository<T> {
 
     R find(DocumentCriteria<T> criteria);
 

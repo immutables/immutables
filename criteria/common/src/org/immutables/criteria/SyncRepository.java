@@ -25,7 +25,7 @@ import java.util.List;
  */
 public interface SyncRepository<T> extends Repository<T> {
 
-  interface Reader<T> extends Repository.Reader<T> {
+  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
     List<T> fetch();
 

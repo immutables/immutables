@@ -26,7 +26,7 @@ import java.util.concurrent.CompletionStage;
  */
 public interface AsyncRepository<T> extends Repository<T> {
 
-  interface Reader<T> extends Repository.Reader<T> {
+  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
     CompletionStage<List<T>> fetch();
 

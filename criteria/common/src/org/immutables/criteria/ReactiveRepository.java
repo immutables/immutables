@@ -26,7 +26,7 @@ import org.reactivestreams.Publisher;
  */
 public interface ReactiveRepository<T> extends Repository<T> {
 
-  interface Reader<T> extends Repository.Reader<T> {
+  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
     Publisher<T> fetch();
 
