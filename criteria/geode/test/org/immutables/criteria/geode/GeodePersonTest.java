@@ -24,7 +24,6 @@ import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -65,9 +64,4 @@ public class GeodePersonTest extends AbstractPersonTest  {
     return repository;
   }
 
-  @Ignore("don't work in geode currently")
-  @Override
-  public void comparison() {
-
-  }
 }

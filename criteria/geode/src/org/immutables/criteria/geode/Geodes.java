@@ -35,14 +35,13 @@ import java.util.Optional;
  */
 class Geodes {
 
-
   /**
    * Returns only predicate part to be appended to {@code WHERE} clause.
    *
    * @return predicate, empty string if no predicate
    */
-  static ExpressionConverter<String> converter() {
-    return expression -> expression.accept(new GeodeQueryVisitor());
+  static ExpressionConverter<OqlWithVariables> converter(boolean useBindVariables) {
+    return expression -> expression.accept(new GeodeQueryVisitor(useBindVariables));
   }
 
   /**

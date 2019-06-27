@@ -17,6 +17,7 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
@@ -27,87 +28,116 @@ import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class GeodeQueryVisitor extends AbstractExpressionVisitor<String> {
+class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
   private final Function<Path, String> pathFn;
 
-  GeodeQueryVisitor() {
-    this(Path::toStringPath);
+  /**
+   * Bind variables
+   */
+  private final List<Object> variables;
+
+  private final boolean useBindVariables;
+
+  GeodeQueryVisitor(boolean useBindVariables) {
+    this(useBindVariables, Path::toStringPath);
   }
 
-  GeodeQueryVisitor(Function<Path, String> pathFn) {
+  GeodeQueryVisitor(boolean useBindVariables, Function<Path, String> pathFn) {
     super(e -> { throw new UnsupportedOperationException(); });
     this.pathFn = Objects.requireNonNull(pathFn, "pathFn");
+    this.variables = new ArrayList<>();
+    this.useBindVariables = useBindVariables;
   }
 
+
   @Override
-  public String visit(Call call) {
+  public OqlWithVariables visit(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
-    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
+    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
+        op == Operators.IN || op == Operators.NOT_IN || OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-
-      final Path path = Visitors.toPath(args.get(0));
-      final Constant constant = Visitors.toConstant(args.get(1));
-      final String operator = op == Operators.EQUAL ? "=" : "!=";
-      return String.format("%s %s %s", pathFn.apply(path), operator, toString(constant.value()));
+      return binaryOperator(call);
     }
 
     if (op == Operators.AND || op == Operators.OR) {
       Preconditions.checkArgument(!args.isEmpty(), "Size should be >=1 for %s but was %s", op, args.size());
       final String join = " " + op.name() + " ";
-      return args.stream().map(a -> a.accept(this)).collect(Collectors.joining(join));
-    }
-
-    if (op == Operators.IN || op == Operators.NOT_IN) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final Path field = Visitors.toPath(args.get(0));
-      final List<Object> values = Visitors.toConstant(args.get(1)).values();
-
-      final String valuesAsString = values.stream()
-              .map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
-
-      final String query = String.format("%s in SET(%s)", pathFn.apply(field), valuesAsString);
-
-      return op == Operators.NOT_IN ? "NOT " + query : query;
+      final String newOql = args.stream().map(a -> a.accept(this)).map(OqlWithVariables::oql).collect(Collectors.joining(join));
+      return new OqlWithVariables(variables, newOql);
     }
 
     if (op == Operators.NOT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      return "NOT " + args.get(0).accept(this);
+      return oql("NOT " + args.get(0).accept(this).oql());
     }
-
-    if (OperatorTables.COMPARISON.contains(op)) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String fieldAsString = pathFn.apply(Visitors.toPath(args.get(0)));
-      final String valueAsString = toString(Visitors.toConstant(args.get(1)).value());
-
-      if (op == Operators.GREATER_THAN) {
-        return String.format("%s > %s", fieldAsString, valueAsString);
-      } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
-        return String.format("%s >= %s", fieldAsString, valueAsString);
-      } else if (op == Operators.LESS_THAN) {
-        return String.format("%s < %s", fieldAsString, valueAsString);
-      } else if (op == Operators.LESS_THAN_OR_EQUAL) {
-        return String.format("%s <= %s", fieldAsString, valueAsString);
-      }
-
-      throw new UnsupportedOperationException("Unknown comparison " + call);
-    }
-
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
+  }
+
+  private OqlWithVariables binaryOperator(Call call) {
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
+    Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s on call %s", op, args.size(), call);
+    final String operator;
+    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
+      operator = op == Operators.EQUAL ? "=" : "!=";
+    } else if (op == Operators.IN || op == Operators.NOT_IN) {
+      operator = op == Operators.IN ? "in" : "not in";
+    } else if (op == Operators.GREATER_THAN) {
+      operator = ">";
+    } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+      operator = ">=";
+    } else if (op == Operators.LESS_THAN) {
+      operator = "<";
+    } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+      operator = "<=";
+    } else {
+      throw new IllegalArgumentException("Unknown binary operator " + call);
+    }
+
+    final Path path = Visitors.toPath(args.get(0));
+    final Constant constant = Visitors.toConstant(args.get(1));
+
+    final Object variable;
+    if (op == Operators.IN || op == Operators.NOT_IN) {
+      variable = ImmutableSet.copyOf(constant.values());
+    } else {
+      variable = constant.value();
+    }
+
+    if (useBindVariables) {
+      variables.add(variable);
+      return oql(String.format("%s %s $%d", pathFn.apply(path), operator, variables.size()));
+    }
+
+    return oql(String.format("%s %s %s", pathFn.apply(path), operator, toString(variable)));
+  }
+
+  /**
+   * Return new query but with same variables
+   */
+  private OqlWithVariables oql(String oql) {
+    return new OqlWithVariables(variables, oql);
   }
 
   private static String toString(Object value) {
     if (value instanceof CharSequence) {
       return "'" + value + "'";
+    } else if (value instanceof Collection) {
+      @SuppressWarnings("unchecked")
+      final Collection<Object> coll = (Collection<Object>) value;
+      String asString = coll.stream().map(GeodeQueryVisitor::toString).collect(Collectors.joining(", "));
+      return String.format("SET(%s)", asString);
     } else {
       return Objects.toString(value);
     }
