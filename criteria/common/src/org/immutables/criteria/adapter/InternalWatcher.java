@@ -19,6 +19,7 @@ package org.immutables.criteria.adapter;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.Repository;
+import org.immutables.criteria.WatchEvent;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 import org.reactivestreams.Publisher;
@@ -36,7 +37,7 @@ public final class InternalWatcher<T> implements Repository.Watcher<T>, Queryabl
   }
 
   @Override
-  public Publisher<T> watch() {
+  public Publisher<WatchEvent<T>> watch() {
     return backend.execute(ImmutableWatch.of(query));
   }
 

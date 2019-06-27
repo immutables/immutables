@@ -19,6 +19,7 @@ package org.immutables.criteria.geode;
 import io.reactivex.Emitter;
 import org.apache.geode.cache.query.CqEvent;
 import org.apache.geode.cache.query.CqStatusListener;
+import org.immutables.criteria.WatchEvent;
 
 import java.util.Objects;
 
@@ -28,10 +29,10 @@ import java.util.Objects;
  */
 class GeodeEventListener<T> implements CqStatusListener {
 
-  private final Emitter<T> emitter;
+  private final Emitter<WatchEvent<T>> emitter;
   private final String query;
 
-  GeodeEventListener(final String query, Emitter<T> emitter) {
+  GeodeEventListener(final String query, Emitter<WatchEvent<T>> emitter) {
     this.emitter = Objects.requireNonNull(emitter, "emitter");
     this.query = Objects.requireNonNull(query, "query");
   }
@@ -48,7 +49,7 @@ class GeodeEventListener<T> implements CqStatusListener {
 
   @Override
   public void onEvent(CqEvent event) {
-    emitter.onNext((T) event.getNewValue());
+    emitter.onNext(new GeodeWatchEvent<>(event));
   }
 
   @Override

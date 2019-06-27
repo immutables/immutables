@@ -77,7 +77,7 @@ public interface Repository<T> {
    * @param <T> entity type
    */
   interface Watcher<T> {
-    Publisher<T> watch();
+    Publisher<WatchEvent<T>> watch();
   }
 
   /**

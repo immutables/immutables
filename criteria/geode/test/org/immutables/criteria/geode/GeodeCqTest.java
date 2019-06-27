@@ -23,6 +23,7 @@ import org.apache.geode.cache.client.ClientCache;
 import org.apache.geode.cache.client.ClientCacheFactory;
 import org.apache.geode.cache.client.ClientRegionShortcut;
 import org.apache.geode.pdx.ReflectionBasedAutoSerializer;
+import org.immutables.criteria.WatchEvent;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -87,7 +88,7 @@ public class GeodeCqTest {
 
     PersonRepository repository = new PersonRepository(new GeodeBackend(region));
 
-    TestSubscriber<Person> events = Flowable.fromPublisher(repository.watcher(PersonCriteria.create()).watch())
+    TestSubscriber<WatchEvent<Person>> events = Flowable.fromPublisher(repository.watcher(PersonCriteria.create()).watch())
             .test();
 
     final PersonGenerator generator = new PersonGenerator();
@@ -106,6 +107,6 @@ public class GeodeCqTest {
     events.awaitCount(count);
     events.assertNoErrors();
     events.assertValueCount(count);
-    check(events.values().stream().map(Person::id).collect(Collectors.toList())).hasContentInAnyOrder("id0", "id1", "id2", "id3");
+    check(events.values().stream().map(e -> e.newValue().get().id()).collect(Collectors.toList())).hasContentInAnyOrder("id0", "id1", "id2", "id3");
   }
 }

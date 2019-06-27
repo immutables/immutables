@@ -25,6 +25,7 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.WatchEvent;
 import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
@@ -58,7 +59,7 @@ public class GeodeBackend implements Backend {
     } else if (operation instanceof Operations.Delete) {
       return (Publisher<T>) delete((Operations.Delete) operation);
     } else if (operation instanceof Operations.Watch) {
-      return watch((Operations.Watch<T>) operation);
+      return (Publisher<T>) watch((Operations.Watch<T>) operation);
     }
 
 
@@ -113,9 +114,9 @@ public class GeodeBackend implements Backend {
             .toFlowable();
   }
 
-  private <T> Publisher<T> watch(Operations.Watch<T> operation) {
+  private <T> Publisher<WatchEvent<T>> watch(Operations.Watch<T> operation) {
     return Flowable.create(e -> {
-      final FlowableEmitter<T> emitter = e.serialize();
+      final FlowableEmitter<WatchEvent<T>> emitter = e.serialize();
       final String oql = toOql(operation.query());
       final CqAttributesFactory factory = new CqAttributesFactory();
       factory.addCqListener(new GeodeEventListener<>(oql, emitter));

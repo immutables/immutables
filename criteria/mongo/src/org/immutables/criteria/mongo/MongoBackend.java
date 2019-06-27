@@ -93,9 +93,9 @@ class MongoBackend implements Backend {
   private <T> Publisher<T> watch(Operations.Watch<T> operation) {
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
     final Bson filter = new Document("fullDocument", toBson(operation.query()));
-    return collection.watch(Collections.singletonList(filter))
+    return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))
             .fullDocument(FullDocument.UPDATE_LOOKUP)
-            .withDocumentClass(collection.getDocumentClass());
+            .withDocumentClass(collection.getDocumentClass()));
 
   }
 
