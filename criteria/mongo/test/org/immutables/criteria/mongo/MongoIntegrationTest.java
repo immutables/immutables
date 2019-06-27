@@ -34,6 +34,7 @@ import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
+import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
@@ -44,7 +45,9 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -53,8 +56,7 @@ import static org.immutables.check.Checkers.check;
 /**
  * Basic tests of mongo adapter
  */
-public class MongoIntegrationTest {
-
+public class MongoIntegrationTest extends AbstractPersonTest {
 
   private final MongoServer server = new MongoServer(new MemoryBackend());
   private final MongoClient client = MongoClients.create(String.format("mongodb://localhost:%d", server.bind().getPort()));
@@ -84,15 +86,8 @@ public class MongoIntegrationTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-    final Person person = new PersonGenerator().next().withId("id123")
-            .withFullName("test")
-            .withDateOfBirth(LocalDate.of(1990, 2, 2))
-            .withAge(22);
 
-    Flowable.fromPublisher(repository.insert(person))
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertComplete();
+    populate();
   }
 
   @After
@@ -101,22 +96,6 @@ public class MongoIntegrationTest {
     server.shutdownNow();
   }
 
-  @Test
-  public void basic() {
-    // query directly
-    final List<BsonDocument> docs = Flowable.fromPublisher(collection
-            .withDocumentClass(BsonDocument.class)
-            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
-            .find()).toList().blockingGet();
-
-    execute(PersonCriteria.create().fullName.isEqualTo("test"), 1);
-    execute(PersonCriteria.create().fullName.isNotEqualTo("test"), 0);
-    execute(PersonCriteria.create().fullName.isEqualTo("test")
-            .age.isNotEqualTo(1), 1);
-    execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
-    execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
-    execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
-  }
 
   /**
    * Test that {@code _id} attribute is persisted instead of {@code id}
@@ -153,50 +132,14 @@ public class MongoIntegrationTest {
     check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
   }
 
-  /**
-   * limit and offset
-   */
-  @Test
-  public void limit() {
-    Flowable.fromPublisher(repository.insert(new PersonGenerator().stream().limit(5).collect(Collectors.toList())))
-            .singleOrError()
-            .blockingGet();
 
-    check(Flowable.fromPublisher(repository.findAll().limit(1).fetch()).toList().blockingGet()).hasSize(1);
-    check(Flowable.fromPublisher(repository.findAll().limit(2).fetch()).toList().blockingGet()).hasSize(2);
-
-    check(Flowable.fromPublisher(repository.findAll().limit(1).offset(1).fetch()).toList().blockingGet()).hasSize(1);
-    check(Flowable.fromPublisher(repository.findAll().limit(2).offset(2).fetch()).toList().blockingGet()).hasSize(2);
-    check(Flowable.fromPublisher(repository.findAll().limit(1).offset(10).fetch()).toList().blockingGet()).isEmpty();
-
+  @Override
+  protected Set<Feature> features() {
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.QUERY_WITH_OFFSET);
   }
 
-  @Test
-  public void comparison() {
-    execute(PersonCriteria.create().age.isAtLeast(22), 1);
-    execute(PersonCriteria.create().age.isGreaterThan(22), 0);
-    execute(PersonCriteria.create().age.isLessThan(22), 0);
-    execute(PersonCriteria.create().age.isAtMost(22), 1);
-
-    // look up using id
-    execute(PersonCriteria.create().id.isEqualTo("id123"), 1);
-    execute(PersonCriteria.create().id.isIn("foo", "bar", "id123"), 1);
-    execute(PersonCriteria.create().id.isIn("foo", "bar", "qux"), 0);
-
-    // jsr310. dates and time
-    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1)), 1);
-    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1)), 0);
-    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2)), 1);
-    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1)), 0);
-    execute(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2)), 1);
-
-  }
-
-  private void execute(Criterion<Person> expr, int count) {
-    Flowable.fromPublisher(repository.find(expr).fetch())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValueCount(count);
-
+  @Override
+  protected PersonRepository repository() {
+    return repository;
   }
 }

@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
-public class ElasticsearchIntegrationTest {
+public class ElasticModelTest {
 
   @ClassRule
   public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
@@ -45,12 +45,11 @@ public class ElasticsearchIntegrationTest {
 
   private static final String INDEX_NAME = "mymodel";
 
-  private ElasticsearchBackend backend;
   private ElasticModelRepository repository;
 
   @BeforeClass
   public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), new ObjectMapper());
+    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, new ObjectMapper());
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
@@ -59,7 +58,7 @@ public class ElasticsearchIntegrationTest {
             .put("intNumber", "integer")
             .build();
 
-    ops.createIndex(INDEX_NAME, model);
+    ops.createIndex(model);
 
     ObjectNode doc1 = MAPPER.createObjectNode()
                 .put("string", "foo")
@@ -73,12 +72,12 @@ public class ElasticsearchIntegrationTest {
                 .put("bool", false)
                 .put("intNumber", 44);
 
-    ops.insertBulk(INDEX_NAME, Arrays.asList(doc1, doc2));
+    ops.insertBulk(Arrays.asList(doc1, doc2));
   }
 
   @Before
   public void setupRepository() throws Exception {
-    this.backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, INDEX_NAME);
+    ElasticsearchBackend backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, INDEX_NAME);
     this.repository = new ElasticModelRepository(backend);
   }
 
