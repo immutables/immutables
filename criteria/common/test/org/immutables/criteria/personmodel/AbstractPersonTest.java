@@ -56,7 +56,7 @@ public abstract class AbstractPersonTest {
   protected abstract PersonRepository repository();
 
   /**
-   * Called after setup
+   * To be called after setup
    */
   protected void populate() {
 
@@ -111,7 +111,6 @@ public abstract class AbstractPersonTest {
     execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2)), 1);
     execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1)), 0);
     execute(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2)), 1);
-
   }
 
 
@@ -125,7 +124,6 @@ public abstract class AbstractPersonTest {
     execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
     execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
   }
-
 
   private void execute(Criterion<Person> expr, int count) {
     Flowable.fromPublisher(repository().find(expr).fetch())

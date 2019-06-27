@@ -83,7 +83,10 @@ public class GeodeBackend implements Backend {
 
     final Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
     final Region<Object, T> region = (Region<Object, T>) this.region;
-    return Completable.fromRunnable(() -> region.putAll(insert.toMap())).toFlowable();
+    return Flowable.fromCallable(() -> {
+      region.putAll(insert.toMap());
+      return UnknownWriteResult.INSTANCE;
+    });
   }
 
   private <T> Flowable<WriteResult> delete(Operations.Delete op) {
