@@ -29,7 +29,7 @@ import org.junit.Ignore;
 import java.util.EnumSet;
 import java.util.Set;
 
-public class GeodeIntegrationTest extends AbstractPersonTest  {
+public class GeodePersonTest extends AbstractPersonTest  {
 
   @ClassRule
   public static final GeodeResource GEODE = GeodeResource.create();

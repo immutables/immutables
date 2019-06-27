@@ -56,7 +56,7 @@ import static org.immutables.check.Checkers.check;
 /**
  * Basic tests of mongo adapter
  */
-public class MongoIntegrationTest extends AbstractPersonTest {
+public class MongoPersonTest extends AbstractPersonTest {
 
   private final MongoServer server = new MongoServer(new MemoryBackend());
   private final MongoClient client = MongoClients.create(String.format("mongodb://localhost:%d", server.bind().getPort()));

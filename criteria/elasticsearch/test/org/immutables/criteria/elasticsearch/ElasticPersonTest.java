@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
-public class ElasticIntegrationTest extends AbstractPersonTest  {
+public class ElasticPersonTest extends AbstractPersonTest  {
 
   @ClassRule
   public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
