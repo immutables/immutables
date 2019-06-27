@@ -35,7 +35,7 @@ import java.util.Objects;
  * Helper methods to <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html">define an index</a>
  * or insert documents in elastic search.
  */
-public class ElasticsearchOps {
+class ElasticsearchOps {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
@@ -123,7 +123,7 @@ public class ElasticsearchOps {
       return;
     }
 
-    List<String> bulk = new ArrayList<>(documents.size() * 2);
+    final List<String> bulk = new ArrayList<>(documents.size() * 2);
     for (ObjectNode doc: documents) {
       final ObjectNode header = mapper.createObjectNode();
       header.with("index").put("_index", index);

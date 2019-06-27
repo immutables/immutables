@@ -17,6 +17,8 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
@@ -25,8 +27,8 @@ import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 
+import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,14 +36,15 @@ import java.util.Set;
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
-@Ignore("doesn't work yet")
 public class ElasticIntegrationTest extends AbstractPersonTest  {
 
   @ClassRule
   public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
 
-  private static final ObjectMapper MAPPER = new ObjectMapper()
+  static final ObjectMapper MAPPER = new ObjectMapper()
           .registerModule(new JavaTimeModule())
+          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+          .registerModule(new GuavaModule())
           .registerModule(new Jdk8Module());
 
   private static final String INDEX_NAME = "persons";
@@ -50,9 +53,10 @@ public class ElasticIntegrationTest extends AbstractPersonTest  {
 
   @BeforeClass
   public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, new ObjectMapper());
-
-    // person
+    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER);
+    
+    // person model
+    // TODO automatically generate it from Class
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("id", "keyword")
             .put("isActive", "boolean")

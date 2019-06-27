@@ -17,7 +17,9 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
@@ -39,9 +41,7 @@ public class ElasticModelTest {
   @ClassRule
   public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
 
-  private static final ObjectMapper MAPPER = new ObjectMapper()
-          .registerModule(new JavaTimeModule())
-          .registerModule(new Jdk8Module());
+  private static final ObjectMapper MAPPER = ElasticIntegrationTest.MAPPER;
 
   private static final String INDEX_NAME = "mymodel";
 
@@ -49,7 +49,7 @@ public class ElasticModelTest {
 
   @BeforeClass
   public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, new ObjectMapper());
+    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER);
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")

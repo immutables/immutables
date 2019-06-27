@@ -80,7 +80,7 @@ public class ElasticsearchBackend implements Backend {
     final Query query = op.query();
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
     query.limit().ifPresent(limit -> json.put("size", limit));
-    query.offset().ifPresent(offset -> json.put("start", offset));
+    query.offset().ifPresent(offset -> json.put("from", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
     return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
             .map(r -> converter((Class<T>) query.entityPath().annotatedElement()).apply(r))
@@ -95,8 +95,8 @@ public class ElasticsearchBackend implements Backend {
 
     return Flowable.fromCallable(() -> {
       ops.insertBulk(docs);
-      return null;
-    }).map(x -> UnknownWriteResult.INSTANCE);
+      return UnknownWriteResult.INSTANCE;
+    });
   }
 
   private <T> Function<Response, List<T>> converter(Class<T> type) {
