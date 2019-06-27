@@ -26,8 +26,10 @@ import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.adapter.UnknownWriteResult;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
@@ -39,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Queries <a href="https://www.elastic.co/">ElasticSearch</a> data-store.
@@ -48,6 +51,8 @@ public class ElasticsearchBackend implements Backend {
   private final RestClient restClient;
   private final ObjectMapper mapper;
   private final String index;
+  private final ElasticsearchOps ops;
+
 
   public ElasticsearchBackend(RestClient restClient,
                               ObjectMapper mapper,
@@ -55,16 +60,22 @@ public class ElasticsearchBackend implements Backend {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.index = Objects.requireNonNull(index, "index");
+    this.ops = new ElasticsearchOps(restClient, index, mapper);
   }
 
   @Override
   public <T> Publisher<T> execute(Operation<T> query) {
     Objects.requireNonNull(query, "query");
+    if (query instanceof Operations.KeyedInsert) {
+      return (Publisher<T>) keyedInsert((Operations.KeyedInsert<Object, Object>) query);
+    } else if (query instanceof Operations.Select) {
+      return select((Operations.Select<T>) query);
+    }
 
-    return queryInternal((Operations.Select<T>) query);
+    return Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query)));
   }
 
-  private <T> Flowable<T> queryInternal(Operations.Select<T> op) {
+  private <T> Flowable<T> select(Operations.Select<T> op) {
     final Request request = new Request("POST", String.format("/%s/_search", index));
     final Query query = op.query();
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
@@ -74,6 +85,18 @@ public class ElasticsearchBackend implements Backend {
     return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
             .map(r -> converter((Class<T>) query.entityPath().annotatedElement()).apply(r))
             .flatMapIterable(x -> x);
+  }
+
+  private Publisher<WriteResult> keyedInsert(Operations.KeyedInsert<Object, Object> insert) {
+
+    List<ObjectNode> docs = insert.entries().stream()
+            .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e.getValue())).set("_id", mapper.valueToTree(e.getKey())))
+            .collect(Collectors.toList());
+
+    return Flowable.fromCallable(() -> {
+      ops.insertBulk(docs);
+      return null;
+    }).map(x -> UnknownWriteResult.INSTANCE);
   }
 
   private <T> Function<Response, List<T>> converter(Class<T> type) {

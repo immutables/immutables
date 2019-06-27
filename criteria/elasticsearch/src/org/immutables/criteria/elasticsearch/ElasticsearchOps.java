@@ -39,10 +39,12 @@ public class ElasticsearchOps {
 
   private final RestClient restClient;
   private final ObjectMapper mapper;
+  private final String index;
 
-  ElasticsearchOps(RestClient restClient, ObjectMapper mapper) {
+  ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
+    this.index = Objects.requireNonNull(index, "index");
   }
 
   /**
@@ -57,11 +59,10 @@ public class ElasticsearchOps {
    *  }
    * </pre>
    *
-   * @param index index of the index
    * @param mapping field and field type mapping
    * @throws IOException if there is an error
    */
-  void createIndex(String index, Map<String, String> mapping) throws IOException {
+  void createIndex(Map<String, String> mapping) throws IOException {
     Objects.requireNonNull(index, "index");
     Objects.requireNonNull(mapping, "mapping");
 
@@ -80,7 +81,7 @@ public class ElasticsearchOps {
     restClient().performRequest(r);
   }
 
-  void deleteIndex(String index) throws IOException {
+  void deleteIndex() throws IOException {
     final Request r = new Request("DELETE", "/" + index);
     restClient().performRequest(r);
   }
@@ -103,11 +104,10 @@ public class ElasticsearchOps {
     }
   }
 
-  void insertDocument(String index, ObjectNode document) throws IOException {
+  void insertDocument(ObjectNode document) throws IOException {
     Objects.requireNonNull(index, "index");
     Objects.requireNonNull(document, "document");
-    String uri = String.format(Locale.ROOT,
-            "/%s/_doc?refresh", index);
+    String uri = String.format(Locale.ROOT, "/%s/_doc?refresh", index);
     StringEntity entity = new StringEntity(mapper().writeValueAsString(document),
             ContentType.APPLICATION_JSON);
     final Request r = new Request("POST", uri);
@@ -115,8 +115,7 @@ public class ElasticsearchOps {
     restClient().performRequest(r);
   }
 
-  void insertBulk(String index, List<ObjectNode> documents) throws IOException {
-    Objects.requireNonNull(index, "index");
+  void insertBulk(List<ObjectNode> documents) throws IOException {
     Objects.requireNonNull(documents, "documents");
 
     if (documents.isEmpty()) {
@@ -126,7 +125,15 @@ public class ElasticsearchOps {
 
     List<String> bulk = new ArrayList<>(documents.size() * 2);
     for (ObjectNode doc: documents) {
-      bulk.add(String.format("{\"index\": {\"_index\":\"%s\"}}", index));
+      final ObjectNode header = mapper.createObjectNode();
+      header.with("index").put("_index", index);
+      if (doc.has("_id")) {
+        // check if document has already _id
+        header.with("index").set("_id", doc.get("_id"));
+        doc.remove("_id");
+      }
+
+      bulk.add(header.toString());
       bulk.add(mapper().writeValueAsString(doc));
     }
 
