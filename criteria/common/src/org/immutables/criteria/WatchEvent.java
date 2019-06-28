@@ -30,10 +30,10 @@ public interface WatchEvent<T> {
    * Type of operation which caused this event to be created
    */
   enum Operation {
-    insert,
-    delete,
-    replace,
-    update
+    INSERT,
+    DELETE,
+    REPLACE,
+    UPDATE
   }
 
   // TODO define key for WatchEvent / Repository etc.

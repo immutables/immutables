@@ -55,6 +55,6 @@ class GeodeWatchEvent<T> implements WatchEvent<T> {
 
   private static WatchEvent.Operation toOperation(CqEvent event) {
     // TODO add proper mapping between Geode and Criteria operations
-    return Operation.update;
+    return Operation.UPDATE;
   }
 }
