@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
+import io.reactivex.Single;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
+import org.elasticsearch.client.ResponseListener;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
@@ -82,9 +84,31 @@ public class ElasticsearchBackend implements Backend {
     query.limit().ifPresent(limit -> json.put("size", limit));
     query.offset().ifPresent(offset -> json.put("from", offset));
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
-    return Flowable.fromPublisher(new AsyncRestPublisher(restClient, request))
+
+    return httpRequest(request)
             .map(r -> converter((Class<T>) query.entityPath().annotatedElement()).apply(r))
+            .toFlowable()
             .flatMapIterable(x -> x);
+  }
+
+  /**
+   * Perform async http request.
+   * TODO scrolling API
+   */
+  private Single<Response> httpRequest(Request request) {
+    return Single.create(source -> {
+      restClient.performRequestAsync(request, new ResponseListener() {
+        @Override
+        public void onSuccess(Response response) {
+          source.onSuccess(response);
+        }
+
+        @Override
+        public void onFailure(Exception exception) {
+          source.onError(exception);
+        }
+      });
+    });
   }
 
   private Publisher<WriteResult> keyedInsert(Operations.KeyedInsert<Object, Object> insert) {
