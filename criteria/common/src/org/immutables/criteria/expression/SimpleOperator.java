@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.base.MoreObjects;
+
 import java.util.Objects;
 
 /**
@@ -27,9 +29,9 @@ class SimpleOperator implements Operator {
   private final String name;
   private final Class<?> type;
 
-  SimpleOperator(String name, Class<?> type) {
+  SimpleOperator(String name, Class<?> returnType) {
     this.name = Objects.requireNonNull(name, "name");
-    this.type = Objects.requireNonNull(type, "type");
+    this.type = Objects.requireNonNull(returnType, "returnType");
   }
 
   @Override
@@ -54,5 +56,13 @@ class SimpleOperator implements Operator {
   @Override
   public int hashCode() {
     return Objects.hash(name, type);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+            .add("name", name)
+            .add("returnType", returnType().getSimpleName())
+            .toString();
   }
 }
