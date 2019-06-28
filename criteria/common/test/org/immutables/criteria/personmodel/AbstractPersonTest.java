@@ -62,6 +62,7 @@ public abstract class AbstractPersonTest {
 
     final Person person = new PersonGenerator().next().withId("id123")
             .withFullName("test")
+            .withIsActive(true)
             .withDateOfBirth(LocalDate.of(1990, 2, 2))
             .withAge(22);
 
@@ -123,6 +124,10 @@ public abstract class AbstractPersonTest {
     execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
     execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
     execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
+
+    // true / false
+    execute(PersonCriteria.create().isActive.isTrue(), 1);
+    execute(PersonCriteria.create().isActive.isFalse(), 0);
   }
 
   private void execute(Criterion<Person> expr, int count) {
