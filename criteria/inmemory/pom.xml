@@ -34,7 +34,18 @@
             <type>jar</type>
             <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <!-- Guava and jsr 305 annotations are used as required utility.-->
+            <groupId>org.immutables.dependency</groupId>
+            <artifactId>utility</artifactId>
+            <version>${project.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava2.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.immutables</groupId>
             <artifactId>testing</artifactId>
