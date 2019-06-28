@@ -29,6 +29,7 @@ public class PersonGeneratorTest {
 
     check(p1.fullName()).notEmpty();
     check(p1.age()).satisfies(a -> a != null && a > 10);
+    check(p1.address().get().street()).notEmpty();
 
     // enough entries can be generated
     for (int i = 0; i < 20; i++) {

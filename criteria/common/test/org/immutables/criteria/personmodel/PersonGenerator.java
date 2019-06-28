@@ -41,6 +41,10 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
 
   private final static ImmutableList<String> NICKNAMES = ImmutableList.of("007", "bitmap",
           "flake", "superman", "blade", "clea", "calypso", "slyde", "hulk");
+
+  private final static ImmutableList<String> CITIES = ImmutableList.of("Washington", "New York", "Springfield", "Greenville", "Madison", "Franklin");
+  private final static ImmutableList<String> STREETS = ImmutableList.of("1201 Elm", "10 Lake", "22 Pine", "33 Hill");
+
   
   private final AtomicLong index;
   private final Clock clock;
@@ -77,12 +81,20 @@ public final class PersonGenerator implements Iterable<ImmutablePerson> {
     // add variation to ages so it doesn't look too consecutive 20, 21, 22 etc.
     final int age = 20 + (index * 37 >> 4) % 30;
 
+    final ImmutableAddress address = ImmutableAddress.builder()
+            .street(STREETS.get(index % STREETS.size()))
+            .city(CITIES.get(index % CITIES.size()))
+            .state(Address.State.values()[index % Address.State.values().length])
+            .zip(age + "000")
+            .build();
+
     final ImmutablePerson.Builder builder = ImmutablePerson.builder()
                 .fullName(FIRST_NAMES.get(index) + " " + LAST_NAMES.get(index))
                 .id("id" + index)
                 .dateOfBirth(LocalDate.now(clock).minusYears(age))
                 .isActive(index % 2 == 0)
                 .age(age)
+                .address(address)
                 .nickName(NICKNAMES.get(index % NICKNAMES.size()));
 
     return builder.build();
