@@ -20,27 +20,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.reactivestreams.client.MongoClient;
-import com.mongodb.reactivestreams.client.MongoClients;
 import com.mongodb.reactivestreams.client.MongoCollection;
-import de.bwaldvogel.mongo.MongoServer;
-import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.reactivex.Flowable;
 import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
-import org.immutables.criteria.Criterion;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
-import org.immutables.criteria.personmodel.PersonCriteria;
-import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -49,7 +43,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.immutables.check.Checkers.check;
 
@@ -58,8 +51,10 @@ import static org.immutables.check.Checkers.check;
  */
 public class MongoPersonTest extends AbstractPersonTest {
 
-  private final MongoServer server = new MongoServer(new MemoryBackend());
-  private final MongoClient client = MongoClients.create(String.format("mongodb://localhost:%d", server.bind().getPort()));
+  private static final String COLLECTION_NAME = "test";
+
+  @Rule
+  public final MongoResource MONGO = MongoResource.create();
 
   private MongoCollection<Person> collection;
 
@@ -74,13 +69,14 @@ public class MongoPersonTest extends AbstractPersonTest {
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
 
-    Flowable.fromPublisher(client.getDatabase("test").createCollection("test"))
+    final MongoDatabase database = MONGO.database();
+
+    Flowable.fromPublisher(database.createCollection(COLLECTION_NAME))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
 
-
-    this.collection = client.getDatabase("test").getCollection("test")
+    this.collection = database.getCollection(COLLECTION_NAME)
             .withDocumentClass(Person.class)
             .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
 
@@ -89,13 +85,6 @@ public class MongoPersonTest extends AbstractPersonTest {
 
     populate();
   }
-
-  @After
-  public void tearDown() throws Exception {
-    client.close();
-    server.shutdownNow();
-  }
-
 
   /**
    * Test that {@code _id} attribute is persisted instead of {@code id}
