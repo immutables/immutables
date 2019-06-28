@@ -76,6 +76,13 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
       return new OqlWithVariables(variables, newOql);
     }
 
+    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
+      final Path path = Visitors.toPath(args.get(0));
+      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "== null";
+      return oql(pathFn.apply(path) + " " + isNull);
+    }
+
     if (op == Operators.NOT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       return oql("NOT " + args.get(0).accept(this).oql());

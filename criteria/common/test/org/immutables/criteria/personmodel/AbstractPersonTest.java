@@ -128,6 +128,11 @@ public abstract class AbstractPersonTest {
     // true / false
     execute(PersonCriteria.create().isActive.isTrue(), 1);
     execute(PersonCriteria.create().isActive.isFalse(), 0);
+
+    // isPresent / isAbsent
+    execute(PersonCriteria.create().address.isAbsent(), 0);
+    execute(PersonCriteria.create().address.isPresent(), 1);
+
   }
 
   private void execute(Criterion<Person> expr, int count) {

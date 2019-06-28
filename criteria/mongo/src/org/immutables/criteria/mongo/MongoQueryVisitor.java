@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
@@ -56,6 +57,13 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       final Object value = Visitors.toConstant(args.get(1)).value();
 
       return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
+    }
+
+    if (op == Operators.IS_ABSENT || op == Operators.IS_PRESENT) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Bson exists = Filters.exists(field);
+      return op == Operators.IS_PRESENT ? exists : Filters.not(exists);
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {

@@ -68,6 +68,18 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return builder;
     }
 
+    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+
+      QueryBuilders.QueryBuilder builder = QueryBuilders.existsQuery(field);
+
+      if (op == Operators.IS_ABSENT) {
+        builder = QueryBuilders.boolQuery().mustNot(builder);
+      }
+
+      return builder;
+    }
+
     if (op == Operators.AND || op == Operators.OR) {
       Preconditions.checkArgument(!args.isEmpty(), "Size should be >=1 for %s but was %s", op, args.size());
 
