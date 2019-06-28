@@ -35,17 +35,24 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Generates <a href="https://geode.apache.org/docs/guide/16/developing/querying_basics/query_basics.html">Geode OQL</a>
+ * based on existing expression.
+ */
 class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
   private final Function<Path, String> pathFn;
 
   /**
-   * Bind variables
+   * Bind variables. Remains empty if variables are not used
    */
   private final List<Object> variables;
 
   private final boolean useBindVariables;
 
+  /**
+   * @param useBindVariables wherever query should be generated with bind variables or not
+   */
   GeodeQueryVisitor(boolean useBindVariables) {
     this(useBindVariables, Path::toStringPath);
   }
@@ -57,14 +64,13 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     this.useBindVariables = useBindVariables;
   }
 
-
   @Override
   public OqlWithVariables visit(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
-        op == Operators.IN || op == Operators.NOT_IN || OperatorTables.COMPARISON.contains(op)) {
+            op == Operators.IN || op == Operators.NOT_IN || OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       return binaryOperator(call);
     }
@@ -76,21 +82,38 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
       return new OqlWithVariables(variables, newOql);
     }
 
-    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
-      final Path path = Visitors.toPath(args.get(0));
-      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "== null";
-      return oql(pathFn.apply(path) + " " + isNull);
-    }
-
-    if (op == Operators.NOT) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      return oql("NOT " + args.get(0).accept(this).oql());
+    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT || op == Operators.NOT) {
+      return unaryOperator(call);
     }
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 
+  /**
+   * Operator with single operator: {@code NOT}, {@code IS_PRESENT}
+   */
+  private OqlWithVariables unaryOperator(Call call) {
+    final Operator op = call.operator();
+    final List<Expression> args = call.arguments();
+
+    Preconditions.checkArgument(args.size() == 1,
+            "Size should be == 1 for unary operator %s but was %s", op, args.size());
+
+    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
+      final Path path = Visitors.toPath(args.get(0));
+      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "== null";
+      return oql(pathFn.apply(path) + " " + isNull);
+    } else if (op == Operators.NOT) {
+      return oql("NOT " + args.get(0).accept(this).oql());
+    }
+
+    throw new UnsupportedOperationException("Unknown unary operator " + call);
+  }
+
+  /**
+   * Used for operators with two arguments like {@code =}, {@code IN} etc.
+   */
   private OqlWithVariables binaryOperator(Call call) {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
@@ -124,6 +147,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
 
     if (useBindVariables) {
       variables.add(variable);
+      // bind variables in Geode start at index 1: $1, $2, $3 etc.
       return oql(String.format("%s %s $%d", pathFn.apply(path), operator, variables.size()));
     }
 
