@@ -55,32 +55,14 @@ public abstract class AbstractPersonTest {
   protected abstract PersonRepository repository();
 
   /**
-   * To be called after backend setup
-   */
-  protected void populate() {
-
-    final Person person = new PersonGenerator().next()
-            .withId("id123")
-            .withFullName("test")
-            .withIsActive(true)
-            .withDateOfBirth(LocalDate.of(1990, 2, 2))
-            .withAge(22);
-
-    Flowable.fromPublisher(repository().insert(person))
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertComplete();
-  }
-
-  /**
    * limit and offset
    */
   @Test
   public void limit() {
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_LIMIT));
-
     final int size = 5;
-    Flowable.fromPublisher(repository().insert(new PersonGenerator().stream().limit(size - 1).collect(Collectors.toList())))
+    Flowable.fromPublisher(repository().insert(new PersonGenerator().stream()
+            .limit(size).collect(Collectors.toList())))
             .singleOrError()
             .blockingGet();
 
@@ -89,7 +71,7 @@ public abstract class AbstractPersonTest {
     }
 
     for (int i = 1; i < 3; i++) {
-      check(repository().find(PersonCriteria.create().id.isEqualTo("id123")).limit(i)).hasSize(1);
+      check(repository().find(PersonCriteria.create().id.isEqualTo("id0")).limit(i)).hasSize(1);
     }
 
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_OFFSET));
@@ -100,7 +82,13 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void comparison() {
-    Assume.assumeTrue(features().contains(Feature.QUERY));
+   Assume.assumeTrue(features().contains(Feature.QUERY));
+   final Person john = new PersonGenerator().next()
+            .withId("id123")
+            .withDateOfBirth(LocalDate.of(1990, 2, 2))
+            .withAge(22);
+
+    insert(john);
 
     check(PersonCriteria.create().age.isAtLeast(22)).hasSize(1);
     check(PersonCriteria.create().age.isGreaterThan(22)).empty();
@@ -120,16 +108,26 @@ public abstract class AbstractPersonTest {
     check(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2))).hasSize(1);
   }
 
-
   @Test
   public void basic() {
-    check(PersonCriteria.create().fullName.isEqualTo("test")).hasSize(1);
-    check(PersonCriteria.create().fullName.isNotEqualTo("test")).empty();
-    check(PersonCriteria.create().fullName.isEqualTo("test")
+    Assume.assumeTrue(features().contains(Feature.QUERY));
+
+    final Person john = new PersonGenerator().next()
+            .withFullName("John")
+            .withIsActive(true)
+            .withAge(22);
+
+    insert(john);
+
+    check(PersonCriteria.create().fullName.isEqualTo("John")).hasSize(1);
+    check(PersonCriteria.create().fullName.isNotEqualTo("John")).empty();
+    check(PersonCriteria.create().fullName.isEqualTo("John")
             .age.isNotEqualTo(1)).hasSize(1);
+    check(PersonCriteria.create().fullName.isEqualTo("John")
+            .age.isEqualTo(22)).hasSize(1);
     check(PersonCriteria.create().fullName.isEqualTo("_MISSING_")).empty();
-    check(PersonCriteria.create().fullName.isIn("test", "test2")).hasSize(1);
-    check(PersonCriteria.create().fullName.isNotIn("test", "test2")).empty();
+    check(PersonCriteria.create().fullName.isIn("John", "test2")).hasSize(1);
+    check(PersonCriteria.create().fullName.isNotIn("John", "test2")).empty();
 
     // true / false
     check(PersonCriteria.create().isActive.isTrue()).hasSize(1);
@@ -137,7 +135,24 @@ public abstract class AbstractPersonTest {
 
     // isPresent / isAbsent
     check(PersonCriteria.create().address.isAbsent()).empty();
-    check(PersonCriteria.create().address.isPresent()).hasSize(1);
+    check(PersonCriteria.create().address.isPresent()).notEmpty();
+  }
+
+  @Test
+  public void empty() {
+    check(repository().findAll()).empty();
+    check(repository().find(PersonCriteria.create())).empty();
+
+    insert(new PersonGenerator().next());
+    check(repository().findAll()).notEmpty();
+    check(repository().find(PersonCriteria.create())).notEmpty();
+  }
+
+  protected void insert(Person ... persons) {
+    Flowable.fromPublisher(repository().insert(persons))
+            .test()
+            .awaitDone(1, TimeUnit.SECONDS)
+            .assertComplete();
   }
 
   private CriteriaChecker<Person> check(Repository.Reader<Person, ?> reader) {

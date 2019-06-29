@@ -50,7 +50,6 @@ public class GeodePersonTest extends AbstractPersonTest  {
   public void setUp() throws Exception {
     region.clear();
     repository = new PersonRepository(new GeodeBackend(region));
-    populate();
   }
 
 

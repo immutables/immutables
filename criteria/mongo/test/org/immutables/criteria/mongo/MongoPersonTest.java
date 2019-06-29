@@ -32,6 +32,7 @@ import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
 import org.junit.Rule;
@@ -82,8 +83,6 @@ public class MongoPersonTest extends AbstractPersonTest {
 
     this.backend = new MongoBackend(this.collection);
     this.repository = new PersonRepository(backend);
-
-    populate();
   }
 
   /**
@@ -91,6 +90,7 @@ public class MongoPersonTest extends AbstractPersonTest {
    */
   @Test
   public void idAttribute() {
+    insert(new PersonGenerator().next().withId("id123").withAge(22));
     // query directly
     final List<BsonDocument> docs = Flowable.fromPublisher(collection
             .withDocumentClass(BsonDocument.class)
@@ -109,6 +109,7 @@ public class MongoPersonTest extends AbstractPersonTest {
 
   @Test
   public void jsr310() {
+    insert(new PersonGenerator().next().withDateOfBirth(LocalDate.of(1990, 2, 2)));
     // query directly
     final List<BsonDocument> docs = Flowable.fromPublisher(collection
             .withDocumentClass(BsonDocument.class)

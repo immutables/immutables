@@ -18,7 +18,6 @@ package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.PersonRepository;
-import org.junit.Before;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -26,11 +25,6 @@ import java.util.Set;
 public class InMemoryPersonTest extends AbstractPersonTest  {
 
   private final PersonRepository repository = new PersonRepository(new InMemoryBackend());
-
-  @Before
-  public void setUp() throws Exception {
-    populate();
-  }
 
   @Override
   protected Set<Feature> features() {

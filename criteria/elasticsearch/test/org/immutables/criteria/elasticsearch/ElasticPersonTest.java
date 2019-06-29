@@ -24,11 +24,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.PersonRepository;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 
-import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +38,7 @@ import java.util.Set;
 public class ElasticPersonTest extends AbstractPersonTest  {
 
   @ClassRule
-  public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
+  public static final EmbeddedElasticsearchResource ELASTIC = EmbeddedElasticsearchResource.create();
 
   static final ObjectMapper MAPPER = new ObjectMapper()
           .registerModule(new JavaTimeModule())
@@ -51,10 +50,12 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
   private PersonRepository repository;
 
-  @BeforeClass
-  public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER);
-    
+  private ElasticsearchOps ops;
+
+  @Before
+  public void setupRepository() throws Exception {
+    ops = new ElasticsearchOps(ELASTIC.restClient(), INDEX_NAME, MAPPER);
+
     // person model
     // TODO automatically generate it from Class
     Map<String, String> model = ImmutableMap.<String, String>builder()
@@ -67,13 +68,16 @@ public class ElasticPersonTest extends AbstractPersonTest  {
             .build();
 
     ops.createIndex(model);
+
+    final ElasticsearchBackend backend = new ElasticsearchBackend(ELASTIC.restClient(), MAPPER, INDEX_NAME);
+    this.repository = new PersonRepository(backend);
   }
 
-  @Before
-  public void setupRepository() throws Exception {
-    final ElasticsearchBackend backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, INDEX_NAME);
-    this.repository = new PersonRepository(backend);
-    populate();
+  @After
+  public void tearDown() throws Exception {
+    if (ops != null) {
+      ops.deleteIndex();
+    }
   }
 
   @Override
