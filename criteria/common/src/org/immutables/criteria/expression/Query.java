@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -69,5 +71,28 @@ public final class Query  {
     Objects.requireNonNull(filter, "filter");
     return new Query(entityPath, filter, limit, offset);
   }
-  
+
+  @Override
+  public String toString() {
+    final StringWriter string = new StringWriter();
+    final PrintWriter writer = new PrintWriter(string);
+
+    writer.append("entity: ").append(entityPath().annotatedElement().getName()).println();
+
+    if (filter != null) {
+      writer.append("filter: ");
+      filter.accept(new DebugExpressionVisitor<>(writer));
+      writer.println();
+    }
+
+    if (limit != null) {
+      writer.append(" limit:").append(String.valueOf(limit)).println();
+    }
+
+    if (offset != null) {
+      writer.append(" offset:").append(String.valueOf(offset)).println();
+    }
+
+    return string.toString();
+  }
 }
