@@ -22,6 +22,7 @@ import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
@@ -69,6 +70,12 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
+    if (op == Operators.NOT_IN) {
+      // geode doesn't understand syntax foo not in [1, 2, 3]
+      // convert "foo not in [1, 2, 3]" into "not foo in [1, 2, 3]"
+      return visit((Call) Expressions.not(Expressions.call(Operators.IN, call.arguments())));
+    }
+
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
             op == Operators.IN || op == Operators.NOT_IN || OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
@@ -102,10 +109,10 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
       final Path path = Visitors.toPath(args.get(0));
-      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "== null";
+      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "= null";
       return oql(pathFn.apply(path) + " " + isNull);
     } else if (op == Operators.NOT) {
-      return oql("NOT " + args.get(0).accept(this).oql());
+      return oql("NOT (" + args.get(0).accept(this).oql() + ")");
     }
 
     throw new UnsupportedOperationException("Unknown unary operator " + call);

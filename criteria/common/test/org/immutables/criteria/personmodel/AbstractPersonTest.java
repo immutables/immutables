@@ -18,6 +18,7 @@ package org.immutables.criteria.personmodel;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.Repository;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -25,8 +26,6 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static org.immutables.check.Checkers.check;
 
 /**
  * Set of predefined tests which run for all backends
@@ -56,11 +55,12 @@ public abstract class AbstractPersonTest {
   protected abstract PersonRepository repository();
 
   /**
-   * To be called after setup
+   * To be called after backend setup
    */
   protected void populate() {
 
-    final Person person = new PersonGenerator().next().withId("id123")
+    final Person person = new PersonGenerator().next()
+            .withId("id123")
             .withFullName("test")
             .withIsActive(true)
             .withDateOfBirth(LocalDate.of(1990, 2, 2))
@@ -79,67 +79,74 @@ public abstract class AbstractPersonTest {
   public void limit() {
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_LIMIT));
 
-    Flowable.fromPublisher(repository().insert(new PersonGenerator().stream().limit(5).collect(Collectors.toList())))
+    final int size = 5;
+    Flowable.fromPublisher(repository().insert(new PersonGenerator().stream().limit(size - 1).collect(Collectors.toList())))
             .singleOrError()
             .blockingGet();
 
-    check(Flowable.fromPublisher(repository().findAll().limit(1).fetch()).toList().blockingGet()).hasSize(1);
-    check(Flowable.fromPublisher(repository().findAll().limit(2).fetch()).toList().blockingGet()).hasSize(2);
+    for (int i = 1; i < size * size; i++) {
+      check(repository().findAll().limit(i)).hasSize(Math.min(i, size));
+    }
+
+    for (int i = 1; i < 3; i++) {
+      check(repository().find(PersonCriteria.create().id.isEqualTo("id123")).limit(i)).hasSize(1);
+    }
 
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_OFFSET));
-    check(Flowable.fromPublisher(repository().findAll().limit(1).offset(1).fetch()).toList().blockingGet()).hasSize(1);
-    check(Flowable.fromPublisher(repository().findAll().limit(2).offset(2).fetch()).toList().blockingGet()).hasSize(2);
-    check(Flowable.fromPublisher(repository().findAll().limit(1).offset(10).fetch()).toList().blockingGet()).isEmpty();
+    check(repository().findAll().limit(1).offset(1)).hasSize(1);
+    check(repository().findAll().limit(2).offset(2)).hasSize(2);
+    check(repository().findAll().limit(1).offset(size + 1)).empty();
   }
 
   @Test
   public void comparison() {
     Assume.assumeTrue(features().contains(Feature.QUERY));
 
-    execute(PersonCriteria.create().age.isAtLeast(22), 1);
-    execute(PersonCriteria.create().age.isGreaterThan(22), 0);
-    execute(PersonCriteria.create().age.isLessThan(22), 0);
-    execute(PersonCriteria.create().age.isAtMost(22), 1);
+    check(PersonCriteria.create().age.isAtLeast(22)).hasSize(1);
+    check(PersonCriteria.create().age.isGreaterThan(22)).empty();
+    check(PersonCriteria.create().age.isLessThan(22)).empty();
+    check(PersonCriteria.create().age.isAtMost(22)).hasSize(1);
 
     // look up using id
-    execute(PersonCriteria.create().id.isEqualTo("id123"), 1);
-    execute(PersonCriteria.create().id.isIn("foo", "bar", "id123"), 1);
-    execute(PersonCriteria.create().id.isIn("foo", "bar", "qux"), 0);
+    check(PersonCriteria.create().id.isEqualTo("id123")).hasSize(1);
+    check(PersonCriteria.create().id.isIn("foo", "bar", "id123")).hasSize(1);
+    check(PersonCriteria.create().id.isIn("foo", "bar", "qux")).empty();
 
     // jsr310. dates and time
-    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1)), 1);
-    execute(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1)), 0);
-    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2)), 1);
-    execute(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1)), 0);
-    execute(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2)), 1);
+    check(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
+    check(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1))).empty();
+    check(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1))).empty();
+    check(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2))).hasSize(1);
   }
 
 
   @Test
   public void basic() {
-    execute(PersonCriteria.create().fullName.isEqualTo("test"), 1);
-    execute(PersonCriteria.create().fullName.isNotEqualTo("test"), 0);
-    execute(PersonCriteria.create().fullName.isEqualTo("test")
-            .age.isNotEqualTo(1), 1);
-    execute(PersonCriteria.create().fullName.isEqualTo("_MISSING_"), 0);
-    execute(PersonCriteria.create().fullName.isIn("test", "test2"), 1);
-    execute(PersonCriteria.create().fullName.isNotIn("test", "test2"), 0);
+    check(PersonCriteria.create().fullName.isEqualTo("test")).hasSize(1);
+    check(PersonCriteria.create().fullName.isNotEqualTo("test")).empty();
+    check(PersonCriteria.create().fullName.isEqualTo("test")
+            .age.isNotEqualTo(1)).hasSize(1);
+    check(PersonCriteria.create().fullName.isEqualTo("_MISSING_")).empty();
+    check(PersonCriteria.create().fullName.isIn("test", "test2")).hasSize(1);
+    check(PersonCriteria.create().fullName.isNotIn("test", "test2")).empty();
 
     // true / false
-    execute(PersonCriteria.create().isActive.isTrue(), 1);
-    execute(PersonCriteria.create().isActive.isFalse(), 0);
+    check(PersonCriteria.create().isActive.isTrue()).hasSize(1);
+    check(PersonCriteria.create().isActive.isFalse()).empty();
 
     // isPresent / isAbsent
-    execute(PersonCriteria.create().address.isAbsent(), 0);
-    execute(PersonCriteria.create().address.isPresent(), 1);
-
+    check(PersonCriteria.create().address.isAbsent()).empty();
+    check(PersonCriteria.create().address.isPresent()).hasSize(1);
   }
 
-  private void execute(Criterion<Person> expr, int count) {
-    Flowable.fromPublisher(repository().find(expr).fetch())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValueCount(count);
+  private CriteriaChecker<Person> check(Repository.Reader<Person, ?> reader) {
+    return CriteriaChecker.of(reader);
   }
+
+  private CriteriaChecker<Person> check(Criterion<Person> criterion) {
+    return check(repository().find(criterion));
+  }
+
 
 }
