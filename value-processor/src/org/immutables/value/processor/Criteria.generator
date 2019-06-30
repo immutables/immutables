@@ -198,18 +198,18 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 
 [template constructorArgs Attribute a Type type][output.trim]
 [if a.hasCriteria]
-  context.withPath("[a.name]")
+  context.withPath([type.name].class, "[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                          ctx -> new [a.unwrappedElementType]Criteria<R>(ctx),
                          ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.[toLower a.unwrappedElementTypeNameSimple])
 
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-  context.withPath("[a.name]")
+  context.withPath([type.name].class, "[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                            ctx -> Matchers.create([scalarMatcherType a].class, ctx),
                           ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
 [else]
-  context.withPath("[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
+  context.withPath([type.name].class, "[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
 [/if]
 [/output.trim][/template]
 

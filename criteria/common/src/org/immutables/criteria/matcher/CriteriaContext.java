@@ -144,12 +144,13 @@ public final class CriteriaContext implements Queryable {
   /**
    *  adds an intermediate path
    */
-  public CriteriaContext withPath(String pathAsString) {
+  public CriteriaContext withPath(Class<?> type, String pathAsString) {
     // clazz ==
-    final Member member = Reflections.member(entityClass, pathAsString);
+    final Member member = Reflections.member(type, pathAsString);
     final Path newPath = this.path != null ? this.path.with(member) : Path.of(member);
     return new CriteriaContext(operator, entityClass, expression, newPath, creators);
   }
+
 
   public CriteriaContext or() {
     if (operator == Operators.OR) {

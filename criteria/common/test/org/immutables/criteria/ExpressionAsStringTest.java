@@ -20,6 +20,7 @@ import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.PrintWriter;
@@ -38,7 +39,7 @@ public class ExpressionAsStringTest {
 
     assertExpressional(crit.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
     assertExpressional(crit.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
-    assertExpressional(crit.bestFriend.value().nickName.isEqualTo("aa"), "call op=EQUAL path=bestFriend.nickName constant=aa");
+    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
 //    assertExpressional(crit.bestFriend.value(f -> f.nickName.isEqualTo("bbb")), "call op=EQUAL path=bestFriend.nickName constant=bbb");
     assertExpressional(crit.fullName.isIn("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
 
@@ -47,8 +48,8 @@ public class ExpressionAsStringTest {
                     "  call op=EQUAL path=fullName constant=John",
                     "  call op=EQUAL path=fullName constant=Marry");
 
-    assertExpressional(crit.bestFriend.value().nickName.isEqualTo("John"),
-                    "call op=EQUAL path=bestFriend.nickName constant=John");
+    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"),
+                    "call op=EQUAL path=bestFriend.hobby constant=ski");
 
   }
 
@@ -65,7 +66,6 @@ public class ExpressionAsStringTest {
                     "  call op=AND",
                     "    call op=EQUAL path=fullName constant=John",
                     "    call op=IS_PRESENT path=bestFriend");
-
   }
 
   @Test
@@ -115,7 +115,27 @@ public class ExpressionAsStringTest {
             "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
             "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
             "  call op=EQUAL path=age constant=3");
+  }
 
+  @Test
+  public void nested() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
+    assertExpressional(crit.address.value().zip.isEqualTo("12345"),
+            "call op=EQUAL path=address.zip constant=12345");
+
+  }
+
+  @Test
+  @Ignore
+  public void debug() {
+    // curently fails: AddressCriteria$ExpressionalSelf cannot be cast to org.immutables.criteria.personmodel.PersonCriteria$Self
+    assertExpressional(PersonCriteria.person.address.value().zip.isEqualTo("12345")
+                    .or()
+                    .bestFriend.value().hobby.isEqualTo("ski"),
+            "call op=OR",
+            "  call op=EQUAL path=address.zip constant=12345",
+            "  call op=EQUAL path=bestFriend.hobby constant=ski");
   }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
