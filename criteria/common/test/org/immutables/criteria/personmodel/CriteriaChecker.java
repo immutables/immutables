@@ -80,6 +80,10 @@ public class CriteriaChecker<T> {
     }
   }
 
+  public IterableChecker<List<T>, T> toList() {
+    return toList(x -> x);
+  }
+
   public <Z> IterableChecker<List<Z>, Z> toList(Function<? super T, ? extends Z> fn) {
     return check(result.stream().map(fn).collect(Collectors.toList()));
   }

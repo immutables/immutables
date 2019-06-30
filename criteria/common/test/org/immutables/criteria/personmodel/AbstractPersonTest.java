@@ -23,6 +23,7 @@ import org.junit.Assume;
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -55,6 +56,13 @@ public abstract class AbstractPersonTest {
   protected abstract PersonRepository repository();
 
   /**
+   * Create person criteria
+   */
+  private static PersonCriteria<PersonCriteria.Self> criteria() {
+    return PersonCriteria.create();
+  }
+
+  /**
    * limit and offset
    */
   @Test
@@ -71,7 +79,7 @@ public abstract class AbstractPersonTest {
     }
 
     for (int i = 1; i < 3; i++) {
-      check(repository().find(PersonCriteria.create().id.isEqualTo("id0")).limit(i)).hasSize(1);
+      check(repository().find(criteria().id.isEqualTo("id0")).limit(i)).hasSize(1);
     }
 
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_OFFSET));
@@ -90,22 +98,85 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(PersonCriteria.create().age.isAtLeast(22)).hasSize(1);
-    check(PersonCriteria.create().age.isGreaterThan(22)).empty();
-    check(PersonCriteria.create().age.isLessThan(22)).empty();
-    check(PersonCriteria.create().age.isAtMost(22)).hasSize(1);
+    check(criteria().age.isAtLeast(22)).hasSize(1);
+    check(criteria().age.isGreaterThan(22)).empty();
+    check(criteria().age.isLessThan(22)).empty();
+    check(criteria().age.isAtMost(22)).hasSize(1);
 
     // look up using id
-    check(PersonCriteria.create().id.isEqualTo("id123")).hasSize(1);
-    check(PersonCriteria.create().id.isIn("foo", "bar", "id123")).hasSize(1);
-    check(PersonCriteria.create().id.isIn("foo", "bar", "qux")).empty();
+    check(criteria().id.isEqualTo("id123")).hasSize(1);
+    check(criteria().id.isIn("foo", "bar", "id123")).hasSize(1);
+    check(criteria().id.isIn("foo", "bar", "qux")).empty();
 
     // jsr310. dates and time
-    check(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
-    check(PersonCriteria.create().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1))).empty();
-    check(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2))).hasSize(1);
-    check(PersonCriteria.create().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1))).empty();
-    check(PersonCriteria.create().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(criteria().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
+    check(criteria().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1))).empty();
+    check(criteria().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(criteria().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1))).empty();
+    check(criteria().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2))).hasSize(1);
+  }
+
+  @Test
+  public void intComparison() throws Exception {
+    Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
+    insert(john);
+
+    check(criteria().age.isEqualTo(30)).hasSize(1);
+    check(criteria().age.isEqualTo(31)).empty();
+    check(criteria().age.isNotEqualTo(31)).hasSize(1);
+
+    // at least
+    check(criteria().age.isAtLeast(29)).hasSize(1);
+    check(criteria().age.isAtLeast(30)).hasSize(1);
+    check(criteria().age.isAtLeast(31)).empty();
+
+    // at most
+    check(criteria().age.isAtMost(31)).hasSize(1);
+    check(criteria().age.isAtMost(30)).hasSize(1);
+    check(criteria().age.isAtMost(29)).empty();
+
+    check(criteria().age.isGreaterThan(29)).hasSize(1);
+    check(criteria().age.isGreaterThan(30)).empty();
+    check(criteria().age.isGreaterThan(31)).empty();
+
+    check(criteria().age.isIn(Arrays.asList(1, 2, 3))).empty();
+    check(criteria().age.isIn(1, 2, 3)).empty();
+    check(criteria().age.isIn(29, 30, 31)).hasSize(1);
+    check(criteria().age.isIn(Arrays.asList(29, 30, 31))).hasSize(1);
+    check(criteria().age.isNotIn(1, 2, 3)).hasSize(1);
+    check(criteria().age.isNotIn(39, 30, 31)).empty();
+
+    check(criteria().age.isAtLeast(30).age.isAtMost(31)).hasSize(1);
+    check(criteria().age.isLessThan(30).age.isGreaterThan(31)).empty();
+
+    // multiple filters on the same field
+    check(criteria().age.isEqualTo(30).age.isGreaterThan(31)).empty();
+    check(criteria().age.isEqualTo(30).age.isNotEqualTo(30).or().age.isEqualTo(30)).hasSize(1);
+    check(criteria().age.isEqualTo(30).age.isGreaterThan(30).or().age.isEqualTo(31)).empty();
+
+    // add second person
+    Person adam = new PersonGenerator().next().withId("adam").withFullName("Adam").withAge(40);
+    insert(adam);
+
+    check(criteria().age.isEqualTo(30)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.isEqualTo(40)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.isAtLeast(29)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.isAtLeast(30)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.isAtLeast(31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.isAtMost(31)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.isAtMost(30)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.isAtMost(29)).empty();
+    check(criteria().age.isGreaterThan(29)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.isGreaterThan(30)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.isGreaterThan(31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.isIn(Arrays.asList(1, 2, 3))).empty();
+    check(criteria().age.isIn(Arrays.asList(29, 30, 40, 44))).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.isNotIn(30, 31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.isNotIn(1, 2)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.isLessThan(1)).empty();
+    check(criteria().age.isLessThan(30)).empty();
+    check(criteria().age.isLessThan(31)).hasSize(1);
+
   }
 
   @Test
@@ -119,33 +190,33 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(PersonCriteria.create().fullName.isEqualTo("John")).hasSize(1);
-    check(PersonCriteria.create().fullName.isNotEqualTo("John")).empty();
-    check(PersonCriteria.create().fullName.isEqualTo("John")
+    check(criteria().fullName.isEqualTo("John")).hasSize(1);
+    check(criteria().fullName.isNotEqualTo("John")).empty();
+    check(criteria().fullName.isEqualTo("John")
             .age.isNotEqualTo(1)).hasSize(1);
-    check(PersonCriteria.create().fullName.isEqualTo("John")
+    check(criteria().fullName.isEqualTo("John")
             .age.isEqualTo(22)).hasSize(1);
-    check(PersonCriteria.create().fullName.isEqualTo("_MISSING_")).empty();
-    check(PersonCriteria.create().fullName.isIn("John", "test2")).hasSize(1);
-    check(PersonCriteria.create().fullName.isNotIn("John", "test2")).empty();
+    check(criteria().fullName.isEqualTo("_MISSING_")).empty();
+    check(criteria().fullName.isIn("John", "test2")).hasSize(1);
+    check(criteria().fullName.isNotIn("John", "test2")).empty();
 
     // true / false
-    check(PersonCriteria.create().isActive.isTrue()).hasSize(1);
-    check(PersonCriteria.create().isActive.isFalse()).empty();
+    check(criteria().isActive.isTrue()).hasSize(1);
+    check(criteria().isActive.isFalse()).empty();
 
     // isPresent / isAbsent
-    check(PersonCriteria.create().address.isAbsent()).empty();
-    check(PersonCriteria.create().address.isPresent()).notEmpty();
+    check(criteria().address.isAbsent()).empty();
+    check(criteria().address.isPresent()).notEmpty();
   }
 
   @Test
   public void empty() {
     check(repository().findAll()).empty();
-    check(repository().find(PersonCriteria.create())).empty();
+    check(repository().find(criteria())).empty();
 
     insert(new PersonGenerator().next());
     check(repository().findAll()).notEmpty();
-    check(repository().find(PersonCriteria.create())).notEmpty();
+    check(repository().find(criteria())).notEmpty();
   }
 
   protected void insert(Person ... persons) {
@@ -162,6 +233,5 @@ public abstract class AbstractPersonTest {
   private CriteriaChecker<Person> check(Criterion<Person> criterion) {
     return check(repository().find(criterion));
   }
-
 
 }
