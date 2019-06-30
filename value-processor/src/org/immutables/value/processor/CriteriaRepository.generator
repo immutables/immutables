@@ -91,7 +91,7 @@ import java.util.function.Function;
    * Find all [type.name](s) given their ids {@code [a.name]}
    */
   public ReactiveRepository.Reader<[type.name]> findById(Iterable<? extends [a.type]> [a.name]s) {
-    return find([type.name]Criteria.create().[a.name].isIn([a.name]s));
+    return find([type.name]Criteria.[toLower type.name].[a.name].isIn([a.name]s));
   }
 [/if]
 [/for]
@@ -103,7 +103,7 @@ import java.util.function.Function;
 
   @Override
   public ReactiveRepository.Reader<[type.name]> findAll() {
-    return find([type.name]Criteria.create());
+    return find([type.name]Criteria.[toLower type.name]);
   }
 
 [if not type.criteriaRepository.readonly]

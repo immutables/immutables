@@ -44,7 +44,7 @@ public class InMemoryExpressionEvaluatorTest {
 
   @Test
   public void reflection() {
-    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
 
     final ImmutablePerson person = example.withFullName("John");
 
@@ -93,7 +93,7 @@ public class InMemoryExpressionEvaluatorTest {
 
   @Test
   public void booleans() {
-    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
 
     final ImmutablePerson person = example.withFullName("A");
 
@@ -108,8 +108,8 @@ public class InMemoryExpressionEvaluatorTest {
   @Test
   public void empty() {
     final ImmutablePerson person = example;
-    check(evaluate(PersonCriteria.create(), person));
-    check(evaluate(PersonCriteria.create(), person.withFullName("llll")));
+    check(evaluate(PersonCriteria.person, person));
+    check(evaluate(PersonCriteria.person, person.withFullName("llll")));
   }
 
   private static boolean evaluate(PersonCriteria criteria, Person person) {

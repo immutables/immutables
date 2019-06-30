@@ -84,6 +84,9 @@ import [starImport];
 [type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>,
             AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>, NotMatcher<R, [type.name]Criteria.Self> {
 
+   /** Default criteria instance */
+   public static final [type.name]Criteria<Self> [toLower type.name] = create();
+
    private final CriteriaContext context;
 
    [for a in type.allMarshalingAttributes]
@@ -139,7 +142,8 @@ import [starImport];
    [/for]
    }
 
-   public static [type.name]Criteria<Self> create() {
+   /** Factory method to create an instance of [type.name]Criteria */
+   private static [type.name]Criteria<Self> create() {
      return new ExpressionalSelf();
    }
 
@@ -197,7 +201,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
   context.withPath("[a.name]")
            .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
                          ctx -> new [a.unwrappedElementType]Criteria<R>(ctx),
-                         ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.create())
+                         ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.[toLower a.unwrappedElementTypeNameSimple])
 
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
   context.withPath("[a.name]")

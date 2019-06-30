@@ -79,7 +79,7 @@ public class ElasticModelTest {
 
   @Test
   public void criteria() {
-    ElasticModelCriteria<ElasticModelCriteria.Self> crit = ElasticModelCriteria.create();
+    ElasticModelCriteria<ElasticModelCriteria.Self> crit = ElasticModelCriteria.elasticModel;
 
     assertCount(crit, 2);
     assertCount(crit.intNumber.isEqualTo(1), 0);

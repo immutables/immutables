@@ -88,7 +88,7 @@ public class GeodeCqTest {
 
     PersonRepository repository = new PersonRepository(new GeodeBackend(region));
 
-    TestSubscriber<WatchEvent<Person>> events = Flowable.fromPublisher(repository.watcher(PersonCriteria.create()).watch())
+    TestSubscriber<WatchEvent<Person>> events = Flowable.fromPublisher(repository.watcher(PersonCriteria.person).watch())
             .test();
 
     final PersonGenerator generator = new PersonGenerator();
