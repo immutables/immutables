@@ -26,7 +26,7 @@ public class PersonTest {
   @Test
   @Ignore("used for compile-time testing only")
   public void collection() {
-    PersonCriteria.create()
+    PersonCriteria.person
             .pets.any().name.isNotEmpty()
             .age.isAtMost(22)
             .isActive.isFalse()

@@ -59,7 +59,7 @@ public abstract class AbstractPersonTest {
    * Create person criteria
    */
   private static PersonCriteria<PersonCriteria.Self> criteria() {
-    return PersonCriteria.create();
+    return PersonCriteria.person;
   }
 
   /**

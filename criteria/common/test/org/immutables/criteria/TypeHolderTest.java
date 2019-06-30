@@ -36,7 +36,7 @@ public class TypeHolderTest {
   @Test
   public void name() {
     // primitives
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .booleanPrimitive.isTrue()
             .booleanPrimitive.isFalse()
             .intPrimitive.isEqualTo(0)
@@ -52,7 +52,7 @@ public class TypeHolderTest {
             .bytePrimitive.isNotEqualTo((byte) 0);
 
     // == Optionals
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .optBoolean.value().isFalse()
             .optBoolean.value().isTrue()
             .optBoolean.isAbsent()
@@ -70,7 +70,7 @@ public class TypeHolderTest {
             .optShort.isAbsent();
 
     // == Boxed
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .doubleValue.isLessThan(22D)
             .booleanValue.isTrue()
             .booleanValue.isFalse()
@@ -81,7 +81,7 @@ public class TypeHolderTest {
             .longValue.isLessThan(44L);
 
     // == lists
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .booleans.any().isTrue()
             .booleans.isNotEmpty()
             .booleans.hasSize(1)
@@ -106,7 +106,7 @@ public class TypeHolderTest {
 
   @Test
   public void dates() {
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .localDate.isAtMost(LocalDate.MIN)
             .optLocalDate.value().isAtMost(LocalDate.MAX)
             .optLocalDate.value(d -> d.isAtMost(LocalDate.MAX))
@@ -119,7 +119,7 @@ public class TypeHolderTest {
 
     final Date date = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10));
 
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .utilDate.isAtMost(date)
             .optUtilDate.value().isAtMost(date)
             .utilDates.all().isAtLeast(date);
@@ -130,7 +130,7 @@ public class TypeHolderTest {
    */
   @Test
   public void bigIntegerAndDecimal() {
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .bigDecimal.isAtLeast(BigDecimal.ONE)
             .optBigDecimal.value().isAtLeast(BigDecimal.ONE)
             .optBigDecimal.value(b -> b.isGreaterThan(BigDecimal.TEN))
@@ -138,7 +138,7 @@ public class TypeHolderTest {
             .bigDecimals.isNotEmpty()
             .bigDecimals.any().isAtLeast(BigDecimal.ONE);
 
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .bigInteger.isAtLeast(BigInteger.ONE)
             .optBigInteger.value().isAtLeast(BigInteger.ONE)
             .optBigInteger.value(b -> b.isGreaterThan(BigInteger.TEN))
@@ -149,7 +149,7 @@ public class TypeHolderTest {
 
   @Test
   public void enumCheck() {
-      TypeHolderCriteria.create()
+      TypeHolderCriteria.typeHolder
               .foos.none().isEqualTo(TypeHolder.Foo.TWO)
               .foos.none(e -> e.isNotEqualTo(TypeHolder.Foo.ONE).isLessThan(TypeHolder.Foo.TWO))
               .foo.isEqualTo(TypeHolder.Foo.ONE)
@@ -160,7 +160,7 @@ public class TypeHolderTest {
 
   @Test
   public void timeZones() {
-    TypeHolderCriteria.create()
+    TypeHolderCriteria.typeHolder
             .timeZone.isEqualTo(TimeZone.getDefault())
             .optTimeZone.value().isEqualTo(TimeZone.getDefault())
             .timeZones.contains(TimeZone.getDefault());
