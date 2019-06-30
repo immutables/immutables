@@ -120,17 +120,6 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
 
-        if (left instanceof java.util.Optional) {
-          Optional<?> opt = (java.util.Optional<?>) left;
-          return (op == Operators.IS_ABSENT) != opt.isPresent();
-        }
-
-        if (left instanceof com.google.common.base.Optional) {
-          // guava Optional
-          com.google.common.base.Optional<?> opt = (com.google.common.base.Optional<?>) left;
-          return (op == Operators.IS_ABSENT) != opt.isPresent();
-        }
-
         if (left == UNKNOWN) {
          return (op == Operators.IS_ABSENT);
         }
@@ -198,20 +187,25 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     @Override
     public Object visit(Path path) {
       final Object extracted = extractor.extract(path);
+      return unwrapOptional(extracted);
+    }
+  }
 
-      // unwrap optional
-      if (extracted instanceof java.util.Optional) {
-        return ((java.util.Optional) extracted).orElse(UNKNOWN);
-      }
-
-      if (extracted instanceof com.google.common.base.Optional) {
-        return ((com.google.common.base.Optional) extracted).or(UNKNOWN);
-      }
-
-      return extracted;
+  /**
+   * Get value from Optional or {@link #UNKNOWN} if empty
+   */
+  private static Object unwrapOptional(Object maybeOptional) {
+    if ((maybeOptional instanceof Optional)) {
+      return  ((Optional) maybeOptional).orElse(UNKNOWN);
     }
 
+    if (maybeOptional instanceof com.google.common.base.Optional) {
+      return ((com.google.common.base.Optional) maybeOptional).or(UNKNOWN);
+    }
+
+    return maybeOptional;
   }
+
 
   private interface ValueExtractor<T> {
     @Nullable
@@ -234,12 +228,14 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
       for (AnnotatedElement member: path.paths()) {
         result = extract(result, (Member) member);
+        result = unwrapOptional(result);
         if (result == UNKNOWN) {
-          break;
+          return UNKNOWN;
         }
       }
 
-      return result;
+      // convert null to unknown
+      return result == null ? UNKNOWN : result;
     }
 
     private static Object extract(Object instance, Member member) {

@@ -207,7 +207,20 @@ public abstract class AbstractPersonTest {
     // isPresent / isAbsent
     check(criteria().address.isAbsent()).empty();
     check(criteria().address.isPresent()).notEmpty();
+  }
 
+  @Test
+  public void nested() {
+    final ImmutablePerson john = new PersonGenerator().next().withBestFriend(ImmutableFriend.builder().hobby("ski").build());
+    insert(john);
+    final Address address = john.address().get();
+    check(criteria().address.value().city.isEqualTo(address.city())).notEmpty();
+    check(criteria().address.value().zip.isEqualTo(address.zip())).notEmpty();
+    check(criteria().address.value().zip.isEqualTo(address.zip())).toList().hasContentInAnyOrder(john);
+    check(criteria().address.value().state.isEqualTo(address.state())).toList().hasContentInAnyOrder(john);
+    check(criteria().address.value().city.isEqualTo("__MISSING__")).empty();
+    check(criteria().bestFriend.value().hobby.isEqualTo("ski")).notEmpty();
+    check(criteria().bestFriend.value().hobby.isEqualTo("__MISSING__")).empty();
   }
 
   @Test
