@@ -29,7 +29,6 @@ import org.immutables.value.Value;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public interface Friend {
 
-  String nickName();
+  String hobby();
 
-  int age();
 }

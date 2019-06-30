@@ -207,6 +207,7 @@ public abstract class AbstractPersonTest {
     // isPresent / isAbsent
     check(criteria().address.isAbsent()).empty();
     check(criteria().address.isPresent()).notEmpty();
+
   }
 
   @Test
