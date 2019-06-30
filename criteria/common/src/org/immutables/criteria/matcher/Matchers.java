@@ -16,14 +16,19 @@
 
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.Criterias;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class Matchers {
 
@@ -136,6 +141,17 @@ public final class Matchers {
     }
   }
 
+  static List<Expression> concatFilters(Expression existing, Criterion<?> first, Criterion<?> ... rest) {
+    Stream<Expression> restStream = Stream.concat(Stream.of(first), Arrays.stream(rest))
+            .map(Criterias::toQuery)
+            .filter(q -> q.filter().isPresent())
+            .map(q -> q.filter().get());
+
+    return Stream.concat(Stream.of(existing), restStream)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+  }
 
   /**
    * Hacky (and temporary) reflection until we define proper sub-classes for criterias
