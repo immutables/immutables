@@ -68,6 +68,56 @@ public class ExpressionAsStringTest {
 
   }
 
+  @Test
+  public void and() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+
+    PersonCriteria<PersonCriteria.Self> other = PersonCriteria.create()
+            .and(crit.age.isAtMost(1)).and(crit.age.isAtLeast(2));
+
+    assertExpressional(other, "call op=AND",
+            "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+            "  call op=GREATER_THAN_OR_EQUAL path=age constant=2");
+
+    assertExpressional(other.and(crit.age.isEqualTo(3)),
+            "call op=AND",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=EQUAL path=age constant=3");
+
+    assertExpressional(other.and(crit.age.isEqualTo(3)),
+            "call op=AND",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=EQUAL path=age constant=3");
+  }
+
+  @Test
+  public void or() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.create();
+
+    PersonCriteria<PersonCriteria.Self> other = PersonCriteria.create()
+            .or(crit.age.isAtMost(1)).or(crit.age.isAtLeast(2));
+
+    assertExpressional(other, "call op=OR",
+            "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+            "  call op=GREATER_THAN_OR_EQUAL path=age constant=2");
+
+    assertExpressional(other.or(crit.age.isEqualTo(3)),
+            "call op=OR",
+                    "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+                    "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+                    "  call op=EQUAL path=age constant=3");
+
+    assertExpressional(crit.or(crit.age.isAtMost(1)).or(crit.age.isAtLeast(2))
+                    .or(crit.age.isEqualTo(3)),
+            "call op=OR",
+            "  call op=LESS_THAN_OR_EQUAL path=age constant=1",
+            "  call op=GREATER_THAN_OR_EQUAL path=age constant=2",
+            "  call op=EQUAL path=age constant=3");
+
+  }
+
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
     Query query = Criterias.toQuery(crit);

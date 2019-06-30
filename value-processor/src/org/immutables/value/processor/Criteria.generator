@@ -39,6 +39,8 @@ import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.CollectionMatcher;
 import org.immutables.criteria.matcher.Disjunction;
+import org.immutables.criteria.matcher.AndMatcher;
+import org.immutables.criteria.matcher.OrMatcher;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.OptionalMatcher;
 import org.immutables.criteria.matcher.ObjectMatcher;
@@ -79,7 +81,8 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>, NotMatcher<R, [type.name]Criteria.Self> {
+[type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>,
+            AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>, NotMatcher<R, [type.name]Criteria.Self> {
 
    private final CriteriaContext context;
 
