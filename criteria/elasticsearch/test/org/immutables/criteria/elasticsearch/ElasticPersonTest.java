@@ -65,6 +65,10 @@ public class ElasticPersonTest extends AbstractPersonTest  {
             .put("nickName", "keyword")
             .put("age", "integer")
             .put("dateOfBirth", "date")
+            .put("address.street", "keyword")
+            .put("address.state", "keyword")
+            .put("address.zip", "keyword")
+            .put("address.city", "keyword")
             .build();
 
     ops.createIndex(model);
