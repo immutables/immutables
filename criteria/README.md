@@ -26,24 +26,35 @@ interface Person {
 ```
 
 #### Write query
-Now you can write the following predicates:
+Now you can write the following queries:
 ```java
 PersonCriteria.person.id.isIn("id1", "id2", "id3");
 
-PersonCriteria.person
-    .fullName.startsWith("John")
+person
+    .fullName.startsWith("John") // basic string conditions
     .fullName.isEqualTo(3.1415D) // will not compile since fullName is String
-    .nickName.isAbsent()
-    .or()
+    .nickName.isAbsent() // for Optional attribute
+    .or() // disjunction
     .age.isGreaterThan(21)
-    .nickName.value().startsWith("Adam");
+    .nickName.value().startsWith("Adam")
+    .or()
+    .not(p -> p.nickName.value().hasSize(4)); // negation
 
 // apply specific predicate to elements of a collection
-PersonCriteria.person
-    .pets.none().type.isEqualTo(Pet.PetType.iguana)  // person doesn't own Iguanas
+person
+    .pets.none().type.isEqualTo(Pet.PetType.iguana)  // no Iguanas
     .or()
-    .pets.any().name.contains("Fluffy"); // person has a pet which sounds like Fluffy
+    .pets.any().name.contains("fluffy"); // person has a pet which sounds like fluffy
 
+```
+
+You will notice that there are no `and` statements (conjunctions) that is because criteria uses 
+[Disjunctive Normal Form](https://en.wikipedia.org/wiki/Disjunctive_normal_form) (in short DNF) by default. 
+
+For more complex expressions, one can still combine criterias arbitrarily using `and`s / `or`s / `not`s. 
+Statement like `A and (B or C)` can be written as follows:
+```java
+person.fullName.isEqualTo("John").and(person.age.isGreaterThan(22).or().nickName.isPresent())
 ```
 
 #### Use generated repository to query or update a datasource
@@ -53,7 +64,7 @@ instance (mongo, elastic, inmemory etc).
 
 ```java
 MongoCollection<Person> collection = ... // prepare collection with DocumentClass / CodecRegistry
-Backend backend = new MongoBackend(collection)l
+Backend backend = new MongoBackend(collection);
 
 // PersonRepository is automatically generated. You need to provide only backend instance 
 PersonRepository repository = new PersonRepository(backend); 
@@ -61,7 +72,7 @@ PersonRepository repository = new PersonRepository(backend);
 repository.insert(ImmutablePerson.builder().id("aaa").fullName("John Smith").age(22).build());
 
 // query repository
-Publisher<Person> result = repository.find(PersonCriteria.person.fullName.contains("Smith")).fetch();
+Publisher<Person> result = repository.find(person.fullName.contains("Smith")).fetch();
 ``` 
 
 ### Development 
