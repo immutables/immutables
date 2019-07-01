@@ -176,13 +176,13 @@ public final class Matchers {
     };
   }
 
-  static <C> UnaryOperator<Expression> toExpressionOperator3(CriteriaContext context, UnaryOperator<C> expr) {
+  static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {
     return expression -> {
-      // creator1 changes ObjectCriteria.creator1() == Person
-      // need to override creator1 otherwise ClassCastException
-      // final C initial = factory.creator3().create(); // does not work
-      final CriteriaCreator.TriFactory<?, ?, C> factory = context.factory3();
-      final C initial = (C) context.withCreators(factory.creator3(), factory.creator2(), factory.creator3()).factory3().create3();
+      // root changes ObjectCriteria.root() == Person
+      // need to override root otherwise ClassCastException
+      // final C initial = factory.nested().create(); // does not work
+      final CriteriaCreator.Factory<?, ?, C> factory = context.factory();
+      final C initial = (C) context.withRootCreator(factory.inner()).factory().createInner();
       final C changed = expr.apply(initial);
       return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };

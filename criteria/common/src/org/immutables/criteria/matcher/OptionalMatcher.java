@@ -29,23 +29,24 @@ public interface OptionalMatcher<R, S, C>  {
 
   default R isPresent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);
-    return Matchers.extract(this).<R, S, C>factory3().create1(expr);
+    return Matchers.extract(this).<R, S, C>factory().createRoot(expr);
   }
 
   default R isAbsent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_ABSENT, e);
-    return Matchers.extract(this).<R, S, C>factory3().create1(expr);
+    return Matchers.extract(this).<R, S, C>factory().createRoot(expr);
   }
 
   default S value() {
-    return Matchers.extract(this).<R, S, C>factory3().create2();
+    return Matchers.extract(this).<R, S, C>factory().createNested();
   }
 
   default R value(UnaryOperator<C> consumer) {
     final CriteriaContext context = Matchers.extract(this);
-    final CriteriaCreator.TriFactory<R, S, C> factory3 = context.<R, S, C>factory3();
-    final UnaryOperator<Expression> expr = e -> Matchers.toExpressionOperator3(context, consumer).apply(e);
-    return factory3.create1(expr);
+    final CriteriaCreator.Factory<R, S, C> factory3 = context.<R, S, C>factory();
+    final UnaryOperator<Expression> expr = e -> Matchers.toInnerExpression(context, consumer).apply(e);
+    return factory3.createRoot(expr);
+
   }
 
 }

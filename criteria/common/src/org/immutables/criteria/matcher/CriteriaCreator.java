@@ -26,70 +26,43 @@ public interface CriteriaCreator<R> {
 
   R create(CriteriaContext context);
 
-  interface Factory {
+  // root = R (returns to createRoot criteria). root
+  // nested = S (chains to next criteria). nested
+  // inner = C (accepts nested criteria). inner
+  interface Factory<T1, T2, T3>  {
+
     CriteriaContext context();
-  }
 
-  interface SingleFactory<T1> extends Factory {
-    CriteriaCreator<T1> creator1();
+    CriteriaCreator<T1> root();
 
-    default T1 create1(UnaryOperator<Expression> operator) {
-      return creator1().create(context().withOperator(operator));
+    default T1 createRoot(UnaryOperator<Expression> operator) {
+      return root().create(context().withOperator(operator));
     }
 
-    default T1 create1() {
-      return creator1().create(context());
-    }
-  }
-
-  interface BiFactory<T1, T2> extends SingleFactory<T1> {
-
-    CriteriaCreator<T2> creator2();
-
-    default T2 create2(UnaryOperator<Expression> operator) {
-      return creator2().create(context().withOperator(operator));
+    default T1 createRoot() {
+      return root().create(context());
     }
 
-    default T2 create2() {
-      return creator2().create(context());
+    default T2 createNested(UnaryOperator<Expression> operator) {
+      return nested().create(context().withOperator(operator));
     }
 
-  }
-
-  interface TriFactory<T1, T2, T3>  extends BiFactory<T1, T2> {
-    CriteriaCreator<T3> creator3();
-
-    default T3 create3(UnaryOperator<Expression> operator) {
-      return creator3().create(context().withOperator(operator));
+    default T2 createNested() {
+      return nested().create(context());
     }
 
-    default T3 create3() {
-      return creator3().create(context());
+    CriteriaCreator<T2> nested();
+
+    CriteriaCreator<T3> inner();
+
+    default T3 createInner(UnaryOperator<Expression> operator) {
+      return inner().create(context().withOperator(operator));
     }
 
-  }
-
-  interface QuadFactory<T1, T2, T3, T4>  extends TriFactory<T1, T2, T3> {
-    CriteriaCreator<T4> creator4();
-
-    default T4 create4(UnaryOperator<Expression> operator) {
-      return creator4().create(context().withOperator(operator));
+    default T3 createInner() {
+      return inner().create(context());
     }
 
-    default T4 create4() {
-      return creator4().create(context());
-    }
-
-  }
-
-
-  /**
-   * Used to create a no-op creator
-   */
-  static <R> CriteriaCreator<R> unsupported() {
-    return context -> {
-      throw new UnsupportedOperationException("Not supposed to be called");
-    };
   }
 
 }

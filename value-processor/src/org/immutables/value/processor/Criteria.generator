@@ -106,7 +106,7 @@ import [starImport];
 
     @Override
     public [type.name]Criteria<Self> or() {
-      return context.or().<Self>factory1().create1();
+      return context.or().<Self, Object, Object>factory().createRoot();
     }
 
    }
@@ -209,7 +209,9 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
                            ctx -> Matchers.create([scalarMatcherType a].class, ctx),
                           ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
 [else]
-  context.withPath([type.name].class, "[a.name]").withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
+  context
+  .withPath([type.name].class, "[a.name]")
+  .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx), ctx -> new [type.name]Criteria.ExpressionalSelf(ctx), ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
 [/if]
 [/output.trim][/template]
 
