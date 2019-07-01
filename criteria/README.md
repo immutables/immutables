@@ -18,15 +18,9 @@ Define your model using immutables interfaces
 interface Person {
     @Criteria.Id
     String id();
-   
     String fullName();
-  
-    Optional<String> nickName();
-  
+    Optional<String> nickName();  
     int age();
-    
-    Set<String> interests();
-  
     List<Pet> pets();
 }
 ```
@@ -38,24 +32,27 @@ PersonCriteria.person.id.isIn("id1", "id2", "id3");
 
 PersonCriteria.person
     .fullName.startsWith("John")
+    .fullName.isEqualTo(3.1415D) // will not compile since fullName is String
     .nickName.isAbsent()
     .or()
     .age.isGreaterThan(21)
     .nickName.value().startsWith("Adam");
 
+// apply specific predicate to elements of a collection
 PersonCriteria.person
-    .pets.none().type.isEqualTo(Pet.PetType.iguana) // apply specific predicate to elements of a collection
+    .pets.none().type.isEqualTo(Pet.PetType.iguana)  // person doesn't own Iguanas
     .or()
-    .pets.any().name.contains("Fluffy");
+    .pets.any().name.contains("Fluffy"); // person has a pet which sounds like Fluffy
 
 ```
 
 #### Use generated repository to query or update a datasource
 `@Criteria.Repository` instructs immutables to generate repository class with `find` / `insert` / `watch` operations.
+You are required to provide a valid [backend](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/adapter/Backend.java) 
+instance (mongo, elastic, inmemory etc).
 
 ```java
-
-MongoCollection<Person> collection = ... // prepare collection with CodecRegistry
+MongoCollection<Person> collection = ... // prepare collection with DocumentClass / CodecRegistry
 Backend backend = new MongoBackend(collection)l
 
 // PersonRepository is automatically generated. You need to provide only backend instance 
