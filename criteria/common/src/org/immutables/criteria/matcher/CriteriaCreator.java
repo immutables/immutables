@@ -35,8 +35,10 @@ public interface CriteriaCreator<R> {
 
     CriteriaCreator<T1> root();
 
+    CriteriaCreator<T2> nested();
+
     default T1 createRoot(UnaryOperator<Expression> operator) {
-      return root().create(context().withOperator(operator));
+      return root().create(context().apply(operator));
     }
 
     default T1 createRoot() {
@@ -44,14 +46,13 @@ public interface CriteriaCreator<R> {
     }
 
     default T2 createNested(UnaryOperator<Expression> operator) {
-      return nested().create(context().withOperator(operator));
+      return nested().create(context().apply(operator));
     }
 
     default T2 createNested() {
       return nested().create(context());
     }
 
-    CriteriaCreator<T2> nested();
 
   }
 

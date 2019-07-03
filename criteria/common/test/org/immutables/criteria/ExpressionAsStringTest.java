@@ -29,7 +29,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 /**
- * Tests that expression is built correctly by "serializing" it to string
+ * Tests that expression is built correctly by "serializing" it to string.
+ * It is easier to debug expression when it is presented as human-readable tree
  */
 public class ExpressionAsStringTest {
 
@@ -39,8 +40,9 @@ public class ExpressionAsStringTest {
 
     assertExpressional(crit.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
     assertExpressional(crit.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
-    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
-//    assertExpressional(crit.bestFriend.value(f -> f.nickName.isEqualTo("bbb")), "call op=EQUAL path=bestFriend.nickName constant=bbb");
+
+    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"),
+            "call op=EQUAL path=bestFriend.hobby constant=ski");
     assertExpressional(crit.fullName.isIn("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
 
     assertExpressional(crit.fullName.isEqualTo("John").or().fullName.isEqualTo("Marry"),
@@ -122,6 +124,13 @@ public class ExpressionAsStringTest {
   public void next() {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
     assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
+
+    assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski")
+                    .age.isEqualTo(22),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=ski",
+            "  call op=EQUAL path=age constant=22");
+
     assertExpressional(crit.address.value().zip.isEqualTo("12345"),
             "call op=EQUAL path=address.zip constant=12345");
     assertExpressional(PersonCriteria.person
@@ -141,6 +150,28 @@ public class ExpressionAsStringTest {
     assertExpressional(PersonCriteria.person.bestFriend.value(f -> f.not(v -> v.hobby.isEqualTo("hiking"))),
             "call op=NOT",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking");
+
+    assertExpressional(PersonCriteria.person.bestFriend
+                    .value(f -> f.hobby.isEqualTo("hiking").hobby.isEqualTo("ski")),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "  call op=EQUAL path=bestFriend.hobby constant=ski");
+
+    assertExpressional(PersonCriteria.person.bestFriend
+                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski")),
+            "call op=OR",
+            "  call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "  call op=EQUAL path=bestFriend.hobby constant=ski");
+
+    assertExpressional(PersonCriteria.person.bestFriend
+                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski"))
+                    .fullName.isEmpty(),
+            "call op=AND",
+            "  call op=OR",
+            "    call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "    call op=EQUAL path=bestFriend.hobby constant=ski",
+            "  call op=EQUAL path=fullName constant="
+    );
   }
 
   @Ignore

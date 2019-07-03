@@ -43,17 +43,19 @@ public final class CriteriaContext implements Queryable {
   private final Path path;
   private final Operator operator;
   private final Class<?> entityClass;
+  private final CriteriaContext parent;
 
   public CriteriaContext(Class<?> entityClass, CriteriaCreator<?> creator) {
-    this(Operators.AND, entityClass, DnfExpression.create(Expressions.root(entityClass)), null, ImmutableList.of(creator));
+    this(Operators.AND, entityClass, DnfExpression.create(Expressions.root(entityClass)), null, ImmutableList.of(creator), null);
   }
 
-  private CriteriaContext(Operator operator, Class<?> entityClass, DnfExpression expression, Path path, List<CriteriaCreator<?>> creators) {
+  private CriteriaContext(Operator operator, Class<?> entityClass, DnfExpression expression, Path path, List<CriteriaCreator<?>> creators, CriteriaContext parent) {
     this.creators = ImmutableList.copyOf( creators);
     this.expression = expression;
     this.path = path;
     this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
     this.operator = operator;
+    this.parent = parent;
   }
 
   public <T1, T2> CriteriaContext withCreators(CriteriaCreator<T1> c1, CriteriaCreator<T2> c2) {
@@ -62,13 +64,12 @@ public final class CriteriaContext implements Queryable {
 
     // keep root unchanged here (it should change only for nested matchers)
     final CriteriaCreator<?> root = creators.get(0);
-    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, c2));
+    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, c2), parent);
   }
 
   /** Used to chane just root */
-  public <T1, T2> CriteriaContext withRootCreator(CriteriaCreator<T1> root) {
-    Objects.requireNonNull(root, "root");
-    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, creators.get(1)));
+  public <T1, T2> CriteriaContext nestedChild() {
+    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(factory().nested(), creators.get(1)), this);
   }
 
 
@@ -100,7 +101,7 @@ public final class CriteriaContext implements Queryable {
     // clazz ==
     final Member member = Reflections.member(type, pathAsString);
     final Path newPath = this.path != null ? this.path.with(member) : Path.of(member);
-    return new CriteriaContext(operator, entityClass, expression, newPath, creators);
+    return new CriteriaContext(operator, entityClass, expression, newPath, creators, parent);
   }
 
 
@@ -109,7 +110,7 @@ public final class CriteriaContext implements Queryable {
       return this;
     }
 
-    return new CriteriaContext(Operators.OR, entityClass, expression, path, creators);
+    return new CriteriaContext(Operators.OR, entityClass, expression, path, creators, parent);
   }
 
   @Override
@@ -117,12 +118,12 @@ public final class CriteriaContext implements Queryable {
     return this.expression.query();
   }
 
-  public CriteriaContext withOperator(UnaryOperator<Expression> operator) {
+  public CriteriaContext apply(UnaryOperator<Expression> operator) {
     Objects.requireNonNull(operator, "operator");
     final Expression apply = operator.apply(path);
     final DnfExpression existing = expression;
     final DnfExpression newExpression = this.operator == Operators.AND ? existing.and(apply) : existing.or(apply);
-    return new CriteriaContext(Operators.AND, entityClass, newExpression, null, creators);
+    return new CriteriaContext(Operators.AND, entityClass, newExpression, parent != null ? parent.path : null, creators, parent != null ? parent.parent : null);
   }
 
 }

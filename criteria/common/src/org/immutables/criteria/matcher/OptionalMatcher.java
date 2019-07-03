@@ -43,9 +43,8 @@ public interface OptionalMatcher<R, S, C>  {
 
   default R value(UnaryOperator<C> consumer) {
     final CriteriaContext context = Matchers.extract(this);
-    final CriteriaCreator.Factory<R, C> factory3 = context.<R, C>factory();
     final UnaryOperator<Expression> expr = e -> Matchers.toInnerExpression(context, consumer).apply(e);
-    return factory3.createRoot(expr);
+    return context.<R, C>factory().createRoot(expr);
 
   }
 

@@ -178,11 +178,8 @@ public final class Matchers {
 
   static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {
     return expression -> {
-      // root changes ObjectCriteria.root() == Person
-      // need to override root otherwise ClassCastException
-      // final C initial = factory.nested().create(); // does not work
-      final CriteriaCreator.Factory<?, C> factory = context.factory();
-      final C initial = (C) context.withRootCreator(factory.nested()).factory().createNested();
+      final CriteriaContext newContext = context.nestedChild();
+      final C initial = (C) newContext.factory().createRoot();
       final C changed = expr.apply(initial);
       return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };

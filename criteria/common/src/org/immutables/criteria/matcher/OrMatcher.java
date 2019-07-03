@@ -26,7 +26,7 @@ public interface OrMatcher<R extends Criterion<?>> {
 
   default R or(R first) {
     final UnaryOperator<Expression> expr = e -> Expressions.or(Matchers.concatFilters(e, first));
-    return Matchers.extract(this).withOperator(expr).or().<R, Object>factory().createRoot();
+    return Matchers.extract(this).apply(expr).or().<R, Object>factory().createRoot();
   }
 
 }
