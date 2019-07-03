@@ -135,7 +135,7 @@ import [starImport];
    }
 
    @SuppressWarnings("unchecked")
-   public [type.name]Criteria(CriteriaContext context) {
+   private [type.name]Criteria(CriteriaContext context) {
      this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
      this.[a.name] = ([criteriaType a type]) [createMatcher a type];
