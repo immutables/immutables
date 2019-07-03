@@ -614,16 +614,6 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         : getElementType();
   }
 
-  /**
-   * Returns the simple name of wrapped element type, like {@code Entry} for {@code Map.Entry} or
-   * {@code String} for {@code java.util.String}.
-   */
-  public String getUnwrappedElementTypeNameSimple() {
-    final String type = getUnwrappedElementType();
-    final int index = type.lastIndexOf('.');
-    return index > -1 ? type.substring(index + 1) : type;
-  }
-
   public String getUnwrappedValueElementType() {
     return isMapType()
         ? getUnwrappedSecondaryElementType()
