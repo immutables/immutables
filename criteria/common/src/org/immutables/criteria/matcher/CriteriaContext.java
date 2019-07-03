@@ -56,32 +56,26 @@ public final class CriteriaContext implements Queryable {
     this.operator = operator;
   }
 
-  public <T1, T2, T3> CriteriaContext withCreators(CriteriaCreator<T1> c1, CriteriaCreator<T2> c2, CriteriaCreator<T3> c3) {
+  public <T1, T2> CriteriaContext withCreators(CriteriaCreator<T1> c1, CriteriaCreator<T2> c2) {
     Objects.requireNonNull(c1, "c1");
     Objects.requireNonNull(c2, "c2");
-    Objects.requireNonNull(c3, "c3");
 
     // keep root unchanged here (it should change only for nested matchers)
     final CriteriaCreator<?> root = creators.get(0);
-    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, c2, c3));
+    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, c2));
   }
 
   /** Used to chane just root */
-  public <T1, T2, T3> CriteriaContext withRootCreator(CriteriaCreator<T1> root) {
+  public <T1, T2> CriteriaContext withRootCreator(CriteriaCreator<T1> root) {
     Objects.requireNonNull(root, "root");
-    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, creators.get(1), creators.get(2)));
+    return new CriteriaContext(operator, entityClass, expression, path, ImmutableList.of(root, creators.get(1)));
   }
 
 
-  public <T1, T2, T3> CriteriaCreator.Factory<T1, T2, T3> factory() {
-    Preconditions.checkState(creators.size() == 3, "Expected size == 3 got %s", creators.size());
+  public <T1, T2> CriteriaCreator.Factory<T1, T2> factory() {
+    Preconditions.checkState(creators.size() == 2, "Expected size == 2 got %s", creators.size());
 
-    return new CriteriaCreator.Factory<T1, T2, T3>() {
-      @Override
-      public CriteriaCreator<T3> inner() {
-        return (CriteriaCreator<T3>) creators.get(2);
-      }
-
+    return new CriteriaCreator.Factory<T1, T2>() {
       @Override
       public CriteriaCreator<T2> nested() {
         return (CriteriaCreator<T2>) creators.get(1);

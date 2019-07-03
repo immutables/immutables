@@ -29,7 +29,7 @@ public interface CriteriaCreator<R> {
   // root = R (returns to createRoot criteria). root
   // nested = S (chains to next criteria). nested
   // inner = C (accepts nested criteria). inner
-  interface Factory<T1, T2, T3>  {
+  interface Factory<T1, T2>  {
 
     CriteriaContext context();
 
@@ -52,16 +52,6 @@ public interface CriteriaCreator<R> {
     }
 
     CriteriaCreator<T2> nested();
-
-    CriteriaCreator<T3> inner();
-
-    default T3 createInner(UnaryOperator<Expression> operator) {
-      return inner().create(context().withOperator(operator));
-    }
-
-    default T3 createInner() {
-      return inner().create(context());
-    }
 
   }
 

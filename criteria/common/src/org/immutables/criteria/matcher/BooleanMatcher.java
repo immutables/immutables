@@ -25,12 +25,12 @@ import org.immutables.criteria.expression.Operators;
 public interface BooleanMatcher<R>  {
 
   default R isTrue() {
-    return Matchers.extract(this).<R, Object, Object>factory()
+    return Matchers.extract(this).<R, Object>factory()
             .createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.TRUE)));
   }
 
   default R isFalse() {
-    return Matchers.extract(this).<R, Object, Object>factory()
+    return Matchers.extract(this).<R, Object>factory()
             .createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 

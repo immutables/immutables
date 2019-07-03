@@ -35,11 +35,11 @@ public interface ObjectMatcher<R, V> {
 
 
   default R isEqualTo(V value) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
   default R isNotEqualTo(V value) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
   default R isIn(V v1, V v2, V ... rest) {
@@ -62,12 +62,12 @@ public interface ObjectMatcher<R, V> {
 
   default R isIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   default R isNotIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   interface Self<V> extends ObjectMatcher<Self<V>, V> {}

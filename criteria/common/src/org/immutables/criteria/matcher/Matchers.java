@@ -181,8 +181,8 @@ public final class Matchers {
       // root changes ObjectCriteria.root() == Person
       // need to override root otherwise ClassCastException
       // final C initial = factory.nested().create(); // does not work
-      final CriteriaCreator.Factory<?, ?, C> factory = context.factory();
-      final C initial = (C) context.withRootCreator(factory.inner()).factory().createInner();
+      final CriteriaCreator.Factory<?, C> factory = context.factory();
+      final C initial = (C) context.withRootCreator(factory.nested()).factory().createNested();
       final C changed = expr.apply(initial);
       return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };

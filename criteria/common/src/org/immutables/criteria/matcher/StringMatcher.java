@@ -25,11 +25,11 @@ import org.immutables.criteria.expression.Operators;
 public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatcher<R, StringMatcher<StringMatcher.Self>> {
 
   default R isEmpty() {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
   }
 
   default R isNotEmpty() {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
   }
 
   default R contains(CharSequence other) {
@@ -52,7 +52,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatch
 
     @Override
     default StringMatcher<StringMatcher.Self> or() {
-      return Matchers.extract(this).or().<StringMatcher.Self, Object, Object>factory().createRoot();
+      return Matchers.extract(this).or().<StringMatcher.Self, Object>factory().createRoot();
     }
   }
 

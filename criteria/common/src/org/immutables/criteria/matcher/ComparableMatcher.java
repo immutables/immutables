@@ -29,7 +29,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    * <p>Use {@link #isAtMost(Comparable)} for less <i>or equal</i> comparison</p>
    */
   default R isLessThan(V upper) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
   }
 
   /**
@@ -37,21 +37,21 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    * <p>Use {@link #isAtLeast(Comparable)} for greater <i>or equal</i> comparison</p>
    */
   default R isGreaterThan(V lower) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
   }
 
   /**
    * Checks that attribute is less than or equal to {@code upperInclusive}.
    */
   default R isAtMost(V upperInclusive) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
   }
 
   /**
    * Checks that attribute is greater or equal to {@code lowerInclusive}.
    */
   default R isAtLeast(V lowerInclusive) {
-    return Matchers.extract(this).<R, Object, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
   interface Self<V extends Comparable<? super V>> extends ComparableMatcher<Self<V>, V> {}
