@@ -147,6 +147,10 @@ import [starImport];
      return new ExpressionalSelf();
    }
 
+   public static [type.name]Criteria<Self> create(CriteriaContext context) {
+     return new ExpressionalSelf(context);
+   }
+
 }
 [/template]
 
@@ -199,9 +203,9 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [template constructorArgs Attribute a Type type][output.trim]
 [if a.hasCriteria]
   context.withPath([type.name].class, "[a.name]")
-           .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx),
-                         ctx -> new [a.unwrappedElementType]Criteria<R>(ctx),
-                         ctx -> ([a.unwrappedElementType]Criteria.Self) [a.unwrappedElementType]Criteria.[toLower a.unwrappedElementTypeNameSimple])
+           .withCreators(ctx -> [type.name]Criteria.create(ctx),
+                         ctx -> [a.unwrappedElementType]Criteria.create(ctx),
+                         ctx -> [a.unwrappedElementType]Criteria.create(ctx))
 
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
   context.withPath([type.name].class, "[a.name]")
@@ -211,7 +215,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [else]
   context
   .withPath([type.name].class, "[a.name]")
-  .withCreators(ctx -> new [type.name]Criteria.ExpressionalSelf(ctx), ctx -> new [type.name]Criteria.ExpressionalSelf(ctx), ctx -> new [type.name]Criteria.ExpressionalSelf(ctx))
+  .withCreators(ctx -> [type.name]Criteria.create(ctx), ctx -> [type.name]Criteria.create(ctx), ctx -> [type.name]Criteria.create(ctx))
 [/if]
 [/output.trim][/template]
 

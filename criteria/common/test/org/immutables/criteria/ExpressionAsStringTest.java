@@ -50,7 +50,8 @@ public class ExpressionAsStringTest {
 
     assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"),
                     "call op=EQUAL path=bestFriend.hobby constant=ski");
-
+    assertExpressional(crit.bestFriend.value(f -> f.hobby.isEqualTo("hiking")) ,
+            "call op=EQUAL path=bestFriend.hobby constant=hiking");
   }
 
   @Test
@@ -132,19 +133,24 @@ public class ExpressionAsStringTest {
             "  call op=EQUAL path=bestFriend.hobby constant=ski");
   }
 
+  @Test
+  public void inner() {
+    assertExpressional(PersonCriteria.person.bestFriend.value(f -> f.hobby.isEqualTo("hiking")),
+            "call op=EQUAL path=bestFriend.hobby constant=hiking");
+
+    assertExpressional(PersonCriteria.person.bestFriend.value(f -> f.not(v -> v.hobby.isEqualTo("hiking"))),
+            "call op=NOT",
+            "  call op=EQUAL path=bestFriend.hobby constant=hiking");
+  }
+
   @Ignore
   @Test
   public void debug() {
-    assertExpressional(PersonCriteria.person
-                    .address.value().zip.isEqualTo("12345")
-                    .or()
-                    .bestFriend.value().hobby.isEqualTo("ski")
-                    .or()
-                    .bestFriend.value(f -> f.hobby.isEqualTo("hiking")) ,
-            "call op=OR",
-            "  call op=EQUAL path=address.zip constant=12345",
-            "  call op=EQUAL path=bestFriend.hobby constant=ski",
-            "  call op=EQUAL path=bestFriend.hobby constant=hiking");
+    assertExpressional(PersonCriteria.person.bestFriend
+                    .value(f -> f.hobby.isEqualTo("hiking").hobby.isEqualTo("ski")),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "  call op=EQUAL path=bestFriend.hobby constant=ski");
   }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
