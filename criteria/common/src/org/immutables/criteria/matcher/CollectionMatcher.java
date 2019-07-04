@@ -22,7 +22,7 @@ import org.immutables.criteria.expression.Operators;
 
 import java.util.function.UnaryOperator;
 
-public interface CollectionMatcher<R, S, C, V> {
+public interface CollectionMatcher<R, S, C, V>  {
 
   // createRoot = R (returns to createRoot criteria). createRoot / main
   // next = S (chains to next criteria). next / chain

@@ -19,15 +19,8 @@ package org.immutables.criteria.nested;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
-import java.util.Optional;
-
 @Value.Immutable
 @Criteria
-public interface Root {
-
-  /**  A, B, C are optional fields */
-  Optional<A> a();
-
-  /**  X, Y, Z are required fields (without optional)  */
-  X x();
+public interface Z {
+  String value();
 }

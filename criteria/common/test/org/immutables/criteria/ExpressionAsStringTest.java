@@ -120,6 +120,75 @@ public class ExpressionAsStringTest {
             "  call op=EQUAL path=age constant=3");
   }
 
+  /**
+   * AND / ORs combined like {@code (A and B) or (C and D)}
+   */
+  @Test
+  public void andOrCombined() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+
+    // A or (B and C)
+    assertExpressional(crit.age.isEqualTo(1).or()
+                    .age.isEqualTo(2)
+                    .age.isEqualTo(3),
+            "call op=OR",
+            "  call op=EQUAL path=age constant=1",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=2",
+            "    call op=EQUAL path=age constant=3");
+
+    // (A and B) or C
+    assertExpressional(crit.age.isEqualTo(1)
+                    .age.isEqualTo(2)
+                    .or()
+                    .age.isEqualTo(3),
+            "call op=OR",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=1",
+            "    call op=EQUAL path=age constant=2",
+            "  call op=EQUAL path=age constant=3");
+
+    // A or (B and C and D)
+    assertExpressional(crit.age.isEqualTo(1).or()
+                    .age.isEqualTo(2)
+                    .age.isEqualTo(3)
+                    .age.isEqualTo(4),
+            "call op=OR",
+            "  call op=EQUAL path=age constant=1",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=2",
+            "    call op=EQUAL path=age constant=3",
+            "    call op=EQUAL path=age constant=4");
+
+    // (A and B) or (C and D)
+    assertExpressional(crit.age.isEqualTo(1)
+                    .age.isEqualTo(2)
+            .or()
+                    .age.isEqualTo(3)
+                    .age.isEqualTo(4),
+            "call op=OR",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=1",
+            "    call op=EQUAL path=age constant=2",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=3",
+            "    call op=EQUAL path=age constant=4");
+
+    // (A and B and C) or D
+    assertExpressional(crit.age.isEqualTo(1)
+                    .age.isEqualTo(2)
+                    .age.isEqualTo(3)
+            .or()
+                    .age.isEqualTo(4),
+            "call op=OR",
+            "  call op=AND",
+            "    call op=EQUAL path=age constant=1",
+            "    call op=EQUAL path=age constant=2",
+            "    call op=EQUAL path=age constant=3",
+            "  call op=EQUAL path=age constant=4");
+
+  }
+
   @Test
   public void next() {
     PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
@@ -178,10 +247,14 @@ public class ExpressionAsStringTest {
   @Test
   public void debug() {
     assertExpressional(PersonCriteria.person.bestFriend
-                    .value(f -> f.hobby.isEqualTo("hiking").hobby.isEqualTo("ski")),
+                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski"))
+                    .fullName.isEmpty(),
             "call op=AND",
-            "  call op=EQUAL path=bestFriend.hobby constant=hiking",
-            "  call op=EQUAL path=bestFriend.hobby constant=ski");
+            "  call op=OR",
+            "    call op=EQUAL path=bestFriend.hobby constant=hiking",
+            "    call op=EQUAL path=bestFriend.hobby constant=ski",
+            "  call op=EQUAL path=fullName constant="
+    );
   }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
