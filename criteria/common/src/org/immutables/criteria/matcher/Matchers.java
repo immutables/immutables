@@ -178,13 +178,12 @@ public final class Matchers {
 
   static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {
     return expression -> {
-      final CriteriaContext newContext = context.nestedChild();
+      final CriteriaContext newContext = context.newChild();
       final C initial = (C) newContext.factory().createRoot();
       final C changed = expr.apply(initial);
       return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };
   }
-
 
   private static CriteriaContext extractWithReflection(Object object) {
     try {

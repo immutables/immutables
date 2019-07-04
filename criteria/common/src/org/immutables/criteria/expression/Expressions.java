@@ -20,6 +20,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -114,6 +117,19 @@ public final class Expressions {
       @Override
       public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
         return visitor.visit(this, context);
+      }
+
+      @Override
+      public String toString() {
+        StringWriter writer = new StringWriter();
+        PrintWriter printer = new PrintWriter(writer);
+        printer.println(operator().name());
+        DebugExpressionVisitor<Void> debug = new DebugExpressionVisitor<>(printer);
+        arguments().forEach(a -> {
+          printer.println();
+          a.accept(debug);
+        });
+        return writer.toString();
       }
     };
   }

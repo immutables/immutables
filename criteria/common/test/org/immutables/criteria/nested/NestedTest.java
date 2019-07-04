@@ -77,28 +77,55 @@ public class NestedTest {
   }
 
   @Test
-  public void composed() {
-    assertExpressional(RootCriteria.root.a.value(a -> a.b.isPresent().b.isAbsent()),
+  public void nested2() {
+    assertExpressional(RootCriteria.root.a.isAbsent().a.value(a -> a.value.isEmpty()),
             "call op=AND",
-            "  call op=IS_PRESENT path=a.b",
-            "  call op=IS_ABSENT path=a.b"
+            "  call op=IS_ABSENT path=a",
+            "  call op=EQUAL path=a.value constant=");
+
+    assertExpressional(RootCriteria.root.a.isAbsent().or().a.value(a -> a.value.isEmpty()),
+            "call op=OR",
+            "  call op=IS_ABSENT path=a",
+            "  call op=EQUAL path=a.value constant=");
+
+    assertExpressional(RootCriteria.root.a.value(a -> a.b.isAbsent().or().b.value(b -> b.c.value().value.isEmpty())),
+            "call op=OR",
+            "  call op=IS_ABSENT path=a.b",
+            "  call op=EQUAL path=a.b.c.value constant=");
+  }
+
+  @Test
+  public void composed() {
+    assertExpressional(RootCriteria.root
+                    .a.value(a -> a.value.isEqualTo("a").value.isEqualTo("b"))
+                    .a.value().value.isEmpty()
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=a.value constant=a",
+            "  call op=EQUAL path=a.value constant=b",
+            "  call op=EQUAL path=a.value constant="
     );
 
   }
 
-  @Ignore
+  @Ignore("doesn't return optional statement")
   @Test
   public void debug() {
-    assertExpressional(RootCriteria.root.a.value(a -> a.b.isPresent().or().b.value(b -> b.c.isPresent())),
-            "call op=OR",
-            "  call op=IS_PRESENT path=a.b",
-            "  call op=IS_PRESENT path=a.b.c"
+    assertExpressional(RootCriteria.root
+                    .a.value(a -> a.value.isEqualTo("a").or().value.isEqualTo("b"))
+                    .a.value().value.isEmpty()
+            ,
+            "call op=AND",
+            "  call op=OR",
+            "    call op=EQUAL path=a.value constant=a",
+            "    call op=EQUAL path=a.value constant=b",
+            "  call op=EQUAL path=a.value constant="
     );
   }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();
-    Query query = Criterias.toQuery(crit);
+    final Query query = Criterias.toQuery(crit);
     query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
     Assert.assertEquals(expected, out.toString().trim());

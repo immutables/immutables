@@ -63,11 +63,11 @@ public final class Query  {
     return new Query(entityPath, filter, limit, offset);
   }
 
-  static Query of(Class<?> entityClass) {
+  public static Query of(Class<?> entityClass) {
     return new Query(EntityPath.of(entityClass), null, null, null);
   }
 
-  Query withFilter(Expression filter) {
+  public Query withFilter(Expression filter) {
     Objects.requireNonNull(filter, "filter");
     return new Query(entityPath, filter, limit, offset);
   }

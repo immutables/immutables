@@ -82,7 +82,8 @@ import [starImport];
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
 [type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>,
-            AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>, NotMatcher<R, [type.name]Criteria.Self> {
+            AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>,
+            NotMatcher<R, [type.name]Criteria.Self> {
 
    /** Default criteria instance */
    public static final [type.name]Criteria<Self> [toLower type.name] = create();
@@ -194,7 +195,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [else if a.collectionType]
    Matchers.create(CollectionMatcher.class, [constructorArgs a type])
 [else if a.hasCriteria]
-  new [a.unwrappedElementType]Criteria<R>([constructorArgs a type])
+  [a.unwrappedElementType]Criteria.create(context)
 [else]
    Matchers.create(ObjectMatcher.class, [constructorArgs a type])
 [/if]
