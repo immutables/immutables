@@ -195,7 +195,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [else if a.collectionType]
    Matchers.create(IterableMatcher.class, [constructorArgs a type])
 [else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria.create(context)
+  [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
 [else]
    Matchers.create(ObjectMatcher.class, [constructorArgs a type])
 [/if]

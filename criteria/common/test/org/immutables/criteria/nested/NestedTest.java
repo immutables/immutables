@@ -105,6 +105,104 @@ public class NestedTest {
             "  call op=EQUAL path=a.value constant=b",
             "  call op=EQUAL path=a.value constant="
     );
+    assertExpressional(RootCriteria.root
+                    .a.value(a -> a.value.isEqualTo("a").value.isEqualTo("b"))
+                    .a.value(a -> a.value.isEmpty().value.isNotEmpty())
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=a.value constant=a",
+            "  call op=EQUAL path=a.value constant=b",
+            "  call op=EQUAL path=a.value constant=",
+            "  call op=NOT_EQUAL path=a.value constant="
+    );
+  }
+
+  @Test
+  public void xyz() {
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty()
+            ,
+            "call op=EQUAL path=x.value constant="
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.y.value.isEqualTo("a")
+            ,
+            "call op=EQUAL path=x.y.value constant=a"
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty()
+                    .x.y.value.isEqualTo("b")
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=x.y.value constant=b"
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty().or()
+                    .x.y.value.isEmpty()
+            ,
+            "call op=OR",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=x.y.value constant="
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty()
+                    .x.y.value.isEmpty()
+                    .x.y.z.value.isEmpty()
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=x.y.value constant=",
+            "  call op=EQUAL path=x.y.z.value constant="
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty().or()
+                    .x.y.value.isEmpty().or()
+                    .x.y.z.value.isEmpty()
+            ,
+            "call op=OR",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=x.y.value constant=",
+            "  call op=EQUAL path=x.y.z.value constant="
+    );
+  }
+
+  /**
+   * Combination of required and optional fields
+   */
+  @Test
+  public void xyzAndAbc() {
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty()
+                    .a.value().value.isEqualTo("a")
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=a.value constant=a"
+    );
+
+    assertExpressional(RootCriteria.root
+                    .x.value.isEmpty().or()
+                    .a.value().value.isEqualTo("a")
+            ,
+            "call op=OR",
+            "  call op=EQUAL path=x.value constant=",
+            "  call op=EQUAL path=a.value constant=a"
+    );
+
+    assertExpressional(RootCriteria.root
+                    .a.value().value.isEqualTo("a")
+                    .x.value.isEmpty()
+            ,
+            "call op=AND",
+            "  call op=EQUAL path=a.value constant=a",
+            "  call op=EQUAL path=x.value constant="
+    );
 
   }
 
@@ -112,14 +210,9 @@ public class NestedTest {
   @Test
   public void debug() {
     assertExpressional(RootCriteria.root
-                    .a.value(a -> a.value.isEqualTo("a").or().value.isEqualTo("b"))
-                    .a.value().value.isEmpty()
+                    .x.value.isEmpty()
             ,
-            "call op=AND",
-            "  call op=OR",
-            "    call op=EQUAL path=a.value constant=a",
-            "    call op=EQUAL path=a.value constant=b",
-            "  call op=EQUAL path=a.value constant="
+            "call op=EQUAL path=x.value constant="
     );
   }
 

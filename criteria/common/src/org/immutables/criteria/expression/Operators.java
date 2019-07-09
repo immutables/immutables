@@ -22,7 +22,7 @@ public final class Operators {
 
   public static final Operator EQUAL = new SimpleOperator("EQUAL", Boolean.class);
 
-  public static final Operator NOT_EQUAL = new SimpleOperator("EQUAL", Boolean.class);
+  public static final Operator NOT_EQUAL = new SimpleOperator("NOT_EQUAL", Boolean.class);
 
   // collection
   public static final Operator IN = new SimpleOperator("IN", Boolean.class);
