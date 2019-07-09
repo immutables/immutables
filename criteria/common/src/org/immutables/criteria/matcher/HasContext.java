@@ -17,7 +17,10 @@
 package org.immutables.criteria.matcher;
 
 /**
- * Allows to access context information of a criterion or Matcher
+ * Allows to access context information of a criterion or Matcher. This interface
+ * is used on <i>private</i> (generated) implementation classes when client is not supposed
+ * see additional methods.
+ * 
  * @see org.immutables.criteria.Criterion
  */
 public interface HasContext {
