@@ -16,6 +16,7 @@
 
 package org.immutables.criteria;
 
+import org.immutables.criteria.expression.Ordering;
 import org.reactivestreams.Publisher;
 
 import java.util.Arrays;
@@ -36,6 +37,9 @@ public interface Repository<T> {
    * @param <R> reader type (self type)
    */
   interface Reader<T, R> {
+
+    R orderBy(Ordering first, Ordering ... rest);
+
     R limit(long limit);
 
     R offset(long offset);

@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.matcher;
+package org.immutables.criteria.expression;
 
-/**
- * Allows to access context information of a criterion or Matcher. This interface
- * is used on <i>private</i> (generated) implementation classes when client is not supposed
- * see additional methods.
- *
- * @see org.immutables.criteria.Criterion
- */
-public interface HasContext {
+public interface Ordering {
 
-  CriteriaContext context();
+  enum Direction {
+    ASCENDING,
+
+    DESCENDING;
+
+    public boolean isAscending() {
+      return this == ASCENDING;
+    }
+
+  }
 
 }

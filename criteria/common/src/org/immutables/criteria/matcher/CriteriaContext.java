@@ -94,6 +94,9 @@ public final class CriteriaContext implements Queryable {
     return new CriteriaContext(entityClass, newExpression, path.parent().orElse(null), creators, parent.parent);
   }
 
+  public Path path() {
+    return path;
+  }
 
   private CriteriaContext withPath(Path newPath) {
     return new CriteriaContext(entityClass, expression, newPath, creators, parent);

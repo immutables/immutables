@@ -16,16 +16,22 @@
 
 package org.immutables.criteria.personmodel;
 
+import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.ReactiveRepository;
 import org.immutables.criteria.Repository;
 import org.junit.Assume;
 import org.junit.Test;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +48,8 @@ public abstract class AbstractPersonTest {
     QUERY_WITH_OFFSET,
     DELETE,
     DELETE_BY_QUERY,
-    WATCH
+    WATCH,
+    ORDER_BY
   }
 
   /**
@@ -233,7 +240,63 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria())).notEmpty();
   }
 
+  @Test
+  public void orderBy() {
+    Assume.assumeTrue(features().contains(Feature.ORDER_BY));
+    final PersonGenerator generator = new PersonGenerator();
+    final int count = 10;
+    final List<Person> persons = new ArrayList<>();
+    for (int i = 0; i < count; i++) {
+      persons.add(generator.next().withAge(i).withFullName("name" + (count - i - 1)).withId("id" + i));
+    }
+    // to ensure result is sorted (not by insertion order)
+    Collections.shuffle(persons);
+    insert(persons);
+
+    check(repository().findAll().orderBy(criteria().age.asc())).hasSize(count);
+    check(repository().findAll().orderBy(criteria().age.asc()).limit(1)).toList(Person::fullName).isOf("name9");
+    check(repository().findAll().orderBy(criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(criteria().age.asc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
+
+    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
+
+    check(repository().findAll().orderBy(criteria().age.desc())).hasSize(count);
+    check(repository().findAll().orderBy(criteria().age.desc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(criteria().age.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(criteria().age.desc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
+
+    check(repository().findAll().orderBy(criteria().fullName.desc())).hasSize(count);
+    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(1)).toList(Person::fullName).isOf("name9");
+    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
+
+
+    check(repository().findAll().orderBy(criteria().fullName.asc(), criteria().age.asc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(criteria().fullName.asc(), criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(criteria().fullName.desc(), criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(criteria().age.desc(), criteria().fullName.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+
+
+    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.asc()), Ordering.natural());
+    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.asc()).limit(5), Ordering.natural());
+    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()), Ordering.natural().reverse());
+    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()).limit(5), Ordering.natural().reverse());
+  }
+
+  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Repository.Reader<Person, ?> reader, Ordering<T> ordering) {
+    List<T> parts = fetch(reader).stream().map(extractor).collect(Collectors.toList());
+    if (!ordering.isOrdered(parts)) {
+      throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));
+    }
+  }
+
   protected void insert(Person ... persons) {
+    insert(Arrays.asList(persons));
+  }
+
+  protected void insert(Iterable<? extends Person> persons) {
     Flowable.fromPublisher(repository().insert(persons))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
@@ -246,6 +309,10 @@ public abstract class AbstractPersonTest {
 
   private CriteriaChecker<Person> check(Criterion<Person> criterion) {
     return check(repository().find(criterion));
+  }
+
+  private List<Person> fetch(Repository.Reader<Person, ?> reader) {
+    return Flowable.fromPublisher(((ReactiveRepository.Reader<Person>) reader).fetch()).toList().blockingGet();
   }
 
 }

@@ -16,8 +16,11 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -29,11 +32,13 @@ public final class Query  {
 
   private final EntityPath entityPath;
   private final Expression filter;
+  private final List<Collation> collations;
   private final Long limit;
   private final Long offset;
 
-  private Query(EntityPath entityPath, Expression filter, Long limit, Long offset) {
+  private Query(EntityPath entityPath, Expression filter, List<Collation> collations, Long limit, Long offset) {
     this.entityPath = Objects.requireNonNull(entityPath, "entityPath");
+    this.collations = ImmutableList.copyOf(collations);
     this.filter = filter;
     this.limit = limit;
     this.offset = offset;
@@ -52,7 +57,7 @@ public final class Query  {
   }
 
   public Query withLimit(long limit) {
-    return new Query(entityPath, filter, limit, offset);
+    return new Query(entityPath, filter, collations, limit, offset);
   }
 
   public OptionalLong offset() {
@@ -60,16 +65,26 @@ public final class Query  {
   }
 
   public Query withOffset(long offset) {
-    return new Query(entityPath, filter, limit, offset);
+    return new Query(entityPath, filter, collations, limit, offset);
   }
 
   public static Query of(Class<?> entityClass) {
-    return new Query(EntityPath.of(entityClass), null, null, null);
+    return new Query(EntityPath.of(entityClass), null, ImmutableList.of(), null, null);
   }
 
   public Query withFilter(Expression filter) {
     Objects.requireNonNull(filter, "filter");
-    return new Query(entityPath, filter, limit, offset);
+    return new Query(entityPath, filter, collations, limit, offset);
+  }
+
+  public Query addCollations(Iterable<Collation> collations) {
+    Objects.requireNonNull(collations, "collations");
+    List<Collation> newCollations = ImmutableList.<Collation>builder().addAll(this.collations).addAll(collations).build();
+    return new Query(entityPath, filter, newCollations, limit, offset);
+  }
+
+  public List<Collation> collations() {
+    return collations;
   }
 
   @Override
