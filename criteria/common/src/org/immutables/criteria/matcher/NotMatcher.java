@@ -26,7 +26,7 @@ import java.util.function.UnaryOperator;
  * 
  * <pre>
  *   {@code
- *     crit.not(f -> f.names.hasSize(2))
+ *     crit.not(f -> f.names.hasLength(2))
  *   }
  * </pre>
  */

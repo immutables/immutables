@@ -44,7 +44,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatch
     throw new UnsupportedOperationException();
   }
 
-  default R hasSize(int size) {
+  default R hasLength(int size) {
     throw new UnsupportedOperationException();
   }
 

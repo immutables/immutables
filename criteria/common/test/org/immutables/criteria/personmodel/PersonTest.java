@@ -38,13 +38,13 @@ public class PersonTest {
             .pets.all().name.isNotEmpty()
             .pets.any().name.isEmpty()
             .pets.any().name.not(n -> n.contains("bar"))
-            .pets.none().name.hasSize(3)
-            .pets.all(f -> f.name.isEmpty().or().name.hasSize(2))
-            .pets.any(f -> f.name.isEmpty().or().name.hasSize(2))
+            .pets.none().name.hasLength(3)
+            .pets.all(f -> f.name.isEmpty().or().name.hasLength(2))
+            .pets.any(f -> f.name.isEmpty().or().name.hasLength(2))
             .not(p -> p.pets.hasSize(2))
             .dateOfBirth.isAtMost(LocalDate.MAX)
             .interests.contains("test")
-            .pets.none(f -> f.name.hasSize(3).name.startsWith("a"));
+            .pets.none(f -> f.name.hasLength(3).name.startsWith("a"));
   }
 
 }
