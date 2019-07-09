@@ -22,7 +22,11 @@ import org.immutables.criteria.expression.Operators;
 
 import java.util.function.UnaryOperator;
 
-public interface CollectionMatcher<R, S, C, V>  {
+/**
+ * Matcher on {@link Iterable} types. Has methods like {@code isEmpty()} / {@code isNotEmpty()}
+ * and others.
+ */
+public interface IterableMatcher<R, S, C, V>  {
 
   // createRoot = R (returns to createRoot criteria). createRoot / main
   // next = S (chains to next criteria). next / chain
@@ -85,7 +89,6 @@ public interface CollectionMatcher<R, S, C, V>  {
 
   }
 
-
-  interface Self<V> extends CollectionMatcher<Self, Self, Self, V> {}
+  interface Self<V> extends IterableMatcher<Self, Self, Self, V> {}
 
 }

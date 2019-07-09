@@ -37,7 +37,7 @@ package [type.package];
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
-import org.immutables.criteria.matcher.CollectionMatcher;
+import org.immutables.criteria.matcher.IterableMatcher;
 import org.immutables.criteria.matcher.Disjunction;
 import org.immutables.criteria.matcher.AndMatcher;
 import org.immutables.criteria.matcher.OrMatcher;
@@ -172,9 +172,9 @@ StringMatcher<R>
   ComparableMatcher<R, [a.wrappedElementType]>
 [else if a.collectionType]
   [if a.hasCriteria]
-      CollectionMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
+      IterableMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
   [else]
-      CollectionMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
+      IterableMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
   [/if]
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria<R>
@@ -193,7 +193,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [else if a.comparable]
    Matchers.create(ComparableMatcher.class, [constructorArgs a type])
 [else if a.collectionType]
-   Matchers.create(CollectionMatcher.class, [constructorArgs a type])
+   Matchers.create(IterableMatcher.class, [constructorArgs a type])
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria.create(context)
 [else]

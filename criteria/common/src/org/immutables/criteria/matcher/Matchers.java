@@ -95,17 +95,17 @@ public final class Matchers {
     return new Local();
   }
 
-  public static <R, S, C, V> CollectionMatcher<R, S, C, V> collectionMatcher(CriteriaContext context) {
+  public static <R, S, C, V> IterableMatcher<R, S, C, V> collectionMatcher(CriteriaContext context) {
     Objects.requireNonNull(context, "context");
 
-    class Local implements CollectionMatcher.Self, HasContext {
+    class Local implements IterableMatcher.Self, HasContext {
       @Override
       public CriteriaContext context() {
         return context;
       }
     }
 
-    return (CollectionMatcher<R, S, C, V>) new Local();
+    return (IterableMatcher<R, S, C, V>) new Local();
   }
 
   public static <T> T create(Class<T> type, CriteriaContext context) {
@@ -125,7 +125,7 @@ public final class Matchers {
       return (T) objectMatcher(context);
     } else if (type == OptionalMatcher.class) {
       return (T) optionalMatcher(context);
-    } else if (type == CollectionMatcher.class) {
+    } else if (type == IterableMatcher.class) {
       return (T) collectionMatcher(context);
     }
 
