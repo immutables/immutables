@@ -35,6 +35,7 @@ package [type.package];
 [/if]
 
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.matcher.HasContext;
 import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.IterableMatcher;
@@ -113,7 +114,7 @@ import [starImport];
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
-   private final static class ExpressionalSelf extends Self implements Queryable {
+   private final static class ExpressionalSelf extends Self implements Queryable, HasContext {
       private final CriteriaContext context;
 
       private ExpressionalSelf() {
@@ -131,7 +132,12 @@ import [starImport];
 
       @Override
       public Query query() {
-        return this.context.query();
+        return context().query();
+      }
+
+      @Override
+      public CriteriaContext context() {
+         return this.context;
       }
    }
 

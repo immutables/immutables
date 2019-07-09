@@ -20,8 +20,6 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -33,10 +31,6 @@ import java.util.stream.Stream;
 public final class Matchers {
 
   private Matchers() {}
-
-  interface HasContext {
-    CriteriaContext context();
-  }
 
   public static <R> BooleanMatcher<R> booleanMatcher(CriteriaContext context) {
     Objects.requireNonNull(context, "context");
@@ -132,15 +126,6 @@ public final class Matchers {
     throw new UnsupportedOperationException("Don't know how to create matcher " + type.getName());
   }
 
-  private static <T> T createWithReflection(Class<T> type, CriteriaContext context) {
-    try {
-      Constructor<T> ctor = type.getConstructor(CriteriaContext.class);
-      return  ctor.newInstance(context);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   static List<Expression> concatFilters(Expression existing, Criterion<?> first, Criterion<?> ... rest) {
     Stream<Expression> restStream = Stream.concat(Stream.of(first), Arrays.stream(rest))
             .map(Criterias::toQuery)
@@ -154,8 +139,8 @@ public final class Matchers {
   }
 
   /**
-   * Hacky (and temporary) reflection until we define proper sub-classes for criterias
-   * (to hide Queryable implementation).
+   * Extracts criteria context from an arbitrary object.
+   * @see HasContext
    */
   static CriteriaContext extract(Object object) {
     Objects.requireNonNull(object, "object");
@@ -164,8 +149,8 @@ public final class Matchers {
       return ((HasContext) object).context();
     }
 
-    // TODO should be removed later
-    return extractWithReflection(object);
+    throw new IllegalArgumentException(String.format("%s does not implement %s", object.getClass().getName(),
+            HasContext.class.getSimpleName()));
   }
 
   static <C> UnaryOperator<Expression> toExpressionOperator(Supplier<C> supplier, UnaryOperator<C> expr) {
@@ -183,25 +168,6 @@ public final class Matchers {
       final C changed = expr.apply(initial);
       return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };
-  }
-
-  private static CriteriaContext extractWithReflection(Object object) {
-    try {
-      Class<?> current = object.getClass();
-      while (current.getSuperclass() != null) {
-        if (Arrays.stream(current.getDeclaredFields()).anyMatch(f -> f.getName().equals("context"))) {
-          Field field = current.getDeclaredField("context");
-          field.setAccessible(true);
-          CriteriaContext context = (CriteriaContext) field.get(object);
-          return context;
-        }
-        current = current.getSuperclass();
-      }
-    } catch (NoSuchFieldException | IllegalAccessException e) {
-      throw new RuntimeException("No field in " + object.getClass().getName(), e);
-    }
-
-    throw new UnsupportedOperationException("No field context found in " + object.getClass().getName());
   }
 
 }
