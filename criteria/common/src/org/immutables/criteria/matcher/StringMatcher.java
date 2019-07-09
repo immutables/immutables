@@ -16,8 +16,7 @@
 
 package org.immutables.criteria.matcher;
 
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
+import java.util.regex.Pattern;
 
 /**
  * String specific criterias like {@code startsWith}, {@code contains} etc.
@@ -25,11 +24,11 @@ import org.immutables.criteria.expression.Operators;
 public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatcher<R, StringMatcher<StringMatcher.Self>> {
 
   default R isEmpty() {
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant("")));
+    return isEqualTo("");
   }
 
   default R isNotEmpty() {
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant("")));
+    return isNotEqualTo("");
   }
 
   default R contains(CharSequence other) {
@@ -44,6 +43,16 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatch
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Checks wherever string matches regular expression
+   */
+  default R matches(Pattern regex) {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Matches length of a string
+   */
   default R hasLength(int size) {
     throw new UnsupportedOperationException();
   }
