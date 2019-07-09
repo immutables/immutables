@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.FindPublisher;
 import com.mongodb.reactivestreams.client.MongoCollection;
@@ -27,13 +28,17 @@ import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.adapter.UnknownWriteResult;
+import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Allows to query and modify mongo documents using criteria API.
@@ -72,9 +77,21 @@ class MongoBackend implements Backend {
   private <T> Publisher<T> query(Operations.Select<T> select) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    final FindPublisher<T> find = collection.find(toBson(select.query()));
-    select.query().limit().ifPresent(limit -> find.limit((int) limit));
-    select.query().offset().ifPresent(offset -> find.skip((int) offset));
+    final Query query = select.query();
+    final FindPublisher<T> find = collection.find(toBson(query));
+    if (!query.collations().isEmpty()) {
+      // add sorting
+      final Function<Collation, Bson> toSortFn = col -> {
+        final String path = col.path().toStringPath();
+        return col.direction().isAscending() ? Sorts.ascending(path) : Sorts.descending(path);
+
+      };
+      final List<Bson> sorts = query.collations().stream()
+              .map(toSortFn).collect(Collectors.toList());
+      find.sort(Sorts.orderBy(sorts));
+    }
+    query.limit().ifPresent(limit -> find.limit((int) limit));
+    query.offset().ifPresent(offset -> find.skip((int) offset));
     return find;
   }
 

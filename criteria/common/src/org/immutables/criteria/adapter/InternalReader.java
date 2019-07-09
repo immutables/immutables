@@ -19,11 +19,17 @@ package org.immutables.criteria.adapter;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.ReactiveRepository;
+import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 import org.reactivestreams.Publisher;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Simple implementation of reader interface. Keeps immutable query internally.
@@ -42,14 +48,29 @@ public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Qu
     this.backend = Objects.requireNonNull(backend, "backend");
   }
 
+  private ReactiveRepository.Reader<T> newReader(Query query) {
+    return new InternalReader<>(query, backend);
+  }
+
+  @Override
+  public ReactiveRepository.Reader<T> orderBy(Ordering first, Ordering ... rest) {
+    final List<Ordering> orderings = new ArrayList<>();
+    orderings.add(first);
+    orderings.addAll(Arrays.asList(rest));
+
+    final List<Collation> collect = orderings.stream().map(x -> (Collation) x).collect(Collectors.toList());
+
+    return newReader(query.addCollations(collect));
+  }
+
   @Override
   public ReactiveRepository.Reader<T> limit(long limit) {
-    return new InternalReader<T>(query.withLimit(limit), backend);
+    return newReader(query.withLimit(limit));
   }
 
   @Override
   public ReactiveRepository.Reader<T> offset(long offset) {
-    return new InternalReader<T>(query.withOffset(offset), backend);
+    return newReader(query.withOffset(offset));
   }
 
   @Override

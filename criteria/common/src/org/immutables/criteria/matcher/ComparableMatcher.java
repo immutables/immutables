@@ -22,7 +22,7 @@ import org.immutables.criteria.expression.Operators;
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  */
-public interface ComparableMatcher<R, V extends Comparable<? super V>> extends ObjectMatcher<R, V> {
+public interface ComparableMatcher<R, V extends Comparable<? super V>> extends ObjectMatcher<R, V>, OrderMatcher {
 
   /**
    * Checks that attribute is less than (but not equal to) {@code upper}.

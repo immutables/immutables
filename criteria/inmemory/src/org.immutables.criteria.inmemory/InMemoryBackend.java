@@ -67,6 +67,12 @@ public class InMemoryBackend implements Backend {
       stream = stream.filter(predicate);
     }
 
+    if (!query.collations().isEmpty()) {
+      throw new UnsupportedOperationException(String.format("%s does not support sorting: %s",
+              InMemoryBackend.class.getSimpleName(),
+              query.collations().stream().map(c -> c.path().toStringPath()).collect(Collectors.joining(", "))));
+    }
+
     if (query.offset().isPresent()) {
       stream = stream.skip(query.offset().getAsLong());
     }

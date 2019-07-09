@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Backend for <a href="https://geode.apache.org/">Apache Geode</a>
@@ -143,6 +144,16 @@ public class GeodeBackend implements Backend {
       oql.append(" WHERE ").append(withVars.oql());
       variables.addAll(withVars.variables());
     }
+
+    if (!query.collations().isEmpty()) {
+      oql.append(" ORDER BY ");
+      final String orderBy = query.collations().stream()
+              .map(c -> c.path().toStringPath() + (c.direction().isAscending() ? "" : " DESC"))
+              .collect(Collectors.joining(", "));
+
+      oql.append(orderBy);
+    }
+
     query.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
     query.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
     return new OqlWithVariables(variables, oql.toString());

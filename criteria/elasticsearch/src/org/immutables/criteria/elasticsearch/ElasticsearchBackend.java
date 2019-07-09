@@ -83,6 +83,12 @@ public class ElasticsearchBackend implements Backend {
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
     query.limit().ifPresent(limit -> json.put("size", limit));
     query.offset().ifPresent(offset -> json.put("from", offset));
+    if (!query.collations().isEmpty()) {
+      final ArrayNode sort = json.withArray("sort");
+      query.collations().forEach(c -> {
+        sort.add(mapper.createObjectNode().put(c.path().toStringPath(), c.direction().isAscending() ? "asc" : "desc"));
+      });
+    }
     request.setEntity(new StringEntity(json.toString(), ContentType.APPLICATION_JSON));
 
     return httpRequest(request)

@@ -125,7 +125,7 @@ public class MongoPersonTest extends AbstractPersonTest {
 
   @Override
   protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.QUERY_WITH_OFFSET);
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY);
   }
 
   @Override
