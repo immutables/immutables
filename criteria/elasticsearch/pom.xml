@@ -84,6 +84,13 @@
             <version>${rxjava2.version}</version>
         </dependency>
         <dependency>
+            <!-- This is currently used for ES async scrolling.
+            See FlowableTransformers.expand() operator -->
+            <groupId>com.github.akarnokd</groupId>
+            <artifactId>rxjava2-extensions</artifactId>
+            <version>${rxjava2-extensions.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams</artifactId>
             <version>${reactive-streams.version}</version>

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 import io.reactivex.Single;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
@@ -44,8 +45,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * Helper methods to <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html">define an index</a>
- * or insert documents in elastic search.
+ * Helper methods to operate with ES cluster. Create / delete index, search etc.
  */
 class ElasticsearchOps {
 
@@ -53,18 +53,21 @@ class ElasticsearchOps {
   private final ObjectMapper mapper;
   private final String index;
 
-  final int fetchSize;
+  /**
+   * batch size of scroll
+   */
+  final int scrollSize;
 
   ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper) {
     this(restClient, index, mapper, 1024);
   }
 
-  ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper, int fetchSize) {
+  ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper, int scrollSize) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.index = Objects.requireNonNull(index, "index");
-    Preconditions.checkArgument(fetchSize > 0, "Negative fetchsize %s", fetchSize);
-    this.fetchSize = fetchSize;
+    Preconditions.checkArgument(scrollSize > 0, "Invalid scrollSize: %s", scrollSize);
+    this.scrollSize = scrollSize;
   }
 
   /**
@@ -148,7 +151,7 @@ class ElasticsearchOps {
       final ObjectNode header = mapper.createObjectNode();
       header.with("index").put("_index", index);
       if (doc.has("_id")) {
-        // check if document has already _id
+        // check if document has already an _id
         header.with("index").set("_id", doc.get("_id"));
         doc.remove("_id");
       }
@@ -187,6 +190,13 @@ class ElasticsearchOps {
   }
 
   /**
+   * See <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html">Scroll API</a>
+   */
+  <T> Flowable<T> scrolledSearch(ObjectNode query, Class<T> type) {
+    return new Scrolling<>(this, type).scroll(query);
+  }
+
+  /**
    * Fetches next results given a scrollId.
    */
   Single<Json.Result> nextScroll(String scrollId) {
@@ -196,33 +206,33 @@ class ElasticsearchOps {
             .put("scroll", "1m")
             .put("scroll_id", scrollId);
     request.setJsonEntity(payload.toString());
-    return rawHttp().apply(request).map(r -> responseConverter().apply(r));
+    return rawHttp(request).map(r -> responseConverter().apply(r));
   }
 
   Completable closeScroll(Iterable<String> scrollIds) {
     final ObjectNode payload = mapper.createObjectNode();
     final ArrayNode array = payload.withArray("scroll_id");
     scrollIds.forEach(array::add);
-    final Request request = new Request("POST", "/_search/scroll");
+    final Request request = new Request("DELETE", "/_search/scroll");
     request.setJsonEntity(payload.toString());
-    return rawHttp().apply(request).ignoreElement();
+    return rawHttp(request).ignoreElement();
   }
 
-  Function<ObjectNode, Single<Response>> search() {
-    return search(Collections.emptyMap());
+  <T> Flowable<T> search(ObjectNode query, Class<T> type) {
+    return searchRaw(query, Collections.emptyMap()).toFlowable()
+            .flatMapIterable(r -> r.searchHits().hits())
+            .map(x -> jsonConverter(type).apply(x.source()));
   }
 
-  Function<ObjectNode, Single<Response>> search(Map<String, String> httpParams) {
-    return query -> {
+  Single<Json.Result> searchRaw(ObjectNode query, Map<String, String> httpParams) {
       final Request request = new Request("POST", String.format("/%s/_search", index));
       httpParams.forEach(request::addParameter);
       request.setJsonEntity(query.toString());
-      return rawHttp().apply(request);
-    };
+      return rawHttp(request).map(r -> responseConverter().apply(r));
   }
 
-  Function<Request, Single<Response>> rawHttp() {
-    return request -> Single.create(source -> {
+  Single<Response> rawHttp(Request request) {
+    return Single.create(source -> {
       restClient.performRequestAsync(request, new ResponseListener() {
         @Override
         public void onSuccess(Response response) {
@@ -237,7 +247,7 @@ class ElasticsearchOps {
     });
   }
 
-  private ObjectMapper mapper() {
+  ObjectMapper mapper() {
     return mapper;
   }
 
