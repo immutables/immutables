@@ -88,7 +88,7 @@ public final class Expressions {
     };
   }
 
-  public static Expression not(Expression call) {
+  public static Call not(Expression call) {
     return Expressions.call(Operators.NOT, call);
   }
 

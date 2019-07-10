@@ -73,11 +73,11 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     if (op == Operators.NOT_IN) {
       // geode doesn't understand syntax foo not in [1, 2, 3]
       // convert "foo not in [1, 2, 3]" into "not foo in [1, 2, 3]"
-      return visit((Call) Expressions.not(Expressions.call(Operators.IN, call.arguments())));
+      return visit(Expressions.not(Expressions.call(Operators.IN, call.arguments())));
     }
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
-            op == Operators.IN || op == Operators.NOT_IN || OperatorTables.COMPARISON.contains(op)) {
+            op == Operators.IN || OperatorTables.COMPARISON.contains(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       return binaryOperator(call);
     }
