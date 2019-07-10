@@ -37,19 +37,18 @@ import java.util.stream.Collectors;
  */
 public class ElasticsearchBackend implements Backend {
 
-  private final RestClient restClient;
   private final ObjectMapper mapper;
-  private final String index;
   private final ElasticsearchOps ops;
-
 
   public ElasticsearchBackend(RestClient restClient,
                               ObjectMapper mapper,
                               String index) {
-    this.restClient = Objects.requireNonNull(restClient, "restClient");
-    this.mapper = Objects.requireNonNull(mapper, "mapper");
-    this.index = Objects.requireNonNull(index, "index");
-    this.ops = new ElasticsearchOps(restClient, index, mapper);
+    this(new ElasticsearchOps(restClient, index, mapper));
+  }
+
+  ElasticsearchBackend(ElasticsearchOps ops) {
+    this.ops = ops;
+    this.mapper = ops.mapper();
   }
 
   @Override
@@ -76,11 +75,17 @@ public class ElasticsearchBackend implements Backend {
       });
     }
 
-    return ops.search().apply(json)
-            .map(r -> ops.responseConverter().apply(r).searchHits().hits())
-            .toFlowable()
-            .flatMapIterable(x -> x)
-            .map(x -> ops.jsonConverter((Class<T>) query.entityPath().annotatedElement()).apply(x.source()));
+    final Class<T> type = (Class<T>) query.entityPath().annotatedElement();
+
+    final Flowable<T> flowable;
+    if (query.offset().isPresent()) {
+      // scroll doesn't work with offset
+      flowable = ops.search(json, type);
+    } else {
+      flowable =  ops.scrolledSearch(json, type);
+    }
+
+    return flowable;
   }
 
   private Publisher<WriteResult> keyedInsert(Operations.KeyedInsert<Object, Object> insert) {
