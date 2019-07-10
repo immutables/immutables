@@ -16,14 +16,18 @@
 
 package org.immutables.criteria.elasticsearch;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
 import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -77,8 +81,8 @@ public class ScrollingTest {
   }
 
   @Test
-  public void noLimit() {
-    ElasticModelRepository repository = new ElasticModelRepository(new ElasticsearchBackend(ops(1)));
+  public void noLimit() throws Exception {
+    ElasticModelRepository repository = new ElasticModelRepository(new ElasticsearchBackend(ops(1024)));
 
     CriteriaChecker.of(repository.findAll())
             .toList(ElasticModel::string)
@@ -87,13 +91,16 @@ public class ScrollingTest {
     CriteriaChecker.of(repository.findAll().orderBy(ElasticModelCriteria.elasticModel.string.asc()))
             .toList(ElasticModel::string)
             .hasSize(SIZE);
+
+    // TODO scrolls are not cleared
+    // assertNoActiveScrolls();
   }
 
   /**
    * Set scroll sizes like {@code 1, 2, 3 ...} and validates number of returned records
    */
   @Test
-  public void withLimit() {
+  public void withLimit() throws Exception {
     // set of scroll sizes / limits to tests
     final int[] samples = {1, 2, 3, SIZE - 1, SIZE, SIZE + 1, 2 * SIZE, SIZE * SIZE};
     for (int scrollSize: samples) {
@@ -117,7 +124,37 @@ public class ScrollingTest {
                 .orderBy(ElasticModelCriteria.elasticModel.string.asc()))
                 .toList(ElasticModel::string)
                 .isOf(expectedStrings);
+
+        // TODO scrolls are not cleared
+        // assertNoActiveScrolls();
       }
     }
   }
+
+  /**
+   * Ensures there are no pending scroll contexts in elastic search cluster.
+   * Queries {@code /_nodes/stats/indices/search} endpoint.
+   * @see <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-stats.html">Indices Stats</a>
+   */
+  private void assertNoActiveScrolls() throws Exception {
+    // get node stats
+    final Response response = RESOURCE.restClient()
+            .performRequest(new Request("GET", "/_nodes/stats/indices/search"));
+
+    try (InputStream is = response.getEntity().getContent()) {
+      final ObjectNode node = ops().mapper().readValue(is, ObjectNode.class);
+      final String path = "/indices/search/scroll_current";
+      final JsonNode scrollCurrent = node.with("nodes").elements().next().at(path);
+      if (scrollCurrent.isMissingNode()) {
+        throw new IllegalStateException("Couldn't find node at " + path);
+      }
+
+      final int activeScrolls = scrollCurrent.asInt();
+      if (activeScrolls != 0) {
+        throw new AssertionError(String.format("Expected no active scrolls but got %d. " +
+                "Current index stats %s", activeScrolls, node));
+      }
+    }
+  }
+
 }
