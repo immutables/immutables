@@ -186,6 +186,42 @@ public abstract class AbstractPersonTest {
 
   }
 
+  /**
+   * some variations of boolean logic with {@code NOT} operator
+   */
+  @Test
+  public void notLogic() {
+    Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
+    insert(john);
+
+    check(criteria().not(p -> p.id.isEqualTo("john"))).empty();
+    check(criteria().not(p -> p.id.isEqualTo("john").age.isEqualTo(30))).empty();
+    check(criteria().not(p -> p.id.isEqualTo("john").age.isEqualTo(31))).hasSize(1);
+    check(criteria().not(p -> p.id.isIn("john", "john").age.isIn(30, 30))).empty();
+    check(criteria().not(p -> p.id.isIn("john", "john").or().age.isIn(30, 30))).empty();
+    check(criteria().not(p -> p.id.isIn("d", "d").age.isIn(99, 99))).hasSize(1);
+    check(criteria().not(p -> p.id.isIn("d", "d").or().age.isIn(99, 99))).hasSize(1);
+
+    check(criteria().not(p -> p.id.isEqualTo("john1").or().id.isEqualTo("john"))).empty();
+    check(criteria().not(p -> p.id.isEqualTo("john1").or().id.isEqualTo("john2"))).hasSize(1);
+    check(criteria().not(p -> p.id.isNotEqualTo("john"))).hasSize(1);
+    check(criteria().not(p -> p.age.isAtLeast(29).age.isAtMost(31))).empty();
+
+    check(criteria().not(p -> p.age.isEqualTo(30)).not(p2 -> p2.id.isEqualTo("john"))).empty();
+    check(criteria().not(p -> p.age.isEqualTo(31)).not(p2 -> p2.id.isEqualTo("DUMMY"))).hasSize(1);
+
+    // double not
+    check(criteria().not(p -> p.not(p2 -> p2.id.isEqualTo("john")))).hasSize(1);
+
+    // triple not
+    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isEqualTo("john"))))).empty();
+    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isNotEqualTo("john"))))).hasSize(1);
+
+    check(criteria().not(p -> p.age.isGreaterThan(29))).empty();
+    check(criteria().not(p -> p.age.isGreaterThan(31))).hasSize(1);
+
+  }
+
   @Test
   public void basic() {
     Assume.assumeTrue(features().contains(Feature.QUERY));
@@ -214,6 +250,10 @@ public abstract class AbstractPersonTest {
     // isPresent / isAbsent
     check(criteria().address.isAbsent()).empty();
     check(criteria().address.isPresent()).notEmpty();
+
+    // simple OR
+    check(criteria().address.isAbsent().or().address.isPresent()).notEmpty();
+    check(criteria().isActive.isFalse().or().isActive.isTrue()).notEmpty();
   }
 
   @Test

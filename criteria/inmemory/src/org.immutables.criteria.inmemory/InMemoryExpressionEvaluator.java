@@ -116,6 +116,21 @@ public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return op == Operators.IN ? stream.anyMatch(r -> Objects.equals(left, r)) : stream.noneMatch(r -> Objects.equals(left, r));
       }
 
+      if (op == Operators.NOT) {
+        Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+        final Object value = args.get(0).accept(this);
+
+        if (value == UNKNOWN || value == null) {
+          return UNKNOWN;
+        }
+
+        if (value instanceof Boolean) {
+          return !(Boolean) value;
+        }
+
+        throw new UnsupportedOperationException(String.format("Expected boolean for op %s but got %s", op, value.getClass().getName()));
+      }
+
       if (op == Operators.IS_ABSENT || op == Operators.IS_PRESENT) {
         Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
