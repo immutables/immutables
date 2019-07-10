@@ -41,11 +41,11 @@ public final class Expressions {
     return reduce(Operators.AND, expressions);
   }
 
-  public static  Expression or(Expression first, Expression second) {
+  public static Expression or(Expression first, Expression second) {
     return or(Arrays.asList(first ,second));
   }
 
-  public static  Expression or(Iterable<? extends Expression> expressions) {
+  public static Expression or(Iterable<? extends Expression> expressions) {
     return reduce(Operators.OR, expressions);
   }
 

@@ -21,10 +21,10 @@ import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
@@ -75,7 +75,6 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
     }
 
-
     if (op == Operators.AND || op == Operators.OR) {
       final List<Bson> list = call.arguments().stream()
               .map(a -> a.accept(this))
@@ -84,8 +83,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return op == Operators.AND ? Filters.and(list) : Filters.or(list);
     }
     if (op == Operators.NOT) {
-      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      return Filters.not(args.get(0).accept(this));
+      return negate(args.get(0));
     }
 
     if (OperatorTables.COMPARISON.contains(op)) {
@@ -110,6 +108,40 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
 
+  /**
+   * see https://docs.mongodb.com/manual/reference/operator/query/not/
+   * NOT operator is mongo is a little specific and can't be applied on all levels
+   * $not: { $or ... } will not work and should be transformed to $nor
+   */
+  private Bson negate(Expression expression) {
+    if (!(expression instanceof Call)) {
+      return Filters.not(expression.accept(this));
+    }
+
+    Call notCall = (Call) expression;
+
+    if (notCall.operator() == Operators.NOT) {
+      // NOT NOT a == a
+      return notCall.arguments().get(0).accept(this);
+    } else if (notCall.operator() == Operators.EQUAL) {
+      return visit(Expressions.call(Operators.NOT_EQUAL, notCall.arguments()));
+    } else if (notCall.operator() == Operators.NOT_EQUAL) {
+      return visit(Expressions.call(Operators.EQUAL, notCall.arguments()));
+    } else if (notCall.operator() == Operators.IN) {
+      return visit(Expressions.call(Operators.NOT_IN, notCall.arguments()));
+    } else if (notCall.operator() == Operators.NOT_IN) {
+      return visit(Expressions.call(Operators.IN, notCall.arguments()));
+    } else if (notCall.operator() == Operators.OR) {
+      return Filters.nor(notCall.arguments().stream().map(a -> a.accept(this)).collect(Collectors.toList()));
+    } else if (notCall.operator() == Operators.AND) {
+      // NOT A and B == (NOT A) or (NOT B)
+      return Filters.or(notCall.arguments().stream().map(this::negate).collect(Collectors.toList()));
+    }
+
+    // don't really know how to negate here
+    return Filters.not(notCall.accept(this));
+  }
+
   private static String toMongoFieldName(Path path) {
     Function<AnnotatedElement, String> toStringFn = a -> {
       Objects.requireNonNull(a, "null element");
@@ -127,6 +159,5 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     return path.paths().stream().map(toStringFn::apply).collect(Collectors.joining("."));
   }
-
 
 }
