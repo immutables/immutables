@@ -16,20 +16,32 @@
 
 package org.immutables.criteria.elasticsearch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Preconditions;
+import io.reactivex.Completable;
+import io.reactivex.Single;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.ResponseListener;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Helper methods to <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-put-mapping.html">define an index</a>
@@ -41,10 +53,18 @@ class ElasticsearchOps {
   private final ObjectMapper mapper;
   private final String index;
 
+  final int fetchSize;
+
   ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper) {
+    this(restClient, index, mapper, 1024);
+  }
+
+  ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper, int fetchSize) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.index = Objects.requireNonNull(index, "index");
+    Preconditions.checkArgument(fetchSize > 0, "Negative fetchsize %s", fetchSize);
+    this.fetchSize = fetchSize;
   }
 
   /**
@@ -143,6 +163,78 @@ class ElasticsearchOps {
     final Request r = new Request("POST", "/_bulk?refresh");
     r.setEntity(entity);
     restClient().performRequest(r);
+  }
+
+  <T> Function<JsonNode, T> jsonConverter(Class<T> type) {
+    return json -> {
+      try {
+        return mapper.treeToValue(json, type);
+      } catch (JsonProcessingException e) {
+        throw new UncheckedIOException(e);
+      }
+    };
+  }
+
+  <T> Function<Response, Json.Result> responseConverter() {
+    return response -> {
+      try (InputStream is = response.getEntity().getContent()) {
+        return mapper.readValue(is, Json.Result.class);
+      } catch (IOException e) {
+        final String message = String.format("Couldn't parse HTTP response %s into %s", response, Json.Result.class.getSimpleName());
+        throw new UncheckedIOException(message, e);
+      }
+    };
+  }
+
+  /**
+   * Fetches next results given a scrollId.
+   */
+  Single<Json.Result> nextScroll(String scrollId) {
+    // fetch next scroll
+    final Request request = new Request("POST", "/_search/scroll");
+    final ObjectNode payload = mapper.createObjectNode()
+            .put("scroll", "1m")
+            .put("scroll_id", scrollId);
+    request.setJsonEntity(payload.toString());
+    return rawHttp().apply(request).map(r -> responseConverter().apply(r));
+  }
+
+  Completable closeScroll(Iterable<String> scrollIds) {
+    final ObjectNode payload = mapper.createObjectNode();
+    final ArrayNode array = payload.withArray("scroll_id");
+    scrollIds.forEach(array::add);
+    final Request request = new Request("POST", "/_search/scroll");
+    request.setJsonEntity(payload.toString());
+    return rawHttp().apply(request).ignoreElement();
+  }
+
+  Function<ObjectNode, Single<Response>> search() {
+    return search(Collections.emptyMap());
+  }
+
+  Function<ObjectNode, Single<Response>> search(Map<String, String> httpParams) {
+    return query -> {
+      final Request request = new Request("POST", String.format("/%s/_search", index));
+      httpParams.forEach(request::addParameter);
+      request.setJsonEntity(query.toString());
+      return rawHttp().apply(request);
+    };
+  }
+
+  Function<Request, Single<Response>> rawHttp() {
+    return request -> Single.create(source -> {
+      restClient.performRequestAsync(request, new ResponseListener() {
+        @Override
+        public void onSuccess(Response response) {
+          source.onSuccess(response);
+        }
+
+        @Override
+        public void onFailure(Exception exception) {
+          source.onError(exception);
+        }
+      });
+    });
   }
 
   private ObjectMapper mapper() {
