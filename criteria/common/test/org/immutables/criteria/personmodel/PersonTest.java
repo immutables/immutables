@@ -39,12 +39,9 @@ public class PersonTest {
             .pets.any().name.isEmpty()
             .pets.any().name.not(n -> n.contains("bar"))
             .pets.none().name.hasLength(3)
-            .pets.all(f -> f.name.isEmpty().or().name.hasLength(2))
-            .pets.any(f -> f.name.isEmpty().or().name.hasLength(2))
             .not(p -> p.pets.hasSize(2))
             .dateOfBirth.isAtMost(LocalDate.MAX)
-            .interests.contains("test")
-            .pets.none(f -> f.name.hasLength(3).name.startsWith("a"));
+            .interests.contains("test");
   }
 
 }

@@ -90,18 +90,15 @@ public class TypeHolderTest {
             .shorts.any().isEqualTo((short) 22)
             .shorts.hasSize(1)
             .integers.any().isAtLeast(11)
-            .integers.any(i -> i.isLessThan(22))
             .integers.isNotEmpty()
             .integers.hasSize(1)
             .longs.none().isGreaterThan(11L)
-            .longs.none(l -> l.isGreaterThan(22L).isLessThan(23L))
             .longs.hasSize(2)
             .doubles.none().isLessThan(1D)
             .doubles.hasSize(2)
             .floats.all().isGreaterThan(22F)
             .chars.isEmpty()
-            .chars.any().isGreaterThan('A')
-            .chars.none(c -> c.isIn('a', 'b', 'c').isLessThan('t'));
+            .chars.any().isGreaterThan('A');
   }
 
   @Test
@@ -110,8 +107,7 @@ public class TypeHolderTest {
             .localDate.isAtMost(LocalDate.MIN)
             .optLocalDate.value().isAtMost(LocalDate.MAX)
             .optLocalDate.value(d -> d.isAtMost(LocalDate.MAX))
-            .localDates.contains(LocalDate.MAX)
-            .localDates.all(d -> d.isLessThan(LocalDate.MIN));
+            .localDates.contains(LocalDate.MAX);
   }
 
   @Test
@@ -151,7 +147,6 @@ public class TypeHolderTest {
   public void enumCheck() {
       TypeHolderCriteria.typeHolder
               .foos.none().isEqualTo(TypeHolder.Foo.TWO)
-              .foos.none(e -> e.isNotEqualTo(TypeHolder.Foo.ONE).isLessThan(TypeHolder.Foo.TWO))
               .foo.isEqualTo(TypeHolder.Foo.ONE)
               .optFoo.isPresent()
               .optFoo.value().isEqualTo(TypeHolder.Foo.ONE)

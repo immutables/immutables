@@ -28,19 +28,9 @@ import java.util.function.UnaryOperator;
  */
 public interface IterableMatcher<R, S, C, V>  {
 
-  // createRoot = R (returns to createRoot criteria). createRoot / main
-  // next = S (chains to next criteria). next / chain
-  // with = C (accepts nested criteria). nested / inner
   default S all() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, e);
     return Matchers.extract(this).<R, S>factory().createNested(expr);
-  }
-
-  default R all(UnaryOperator<C> consumer) {
-    final CriteriaCreator.Factory<R, C> factory3 = Matchers.extract(this).<R, C>factory();
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL,
-            Matchers.toExpressionOperator(factory3::createNested, consumer).apply(e));
-    return factory3.createRoot(expr);
   }
 
   default S none() {
@@ -48,23 +38,9 @@ public interface IterableMatcher<R, S, C, V>  {
     return Matchers.extract(this).<R, S>factory().createNested(expr);
   }
 
-  default R none(UnaryOperator<C> consumer) {
-    final CriteriaCreator.Factory<R, C> factory3 = Matchers.extract(this).<R, C>factory();
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE,
-            Matchers.toExpressionOperator(factory3::createNested, consumer).apply(e));
-    return factory3.createRoot(expr);
-  }
-
   default S any() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, e);
     return Matchers.extract(this).<R, S>factory().createNested(expr);
-  }
-
-  default R any(UnaryOperator<C> consumer) {
-    final CriteriaCreator.Factory<R, C> factory3 = Matchers.extract(this).<R, C>factory();
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY,
-            Matchers.toExpressionOperator(factory3::createNested, consumer).apply(e));
-    return factory3.createRoot(expr);
   }
 
   default S at(int index) {
