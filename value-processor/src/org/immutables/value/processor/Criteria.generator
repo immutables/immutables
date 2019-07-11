@@ -92,9 +92,12 @@ import [starImport];
    private final CriteriaContext context;
 
    [for a in type.allMarshalingAttributes]
+   [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
+   public final [toUpper a.name]Field<R> [a.name];
+   [else]
    public final [criteriaType a type] [a.name];
+   [/if]
    [/for]
-
 
    /** TODO this should be top-level class */
    public static class Self extends [type.name]Criteria<Self> implements Disjunction<[type.name]Criteria<Self>> {
@@ -114,20 +117,20 @@ import [starImport];
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
-   private final static class ExpressionalSelf extends Self implements Queryable, HasContext {
+   private final static class PrivateSelf extends Self implements Queryable, HasContext {
       private final CriteriaContext context;
 
-      private ExpressionalSelf() {
+      private PrivateSelf() {
          this(new CriteriaContext([type.name].class, creator()).withCreators(creator(), creator()));
       }
 
-      private ExpressionalSelf(CriteriaContext context) {
+      private PrivateSelf(CriteriaContext context) {
        super(context);
        this.context = context;
       }
 
       private static CriteriaCreator<Self> creator() {
-        return (CriteriaContext ctx) ->  new ExpressionalSelf(ctx);
+        return (CriteriaContext ctx) ->  new PrivateSelf(ctx);
       }
 
       @Override
@@ -145,19 +148,45 @@ import [starImport];
    private [type.name]Criteria(CriteriaContext context) {
      this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-     this.[a.name] = ([criteriaType a type]) [createMatcher a type];
+     this.[a.name] = [createMatcher a type];
    [/for]
    }
 
    /** Factory method to create an instance of [type.name]Criteria */
    private static [type.name]Criteria<Self> create() {
-     return new ExpressionalSelf();
+     return new PrivateSelf();
    }
 
    public static [type.name]Criteria<Self> create(CriteriaContext context) {
-     return new ExpressionalSelf(context);
+     return new PrivateSelf(context);
    }
 
+   [for a in type.allMarshalingAttributes]
+   [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
+   
+   [fieldImplementation a type]
+
+   [fieldDefinition a type]
+   [/if]
+   [/for]
+}
+[/template]
+
+[template fieldDefinition Attribute a Type type]
+public interface [toUpper a.name]Field<R> extends [criteriaType a type], NotMatcher<R, [scalarElementCriteria a 'Self']>  {}
+[/template]
+
+[template fieldImplementation Attribute a Type type]
+private static class Private[toUpper a.name]Field<R> implements [toUpper a.name]Field<R>, HasContext {
+  private final CriteriaContext context;
+  private Private[toUpper a.name]Field(CriteriaContext context) {
+    this.context = context;
+  }
+
+  @Override
+  public CriteriaContext context() {
+    return context;
+  }
 }
 [/template]
 
@@ -190,20 +219,15 @@ StringMatcher<R>
 [/output.trim][/template]
 
 [template createMatcher Attribute a Type type][output.trim]
+[let fieldName]Private[toUpper a.name]Field[/let]
 [if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-Matchers.create(BooleanMatcher.class, [constructorArgs a type])
-[else if a.stringType]
-Matchers.create(StringMatcher.class, [constructorArgs a type])
-[else if a.optionalType]
-   Matchers.create(OptionalMatcher.class, [constructorArgs a type])
-[else if a.comparable]
-   Matchers.create(ComparableMatcher.class, [constructorArgs a type])
-[else if a.collectionType]
-   Matchers.create(IterableMatcher.class, [constructorArgs a type])
+new [fieldName]<>([constructorArgs a type])
+[else if a.stringType or (a.optionalType or (a.comparable or a.collectionType))]
+new [fieldName]<>([constructorArgs a type])
 [else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
+  ([a.unwrappedElementType]Criteria<R>) [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
 [else]
-   Matchers.create(ObjectMatcher.class, [constructorArgs a type])
+   new [fieldName]<>([constructorArgs a type])
 [/if]
 [/output.trim][/template]
 

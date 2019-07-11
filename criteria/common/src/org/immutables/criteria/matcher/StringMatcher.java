@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 /**
  * String specific criterias like {@code startsWith}, {@code contains} etc.
  */
-public interface StringMatcher<R> extends ComparableMatcher<R, String>, NotMatcher<R, StringMatcher<StringMatcher.Self>> {
+public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
   default R isEmpty() {
     return isEqualTo("");
