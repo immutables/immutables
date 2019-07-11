@@ -45,7 +45,6 @@ public interface OptionalMatcher<R, S, C>  {
     final CriteriaContext context = Matchers.extract(this);
     final C c = consumer.apply((C) context.newChild().factory().createRoot());
     return context.<R, C>factory().root().create(Matchers.extract(c).ofParent());
-
   }
 
 }

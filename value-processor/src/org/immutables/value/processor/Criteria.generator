@@ -48,6 +48,7 @@ import org.immutables.criteria.matcher.ObjectMatcher;
 import org.immutables.criteria.matcher.StringMatcher;
 import org.immutables.criteria.matcher.BooleanMatcher;
 import org.immutables.criteria.matcher.NotMatcher;
+import org.immutables.criteria.matcher.WithMatcher;
 import org.immutables.criteria.matcher.ComparableMatcher;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
@@ -163,17 +164,17 @@ import [starImport];
 
    [for a in type.allMarshalingAttributes]
    [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
-   
-   [fieldImplementation a type]
 
    [fieldDefinition a type]
+
+   [fieldImplementation a type]
    [/if]
    [/for]
 }
 [/template]
 
 [template fieldDefinition Attribute a Type type]
-public interface [toUpper a.name]Field<R> extends [criteriaType a type], NotMatcher<R, [scalarElementCriteria a 'Self']>  {}
+public interface [toUpper a.name]Field<R> extends [criteriaType a type], NotMatcher<R, [scalarElementCriteria a 'Self']>, WithMatcher<R, [scalarElementCriteria a 'Self']>  {}
 [/template]
 
 [template fieldImplementation Attribute a Type type]
