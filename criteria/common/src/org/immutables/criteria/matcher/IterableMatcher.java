@@ -26,7 +26,7 @@ import java.util.function.UnaryOperator;
  * Matcher on {@link Iterable} types. Has methods like {@code isEmpty()} / {@code isNotEmpty()}
  * and others.
  */
-public interface IterableMatcher<R, S, C, V>  {
+public interface IterableMatcher<R, S, V>  {
 
   default S all() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, e);
@@ -65,6 +65,6 @@ public interface IterableMatcher<R, S, C, V>  {
 
   }
 
-  interface Self<V> extends IterableMatcher<Self, Self, Self, V> {}
+  interface Self<V> extends IterableMatcher<Self<V>, Self<V>, V> {}
 
 }

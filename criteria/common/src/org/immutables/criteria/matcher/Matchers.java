@@ -89,7 +89,7 @@ public final class Matchers {
     return new Local();
   }
 
-  public static <R, S, C, V> IterableMatcher<R, S, C, V> collectionMatcher(CriteriaContext context) {
+  public static <R, S, C, V> IterableMatcher<R, S, V> collectionMatcher(CriteriaContext context) {
     Objects.requireNonNull(context, "context");
 
     class Local implements IterableMatcher.Self, HasContext {
@@ -99,7 +99,7 @@ public final class Matchers {
       }
     }
 
-    return (IterableMatcher<R, S, C, V>) new Local();
+    return (IterableMatcher<R, S, V>) new Local();
   }
 
   public static <T> T create(Class<T> type, CriteriaContext context) {
