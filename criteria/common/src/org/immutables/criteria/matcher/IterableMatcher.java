@@ -65,6 +65,6 @@ public interface IterableMatcher<R, S, V>  {
 
   }
 
-  interface Self<V> extends IterableMatcher<Self<V>, Self<V>, V> {}
+  interface Self<R, V> extends IterableMatcher<Self<R, V>, Self<R, V>, V> {}
 
 }
