@@ -65,8 +65,11 @@ import java.util.Set;
  */
 public class ProcessorRule implements TestRule  {
 
-  private static final Class<?> ANNOTATION_CLASS = TestImmutable.class;
+  private static final Class<?> DEFAULT_ANNOTATION_CLASS = TestImmutable.class;
 
+  /**
+   * Simple "file" to trigger compilation.
+   */
   private static final JavaFileObject EMPTY = JavaFileObjects.forSourceLines("Empty", "final class Empty {}");
 
   private final ValueTypeComposer composer = new ValueTypeComposer();
@@ -130,7 +133,7 @@ public class ProcessorRule implements TestRule  {
   }
 
   @Override
-  public Statement apply(final Statement base, Description description) {
+  public Statement apply(final Statement base, final Description description) {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
@@ -139,6 +142,12 @@ public class ProcessorRule implements TestRule  {
 
         if (!compilation.status().equals(Compilation.Status.SUCCESS)) {
           throw new AssertionError(String.format("Compilation failed (status:%s): %s", compilation.status(), compilation.diagnostics()));
+        }
+
+        if (!processor.wasEvaluated) {
+          throw new AssertionError(String.format("%s was not evaluated. Check that annotation processor %s was triggered " +
+                          "(eg. %s annotation is correctly registered)",
+                  description.getDisplayName(), processor.getClass().getSimpleName(), DEFAULT_ANNOTATION_CLASS.getCanonicalName()));
         }
 
         processor.rethrowIfError();
@@ -153,10 +162,16 @@ public class ProcessorRule implements TestRule  {
   private class LocalProcessor extends AbstractGenerator {
 
     private final Statement statement;
-    private final Class<?> annotation = ANNOTATION_CLASS;
+    private final Class<?> annotation = DEFAULT_ANNOTATION_CLASS;
 
     // saved exception which is potentially rethrown after compilation phase
     private Throwable thrown;
+
+    /**
+     * Flag to track if test statement was executed or not. Fail fast if annotation processor
+     * was not triggered. IE detected false (no-op) test executions
+     */
+    private boolean wasEvaluated;
 
     private LocalProcessor(Statement statement) {
       this.statement = statement;
@@ -167,12 +182,13 @@ public class ProcessorRule implements TestRule  {
       super.init(processingEnv);
       elements = processingEnv.getElementUtils();
       types = processingEnv.getTypeUtils();
-
     }
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-      return Collections.singleton(annotation.getCanonicalName());
+      // for some reason annotation.getCanonicalName() is not found
+      // using wildcard here
+      return Collections.singleton("*");
     }
 
     @Override
@@ -186,8 +202,12 @@ public class ProcessorRule implements TestRule  {
       try {
         statement.evaluate();
       } catch (Throwable e) {
+        // means test failed
         thrown = e;
       }
+
+      // mark that statement was executed
+      wasEvaluated = true;
     }
 
     void rethrowIfError() throws Throwable {
