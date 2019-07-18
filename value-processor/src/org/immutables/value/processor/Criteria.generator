@@ -96,7 +96,7 @@ import [starImport];
    [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
    public final [toUpper a.name]Field<R> [a.name];
    [else]
-   public final [criteriaType a type] [a.name];
+   public final [a.criteria.matcher.toTemplate] [a.name];
    [/if]
    [/for]
 
@@ -174,11 +174,11 @@ import [starImport];
 [/template]
 
 [template fieldDefinition Attribute a Type type]
-public interface [toUpper a.name]Field<R> extends [criteriaType a type], NotMatcher<R, [criteriaTypeSelf a type]>, WithMatcher<R, [criteriaTypeSelf a type]>  {}
+public interface [toUpper a.name]Field<R> extends [a.criteria.matcher.toTemplate], NotMatcher<R, [a.criteria.matcher.toSelf.toTemplate]>, WithMatcher<R, [a.criteria.matcher.toSelf.toTemplate]>  {}
 [/template]
 
 [template fieldImplementation Attribute a Type type]
-private static class Private[toUpper a.name]Field implements [toUpper a.name]Field<[criteriaTypeSelf a type]>, HasContext {
+private static class Private[toUpper a.name]Field implements [toUpper a.name]Field<[a.criteria.matcher.toSelf.toTemplate]>, HasContext {
   private final CriteriaContext context;
   private Private[toUpper a.name]Field(CriteriaContext context) {
     this.context = context;
@@ -190,63 +190,6 @@ private static class Private[toUpper a.name]Field implements [toUpper a.name]Fie
   }
 }
 [/template]
-
-[template criteriaType Attribute a Type type][output.trim]
-[if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-BooleanMatcher<R>
-[else if a.stringType]
-StringMatcher<R>
-[else if a.optionalType]
-  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-    OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
-  [else if a.hasCriteria]
-    OptionalMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.unwrappedElementType]Criteria.Self>
-  [else]
-    OptionalMatcher<R, [scalarElementCriteria a 'R'], [scalarElementCriteria a 'Self']>
-  [/if]
-[else if a.comparable]
-  ComparableMatcher<R, [a.wrappedElementType]>
-[else if a.collectionType]
-  [if a.hasCriteria]
-      IterableMatcher<R, [a.unwrappedElementType]Criteria<R>, [a.wrappedElementType]>
-  [else]
-      IterableMatcher<R, [scalarElementCriteria a 'R'], [a.wrappedElementType]>
-  [/if]
-[else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria<R>
-[else]
-  ObjectMatcher<R, [a.wrappedElementType]>
-[/if]
-[/output.trim][/template]
-
-[template criteriaTypeSelf Attribute a Type type][output.trim]
-[if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-BooleanMatcher.Self
-[else if a.stringType]
-StringMatcher.Self
-[else if a.optionalType]
-  [if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-    OptionalMatcher<[scalarElementCriteria a 'Self'], [scalarElementCriteria a 'Self'], [scalarElementCriteria a 'Self']>
-  [else if a.hasCriteria]
-    OptionalMatcher<[a.unwrappedElementType]Criteria.Self, [a.unwrappedElementType]Criteria.Self, [a.unwrappedElementType]Criteria.Self>
-  [else]
-    OptionalMatcher<[scalarElementCriteria a 'Self'], [scalarElementCriteria a 'Self'], [scalarElementCriteria a 'Self']>
-  [/if]
-[else if a.comparable]
-  ComparableMatcher.Self<[a.wrappedElementType]>
-[else if a.collectionType]
-  [if a.hasCriteria]
-      IterableMatcher<[a.unwrappedElementType]Criteria.Self, [a.unwrappedElementType]Criteria.Self, [a.wrappedElementType]>
-  [else]
-      IterableMatcher<[scalarElementCriteria a 'Self'], [scalarElementCriteria a 'Self'], [a.wrappedElementType]>
-  [/if]
-[else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria.Self
-[else]
-  [scalarElementCriteria a 'Self']
-[/if]
-[/output.trim][/template]
-
 
 [template createMatcher Attribute a Type type][output.trim]
 [let fieldName]Private[toUpper a.name]Field[/let]
@@ -270,7 +213,7 @@ StringMatcher.Self
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
   context.withPath([type.name].class, "[a.name]")
            .withCreators(ctx -> [type.name]Criteria.create(ctx),
-                           ctx -> Matchers.create([scalarMatcherType a].Self.class, ctx))
+                           ctx -> Matchers.create([a.criteria.scalarMatcher.withoutParameters.toTemplate].class, ctx))
 [else]
   context
   .withPath([type.name].class, "[a.name]")
@@ -278,30 +221,6 @@ StringMatcher.Self
 [/if]
 [/output.trim][/template]
 
-[-- Used to create criteria for T (eg. List<T>) when T is a scalar / comparable--]
-[template scalarElementCriteria Attribute a String elementName][output.trim]
-[if a.unwrappedElementType eq 'boolean']
-  [if elementName eq 'Self']BooleanMatcher.Self[else]BooleanMatcher<[elementName]>[/if]
-[else if a.unwrappedElementType eq 'java.lang.String']
-  [if elementName eq 'Self']StringMatcher.Self[else]StringMatcher<[elementName]>[/if]
-[else if a.isMaybeComparableKey]
-  [if elementName eq 'Self']ComparableMatcher.Self<[a.wrappedElementType]>[else]ComparableMatcher<[elementName], [a.wrappedElementType]>[/if]
-[else]
-  [if elementName eq 'Self']ObjectMatcher.Self<[a.wrappedElementType]>[else]ObjectMatcher<[elementName], [a.wrappedElementType]>[/if]
-[/if]
-[/output.trim][/template]
-
-[template scalarMatcherType Attribute a][output.trim]
-[if a.unwrappedElementType eq 'boolean']
-  BooleanMatcher
-[else if a.unwrappedElementType eq 'java.lang.String']
-  StringMatcher
-[else if a.isMaybeComparableKey]
-  ComparableMatcher
-[else]
-  ObjectMatcher
-[/if]
-[/output.trim][/template]
 
 [template atGenerated Type type]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']

@@ -119,8 +119,24 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   @Nullable
   private String rawTypeName;
 
+  @Nullable
+  private CriteriaModel criteriaModel;
+
   public String name() {
     return names.var;
+  }
+
+  /**
+   * Expose criteria metadata like list of matchers for current attribute.
+   */
+  public CriteriaModel criteria() {
+    CriteriaModel model = criteriaModel;
+    if (model == null) {
+      model = new CriteriaModel(this);
+      criteriaModel = model;
+    }
+
+    return model;
   }
 
   public boolean isBoolean() {
