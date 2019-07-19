@@ -78,7 +78,7 @@ public final class Matchers {
     return (ObjectMatcher<R, V>) new Local();
   }
 
-  public static <R, S, C> OptionalMatcher<R, S, C> optionalMatcher(CriteriaContext context) {
+  public static <R, S, C> OptionalMatcher<R, S> optionalMatcher(CriteriaContext context) {
     Objects.requireNonNull(context, "context");
     class Local implements OptionalMatcher, HasContext {
       @Override
@@ -105,21 +105,17 @@ public final class Matchers {
   public static <T> T create(Class<T> type, CriteriaContext context) {
     Objects.requireNonNull(type, "type");
 
-//    if (type.getSimpleName().equals("Self") && !type.isInterface()) {
-//      return createWithReflection(type, context);
-//    }
-
-    if (type == BooleanMatcher.class || type == BooleanMatcher.Self.class) {
+    if (BooleanMatcher.class.isAssignableFrom(type)) {
       return (T) booleanMatcher(context);
-    } else if (type == StringMatcher.class || type == StringMatcher.Self.class) {
+    } else if (StringMatcher.class.isAssignableFrom(type)) {
       return (T) stringMatcher(context);
-    } else if (type == ComparableMatcher.class) {
+    } else if (ComparableMatcher.class.isAssignableFrom(type)) {
       return (T) comparableMatcher(context);
-    } else if (type == ObjectMatcher.class) {
+    } else if (ObjectMatcher.class.isAssignableFrom(type)) {
       return (T) objectMatcher(context);
-    } else if (type == OptionalMatcher.class) {
+    } else if (OptionalMatcher.class.isAssignableFrom(type)) {
       return (T) optionalMatcher(context);
-    } else if (type == IterableMatcher.class) {
+    } else if (IterableMatcher.class.isAssignableFrom(type)) {
       return (T) collectionMatcher(context);
     }
 

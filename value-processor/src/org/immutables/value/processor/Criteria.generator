@@ -94,11 +94,7 @@ import [starImport];
    private final CriteriaContext context;
 
    [for a in type.allMarshalingAttributes]
-   [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
-   public final [toUpper a.name]Field<R> [a.name];
-   [else]
    public final [a.criteria.matcher.toTemplate] [a.name];
-   [/if]
    [/for]
 
    /** TODO this should be top-level class */
@@ -119,20 +115,20 @@ import [starImport];
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
-   private final static class PrivateSelf extends Self implements Queryable, HasContext {
+   private static final class Private extends Self implements Queryable, HasContext {
       private final CriteriaContext context;
 
-      private PrivateSelf() {
+      private Private() {
          this(new CriteriaContext([type.name].class, creator()).withCreators(creator(), creator()));
       }
 
-      private PrivateSelf(CriteriaContext context) {
+      private Private(CriteriaContext context) {
        super(context);
        this.context = context;
       }
 
       private static CriteriaCreator<Self> creator() {
-        return (CriteriaContext ctx) ->  new PrivateSelf(ctx);
+        return (CriteriaContext ctx) ->  new Private(ctx);
       }
 
       @Override
@@ -150,58 +146,36 @@ import [starImport];
    private [type.name]Criteria(CriteriaContext context) {
      this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-     this.[a.name] = [createMatcher a type];
+     this.[a.name] = ([a.criteria.matcher.toTemplate]) [createMatcher a type];
    [/for]
    }
 
    /** Factory method to create an instance of [type.name]Criteria */
    private static [type.name]Criteria<Self> create() {
-     return new PrivateSelf();
+     return new Private();
    }
 
    public static [type.name]Criteria<Self> create(CriteriaContext context) {
-     return new PrivateSelf(context);
+     return new Private(context);
    }
-
-   [for a in type.allMarshalingAttributes]
-   [if a.optionalType or (a.collectionType ornot a.hasCriteria)]
-
-   [fieldDefinition a type]
-
-   [fieldImplementation a type]
-   [/if]
-   [/for]
-}
-[/template]
-
-[template fieldDefinition Attribute a Type type]
-public interface [toUpper a.name]Field<R> extends [a.criteria.matcher.toTemplate], NotMatcher<R, [a.criteria.matcher.toSelf.toTemplate]>, WithMatcher<R, [a.criteria.matcher.toSelf.toTemplate]>  {}
-[/template]
-
-[template fieldImplementation Attribute a Type type]
-private static class Private[toUpper a.name]Field implements [toUpper a.name]Field<[a.criteria.matcher.toSelf.toTemplate]>, HasContext {
-  private final CriteriaContext context;
-  private Private[toUpper a.name]Field(CriteriaContext context) {
-    this.context = context;
-  }
-
-  @Override
-  public CriteriaContext context() {
-    return context;
-  }
 }
 [/template]
 
 [template createMatcher Attribute a Type type][output.trim]
-[let fieldName]Private[toUpper a.name]Field[/let]
 [if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-([toUpper a.name]Field<R>) new [fieldName]([constructorArgs a type])
-[else if a.stringType or (a.optionalType or (a.comparable or a.collectionType))]
-([toUpper a.name]Field<R>) new [fieldName]([constructorArgs a type])
+Matchers.create(BooleanMatcher.class, [constructorArgs a type])
+[else if a.stringType]
+Matchers.create(StringMatcher.class, [constructorArgs a type])
+[else if a.optionalType]
+   Matchers.create(OptionalMatcher.class, [constructorArgs a type])
+[else if a.comparable]
+   Matchers.create(ComparableMatcher.class, [constructorArgs a type])
+[else if a.collectionType]
+   Matchers.create(IterableMatcher.class, [constructorArgs a type])
 [else if a.hasCriteria]
-  ([a.unwrappedElementType]Criteria<R>) [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
+  [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
 [else]
-   ([toUpper a.name]Field<R>) new [fieldName]([constructorArgs a type])
+   Matchers.create(ObjectMatcher.class, [constructorArgs a type])
 [/if]
 [/output.trim][/template]
 

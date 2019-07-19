@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator;
 /**
  * Matcher for optional attributes
  */
-public interface OptionalMatcher<R, S, C>  {
+public interface OptionalMatcher<R, S>  {
 
   default R isPresent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);
@@ -41,12 +41,6 @@ public interface OptionalMatcher<R, S, C>  {
     return Matchers.extract(this).<R, S>factory().createNested();
   }
 
-  default R value(UnaryOperator<C> consumer) {
-    final CriteriaContext context = Matchers.extract(this);
-    final C c = consumer.apply((C) context.newChild().factory().createRoot());
-    return context.<R, C>factory().root().create(Matchers.extract(c).ofParent());
-  }
-
-  interface Self<R, S> extends OptionalMatcher<Self<R, S>, Self<R, S>, S> {}
+  interface Self<S> extends OptionalMatcher<Self<S>, S> {}
 
 }

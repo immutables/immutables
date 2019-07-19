@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.expression.Expression;
+
 import java.util.function.UnaryOperator;
 
 /**
@@ -35,7 +37,9 @@ import java.util.function.UnaryOperator;
 public interface WithMatcher<R, C> {
 
   default R with(UnaryOperator<C> operator) {
-    return null;
+    final CriteriaContext context = Matchers.extract(this);
+    final UnaryOperator<Expression> expr = e -> Matchers.toInnerExpression(context, operator).apply(e);
+    return context.<R, C>factory().createRoot(expr);
   }
 
 }

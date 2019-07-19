@@ -57,12 +57,18 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
     throw new UnsupportedOperationException();
   }
 
-  interface Self extends StringMatcher<Self>, Disjunction<StringMatcher<Self>> {
+  interface Self extends Template<Self>, Disjunction<StringMatcher<Self>> {
 
     @Override
     default StringMatcher<StringMatcher.Self> or() {
       return Matchers.extract(this).or().<StringMatcher.Self, Object>factory().createRoot();
     }
   }
+
+  interface With<R> extends WithMatcher<R, Self> {}
+
+  interface Not<R> extends NotMatcher<R, Self> {}
+
+  interface Template<R> extends StringMatcher<R>, With<R>, Not<R> {}
 
 }

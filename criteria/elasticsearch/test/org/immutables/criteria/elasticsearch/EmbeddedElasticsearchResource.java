@@ -33,7 +33,7 @@ import java.util.Objects;
  *
  * <p>This rule should be used as follows:
  * <pre>
- *  public class MyTest {
+ *  public class WithTest {
  *    &#64;ClassRule
  *    public static final EmbeddedElasticsearchResource RULE = EmbeddedElasticsearchResource.create();
  *

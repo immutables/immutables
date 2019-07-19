@@ -70,6 +70,12 @@ public interface ObjectMatcher<R, V> {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  interface Self<V> extends ObjectMatcher<Self<V>, V> {}
+  interface Self<V> extends Template<Self<V>, V> {}
+
+  interface With<R, V> extends WithMatcher<R, Self<V>> {}
+
+  interface Not<R, V> extends NotMatcher<R, Self<V>> {}
+
+  interface Template<R, V> extends ObjectMatcher<R, V>, With<R, V>, Not<R, V> {}
 
 }

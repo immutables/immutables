@@ -84,11 +84,11 @@ public class InMemoryExpressionEvaluatorTest {
     check(evaluate(crit.nickName.value().isNotIn("Nobody", "Sky"), person.withNickName("Smith")));
 
     // == value($expr)
-    check(evaluate(crit.nickName.value(v -> v.isEqualTo("Smith")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value(v -> v.isNotEqualTo("Smith")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value(v -> v.isIn("Smith", "Nobody")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value(v -> v.isIn("Nobody", "Sky")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value(v -> v.isNotIn("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.isEqualTo("Smith")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().with(v -> v.isNotEqualTo("Smith")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.isIn("Smith", "Nobody")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().with(v -> v.isIn("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.isNotIn("Nobody", "Sky")), person.withNickName("Smith")));
   }
 
   @Test
