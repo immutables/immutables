@@ -106,7 +106,6 @@ public class TypeHolderTest {
     TypeHolderCriteria.typeHolder
             .localDate.isAtMost(LocalDate.MIN)
             .optLocalDate.value().isAtMost(LocalDate.MAX)
-            .optLocalDate.value(d -> d.isAtMost(LocalDate.MAX))
             .localDates.contains(LocalDate.MAX);
   }
 
@@ -129,7 +128,6 @@ public class TypeHolderTest {
     TypeHolderCriteria.typeHolder
             .bigDecimal.isAtLeast(BigDecimal.ONE)
             .optBigDecimal.value().isAtLeast(BigDecimal.ONE)
-            .optBigDecimal.value(b -> b.isGreaterThan(BigDecimal.TEN))
             .bigDecimals.contains(BigDecimal.TEN)
             .bigDecimals.isNotEmpty()
             .bigDecimals.any().isAtLeast(BigDecimal.ONE);
@@ -137,7 +135,6 @@ public class TypeHolderTest {
     TypeHolderCriteria.typeHolder
             .bigInteger.isAtLeast(BigInteger.ONE)
             .optBigInteger.value().isAtLeast(BigInteger.ONE)
-            .optBigInteger.value(b -> b.isGreaterThan(BigInteger.TEN))
             .bigIntegers.contains(BigInteger.TEN)
             .bigIntegers.isNotEmpty()
             .bigIntegers.any().isAtLeast(BigInteger.ONE);
@@ -149,8 +146,7 @@ public class TypeHolderTest {
               .foos.none().isEqualTo(TypeHolder.Foo.TWO)
               .foo.isEqualTo(TypeHolder.Foo.ONE)
               .optFoo.isPresent()
-              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE)
-              .optFoo.value(e -> e.isIn(TypeHolder.Foo.ONE, TypeHolder.Foo.TWO));
+              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE);
   }
 
   @Test

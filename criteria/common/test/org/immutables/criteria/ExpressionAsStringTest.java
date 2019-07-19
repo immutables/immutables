@@ -20,7 +20,6 @@ import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.PrintWriter;
@@ -52,8 +51,28 @@ public class ExpressionAsStringTest {
 
     assertExpressional(crit.bestFriend.value().hobby.isEqualTo("ski"),
                     "call op=EQUAL path=bestFriend.hobby constant=ski");
-    assertExpressional(crit.bestFriend.value(f -> f.hobby.isEqualTo("hiking")) ,
-            "call op=EQUAL path=bestFriend.hobby constant=hiking");
+  }
+
+  @Test
+  public void with() {
+    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+
+    assertExpressional(crit.with(c -> c.fullName.isEqualTo("John")),
+            "call op=EQUAL path=fullName constant=John");
+    assertExpressional(crit.with(c -> c.fullName.isEqualTo("John").nickName.isPresent()),
+            "call op=AND",
+            "  call op=EQUAL path=fullName constant=John",
+            "  call op=IS_PRESENT path=nickName");
+    assertExpressional(crit.fullName.with(f -> f.isEqualTo("John")),
+            "call op=EQUAL path=fullName constant=John");
+
+    assertExpressional(crit.bestFriend.value().with(f -> f.hobby.isEqualTo("aaa")),
+            "call op=EQUAL path=bestFriend.hobby constant=aaa");
+
+    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.isEqualTo("a").isEqualTo("b")),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=a",
+            "  call op=EQUAL path=bestFriend.hobby constant=b");
   }
 
   @Test
@@ -213,27 +232,27 @@ public class ExpressionAsStringTest {
 
   @Test
   public void inner() {
-    assertExpressional(PersonCriteria.person.bestFriend.value(f -> f.hobby.isEqualTo("hiking")),
+    assertExpressional(PersonCriteria.person.bestFriend.value().with(f -> f.hobby.isEqualTo("hiking")),
             "call op=EQUAL path=bestFriend.hobby constant=hiking");
 
-    assertExpressional(PersonCriteria.person.bestFriend.value(f -> f.not(v -> v.hobby.isEqualTo("hiking"))),
+    assertExpressional(PersonCriteria.person.bestFriend.value().with(f -> f.not(v -> v.hobby.isEqualTo("hiking"))),
             "call op=NOT",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking");
 
     assertExpressional(PersonCriteria.person.bestFriend
-                    .value(f -> f.hobby.isEqualTo("hiking").hobby.isEqualTo("ski")),
+                    .value().with(f -> f.hobby.isEqualTo("hiking").hobby.isEqualTo("ski")),
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking",
             "  call op=EQUAL path=bestFriend.hobby constant=ski");
 
     assertExpressional(PersonCriteria.person.bestFriend
-                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski")),
+                    .value().with(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski")),
             "call op=OR",
             "  call op=EQUAL path=bestFriend.hobby constant=hiking",
             "  call op=EQUAL path=bestFriend.hobby constant=ski");
 
     assertExpressional(PersonCriteria.person.bestFriend
-                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski"))
+                    .value().with(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski"))
                     .fullName.isEmpty(),
             "call op=AND",
             "  call op=OR",
@@ -243,19 +262,6 @@ public class ExpressionAsStringTest {
     );
   }
 
-  @Ignore
-  @Test
-  public void debug() {
-    assertExpressional(PersonCriteria.person.bestFriend
-                    .value(f -> f.hobby.isEqualTo("hiking").or().hobby.isEqualTo("ski"))
-                    .fullName.isEmpty(),
-            "call op=AND",
-            "  call op=OR",
-            "    call op=EQUAL path=bestFriend.hobby constant=hiking",
-            "    call op=EQUAL path=bestFriend.hobby constant=ski",
-            "  call op=EQUAL path=fullName constant="
-    );
-  }
 
   private static void assertExpressional(Criterion<?> crit, String ... expectedLines) {
     final StringWriter out = new StringWriter();

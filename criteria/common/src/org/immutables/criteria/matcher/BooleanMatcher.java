@@ -34,6 +34,11 @@ public interface BooleanMatcher<R>  {
             .createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
-  interface Self extends BooleanMatcher<Self> {}
+  interface Self extends Template<Self> {}
 
+  interface With<R> extends WithMatcher<R, Self> {}
+
+  interface Not<R> extends NotMatcher<R, Self> {}
+
+  interface Template<R> extends BooleanMatcher<R>, With<R>, Not<R> {}
 }

@@ -112,7 +112,6 @@ public final class CriteriaContext implements Queryable {
     return withPath(newPath);
   }
 
-
   public CriteriaContext or() {
     return new CriteriaContext(entityClass, expression.or(), path, creators, parent);
   }
