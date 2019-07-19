@@ -47,6 +47,6 @@ public interface OptionalMatcher<R, S, C>  {
     return context.<R, C>factory().root().create(Matchers.extract(c).ofParent());
   }
 
-  interface Self<R, S> extends OptionalMatcher<R, S, S> {}
+  interface Self<R, S> extends OptionalMatcher<Self<R, S>, Self<R, S>, S> {}
 
 }

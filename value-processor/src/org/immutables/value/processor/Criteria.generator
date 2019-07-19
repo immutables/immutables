@@ -85,7 +85,8 @@ import [starImport];
 [atGenerated type]
 [type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>,
             AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>,
-            NotMatcher<R, [type.name]Criteria.Self> {
+            NotMatcher<R, [type.name]Criteria.Self>,
+            WithMatcher<R, [type.name]Criteria.Self> {
 
    /** Default criteria instance */
    public static final [type.name]Criteria<Self> [toLower type.name] = create();
