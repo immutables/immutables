@@ -80,16 +80,9 @@ public interface ObjectMatcher<R, V> {
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
-    class Local implements Self, HasContext {
-      private final CriteriaContext context;
-
+    class Local extends HasContext.Holder implements Self {
       private Local(CriteriaContext context) {
-        this.context = Objects.requireNonNull(context, "context");
-      }
-
-      @Override
-      public CriteriaContext context() {
-        return context;
+        super(context);
       }
     }
 

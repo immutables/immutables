@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.matcher;
 
+import java.util.Objects;
+
 /**
  * Allows to access context information of a criterion or Matcher. This interface
  * is used on <i>private</i> (generated) implementation classes when client is not supposed
@@ -26,5 +28,22 @@ package org.immutables.criteria.matcher;
 public interface HasContext {
 
   CriteriaContext context();
+
+  /**
+   * Template implementation of {@link HasContext}.
+   * Used as base class to instantiate different implementations of matchers.
+   */
+  abstract class Holder implements HasContext {
+    private final CriteriaContext context;
+
+    protected Holder(CriteriaContext context) {
+      this.context = Objects.requireNonNull(context, "context");
+    }
+
+    @Override
+    public CriteriaContext context() {
+      return context;
+    }
+  }
 
 }
