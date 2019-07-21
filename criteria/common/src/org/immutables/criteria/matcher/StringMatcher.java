@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.matcher;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -70,5 +71,23 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
   interface Not<R> extends NotMatcher<R, Self> {}
 
   interface Template<R> extends StringMatcher<R>, With<R>, Not<R> {}
+
+  @SuppressWarnings("unchecked")
+  static <R> CriteriaCreator<R> creator() {
+    class Local implements Self, HasContext {
+      private final CriteriaContext context;
+
+      private Local(CriteriaContext context) {
+        this.context = Objects.requireNonNull(context, "context");
+      }
+
+      @Override
+      public CriteriaContext context() {
+        return context;
+      }
+    }
+
+    return ctx -> (R) new Local(ctx);
+  }
 
 }

@@ -23,7 +23,6 @@
     [else]
 [output.error]
 Use @Criteria to annotate @Value.Immutable abstract value types with no type variables
-Use @Criteria to annotate @Value.Immutable abstract value types with no type variables
 [/output.error]
     [/if]
   [/for]
@@ -162,20 +161,13 @@ import [starImport];
 [/template]
 
 [template createMatcher Attribute a Type type][output.trim]
-[if (a.boolean or (a.type eq 'java.lang.Boolean'))]
-Matchers.create(BooleanMatcher.class, [constructorArgs a type])
-[else if a.stringType]
-Matchers.create(StringMatcher.class, [constructorArgs a type])
-[else if a.optionalType]
-   Matchers.create(OptionalMatcher.class, [constructorArgs a type])
-[else if a.comparable]
-   Matchers.create(ComparableMatcher.class, [constructorArgs a type])
-[else if a.collectionType]
-   Matchers.create(IterableMatcher.class, [constructorArgs a type])
+[-- TODO there should be a better way --]
+[if (((((a.boolean or (a.type eq 'java.lang.Boolean')) or a.stringType) or a.optionalType) or a.comparable) or a.collectionType)]
+[a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
 [else if a.hasCriteria]
   [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
 [else]
-   Matchers.create(ObjectMatcher.class, [constructorArgs a type])
+[a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
 [/if]
 [/output.trim][/template]
 
@@ -188,7 +180,7 @@ Matchers.create(StringMatcher.class, [constructorArgs a type])
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
   context.withPath([type.name].class, "[a.name]")
            .withCreators(ctx -> [type.name]Criteria.create(ctx),
-                           ctx -> Matchers.create([a.criteria.scalarMatcher.withoutParameters.toTemplate].class, ctx))
+                           [a.criteria.scalarMatcher.enclosing.withoutParameters.toTemplate].creator())
 [else]
   context
   .withPath([type.name].class, "[a.name]")

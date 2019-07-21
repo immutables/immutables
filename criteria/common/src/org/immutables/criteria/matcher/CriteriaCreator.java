@@ -26,9 +26,6 @@ public interface CriteriaCreator<R> {
 
   R create(CriteriaContext context);
 
-  // root = R (returns to createRoot criteria). root
-  // nested = S (chains to next criteria). nested
-  // inner = C (accepts nested criteria). inner
   interface Factory<T1, T2>  {
 
     CriteriaContext context();
@@ -52,8 +49,6 @@ public interface CriteriaCreator<R> {
     default T2 createNested() {
       return nested().create(context());
     }
-
-
   }
 
 }

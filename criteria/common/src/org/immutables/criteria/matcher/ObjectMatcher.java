@@ -78,4 +78,23 @@ public interface ObjectMatcher<R, V> {
 
   interface Template<R, V> extends ObjectMatcher<R, V>, With<R, V>, Not<R, V> {}
 
+  @SuppressWarnings("unchecked")
+  static <R> CriteriaCreator<R> creator() {
+    class Local implements Self, HasContext {
+      private final CriteriaContext context;
+
+      private Local(CriteriaContext context) {
+        this.context = Objects.requireNonNull(context, "context");
+      }
+
+      @Override
+      public CriteriaContext context() {
+        return context;
+      }
+    }
+
+    return ctx -> (R) new Local(ctx);
+  }
+
+
 }
