@@ -66,7 +66,7 @@ public interface IterableMatcher<R, S, V>  {
 
   }
 
-  interface Self<R, V> extends IterableMatcher<Self<R, V>, Self<R, V>, V> {}
+  interface Self<R, V> extends IterableMatcher<Self<R, V>, Self<R, V>, V>, Disjunction<Self<R, V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

@@ -16,10 +16,19 @@
 
 package org.immutables.criteria.matcher;
 
+/**
+ * Simple {@code OR} statement without arguments. Used to build
+ * <a href="https://en.wikipedia.org/wiki/Disjunctive_normal_form">disjunctive normal form</a> fluent DSL.
+ * Contrary to {@link OrMatcher} does not have any arguments.
+ *
+ * @param <R> root type
+ */
 public interface Disjunction<R> {
 
   /**
-   * Builds a disjunction
+   * Builds a disjunction (boolean {@code OR})
    */
-  R or();
+  default R or() {
+    return Matchers.extract(this).or().<R, Object>factory().createRoot();
+  }
 }

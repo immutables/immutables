@@ -42,7 +42,7 @@ public interface OptionalMatcher<R, S>  {
     return Matchers.extract(this).<R, S>factory().createNested();
   }
 
-  interface Self<S> extends OptionalMatcher<Self<S>, S> {}
+  interface Self<S> extends OptionalMatcher<Self<S>, S>, Disjunction<Self<S>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

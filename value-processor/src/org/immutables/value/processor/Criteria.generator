@@ -105,12 +105,6 @@ import [starImport];
       super(context);
       this.context = context;
     }
-
-    @Override
-    public [type.name]Criteria<Self> or() {
-      return context.or().<Self, Object>factory().createRoot();
-    }
-
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
