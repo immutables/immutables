@@ -19,6 +19,8 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
+import java.util.Objects;
+
 /**
  * Very simple matcher for booleans just has {@code true} / {@code false} checks.
  */
@@ -41,4 +43,23 @@ public interface BooleanMatcher<R>  {
   interface Not<R> extends NotMatcher<R, Self> {}
 
   interface Template<R> extends BooleanMatcher<R>, With<R>, Not<R> {}
+
+  @SuppressWarnings("unchecked")
+  static <R> CriteriaCreator<R> creator() {
+    class Local implements Self, HasContext {
+      private final CriteriaContext context;
+
+      private Local(CriteriaContext context) {
+        this.context = Objects.requireNonNull(context, "context");
+      }
+
+      @Override
+      public CriteriaContext context() {
+        return context;
+      }
+    }
+
+    return ctx -> (R) new Local(ctx);
+  }
+
 }

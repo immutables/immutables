@@ -20,6 +20,7 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 /**
@@ -42,5 +43,24 @@ public interface OptionalMatcher<R, S>  {
   }
 
   interface Self<S> extends OptionalMatcher<Self<S>, S> {}
+
+  @SuppressWarnings("unchecked")
+  static <R> CriteriaCreator<R> creator() {
+    class Local implements Self, HasContext {
+      private final CriteriaContext context;
+
+      private Local(CriteriaContext context) {
+        this.context = Objects.requireNonNull(context, "context");
+      }
+
+      @Override
+      public CriteriaContext context() {
+        return context;
+      }
+    }
+
+    return ctx -> (R) new Local(ctx);
+  }
+
 
 }

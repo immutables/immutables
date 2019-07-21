@@ -98,6 +98,7 @@ public class CriteriaModel {
     return new MatcherDefinition(type);
   }
 
+
   public MatcherDefinition scalarMatcher() {
     return new MatcherDefinition(scalar());
   }
@@ -144,6 +145,17 @@ public class CriteriaModel {
         }
       };
       return new MatcherDefinition(type.accept(transformer));
+    }
+
+    /** Return upper level matcher: StringMatcher.Template -> StringMatcher. */
+    public MatcherDefinition enclosing() {
+      final String name = ((Type.Parameterized) type).reference.name;
+      if (name.endsWith(".Self") || name.endsWith(".Template")) {
+        final String newName = name.substring(0, name.lastIndexOf('.'));
+        return new MatcherDefinition(factory.reference(newName));
+      }
+
+      return this;
     }
 
     public String toTemplate() {
