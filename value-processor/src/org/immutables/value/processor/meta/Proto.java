@@ -27,6 +27,7 @@ import com.google.common.collect.Interners;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -293,20 +294,21 @@ public class Proto {
     }
 
     /**
-     * @return current Guava's MoreObjects or {@code null} if no Guava available on the classpath.
+     * Try to find Guava's object util classes if they're available. First lookup for {@code base.MoreObjects} then {@code base.Objects}.
+     * Return {@code null} if not found.
+     *
+     * @return full class name for Guava's {@code MoreObjects} / {@code Objects} or {@code null} if such class doesn't exists in classpath
      */
     @Nullable
     @Value.Lazy
     String typeMoreObjects() {
-      String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
-      String typeObjects = UnshadeGuava.typeString("base.Objects");
-
-      if (hasElement(typeMoreObjects)) {
-        return typeMoreObjects;
+      for (String shortName: Arrays.asList("base.MoreObjects", "base.Objects")) {
+        final String name = UnshadeGuava.typeString(shortName);
+        if (hasElement(name)) {
+          return name;
+        }
       }
-      if (hasElement(typeObjects)) {
-        return typeMoreObjects;
-      }
+      // not found
       return null;
     }
 
