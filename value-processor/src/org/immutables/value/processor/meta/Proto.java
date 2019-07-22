@@ -301,11 +301,11 @@ public class Proto {
       String typeMoreObjects = UnshadeGuava.typeString("base.MoreObjects");
       String typeObjects = UnshadeGuava.typeString("base.Objects");
 
-      if (findElement(typeMoreObjects) != null) {
+      if (hasElement(typeMoreObjects)) {
         return typeMoreObjects;
       }
-      if (findElement(typeMoreObjects) != null) {
-        return typeObjects;
+      if (hasElement(typeObjects)) {
+        return typeMoreObjects;
       }
       return null;
     }
@@ -316,68 +316,68 @@ public class Proto {
 
     @Value.Lazy
     public boolean hasOkJsonLib() {
-      return findElement("com.squareup.moshi.Moshi") != null;
+      return hasElement("com.squareup.moshi.Moshi");
     }
 
     @Value.Lazy
     public boolean hasGsonLib() {
-      return findElement("com.google.gson.Gson") != null;
+      return hasElement("com.google.gson.Gson");
     }
 
     @Value.Lazy
     public boolean hasJacksonLib() {
-      return findElement(Proto.JACKSON_DESERIALIZE) != null;
+      return hasElement(Proto.JACKSON_DESERIALIZE);
     }
 
 
     @Value.Lazy
     public boolean hasCriteriaModule() {
-      return findElement(CriteriaMirror.qualifiedName()) != null;
+      return hasElement(CriteriaMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasMongoModule() {
-      return findElement(RepositoryMirror.qualifiedName()) != null;
+      return hasElement(RepositoryMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasSerialModule() {
-      return findElement(VersionMirror.qualifiedName()) != null;
+      return hasElement(VersionMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasTreesModule() {
-      return findElement(TransformMirror.qualifiedName()) != null;
+      return hasElement(TransformMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasAstModule() {
-      return findElement(AstMirror.qualifiedName()) != null;
+      return hasElement(AstMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasOrdinalModule() {
-      return findElement(ORDINAL_VALUE_INTERFACE_TYPE) != null;
+      return hasElement(ORDINAL_VALUE_INTERFACE_TYPE);
     }
 
     @Value.Lazy
     public boolean hasBuilderModule() {
-      return findElement(FactoryMirror.qualifiedName()) != null;
+      return hasElement((FactoryMirror.qualifiedName()));
     }
 
     @Value.Lazy
     public boolean hasFuncModule() {
-      return findElement(FunctionalMirror.qualifiedName()) != null;
+      return hasElement(FunctionalMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasEncodeModule() {
-      return findElement(EncodingMirror.qualifiedName()) != null;
+      return hasElement(EncodingMirror.qualifiedName());
     }
 
     @Value.Lazy
     public boolean hasAnnotateModule() {
-      return findElement(InjectAnnotationMirror.qualifiedName()) != null;
+      return hasElement(InjectAnnotationMirror.qualifiedName());
     }
 
     /**
@@ -404,6 +404,14 @@ public class Proto {
 
     ImmutableList<Protoclass> protoclassesFrom(Iterable<? extends Element> elements) {
       return round().protoclassesFrom(elements);
+    }
+
+    /**
+     * Check if {@code qualifiedName} is known to current environment (annotation processor).
+     * Retrieve (by canonical name) {@link TypeElement} from APT environment.
+     */
+    private boolean hasElement(String qualifiedName) {
+      return findElement(qualifiedName) != null;
     }
 
     private @Nullable TypeElement findElement(String qualifiedName) {
