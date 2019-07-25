@@ -19,8 +19,6 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
-import java.util.Objects;
-
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
  *
@@ -58,13 +56,12 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
+  /**
+   * Self-type for this matcher
+   */
   interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface With<R, V extends Comparable<? super V>> extends WithMatcher<R, Self<V>> {}
-
-  interface Not<R, V extends Comparable<? super V>> extends NotMatcher<R, Self<V>> { }
-
-  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, With<R, V>, Not<R, V> {}
+  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

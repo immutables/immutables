@@ -34,7 +34,6 @@ import java.util.Objects;
  */
 public interface ObjectMatcher<R, V> {
 
-
   default R isEqualTo(V value) {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
@@ -71,13 +70,12 @@ public interface ObjectMatcher<R, V> {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
+  /**
+   * Self-type for this matcher
+   */
   interface Self<V> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface With<R, V> extends WithMatcher<R, Self<V>> {}
-
-  interface Not<R, V> extends NotMatcher<R, Self<V>> {}
-
-  interface Template<R, V> extends ObjectMatcher<R, V>, With<R, V>, Not<R, V> {}
+  interface Template<R, V> extends ObjectMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>{}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

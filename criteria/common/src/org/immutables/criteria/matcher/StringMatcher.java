@@ -58,13 +58,12 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Self-type for this matcher
+   */
   interface Self extends Template<Self>, Disjunction<StringMatcher<Self>> {}
 
-  interface With<R> extends WithMatcher<R, Self> {}
-
-  interface Not<R> extends NotMatcher<R, Self> {}
-
-  interface Template<R> extends StringMatcher<R>, With<R>, Not<R> {}
+  interface Template<R> extends StringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>{}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

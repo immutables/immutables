@@ -19,8 +19,6 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
 
-import java.util.Objects;
-
 /**
  * Very simple matcher for booleans just has {@code true} / {@code false} checks.
  *
@@ -38,13 +36,12 @@ public interface BooleanMatcher<R>  {
             .createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
+  /**
+   * Self-type for this matcher
+   */
   interface Self extends Template<Self> {}
 
-  interface With<R> extends WithMatcher<R, Self> {}
-
-  interface Not<R> extends NotMatcher<R, Self> {}
-
-  interface Template<R> extends BooleanMatcher<R>, With<R>, Not<R> {}
+  interface Template<R> extends BooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>  {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

@@ -41,6 +41,9 @@ public interface OptionalMatcher<R, S>  {
     return Matchers.extract(this).<R, S>factory().createNested();
   }
 
+  /**
+   * Self-type for this matcher
+   */
   interface Self<S> extends OptionalMatcher<Self<S>, S>, Disjunction<Self<S>> {}
 
   @SuppressWarnings("unchecked")
