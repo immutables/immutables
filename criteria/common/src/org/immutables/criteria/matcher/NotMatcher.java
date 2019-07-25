@@ -22,22 +22,29 @@ import org.immutables.criteria.expression.Expressions;
 import java.util.function.UnaryOperator;
 
 /**
- * Allows chaining {@code NOT} operator:
+ * Equivalent to boolean {@code NOT} operator. Negates inner lambda expression.
  * 
  * <pre>
  *   {@code
- *     crit.not(f -> f.names.hasLength(2))
+ *     criteria.not(f -> f.name.startsWith("Jo"))
  *   }
  * </pre>
+ * @param <R> root criteria type
+ * @param <C> expression type inside lambda
  */
 public interface NotMatcher<R, C> {
 
+  /**
+   * Negate (logically) lambda expression expressed by {@code operator}. Equivalent to boolean {@code NOT} operator.
+   *
+   * @param operator used as lambda expression
+   * @return new root criteria with updated expression
+   */
   default R not(UnaryOperator<C> operator) {
     final CriteriaContext context = Matchers.extract(this);
-    final CriteriaCreator.Factory<R, C> factory3 = context.<R, C>factory();
+    final CriteriaCreator.Factory<R, C> factory = context.<R, C>factory();
     final UnaryOperator<Expression> expr = e -> Expressions.not(Matchers.toInnerExpression(context, operator).apply(e));
-    return factory3.createRoot(expr);
-
+    return factory.createRoot(expr);
   }
 
 }

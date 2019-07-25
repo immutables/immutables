@@ -26,7 +26,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Comparing directly values of an attribute.
+ * Predicates for most generic type {@code Object}. Typically used when there is no more specific
+ * matcher like {@link ComparableMatcher}.
  *
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing

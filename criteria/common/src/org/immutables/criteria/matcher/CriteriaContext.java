@@ -30,7 +30,7 @@ import java.util.function.UnaryOperator;
 
 /**
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
- * (internally known as {@link Expression}).
+ * (internally known as {@link Expression}). Keeps current state of the expression.
  */
 public final class CriteriaContext implements Queryable {
 

@@ -22,11 +22,22 @@ import org.immutables.criteria.expression.Expressions;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * Combines matchers using logical {@code AND}
+ * @param <R> root criteria type
+ */
 public interface AndMatcher<R extends Criterion<?>> {
 
-  default R and(R first) {
+  /**
+   * Combine {@code this} and {@code other} expression (criteria / matcher) using logical {@code AND}
+   * operator. Equivalent to {@code this AND other}.
+   *
+   * @param other other matcher
+   * @return new root criteria with updated expression
+   */
+  default R and(R other) {
     final CriteriaContext context = Matchers.extract(this);
-    final UnaryOperator<Expression> expr = e -> Expressions.and(Matchers.concatFilters(e, first));
+    final UnaryOperator<Expression> expr = e -> Expressions.and(Matchers.concat(e, other));
     return context.<R, Object>factory().createRoot(expr);
   }
 

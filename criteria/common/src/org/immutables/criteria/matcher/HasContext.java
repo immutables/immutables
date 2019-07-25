@@ -19,9 +19,13 @@ package org.immutables.criteria.matcher;
 import java.util.Objects;
 
 /**
- * Allows to access context information of a criterion or Matcher. This interface
- * is used on <i>private</i> (generated) implementation classes when client is not supposed
- * see additional methods.
+ * Private interface which exposes context of a matcher / criteria. Context is similar to "state".
+ * Invisible to public API.
+ *
+ * <p>Each matcher call or lambda expression creates new context. That context holds current
+ * {@link org.immutables.criteria.expression.Query} or {@link org.immutables.criteria.expression.Expression}
+ * used at runtime for translation to native queries or visiting
+ * <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">AST</a>.
  *
  * @see org.immutables.criteria.Criterion
  */
@@ -30,8 +34,7 @@ public interface HasContext {
   CriteriaContext context();
 
   /**
-   * Template implementation of {@link HasContext}.
-   * Used as base class to instantiate different implementations of matchers.
+   * Template implementation of {@link HasContext} can be instantiated by subclasses in a couple of lines.
    */
   abstract class Holder implements HasContext {
     private final CriteriaContext context;

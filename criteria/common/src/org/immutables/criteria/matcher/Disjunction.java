@@ -26,7 +26,11 @@ package org.immutables.criteria.matcher;
 public interface Disjunction<R> {
 
   /**
-   * Builds a disjunction (boolean {@code OR})
+   * Builds a disjunction with boolean {@code OR}.
+   *
+   * <p>By default, boolean expressions are combined using
+   * <a href="https://en.wikipedia.org/wiki/Disjunctive_normal_form">disjunctive normal form</a>.
+   * @return new root criteria with updated expression
    */
   default R or() {
     return Matchers.extract(this).or().<R, Object>factory().createRoot();

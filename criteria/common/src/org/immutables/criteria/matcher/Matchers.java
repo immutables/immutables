@@ -34,7 +34,7 @@ public final class Matchers {
 
   private Matchers() {}
 
-  static List<Expression> concatFilters(Expression existing, Criterion<?> first, Criterion<?> ... rest) {
+  static List<Expression> concat(Expression existing, Criterion<?> first, Criterion<?> ... rest) {
     Stream<Expression> restStream = Stream.concat(Stream.of(first), Arrays.stream(rest))
             .map(Criterias::toQuery)
             .filter(q -> q.filter().isPresent())

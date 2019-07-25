@@ -20,14 +20,20 @@ import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Ordering;
 
 /**
- * Allows to define ordering
+ * Sorting / Order definition.
  */
 public interface OrderMatcher {
 
+  /**
+   * Sort current expression in <i>ascending</i> order.
+   */
   default Ordering asc() {
     return Collation.of(Matchers.extract(this).path(), Ordering.Direction.ASCENDING);
   }
 
+  /**
+   * Sort current expression in <i>descending</i> order.
+   */
   default Ordering desc() {
     return Collation.of(Matchers.extract(this).path(), Ordering.Direction.DESCENDING);
   }

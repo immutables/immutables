@@ -22,10 +22,21 @@ import org.immutables.criteria.expression.Expressions;
 
 import java.util.function.UnaryOperator;
 
+/**
+ * Combines matchers using logical {@code OR}
+ * @param <R> root criteria type
+ */
 public interface OrMatcher<R extends Criterion<?>> {
 
-  default R or(R first) {
-    final UnaryOperator<Expression> expr = e -> Expressions.or(Matchers.concatFilters(e, first));
+  /**
+   * Combine {@code this} and {@code other} expression (criteria / matcher) using logical {@code OR}
+   * operator. Equivalent to {@code this OR other}.
+   *
+   * @param other other matcher
+   * @return new root criteria with updated expression
+   */
+  default R or(R other) {
+    final UnaryOperator<Expression> expr = e -> Expressions.or(Matchers.concat(e, other));
     return Matchers.extract(this).apply(expr).or().<R, Object>factory().createRoot();
   }
 

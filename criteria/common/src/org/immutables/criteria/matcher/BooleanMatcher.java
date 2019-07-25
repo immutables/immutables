@@ -23,6 +23,8 @@ import java.util.Objects;
 
 /**
  * Very simple matcher for booleans just has {@code true} / {@code false} checks.
+ *
+ * @param <R> root criteria type
  */
 public interface BooleanMatcher<R>  {
 

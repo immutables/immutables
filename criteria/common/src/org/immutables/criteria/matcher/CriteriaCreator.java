@@ -20,7 +20,7 @@ import org.immutables.criteria.expression.Expression;
 import java.util.function.UnaryOperator;
 
 /**
- * Creates document criteria from existing expression.
+ * Criteria factory. Instantiate matcher / criteria form existing (or new) context.
  */
 public interface CriteriaCreator<R> {
 

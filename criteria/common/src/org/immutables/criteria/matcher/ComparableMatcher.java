@@ -23,6 +23,8 @@ import java.util.Objects;
 
 /**
  * Criteria for comparables (like {@code >, <=, >} and ranges).
+ *
+ * @param <R> root criteria type
  */
 public interface ComparableMatcher<R, V extends Comparable<? super V>> extends ObjectMatcher<R, V>, OrderMatcher {
 

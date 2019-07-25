@@ -21,7 +21,8 @@ import org.immutables.criteria.expression.Expression;
 import java.util.function.UnaryOperator;
 
 /**
- * Allows grouping statements together.
+ * Matcher to group / combine statements as single unit. Similar to {@code with} statement
+ * in other languages, creates an implicit context.
  *
  * <pre>
  *   {@code
@@ -36,6 +37,11 @@ import java.util.function.UnaryOperator;
  */
 public interface WithMatcher<R, C> {
 
+  /**
+   * Group expression expressed in {@code operator} as single unit.
+   * @param operator expression(s) to be grouped
+   * @return new root criteria with updated expression
+   */
   default R with(UnaryOperator<C> operator) {
     final CriteriaContext context = Matchers.extract(this);
     final UnaryOperator<Expression> expr = e -> Matchers.toInnerExpression(context, operator).apply(e);

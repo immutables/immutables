@@ -19,7 +19,8 @@ package org.immutables.criteria.matcher;
 import java.util.regex.Pattern;
 
 /**
- * String specific criterias like {@code startsWith}, {@code contains} etc.
+ * String specific predicates like {@code startsWith}, {@code contains} etc.
+ * @param <R> root criteria type
  */
 public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
@@ -51,7 +52,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
   }
 
   /**
-   * Matches length of a string
+   * Predicate for length of a string
    */
   default R hasLength(int size) {
     throw new UnsupportedOperationException();
