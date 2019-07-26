@@ -20,7 +20,7 @@ import java.util.Objects;
 
 /**
  * Private interface which exposes context of a matcher / criteria. Context is similar to "state".
- * Invisible to public API.
+ * Used as private API (not visible in regular API).
  *
  * <p>Each matcher call or lambda expression creates new context. That context holds current
  * {@link org.immutables.criteria.expression.Query} or {@link org.immutables.criteria.expression.Expression}
@@ -29,17 +29,21 @@ import java.util.Objects;
  *
  * @see org.immutables.criteria.Criterion
  */
-public interface HasContext {
+public interface ContextHolder {
 
+  /**
+   * Expose current context of the matcher. This method is used to extract and combine different
+   * expressions (matchers).
+   */
   CriteriaContext context();
 
   /**
-   * Template implementation of {@link HasContext} can be instantiated by subclasses in a couple of lines.
+   * Template implementation of {@link ContextHolder} can be instantiated by subclasses in a couple of lines.
    */
-  abstract class Holder implements HasContext {
+  abstract class AbstractHolder implements ContextHolder {
     private final CriteriaContext context;
 
-    protected Holder(CriteriaContext context) {
+    protected AbstractHolder(CriteriaContext context) {
       this.context = Objects.requireNonNull(context, "context");
     }
 

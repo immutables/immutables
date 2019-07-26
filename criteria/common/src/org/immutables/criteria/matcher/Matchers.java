@@ -48,17 +48,17 @@ public final class Matchers {
 
   /**
    * Extracts criteria context from an arbitrary object.
-   * @see HasContext
+   * @see ContextHolder
    */
   static CriteriaContext extract(Object object) {
     Objects.requireNonNull(object, "object");
 
-    if (object instanceof HasContext) {
-      return ((HasContext) object).context();
+    if (object instanceof ContextHolder) {
+      return ((ContextHolder) object).context();
     }
 
     throw new IllegalArgumentException(String.format("%s does not implement %s", object.getClass().getName(),
-            HasContext.class.getSimpleName()));
+            ContextHolder.class.getSimpleName()));
   }
 
   static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {

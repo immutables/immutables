@@ -69,7 +69,7 @@ public interface IterableMatcher<R, S, V>  {
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
-    class Local extends HasContext.Holder implements Self {
+    class Local extends ContextHolder.AbstractHolder implements Self {
       private Local(CriteriaContext context) {
         super(context);
       }

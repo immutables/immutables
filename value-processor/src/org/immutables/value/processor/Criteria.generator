@@ -34,7 +34,7 @@ package [type.package];
 [/if]
 
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.matcher.HasContext;
+import org.immutables.criteria.matcher.ContextHolder;
 import org.immutables.criteria.matcher.CriteriaContext;
 import org.immutables.criteria.matcher.CriteriaCreator;
 import org.immutables.criteria.matcher.IterableMatcher;
@@ -108,7 +108,7 @@ import [starImport];
    }
 
    /** Similar to {@link Self} but exposes {@link Expressional} interface */
-   private static final class Private extends Self implements Queryable, HasContext {
+   private static final class Private extends Self implements Queryable, ContextHolder {
       private final CriteriaContext context;
 
       private Private() {
