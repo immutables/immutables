@@ -19,7 +19,7 @@ package org.immutables.criteria.adapter;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.WriteResult;
+import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
 

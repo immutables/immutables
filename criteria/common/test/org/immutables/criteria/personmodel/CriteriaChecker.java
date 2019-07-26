@@ -19,14 +19,11 @@ package org.immutables.criteria.personmodel;
 import com.google.common.base.Preconditions;
 import io.reactivex.Flowable;
 import org.immutables.check.IterableChecker;
-import org.immutables.criteria.ReactiveRepository;
-import org.immutables.criteria.Repository;
-import org.immutables.criteria.expression.DebugExpressionVisitor;
+import org.immutables.criteria.repository.ReactiveRepository;
+import org.immutables.criteria.repository.Repository;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;

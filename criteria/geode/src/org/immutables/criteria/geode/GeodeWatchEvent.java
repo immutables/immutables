@@ -17,7 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.query.CqEvent;
-import org.immutables.criteria.WatchEvent;
+import org.immutables.criteria.repository.WatchEvent;
 
 import java.util.Objects;
 import java.util.Optional;

@@ -18,10 +18,10 @@ package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.WriteResult;
+import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.adapter.UnknownWriteResult;
+import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 

@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.adapter;
+package org.immutables.criteria.repository;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.ReactiveRepository;
+import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;

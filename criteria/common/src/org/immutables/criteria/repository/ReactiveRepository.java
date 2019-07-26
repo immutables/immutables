@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.repository;
 
-import java.util.List;
-import java.util.concurrent.CompletionStage;
+import org.reactivestreams.Publisher;
 
 /**
- * Repository based on {@link CompletionStage} (from {@code java.util.concurrent})
+ * Repository based on <a href="https://www.reactive-streams.org/">Reactive Streams</a>.
+ * All final operations will return {@link Publisher}.
  *
  * @param <T> entity type
+ * @see Publisher
  */
-public interface AsyncRepository<T> extends Repository<T> {
+public interface ReactiveRepository<T> extends Repository<T> {
 
   interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
-    CompletionStage<List<T>> fetch();
+    Publisher<T> fetch();
 
   }
 
-  interface Readable<T> extends ReactiveRepository<T>, Repository.Readable<T, Reader<T>> {
+  interface Readable<T> extends ReactiveRepository<T>, Repository.Readable<T, ReactiveRepository.Reader<T>> {
 
   }
 
-  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, CompletionStage<WriteResult>> {
+  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, Publisher<WriteResult>> {
 
   }
-
 
 }

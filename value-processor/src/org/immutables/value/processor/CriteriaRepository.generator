@@ -40,13 +40,13 @@ import [starImport];
 
 import com.google.common.collect.ImmutableList;
 
-import org.immutables.criteria.ReactiveRepository;
-import org.immutables.criteria.WriteResult;
+import org.immutables.criteria.repository.ReactiveRepository;
+import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.InternalReader;
-import org.immutables.criteria.adapter.InternalWatcher;
+import org.immutables.criteria.repository.InternalReader;
+import org.immutables.criteria.repository.InternalWatcher;
 
 import org.reactivestreams.Publisher;
 

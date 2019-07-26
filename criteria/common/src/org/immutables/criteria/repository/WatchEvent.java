@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.repository;
 
-import org.reactivestreams.Publisher;
+import java.util.Optional;
 
 /**
- * Repository based on <a href="https://www.reactive-streams.org/">Reactive Streams</a>.
- * All final operations will return {@link Publisher}.
+ * Defines real-time data change received by {@link Repository.Watcher}.
+ * Each insert / delete / update will generate a change event.
  *
  * @param <T> entity type
- * @see Publisher
  */
-public interface ReactiveRepository<T> extends Repository<T> {
+public interface WatchEvent<T> {
 
-  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
-
-    Publisher<T> fetch();
-
+  /**
+   * Type of operation which caused this event to be created
+   */
+  enum Operation {
+    INSERT,
+    DELETE,
+    REPLACE,
+    UPDATE
   }
 
-  interface Readable<T> extends ReactiveRepository<T>, Repository.Readable<T, ReactiveRepository.Reader<T>> {
+  // TODO define key for WatchEvent / Repository etc.
+  Object key();
 
-  }
+  Optional<T> newValue();
 
-  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, Publisher<WriteResult>> {
-
-  }
+  Operation operation();
 
 }

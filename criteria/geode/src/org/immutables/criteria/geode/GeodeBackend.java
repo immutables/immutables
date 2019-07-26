@@ -25,13 +25,13 @@ import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.Criteria;
-import org.immutables.criteria.WatchEvent;
-import org.immutables.criteria.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.adapter.UnknownWriteResult;
+import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.repository.WatchEvent;
+import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;

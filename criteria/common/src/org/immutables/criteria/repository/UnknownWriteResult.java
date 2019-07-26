@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.repository;
 
-import java.util.Optional;
+import java.util.OptionalLong;
 
 /**
- * Defines real-time data change received by {@link org.immutables.criteria.Repository.Watcher}.
- * Each insert / delete / update will generate a change event.
- *
- * @param <T> entity type
+ * Used as a <b>null object</b> if backend can't provide information about a write operation
  */
-public interface WatchEvent<T> {
+public final class UnknownWriteResult implements WriteResult {
 
-  /**
-   * Type of operation which caused this event to be created
-   */
-  enum Operation {
-    INSERT,
-    DELETE,
-    REPLACE,
-    UPDATE
+  public static final WriteResult INSTANCE = new UnknownWriteResult();
+
+  private UnknownWriteResult() {}
+
+  @Override
+  public OptionalLong insertedCount() {
+    return OptionalLong.empty();
   }
 
-  // TODO define key for WatchEvent / Repository etc.
-  Object key();
+  @Override
+  public OptionalLong deletedCount() {
+    return OptionalLong.empty();
+  }
 
-  Optional<T> newValue();
-
-  Operation operation();
-
+  @Override
+  public OptionalLong updatedCount() {
+    return OptionalLong.empty();
+  }
 }

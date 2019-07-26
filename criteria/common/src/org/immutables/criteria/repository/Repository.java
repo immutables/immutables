@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.repository;
 
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Ordering;
 import org.reactivestreams.Publisher;
 

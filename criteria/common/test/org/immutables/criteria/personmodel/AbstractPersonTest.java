@@ -19,8 +19,8 @@ package org.immutables.criteria.personmodel;
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.ReactiveRepository;
-import org.immutables.criteria.Repository;
+import org.immutables.criteria.repository.ReactiveRepository;
+import org.immutables.criteria.repository.Repository;
 import org.junit.Assume;
 import org.junit.Test;
 

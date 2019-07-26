@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.adapter;
+package org.immutables.criteria.repository;
 
-import org.immutables.criteria.WriteResult;
-
-import java.util.OptionalLong;
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
- * Used as a <b>null object</b> if backend can't provide information about a write operation
+ * Repository based on {@link CompletionStage} (from {@code java.util.concurrent})
+ *
+ * @param <T> entity type
  */
-public final class UnknownWriteResult implements WriteResult {
+public interface AsyncRepository<T> extends Repository<T> {
 
-  public static final WriteResult INSTANCE = new UnknownWriteResult();
+  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
 
-  private UnknownWriteResult() {}
+    CompletionStage<List<T>> fetch();
 
-  @Override
-  public OptionalLong insertedCount() {
-    return OptionalLong.empty();
   }
 
-  @Override
-  public OptionalLong deletedCount() {
-    return OptionalLong.empty();
+  interface Readable<T> extends ReactiveRepository<T>, Repository.Readable<T, Reader<T>> {
+
   }
 
-  @Override
-  public OptionalLong updatedCount() {
-    return OptionalLong.empty();
+  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, CompletionStage<WriteResult>> {
+
   }
+
+
 }
