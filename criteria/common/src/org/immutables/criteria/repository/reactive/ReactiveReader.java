@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository;
+package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
@@ -24,6 +24,7 @@ import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
+import org.immutables.criteria.repository.Reader;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;

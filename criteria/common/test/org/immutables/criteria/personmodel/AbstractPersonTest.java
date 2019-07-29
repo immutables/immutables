@@ -19,7 +19,7 @@ package org.immutables.criteria.personmodel;
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.repository.ReactiveReader;
+import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.immutables.criteria.repository.Reader;
 import org.junit.Assume;
 import org.junit.Test;
