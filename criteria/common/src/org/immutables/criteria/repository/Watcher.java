@@ -16,33 +16,11 @@
 
 package org.immutables.criteria.repository;
 
-import java.util.List;
-
 /**
- * Synchronous (blocking operation) repository.
- * Final operations return {@link List}, {@link Void} or other non-deferred results.
- *
+ * Observer for, potentially, unbounded flow of events
  * @param <T> entity type
+ * @param <R> return type
  */
-public interface SyncRepository<T> extends Repository<T> {
-
-  /**
-   * Synchronous reader which returns simple list
-   * @param <T> entity type
-   */
-  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
-
-    List<T> fetch();
-
-  }
-
-  interface Readable<T> extends SyncRepository<T>, Repository.Readable<T, Reader<T>> {
-
-  }
-
-  interface Writable<T> extends SyncRepository<T>, Repository.Writable<T, WriteResult> {
-
-  }
-
-
+public interface Watcher<T, R> {
+  R watch();
 }

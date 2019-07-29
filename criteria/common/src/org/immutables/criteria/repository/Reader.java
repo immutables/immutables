@@ -16,12 +16,20 @@
 
 package org.immutables.criteria.repository;
 
+import org.immutables.criteria.expression.Ordering;
+
 /**
- * Access abstractions to a data-source. Read /  Write / Watch features can be added
- * declaratively by implementing special interfaces (eg {@link Readable}).
+ * Allows chaining operations (like adding {@code offset} / {@code limit}) on some particular query.
+ * Subclasses may add other attributes specific to their repository.
  *
  * @param <T> entity type
+ * @param <R> reader type (self type)
  */
-public interface Repository<T> {
+public interface Reader<T, R> {
 
+  R orderBy(Ordering first, Ordering... rest);
+
+  R limit(long limit);
+
+  R offset(long offset);
 }

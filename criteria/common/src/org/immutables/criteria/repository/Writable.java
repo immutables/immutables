@@ -16,12 +16,24 @@
 
 package org.immutables.criteria.repository;
 
+import org.immutables.criteria.Criterion;
+
+import java.util.Arrays;
+
 /**
- * Access abstractions to a data-source. Read /  Write / Watch features can be added
- * declaratively by implementing special interfaces (eg {@link Readable}).
+ * Declares repository as writable. Means objects can be inserted / updated / deleted.
  *
  * @param <T> entity type
+ * @param <R> write-result type
  */
-public interface Repository<T> {
+public interface Writable<T, R> extends Facet {
+
+  default R insert(T... docs) {
+    return insert(Arrays.asList(docs));
+  }
+
+  R insert(Iterable<? extends T> docs);
+
+  R delete(Criterion<T> criteria);
 
 }

@@ -16,29 +16,14 @@
 
 package org.immutables.criteria.repository;
 
-import java.util.List;
-import java.util.concurrent.CompletionStage;
+import org.immutables.criteria.Criterion;
 
 /**
- * Repository based on {@link CompletionStage} (from {@code java.util.concurrent})
- *
- * @param <T> entity type
+ * Means current repository supports streaming (as in pub/sub). In this case
+ * the flow of events is unbounded.
  */
-public interface AsyncRepository<T> extends Repository<T> {
+public interface Watchable<T, W extends Watcher<T, ?>> extends Facet {
 
-  interface Reader<T> extends Repository.Reader<T, Reader<T>> {
-
-    CompletionStage<List<T>> fetch();
-
-  }
-
-  interface Readable<T> extends ReactiveRepository<T>, Repository.Readable<T, Reader<T>> {
-
-  }
-
-  interface Writable<T> extends ReactiveRepository<T>, Repository.Writable<T, CompletionStage<WriteResult>> {
-
-  }
-
+  W watcher(Criterion<T> criteria);
 
 }
