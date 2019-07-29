@@ -57,6 +57,14 @@
       <version>${reactive-streams.version}</version>
     </dependency>
     <dependency>
+      <!-- This dependency is temporary until we find a way
+      to convert Publisher<T> to List<T> / Future<T> for sync / async facets. Some home-made util class?
+      -->
+      <groupId>io.reactivex.rxjava2</groupId>
+      <artifactId>rxjava</artifactId>
+      <version>${rxjava2.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>testing</artifactId>
       <version>${project.version}</version>
@@ -72,12 +80,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
       <version>${jackson-databind.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
-      <artifactId>rxjava</artifactId>
-      <version>${rxjava2.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

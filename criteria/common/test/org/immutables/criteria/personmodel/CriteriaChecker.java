@@ -21,7 +21,7 @@ import io.reactivex.Flowable;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.repository.ReactiveReader;
+import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.immutables.criteria.repository.Reader;
 
 import java.util.List;

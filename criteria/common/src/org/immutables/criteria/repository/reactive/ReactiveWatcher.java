@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository;
+package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
@@ -22,6 +22,8 @@ import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.ImmutableWatch;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
+import org.immutables.criteria.repository.WatchEvent;
+import org.immutables.criteria.repository.Watcher;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
