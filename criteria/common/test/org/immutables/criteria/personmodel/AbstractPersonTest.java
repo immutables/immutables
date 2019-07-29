@@ -19,8 +19,8 @@ package org.immutables.criteria.personmodel;
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.repository.ReactiveRepository;
-import org.immutables.criteria.repository.Repository;
+import org.immutables.criteria.repository.ReactiveReader;
+import org.immutables.criteria.repository.Reader;
 import org.junit.Assume;
 import org.junit.Test;
 
@@ -325,7 +325,7 @@ public abstract class AbstractPersonTest {
     assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()).limit(5), Ordering.natural().reverse());
   }
 
-  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Repository.Reader<Person, ?> reader, Ordering<T> ordering) {
+  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {
     List<T> parts = fetch(reader).stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
       throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));
@@ -343,7 +343,7 @@ public abstract class AbstractPersonTest {
             .assertComplete();
   }
 
-  private CriteriaChecker<Person> check(Repository.Reader<Person, ?> reader) {
+  private CriteriaChecker<Person> check(Reader<Person, ?> reader) {
     return CriteriaChecker.of(reader);
   }
 
@@ -351,8 +351,8 @@ public abstract class AbstractPersonTest {
     return check(repository().find(criterion));
   }
 
-  private List<Person> fetch(Repository.Reader<Person, ?> reader) {
-    return Flowable.fromPublisher(((ReactiveRepository.Reader<Person>) reader).fetch()).toList().blockingGet();
+  private List<Person> fetch(Reader<Person, ?> reader) {
+    return Flowable.fromPublisher(((ReactiveReader<Person>) reader).fetch()).toList().blockingGet();
   }
 
 }

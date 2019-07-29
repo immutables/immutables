@@ -26,12 +26,12 @@ import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
-public final class InternalWatcher<T> implements Repository.Watcher<T>, Queryable {
+public final class ReactiveWatcher<T> implements Watcher<T, Publisher<WatchEvent<T>>>, Queryable {
 
   private final Backend backend;
   private final Query query;
 
-  public InternalWatcher(Criterion<?> criteria, Backend backend) {
+  public ReactiveWatcher(Criterion<?> criteria, Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
     this.query = Criterias.toQuery(Objects.requireNonNull(criteria, "criteria"));
   }

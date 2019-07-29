@@ -17,11 +17,9 @@
 package org.immutables.criteria.repository;
 
 /**
- * Access abstractions to a data-source. Read /  Write / Watch features can be added
- * declaratively by implementing special interfaces (eg {@link Readable}).
- *
- * @param <T> entity type
+ * Facet defines property of the repository like readable, writable, watchable etc.
+ * Also used for fine-grained generation of the repository like synchronous / asynchronous reader.
  */
-public interface Repository<T> {
+public interface Facet {
 
 }

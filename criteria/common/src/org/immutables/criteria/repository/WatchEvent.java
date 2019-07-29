@@ -19,7 +19,7 @@ package org.immutables.criteria.repository;
 import java.util.Optional;
 
 /**
- * Defines real-time data change received by {@link Repository.Watcher}.
+ * Defines real-time data change received by {@link Watcher}.
  * Each insert / delete / update will generate a change event.
  *
  * @param <T> entity type

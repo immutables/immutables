@@ -33,28 +33,28 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Simple implementation of reader interface. Keeps immutable query internally.
+ * Reactive implementation of the reader.
  */
-public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Queryable {
+public final class ReactiveReader<T> implements Reader<T, ReactiveReader<T>>, Queryable {
 
   private final Query query;
   private final Backend backend;
 
-  public InternalReader(Criterion<T> criteria, Backend backend) {
+  public ReactiveReader(Criterion<T> criteria, Backend backend) {
     this(Criterias.toQuery(criteria), backend);
   }
 
-  private InternalReader(Query query, Backend backend) {
+  private ReactiveReader(Query query, Backend backend) {
     this.query = Objects.requireNonNull(query, "query");
     this.backend = Objects.requireNonNull(backend, "backend");
   }
 
-  private ReactiveRepository.Reader<T> newReader(Query query) {
-    return new InternalReader<>(query, backend);
+  private ReactiveReader<T> newReader(Query query) {
+    return new ReactiveReader<>(query, backend);
   }
 
   @Override
-  public ReactiveRepository.Reader<T> orderBy(Ordering first, Ordering ... rest) {
+  public ReactiveReader<T> orderBy(Ordering first, Ordering ... rest) {
     final List<Ordering> orderings = new ArrayList<>();
     orderings.add(first);
     orderings.addAll(Arrays.asList(rest));
@@ -65,16 +65,15 @@ public final class InternalReader<T> implements ReactiveRepository.Reader<T>, Qu
   }
 
   @Override
-  public ReactiveRepository.Reader<T> limit(long limit) {
+  public ReactiveReader<T> limit(long limit) {
     return newReader(query.withLimit(limit));
   }
 
   @Override
-  public ReactiveRepository.Reader<T> offset(long offset) {
+  public ReactiveReader<T> offset(long offset) {
     return newReader(query.withOffset(offset));
   }
 
-  @Override
   public Publisher<T> fetch() {
     return backend.execute(Operations.Select.of(query));
   }

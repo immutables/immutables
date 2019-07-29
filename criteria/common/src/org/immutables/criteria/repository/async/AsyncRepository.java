@@ -14,14 +14,27 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository;
+package org.immutables.criteria.repository.async;
+
+import org.immutables.criteria.repository.Repository;
+
+import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
- * Access abstractions to a data-source. Read /  Write / Watch features can be added
- * declaratively by implementing special interfaces (eg {@link Readable}).
+ * Repository based on {@link CompletionStage} (from {@code java.util.concurrent})
  *
  * @param <T> entity type
  */
-public interface Repository<T> {
+public interface AsyncRepository<T> extends Repository<T> {
 
+  interface Reader<T> extends org.immutables.criteria.repository.Reader<T, Reader<T>> {
+
+    CompletionStage<List<T>> fetch();
+
+  }
+
+  interface Readable<T> extends org.immutables.criteria.repository.Readable<T, Reader<T>> {
+
+  }
 }

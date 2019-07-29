@@ -40,13 +40,15 @@ import [starImport];
 
 import com.google.common.collect.ImmutableList;
 
-import org.immutables.criteria.repository.ReactiveRepository;
-import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.repository.InternalReader;
-import org.immutables.criteria.repository.InternalWatcher;
+import org.immutables.criteria.repository.Repository;
+import org.immutables.criteria.repository.ReactiveRepository;
+import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.repository.ReactiveReader;
+import org.immutables.criteria.repository.ReactiveWatcher;
+import org.immutables.criteria.repository.Watcher;
 
 import org.reactivestreams.Publisher;
 
@@ -61,8 +63,9 @@ import java.util.function.Function;
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
 [/if]
-[type.typeDocument.access] class [type.name]Repository implements ReactiveRepository<[type.name]>[output.trim]
-, ReactiveRepository.Readable<[type.name]>[if not type.criteriaRepository.readonly], ReactiveRepository.Writable<[type.name]>[/if][if type.criteriaRepository.watch], ReactiveRepository.Watchable<[type.name]>[/if]
+[type.typeDocument.access] class [type.name]Repository implements Repository<[type.name]>[output.trim]
+, ReactiveRepository.Readable<[type.name]>[if not type.criteriaRepository.readonly], ReactiveRepository.Writable<[type.name]>[/if]
+[if type.criteriaRepository.watch], ReactiveRepository.Watchable<[type.name]>[/if]
  {[/output.trim]
 
 [for a = type.idAttribute]
@@ -83,26 +86,26 @@ import java.util.function.Function;
   /**
    * Find all [type.name](s) given their ids {@code [a.name]}
    */
-  public ReactiveRepository.Reader<[type.name]> findById([a.type] ... [a.name]s) {
+  public ReactiveReader<[type.name]> findById([a.type] ... [a.name]s) {
     return findById(java.util.Arrays.asList([a.name]s));
   }
 
   /**
    * Find all [type.name](s) given their ids {@code [a.name]}
    */
-  public ReactiveRepository.Reader<[type.name]> findById(Iterable<? extends [a.type]> [a.name]s) {
+  public ReactiveReader<[type.name]> findById(Iterable<? extends [a.type]> [a.name]s) {
     return find([type.name]Criteria.[toLower type.name].[a.name].isIn([a.name]s));
   }
 [/if]
 [/for]
 
   @Override
-  public ReactiveRepository.Reader<[type.name]> find(Criterion<[type.name]> criteria) {
-    return new InternalReader<>(criteria, backend);
+  public ReactiveReader<[type.name]> find(Criterion<[type.name]> criteria) {
+    return new ReactiveReader<>(criteria, backend);
   }
 
   @Override
-  public ReactiveRepository.Reader<[type.name]> findAll() {
+  public ReactiveReader<[type.name]> findAll() {
     return find([type.name]Criteria.[toLower type.name]);
   }
 
@@ -126,11 +129,10 @@ import java.util.function.Function;
 
 [if type.criteriaRepository.watch]
   @Override
-  public ReactiveRepository.Watcher<[type.name]> watcher(Criterion<[type.name]> criteria) {
-    return new InternalWatcher<>(criteria, backend);
+  public ReactiveWatcher<[type.name]> watcher(Criterion<[type.name]> criteria) {
+    return new ReactiveWatcher<>(criteria, backend);
   }
 [/if]
-
 }
 
 [/template]

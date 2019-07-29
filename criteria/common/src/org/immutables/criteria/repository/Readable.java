@@ -16,12 +16,17 @@
 
 package org.immutables.criteria.repository;
 
+import org.immutables.criteria.Criterion;
+
 /**
- * Access abstractions to a data-source. Read /  Write / Watch features can be added
- * declaratively by implementing special interfaces (eg {@link Readable}).
- *
+ * Means repository can perform find operations (similar to SQL {@code SELECT} statement)
  * @param <T> entity type
+ * @param <R> self-type of reader
  */
-public interface Repository<T> {
+public interface Readable<T, R extends Reader<T, R>> extends Facet {
+
+  R find(Criterion<T> criteria);
+
+  R findAll();
 
 }
