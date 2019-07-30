@@ -120,7 +120,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   private String rawTypeName;
 
   @Nullable
-  private CriteriaModel criteriaModel;
+  private AttributeCriteria attributeCriteria;
 
   public String name() {
     return names.var;
@@ -129,11 +129,11 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
   /**
    * Expose criteria metadata like list of matchers for current attribute.
    */
-  public CriteriaModel criteria() {
-    CriteriaModel model = criteriaModel;
+  public AttributeCriteria criteria() {
+    AttributeCriteria model = attributeCriteria;
     if (model == null) {
-      model = new CriteriaModel(this);
-      criteriaModel = model;
+      model = new AttributeCriteria(this);
+      attributeCriteria = model;
     }
 
     return model;
