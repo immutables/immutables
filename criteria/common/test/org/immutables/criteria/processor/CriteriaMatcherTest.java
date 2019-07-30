@@ -30,7 +30,7 @@ import java.util.TimeZone;
 
 import static org.immutables.check.Checkers.check;
 
-public class AttributeCriteriaTest {
+public class CriteriaMatcherTest {
 
   @Rule
   public final ProcessorRule rule = new ProcessorRule();

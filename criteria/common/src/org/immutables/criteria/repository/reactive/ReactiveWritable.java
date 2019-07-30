@@ -19,14 +19,13 @@ package org.immutables.criteria.repository.reactive;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.repository.Writable;
 import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 import java.util.function.Function;
 
-public class ReactiveWritable<T> implements Writable<T, Publisher<WriteResult>> {
+public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
 
   final Backend backend;
 

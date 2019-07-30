@@ -30,6 +30,8 @@ public final class CriteriaMirrors {
     boolean readonly() default false;
 
     boolean watch() default false;
+
+    Class<?>[] facets() default {};
   }
 
   @Mirror.Annotation("org.immutables.criteria.Criteria.Id")
