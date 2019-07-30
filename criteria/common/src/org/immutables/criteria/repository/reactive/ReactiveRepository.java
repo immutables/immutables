@@ -23,18 +23,12 @@ import org.reactivestreams.Publisher;
  * Repository based on <a href="https://www.reactive-streams.org/">Reactive Streams</a>.
  * All final operations will return {@link Publisher}.
  */
-public class ReactiveRepository {
+public interface ReactiveRepository {
 
-  public interface Readable<T> extends org.immutables.criteria.repository.Readable<T, ReactiveReader<T>> {
+  interface Readable<T> extends org.immutables.criteria.repository.Readable<T, ReactiveReader<T>> { }
 
-  }
+  interface Writable<T> extends org.immutables.criteria.repository.Writable<T, Publisher<WriteResult>> { }
 
-  public interface Writable<T> extends org.immutables.criteria.repository.Writable<T, Publisher<WriteResult>> {
-
-  }
-
-  public interface Watchable<T> extends org.immutables.criteria.repository.Watchable<T, ReactiveWatcher<T>> {
-
-  }
+  interface Watchable<T> extends org.immutables.criteria.repository.Watchable<T, ReactiveWatcher<T>> { }
 
 }

@@ -41,6 +41,7 @@ import [starImport];
 import com.google.common.collect.ImmutableList;
 
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.repository.Repository;
@@ -101,7 +102,7 @@ import java.util.function.Function;
 
   @Override
   public ReactiveReader<[type.name]> find(Criterion<[type.name]> criteria) {
-    return new ReactiveReader<>(criteria, backend);
+    return new ReactiveReader<>(Criterias.toQuery(criteria), backend);
   }
 
   @Override

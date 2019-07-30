@@ -19,6 +19,10 @@ package org.immutables.criteria.personmodel;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.repository.reactive.ReactiveReadable;
+import org.immutables.criteria.repository.reactive.ReactiveWritable;
+import org.immutables.criteria.repository.sync.SyncRepository;
+import org.immutables.criteria.repository.sync.SyncWritable;
 import org.immutables.value.Value;
 
 import java.io.Serializable;
@@ -34,7 +38,7 @@ import java.util.Set;
  */
 @Value.Immutable
 @Criteria
-@Criteria.Repository(watch = true)
+@Criteria.Repository(watch = true, facets = {ReactiveReadable.class, ReactiveWritable.class})
 @JsonSerialize(as = ImmutablePerson.class)
 @JsonDeserialize(as = ImmutablePerson.class)
 public interface Person extends Serializable // serializable needed for Geode temporarily

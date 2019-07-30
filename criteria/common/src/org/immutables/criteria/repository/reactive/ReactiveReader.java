@@ -16,8 +16,6 @@
 
 package org.immutables.criteria.repository.reactive;
 
-import org.immutables.criteria.Criterias;
-import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Collation;
@@ -41,11 +39,7 @@ public final class ReactiveReader<T> implements Reader<T, ReactiveReader<T>>, Qu
   private final Query query;
   private final Backend backend;
 
-  public ReactiveReader(Criterion<T> criteria, Backend backend) {
-    this(Criterias.toQuery(criteria), backend);
-  }
-
-  private ReactiveReader(Query query, Backend backend) {
+  public ReactiveReader(Query query, Backend backend) {
     this.query = Objects.requireNonNull(query, "query");
     this.backend = Objects.requireNonNull(backend, "backend");
   }

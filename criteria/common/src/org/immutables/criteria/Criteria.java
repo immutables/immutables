@@ -16,6 +16,8 @@
 
 package org.immutables.criteria;
 
+import org.immutables.criteria.repository.Facet;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -76,6 +78,12 @@ public @interface Criteria {
      * watchable interfaces.
      */
     boolean watch() default false;
+
+    /**
+     * Allows defining repository properties like readable / writable / watchable etc.
+     * @return list of facets the repository should support
+     */
+    Class<? extends Facet>[] facets() default {};
   }
 
 
