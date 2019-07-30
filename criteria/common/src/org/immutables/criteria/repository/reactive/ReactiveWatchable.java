@@ -16,32 +16,22 @@
 
 package org.immutables.criteria.repository.reactive;
 
-import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.expression.Query;
 
 import java.util.Objects;
 
-public class ReactiveReadable<T> implements ReactiveRepository.Readable<T> {
+public class ReactiveWatchable<T> implements ReactiveRepository.Watchable<T> {
 
-  private final Query query;
   private final Backend backend;
 
-  public ReactiveReadable(Class<?> entity, Backend backend) {
-    Objects.requireNonNull(entity, "entity");
-    this.query = Query.of(entity);
-    this.backend = backend;
+  public ReactiveWatchable(Backend backend) {
+    this.backend = Objects.requireNonNull(backend, "backend");
   }
 
   @Override
-  public ReactiveReader<T> find(Criterion<T> criteria) {
-    return new ReactiveReader<>(Criterias.toQuery(criteria), backend);
-  }
-
-  @Override
-  public ReactiveReader<T> findAll() {
-    return new ReactiveReader<>(query, backend);
+  public ReactiveWatcher<T> watcher(Criterion<T> criteria) {
+    return new ReactiveWatcher<>(criteria, backend);
   }
 
 }

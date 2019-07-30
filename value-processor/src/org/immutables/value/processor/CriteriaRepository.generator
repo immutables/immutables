@@ -65,10 +65,7 @@ import java.util.function.Function;
 @javax.annotation.concurrent.ThreadSafe
 [/if]
 [type.typeDocument.access] class [type.name]Repository implements Repository<[type.name]>[output.trim]
-, ReactiveRepository.Readable<[type.name]>[if not type.criteriaRepository.readonly], ReactiveRepository.Writable<[type.name]>[/if]
-[if type.criteriaRepository.watch], ReactiveRepository.Watchable<[type.name]>[/if]
- {[/output.trim]
-
+[for facet in type.criteriaRepository.facets], [facet.interfaceType][/for] {[/output.trim]
 [for a = type.idAttribute]
 [if a]
   /** Function to extract {@code [a.name]} attribute from {@link [type.name]} */
@@ -78,8 +75,15 @@ import java.util.function.Function;
 
   private final Backend backend;
 
+  [for facet in type.criteriaRepository.facets]
+  private final [facet.fieldType] [facet.name];
+  [/for]
+
   public [type.name]Repository(Backend backend) {
-     this.backend = Objects.requireNonNull(backend, "backend");
+    this.backend = Objects.requireNonNull(backend, "backend");
+    [for facet in type.criteriaRepository.facets]
+    this.[facet.name] = new [facet.fieldType]([if facet.name eq 'readable'][type.name].class, [/if]backend);
+    [/for]
   }
 
 [for a = type.idAttribute]
@@ -102,12 +106,12 @@ import java.util.function.Function;
 
   @Override
   public ReactiveReader<[type.name]> find(Criterion<[type.name]> criteria) {
-    return new ReactiveReader<>(Criterias.toQuery(criteria), backend);
+    return readable.find(criteria);
   }
 
   @Override
   public ReactiveReader<[type.name]> findAll() {
-    return find([type.name]Criteria.[toLower type.name]);
+    return readable.findAll();
   }
 
 [if not type.criteriaRepository.readonly]
@@ -117,21 +121,21 @@ import java.util.function.Function;
   [if a]
     return backend.execute(Operations.Insert.ofKeyed(docs, ID_EXTRACTOR));
   [else]
-    return backend.execute(Operations.Insert.ofValues(docs));
+    return writable.insert(docs);
   [/if]
   [/for]
   }
 
   @Override
   public Publisher<WriteResult> delete(Criterion<[type.name]> criteria) {
-    return backend.execute(Operations.Delete.of(criteria));
+    return writable.delete(criteria);
   }
 [/if]
 
 [if type.criteriaRepository.watch]
   @Override
   public ReactiveWatcher<[type.name]> watcher(Criterion<[type.name]> criteria) {
-    return new ReactiveWatcher<>(criteria, backend);
+    return watchable.watcher(criteria);
   }
 [/if]
 }

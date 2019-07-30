@@ -52,6 +52,9 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+
 import org.immutables.generator.Output;
 import org.immutables.generator.SourceExtraction;
 import org.immutables.generator.TypeHierarchyCollector;
@@ -445,8 +448,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.protoclass().repository().get();
   }
 
-  public CriteriaMirrors.CriteriaRepository getCriteriaRepository() {
-    return constitution.protoclass().criteriaRepository().get();
+  public ValueTypeRepository getCriteriaRepository() {
+    return new ValueTypeRepository(this);
   }
 
   public boolean isAnnotationType() {

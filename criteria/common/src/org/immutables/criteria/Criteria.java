@@ -17,6 +17,9 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.repository.Facet;
+import org.immutables.criteria.repository.reactive.ReactiveReadable;
+import org.immutables.criteria.repository.reactive.ReactiveRepository;
+import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -56,7 +59,6 @@ public @interface Criteria {
    */
   @Documented
   @Target(ElementType.TYPE)
-  @Retention(RetentionPolicy.SOURCE)
   @interface Repository {
 
     /**
@@ -83,7 +85,7 @@ public @interface Criteria {
      * Allows defining repository properties like readable / writable / watchable etc.
      * @return list of facets the repository should support
      */
-    Class<? extends Facet>[] facets() default {};
+    Class<? extends Facet>[] facets() default {ReactiveReadable.class, ReactiveWritable.class};
   }
 
 
