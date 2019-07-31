@@ -21,12 +21,13 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.common.io.Resources;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Scanner;
 import javax.annotation.processing.Filer;
 import javax.tools.StandardLocation;
 
@@ -62,7 +63,7 @@ public final class ExtensionLoader {
           Enumeration<URL> resources = classLoader.getResources(resource);
           while (resources.hasMoreElements()) {
             URL nextElement = resources.nextElement();
-            String lines = Resources.toString(nextElement, StandardCharsets.UTF_8);
+            String lines = getClasspathResourceText(nextElement);
             extensions.addAll(RESOURCE_SPLITTER.splitToList(lines));
           }
         } catch (RuntimeException | IOException cannotReadAnnotationProcessingClasspath) {
@@ -79,4 +80,12 @@ public final class ExtensionLoader {
         .getCharContent(true)
         .toString();
   }
+  
+    private static String getClasspathResourceText(URL requestURL) throws IOException {
+        URLConnection connection = requestURL.openConnection();
+        connection.setUseCaches(false);
+        try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8.toString()).useDelimiter("\\A")) {
+            return scanner.hasNext() ? scanner.next() : "";
+        }
+    }
 }
