@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package org.immutables.value.processor.meta;
+package org.immutables.criteria.processor;
 
-import com.google.common.base.Optional;
+import org.immutables.value.processor.meta.AttributeCriteria;
+import org.immutables.value.processor.meta.ProcessorRule;
+import org.immutables.value.processor.meta.ValueAttribute;
+import org.immutables.value.processor.meta.ValueType;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.TimeZone;
 
 import static org.immutables.check.Checkers.check;
@@ -125,8 +130,9 @@ public class AttributeCriteriaTest {
      String string();
      Optional<String> optionalString();
      List<String> stringList();
+
      int integer();
-     Optional<Integer> optionalInteger();
+     OptionalInt optionalInteger();
 
      boolean booleanValue();
      Optional<Boolean> optionalBoolean();
