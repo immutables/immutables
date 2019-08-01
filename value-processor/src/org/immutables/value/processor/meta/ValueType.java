@@ -91,6 +91,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   public int defaultAttributesCount;
   public int derivedAttributesCount;
 
+  private ValueTypeRepository valueTypeRepository;
+
   public Generics generics() {
     return constitution.generics();
   }
@@ -449,7 +451,11 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
   }
 
   public ValueTypeRepository getCriteriaRepository() {
-    return new ValueTypeRepository(this);
+    if (valueTypeRepository == null) {
+      valueTypeRepository = new ValueTypeRepository(this);
+    }
+
+    return valueTypeRepository;
   }
 
   public boolean isAnnotationType() {

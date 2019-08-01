@@ -17,6 +17,7 @@
 package org.immutables.value.processor.meta;
 
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.SimpleElementVisitor7;
 
@@ -48,6 +49,34 @@ public final class MoreElements {
   public static TypeElement asType(Element element) {
     return element.accept(TypeElementVisitor.INSTANCE, null);
   }
+
+  /**
+   * Returns the given {@link Element} instance as {@link ExecutableElement}.
+   *
+   * <p>This method is functionally equivalent to an {@code instanceof} check and a cast, but should
+   * always be used over that idiom as instructed in the documentation for {@link Element}.
+   *
+   * @throws IllegalArgumentException if {@code element} isn't a {@link ExecutableElement}.
+   */
+  public static ExecutableElement asExecutable(Element element) {
+    return element.accept(ExecutableElementVisitor.INSTANCE, null);
+  }
+
+
+  private static final class ExecutableElementVisitor
+          extends AbstractVisitor<ExecutableElement> {
+    private static final ExecutableElementVisitor INSTANCE = new ExecutableElementVisitor();
+
+    ExecutableElementVisitor() {
+      super("executable element");
+    }
+
+    @Override
+    public ExecutableElement visitExecutable(ExecutableElement e, Void label) {
+      return e;
+    }
+  }
+
 
   private static final class TypeElementVisitor extends AbstractVisitor<TypeElement> {
     private static final TypeElementVisitor INSTANCE = new TypeElementVisitor();
