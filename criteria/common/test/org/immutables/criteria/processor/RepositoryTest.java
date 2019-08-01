@@ -45,6 +45,17 @@ public class RepositoryTest {
     IntFunction<TypeElement> get = i -> MoreElements.asType(rule.types().asElement(repository.facets().get(i).interfaceType()));
     check(get.apply(0).getQualifiedName().toString()).is(ReactiveRepository.Writable.class.getCanonicalName());
     check(get.apply(1).getQualifiedName().toString()).is(ReactiveRepository.Readable.class.getCanonicalName());
+
+    // writable
+    final ValueTypeRepository.Facet writable = repository.facets().get(0);
+    check(writable.name()).is("writable");
+    check(writable.methods()).notEmpty();
+    check(writable.methods().get(0).parameters()).notEmpty();
+
+    final ValueTypeRepository.Facet readable = repository.facets().get(1);
+    check(readable.name()).is("readable");
+    check(readable.methods()).notEmpty();
+    check(readable.methods().get(0).parameters()).notEmpty();
   }
 
   @ProcessorRule.TestImmutable
