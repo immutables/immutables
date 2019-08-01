@@ -29,23 +29,9 @@ import java.util.List;
  */
 public interface SyncRepository<T> extends Repository<T> {
 
-  /**
-   * Synchronous reader which returns simple list
-   * @param <T> entity type
-   */
-  interface Reader<T> extends org.immutables.criteria.repository.Reader<T, Reader<T>> {
+  interface Readable<T> extends SyncRepository<T>, org.immutables.criteria.repository.Readable<T, SyncReader<T>> { }
 
-    List<T> fetch();
-
-  }
-
-  interface Readable<T> extends SyncRepository<T>, org.immutables.criteria.repository.Readable<T, Reader<T>> {
-
-  }
-
-  interface Writable<T> extends SyncRepository<T>, org.immutables.criteria.repository.Writable<T, WriteResult> {
-
-  }
+  interface Writable<T> extends SyncRepository<T>, org.immutables.criteria.repository.Writable<T, WriteResult> { }
 
 
 }

@@ -18,17 +18,22 @@ package org.immutables.criteria.repository.sync;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 import org.immutables.criteria.repository.WriteResult;
 
 import java.util.Objects;
 
+/**
+ * Blocking write operations on the repository
+ */
 public class SyncWritable<T> implements SyncRepository.Writable<T> {
 
   private final ReactiveWritable<T> writable;
 
-  public SyncWritable(ReactiveWritable<T> writable) {
-    this.writable = Objects.requireNonNull(writable, "writable");
+  public SyncWritable(Backend backend) {
+    Objects.requireNonNull(backend, "backend");
+    this.writable = new ReactiveWritable<>(backend);
   }
 
   @Override

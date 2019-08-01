@@ -18,12 +18,18 @@ package org.immutables.criteria.repository.sync;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.expression.Ordering;
+import org.immutables.criteria.repository.Reader;
+import org.immutables.criteria.repository.Repository;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 
 import java.util.List;
 import java.util.Objects;
 
-public class SyncReader<T> implements SyncRepository.Reader<T> {
+/**
+ * Synchronous (blocking) reader operations.
+ * @param <T> entity type
+ */
+public class SyncReader<T> implements Reader<T, SyncReader<T>> {
 
   private final ReactiveReader<T> reader;
 
@@ -31,23 +37,22 @@ public class SyncReader<T> implements SyncRepository.Reader<T> {
     this.reader = Objects.requireNonNull(reader, "reader");
   }
 
-  @Override
   public List<T> fetch() {
     return Flowable.fromPublisher(reader.fetch()).toList().blockingGet();
   }
 
   @Override
-  public SyncRepository.Reader<T> orderBy(Ordering first, Ordering... rest) {
+  public SyncReader<T>  orderBy(Ordering first, Ordering... rest) {
     return new SyncReader<>(reader.orderBy(first, rest));
   }
 
   @Override
-  public SyncRepository.Reader<T> limit(long limit) {
+  public SyncReader<T>  limit(long limit) {
     return new SyncReader<>(reader.limit(limit));
   }
 
   @Override
-  public SyncRepository.Reader<T> offset(long offset) {
+  public SyncReader<T>  offset(long offset) {
     return new SyncReader<>(reader.offset(offset));
   }
 }
