@@ -52,7 +52,7 @@ public class ElasticsearchBackend implements Backend {
   }
 
   @Override
-  public <T> Publisher<T> execute(Operation<T> query) {
+  public <T> Publisher<T> execute(Operation query) {
     Objects.requireNonNull(query, "query");
     if (query instanceof Operations.KeyedInsert) {
       return (Publisher<T>) keyedInsert((Operations.KeyedInsert<Object, Object>) query);

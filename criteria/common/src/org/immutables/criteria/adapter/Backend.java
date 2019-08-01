@@ -32,13 +32,13 @@ public interface Backend {
    * @param operation operation to be performed on the back-end.
    * @return empty, single, multiple or unbounded event flow
    */
-  <T> Publisher<T> execute(Operation<T> operation);
+  <T> Publisher<T> execute(Operation operation);
 
   /**
    * Generic operation to be executed on the back-end. Typical operations include
    * query, update, delete etc.
    */
-  interface Operation<T> {
+  interface Operation {
 
   }
 

@@ -53,7 +53,7 @@ public class GeodeBackend implements Backend {
   }
 
   @Override
-  public <T> Publisher<T> execute(Operation<T> operation) {
+  public <T> Publisher<T> execute(Operation operation) {
     if (operation instanceof Operations.Select) {
       return query((Operations.Select<T>) operation);
     } else if (operation instanceof Operations.Insert) {
