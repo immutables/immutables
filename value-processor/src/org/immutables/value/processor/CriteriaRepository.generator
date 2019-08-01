@@ -66,12 +66,6 @@ import java.util.function.Function;
 [/if]
 [type.typeDocument.access] class [type.name]Repository implements Repository<[type.name]>[output.trim]
 [for facet in type.criteriaRepository.facets], [facet.interfaceType][/for] {[/output.trim]
-[for a = type.idAttribute]
-[if a]
-  /** Function to extract {@code [a.name]} attribute from {@link [type.name]} */
-  private static final Function<? super [type.name], [a.type]> ID_EXTRACTOR = [type.name]::[a.name];
-[/if]
-[/for]
 
   private final Backend backend;
 
@@ -117,13 +111,7 @@ import java.util.function.Function;
 [if not type.criteriaRepository.readonly]
   @Override
   public Publisher<WriteResult> insert(Iterable<? extends [type.name]> docs) {
-  [for a = type.idAttribute]
-  [if a]
-    return backend.execute(Operations.Insert.ofKeyed(docs, ID_EXTRACTOR));
-  [else]
     return writable.insert(docs);
-  [/if]
-  [/for]
   }
 
   @Override

@@ -26,6 +26,7 @@ import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Expression;
@@ -37,8 +38,10 @@ import org.reactivestreams.Publisher;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -77,18 +80,16 @@ public class GeodeBackend implements Backend {
   }
 
   private <T> Flowable<WriteResult> insert(Operations.Insert<T> op) {
-    if (!(op instanceof Operations.KeyedInsert)) {
-      throw new UnsupportedOperationException(
-              String.format("%s supports only %s. Did you define a key (@%s) on your domain class ?",
-              GeodeBackend.class.getSimpleName(),
-              Operations.KeyedInsert.class.getSimpleName(),
-              Criteria.Id.class.getName()));
+    if (op.values().isEmpty()) {
+      return Flowable.just(UnknownWriteResult.INSTANCE);
     }
-
-    final Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
+    
+    // TODO cache id extractor
+    final Function<T, Object> idExtractor = Backends.idExtractor((Class<T>)op.values().get(0).getClass());
+    final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
     final Region<Object, T> region = (Region<Object, T>) this.region;
     return Flowable.fromCallable(() -> {
-      region.putAll(insert.toMap());
+      region.putAll(toInsert);
       return UnknownWriteResult.INSTANCE;
     });
   }

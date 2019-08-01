@@ -23,11 +23,10 @@ import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
 
-  final Backend backend;
+  private final Backend backend;
 
   public ReactiveWritable(Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
@@ -43,25 +42,4 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
     return backend.execute(Operations.Delete.of(criteria));
   }
 
-  public <K> ReactiveWritable<T> keyedWith(Function<? super T, K> keyExtractor) {
-    return new KeyedWriter<K, T>(backend, keyExtractor);
-  }
-
-  /**
-   * Writes entries having a key
-   */
-  private static class KeyedWriter<K, T> extends ReactiveWritable<T> {
-
-    private final Function<? super T, K> keyExtractor;
-
-    private KeyedWriter(Backend backend, Function<? super T, K> keyExtractor) {
-      super(backend);
-      this.keyExtractor = Objects.requireNonNull(keyExtractor, "keyExtractor");
-    }
-
-    @Override
-    public Publisher<WriteResult> insert(Iterable<? extends T> docs) {
-      return backend.execute(Operations.Insert.ofKeyed(docs, keyExtractor));
-    }
-  }
 }

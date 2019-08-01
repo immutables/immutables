@@ -18,6 +18,7 @@ package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
@@ -28,6 +29,7 @@ import org.reactivestreams.Publisher;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,18 +87,16 @@ public class InMemoryBackend implements Backend {
   }
 
   private <T> Publisher<WriteResult> insert(Operations.Insert<T> op) {
-    if (!(op instanceof Operations.KeyedInsert)) {
-      throw new UnsupportedOperationException(
-              String.format("%s supports only %s. Did you define a key (@%s) on your domain class ?",
-                      InMemoryBackend.class.getSimpleName(),
-                      Operations.KeyedInsert.class.getSimpleName(),
-                      Criteria.Id.class.getName()));
+    if (op.values().isEmpty()) {
+      return Flowable.just(UnknownWriteResult.INSTANCE);
     }
 
-    final Operations.KeyedInsert<?, T> insert = (Operations.KeyedInsert<?, T>) op;
+    // TODO cache id extractor
+    final Function<T, Object> idExtractor = Backends.idExtractor((Class<T>)op.values().get(0).getClass());
+    final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
     final Map<Object, T> store = (Map<Object, T>) this.store;
     return Flowable.fromCallable(() -> {
-      store.putAll(insert.toMap());
+      store.putAll(toInsert);
       return UnknownWriteResult.INSTANCE;
     });
 
