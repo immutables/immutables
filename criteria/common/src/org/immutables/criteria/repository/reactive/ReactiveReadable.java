@@ -28,7 +28,7 @@ public class ReactiveReadable<T> implements ReactiveRepository.Readable<T> {
   private final Query query;
   private final Backend backend;
 
-  public ReactiveReadable(Class<?> entity, Backend backend) {
+  public ReactiveReadable(Class<T> entity, Backend backend) {
     Objects.requireNonNull(entity, "entity");
     this.query = Query.of(entity);
     this.backend = backend;

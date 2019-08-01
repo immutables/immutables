@@ -76,7 +76,9 @@ import java.util.function.Function;
   public [type.name]Repository(Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
     [for facet in type.criteriaRepository.facets]
-    this.[facet.name] = new [facet.fieldType]([if facet.name eq 'readable'][type.name].class, [/if]backend);
+    [if not facet.constructor.empty]
+    [facet.constructor.code];
+    [/if]
     [/for]
   }
 
@@ -98,34 +100,15 @@ import java.util.function.Function;
 [/if]
 [/for]
 
-  @Override
-  public ReactiveReader<[type.name]> find(Criterion<[type.name]> criteria) {
-    return readable.find(criteria);
-  }
+[for facet in type.criteriaRepository.facets]
+[for method in facet.methods]
 
   @Override
-  public ReactiveReader<[type.name]> findAll() {
-    return readable.findAll();
+  public [method.returnType] [method.name]([method.parameters]) {
+     [method.body]
   }
-
-[if not type.criteriaRepository.readonly]
-  @Override
-  public Publisher<WriteResult> insert(Iterable<? extends [type.name]> docs) {
-    return writable.insert(docs);
-  }
-
-  @Override
-  public Publisher<WriteResult> delete(Criterion<[type.name]> criteria) {
-    return writable.delete(criteria);
-  }
-[/if]
-
-[if type.criteriaRepository.watch]
-  @Override
-  public ReactiveWatcher<[type.name]> watcher(Criterion<[type.name]> criteria) {
-    return watchable.watcher(criteria);
-  }
-[/if]
+[/for]
+[/for]
 }
 
 [/template]
