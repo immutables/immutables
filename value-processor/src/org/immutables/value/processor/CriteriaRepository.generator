@@ -117,13 +117,7 @@ import java.util.function.Function;
 [if not type.criteriaRepository.readonly]
   @Override
   public Publisher<WriteResult> insert(Iterable<? extends [type.name]> docs) {
-  [for a = type.idAttribute]
-  [if a]
-    return backend.execute(Operations.Insert.ofKeyed(docs, ID_EXTRACTOR));
-  [else]
     return writable.insert(docs);
-  [/if]
-  [/for]
   }
 
   @Override

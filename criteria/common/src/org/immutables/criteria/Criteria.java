@@ -41,7 +41,7 @@ public @interface Criteria {
    * Marks attribute as id (primary key) for a particular class.
    */
   @Documented
-  @Target(ElementType.METHOD)
+  @Target({ElementType.METHOD, ElementType.FIELD})
   @Retention(RetentionPolicy.RUNTIME)
   @interface Id {}
 

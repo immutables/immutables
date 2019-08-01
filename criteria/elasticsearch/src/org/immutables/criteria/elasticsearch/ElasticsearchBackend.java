@@ -21,15 +21,17 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
-import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.repository.UnknownWriteResult;
+import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -54,8 +56,8 @@ public class ElasticsearchBackend implements Backend {
   @Override
   public <T> Publisher<T> execute(Operation query) {
     Objects.requireNonNull(query, "query");
-    if (query instanceof Operations.KeyedInsert) {
-      return (Publisher<T>) keyedInsert((Operations.KeyedInsert<Object, Object>) query);
+    if (query instanceof Operations.Insert) {
+      return (Publisher<T>) insert((Operations.Insert<Object>) query);
     } else if (query instanceof Operations.Select) {
       return select((Operations.Select<T>) query);
     }
@@ -88,10 +90,15 @@ public class ElasticsearchBackend implements Backend {
     return flowable;
   }
 
-  private Publisher<WriteResult> keyedInsert(Operations.KeyedInsert<Object, Object> insert) {
+  private Publisher<WriteResult> insert(Operations.Insert<Object> insert) {
+    if (insert.values().isEmpty()) {
+      return Flowable.just(UnknownWriteResult.INSTANCE);
+    }
 
-    List<ObjectNode> docs = insert.entries().stream()
-            .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e.getValue())).set("_id", mapper.valueToTree(e.getKey())))
+    // TODO cache idExtractor
+    final Function<Object, Object> idExtractor = Backends.idExtractor((Class<Object>)insert.values().get(0).getClass());
+    final List<ObjectNode> docs = insert.values().stream()
+            .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e)).set("_id", mapper.valueToTree(idExtractor.apply(e))))
             .collect(Collectors.toList());
 
     return Flowable.fromCallable(() -> {

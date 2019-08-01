@@ -22,12 +22,7 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Query;
 import org.immutables.value.Value;
 
-import java.util.AbstractMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * List of default operations which can be executed on the backend
@@ -65,49 +60,6 @@ public final class Operations {
       return ImmutableInsert.<V>builder().values(ImmutableList.copyOf(values)).build();
     }
 
-    /**
-     * Create an insert where objects have ID.
-     */
-    static <K, V> KeyedInsert<K, V> ofEntries(Iterable<Map.Entry<K, V>> entries) {
-      return ImmutableKeyedInsert.<K, V>builder().entries(entries).build();
-    }
-
-    /**
-     * Extract IDs using provided functions and create Insert with {@link #ofEntries(Iterable)} ()}.
-     */
-    static <K, V> KeyedInsert<K, V> ofKeyed(Iterable<V> iterable, Function<? super V, K> keyExtractor) {
-      final List<Map.Entry<K, V>> entries = StreamSupport.stream(iterable.spliterator(), false)
-              .map(d -> new AbstractMap.SimpleImmutableEntry<>(keyExtractor.apply(d), d))
-              .collect(Collectors.toList());
-
-      return ofEntries(entries);
-    }
-  }
-
-  /**
-   * Insert operation for a set of objects which have keys (aka {@code ID}). This is usually used
-   * for key-value stores (like Geode / {@link java.util.concurrent.ConcurrentMap}) where one needs
-   * to provide key explicitly (like {@link Map#put(Object, Object)} in API.
-   *
-   * @param <K> key type of the key
-   * @param <V> value type of the value
-   */
-  @Value.Immutable
-  public interface KeyedInsert<K, V> extends Insert<V> {
-
-    List<Map.Entry<K, V>> entries();
-
-    /**
-     * Convert events to a map (assumes no duplicate keys)
-     */
-    default Map<K, V> toMap() {
-      return entries().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    @Override
-    default List<V> values() {
-      return entries().stream().map(Map.Entry::getValue).collect(Collectors.toList());
-    }
   }
 
   /**
