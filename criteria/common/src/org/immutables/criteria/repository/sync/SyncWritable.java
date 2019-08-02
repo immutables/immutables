@@ -18,8 +18,8 @@ package org.immutables.criteria.repository.sync;
 
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
@@ -31,9 +31,9 @@ public class SyncWritable<T> implements SyncRepository.Writable<T> {
 
   private final ReactiveWritable<T> writable;
 
-  public SyncWritable(Backend backend) {
-    Objects.requireNonNull(backend, "backend");
-    this.writable = new ReactiveWritable<>(backend);
+  public SyncWritable(Backend.Session session) {
+    Objects.requireNonNull(session, "backend");
+    this.writable = new ReactiveWritable<>(session);
   }
 
   @Override

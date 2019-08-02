@@ -19,7 +19,7 @@ For more details look at [JacksonCodecs](https://github.com/immutables/immutable
 Snippet from mongo integration tests.
  
 ```java
-// setup Jackson serializer (it will be exposed as CodecRegistry)
+// parameters Jackson serializer (it will be exposed as CodecRegistry)
 final ObjectMapper mapper = new ObjectMapper()
           // allow java.time.* classes to be serialized in BSON native types: date / timestamp
          .registerModule(JacksonCodecs.module(new Jsr310CodecProvider())) 

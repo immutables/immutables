@@ -43,6 +43,7 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.Repository;
@@ -75,6 +76,10 @@ import java.util.function.Function;
 
   public [type.name]Repository(Backend backend) {
     this.backend = Objects.requireNonNull(backend, "backend");
+    [if not type.criteriaRepository.facets.empty]
+    [-- create session when there are some facets --]
+    final Backend.Session session = backend.open(EntityContext.of([type.typeDocument].class));
+    [/if]
     [for facet in type.criteriaRepository.facets]
     [if not facet.constructor.empty]
     [facet.constructor.code];

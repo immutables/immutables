@@ -27,6 +27,7 @@ import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
@@ -77,11 +78,12 @@ public class MongoPersonTest extends AbstractPersonTest {
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
 
+    CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
     this.collection = database.getCollection(COLLECTION_NAME)
             .withDocumentClass(Person.class)
-            .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
+            .withCodecRegistry(registry);
 
-    this.backend = new MongoBackend(this.collection);
+    this.backend = new MongoBackend(x -> collection);
     this.repository = new PersonRepository(backend);
   }
 

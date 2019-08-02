@@ -30,21 +30,21 @@ import java.util.Objects;
 public class SyncReadable<T> implements SyncRepository.Readable<T> {
 
   private final Query query;
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public SyncReadable(Class<T> entityClass, Backend backend) {
+  public SyncReadable(Class<T> entityClass, Backend.Session backend) {
     Objects.requireNonNull(entityClass, "entityClass");
     this.query = Query.of(entityClass);
-    this.backend = Objects.requireNonNull(backend, "backend");
+    this.session = Objects.requireNonNull(backend, "session");
   }
 
   @Override
   public SyncReader<T> find(Criterion<T> criteria) {
-    return new SyncReader<>(Criterias.toQuery(criteria), backend);
+    return new SyncReader<>(Criterias.toQuery(criteria), session);
   }
 
   @Override
   public SyncReader<T> findAll() {
-    return new SyncReader<>(query, backend);
+    return new SyncReader<>(query, session);
   }
 }

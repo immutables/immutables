@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.mongo;
 
-import org.immutables.criteria.Criterion;
-import org.immutables.criteria.backend.Backend;
+import com.mongodb.reactivestreams.client.MongoCollection;
 
-import java.util.Objects;
+public interface CollectionResolver {
 
-public class RxJavaWatchable<T> implements RxJavaRepository.Watchable<T> {
-
-  private final Backend.Session session;
-
-  public RxJavaWatchable(Backend.Session session) {
-    this.session = Objects.requireNonNull(session, "session");
-  }
-
-  @Override
-  public RxJavaWatcher<T> watcher(Criterion<T> criteria) {
-    return new RxJavaWatcher<T>(criteria, session);
-  }
+  /**
+   * Given entity class return appropriate collection
+   */
+  MongoCollection<?> resolve(Class<?> type);
 
 }

@@ -52,7 +52,8 @@ public class ScrollingTest {
 
   @BeforeClass
   public static void elasticseachInit() throws Exception {
-    final ElasticsearchOps ops = ops();
+    ElasticsearchBackend backend = backend();
+    final ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.mapper, 1024);
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
@@ -72,17 +73,17 @@ public class ScrollingTest {
     }
   }
 
-  private static ElasticsearchOps ops() {
-    return ops(1024);
+  private static ElasticsearchBackend backend() {
+    return backend(1024);
   }
 
-  private static ElasticsearchOps ops(int scrollSize) {
-    return new ElasticsearchOps(RESOURCE.restClient(), "test", MAPPER, scrollSize);
+  private static ElasticsearchBackend backend(int scrollSize) {
+    return new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, x -> "test", scrollSize);
   }
 
   @Test
   public void noLimit() throws Exception {
-    ElasticModelRepository repository = new ElasticModelRepository(new ElasticsearchBackend(ops(1024)));
+    ElasticModelRepository repository = new ElasticModelRepository(backend(1024));
 
     CriteriaChecker.of(repository.findAll())
             .toList(ElasticModel::string)
@@ -105,7 +106,7 @@ public class ScrollingTest {
     final int[] samples = {1, 2, 3, SIZE - 1, SIZE, SIZE + 1, 2 * SIZE, SIZE * SIZE};
     for (int scrollSize: samples) {
       for (int limit: samples) {
-        ElasticModelRepository repository = new ElasticModelRepository(new ElasticsearchBackend(ops(scrollSize)));
+        ElasticModelRepository repository = new ElasticModelRepository(backend(scrollSize));
         final int expected = Math.min(SIZE, limit);
 
         // with limit
@@ -142,7 +143,7 @@ public class ScrollingTest {
             .performRequest(new Request("GET", "/_nodes/stats/indices/search"));
 
     try (InputStream is = response.getEntity().getContent()) {
-      final ObjectNode node = ops().mapper().readValue(is, ObjectNode.class);
+      final ObjectNode node = backend().mapper.readValue(is, ObjectNode.class);
       final String path = "/indices/search/scroll_current";
       final JsonNode scrollCurrent = node.with("nodes").elements().next().at(path);
       if (scrollCurrent.isMissingNode()) {

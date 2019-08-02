@@ -30,17 +30,17 @@ import java.util.Objects;
 
 public final class ReactiveWatcher<T> implements Watcher<T, Publisher<WatchEvent<T>>>, Queryable {
 
-  private final Backend backend;
+  private final Backend.Session session;
   private final Query query;
 
-  public ReactiveWatcher(Criterion<?> criteria, Backend backend) {
-    this.backend = Objects.requireNonNull(backend, "backend");
+  public ReactiveWatcher(Criterion<?> criteria, Backend.Session session) {
+    this.session = Objects.requireNonNull(session, "backend");
     this.query = Criterias.toQuery(Objects.requireNonNull(criteria, "criteria"));
   }
 
   @Override
   public Publisher<WatchEvent<T>> watch() {
-    return backend.execute(ImmutableWatch.of(query));
+    return session.execute(ImmutableWatch.of(query));
   }
 
   @Override

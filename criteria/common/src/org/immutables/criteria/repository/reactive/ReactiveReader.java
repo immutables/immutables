@@ -28,16 +28,16 @@ import java.util.Objects;
  */
 public final class ReactiveReader<T> extends AbstractReader<T, ReactiveReader<T>>  {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public ReactiveReader(Query query, Backend backend) {
-    super(query, backend);
-    this.backend = Objects.requireNonNull(backend, "backend");
+  public ReactiveReader(Query query, Backend.Session session) {
+    super(query, session);
+    this.session = Objects.requireNonNull(session, "session");
   }
 
   @Override
   protected ReactiveReader<T> newReader(Query query) {
-    return new ReactiveReader<>(query, backend);
+    return new ReactiveReader<>(query, session);
   }
 
   public Publisher<T> fetch() {

@@ -58,10 +58,6 @@ class ElasticsearchOps {
    */
   final int scrollSize;
 
-  ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper) {
-    this(restClient, index, mapper, 1024);
-  }
-
   ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper, int scrollSize) {
     this.restClient = Objects.requireNonNull(restClient, "restClient");
     this.mapper = Objects.requireNonNull(mapper, "mapper");

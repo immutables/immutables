@@ -54,7 +54,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
   @Before
   public void setupRepository() throws Exception {
-    ops = new ElasticsearchOps(ELASTIC.restClient(), INDEX_NAME, MAPPER);
+    ops = new ElasticsearchOps(ELASTIC.restClient(), INDEX_NAME, MAPPER, 1024);
 
     // person model
     // TODO automatically generate it from Class
@@ -73,7 +73,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
     ops.createIndex(model);
 
-    final ElasticsearchBackend backend = new ElasticsearchBackend(ELASTIC.restClient(), MAPPER, INDEX_NAME);
+    final ElasticsearchBackend backend = new ElasticsearchBackend(ELASTIC.restClient(), MAPPER, x -> INDEX_NAME);
     this.repository = new PersonRepository(backend);
   }
 

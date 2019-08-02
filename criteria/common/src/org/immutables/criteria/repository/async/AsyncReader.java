@@ -27,16 +27,16 @@ import java.util.concurrent.CompletionStage;
 
 public class AsyncReader<T> extends AbstractReader<T, AsyncReader<T>> {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public AsyncReader(Query query, Backend backend) {
-    super(query, backend);
-    this.backend = Objects.requireNonNull(backend, "backend");
+  public AsyncReader(Query query, Backend.Session session) {
+    super(query, session);
+    this.session = Objects.requireNonNull(session, "session");
   }
 
   @Override
   protected AsyncReader<T> newReader(Query query) {
-    return new AsyncReader<>(query, backend);
+    return new AsyncReader<>(query, session);
   }
 
   public CompletionStage<List<T>> fetch() {
