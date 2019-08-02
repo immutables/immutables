@@ -25,6 +25,11 @@ import java.util.OptionalLong;
 public interface WriteResult {
 
   /**
+   * Default instance used when backend doesn't return statistics about a write operation
+   */
+  WriteResult UNKNOWN = new UnknownWriteResult();
+
+  /**
    * Number of records after insert operation
    *
    * @return number of inserted records. empty optional if unknown

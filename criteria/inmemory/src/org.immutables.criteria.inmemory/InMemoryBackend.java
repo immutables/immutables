@@ -17,13 +17,11 @@
 package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
-import org.immutables.criteria.Criteria;
-import org.immutables.criteria.adapter.Backends;
-import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Map;
@@ -88,7 +86,7 @@ public class InMemoryBackend implements Backend {
 
   private <T> Publisher<WriteResult> insert(Operations.Insert<T> op) {
     if (op.values().isEmpty()) {
-      return Flowable.just(UnknownWriteResult.INSTANCE);
+      return Flowable.just(WriteResult.UNKNOWN);
     }
 
     // TODO cache id extractor
@@ -97,7 +95,7 @@ public class InMemoryBackend implements Backend {
     final Map<Object, T> store = (Map<Object, T>) this.store;
     return Flowable.fromCallable(() -> {
       store.putAll(toInsert);
-      return UnknownWriteResult.INSTANCE;
+      return WriteResult.UNKNOWN;
     });
 
   }

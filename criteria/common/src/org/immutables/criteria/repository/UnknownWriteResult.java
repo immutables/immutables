@@ -21,11 +21,9 @@ import java.util.OptionalLong;
 /**
  * Used as a <b>null object</b> if backend can't provide information about a write operation
  */
-public final class UnknownWriteResult implements WriteResult {
+final class UnknownWriteResult implements WriteResult {
 
-  public static final WriteResult INSTANCE = new UnknownWriteResult();
-
-  private UnknownWriteResult() {}
+  UnknownWriteResult() {}
 
   @Override
   public OptionalLong insertedCount() {

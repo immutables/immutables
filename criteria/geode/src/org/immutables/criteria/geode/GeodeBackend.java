@@ -24,11 +24,9 @@ import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
-import org.immutables.criteria.Criteria;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.WatchEvent;
@@ -81,7 +79,7 @@ public class GeodeBackend implements Backend {
 
   private <T> Flowable<WriteResult> insert(Operations.Insert<T> op) {
     if (op.values().isEmpty()) {
-      return Flowable.just(UnknownWriteResult.INSTANCE);
+      return Flowable.just(WriteResult.UNKNOWN);
     }
     
     // TODO cache id extractor
@@ -90,7 +88,7 @@ public class GeodeBackend implements Backend {
     final Region<Object, T> region = (Region<Object, T>) this.region;
     return Flowable.fromCallable(() -> {
       region.putAll(toInsert);
-      return UnknownWriteResult.INSTANCE;
+      return WriteResult.UNKNOWN;
     });
   }
 
@@ -98,7 +96,7 @@ public class GeodeBackend implements Backend {
     if (!op.query().filter().isPresent()) {
       // no filter means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
-              .toSingleDefault(UnknownWriteResult.INSTANCE)
+              .toSingleDefault(WriteResult.UNKNOWN)
               .toFlowable();
     }
 
@@ -108,7 +106,7 @@ public class GeodeBackend implements Backend {
     if (ids.isPresent()) {
       // delete by key: map.remove(key)
       return Completable.fromRunnable(() -> region.removeAll(ids.get()))
-              .toSingleDefault(UnknownWriteResult.INSTANCE)
+              .toSingleDefault(WriteResult.UNKNOWN)
               .toFlowable();
     }
 
@@ -120,7 +118,7 @@ public class GeodeBackend implements Backend {
     return Single.fromCallable(() -> region.getRegionService()
             .getQueryService().newQuery(query).execute(oql.variables().toArray(new Object[0])))
             .flatMapCompletable(list -> Completable.fromRunnable(() -> region.removeAll((Collection<Object>) list)))
-            .toSingleDefault(UnknownWriteResult.INSTANCE)
+            .toSingleDefault(WriteResult.UNKNOWN)
             .toFlowable();
   }
 

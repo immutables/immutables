@@ -25,7 +25,6 @@ import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Backends;
 import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.UnknownWriteResult;
 import org.immutables.criteria.repository.WriteResult;
 import org.reactivestreams.Publisher;
 
@@ -92,7 +91,7 @@ public class ElasticsearchBackend implements Backend {
 
   private Publisher<WriteResult> insert(Operations.Insert<Object> insert) {
     if (insert.values().isEmpty()) {
-      return Flowable.just(UnknownWriteResult.INSTANCE);
+      return Flowable.just(WriteResult.UNKNOWN);
     }
 
     // TODO cache idExtractor
@@ -103,7 +102,7 @@ public class ElasticsearchBackend implements Backend {
 
     return Flowable.fromCallable(() -> {
       ops.insertBulk(docs);
-      return UnknownWriteResult.INSTANCE;
+      return WriteResult.UNKNOWN;
     });
   }
 
