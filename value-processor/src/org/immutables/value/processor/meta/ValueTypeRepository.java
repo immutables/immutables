@@ -135,7 +135,7 @@ public class ValueTypeRepository {
           TypeMirror varType = variable.asType();
           if (types.isSubtype(varType, types.erasure(elements.getTypeElement(Class.class.getCanonicalName()).asType()))) {
             // inject entity class
-            params.add(ValueTypeRepository.this.type.name() + ".class");
+            params.add(ValueTypeRepository.this.type.typeDocument().toString() + ".class");
           } else if (types.isSubtype(varType, elements.getTypeElement(BACKEND).asType())) {
             // inject backend
             params.add("backend");

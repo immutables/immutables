@@ -82,7 +82,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.name]>,
+[type.typeDocument.access] class [type.name]Criteria<R> implements Criterion<[type.typeDocument]>,
             AndMatcher<[type.name]Criteria<R>>, OrMatcher<[type.name]Criteria<R>>,
             NotMatcher<R, [type.name]Criteria.Self>,
             WithMatcher<R, [type.name]Criteria.Self> {
@@ -112,7 +112,7 @@ import [starImport];
       private final CriteriaContext context;
 
       private Private() {
-         this(new CriteriaContext([type.name].class, creator()).withCreators(creator(), creator()));
+         this(new CriteriaContext([type.typeDocument].class, creator()).withCreators(creator(), creator()));
       }
 
       private Private(CriteriaContext context) {
@@ -159,7 +159,7 @@ import [starImport];
 [if (((((a.boolean or (a.type eq 'java.lang.Boolean')) or a.stringType) or a.optionalType) or a.comparable) or a.collectionType)]
 [a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
 [else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria.create(context.withPath([type.name].class, "[a.name]"))
+  [a.unwrappedElementType]Criteria.create(context.withPath([type.typeDocument].class, "[a.name]"))
 [else]
 [a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
 [/if]
@@ -167,17 +167,17 @@ import [starImport];
 
 [template constructorArgs Attribute a Type type][output.trim]
 [if a.hasCriteria]
-  context.withPath([type.name].class, "[a.name]")
+  context.withPath([type.typeDocument].class, "[a.name]")
            .withCreators(ctx -> [type.name]Criteria.create(ctx),
                          ctx -> [a.unwrappedElementType]Criteria.create(ctx))
 
 [else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-  context.withPath([type.name].class, "[a.name]")
+  context.withPath([type.typeDocument].class, "[a.name]")
            .withCreators(ctx -> [type.name]Criteria.create(ctx),
                            [a.criteria.scalarMatcher.enclosing.withoutParameters.toTemplate].creator())
 [else]
   context
-  .withPath([type.name].class, "[a.name]")
+  .withPath([type.typeDocument].class, "[a.name]")
   .withCreators(ctx -> [type.name]Criteria.create(ctx), ctx -> [type.name]Criteria.create(ctx))
 [/if]
 [/output.trim][/template]
