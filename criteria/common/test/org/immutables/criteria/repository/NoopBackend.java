@@ -16,28 +16,31 @@
 
 package org.immutables.criteria.repository;
 
-import org.junit.Test;
+import io.reactivex.Flowable;
+import org.immutables.criteria.adapter.Backend;
+import org.reactivestreams.Publisher;
 
-public class DifferentRepositoriesTest {
+import java.util.Objects;
 
-  @Test
-  public void empty() {
-    EmptyRepository empty = new EmptyRepository(new NoopBackend());
+/**
+ * Backend which returns same result for any operation. Intended for tests
+ */
+public class NoopBackend implements Backend {
+
+  private final Publisher<?> existing;
+
+  public NoopBackend() {
+    this(Flowable.empty());
   }
 
-  @Test
-  public void sync() {
-    SyncModelRepository sync = new SyncModelRepository(new NoopBackend());
+  public NoopBackend(Publisher<?> existing) {
+    this.existing = Objects.requireNonNull(existing, "result");
   }
 
-  @Test
-  public void heterogenious() {
-    HeterogeniousRepository repo = new HeterogeniousRepository(new NoopBackend());
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> Publisher<T> execute(Operation operation) {
+    Objects.requireNonNull(operation, "operation");
+    return (Publisher<T>) existing;
   }
-
-  @Test
-  public void async() {
-    AsyncModelRepository async = new AsyncModelRepository(new NoopBackend());
-  }
-
 }

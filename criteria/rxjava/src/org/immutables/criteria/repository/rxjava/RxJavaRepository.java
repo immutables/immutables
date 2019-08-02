@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.reactive;
+package org.immutables.criteria.repository.rxjava;
 
+import io.reactivex.Single;
 import org.immutables.criteria.adapter.WriteResult;
-import org.reactivestreams.Publisher;
 
 /**
- * This is the default repository used in criteria. It is based on generic
- * <a href="https://www.reactive-streams.org/">Reactive Streams</a> API.
- *
- * <p>All operations return {@link Publisher}.
+ * Repository with <a href="https://github.com/ReactiveX/RxJava">rxjava</a> return types.
  */
-public interface ReactiveRepository {
+public interface RxJavaRepository<T> {
 
-  interface Readable<T> extends org.immutables.criteria.repository.Readable<T, ReactiveReader<T>> { }
+  interface Readable<T> extends RxJavaRepository<T>, org.immutables.criteria.repository.Readable<T, RxJavaReader<T>> { }
 
-  interface Writable<T> extends org.immutables.criteria.repository.Writable<T, Publisher<WriteResult>> { }
+  interface Writable<T> extends RxJavaRepository<T>, org.immutables.criteria.repository.Writable<T, Single<WriteResult>> { }
 
-  interface Watchable<T> extends org.immutables.criteria.repository.Watchable<T, ReactiveWatcher<T>> { }
+  interface Watchable<T> extends RxJavaRepository<T>, org.immutables.criteria.repository.Watchable<T, RxJavaWatcher<T>> { }
 
 }

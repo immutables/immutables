@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository;
+package org.immutables.criteria.repository.rxjava;
 
-import org.junit.Test;
+import org.immutables.criteria.Criterion;
+import org.immutables.criteria.adapter.Backend;
 
-public class DifferentRepositoriesTest {
+import java.util.Objects;
 
-  @Test
-  public void empty() {
-    EmptyRepository empty = new EmptyRepository(new NoopBackend());
+public class RxJavaWatchable<T> implements RxJavaRepository.Watchable<T> {
+
+  private final Backend backend;
+
+  public RxJavaWatchable(Backend backend) {
+    this.backend = Objects.requireNonNull(backend);
   }
 
-  @Test
-  public void sync() {
-    SyncModelRepository sync = new SyncModelRepository(new NoopBackend());
-  }
-
-  @Test
-  public void heterogenious() {
-    HeterogeniousRepository repo = new HeterogeniousRepository(new NoopBackend());
-  }
-
-  @Test
-  public void async() {
-    AsyncModelRepository async = new AsyncModelRepository(new NoopBackend());
+  @Override
+  public RxJavaWatcher<T> watcher(Criterion<T> criteria) {
+    return new RxJavaWatcher<T>(criteria, backend);
   }
 
 }
