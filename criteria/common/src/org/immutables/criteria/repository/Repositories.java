@@ -14,33 +14,28 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.reactive;
+package org.immutables.criteria.repository;
 
-import org.immutables.criteria.adapter.Backend;
+import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.AbstractReader;
-import org.reactivestreams.Publisher;
 
 import java.util.Objects;
 
 /**
- * Reactive implementation of the reader.
+ * Utilities for repositories
  */
-public final class ReactiveReader<T> extends AbstractReader<T, ReactiveReader<T>>  {
+public final class Repositories {
+  private Repositories() {}
 
-  private final Backend backend;
+  /**
+   * Extract current query from the reader
+   */
+  public static Query toQuery(Reader<?, ?> reader) {
+    Objects.requireNonNull(reader, "reader");
+    Preconditions.checkArgument(reader instanceof AbstractReader,
+            "expected %s to be instance of %s", reader.getClass().getName(), AbstractReader.class.getName());
 
-  public ReactiveReader(Query query, Backend backend) {
-    super(query, backend);
-    this.backend = Objects.requireNonNull(backend, "backend");
+    return ((AbstractReader) reader).query();
   }
 
-  @Override
-  protected ReactiveReader<T> newReader(Query query) {
-    return new ReactiveReader<>(query, backend);
-  }
-
-  public Publisher<T> fetch() {
-    return fetchInternal();
-  }
 }

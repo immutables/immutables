@@ -20,7 +20,6 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveReader;
 
 import java.util.Objects;
 
@@ -41,11 +40,11 @@ public class SyncReadable<T> implements SyncRepository.Readable<T> {
 
   @Override
   public SyncReader<T> find(Criterion<T> criteria) {
-    return new SyncReader<>(new ReactiveReader<>(Criterias.toQuery(criteria), backend));
+    return new SyncReader<>(Criterias.toQuery(criteria), backend);
   }
 
   @Override
   public SyncReader<T> findAll() {
-    return new SyncReader<>(new ReactiveReader<>(query, backend));
+    return new SyncReader<>(query, backend);
   }
 }

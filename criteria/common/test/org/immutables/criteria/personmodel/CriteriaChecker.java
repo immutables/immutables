@@ -21,6 +21,8 @@ import io.reactivex.Flowable;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
+import org.immutables.criteria.repository.Repositories;
+import org.immutables.criteria.repository.Repository;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.immutables.criteria.repository.Reader;
 
@@ -43,8 +45,7 @@ public class CriteriaChecker<T> {
 
   private CriteriaChecker(ReactiveReader<T> reader) {
     this.reader = Objects.requireNonNull(reader, "reader");
-    Preconditions.checkArgument(reader instanceof Queryable);
-    this.query = ((Queryable) reader).query();
+    this.query = Repositories.toQuery(reader);
     this.result = fetch(reader);
   }
 

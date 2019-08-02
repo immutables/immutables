@@ -31,7 +31,7 @@ public class ReactiveReadable<T> implements ReactiveRepository.Readable<T> {
   public ReactiveReadable(Class<T> entity, Backend backend) {
     Objects.requireNonNull(entity, "entity");
     this.query = Query.of(entity);
-    this.backend = backend;
+    this.backend = Objects.requireNonNull(backend, "backend");
   }
 
   @Override
