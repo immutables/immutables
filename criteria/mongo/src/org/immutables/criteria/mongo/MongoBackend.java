@@ -29,7 +29,7 @@ import org.immutables.criteria.adapter.Operations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.adapter.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;

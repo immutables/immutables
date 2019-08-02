@@ -27,7 +27,7 @@ import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
-import org.immutables.criteria.repository.WatchEvent;
+import org.immutables.criteria.adapter.WatchEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;

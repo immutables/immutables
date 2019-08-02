@@ -19,7 +19,7 @@ package org.immutables.criteria.repository.reactive;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.adapter.Operations;
-import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.adapter.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;

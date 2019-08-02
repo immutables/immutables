@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository.sync;
 
 import org.immutables.criteria.repository.Repository;
-import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.adapter.WriteResult;
 
 import java.util.List;
 

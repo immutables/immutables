@@ -17,9 +17,8 @@
 package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.repository.Repository;
-import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.adapter.WriteResult;
 
-import java.util.List;
 import java.util.concurrent.CompletionStage;
 
 /**

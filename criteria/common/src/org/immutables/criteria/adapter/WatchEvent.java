@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository;
+package org.immutables.criteria.adapter;
 
 import java.util.Optional;
 
 /**
- * Defines real-time data change received by {@link Watcher}.
- * Each insert / delete / update will generate a change event.
+ * Defines real-time data change received by a subscription.
+ * Each insert / delete / update on backend will generate a change event.
  *
  * @param <T> entity type
  */
