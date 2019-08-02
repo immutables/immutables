@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.sync;
+package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
@@ -23,27 +23,27 @@ import org.immutables.criteria.repository.WriteResult;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
 /**
- * Blocking write operations on the repository
+ * Writable which uses {@link CompletionStage} as return type
  */
-public class SyncWritable<T> implements SyncRepository.Writable<T> {
+public class AsyncWritable<T> implements AsyncRepository.Writable<T> {
 
-  private final ReactiveWritable<T> writable;
+  private final ReactiveWritable<T> reactive;
 
-  public SyncWritable(Backend backend) {
+  public AsyncWritable(Backend backend) {
     Objects.requireNonNull(backend, "backend");
-    this.writable = new ReactiveWritable<>(backend);
+    this.reactive = new ReactiveWritable<>(backend);
   }
 
   @Override
-  public WriteResult insert(Iterable<? extends T> docs) {
-    return Publishers.blockingGet(writable.insert(docs));
+  public CompletionStage<WriteResult> insert(Iterable<? extends T> docs) {
+    return Publishers.toFuture(reactive.insert(docs));
   }
 
   @Override
-  public WriteResult delete(Criterion<T> criteria) {
-    return Publishers.blockingGet(writable.delete(criteria));
+  public CompletionStage<WriteResult> delete(Criterion<T> criteria) {
+    return Publishers.toFuture(reactive.delete(criteria));
   }
-
 }

@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.async;
+package org.immutables.criteria.repository;
 
-import org.immutables.criteria.repository.Repository;
-import org.immutables.criteria.repository.WriteResult;
+import org.immutables.criteria.Criteria;
+import org.immutables.criteria.repository.async.AsyncReadable;
+import org.immutables.criteria.repository.async.AsyncWritable;
+import org.immutables.value.Value;
 
-import java.util.List;
-import java.util.concurrent.CompletionStage;
+@Value.Immutable
+@Criteria
+@Criteria.Repository(facets = {AsyncReadable.class, AsyncWritable.class})
+class AsyncModel {
 
-/**
- * Repository based on {@link CompletionStage} (from {@code java.util.concurrent})
- *
- * @param <T> entity type
- */
-public interface AsyncRepository<T> extends Repository<T> {
-
-  interface Readable<T> extends org.immutables.criteria.repository.Readable<T, AsyncReader<T>> { }
-
-  interface Writable<T> extends org.immutables.criteria.repository.Writable<T, CompletionStage<WriteResult>> { }
 }

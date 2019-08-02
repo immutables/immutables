@@ -16,10 +16,10 @@
 
 package org.immutables.criteria.repository.sync;
 
-import io.reactivex.Flowable;
 import org.immutables.criteria.adapter.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.AbstractReader;
+import org.immutables.criteria.repository.Publishers;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class SyncReader<T> extends AbstractReader<T, SyncReader<T>> {
   }
 
   public List<T> fetch() {
-    return Flowable.fromPublisher(fetchInternal()).toList().blockingGet();
+    return Publishers.blockingListGet(fetchInternal());
   }
 
 }

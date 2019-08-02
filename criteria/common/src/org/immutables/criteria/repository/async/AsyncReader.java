@@ -14,36 +14,32 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.sync;
+package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.Criterion;
 import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.repository.AbstractReader;
 import org.immutables.criteria.repository.Publishers;
-import org.immutables.criteria.repository.WriteResult;
-import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionStage;
 
-/**
- * Blocking write operations on the repository
- */
-public class SyncWritable<T> implements SyncRepository.Writable<T> {
+public class AsyncReader<T> extends AbstractReader<T, AsyncReader<T>> {
 
-  private final ReactiveWritable<T> writable;
+  private final Backend backend;
 
-  public SyncWritable(Backend backend) {
-    Objects.requireNonNull(backend, "backend");
-    this.writable = new ReactiveWritable<>(backend);
+  public AsyncReader(Query query, Backend backend) {
+    super(query, backend);
+    this.backend = Objects.requireNonNull(backend, "backend");
   }
 
   @Override
-  public WriteResult insert(Iterable<? extends T> docs) {
-    return Publishers.blockingGet(writable.insert(docs));
+  protected AsyncReader<T> newReader(Query query) {
+    return new AsyncReader<>(query, backend);
   }
 
-  @Override
-  public WriteResult delete(Criterion<T> criteria) {
-    return Publishers.blockingGet(writable.delete(criteria));
+  public CompletionStage<List<T>> fetch() {
+    return Publishers.toListFuture(fetchInternal());
   }
-
 }

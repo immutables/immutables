@@ -37,6 +37,11 @@ public class DifferentRepositoriesTest {
     HeterogeniousRepository repo = new HeterogeniousRepository(new NoopBackend());
   }
 
+  @Test
+  public void async() {
+    AsyncModelRepository async = new AsyncModelRepository(new NoopBackend());
+  }
+
   /**
    * {@code null} object backend
    */
