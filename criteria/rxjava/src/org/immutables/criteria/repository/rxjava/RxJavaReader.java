@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
-import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.AbstractReader;
 

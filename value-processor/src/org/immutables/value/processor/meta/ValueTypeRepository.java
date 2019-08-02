@@ -44,6 +44,8 @@ import java.util.Objects;
  */
 public class ValueTypeRepository {
 
+  private static final String BACKEND = "org.immutables.criteria.backend.Backend";
+
   private final ValueType type;
   private final Element element;
 
@@ -134,7 +136,7 @@ public class ValueTypeRepository {
           if (types.isSubtype(varType, types.erasure(elements.getTypeElement(Class.class.getCanonicalName()).asType()))) {
             // inject entity class
             params.add(ValueTypeRepository.this.type.name() + ".class");
-          } else if (types.isSubtype(varType, elements.getTypeElement("org.immutables.criteria.adapter.Backend").asType())) {
+          } else if (types.isSubtype(varType, elements.getTypeElement(BACKEND).asType())) {
             // inject backend
             params.add("backend");
           }

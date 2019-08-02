@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Single;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 
 /**
  * Repository with <a href="https://github.com/ReactiveX/RxJava">rxjava</a> return types.

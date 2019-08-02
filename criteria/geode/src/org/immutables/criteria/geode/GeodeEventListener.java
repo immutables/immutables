@@ -19,7 +19,7 @@ package org.immutables.criteria.geode;
 import io.reactivex.Emitter;
 import org.apache.geode.cache.query.CqEvent;
 import org.apache.geode.cache.query.CqStatusListener;
-import org.immutables.criteria.adapter.WatchEvent;
+import org.immutables.criteria.backend.WatchEvent;
 
 import java.util.Objects;
 

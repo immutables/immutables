@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.repository.reactive;
 
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
 
 /**

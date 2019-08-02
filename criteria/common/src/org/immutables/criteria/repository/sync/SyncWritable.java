@@ -17,9 +17,9 @@
 package org.immutables.criteria.repository.sync;
 
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Publishers;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;

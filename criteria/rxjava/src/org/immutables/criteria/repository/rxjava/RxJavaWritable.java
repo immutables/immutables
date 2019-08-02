@@ -18,8 +18,8 @@ package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Single;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 public class RxJavaWritable<T> implements RxJavaRepository.Writable<T> {

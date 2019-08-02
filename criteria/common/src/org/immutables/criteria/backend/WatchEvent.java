@@ -14,8 +14,33 @@
  * limitations under the License.
  */
 
+package org.immutables.criteria.backend;
+
+import java.util.Optional;
 
 /**
- * Code specific to adapters and criteria.
+ * Defines real-time data change received by a subscription.
+ * Each insert / delete / update on backend will generate a change event.
+ *
+ * @param <T> entity type
  */
-package org.immutables.criteria.adapter;
+public interface WatchEvent<T> {
+
+  /**
+   * Type of operation which caused this event to be created
+   */
+  enum Operation {
+    INSERT,
+    DELETE,
+    REPLACE,
+    UPDATE
+  }
+
+  // TODO define key for WatchEvent / Repository etc.
+  Object key();
+
+  Optional<T> newValue();
+
+  Operation operation();
+
+}

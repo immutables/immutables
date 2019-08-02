@@ -18,7 +18,7 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 
 import java.util.Objects;

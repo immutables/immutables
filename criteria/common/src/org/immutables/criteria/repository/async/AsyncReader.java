@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.AbstractReader;
 import org.immutables.criteria.repository.Publishers;

@@ -21,11 +21,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Backends;
-import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.Operations;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.List;

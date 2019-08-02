@@ -16,8 +16,8 @@
 
 package org.immutables.criteria.repository;
 
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.Operations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;

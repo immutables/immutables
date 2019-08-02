@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository;
 
 import io.reactivex.Flowable;
-import org.immutables.criteria.adapter.Backend;
+import org.immutables.criteria.backend.Backend;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;

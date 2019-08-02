@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.adapter;
+package org.immutables.criteria.backend;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.Criteria;

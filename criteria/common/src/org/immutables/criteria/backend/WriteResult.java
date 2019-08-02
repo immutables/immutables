@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.adapter;
+package org.immutables.criteria.backend;
 
 import java.util.OptionalLong;
 

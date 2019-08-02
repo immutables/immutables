@@ -18,11 +18,11 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.ImmutableWatch;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.ImmutableWatch;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.adapter.WatchEvent;
+import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.repository.Watcher;
 import org.reactivestreams.Publisher;
 

@@ -24,12 +24,12 @@ import io.reactivex.Flowable;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.Operations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;

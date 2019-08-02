@@ -17,11 +17,11 @@
 package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
-import org.immutables.criteria.adapter.Backend;
-import org.immutables.criteria.adapter.Backends;
-import org.immutables.criteria.adapter.Operations;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.Operations;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.adapter.WriteResult;
+import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Map;
