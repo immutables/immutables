@@ -26,7 +26,7 @@ import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.backend.WatchEvent;
@@ -55,14 +55,14 @@ public class GeodeBackend implements Backend {
 
   @Override
   public <T> Publisher<T> execute(Operation operation) {
-    if (operation instanceof Operations.Select) {
-      return query((Operations.Select<T>) operation);
-    } else if (operation instanceof Operations.Insert) {
-      return (Publisher<T>) insert((Operations.Insert) operation);
-    } else if (operation instanceof Operations.Delete) {
-      return (Publisher<T>) delete((Operations.Delete) operation);
-    } else if (operation instanceof Operations.Watch) {
-      return (Publisher<T>) watch((Operations.Watch<T>) operation);
+    if (operation instanceof StandardOperations.Select) {
+      return query((StandardOperations.Select<T>) operation);
+    } else if (operation instanceof StandardOperations.Insert) {
+      return (Publisher<T>) insert((StandardOperations.Insert) operation);
+    } else if (operation instanceof StandardOperations.Delete) {
+      return (Publisher<T>) delete((StandardOperations.Delete) operation);
+    } else if (operation instanceof StandardOperations.Watch) {
+      return (Publisher<T>) watch((StandardOperations.Watch<T>) operation);
     }
 
 
@@ -70,14 +70,14 @@ public class GeodeBackend implements Backend {
             operation, GeodeBackend.class.getSimpleName())));
   }
 
-  private <T> Flowable<T> query(Operations.Select<T> op) {
+  private <T> Flowable<T> query(StandardOperations.Select<T> op) {
     return Flowable.<Collection<T>>fromCallable(() -> {
       OqlWithVariables oql = toOql(op.query(), true);
       return (Collection<T>) region.getRegionService().getQueryService().newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
     }).flatMapIterable(x -> x);
   }
 
-  private <T> Flowable<WriteResult> insert(Operations.Insert<T> op) {
+  private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
     if (op.values().isEmpty()) {
       return Flowable.just(WriteResult.UNKNOWN);
     }
@@ -92,7 +92,7 @@ public class GeodeBackend implements Backend {
     });
   }
 
-  private <T> Flowable<WriteResult> delete(Operations.Delete op) {
+  private <T> Flowable<WriteResult> delete(StandardOperations.Delete op) {
     if (!op.query().filter().isPresent()) {
       // no filter means delete all (ie clear whole region)
       return Completable.fromRunnable(region::clear)
@@ -122,7 +122,7 @@ public class GeodeBackend implements Backend {
             .toFlowable();
   }
 
-  private <T> Publisher<WatchEvent<T>> watch(Operations.Watch<T> operation) {
+  private <T> Publisher<WatchEvent<T>> watch(StandardOperations.Watch<T> operation) {
     return Flowable.create(e -> {
       final FlowableEmitter<WatchEvent<T>> emitter = e.serialize();
       final String oql = toOql(operation.query(), false).oql();

@@ -18,7 +18,7 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
 
@@ -34,12 +34,12 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
 
   @Override
   public Publisher<WriteResult> insert(Iterable<? extends T> docs) {
-    return backend.execute(Operations.Insert.ofValues(docs));
+    return backend.execute(StandardOperations.Insert.ofValues(docs));
   }
 
   @Override
   public Publisher<WriteResult> delete(Criterion<T> criteria) {
-    return backend.execute(Operations.Delete.of(criteria));
+    return backend.execute(StandardOperations.Delete.of(criteria));
   }
 
 }

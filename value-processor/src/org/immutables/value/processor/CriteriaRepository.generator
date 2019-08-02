@@ -43,7 +43,7 @@ import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.Repository;
 import org.immutables.criteria.repository.Watcher;

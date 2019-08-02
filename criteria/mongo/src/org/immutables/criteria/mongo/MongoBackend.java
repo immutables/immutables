@@ -25,7 +25,7 @@ import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Query;
@@ -59,20 +59,20 @@ class MongoBackend implements Backend {
 
   @Override
   public <T> Publisher<T> execute(Operation operation) {
-    if (operation instanceof Operations.Select) {
-      return query((Operations.Select<T>) operation);
-    } else if (operation instanceof Operations.Insert) {
-      return (Publisher<T>) insert((Operations.Insert) operation);
-    } else if (operation instanceof Operations.Delete) {
-      return (Publisher<T>) delete((Operations.Delete) operation);
-    } else if (operation instanceof Operations.Watch) {
-      return watch((Operations.Watch<T>) operation);
+    if (operation instanceof StandardOperations.Select) {
+      return query((StandardOperations.Select<T>) operation);
+    } else if (operation instanceof StandardOperations.Insert) {
+      return (Publisher<T>) insert((StandardOperations.Insert) operation);
+    } else if (operation instanceof StandardOperations.Delete) {
+      return (Publisher<T>) delete((StandardOperations.Delete) operation);
+    } else if (operation instanceof StandardOperations.Watch) {
+      return watch((StandardOperations.Watch<T>) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
-  private <T> Publisher<T> query(Operations.Select<T> select) {
+  private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
     final Query query = select.query();
@@ -93,19 +93,19 @@ class MongoBackend implements Backend {
     return find;
   }
 
-  private Publisher<WriteResult> delete(Operations.Delete delete) {
+  private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
     final Bson filter = toBson(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
             .map(r -> WriteResult.UNKNOWN);
   }
 
-  private Publisher<WriteResult> insert(Operations.Insert insert) {
+  private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = (List<Object>) insert.values();
     return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.UNKNOWN);
   }
 
-  private <T> Publisher<T> watch(Operations.Watch<T> operation) {
+  private <T> Publisher<T> watch(StandardOperations.Watch<T> operation) {
     final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
     final Bson filter = new Document("fullDocument", toBson(operation.query()));
     return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))

@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
@@ -49,7 +49,7 @@ public abstract class AbstractReader<T, R extends Reader<T, R>> implements Reade
    * Perform read operation returning generic {@link Publisher}
    */
   protected Publisher<T> fetchInternal() {
-    return backend.execute(Operations.Select.of(query));
+    return backend.execute(StandardOperations.Select.of(query));
   }
 
   /**

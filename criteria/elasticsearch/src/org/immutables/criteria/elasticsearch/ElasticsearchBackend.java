@@ -23,7 +23,7 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
@@ -55,16 +55,16 @@ public class ElasticsearchBackend implements Backend {
   @Override
   public <T> Publisher<T> execute(Operation query) {
     Objects.requireNonNull(query, "query");
-    if (query instanceof Operations.Insert) {
-      return (Publisher<T>) insert((Operations.Insert<Object>) query);
-    } else if (query instanceof Operations.Select) {
-      return select((Operations.Select<T>) query);
+    if (query instanceof StandardOperations.Insert) {
+      return (Publisher<T>) insert((StandardOperations.Insert<Object>) query);
+    } else if (query instanceof StandardOperations.Select) {
+      return select((StandardOperations.Select<T>) query);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query)));
   }
 
-  private <T> Flowable<T> select(Operations.Select<T> op) {
+  private <T> Flowable<T> select(StandardOperations.Select<T> op) {
     final Query query = op.query();
     final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
     query.limit().ifPresent(limit -> json.put("size", limit));
@@ -89,7 +89,7 @@ public class ElasticsearchBackend implements Backend {
     return flowable;
   }
 
-  private Publisher<WriteResult> insert(Operations.Insert<Object> insert) {
+  private Publisher<WriteResult> insert(StandardOperations.Insert<Object> insert) {
     if (insert.values().isEmpty()) {
       return Flowable.just(WriteResult.UNKNOWN);
     }

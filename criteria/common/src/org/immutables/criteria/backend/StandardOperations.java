@@ -25,11 +25,12 @@ import org.immutables.value.Value;
 import java.util.List;
 
 /**
- * List of default operations which can be executed on the backend
+ * Common operations which can be executed on a backend.
+ * It is by no means an exhaustive list and other (custom) operations can exists independently.
  */
-public final class Operations {
+public final class StandardOperations {
 
-  private Operations() {}
+  private StandardOperations() {}
 
   /**
    * Query sent to a backend similar to SQL {@code SELECT} clause.

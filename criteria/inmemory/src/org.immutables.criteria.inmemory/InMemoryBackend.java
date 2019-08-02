@@ -19,7 +19,7 @@ package org.immutables.criteria.inmemory;
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.Operations;
+import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.backend.WriteResult;
 import org.reactivestreams.Publisher;
@@ -49,16 +49,16 @@ public class InMemoryBackend implements Backend {
 
   @Override
   public <T> Publisher<T> execute(Operation operation) {
-    if (operation instanceof Operations.Select) {
-      return query((Operations.Select<T>) operation);
-    } else if (operation instanceof Operations.Insert) {
-      return (Publisher<T>) insert((Operations.Insert<T>) operation);
+    if (operation instanceof StandardOperations.Select) {
+      return query((StandardOperations.Select<T>) operation);
+    } else if (operation instanceof StandardOperations.Insert) {
+      return (Publisher<T>) insert((StandardOperations.Insert<T>) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
-  private <T> Publisher<T> query(Operations.Select<T> select) {
+  private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     final Query query = select.query();
     Stream<T> stream = (Stream<T>) store.values().stream();
     if (query.filter().isPresent()) {
@@ -84,7 +84,7 @@ public class InMemoryBackend implements Backend {
     return Flowable.fromIterable(stream.collect(Collectors.toList()));
   }
 
-  private <T> Publisher<WriteResult> insert(Operations.Insert<T> op) {
+  private <T> Publisher<WriteResult> insert(StandardOperations.Insert<T> op) {
     if (op.values().isEmpty()) {
       return Flowable.just(WriteResult.UNKNOWN);
     }
