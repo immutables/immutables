@@ -36,11 +36,11 @@ import java.util.stream.Collectors;
 public abstract class AbstractReader<T, R extends Reader<T, R>> implements Reader<T, R> {
 
   private final Query query;
-  private final Backend backend;
+  private final Backend.Session session;
 
-  protected AbstractReader(Query query, Backend backend) {
+  protected AbstractReader(Query query, Backend.Session session) {
     this.query = Objects.requireNonNull(query, "query");
-    this.backend = Objects.requireNonNull(backend, "backend");
+    this.session = Objects.requireNonNull(session, "backend");
   }
 
   protected abstract R newReader(Query query);
@@ -49,7 +49,7 @@ public abstract class AbstractReader<T, R extends Reader<T, R>> implements Reade
    * Perform read operation returning generic {@link Publisher}
    */
   protected Publisher<T> fetchInternal() {
-    return backend.execute(StandardOperations.Select.of(query));
+    return session.execute(StandardOperations.Select.of(query));
   }
 
   /**

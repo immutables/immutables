@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.geode;
 
-import org.immutables.criteria.Criterion;
-import org.immutables.criteria.backend.Backend;
+import org.apache.geode.cache.Region;
 
-import java.util.Objects;
+public interface RegionResolver {
 
-public class RxJavaWatchable<T> implements RxJavaRepository.Watchable<T> {
-
-  private final Backend.Session session;
-
-  public RxJavaWatchable(Backend.Session session) {
-    this.session = Objects.requireNonNull(session, "session");
-  }
-
-  @Override
-  public RxJavaWatcher<T> watcher(Criterion<T> criteria) {
-    return new RxJavaWatcher<T>(criteria, session);
-  }
+  Region<?, ?> resolve(Class<?> type);
 
 }

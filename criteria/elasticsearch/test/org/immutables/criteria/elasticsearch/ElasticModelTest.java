@@ -45,7 +45,7 @@ public class ElasticModelTest {
 
   @BeforeClass
   public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER);
+    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER, 1024);
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
@@ -73,7 +73,7 @@ public class ElasticModelTest {
 
   @Before
   public void setupRepository() throws Exception {
-    ElasticsearchBackend backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, INDEX_NAME);
+    ElasticsearchBackend backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, x -> INDEX_NAME);
     this.repository = new ElasticModelRepository(backend);
   }
 

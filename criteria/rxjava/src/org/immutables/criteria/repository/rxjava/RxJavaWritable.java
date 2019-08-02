@@ -26,8 +26,8 @@ public class RxJavaWritable<T> implements RxJavaRepository.Writable<T> {
 
   private final ReactiveWritable<T> writable;
 
-  public RxJavaWritable(Backend backend) {
-    this.writable = new ReactiveWritable<>(backend);
+  public RxJavaWritable(Backend.Session session) {
+    this.writable = new ReactiveWritable<>(session);
   }
 
   @Override

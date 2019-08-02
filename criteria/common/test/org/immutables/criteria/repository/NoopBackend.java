@@ -37,10 +37,17 @@ public class NoopBackend implements Backend {
     this.existing = Objects.requireNonNull(existing, "result");
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public <T> Publisher<T> execute(Operation operation) {
-    Objects.requireNonNull(operation, "operation");
-    return (Publisher<T>) existing;
+  public Session open(Context context) {
+    return new Session();
+  }
+
+  private class Session implements Backend.Session {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Publisher<T> execute(Operation operation) {
+      return (Publisher<T>) existing;
+    }
   }
 }

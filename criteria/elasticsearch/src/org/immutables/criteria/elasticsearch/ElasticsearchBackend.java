@@ -23,9 +23,10 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
@@ -38,72 +39,99 @@ import java.util.stream.Collectors;
  */
 public class ElasticsearchBackend implements Backend {
 
-  private final ObjectMapper mapper;
-  private final ElasticsearchOps ops;
+  final RestClient restClient;
+  final ObjectMapper mapper;
+  private final IndexResolver resolver;
+  private final int scrollSize;
 
   public ElasticsearchBackend(RestClient restClient,
                               ObjectMapper mapper,
-                              String index) {
-    this(new ElasticsearchOps(restClient, index, mapper));
+                              IndexResolver resolver) {
+    this(restClient, mapper, resolver, 1024);
   }
 
-  ElasticsearchBackend(ElasticsearchOps ops) {
-    this.ops = ops;
-    this.mapper = ops.mapper();
+  ElasticsearchBackend(RestClient restClient,
+                              ObjectMapper mapper,
+                              IndexResolver resolver,
+                              int scrollSize) {
+    this.restClient = Objects.requireNonNull(restClient, "restClient");
+    this.mapper = Objects.requireNonNull(mapper, "mapper");
+    this.resolver = Objects.requireNonNull(resolver, "resolver");
+    this.scrollSize = scrollSize;
+
   }
+
 
   @Override
-  public <T> Publisher<T> execute(Operation query) {
-    Objects.requireNonNull(query, "query");
-    if (query instanceof StandardOperations.Insert) {
-      return (Publisher<T>) insert((StandardOperations.Insert<Object>) query);
-    } else if (query instanceof StandardOperations.Select) {
-      return select((StandardOperations.Select<T>) query);
-    }
-
-    return Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query)));
+  public Backend.Session open(Context context) {
+    final Class<?> entityType = EntityContext.extractEntity(context);
+    final String index = resolver.resolve(entityType);
+    return new Session(entityType, new ElasticsearchOps(restClient, index, mapper, scrollSize));
   }
 
-  private <T> Flowable<T> select(StandardOperations.Select<T> op) {
-    final Query query = op.query();
-    final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
-    query.limit().ifPresent(limit -> json.put("size", limit));
-    query.offset().ifPresent(offset -> json.put("from", offset));
-    if (!query.collations().isEmpty()) {
-      final ArrayNode sort = json.withArray("sort");
-      query.collations().forEach(c -> {
-        sort.add(mapper.createObjectNode().put(c.path().toStringPath(), c.direction().isAscending() ? "asc" : "desc"));
+  private static class Session implements Backend.Session {
+    private final Class<?> entityClass;
+    private final ObjectMapper mapper;
+    private final ElasticsearchOps ops;
+
+    public Session(Class<?> entityClass, ElasticsearchOps ops) {
+      this.ops = Objects.requireNonNull(ops, "ops");
+      this.mapper = ops.mapper();
+      this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
+    }
+
+    @Override
+    public <T> Publisher<T> execute(Operation query) {
+      Objects.requireNonNull(query, "query");
+      if (query instanceof StandardOperations.Insert) {
+        return (Publisher<T>) insert((StandardOperations.Insert<Object>) query);
+      } else if (query instanceof StandardOperations.Select) {
+        return select((StandardOperations.Select<T>) query);
+      }
+
+      return Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query)));
+    }
+
+    private <T> Flowable<T> select(StandardOperations.Select<T> op) {
+      final Query query = op.query();
+      final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
+      query.limit().ifPresent(limit -> json.put("size", limit));
+      query.offset().ifPresent(offset -> json.put("from", offset));
+      if (!query.collations().isEmpty()) {
+        final ArrayNode sort = json.withArray("sort");
+        query.collations().forEach(c -> {
+          sort.add(mapper.createObjectNode().put(c.path().toStringPath(), c.direction().isAscending() ? "asc" : "desc"));
+        });
+      }
+
+      final Class<T> type = (Class<T>) query.entityPath().annotatedElement();
+
+      final Flowable<T> flowable;
+      if (query.offset().isPresent()) {
+        // scroll doesn't work with offset
+        flowable = ops.search(json, type);
+      } else {
+        flowable = ops.scrolledSearch(json, type);
+      }
+
+      return flowable;
+    }
+
+    private Publisher<WriteResult> insert(StandardOperations.Insert<Object> insert) {
+      if (insert.values().isEmpty()) {
+        return Flowable.just(WriteResult.UNKNOWN);
+      }
+
+      // TODO cache idExtractor
+      final Function<Object, Object> idExtractor = Backends.idExtractor((Class<Object>) insert.values().get(0).getClass());
+      final List<ObjectNode> docs = insert.values().stream()
+              .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e)).set("_id", mapper.valueToTree(idExtractor.apply(e))))
+              .collect(Collectors.toList());
+
+      return Flowable.fromCallable(() -> {
+        ops.insertBulk(docs);
+        return WriteResult.UNKNOWN;
       });
     }
-
-    final Class<T> type = (Class<T>) query.entityPath().annotatedElement();
-
-    final Flowable<T> flowable;
-    if (query.offset().isPresent()) {
-      // scroll doesn't work with offset
-      flowable = ops.search(json, type);
-    } else {
-      flowable =  ops.scrolledSearch(json, type);
-    }
-
-    return flowable;
   }
-
-  private Publisher<WriteResult> insert(StandardOperations.Insert<Object> insert) {
-    if (insert.values().isEmpty()) {
-      return Flowable.just(WriteResult.UNKNOWN);
-    }
-
-    // TODO cache idExtractor
-    final Function<Object, Object> idExtractor = Backends.idExtractor((Class<Object>)insert.values().get(0).getClass());
-    final List<ObjectNode> docs = insert.values().stream()
-            .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e)).set("_id", mapper.valueToTree(idExtractor.apply(e))))
-            .collect(Collectors.toList());
-
-    return Flowable.fromCallable(() -> {
-      ops.insertBulk(docs);
-      return WriteResult.UNKNOWN;
-    });
-  }
-
 }

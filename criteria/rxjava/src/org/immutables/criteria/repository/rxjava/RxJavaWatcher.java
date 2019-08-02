@@ -27,8 +27,8 @@ public class RxJavaWatcher<T> implements Watcher<T, Flowable<WatchEvent<T>>> {
 
   private final ReactiveWatcher<T> reactive;
 
-  public RxJavaWatcher(Criterion<T> criterion, Backend backend) {
-    this.reactive = new ReactiveWatcher<>(criterion, backend);
+  public RxJavaWatcher(Criterion<T> criterion, Backend.Session session) {
+    this.reactive = new ReactiveWatcher<>(criterion, session);
   }
 
   @Override

@@ -29,21 +29,21 @@ import java.util.Objects;
 public class AsyncReadable<T> implements AsyncRepository.Readable<T> {
 
   private final Query query;
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public AsyncReadable(Class<T> entity, Backend backend) {
+  public AsyncReadable(Class<T> entity, Backend.Session session) {
     Objects.requireNonNull(entity, "query");
     this.query = Query.of(entity);
-    this.backend = Objects.requireNonNull(backend, "backend");
+    this.session = Objects.requireNonNull(session, "session");
   }
 
   @Override
   public AsyncReader<T> find(Criterion<T> criteria) {
-    return new AsyncReader<>(Criterias.toQuery(criteria), backend);
+    return new AsyncReader<>(Criterias.toQuery(criteria), session);
   }
 
   @Override
   public AsyncReader<T> findAll() {
-    return new AsyncReader<>(query, backend);
+    return new AsyncReader<>(query, session);
   }
 }

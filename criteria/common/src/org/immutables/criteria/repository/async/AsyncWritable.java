@@ -18,8 +18,8 @@ package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
@@ -32,9 +32,9 @@ public class AsyncWritable<T> implements AsyncRepository.Writable<T> {
 
   private final ReactiveWritable<T> reactive;
 
-  public AsyncWritable(Backend backend) {
-    Objects.requireNonNull(backend, "backend");
-    this.reactive = new ReactiveWritable<>(backend);
+  public AsyncWritable(Backend.Session session) {
+    Objects.requireNonNull(session, "session");
+    this.reactive = new ReactiveWritable<>(session);
   }
 
   @Override

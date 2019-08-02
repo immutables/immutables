@@ -26,20 +26,20 @@ import java.util.Objects;
 
 public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public ReactiveWritable(Backend backend) {
-    this.backend = Objects.requireNonNull(backend, "backend");
+  public ReactiveWritable(Backend.Session backend) {
+    this.session = Objects.requireNonNull(backend, "backend");
   }
 
   @Override
   public Publisher<WriteResult> insert(Iterable<? extends T> docs) {
-    return backend.execute(StandardOperations.Insert.ofValues(docs));
+    return session.execute(StandardOperations.Insert.ofValues(docs));
   }
 
   @Override
   public Publisher<WriteResult> delete(Criterion<T> criteria) {
-    return backend.execute(StandardOperations.Delete.of(criteria));
+    return session.execute(StandardOperations.Delete.of(criteria));
   }
 
 }

@@ -26,16 +26,16 @@ import org.immutables.criteria.repository.AbstractReader;
  */
 public class RxJavaReader<T> extends AbstractReader<T, RxJavaReader<T>> {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public RxJavaReader(Query query, Backend backend) {
-    super(query, backend);
-    this.backend = backend;
+  public RxJavaReader(Query query, Backend.Session session) {
+    super(query, session);
+    this.session = session;
   }
 
   @Override
   protected RxJavaReader<T> newReader(Query query) {
-    return new RxJavaReader<>(query, backend);
+    return new RxJavaReader<>(query, session);
   }
 
   /**

@@ -29,16 +29,16 @@ import java.util.List;
  */
 public class SyncReader<T> extends AbstractReader<T, SyncReader<T>> {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public SyncReader(Query query, Backend backend) {
-    super(query, backend);
-    this.backend = backend;
+  public SyncReader(Query query, Backend.Session session) {
+    super(query, session);
+    this.session = session;
   }
 
   @Override
   protected SyncReader<T> newReader(Query query) {
-    return new SyncReader<>(query, backend);
+    return new SyncReader<>(query, session);
   }
 
   public List<T> fetch() {

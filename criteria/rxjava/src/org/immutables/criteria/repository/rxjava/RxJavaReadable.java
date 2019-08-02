@@ -26,21 +26,21 @@ import java.util.Objects;
 public class RxJavaReadable<T> implements RxJavaRepository.Readable<T> {
 
   private final Query query;
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public RxJavaReadable(Class<T> entity, Backend backend) {
+  public RxJavaReadable(Class<T> entity, Backend.Session session) {
     Objects.requireNonNull(entity, "entity");
     this.query = Query.of(entity);
-    this.backend = Objects.requireNonNull(backend, "backend");
+    this.session = Objects.requireNonNull(session, "session");
   }
 
   @Override
   public RxJavaReader<T> find(Criterion<T> criteria) {
-    return new RxJavaReader<>(Criterias.toQuery(criteria), backend);
+    return new RxJavaReader<>(Criterias.toQuery(criteria), session);
   }
 
   @Override
   public RxJavaReader<T> findAll() {
-    return new RxJavaReader<>(query, backend);
+    return new RxJavaReader<>(query, session);
   }
 }

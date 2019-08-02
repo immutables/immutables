@@ -23,15 +23,15 @@ import java.util.Objects;
 
 public class ReactiveWatchable<T> implements ReactiveRepository.Watchable<T> {
 
-  private final Backend backend;
+  private final Backend.Session session;
 
-  public ReactiveWatchable(Backend backend) {
-    this.backend = Objects.requireNonNull(backend, "backend");
+  public ReactiveWatchable(Backend.Session backend) {
+    this.session = Objects.requireNonNull(backend, "session");
   }
 
   @Override
   public ReactiveWatcher<T> watcher(Criterion<T> criteria) {
-    return new ReactiveWatcher<>(criteria, backend);
+    return new ReactiveWatcher<>(criteria, session);
   }
 
 }

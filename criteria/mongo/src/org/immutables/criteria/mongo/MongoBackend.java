@@ -16,102 +16,32 @@
 
 package org.immutables.criteria.mongo;
 
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.changestream.FullDocument;
-import com.mongodb.reactivestreams.client.FindPublisher;
-import com.mongodb.reactivestreams.client.MongoCollection;
-import io.reactivex.Flowable;
-import org.bson.BsonDocument;
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.StandardOperations;
-import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.expression.ExpressionConverter;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.backend.WriteResult;
-import org.reactivestreams.Publisher;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Allows to query and modify mongo documents using criteria API.
  *
  * <p>Based on <a href="https://mongodb.github.io/mongo-java-driver-reactivestreams/">Mongo reactive streams driver</a>
  */
-class MongoBackend implements Backend {
+public class MongoBackend implements Backend {
 
-  private final MongoCollection<?> collection;
+  private final CollectionResolver resolver;
   private final ExpressionConverter<Bson> converter;
 
-  MongoBackend(MongoCollection<?> collection) {
-    this.collection = Objects.requireNonNull(collection, "collection");
+  MongoBackend(CollectionResolver resolver) {
+    this.resolver = Objects.requireNonNull(resolver, "resolver");
     this.converter = Mongos.converter();
   }
 
-  private Bson toBson(Query query) {
-    return query.filter().map(converter::convert).orElseGet(BsonDocument::new);
-  }
-
   @Override
-  public <T> Publisher<T> execute(Operation operation) {
-    if (operation instanceof StandardOperations.Select) {
-      return query((StandardOperations.Select<T>) operation);
-    } else if (operation instanceof StandardOperations.Insert) {
-      return (Publisher<T>) insert((StandardOperations.Insert) operation);
-    } else if (operation instanceof StandardOperations.Delete) {
-      return (Publisher<T>) delete((StandardOperations.Delete) operation);
-    } else if (operation instanceof StandardOperations.Watch) {
-      return watch((StandardOperations.Watch<T>) operation);
-    }
-
-    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
-  }
-
-  private <T> Publisher<T> query(StandardOperations.Select<T> select) {
-    @SuppressWarnings("unchecked")
-    final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    final Query query = select.query();
-    final FindPublisher<T> find = collection.find(toBson(query));
-    if (!query.collations().isEmpty()) {
-      // add sorting
-      final Function<Collation, Bson> toSortFn = col -> {
-        final String path = col.path().toStringPath();
-        return col.direction().isAscending() ? Sorts.ascending(path) : Sorts.descending(path);
-
-      };
-      final List<Bson> sorts = query.collations().stream()
-              .map(toSortFn).collect(Collectors.toList());
-      find.sort(Sorts.orderBy(sorts));
-    }
-    query.limit().ifPresent(limit -> find.limit((int) limit));
-    query.offset().ifPresent(offset -> find.skip((int) offset));
-    return find;
-  }
-
-  private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
-    final Bson filter = toBson(delete.query());
-    return Flowable.fromPublisher(collection.deleteMany(filter))
-            .map(r -> WriteResult.UNKNOWN);
-  }
-
-  private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
-    final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
-    final List<Object> values = (List<Object>) insert.values();
-    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.UNKNOWN);
-  }
-
-  private <T> Publisher<T> watch(StandardOperations.Watch<T> operation) {
-    final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
-    final Bson filter = new Document("fullDocument", toBson(operation.query()));
-    return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))
-            .fullDocument(FullDocument.UPDATE_LOOKUP)
-            .withDocumentClass(collection.getDocumentClass()));
-
+  public Session open(Context context) {
+    final Class<?> entityClass = EntityContext.extractEntity(context);
+    return new MongoSession(resolver.resolve(entityClass), converter);
   }
 
 }

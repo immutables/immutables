@@ -45,6 +45,7 @@ import java.util.Objects;
 public class RepositoryModel {
 
   private static final String BACKEND = "org.immutables.criteria.backend.Backend";
+  private static final String SESSION = "org.immutables.criteria.backend.Backend.Session";
 
   private final ValueType type;
   private final Element element;
@@ -101,6 +102,9 @@ public class RepositoryModel {
       this.typed = typed;
     }
 
+    /**
+     * Variable name based on facet element
+     */
     private String nextName(TypeElement element) {
       final String ifaceName = element.getQualifiedName().toString();
       String name;
@@ -139,6 +143,8 @@ public class RepositoryModel {
           } else if (types.isSubtype(varType, elements.getTypeElement(BACKEND).asType())) {
             // inject backend
             params.add("backend");
+          } else if (types.isSubtype(varType, elements.getTypeElement(SESSION).asType())) {
+            params.add("session");
           }
         }
 
