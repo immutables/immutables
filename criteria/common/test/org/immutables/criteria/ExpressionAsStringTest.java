@@ -18,6 +18,7 @@ package org.immutables.criteria;
 
 import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.matcher.StringMatcher;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.Assert;
 import org.junit.Test;
@@ -73,6 +74,37 @@ public class ExpressionAsStringTest {
             "call op=AND",
             "  call op=EQUAL path=bestFriend.hobby constant=a",
             "  call op=EQUAL path=bestFriend.hobby constant=b");
+
+    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.isEqualTo("a").isEqualTo("b")),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=a",
+            "  call op=EQUAL path=bestFriend.hobby constant=b");
+
+    assertExpressional(crit.bestFriend.value().hobby.with(h -> h.isEqualTo("a").isEqualTo("b"))
+                   .fullName.isEmpty(),
+            "call op=AND",
+            "  call op=AND",
+            "    call op=EQUAL path=bestFriend.hobby constant=a",
+            "    call op=EQUAL path=bestFriend.hobby constant=b",
+            "  call op=EQUAL path=fullName constant=");
+
+    assertExpressional(PersonCriteria.person
+                    .fullName.with(StringMatcher::isEmpty)
+                    .or()
+                    .fullName.with(StringMatcher::isNotEmpty),
+            "call op=OR",
+            "  call op=EQUAL path=fullName constant=",
+            "  call op=NOT_EQUAL path=fullName constant="
+    );
+
+    assertExpressional(PersonCriteria.person
+                    .fullName.with(StringMatcher::isEmpty)
+                    .fullName.with(StringMatcher::isNotEmpty),
+            "call op=AND",
+            "  call op=EQUAL path=fullName constant=",
+            "  call op=NOT_EQUAL path=fullName constant="
+    );
+
   }
 
   @Test
@@ -260,6 +292,7 @@ public class ExpressionAsStringTest {
             "    call op=EQUAL path=bestFriend.hobby constant=ski",
             "  call op=EQUAL path=fullName constant="
     );
+
   }
 
 
