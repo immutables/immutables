@@ -27,7 +27,7 @@ import java.util.List;
  * Creates several matchers programmatically based on {@link ValueAttribute}.
  * {@code StringMatcher}, {@code WithMatcher}, {@code NotMatcher} etc.
  */
-public class AttributeCriteria {
+public class CriteriaModel {
 
   private static final Iterable<Type.Defined> NO_BOUNDS = Collections.emptyList();
 
@@ -35,7 +35,7 @@ public class AttributeCriteria {
   private final Type.Factory factory;
   private final Type.Parameters parameters;
 
-  AttributeCriteria(ValueAttribute attribute) {
+  CriteriaModel(ValueAttribute attribute) {
     this.attribute = Preconditions.checkNotNull(attribute, "attribute");
     this.factory = new Type.Producer();
     this.parameters = factory.parameters()
@@ -134,7 +134,7 @@ public class AttributeCriteria {
     }
 
     public MatcherDefinition toSelf() {
-      return new MatcherDefinition(AttributeCriteria.this.toSelf(type));
+      return new MatcherDefinition(CriteriaModel.this.toSelf(type));
     }
 
     public MatcherDefinition withoutParameters() {

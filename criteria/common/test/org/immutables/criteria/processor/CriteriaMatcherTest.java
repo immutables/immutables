@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.processor;
 
-import org.immutables.value.processor.meta.AttributeCriteria;
+import org.immutables.value.processor.meta.CriteriaModel;
 import org.immutables.value.processor.meta.ProcessorRule;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
@@ -37,14 +37,14 @@ public class CriteriaMatcherTest {
 
   @Test
   public void string() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("string");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("string");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.StringMatcher.Template<R>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.StringMatcher.Self");
   }
 
   @Test
   public void optionalString() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("optionalString");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("optionalString");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.OptionalMatcher<R, " +
             "org.immutables.criteria.matcher.StringMatcher.Template<R>>");
 
@@ -54,7 +54,7 @@ public class CriteriaMatcherTest {
 
   @Test
   public void stringList() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("stringList");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("stringList");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.IterableMatcher<R, org.immutables.criteria.matcher.StringMatcher.Template<R>, java.lang.String>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.IterableMatcher.Self<org.immutables.criteria.matcher.StringMatcher.Self, java.lang.String>");
 
@@ -62,14 +62,14 @@ public class CriteriaMatcherTest {
 
   @Test
   public void integer() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("integer");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("integer");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.ComparableMatcher.Self<java.lang.Integer>");
   }
 
   @Test
   public void optionalInteger() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("optionalInteger");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("optionalInteger");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.OptionalMatcher<R, " +
             "org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>>");
 
@@ -79,14 +79,14 @@ public class CriteriaMatcherTest {
 
   @Test
   public void booleanValue() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("booleanValue");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("booleanValue");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.BooleanMatcher.Template<R>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.BooleanMatcher.Self");
   }
 
   @Test
   public void optionalBoolean() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("optionalBoolean");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("optionalBoolean");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.OptionalMatcher<R, " +
             "org.immutables.criteria.matcher.BooleanMatcher.Template<R>>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.OptionalMatcher.Self<org.immutables.criteria.matcher.BooleanMatcher.Self>");
@@ -94,14 +94,14 @@ public class CriteriaMatcherTest {
 
   @Test
   public void timeZone() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("timeZone");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("timeZone");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.ObjectMatcher.Template<R, java.util.TimeZone>");
     check(matcher.toSelf().toTemplate()).is("org.immutables.criteria.matcher.ObjectMatcher.Self<java.util.TimeZone>");
   }
 
   @Test
   public void optionalTimeZone() {
-    AttributeCriteria.MatcherDefinition matcher = matcherFor("optionalTimeZone");
+    CriteriaModel.MatcherDefinition matcher = matcherFor("optionalTimeZone");
     check(matcher.toTemplate()).is("org.immutables.criteria.matcher.OptionalMatcher<R, " +
             "org.immutables.criteria.matcher.ObjectMatcher.Template<R, java.util.TimeZone>>");
 
@@ -109,7 +109,7 @@ public class CriteriaMatcherTest {
             "org.immutables.criteria.matcher.ObjectMatcher.Self<java.util.TimeZone>>");
   }
 
-  private AttributeCriteria.MatcherDefinition matcherFor(String name) {
+  private CriteriaModel.MatcherDefinition matcherFor(String name) {
     ValueType type = rule.value(Model.class);
     ValueAttribute attr = findAttribute(type, name);
     return attr.criteria().matcher();
