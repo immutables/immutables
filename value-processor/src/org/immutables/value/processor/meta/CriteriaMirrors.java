@@ -26,11 +26,6 @@ public final class CriteriaMirrors {
   @Mirror.Annotation("org.immutables.criteria.Criteria.Repository")
   // different name because of collision with @Mongo.Repository
   public @interface CriteriaRepository {
-
-    boolean readonly() default false;
-
-    boolean watch() default false;
-
     Class<?>[] facets() default {};
   }
 

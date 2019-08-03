@@ -18,7 +18,6 @@ package org.immutables.criteria;
 
 import org.immutables.criteria.repository.Facet;
 import org.immutables.criteria.repository.reactive.ReactiveReadable;
-import org.immutables.criteria.repository.reactive.ReactiveRepository;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.lang.annotation.Documented;
@@ -60,26 +59,6 @@ public @interface Criteria {
   @Documented
   @Target(ElementType.TYPE)
   @interface Repository {
-
-    /**
-     * Wherever repository should exclude write operations like {@code insert}, {@code update},  {@code delete} etc.
-     *
-     * If set to {@code false} (default), repository will be generated with modify operations otherwise
-     * it will be readonly.
-     *
-     * @return {@code false} (default) to generate {@code insert} / {@code update} operations,
-     * {@code true} for readonly repository.
-     */
-    boolean readonly() default false;
-
-    /**
-     * Wherever repository supports pub/sub operation. Typically it is an unbounded flow of events
-     * matching particular criteria (eg. updates on a entity).
-     *
-     * @return {@code false} (default) to omit pub/sub code generation, {@code true} to generate
-     * watchable interfaces.
-     */
-    boolean watch() default false;
 
     /**
      * Allows defining repository properties like readable / writable / watchable etc.

@@ -22,8 +22,6 @@ import org.immutables.criteria.Criteria;
 import org.immutables.criteria.repository.reactive.ReactiveReadable;
 import org.immutables.criteria.repository.reactive.ReactiveWatchable;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
-import org.immutables.criteria.repository.sync.SyncRepository;
-import org.immutables.criteria.repository.sync.SyncWritable;
 import org.immutables.value.Value;
 
 import java.io.Serializable;
@@ -39,7 +37,7 @@ import java.util.Set;
  */
 @Value.Immutable
 @Criteria
-@Criteria.Repository(watch = true, facets = {ReactiveReadable.class, ReactiveWritable.class, ReactiveWatchable.class})
+@Criteria.Repository(facets = {ReactiveReadable.class, ReactiveWritable.class, ReactiveWatchable.class})
 @JsonSerialize(as = ImmutablePerson.class)
 @JsonDeserialize(as = ImmutablePerson.class)
 public interface Person extends Serializable // serializable needed for Geode temporarily
