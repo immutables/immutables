@@ -25,8 +25,8 @@ import org.immutables.criteria.repository.sync.SyncReadable;
 import org.immutables.criteria.repository.sync.SyncRepository;
 import org.immutables.criteria.repository.sync.SyncWritable;
 import org.immutables.value.processor.meta.ProcessorRule;
+import org.immutables.value.processor.meta.RepositoryModel;
 import org.immutables.value.processor.meta.ValueType;
-import org.immutables.value.processor.meta.ValueTypeRepository;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import static org.immutables.check.Checkers.check;
 
 /**
- * Validation for repository model. It is the one generated in {@link ValueTypeRepository}
+ * Validation for repository model. It is the one generated in {@link RepositoryModel}
  * @see ValueType
  */
 public class RepositoryTest {
@@ -51,7 +51,7 @@ public class RepositoryTest {
   @Test
   public void reactive() {
     ValueType value = rule.value(ReactiveModel.class);
-    ValueTypeRepository repository = value.getCriteriaRepository();
+    RepositoryModel repository = value.getCriteriaRepository();
     check(repository.facets()).hasSize(2);
 
     assertFacet(findFacet(repository, ReactiveRepository.Readable.class), ReactiveRepository.Readable.class);
@@ -61,7 +61,7 @@ public class RepositoryTest {
   @Test
   public void sync() {
     ValueType value = rule.value(SyncModel.class);
-    ValueTypeRepository repository = value.getCriteriaRepository();
+    RepositoryModel repository = value.getCriteriaRepository();
     check(repository.facets()).hasSize(2);
 
     assertFacet(findFacet(repository, SyncRepository.Readable.class), SyncRepository.Readable.class);
@@ -77,10 +77,10 @@ public class RepositoryTest {
   /**
    * Find expected facet in repository model
    */
-  private ValueTypeRepository.Facet findFacet(ValueTypeRepository repository, Class<? extends Facet> type) {
+  private RepositoryModel.Facet findFacet(RepositoryModel repository, Class<? extends Facet> type) {
     check(repository.facets()).notEmpty();
     TypeElement toFind = rule.elements().getTypeElement(type.getCanonicalName());
-    for (ValueTypeRepository.Facet facet: repository.facets()) {
+    for (RepositoryModel.Facet facet: repository.facets()) {
       if (rule.types().asElement(facet.interfaceType()).equals(toFind)) {
         return facet;
       }
@@ -92,7 +92,7 @@ public class RepositoryTest {
   /**
    * Series of checks on existing facet
    */
-  private void assertFacet(ValueTypeRepository.Facet facet, Class<? extends Facet> type) {
+  private void assertFacet(RepositoryModel.Facet facet, Class<? extends Facet> type) {
     // compare name
     check(facet.name()).is(type.getSimpleName().toLowerCase());
 
@@ -104,7 +104,7 @@ public class RepositoryTest {
     final List<Method> methods = new ArrayList<>(Arrays.asList(type.getMethods()));
     methods.removeAll(Arrays.asList(Object.class.getMethods()));
 
-    final List<String> actual = facet.methods().stream().map(ValueTypeRepository.DelegateMethod::name).collect(Collectors.toList());
+    final List<String> actual = facet.methods().stream().map(RepositoryModel.DelegateMethod::name).collect(Collectors.toList());
     final List<String> expected = methods.stream().map(Method::getName).collect(Collectors.toList());
     check(actual).hasContentInAnyOrder(expected);
   }

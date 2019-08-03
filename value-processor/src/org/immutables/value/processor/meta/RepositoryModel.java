@@ -37,12 +37,12 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Repository builder which traverses {@code javax.lang.model} API to generate
- * repository with method delegation.
+ * Repository model and builder. Traverses {@code javax.lang.model} API to generate
+ * repository interfaces and methods and expose them in template engine.
  *
  * TODO: This code is currently a mess and needs cleanup.
  */
-public class ValueTypeRepository {
+public class RepositoryModel {
 
   private static final String BACKEND = "org.immutables.criteria.backend.Backend";
 
@@ -55,7 +55,7 @@ public class ValueTypeRepository {
 
   private List<Facet> cachedFacets;
 
-  ValueTypeRepository(ValueType type) {
+  RepositoryModel(ValueType type) {
     this.type = Objects.requireNonNull(type, "type");
     this.element = type.element;
     final ProcessingEnvironment env = type.constitution.protoclass().environment().processing();
@@ -123,7 +123,7 @@ public class ValueTypeRepository {
       final TypeElement ifaceElement = MoreElements.asType(types.asElement(iface));
       final String name = nextName(ifaceElement);
       // convert Writable<T> into Writable<Person>
-      final DeclaredType fieldType = types.getDeclaredType(typed, ValueTypeRepository.this.element.asType());
+      final DeclaredType fieldType = types.getDeclaredType(typed, RepositoryModel.this.element.asType());
 
       final List<ExecutableElement> constructors = ElementFilter.constructorsIn(elements.getAllMembers(typed));
       final CodeBlock block;
@@ -135,7 +135,7 @@ public class ValueTypeRepository {
           TypeMirror varType = variable.asType();
           if (types.isSubtype(varType, types.erasure(elements.getTypeElement(Class.class.getCanonicalName()).asType()))) {
             // inject entity class
-            params.add(ValueTypeRepository.this.type.typeDocument().toString() + ".class");
+            params.add(RepositoryModel.this.type.typeDocument().toString() + ".class");
           } else if (types.isSubtype(varType, elements.getTypeElement(BACKEND).asType())) {
             // inject backend
             params.add("backend");
@@ -149,7 +149,7 @@ public class ValueTypeRepository {
 
       ImmutableFacet.Builder facet = ImmutableFacet.builder();
       // figure out list of interface methods to implement from eg. Writable
-      final DeclaredType interfaceType = types.getDeclaredType(ifaceElement, ValueTypeRepository.this.element.asType());
+      final DeclaredType interfaceType = types.getDeclaredType(ifaceElement, RepositoryModel.this.element.asType());
       final List<ExecutableElement> ifaceMethods = ElementFilter.methodsIn(elements.getAllMembers(MoreElements.asType(interfaceType.asElement())));
       final List<ExecutableElement> objectMethods = ElementFilter.methodsIn(elements.getAllMembers(MoreElements.asType(elements.getTypeElement(Object.class.getCanonicalName()))));
       ifaceMethods.removeAll(objectMethods);
