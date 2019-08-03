@@ -32,7 +32,7 @@ import java.util.function.UnaryOperator;
  * @param <R> root criteria type
  * @param <C> expression type inside lambda
  */
-public interface NotMatcher<R, C> {
+public interface NotMatcher<R, C> extends Matcher {
 
   /**
    * Negate (logically) lambda expression expressed by {@code operator}. Equivalent to boolean {@code NOT} operator.

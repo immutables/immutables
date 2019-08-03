@@ -32,7 +32,7 @@ import java.util.Objects;
  * @param <V> attribute type for which criteria is applied
  * @param <R> Criteria self-type, allowing {@code this}-returning methods to avoid needing subclassing
  */
-public interface ObjectMatcher<R, V> {
+public interface ObjectMatcher<R, V> extends Matcher {
 
   default R isEqualTo(V value) {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));

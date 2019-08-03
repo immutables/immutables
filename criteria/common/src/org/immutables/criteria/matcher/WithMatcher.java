@@ -35,7 +35,7 @@ import java.util.function.UnaryOperator;
  *   }
  * </pre>
  */
-public interface WithMatcher<R, C> {
+public interface WithMatcher<R, C> extends Matcher {
 
   /**
    * Group expression expressed in {@code operator} as single unit.

@@ -26,7 +26,7 @@ import java.util.function.UnaryOperator;
  * Combines matchers using logical {@code AND}
  * @param <R> root criteria type
  */
-public interface AndMatcher<R extends Criterion<?>> {
+public interface AndMatcher<R extends Criterion<?>> extends Matcher {
 
   /**
    * Combine {@code this} and {@code other} expression (criteria / matcher) using logical {@code AND}

@@ -24,7 +24,7 @@ import org.immutables.criteria.expression.Operators;
  *
  * @param <R> root criteria type
  */
-public interface BooleanMatcher<R>  {
+public interface BooleanMatcher<R> extends Matcher {
 
   default R isTrue() {
     return Matchers.extract(this).<R, Object>factory()

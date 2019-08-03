@@ -25,7 +25,7 @@ import java.util.function.UnaryOperator;
 /**
  * Matcher for optional attributes
  */
-public interface OptionalMatcher<R, S>  {
+public interface OptionalMatcher<R, S> extends Matcher {
 
   default R isPresent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);

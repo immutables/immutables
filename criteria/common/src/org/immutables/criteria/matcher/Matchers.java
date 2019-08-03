@@ -50,7 +50,7 @@ public final class Matchers {
    * Extracts criteria context from an arbitrary object.
    * @see ContextHolder
    */
-  static CriteriaContext extract(Object object) {
+  static CriteriaContext extract(Matcher object) {
     Objects.requireNonNull(object, "object");
 
     if (object instanceof ContextHolder) {
@@ -66,7 +66,7 @@ public final class Matchers {
       final CriteriaContext newContext = context.newChild();
       final C initial = (C) newContext.factory().createRoot();
       final C changed = expr.apply(initial);
-      return Matchers.extract(changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
+      return Matchers.extract((Matcher) changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };
   }
 

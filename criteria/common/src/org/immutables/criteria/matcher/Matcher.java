@@ -16,26 +16,9 @@
 
 package org.immutables.criteria.matcher;
 
-import org.immutables.criteria.expression.Collation;
-import org.immutables.criteria.expression.Ordering;
-
 /**
- * Sorting / Order definition.
+ * Matcher is a generic interface to combine and express logical predicates
  */
-public interface OrderMatcher extends Matcher {
-
-  /**
-   * Sort current expression in <i>ascending</i> order.
-   */
-  default Ordering asc() {
-    return Collation.of(Matchers.extract(this).path(), Ordering.Direction.ASCENDING);
-  }
-
-  /**
-   * Sort current expression in <i>descending</i> order.
-   */
-  default Ordering desc() {
-    return Collation.of(Matchers.extract(this).path(), Ordering.Direction.DESCENDING);
-  }
+public interface Matcher {
 
 }

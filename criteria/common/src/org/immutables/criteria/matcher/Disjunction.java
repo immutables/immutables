@@ -23,7 +23,7 @@ package org.immutables.criteria.matcher;
  *
  * @param <R> root type
  */
-public interface Disjunction<R> {
+public interface Disjunction<R> extends Matcher {
 
   /**
    * Builds a disjunction with boolean {@code OR}.
