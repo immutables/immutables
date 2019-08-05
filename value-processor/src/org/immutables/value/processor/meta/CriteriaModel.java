@@ -67,13 +67,10 @@ public class CriteriaModel {
               .bind(variable("S"), def);
 
       type = param.accept(resolver);
-    } else if (attribute.isComparable()) {
-      Type.Defined def = parameterized("org.immutables.criteria.matcher.ComparableMatcher.Template", "R", "V");
-      final Type.VariableResolver resolver = Type.VariableResolver.empty()
-              .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
-      type = def.accept(resolver);
-    } else if (attribute.isCollectionType()) {
-      final Type.Defined param = parameterized("org.immutables.criteria.matcher.IterableMatcher", "R", "S", "V");
+    } else if (attribute.isCollectionType() || attribute.isArrayType()) {
+      // array vs collection
+      final String matcherClass = attribute.isCollectionType() ? "org.immutables.criteria.matcher.IterableMatcher" : "org.immutables.criteria.matcher.ArrayMatcher";
+      final Type.Defined param = parameterized(matcherClass, "R", "S", "V");
       final Type.Defined other;
       if (attribute.hasCriteria()) {
         other = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
@@ -86,6 +83,11 @@ public class CriteriaModel {
               .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
 
       type = param.accept(resolver);
+    } else if (attribute.isComparable()) {
+      Type.Defined def = parameterized("org.immutables.criteria.matcher.ComparableMatcher.Template", "R", "V");
+      final Type.VariableResolver resolver = Type.VariableResolver.empty()
+              .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
+      type = def.accept(resolver);
     } else if (attribute.hasCriteria()) {
       type = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
     } else {

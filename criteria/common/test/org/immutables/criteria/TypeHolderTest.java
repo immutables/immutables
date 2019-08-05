@@ -102,6 +102,21 @@ public class TypeHolderTest {
   }
 
   @Test
+  public void arrays() {
+    TypeHolderCriteria.typeHolder
+            .booleanArray.isEmpty()
+            .booleanArray.hasLength(11)
+            .booleanArray.asList().hasSize(1)
+            .booleanArray.asList().contains(true)
+            .bigIntegerArray.asList().contains(BigInteger.ONE)
+            .bigDecimalArray.asList().contains(BigDecimal.ONE)
+            .fooArray.asList().contains(TypeHolder.Foo.ONE)
+            .timeZoneArray.asList().contains(TimeZone.getDefault())
+            .localDateArray.asList().contains(LocalDate.MAX)
+            .utilDateArray.asList().contains(new java.util.Date());
+  }
+
+  @Test
   public void dates() {
     TypeHolderCriteria.typeHolder
             .localDate.isAtMost(LocalDate.MIN)

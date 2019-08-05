@@ -76,6 +76,16 @@ interface TypeHolder {
   List<Byte> bytes();
   List<Character> chars();
 
+  // == arrays
+  boolean[] booleanArray();
+  double[] doubleArray();
+  float[] floatArray();
+  int[] integerArray();
+  long[] longArray();
+  short[] shortArray();
+  byte[] byteArray();
+  char[] charArray();
+
   enum Foo {
     ONE, TWO
   }
@@ -83,29 +93,35 @@ interface TypeHolder {
   Foo foo();
   Optional<Foo> optFoo();
   List<Foo> foos();
+  Foo[] fooArray();
 
   // java.time.*
   LocalDate localDate();
   Optional<LocalDate> optLocalDate();
   List<LocalDate> localDates();
+  LocalDate[] localDateArray();
 
   // java.util.Date
   java.util.Date utilDate();
   Optional<java.util.Date> optUtilDate();
   List<java.util.Date> utilDates();
+  java.util.Date[] utilDateArray();
 
   // BigInteger and BigDecimal
   BigInteger bigInteger();
   Optional<BigInteger> optBigInteger();
   List<BigInteger> bigIntegers();
+  BigInteger[] bigIntegerArray();
 
   BigDecimal bigDecimal();
   Optional<BigDecimal> optBigDecimal();
   List<BigDecimal> bigDecimals();
+  BigDecimal[] bigDecimalArray();
 
   // TimeZone
   TimeZone timeZone();
   Optional<TimeZone> optTimeZone();
   List<TimeZone> timeZones();
+  TimeZone[] timeZoneArray();
 
 }
