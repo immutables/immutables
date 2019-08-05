@@ -34,7 +34,7 @@ PersonCriteria.person.id.isIn("id1", "id2", "id3");
 // query on Strings, Comparables and Optionals
 person
     .fullName.startsWith("John") // basic string conditions
-    .fullName.isEqualTo(3.1415D) // will not compile since fullName is String
+    .fullName.isEqualTo(3.1415D) // ERROR! will not compile since fullName is String (not double)
     .nickName.isAbsent() // for Optional attribute
     .or() // disjunction
     .age.isGreaterThan(21)
@@ -62,7 +62,7 @@ person.fullName.isEqualTo("John").and(person.age.isGreaterThan(22).or().nickName
 Not all entities require repository (`@Criteria.Repository`) but you need to add `@Criteria` to all classes you want to query by. For example, to filter on `Person.pets.name` `Pet` class needs to have `@Criteria` (otherwise `PersonCriteria.pets` will have a very generic Object matcher).
 
 #### Use generated repository to query or update a datasource
-`@Criteria.Repository` instructs immutables to generate repository class with `find` / `insert` / `watch` operations. You are required to provide a valid [backend](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/adapter/Backend.java) 
+`@Criteria.Repository` instructs immutables to generate repository class with `find` / `insert` / `watch` operations. You are required to provide a valid [backend](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/backend/Backend.java) 
 instance (mongo, elastic, inmemory etc).
 
 ```java
@@ -78,8 +78,27 @@ repository.insert(ImmutablePerson.builder().id("aaa").fullName("John Smith").age
 Publisher<Person> result = repository.find(person.fullName.contains("Smith")).fetch();
 ``` 
 
+### Building blocks (nomenclature)
+- **Matcher** Typed predicate on a particular attribute. There are several variations of the matcher and, usually, they're
+associated with a type (eg. 
+[StringMatcher](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/matcher/StringMatcher.java), 
+[IterableMatcher](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/matcher/IterableMatcher.java), 
+[ComparableMatcher](https://github.com/immutables/immutables/blob/master/criteria/common/src/org/immutables/criteria/matcher/ComparableMatcher.java)). 
+Matcher internally builds an _Expression_.
+- **Expression** Abstraction of a generic expression modeled as 
+[Abstract Syntax Tree](https://en.wikipedia.org/wiki/Abstract_syntax_tree). Used internally as Intermediate Representation (IR) 
+to transform original expression into a native query of a database. Users rarely have to deal with this API unless
+they write adapters for a particular backend.
+- **Backend** adapter to a data-source (database). Responsible for interpreting expressions and operations into native
+queries and API calls using vendor drivers.  
+- **Repository**  User facing API to perform queries, updates, pub/sub or other CRUD operations. Uses _Backend_. 
+- **Facet** Property of repository to fine-tune its behaviour. Eg. `Readable` / `Writable` / `Watchable` 
+Also one can define return types based on [rxjava](https://github.com/ReactiveX/RxJava) / 
+async ([CompletionStage](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletionStage.html))
+or synchronous types. 
+
 ### Development 
-`common` module contains runtime support. Remaining folders are backend implementation.
+`common` module contains runtime support. Remaining folders are backend and facet implementation.
 
 This folder contains classes specific to Criteria API and its runtime evaluation:
 
@@ -88,6 +107,7 @@ This folder contains classes specific to Criteria API and its runtime evaluation
 3. `mongo` adapter for [MongoDB](https://www.mongodb.com/) 
 based on [reactive streams](https://mongodb.github.io/mongo-java-driver-reactivestreams/) driver.
 4. `geode` adapter for [Apache Geode](https://geode.apache.org)
-5. `inmemory` lightweight implementation of a backend based on existing Map
+5. `inmemory` lightweight implementation of a backend based on existing Map.
+6. `rxjava` [rxjava](https://github.com/ReactiveX/RxJava) repository facets.
 
 Criteria API requires Java 8 (or later)
