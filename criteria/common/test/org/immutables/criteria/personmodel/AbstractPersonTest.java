@@ -183,7 +183,28 @@ public abstract class AbstractPersonTest {
     check(criteria().age.isLessThan(1)).empty();
     check(criteria().age.isLessThan(30)).empty();
     check(criteria().age.isLessThan(31)).hasSize(1);
+  }
 
+  @Test
+  public void between() {
+    Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
+    insert(john);
+
+    check(criteria().age.isBetween(0, 40)).hasSize(1);
+    check(criteria().age.isBetween(30, 30)).hasSize(1);
+    check(criteria().age.isBetween(30, 31)).hasSize(1);
+    check(criteria().age.isBetween(29, 30)).hasSize(1);
+    check(criteria().age.isBetween(29, 31)).hasSize(1);
+    check(criteria().age.isBetween(30, 35)).hasSize(1);
+
+    check(criteria().age.isBetween(21, 29)).empty();
+    check(criteria().age.isBetween(29, 29)).empty();
+    check(criteria().age.isBetween(31, 31)).empty();
+    check(criteria().age.isBetween(31, 32)).empty();
+
+    // invalid
+    check(criteria().age.isBetween(31, 30)).empty();
+    check(criteria().age.isBetween(32, 29)).empty();
   }
 
   /**
