@@ -124,4 +124,10 @@ interface TypeHolder {
   List<TimeZone> timeZones();
   TimeZone[] timeZoneArray();
 
+  // weird stuff
+  Optional<Optional<String>> weird1();
+  Optional<List<String>> weird2();
+  List<Optional<String>> weird3();
+  Optional<OptionalInt> weird4();
+
 }

@@ -19,6 +19,7 @@ package org.immutables.value.processor.meta;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
+import javax.lang.model.type.PrimitiveType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleTypeVisitor6;
 
@@ -103,6 +104,28 @@ public class MoreTypes {
       return type;
     }
   }
+
+  /**
+   * Returns a {@link PrimitiveType} if the {@link TypeMirror} represents a primitive type or throws
+   * an {@link IllegalArgumentException}.
+   */
+  public static PrimitiveType asPrimitiveType(TypeMirror maybePrimitiveType) {
+    return maybePrimitiveType.accept(PrimitiveTypeVisitor.INSTANCE, null);
+  }
+
+  private static final class PrimitiveTypeVisitor extends AbstractVisitor<PrimitiveType> {
+    private static final PrimitiveTypeVisitor INSTANCE = new PrimitiveTypeVisitor();
+
+    PrimitiveTypeVisitor() {
+      super("primitive type");
+    }
+
+    @Override
+    public PrimitiveType visitPrimitive(PrimitiveType type, Void ignore) {
+      return type;
+    }
+  }
+
 
 
 }

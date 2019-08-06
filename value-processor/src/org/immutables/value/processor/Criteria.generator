@@ -93,7 +93,7 @@ import [starImport];
    private final CriteriaContext context;
 
    [for a in type.allMarshalingAttributes]
-   public final [a.criteria.matcher.toTemplate] [a.name];
+   public final [a.criteria.matcher.matcherType] [a.name];
    [/for]
 
    /** TODO this should be top-level class */
@@ -139,7 +139,7 @@ import [starImport];
    private [type.name]Criteria(CriteriaContext context) {
      this.context = Objects.requireNonNull(context, "context");
    [for a in type.allMarshalingAttributes]
-     this.[a.name] = ([a.criteria.matcher.toTemplate]) [createMatcher a type];
+     this.[a.name] = ([a.criteria.matcher.matcherType]) [a.criteria.matcher.creator];
    [/for]
    }
 
@@ -153,35 +153,6 @@ import [starImport];
    }
 }
 [/template]
-
-[template createMatcher Attribute a Type type][output.trim]
-[-- TODO there should be a better way --]
-[if (((((a.boolean or (a.type eq 'java.lang.Boolean')) or a.stringType) or a.optionalType) or a.comparable) or a.collectionType)]
-[a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
-[else if a.hasCriteria]
-  [a.unwrappedElementType]Criteria.create(context.withPath([type.typeDocument].class, "[a.name]"))
-[else]
-[a.criteria.matcher.enclosing.withoutParameters.toTemplate].creator().create([constructorArgs a type])
-[/if]
-[/output.trim][/template]
-
-[template constructorArgs Attribute a Type type][output.trim]
-[if a.hasCriteria]
-  context.withPath([type.typeDocument].class, "[a.name]")
-           .withCreators(ctx -> [type.name]Criteria.create(ctx),
-                         ctx -> [a.unwrappedElementType]Criteria.create(ctx))
-
-[else if a.hasSimpleScalarElementType or a.isMaybeComparableKey]
-  context.withPath([type.typeDocument].class, "[a.name]")
-           .withCreators(ctx -> [type.name]Criteria.create(ctx),
-                           [a.criteria.scalarMatcher.enclosing.withoutParameters.toTemplate].creator())
-[else]
-  context
-  .withPath([type.typeDocument].class, "[a.name]")
-  .withCreators(ctx -> [type.name]Criteria.create(ctx), ctx -> [type.name]Criteria.create(ctx))
-[/if]
-[/output.trim][/template]
-
 
 [template atGenerated Type type]
 [if type allowsClasspathAnnotation 'org.immutables.value.Generated']

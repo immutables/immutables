@@ -89,7 +89,7 @@ public final class TypeExtractor {
     return bounds;
   }
 
-  Type get(TypeMirror type) {
+  public Type get(TypeMirror type) {
     return type.accept(converter, parameters);
   }
 

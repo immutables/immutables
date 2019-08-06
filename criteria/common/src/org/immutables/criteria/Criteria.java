@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.CLASS) // need at least CLASS retention because of APT unit testing
 public @interface Criteria {
 
   /**
