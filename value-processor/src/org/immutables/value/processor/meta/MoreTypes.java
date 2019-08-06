@@ -17,6 +17,7 @@
 package org.immutables.value.processor.meta;
 
 import javax.lang.model.type.ArrayType;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleTypeVisitor6;
@@ -81,5 +82,27 @@ public class MoreTypes {
       throw new IllegalArgumentException(e + " does not represent a " + label);
     }
   }
+
+  /**
+   * Returns a {@link DeclaredType} if the {@link TypeMirror} represents a declared type such as a
+   * class, interface, union/compound, or enum or throws an {@link IllegalArgumentException}.
+   */
+  public static DeclaredType asDeclared(TypeMirror maybeDeclaredType) {
+    return maybeDeclaredType.accept(DeclaredTypeVisitor.INSTANCE, null);
+  }
+
+  private static final class DeclaredTypeVisitor extends AbstractVisitor<DeclaredType> {
+    private static final DeclaredTypeVisitor INSTANCE = new DeclaredTypeVisitor();
+
+    DeclaredTypeVisitor() {
+      super("declared type");
+    }
+
+    @Override
+    public DeclaredType visitDeclared(DeclaredType type, Void ignore) {
+      return type;
+    }
+  }
+
 
 }
