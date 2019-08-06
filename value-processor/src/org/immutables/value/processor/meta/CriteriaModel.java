@@ -49,12 +49,7 @@ public class CriteriaModel {
     final Type type;
 
     // TODO probably need to use Transformer
-    if (attribute.isStringType()) {
-      // StringMatcher<R>
-      type = parameterized("org.immutables.criteria.matcher.StringMatcher.Template", "R");
-    } else if (Boolean.class.getName().equals(attribute.getWrapperType())) {
-      type = parameterized("org.immutables.criteria.matcher.BooleanMatcher.Template", "R");
-    } else if (attribute.isOptionalType()) {
+    if (attribute.isOptionalType()) {
       Type.Parameterized param = (Type.Parameterized) parameterized("org.immutables.criteria.matcher.OptionalMatcher", "R", "S");
       final Type.Defined def;
       if (attribute.hasCriteria()) {
@@ -83,14 +78,21 @@ public class CriteriaModel {
               .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
 
       type = param.accept(resolver);
+    } else if (attribute.hasCriteria()) {
+      type = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
+    } else if (Boolean.class.getName().equals(attribute.getWrapperType())) {
+      type = parameterized("org.immutables.criteria.matcher.BooleanMatcher.Template", "R");
+    } else if (attribute.isStringType()) {
+      // StringMatcher<R>
+      type = parameterized("org.immutables.criteria.matcher.StringMatcher.Template", "R");
+
     } else if (attribute.isComparable()) {
       Type.Defined def = parameterized("org.immutables.criteria.matcher.ComparableMatcher.Template", "R", "V");
       final Type.VariableResolver resolver = Type.VariableResolver.empty()
               .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
       type = def.accept(resolver);
-    } else if (attribute.hasCriteria()) {
-      type = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
     } else {
+      // can't match any type. Use ObjectMatcher
       final Type.VariableResolver resolver = Type.VariableResolver.empty()
               .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
 
