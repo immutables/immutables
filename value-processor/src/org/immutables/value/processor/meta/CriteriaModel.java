@@ -16,12 +16,24 @@
 
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import org.immutables.value.processor.encode.Type;
+import org.immutables.value.processor.encode.TypeExtractor;
 
-import java.util.ArrayList;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Creates several matchers programmatically based on {@link ValueAttribute}.
@@ -34,6 +46,9 @@ public class CriteriaModel {
   private final ValueAttribute attribute;
   private final Type.Factory factory;
   private final Type.Parameters parameters;
+  private final Elements elements;
+  private final Types types;
+  private final IntrospectedType introspectedType;
 
   CriteriaModel(ValueAttribute attribute) {
     this.attribute = Preconditions.checkNotNull(attribute, "attribute");
@@ -43,193 +58,291 @@ public class CriteriaModel {
             .introduce("S", NO_BOUNDS)
             .introduce("C", NO_BOUNDS)
             .introduce("V", NO_BOUNDS);
+    ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
+    this.elements = env.getElementUtils();
+    this.types = env.getTypeUtils();
+    this.introspectedType = new IntrospectedType(attribute.returnType, env.getTypeUtils(), env.getElementUtils());
   }
+
+  private static class IntrospectedType {
+
+    private final TypeMirror type;
+    private final Types types;
+    private final Elements elements;
+
+    // type erasure will be boxed for primitive types
+    private final TypeMirror erasure;
+
+    IntrospectedType(TypeMirror type, Types types, Elements elements) {
+      this.types = types;
+      this.elements = elements;
+      this.type = Preconditions.checkNotNull(type, "type");
+
+      TypeMirror erasure = types.erasure(type);
+      if (erasure.getKind().isPrimitive()) {
+        erasure = types.boxedClass(MoreTypes.asPrimitiveType(erasure)).asType();
+      }
+      this.erasure = erasure;
+    }
+
+    public IntrospectedType withType(TypeMirror type) {
+      return new IntrospectedType(type, types, elements);
+    }
+
+    private boolean isSubtypeOf(Class<?> maybeSuper) {
+      Objects.requireNonNull(maybeSuper, "maybeSuper");
+      return isSubtypeOf(elements.getTypeElement(maybeSuper.getCanonicalName()));
+    }
+
+    private boolean isSubtypeOf(Element element) {
+      Objects.requireNonNull(element, "element");
+      final TypeMirror maybeSuperType = element.asType();
+      return types.isSubtype(erasure, types.erasure(maybeSuperType));
+    }
+
+    public boolean isBoolean() {
+      return type.getKind() == TypeKind.BOOLEAN ||
+             isSubtypeOf(Boolean.class);
+    }
+
+    public boolean isNumber() {
+      return type.getKind().isPrimitive() && !isBoolean() || isSubtypeOf(Number.class);
+    }
+
+    public boolean isContainer() {
+      return isIterable() || isOptional() || isArray() || isMap();
+    }
+
+    public boolean isScalar() {
+      return !isContainer();
+    }
+
+    public boolean isEnum() {
+      return types.asElement(type).getKind() == ElementKind.ENUM;
+    }
+
+    public boolean isIterable() {
+      return isSubtypeOf(Iterable.class);
+    }
+
+    public boolean isArray() {
+      return type.getKind() == TypeKind.ARRAY;
+    }
+
+    public boolean isComparable() {
+      return isSubtypeOf(Comparable.class);
+    }
+
+    public boolean isString() {
+      return isSubtypeOf(String.class);
+    }
+
+    public boolean isMap() {
+      return isSubtypeOf(Map.class);
+    }
+
+    public TypeMirror box() {
+      return type.getKind().isPrimitive() ? types.boxedClass(MoreTypes.asPrimitiveType(type)).asType() : type;
+    }
+
+    public boolean hasCriteria() {
+      final Element element;
+      if ((isOptional() || isIterable()) && MoreTypes.asDeclared(type).getTypeArguments().size() == 1) {
+        element = types.asElement(MoreTypes.asDeclared(type).getTypeArguments().get(0));
+      } else {
+        element = types.asElement(type);
+      }
+
+      return element != null && CriteriaMirror.find(element).isPresent();
+    }
+
+    private TypeMirror optionalParameter() {
+      final String typeName = type.toString();
+      if ("java.util.OptionalInt".equals(typeName)) {
+        return elements.getTypeElement(Integer.class.getName()).asType();
+      } else if ("java.util.OptionalLong".equals(typeName)) {
+        return elements.getTypeElement(Long.class.getName()).asType();
+      } else if ("java.util.OptionalDouble".equals(typeName)) {
+        return elements.getTypeElement(Double.class.getName()).asType();
+      } else if ("java.util.Optional".equals(erasure.toString()) || "com.google.common.base.Optional".equals(erasure.toString())) {
+        return MoreTypes.asDeclared(type).getTypeArguments().get(0);
+      }
+
+      throw new IllegalArgumentException(String.format("%s is not an optional type", type));
+
+    }
+
+    public boolean isOptional() {
+      final List<String> names = Arrays.asList("java.util.Optional", "java.util.OptionalInt",
+              "java.util.OptionalDouble", "java.util.OptionalLong", Optional.class.getName());
+
+      for (String name: names) {
+        final Element element = elements.getTypeElement(name);
+        if (element != null && isSubtypeOf(element)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
+
+  private Type toType(TypeMirror mirror) {
+    if (mirror.getKind() == TypeKind.ARRAY) {
+      return factory.array(toType(MoreTypes.asArray(mirror).getComponentType()));
+    } else if (mirror.getKind().isPrimitive()) {
+      final TypeElement boxed = types.boxedClass(MoreTypes.asPrimitiveType(mirror));
+      return factory.reference(boxed.getQualifiedName().toString());
+    }
+
+    final Element element = types.asElement(mirror);
+    if (element == null) {
+      throw new IllegalArgumentException(String.format("Element for type %s not found (attribute %s %s)",
+              mirror, attribute.name(), attribute.returnType));
+    }
+
+    final TypeExtractor extractor = new TypeExtractor(factory, MoreElements.asType(element));
+    return extractor.get(mirror);
+  }
+
+  private Type.Parameterized matcherType(TypeMirror type) {
+    final IntrospectedType introspected = this.introspectedType.withType(type);
+    final String name;
+    if (introspected.isOptional()) {
+      name =  "org.immutables.criteria.matcher.OptionalMatcher";
+    } else if (introspected.isIterable()) {
+      name = "org.immutables.criteria.matcher.IterableMatcher";
+    } else if (introspected.isArray()) {
+      name = "org.immutables.criteria.matcher.ArrayMatcher";
+    } else if (introspected.hasCriteria()) {
+      name = type.toString() + "Criteria";
+    } else if (introspected.isBoolean()) {
+      name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
+    } else if (introspected.isString()) {
+      name = "org.immutables.criteria.matcher.StringMatcher.Template";
+    } else if (introspected.isComparable()) {
+      name = "org.immutables.criteria.matcher.ComparableMatcher.Template";
+    } else {
+      name = "org.immutables.criteria.matcher.ObjectMatcher.Template";
+    }
+
+    final Element element = elements.getTypeElement(name);
+    final Type.Parameterized matcherType;
+    if (element == null) {
+      // means type not found in classpath. probably not yet generated criteria
+      // create PersonCriteria<R> manually with Type.Parameterized
+      final Type.Variable variable = factory.parameters().introduce("R", NO_BOUNDS).variable("R");
+      matcherType = factory.parameterized(factory.reference(name), Collections.singleton(variable));
+    } else {
+      matcherType = (Type.Parameterized) toType(element.asType());
+    }
+
+    return matcherType;
+  }
+
+  public Type.Parameterized buildMatcher() {
+    return buildMatcher(attribute.returnType);
+  }
+
+  private Type.Parameterized buildMatcher(TypeMirror type) {
+    Preconditions.checkNotNull(type, "type");
+    final IntrospectedType introspected = this.introspectedType.withType(type);
+    final Type.Parameterized matcher = matcherType(type);
+    if (matcher.arguments.size() > 1) {
+      // replace second and maybe third argument
+      // first type argument R unchanged
+      Type.VariableResolver resolver = Type.VariableResolver.empty();
+
+      final Type valueType;
+      final Type.Variable arg1 = (Type.Variable) matcher.arguments.get(1);
+      if (introspected.isScalar()) {
+        // this is leaf no need to recurse
+        valueType = toType(introspected.box());
+        resolver = resolver.bind(arg1, (Type.Nonprimitive) valueType);
+      } else if (introspected.isOptional()) {
+        final TypeMirror mirror = introspected.optionalParameter();
+        valueType = toType(mirror);
+        resolver = resolver.bind(arg1, buildMatcher(mirror));
+      } else if (introspected.isArray()) {
+        final TypeMirror mirror = MoreTypes.asArray(type).getComponentType();
+        valueType = toType(mirror);
+        resolver = resolver.bind(arg1, buildMatcher(mirror));
+      } else {
+        final TypeMirror mirror = MoreTypes.asDeclared(type).getTypeArguments().get(0);
+        valueType = toType(mirror);
+        resolver = resolver.bind(arg1, buildMatcher(mirror));
+      }
+
+      if (matcher.arguments.size() > 2) {
+        // last parameter is usually value
+        resolver = resolver.bind((Type.Variable) matcher.arguments.get(2), (Type.Nonprimitive) valueType);
+      }
+
+      return (Type.Parameterized) matcher.accept(resolver);
+    }
+
+    return matcher;
+  }
+
 
   public MatcherDefinition matcher() {
-    final Type type;
-
-    // TODO probably need to use Transformer
-    if (attribute.isOptionalType()) {
-      Type.Parameterized param = (Type.Parameterized) parameterized("org.immutables.criteria.matcher.OptionalMatcher", "R", "S");
-      final Type.Defined def;
-      if (attribute.hasCriteria()) {
-        def = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
-      } else  {
-        def = scalar();
-      }
-
-      final Type.VariableResolver resolver = Type.VariableResolver.empty()
-              .bind(variable("S"), def);
-
-      type = param.accept(resolver);
-    } else if (attribute.isCollectionType() || attribute.isArrayType()) {
-      // array vs collection
-      final String matcherClass = attribute.isCollectionType() ? "org.immutables.criteria.matcher.IterableMatcher" : "org.immutables.criteria.matcher.ArrayMatcher";
-      final Type.Defined param = parameterized(matcherClass, "R", "S", "V");
-      final Type.Defined other;
-      if (attribute.hasCriteria()) {
-        other = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
-      } else {
-        other = scalar();
-      }
-
-      final Type.VariableResolver resolver = Type.VariableResolver.empty()
-              .bind(variable("S"), other)
-              .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
-
-      type = param.accept(resolver);
-    } else if (attribute.hasCriteria()) {
-      type = parameterized(attribute.getUnwrappedElementType() + "Criteria", "R");
-    } else if (Boolean.class.getName().equals(attribute.getWrapperType())) {
-      type = parameterized("org.immutables.criteria.matcher.BooleanMatcher.Template", "R");
-    } else if (attribute.isStringType()) {
-      // StringMatcher<R>
-      type = parameterized("org.immutables.criteria.matcher.StringMatcher.Template", "R");
-
-    } else if (attribute.isComparable()) {
-      Type.Defined def = parameterized("org.immutables.criteria.matcher.ComparableMatcher.Template", "R", "V");
-      final Type.VariableResolver resolver = Type.VariableResolver.empty()
-              .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
-      type = def.accept(resolver);
-    } else {
-      // can't match any type. Use ObjectMatcher
-      final Type.VariableResolver resolver = Type.VariableResolver.empty()
-              .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
-
-      type = parameterized("org.immutables.criteria.matcher.ObjectMatcher.Template", "R", "V").accept(resolver);
-    }
-
-    return new MatcherDefinition(type);
-  }
-
-
-  public MatcherDefinition scalarMatcher() {
-    return new MatcherDefinition(scalar());
-  }
-
-  private Type.Variable variable(String name) {
-    return parameters.variable(name);
-  }
-
-  private Type.Defined scalar() {
-    final Type.Defined type;
-    if (Boolean.class.getName().equals(attribute.getWrappedElementType())) {
-      type = parameterized("org.immutables.criteria.matcher.BooleanMatcher.Template", "R");
-    } else if (String.class.getName().equals(attribute.getWrappedElementType())) {
-      type = parameterized("org.immutables.criteria.matcher.StringMatcher.Template", "R");
-    } else if (attribute.isMaybeComparableKey()) {
-      type = parameterized("org.immutables.criteria.matcher.ComparableMatcher.Template", "R", "V");
-    } else {
-      type = parameterized("org.immutables.criteria.matcher.ObjectMatcher.Template", "R", "V");
-    }
-
-    final Type.VariableResolver resolver = Type.VariableResolver.empty()
-            .bind(variable("V"), factory.reference(attribute.getWrappedElementType()));
-
-
-    return (Type.Defined) type.accept(resolver);
+    return new MatcherDefinition(buildMatcher());
   }
 
   public class MatcherDefinition {
-    private final Type type;
+    private final Type.Parameterized type;
 
-    private MatcherDefinition(Type type) {
-      this.type = type;
+    private MatcherDefinition(Type.Parameterized type) {
+      this.type = Preconditions.checkNotNull(type, "type");
     }
 
-    public MatcherDefinition toSelf() {
-      return new MatcherDefinition(CriteriaModel.this.toSelf(type));
+    public Type.Parameterized matcherType() {
+      return this.type;
     }
 
-    public MatcherDefinition withoutParameters() {
-      final Type.Transformer transformer = new Type.Transformer() {
-        @Override
-        public Type parameterized(Type.Parameterized parameterized) {
-          return parameterized.reference;
-        }
-      };
-      return new MatcherDefinition(type.accept(transformer));
-    }
+    public String creator() {
+      final String withPath = String.format("withPath(%s.class, \"%s\")", attribute.containingType.typeDocument().toString(), attribute.name());
 
-    /** Return upper level matcher: StringMatcher.Template -> StringMatcher. */
-    public MatcherDefinition enclosing() {
-      final String name = ((Type.Parameterized) type).reference.name;
-      if (name.endsWith(".Self") || name.endsWith(".Template")) {
-        final String newName = name.substring(0, name.lastIndexOf('.'));
-        return new MatcherDefinition(factory.reference(newName));
+      final String firstCreator;
+      final String name = type.reference.name;
+      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
+      if (hasCriteria) {
+        firstCreator = String.format("%s.create(%%s)", name);
+      } else {
+        final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
+        firstCreator = String.format("%s.creator().create(%%s)", newName);
       }
 
-      return this;
-    }
-
-    public String toTemplate() {
-      return type.toString();
-    }
-
-    @Override
-    public String toString() {
-      return toTemplate();
-    }
-  }
-
-  private Type.Defined parameterized(String name, String ... params) {
-    final Type.Reference reference = factory.reference(name);
-    final List<Type.Variable> variables = new ArrayList<>();
-    for (String param: params) {
-      variables.add(parameters.variable(param));
-    }
-
-    return variables.isEmpty() ? reference : factory.parameterized(reference, variables);
-  }
-
-  private Type.Defined toSelf(Type type) {
-    final Type.Transformer transformer = new Type.Transformer() {
-      @Override
-      public Type reference(Type.Reference reference) {
-        // check if it is immutables matcher or attribute has criteria defined
-        if (!(attribute.hasCriteria() || reference.name.startsWith("org.immutables.criteria.matcher."))) {
-          return defaults(reference);
-        }
-
-        // is already transformed ?
-        if (reference.name.contains(".Self")) {
-          return defaults(reference);
-        }
-
-        // PetCriteria vs Pet vs IterableMatcher
-        if (reference.name.endsWith(".Template")) {
-          return factory.reference(reference.name.replace(".Template", ".Self"));
-        } else {
-          return factory.reference(reference.name + ".Self");
-        }
+      final String secondCreator;
+      if (hasCriteria || type.arguments.size() <= 1) {
+        secondCreator = creator(type);
+      } else {
+        secondCreator = creator(type.arguments.get(1));
       }
 
-      @Override
-      public Type parameterized(Type.Parameterized parameterized) {
-        if (parameterized.reference.name.contains(".Self")) {
-          return defaults(parameterized);
-        }
+      final String withCreators = String.format("withCreators(ctx -> %s.create(ctx), %s)", attribute.containingType.name() + "Criteria", secondCreator);
+      return String.format(firstCreator, new StringBuilder().append("context.").append(withPath).append(".").append(withCreators));
+    }
 
-        Type.Reference reference = (Type.Reference) parameterized.reference.accept(this);
-        if (parameterized.arguments.size() <= 1) {
-          return defaults(reference);
-        }
-
-        final List<Type.Nonprimitive> args = new ArrayList<>();
-        for (Type.Nonprimitive arg: parameterized.arguments.subList(1, parameterized.arguments.size())) {
-          if (arg instanceof Type.Parameterized) {
-            args.add((Type.Nonprimitive) arg.accept(this));
-          } else {
-            args.add(arg);
-          }
-        }
-
-        return factory.parameterized(reference, args);
+    private String creator(Type type) {
+      if (!(type instanceof Type.Parameterized)) {
+        return "org.immutables.criteria.matcher.ObjectMatcher.creator()";
       }
-    };
 
+      Type.Parameterized param = (Type.Parameterized) type;
+      String name = param.reference.name;
+      if (name.endsWith(".Template")) {
+        final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
+        return newName + ".creator()";
+      } else if (name.endsWith("Matcher")) {
+        return name + ".creator()";
+      } else {
+        // criteria
+        return "ctx -> " + name + ".create(ctx)";
+      }
+    }
 
-    return (Type.Defined) type.accept(transformer);
   }
+
 
 }
