@@ -45,7 +45,6 @@ public class CriteriaModel {
 
   private final ValueAttribute attribute;
   private final Type.Factory factory;
-  private final Type.Parameters parameters;
   private final Elements elements;
   private final Types types;
   private final IntrospectedType introspectedType;
@@ -53,11 +52,6 @@ public class CriteriaModel {
   CriteriaModel(ValueAttribute attribute) {
     this.attribute = Preconditions.checkNotNull(attribute, "attribute");
     this.factory = new Type.Producer();
-    this.parameters = factory.parameters()
-            .introduce("R", NO_BOUNDS)
-            .introduce("S", NO_BOUNDS)
-            .introduce("C", NO_BOUNDS)
-            .introduce("V", NO_BOUNDS);
     ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
     this.elements = env.getElementUtils();
     this.types = env.getTypeUtils();
@@ -146,18 +140,12 @@ public class CriteriaModel {
     }
 
     public boolean hasCriteria() {
-      final Element element;
-      if ((isOptional() || isIterable()) && MoreTypes.asDeclared(type).getTypeArguments().size() == 1) {
-        element = types.asElement(MoreTypes.asDeclared(type).getTypeArguments().get(0));
-      } else {
-        element = types.asElement(type);
-      }
-
+      final Element element = types.asElement(type);
       return element != null && CriteriaMirror.find(element).isPresent();
     }
 
     private TypeMirror optionalParameter() {
-      final String typeName = type.toString();
+      final String typeName = erasure.toString();
       if ("java.util.OptionalInt".equals(typeName)) {
         return elements.getTypeElement(Integer.class.getName()).asType();
       } else if ("java.util.OptionalLong".equals(typeName)) {
@@ -208,18 +196,19 @@ public class CriteriaModel {
   private Type.Parameterized matcherType(TypeMirror type) {
     final IntrospectedType introspected = this.introspectedType.withType(type);
     final String name;
-    if (introspected.isOptional()) {
-      name =  "org.immutables.criteria.matcher.OptionalMatcher";
-    } else if (introspected.isIterable()) {
-      name = "org.immutables.criteria.matcher.IterableMatcher";
-    } else if (introspected.isArray()) {
-      name = "org.immutables.criteria.matcher.ArrayMatcher";
-    } else if (introspected.hasCriteria()) {
+
+    if (introspected.hasCriteria()) {
       name = type.toString() + "Criteria";
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
+    } else if (introspected.isOptional()) {
+      name =  "org.immutables.criteria.matcher.OptionalMatcher";
+    } else if (introspected.isIterable()) {
+      name = "org.immutables.criteria.matcher.IterableMatcher";
+    } else if (introspected.isArray()) {
+      name = "org.immutables.criteria.matcher.ArrayMatcher";
     } else if (introspected.isComparable()) {
       name = "org.immutables.criteria.matcher.ComparableMatcher.Template";
     } else {
@@ -300,6 +289,7 @@ public class CriteriaModel {
       return this.type;
     }
 
+    // TODO the logic here is messy. Cleanup creator API and update this method
     public String creator() {
       final String withPath = String.format("withPath(%s.class, \"%s\")", attribute.containingType.typeDocument().toString(), attribute.name());
 
@@ -341,8 +331,5 @@ public class CriteriaModel {
         return "ctx -> " + name + ".create(ctx)";
       }
     }
-
   }
-
-
 }

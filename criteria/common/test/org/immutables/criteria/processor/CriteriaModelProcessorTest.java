@@ -72,6 +72,8 @@ public class CriteriaModelProcessorTest {
             "org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>");
     assertAttribute("arrayInteger",
             "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>,java.lang.Integer>");
+    assertAttribute("arrayArrayInteger",
+            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>,java.lang.Integer>,java.lang.Integer[]>");
     assertAttribute("optionalInteger",
             "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>>");
     assertAttribute("optionalInteger2",
@@ -104,7 +106,6 @@ public class CriteriaModelProcessorTest {
 
   @Test
   public void array() {
-    //      this.doubleArray = (ArrayMatcher<R, ObjectMatcher.Template<R, Double>, Double>) ArrayMatcher.creator().create(context.withPath(TypeHolder.class, "doubleArray")
     assertAttribute("arrayDouble",
             "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Double>,java.lang.Double>");
 
@@ -174,9 +175,10 @@ public class CriteriaModelProcessorTest {
 
     int integer();
     int[] arrayInteger();
+    int[][] arrayArrayInteger();
     List<Integer> listInteger();
     OptionalInt optionalInteger();
-    OptionalInt optionalInteger2();
+    Optional<Integer> optionalInteger2();
 
     long longValue();
     long[] arrayLong();
