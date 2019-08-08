@@ -80,11 +80,13 @@ public final class Backends {
         }
       }
 
-      toVisit.push(current.getSuperclass());
+      if (!current.isInterface()) {
+        toVisit.push(current.getSuperclass());
+      }
       toVisit.addAll(Arrays.asList(current.getInterfaces()));
     }
 
-    throw new IllegalArgumentException(String.format("Annotation %s not found in methods or fields of %s", annotationClass, type));
+    throw new IllegalArgumentException(String.format("Annotation %s not found in methods or fields of %s", annotationClass.getName(), type));
   }
 
   /**

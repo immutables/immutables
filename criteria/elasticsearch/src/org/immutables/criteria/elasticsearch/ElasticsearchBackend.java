@@ -31,6 +31,8 @@ import org.reactivestreams.Publisher;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,6 @@ public class ElasticsearchBackend implements Backend {
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.resolver = Objects.requireNonNull(resolver, "resolver");
     this.scrollSize = scrollSize;
-
   }
 
 
@@ -70,14 +71,25 @@ public class ElasticsearchBackend implements Backend {
   }
 
   private static class Session implements Backend.Session {
-    private final Class<?> entityClass;
     private final ObjectMapper mapper;
     private final ElasticsearchOps ops;
+    private final Function<Object, Object> idExtractor;
+    private final boolean hasId;
 
-    public Session(Class<?> entityClass, ElasticsearchOps ops) {
+    private Session(Class<?> entityClass, ElasticsearchOps ops) {
+      Objects.requireNonNull(entityClass, "entityClass");
       this.ops = Objects.requireNonNull(ops, "ops");
       this.mapper = ops.mapper();
-      this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
+      Function<Object, Object> idExtractor = Function.identity();
+      boolean hasId = false;
+      try {
+        idExtractor = Backends.idExtractor((Class<Object>) entityClass);
+        hasId = true;
+      } catch (IllegalArgumentException ignore) {
+        // id not supported
+      }
+      this.idExtractor = idExtractor;
+      this.hasId = hasId;
     }
 
     @Override
@@ -122,10 +134,12 @@ public class ElasticsearchBackend implements Backend {
         return Flowable.just(WriteResult.UNKNOWN);
       }
 
-      // TODO cache idExtractor
-      final Function<Object, Object> idExtractor = Backends.idExtractor((Class<Object>) insert.values().get(0).getClass());
+      // sets _id attribute (if entity has @Criteria.Id annotation)
+      final BiFunction<Object, ObjectNode, ObjectNode> idFn = (entity, node) ->
+              hasId ? (ObjectNode) node.set("_id", mapper.valueToTree(idExtractor.apply(entity))) : node;
+
       final List<ObjectNode> docs = insert.values().stream()
-              .map(e -> (ObjectNode) ((ObjectNode) mapper.valueToTree(e)).set("_id", mapper.valueToTree(idExtractor.apply(e))))
+              .map(e -> idFn.apply(e, mapper.valueToTree(e)))
               .collect(Collectors.toList());
 
       return Flowable.fromCallable(() -> {
