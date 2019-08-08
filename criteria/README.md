@@ -30,19 +30,22 @@ Because of `@Criteria` annotation, `PersonCriteria` class is automatically gener
 ```java
 // basic query by id
 PersonCriteria.person.id.in("id1", "id2", "id3");
+PersonCriteria.person.id.notIn("bad_id");
 
 // query on Strings, Comparables and Optionals
 person
-    .fullName.startsWith("John") // basic string condition
-    .fullName.isNot("Marry") // basic not equal
+    .fullName.is("John") // basic equal
+    .fullName.isNot("Marry") // not equal
+    .fullName.endsWith("Smith") // string condition
     .fullName.is(3.1415D) // ERROR! will not compile since fullName is String (not double)
-    .nickName.isAbsent() // for Optional attribute
+    .nickName.isPresent() // for Optional attribute
+    .nickName.value().startsWith("Adam") // For Optional<String> attribute
     .pets.notEmpty() // condition on an Iterable
-    .or() // disjunction
-    .age.greaterThan(21)
-    .nickName.value().startsWith("Adam")
+    .active.isTrue() // boolean
+    .or() // disjunction (equivalent to logical OR)
+    .age.atLeast(21) // comparable attribute
     .or()
-    .not(p -> p.nickName.value().hasSize(4)); // negation
+    .not(p -> p.nickName.value().hasLength(4)); // negation on a Optional<String> attribute
 
 // apply specific predicate to elements of a collection
 person
