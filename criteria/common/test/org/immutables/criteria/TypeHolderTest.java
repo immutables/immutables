@@ -39,17 +39,17 @@ public class TypeHolderTest {
     TypeHolderCriteria.typeHolder
             .booleanPrimitive.isTrue()
             .booleanPrimitive.isFalse()
-            .intPrimitive.isEqualTo(0)
-            .intPrimitive.isGreaterThan(22)
-            .longPrimitive.isLessThan(22L)
-            .longPrimitive.isIn(1L, 2L, 3L)
-            .charPrimitive.isEqualTo('A')
-            .doublePrimitive.isGreaterThan(1.1)
-            .doublePrimitive.isIn(1D, 2D, 3D)
-            .floatPrimitive.isEqualTo(33F)
-            .floatPrimitive.isGreaterThan(12F)
-            .shortPrimitive.isGreaterThan((short) 2)
-            .bytePrimitive.isNotEqualTo((byte) 0);
+            .intPrimitive.is(0)
+            .intPrimitive.greaterThan(22)
+            .longPrimitive.lessThan(22L)
+            .longPrimitive.in(1L, 2L, 3L)
+            .charPrimitive.is('A')
+            .doublePrimitive.greaterThan(1.1)
+            .doublePrimitive.in(1D, 2D, 3D)
+            .floatPrimitive.is(33F)
+            .floatPrimitive.greaterThan(12F)
+            .shortPrimitive.greaterThan((short) 2)
+            .bytePrimitive.isNot((byte) 0);
 
     // == Optionals
     TypeHolderCriteria.typeHolder
@@ -58,47 +58,47 @@ public class TypeHolderTest {
             .optBoolean.isAbsent()
             .optInt.isAbsent()
             .optLong.isAbsent()
-            .optLong.value().isLessThan(11L)
+            .optLong.value().lessThan(11L)
             .optLong2.isAbsent()
-            .optLong2.value().isLessThan(22L)
+            .optLong2.value().lessThan(22L)
             .optShort.isPresent()
             .optDouble.isPresent()
-            .optDouble.value().isGreaterThan(22D)
-            .optDouble2.value().isLessThan(11D)
+            .optDouble.value().greaterThan(22D)
+            .optDouble2.value().lessThan(11D)
             .optFloat.isAbsent()
-            .optShort.value().isLessThan((short) 22)
+            .optShort.value().lessThan((short) 22)
             .optShort.isAbsent();
 
     // == Boxed
     TypeHolderCriteria.typeHolder
-            .doubleValue.isLessThan(22D)
+            .doubleValue.lessThan(22D)
             .booleanValue.isTrue()
             .booleanValue.isFalse()
-            .intValue.isLessThan(22)
-            .doubleValue.isLessThan(1D)
-            .shortValue.isLessThan((short) 11)
-            .byteValue.isGreaterThan((byte) 2)
-            .longValue.isLessThan(44L);
+            .intValue.lessThan(22)
+            .doubleValue.lessThan(1D)
+            .shortValue.lessThan((short) 11)
+            .byteValue.greaterThan((byte) 2)
+            .longValue.lessThan(44L);
 
     // == lists
     TypeHolderCriteria.typeHolder
             .booleans.any().isTrue()
-            .booleans.isNotEmpty()
+            .booleans.notEmpty()
             .booleans.hasSize(1)
-            .bytes.none().isEqualTo((byte) 0)
+            .bytes.none().is((byte) 0)
             .bytes.hasSize(1)
-            .shorts.any().isEqualTo((short) 22)
+            .shorts.any().is((short) 22)
             .shorts.hasSize(1)
-            .integers.any().isAtLeast(11)
-            .integers.isNotEmpty()
+            .integers.any().atLeast(11)
+            .integers.notEmpty()
             .integers.hasSize(1)
-            .longs.none().isGreaterThan(11L)
+            .longs.none().greaterThan(11L)
             .longs.hasSize(2)
-            .doubles.none().isLessThan(1D)
+            .doubles.none().lessThan(1D)
             .doubles.hasSize(2)
-            .floats.all().isGreaterThan(22F)
+            .floats.all().greaterThan(22F)
             .chars.isEmpty()
-            .chars.any().isGreaterThan('A');
+            .chars.any().greaterThan('A');
   }
 
   @Test
@@ -119,8 +119,8 @@ public class TypeHolderTest {
   @Test
   public void dates() {
     TypeHolderCriteria.typeHolder
-            .localDate.isAtMost(LocalDate.MIN)
-            .optLocalDate.value().isAtMost(LocalDate.MAX)
+            .localDate.atMost(LocalDate.MIN)
+            .optLocalDate.value().atMost(LocalDate.MAX)
             .localDates.contains(LocalDate.MAX);
   }
 
@@ -130,9 +130,9 @@ public class TypeHolderTest {
     final Date date = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10));
 
     TypeHolderCriteria.typeHolder
-            .utilDate.isAtMost(date)
-            .optUtilDate.value().isAtMost(date)
-            .utilDates.all().isAtLeast(date);
+            .utilDate.atMost(date)
+            .optUtilDate.value().atMost(date)
+            .utilDates.all().atLeast(date);
   }
 
   /**
@@ -141,34 +141,34 @@ public class TypeHolderTest {
   @Test
   public void bigIntegerAndDecimal() {
     TypeHolderCriteria.typeHolder
-            .bigDecimal.isAtLeast(BigDecimal.ONE)
-            .optBigDecimal.value().isAtLeast(BigDecimal.ONE)
+            .bigDecimal.atLeast(BigDecimal.ONE)
+            .optBigDecimal.value().atLeast(BigDecimal.ONE)
             .bigDecimals.contains(BigDecimal.TEN)
-            .bigDecimals.isNotEmpty()
-            .bigDecimals.any().isAtLeast(BigDecimal.ONE);
+            .bigDecimals.notEmpty()
+            .bigDecimals.any().atLeast(BigDecimal.ONE);
 
     TypeHolderCriteria.typeHolder
-            .bigInteger.isAtLeast(BigInteger.ONE)
-            .optBigInteger.value().isAtLeast(BigInteger.ONE)
+            .bigInteger.atLeast(BigInteger.ONE)
+            .optBigInteger.value().atLeast(BigInteger.ONE)
             .bigIntegers.contains(BigInteger.TEN)
-            .bigIntegers.isNotEmpty()
-            .bigIntegers.any().isAtLeast(BigInteger.ONE);
+            .bigIntegers.notEmpty()
+            .bigIntegers.any().atLeast(BigInteger.ONE);
   }
 
   @Test
   public void enumCheck() {
       TypeHolderCriteria.typeHolder
-              .foos.none().isEqualTo(TypeHolder.Foo.TWO)
-              .foo.isEqualTo(TypeHolder.Foo.ONE)
+              .foos.none().is(TypeHolder.Foo.TWO)
+              .foo.is(TypeHolder.Foo.ONE)
               .optFoo.isPresent()
-              .optFoo.value().isEqualTo(TypeHolder.Foo.ONE);
+              .optFoo.value().is(TypeHolder.Foo.ONE);
   }
 
   @Test
   public void timeZones() {
     TypeHolderCriteria.typeHolder
-            .timeZone.isEqualTo(TimeZone.getDefault())
-            .optTimeZone.value().isEqualTo(TimeZone.getDefault())
+            .timeZone.is(TimeZone.getDefault())
+            .optTimeZone.value().is(TimeZone.getDefault())
             .timeZones.contains(TimeZone.getDefault());
   }
 }

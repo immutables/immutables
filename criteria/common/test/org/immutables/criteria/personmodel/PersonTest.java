@@ -27,21 +27,21 @@ public class PersonTest {
   @Ignore("used for compile-time testing only")
   public void collection() {
     PersonCriteria.person
-            .pets.any().name.isNotEmpty()
-            .age.isAtMost(22)
+            .pets.any().name.notEmpty()
+            .age.atMost(22)
             .isActive.isFalse()
             .interests.none().startsWith("foo")
             .or()//.or() should not work
             .isActive.isTrue()
             .or()
             .fullName.not(f -> f.contains("bar").or().contains("foo"))
-            .pets.all().name.isNotEmpty()
+            .pets.all().name.notEmpty()
             .pets.any().name.with(n -> n.endsWith("aaa").or().startsWith("bbb"))
             .pets.any().name.contains("aaa")
             .pets.any().name.not(n -> n.contains("bar"))
             .pets.none().name.hasLength(3)
             .not(p -> p.pets.hasSize(2))
-            .dateOfBirth.isAtMost(LocalDate.MAX)
+            .dateOfBirth.atMost(LocalDate.MAX)
             .interests.contains("test");
   }
 

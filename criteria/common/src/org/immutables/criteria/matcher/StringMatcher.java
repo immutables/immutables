@@ -25,11 +25,11 @@ import java.util.regex.Pattern;
 public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
   default R isEmpty() {
-    return isEqualTo("");
+    return is("");
   }
 
-  default R isNotEmpty() {
-    return isNotEqualTo("");
+  default R notEmpty() {
+    return isNot("");
   }
 
   default R contains(CharSequence other) {

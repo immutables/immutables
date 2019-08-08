@@ -32,45 +32,46 @@ import java.util.function.UnaryOperator;
 public interface ComparableMatcher<R, V extends Comparable<? super V>> extends ObjectMatcher<R, V>, OrderMatcher {
 
   /**
-   * Checks that attribute is less than (but not equal to) {@code upper}.
-   * <p>Use {@link #isAtMost(Comparable)} for less <i>or equal</i> comparison</p>
+   * Checks that attribute is less than (but not equal to) {@code upper} (equivalent to {@code $this < upper}).
+   * <p>Use {@link #atMost(Comparable)} for less <i>or equal</i> comparison</p>
    */
-  default R isLessThan(V upper) {
+  default R lessThan(V upper) {
     Objects.requireNonNull(upper, "upper");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
   }
 
   /**
-   * Checks that attribute is greater than (but not equal to)  {@code lower}.
-   * <p>Use {@link #isAtLeast(Comparable)} for greater <i>or equal</i> comparison</p>
+   * Checks that attribute is greater than (but not equal to)  {@code lower} (equivalent to {@code $this > lower}).
+   * <p>Use {@link #atLeast(Comparable)} for greater <i>or equal</i> comparison</p>
    */
-  default R isGreaterThan(V lower) {
+  default R greaterThan(V lower) {
     Objects.requireNonNull(lower, "lower");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
   }
 
   /**
-   * Checks that attribute is less than or equal to {@code upperInclusive}.
+   * Checks that attribute is less than or equal to {@code upperInclusive} (equivalent  to {@code $this <= upperInclusive}).
    */
-  default R isAtMost(V upperInclusive) {
+  default R atMost(V upperInclusive) {
     Objects.requireNonNull(upperInclusive, "upperInclusive");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
   }
 
   /**
-   * Checks that attribute is greater or equal to {@code lowerInclusive}.
+   * Checks that attribute is greater or equal to {@code lowerInclusive} (equivalent to {@code $this >= lowerInclusive}).
    */
-  default R isAtLeast(V lowerInclusive) {
+  default R atLeast(V lowerInclusive) {
     Objects.requireNonNull(lowerInclusive, "lowerInclusive");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
   /**
    * Checks that attribute is in {@code [lower, upper]} range (lower included, upper included).
+   * (equivalent to {@code lowerInclusive <= $this <= upperInclusive})
    * @param lowerInclusive lower value (inclusive)
    * @param upperInclusive upper value (inclusive)
    */
-  default R isBetween(V lowerInclusive, V upperInclusive) {
+  default R between(V lowerInclusive, V upperInclusive) {
     Objects.requireNonNull(lowerInclusive, "lowerInclusive");
     Objects.requireNonNull(upperInclusive, "upperInclusive");
     final UnaryOperator<Expression> unary = expr -> {

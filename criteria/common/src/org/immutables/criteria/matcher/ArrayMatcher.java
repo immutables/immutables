@@ -43,7 +43,7 @@ public interface ArrayMatcher<R, S, V> extends Matcher {
     return Matchers.extract(this).<R, S>factory().createRoot(e -> Expressions.call(Operators.EMPTY, e));
   }
 
-  default R isNotEmpty() {
+  default R notEmpty() {
     return Matchers.extract(this).<R, S>factory().createRoot(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
   }
 

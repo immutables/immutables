@@ -48,16 +48,16 @@ public class InMemoryExpressionEvaluatorTest {
 
     final ImmutablePerson person = example.withFullName("John");
 
-    check(!evaluate(crit.age.isEqualTo(11), person));
-    check(evaluate(crit.age.isNotEqualTo(11), person));
-    check(evaluate(crit.age.isEqualTo(11), person.withAge(11)));
-    check(evaluate(crit.age.isEqualTo(22).fullName.isEqualTo("John"), person));
-    check(!evaluate(crit.age.isEqualTo(22).fullName.isEqualTo("Marry"), person));
+    check(!evaluate(crit.age.is(11), person));
+    check(evaluate(crit.age.isNot(11), person));
+    check(evaluate(crit.age.is(11), person.withAge(11)));
+    check(evaluate(crit.age.is(22).fullName.is("John"), person));
+    check(!evaluate(crit.age.is(22).fullName.is("Marry"), person));
 
-    check(!evaluate(crit.age.isIn(1, 2, 3), person));
-    check(evaluate(crit.age.isNotIn(1, 2, 3), person));
-    check(evaluate(crit.age.isIn(22, 23, 24), person));
-    check(!evaluate(crit.age.isNotIn(22, 23, 24), person));
+    check(!evaluate(crit.age.in(1, 2, 3), person));
+    check(evaluate(crit.age.notIn(1, 2, 3), person));
+    check(evaluate(crit.age.in(22, 23, 24), person));
+    check(!evaluate(crit.age.notIn(22, 23, 24), person));
     check(!evaluate(crit.isActive.isTrue(), person));
     check(evaluate(crit.isActive.isFalse(), person));
     check(evaluate(crit.isActive.isTrue().or().isActive.isFalse(), person));
@@ -65,11 +65,11 @@ public class InMemoryExpressionEvaluatorTest {
             .isActive.isTrue()
             .nickName.isAbsent(), person));
 
-    check(!evaluate(crit.age.isAtLeast(23), person));
-    check(evaluate(crit.age.isAtMost(22), person));
-    check(!evaluate(crit.age.isLessThan(22), person));
-    check(!evaluate(crit.age.isGreaterThan(22), person));
-    check(!evaluate(crit.age.isAtLeast(23), person));
+    check(!evaluate(crit.age.atLeast(23), person));
+    check(evaluate(crit.age.atMost(22), person));
+    check(!evaluate(crit.age.lessThan(22), person));
+    check(!evaluate(crit.age.greaterThan(22), person));
+    check(!evaluate(crit.age.atLeast(23), person));
 
     // optionals
     check(evaluate(crit.nickName.isPresent(), person));
@@ -78,17 +78,17 @@ public class InMemoryExpressionEvaluatorTest {
     check(evaluate(crit.nickName.isAbsent(), person.withNickName(Optional.empty())));
 
     // == value().$expr
-    check(!evaluate(crit.nickName.value().isNotEqualTo("Smith"), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().isIn("Smith", "Nobody"), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().isIn("Nobody", "Sky"), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().isNotIn("Nobody", "Sky"), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().isNot("Smith"), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().in("Smith", "Nobody"), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().in("Nobody", "Sky"), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().notIn("Nobody", "Sky"), person.withNickName("Smith")));
 
     // == value($expr)
-    check(evaluate(crit.nickName.value().with(v -> v.isEqualTo("Smith")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().with(v -> v.isNotEqualTo("Smith")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().with(v -> v.isIn("Smith", "Nobody")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().with(v -> v.isIn("Nobody", "Sky")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().with(v -> v.isNotIn("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.is("Smith")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().with(v -> v.isNot("Smith")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.in("Smith", "Nobody")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.value().with(v -> v.in("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.value().with(v -> v.notIn("Nobody", "Sky")), person.withNickName("Smith")));
   }
 
   @Test
@@ -99,10 +99,10 @@ public class InMemoryExpressionEvaluatorTest {
 
     check(evaluate(crit.nickName.isAbsent().or().nickName.isPresent(), person));
     check(!evaluate(crit.nickName.isAbsent().nickName.isPresent(), person));
-    check(!evaluate(crit.fullName.isEqualTo("A").fullName.isEqualTo("B"), person));
-    check(evaluate(crit.fullName.isEqualTo("B").or().fullName.isEqualTo("A"), person));
-    check(!evaluate(crit.fullName.isEqualTo("B").or().fullName.isEqualTo("C"), person));
-    check(!evaluate(crit.fullName.isEqualTo("A").fullName.isEqualTo("C"), person));
+    check(!evaluate(crit.fullName.is("A").fullName.is("B"), person));
+    check(evaluate(crit.fullName.is("B").or().fullName.is("A"), person));
+    check(!evaluate(crit.fullName.is("B").or().fullName.is("C"), person));
+    check(!evaluate(crit.fullName.is("A").fullName.is("C"), person));
   }
 
   @Test

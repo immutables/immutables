@@ -95,7 +95,7 @@ import java.util.function.Function;
    * Find all [type.name](s) given their ids {@code [a.name]}
    */
   public ReactiveReader<[type.typeDocument]> findById(Iterable<? extends [a.type]> [a.name]s) {
-    return find([type.name]Criteria.[toLower type.name].[a.name].isIn([a.name]s));
+    return find([type.name]Criteria.[toLower type.name].[a.name].in([a.name]s));
   }
 [/if]
 [/for]

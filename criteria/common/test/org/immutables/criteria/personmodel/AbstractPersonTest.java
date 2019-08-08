@@ -86,7 +86,7 @@ public abstract class AbstractPersonTest {
     }
 
     for (int i = 1; i < 3; i++) {
-      check(repository().find(criteria().id.isEqualTo("id0")).limit(i)).hasSize(1);
+      check(repository().find(criteria().id.is("id0")).limit(i)).hasSize(1);
     }
 
     Assume.assumeTrue(features().contains(Feature.QUERY_WITH_OFFSET));
@@ -105,22 +105,22 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(criteria().age.isAtLeast(22)).hasSize(1);
-    check(criteria().age.isGreaterThan(22)).empty();
-    check(criteria().age.isLessThan(22)).empty();
-    check(criteria().age.isAtMost(22)).hasSize(1);
+    check(criteria().age.atLeast(22)).hasSize(1);
+    check(criteria().age.greaterThan(22)).empty();
+    check(criteria().age.lessThan(22)).empty();
+    check(criteria().age.atMost(22)).hasSize(1);
 
     // look up using id
-    check(criteria().id.isEqualTo("id123")).hasSize(1);
-    check(criteria().id.isIn("foo", "bar", "id123")).hasSize(1);
-    check(criteria().id.isIn("foo", "bar", "qux")).empty();
+    check(criteria().id.is("id123")).hasSize(1);
+    check(criteria().id.in("foo", "bar", "id123")).hasSize(1);
+    check(criteria().id.in("foo", "bar", "qux")).empty();
 
     // jsr310. dates and time
-    check(criteria().dateOfBirth.isGreaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
-    check(criteria().dateOfBirth.isGreaterThan(LocalDate.of(2000, 1, 1))).empty();
-    check(criteria().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 2))).hasSize(1);
-    check(criteria().dateOfBirth.isAtMost(LocalDate.of(1990, 2, 1))).empty();
-    check(criteria().dateOfBirth.isEqualTo(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(criteria().dateOfBirth.greaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
+    check(criteria().dateOfBirth.greaterThan(LocalDate.of(2000, 1, 1))).empty();
+    check(criteria().dateOfBirth.atMost(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(criteria().dateOfBirth.atMost(LocalDate.of(1990, 2, 1))).empty();
+    check(criteria().dateOfBirth.is(LocalDate.of(1990, 2, 2))).hasSize(1);
   }
 
   @Test
@@ -128,61 +128,61 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().age.isEqualTo(30)).hasSize(1);
-    check(criteria().age.isEqualTo(31)).empty();
-    check(criteria().age.isNotEqualTo(31)).hasSize(1);
+    check(criteria().age.is(30)).hasSize(1);
+    check(criteria().age.is(31)).empty();
+    check(criteria().age.isNot(31)).hasSize(1);
 
     // at least
-    check(criteria().age.isAtLeast(29)).hasSize(1);
-    check(criteria().age.isAtLeast(30)).hasSize(1);
-    check(criteria().age.isAtLeast(31)).empty();
+    check(criteria().age.atLeast(29)).hasSize(1);
+    check(criteria().age.atLeast(30)).hasSize(1);
+    check(criteria().age.atLeast(31)).empty();
 
     // at most
-    check(criteria().age.isAtMost(31)).hasSize(1);
-    check(criteria().age.isAtMost(30)).hasSize(1);
-    check(criteria().age.isAtMost(29)).empty();
+    check(criteria().age.atMost(31)).hasSize(1);
+    check(criteria().age.atMost(30)).hasSize(1);
+    check(criteria().age.atMost(29)).empty();
 
-    check(criteria().age.isGreaterThan(29)).hasSize(1);
-    check(criteria().age.isGreaterThan(30)).empty();
-    check(criteria().age.isGreaterThan(31)).empty();
+    check(criteria().age.greaterThan(29)).hasSize(1);
+    check(criteria().age.greaterThan(30)).empty();
+    check(criteria().age.greaterThan(31)).empty();
 
-    check(criteria().age.isIn(Arrays.asList(1, 2, 3))).empty();
-    check(criteria().age.isIn(1, 2, 3)).empty();
-    check(criteria().age.isIn(29, 30, 31)).hasSize(1);
-    check(criteria().age.isIn(Arrays.asList(29, 30, 31))).hasSize(1);
-    check(criteria().age.isNotIn(1, 2, 3)).hasSize(1);
-    check(criteria().age.isNotIn(39, 30, 31)).empty();
+    check(criteria().age.in(Arrays.asList(1, 2, 3))).empty();
+    check(criteria().age.in(1, 2, 3)).empty();
+    check(criteria().age.in(29, 30, 31)).hasSize(1);
+    check(criteria().age.in(Arrays.asList(29, 30, 31))).hasSize(1);
+    check(criteria().age.notIn(1, 2, 3)).hasSize(1);
+    check(criteria().age.notIn(39, 30, 31)).empty();
 
-    check(criteria().age.isAtLeast(30).age.isAtMost(31)).hasSize(1);
-    check(criteria().age.isLessThan(30).age.isGreaterThan(31)).empty();
+    check(criteria().age.atLeast(30).age.atMost(31)).hasSize(1);
+    check(criteria().age.lessThan(30).age.greaterThan(31)).empty();
 
     // multiple filters on the same field
-    check(criteria().age.isEqualTo(30).age.isGreaterThan(31)).empty();
-    check(criteria().age.isEqualTo(30).age.isNotEqualTo(30).or().age.isEqualTo(30)).hasSize(1);
-    check(criteria().age.isEqualTo(30).age.isGreaterThan(30).or().age.isEqualTo(31)).empty();
+    check(criteria().age.is(30).age.greaterThan(31)).empty();
+    check(criteria().age.is(30).age.isNot(30).or().age.is(30)).hasSize(1);
+    check(criteria().age.is(30).age.greaterThan(30).or().age.is(31)).empty();
 
     // add second person
     Person adam = new PersonGenerator().next().withId("adam").withFullName("Adam").withAge(40);
     insert(adam);
 
-    check(criteria().age.isEqualTo(30)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.isEqualTo(40)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.isAtLeast(29)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.isAtLeast(30)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.isAtLeast(31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.isAtMost(31)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.isAtMost(30)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.isAtMost(29)).empty();
-    check(criteria().age.isGreaterThan(29)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.isGreaterThan(30)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.isGreaterThan(31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.isIn(Arrays.asList(1, 2, 3))).empty();
-    check(criteria().age.isIn(Arrays.asList(29, 30, 40, 44))).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.isNotIn(30, 31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.isNotIn(1, 2)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.isLessThan(1)).empty();
-    check(criteria().age.isLessThan(30)).empty();
-    check(criteria().age.isLessThan(31)).hasSize(1);
+    check(criteria().age.is(30)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.is(40)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.atLeast(29)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.atLeast(30)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.atLeast(31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.atMost(31)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.atMost(30)).toList().hasContentInAnyOrder(john);
+    check(criteria().age.atMost(29)).empty();
+    check(criteria().age.greaterThan(29)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.greaterThan(30)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.greaterThan(31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.in(Arrays.asList(1, 2, 3))).empty();
+    check(criteria().age.in(Arrays.asList(29, 30, 40, 44))).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.notIn(30, 31)).toList().hasContentInAnyOrder(adam);
+    check(criteria().age.notIn(1, 2)).toList().hasContentInAnyOrder(john, adam);
+    check(criteria().age.lessThan(1)).empty();
+    check(criteria().age.lessThan(30)).empty();
+    check(criteria().age.lessThan(31)).hasSize(1);
   }
 
   @Test
@@ -190,21 +190,21 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().age.isBetween(0, 40)).hasSize(1);
-    check(criteria().age.isBetween(30, 30)).hasSize(1);
-    check(criteria().age.isBetween(30, 31)).hasSize(1);
-    check(criteria().age.isBetween(29, 30)).hasSize(1);
-    check(criteria().age.isBetween(29, 31)).hasSize(1);
-    check(criteria().age.isBetween(30, 35)).hasSize(1);
+    check(criteria().age.between(0, 40)).hasSize(1);
+    check(criteria().age.between(30, 30)).hasSize(1);
+    check(criteria().age.between(30, 31)).hasSize(1);
+    check(criteria().age.between(29, 30)).hasSize(1);
+    check(criteria().age.between(29, 31)).hasSize(1);
+    check(criteria().age.between(30, 35)).hasSize(1);
 
-    check(criteria().age.isBetween(21, 29)).empty();
-    check(criteria().age.isBetween(29, 29)).empty();
-    check(criteria().age.isBetween(31, 31)).empty();
-    check(criteria().age.isBetween(31, 32)).empty();
+    check(criteria().age.between(21, 29)).empty();
+    check(criteria().age.between(29, 29)).empty();
+    check(criteria().age.between(31, 31)).empty();
+    check(criteria().age.between(31, 32)).empty();
 
     // invalid
-    check(criteria().age.isBetween(31, 30)).empty();
-    check(criteria().age.isBetween(32, 29)).empty();
+    check(criteria().age.between(31, 30)).empty();
+    check(criteria().age.between(32, 29)).empty();
   }
 
   /**
@@ -215,31 +215,31 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().not(p -> p.id.isEqualTo("john"))).empty();
-    check(criteria().not(p -> p.id.isEqualTo("john").age.isEqualTo(30))).empty();
-    check(criteria().not(p -> p.id.isEqualTo("john").age.isEqualTo(31))).hasSize(1);
-    check(criteria().not(p -> p.id.isIn("john", "john").age.isIn(30, 30))).empty();
-    check(criteria().not(p -> p.id.isIn("john", "john").or().age.isIn(30, 30))).empty();
-    check(criteria().not(p -> p.id.isIn("d", "d").age.isIn(99, 99))).hasSize(1);
-    check(criteria().not(p -> p.id.isIn("d", "d").or().age.isIn(99, 99))).hasSize(1);
+    check(criteria().not(p -> p.id.is("john"))).empty();
+    check(criteria().not(p -> p.id.is("john").age.is(30))).empty();
+    check(criteria().not(p -> p.id.is("john").age.is(31))).hasSize(1);
+    check(criteria().not(p -> p.id.in("john", "john").age.in(30, 30))).empty();
+    check(criteria().not(p -> p.id.in("john", "john").or().age.in(30, 30))).empty();
+    check(criteria().not(p -> p.id.in("d", "d").age.in(99, 99))).hasSize(1);
+    check(criteria().not(p -> p.id.in("d", "d").or().age.in(99, 99))).hasSize(1);
 
-    check(criteria().not(p -> p.id.isEqualTo("john1").or().id.isEqualTo("john"))).empty();
-    check(criteria().not(p -> p.id.isEqualTo("john1").or().id.isEqualTo("john2"))).hasSize(1);
-    check(criteria().not(p -> p.id.isNotEqualTo("john"))).hasSize(1);
-    check(criteria().not(p -> p.age.isAtLeast(29).age.isAtMost(31))).empty();
+    check(criteria().not(p -> p.id.is("john1").or().id.is("john"))).empty();
+    check(criteria().not(p -> p.id.is("john1").or().id.is("john2"))).hasSize(1);
+    check(criteria().not(p -> p.id.isNot("john"))).hasSize(1);
+    check(criteria().not(p -> p.age.atLeast(29).age.atMost(31))).empty();
 
-    check(criteria().not(p -> p.age.isEqualTo(30)).not(p2 -> p2.id.isEqualTo("john"))).empty();
-    check(criteria().not(p -> p.age.isEqualTo(31)).not(p2 -> p2.id.isEqualTo("DUMMY"))).hasSize(1);
+    check(criteria().not(p -> p.age.is(30)).not(p2 -> p2.id.is("john"))).empty();
+    check(criteria().not(p -> p.age.is(31)).not(p2 -> p2.id.is("DUMMY"))).hasSize(1);
 
     // double not
-    check(criteria().not(p -> p.not(p2 -> p2.id.isEqualTo("john")))).hasSize(1);
+    check(criteria().not(p -> p.not(p2 -> p2.id.is("john")))).hasSize(1);
 
     // triple not
-    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isEqualTo("john"))))).empty();
-    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isNotEqualTo("john"))))).hasSize(1);
+    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.is("john"))))).empty();
+    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isNot("john"))))).hasSize(1);
 
-    check(criteria().not(p -> p.age.isGreaterThan(29))).empty();
-    check(criteria().not(p -> p.age.isGreaterThan(31))).hasSize(1);
+    check(criteria().not(p -> p.age.greaterThan(29))).empty();
+    check(criteria().not(p -> p.age.greaterThan(31))).hasSize(1);
 
   }
 
@@ -254,15 +254,15 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(criteria().fullName.isEqualTo("John")).hasSize(1);
-    check(criteria().fullName.isNotEqualTo("John")).empty();
-    check(criteria().fullName.isEqualTo("John")
-            .age.isNotEqualTo(1)).hasSize(1);
-    check(criteria().fullName.isEqualTo("John")
-            .age.isEqualTo(22)).hasSize(1);
-    check(criteria().fullName.isEqualTo("_MISSING_")).empty();
-    check(criteria().fullName.isIn("John", "test2")).hasSize(1);
-    check(criteria().fullName.isNotIn("John", "test2")).empty();
+    check(criteria().fullName.is("John")).hasSize(1);
+    check(criteria().fullName.isNot("John")).empty();
+    check(criteria().fullName.is("John")
+            .age.isNot(1)).hasSize(1);
+    check(criteria().fullName.is("John")
+            .age.is(22)).hasSize(1);
+    check(criteria().fullName.is("_MISSING_")).empty();
+    check(criteria().fullName.in("John", "test2")).hasSize(1);
+    check(criteria().fullName.notIn("John", "test2")).empty();
 
     // true / false
     check(criteria().isActive.isTrue()).hasSize(1);
@@ -282,13 +282,13 @@ public abstract class AbstractPersonTest {
     final ImmutablePerson john = new PersonGenerator().next().withBestFriend(ImmutableFriend.builder().hobby("ski").build());
     insert(john);
     final Address address = john.address().get();
-    check(criteria().address.value().city.isEqualTo(address.city())).notEmpty();
-    check(criteria().address.value().zip.isEqualTo(address.zip())).notEmpty();
-    check(criteria().address.value().zip.isEqualTo(address.zip())).toList().hasContentInAnyOrder(john);
-    check(criteria().address.value().state.isEqualTo(address.state())).toList().hasContentInAnyOrder(john);
-    check(criteria().address.value().city.isEqualTo("__MISSING__")).empty();
-    check(criteria().bestFriend.value().hobby.isEqualTo("ski")).notEmpty();
-    check(criteria().bestFriend.value().hobby.isEqualTo("__MISSING__")).empty();
+    check(criteria().address.value().city.is(address.city())).notEmpty();
+    check(criteria().address.value().zip.is(address.zip())).notEmpty();
+    check(criteria().address.value().zip.is(address.zip())).toList().hasContentInAnyOrder(john);
+    check(criteria().address.value().state.is(address.state())).toList().hasContentInAnyOrder(john);
+    check(criteria().address.value().city.is("__MISSING__")).empty();
+    check(criteria().bestFriend.value().hobby.is("ski")).notEmpty();
+    check(criteria().bestFriend.value().hobby.is("__MISSING__")).empty();
   }
 
   @Test

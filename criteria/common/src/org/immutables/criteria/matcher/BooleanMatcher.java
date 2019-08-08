@@ -36,6 +36,10 @@ public interface BooleanMatcher<R> extends Matcher {
             .createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(Boolean.FALSE)));
   }
 
+  default R is(boolean value) {
+    return value ? isTrue() : isFalse();
+  }
+
   /**
    * Self-type for this matcher
    */

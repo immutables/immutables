@@ -34,38 +34,38 @@ import java.util.Objects;
  */
 public interface ObjectMatcher<R, V> extends Matcher {
 
-  default R isEqualTo(V value) {
+  default R is(V value) {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
-  default R isNotEqualTo(V value) {
+  default R isNot(V value) {
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
-  default R isIn(V v1, V v2, V ... rest) {
+  default R in(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
     values.addAll(Arrays.asList(rest));
 
-    return isIn(values);
+    return in(values);
   }
 
-  default R isNotIn(V v1, V v2, V ... rest) {
+  default R notIn(V v1, V v2, V ... rest) {
     final List<V> values = new ArrayList<>(2 + rest.length);
     values.add(v1);
     values.add(v2);
     values.addAll(Arrays.asList(rest));
 
-    return isNotIn(values);
+    return notIn(values);
   }
 
-  default R isIn(Iterable<? extends V> values) {
+  default R in(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
-  default R isNotIn(Iterable<? extends V> values) {
+  default R notIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
     return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }

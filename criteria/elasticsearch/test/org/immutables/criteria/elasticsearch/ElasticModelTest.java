@@ -82,18 +82,18 @@ public class ElasticModelTest {
     ElasticModelCriteria<ElasticModelCriteria.Self> crit = ElasticModelCriteria.elasticModel;
 
     assertCount(crit, 2);
-    assertCount(crit.intNumber.isEqualTo(1), 0);
-    assertCount(crit.string.isEqualTo("foo"), 1);
-    assertCount(crit.string.isIn("foo", "bar"), 2);
-    assertCount(crit.string.isNotIn("foo", "bar"), 0);
-    assertCount(crit.string.isIn("foo", "foo2"), 1);
-    assertCount(crit.string.isIn("not", "not"), 0);
-    assertCount(crit.string.isEqualTo("bar"), 1);
-    assertCount(crit.string.isEqualTo("hello"), 0);
-    assertCount(crit.optionalString.value().isEqualTo("optFoo"), 1);
-    assertCount(crit.optionalString.value().isEqualTo("missing"), 0);
-    assertCount(crit.intNumber.isAtMost(42).string.isEqualTo("foo"), 1);
-    assertCount(crit.intNumber.isAtMost(11), 0);
+    assertCount(crit.intNumber.is(1), 0);
+    assertCount(crit.string.is("foo"), 1);
+    assertCount(crit.string.in("foo", "bar"), 2);
+    assertCount(crit.string.notIn("foo", "bar"), 0);
+    assertCount(crit.string.in("foo", "foo2"), 1);
+    assertCount(crit.string.in("not", "not"), 0);
+    assertCount(crit.string.is("bar"), 1);
+    assertCount(crit.string.is("hello"), 0);
+    assertCount(crit.optionalString.value().is("optFoo"), 1);
+    assertCount(crit.optionalString.value().is("missing"), 0);
+    assertCount(crit.intNumber.atMost(42).string.is("foo"), 1);
+    assertCount(crit.intNumber.atMost(11), 0);
 
   }
 

@@ -41,13 +41,13 @@ public class NestedTest {
     assertExpressional(RootCriteria.root.a.value().b.value().value.isEmpty(), "call op=EQUAL path=a.b.value constant=");
     assertExpressional(RootCriteria.root.a.value().b.value().c.isPresent(), "call op=IS_PRESENT path=a.b.c");
 
-    assertExpressional(RootCriteria.root.a.value().b.value().c.value().value.isEqualTo("gem")
+    assertExpressional(RootCriteria.root.a.value().b.value().c.value().value.is("gem")
             , "call op=EQUAL path=a.b.c.value constant=gem");
 
-    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().isEqualTo("gem")
+    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().is("gem")
             , "call op=EQUAL path=a.b.c.hidden constant=gem");
 
-    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().with(s -> s.isEqualTo("gem"))
+    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().with(s -> s.is("gem"))
             , "call op=EQUAL path=a.b.c.hidden constant=gem");
 
     assertExpressional(RootCriteria.root.a.value().with(a -> a.b.isPresent()),
@@ -62,11 +62,11 @@ public class NestedTest {
             "call op=IS_PRESENT path=a.b.c"
             );
 
-    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.value.isEqualTo("gem")))),
+    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.value.is("gem")))),
             "call op=EQUAL path=a.b.c.value constant=gem"
     );
 
-    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.hidden.value().with(h -> h.isEqualTo("gem"))))),
+    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.hidden.value().with(h -> h.is("gem"))))),
             "call op=EQUAL path=a.b.c.hidden constant=gem"
     );
 
@@ -97,7 +97,7 @@ public class NestedTest {
   @Test
   public void composed() {
     assertExpressional(RootCriteria.root
-                    .a.value().with(a -> a.value.isEqualTo("a").value.isEqualTo("b"))
+                    .a.value().with(a -> a.value.is("a").value.is("b"))
                     .a.value().value.isEmpty()
             ,
             "call op=AND",
@@ -107,8 +107,8 @@ public class NestedTest {
             "  call op=EQUAL path=a.value constant="
     );
     assertExpressional(RootCriteria.root
-                    .a.value().with(a -> a.value.isEqualTo("a").value.isEqualTo("b"))
-                    .a.value().with(a -> a.value.isEmpty().value.isNotEmpty())
+                    .a.value().with(a -> a.value.is("a").value.is("b"))
+                    .a.value().with(a -> a.value.isEmpty().value.notEmpty())
             ,
             "call op=AND",
             "  call op=AND",
@@ -129,14 +129,14 @@ public class NestedTest {
     );
 
     assertExpressional(RootCriteria.root
-                    .x.y.value.isEqualTo("a")
+                    .x.y.value.is("a")
             ,
             "call op=EQUAL path=x.y.value constant=a"
     );
 
     assertExpressional(RootCriteria.root
                     .x.value.isEmpty()
-                    .x.y.value.isEqualTo("b")
+                    .x.y.value.is("b")
             ,
             "call op=AND",
             "  call op=EQUAL path=x.value constant=",
@@ -182,7 +182,7 @@ public class NestedTest {
   public void xyzAndAbc() {
     assertExpressional(RootCriteria.root
                     .x.value.isEmpty()
-                    .a.value().value.isEqualTo("a")
+                    .a.value().value.is("a")
             ,
             "call op=AND",
             "  call op=EQUAL path=x.value constant=",
@@ -191,7 +191,7 @@ public class NestedTest {
 
     assertExpressional(RootCriteria.root
                     .x.value.isEmpty().or()
-                    .a.value().value.isEqualTo("a")
+                    .a.value().value.is("a")
             ,
             "call op=OR",
             "  call op=EQUAL path=x.value constant=",
@@ -199,7 +199,7 @@ public class NestedTest {
     );
 
     assertExpressional(RootCriteria.root
-                    .a.value().value.isEqualTo("a")
+                    .a.value().value.is("a")
                     .x.value.isEmpty()
             ,
             "call op=AND",
