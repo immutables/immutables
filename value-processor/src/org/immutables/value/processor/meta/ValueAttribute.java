@@ -909,6 +909,10 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
         : getSecondaryElementType();
   }
 
+  public String getWrappedFirstElementType() {
+    return wrapType(firstTypeParameter());
+  }
+
   public String getWrappedSecondaryElementType() {
     return wrapType(secondTypeParameter());
   }
