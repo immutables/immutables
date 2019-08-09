@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.geode;
+package org.immutables.criteria.backend;
 
-import org.apache.geode.cache.GemFireCache;
-import org.apache.geode.cache.Region;
-import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.backend.ContainerResolver;
+/**
+ * Retrieves / selects a container given entity context.
+ * @param <T> container type
+ */
+public interface ContainerResolver<T> {
 
-import java.util.Objects;
-
-public interface RegionResolver extends ContainerResolver<Region<?, ?>> {
-
-  static RegionResolver createDefault(GemFireCache cache) {
-    Objects.requireNonNull(cache, "cache");
-    return ctx -> cache.getRegion(ContainerNaming.DEFAULT.name(ctx));
-  }
+  T resolve(EntityContext context);
 
 }

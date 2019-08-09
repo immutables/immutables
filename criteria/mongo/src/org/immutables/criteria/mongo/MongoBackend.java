@@ -40,8 +40,8 @@ public class MongoBackend implements Backend {
 
   @Override
   public Session open(Context context) {
-    final Class<?> entityClass = EntityContext.extractEntity(context);
-    return new MongoSession(resolver.resolve(entityClass), converter);
+    Objects.requireNonNull(context, "context");
+    return new MongoSession(resolver.resolve((EntityContext) context), converter);
   }
 
 }

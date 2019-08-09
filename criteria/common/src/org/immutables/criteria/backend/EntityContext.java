@@ -21,7 +21,8 @@ import com.google.common.base.Preconditions;
 import java.util.Objects;
 
 /**
- * Context for a single class (aka entity).
+ * Context for a single entity. Currently contains entity class
+ * but more attributes may be added in future.
  */
 public class EntityContext implements Backend.Context {
 

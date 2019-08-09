@@ -17,12 +17,25 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoCollection;
+import com.mongodb.reactivestreams.client.MongoDatabase;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.immutables.criteria.backend.ContainerNaming;
+import org.immutables.criteria.backend.ContainerResolver;
+import org.immutables.criteria.backend.EntityContext;
 
-public interface CollectionResolver {
+/**
+ * {@link MongoCollection} resolver from {@link EntityContext}.
+ */
+public interface CollectionResolver extends ContainerResolver<MongoCollection<?>> {
 
-  /**
-   * Given entity class return appropriate collection
-   */
-  MongoCollection<?> resolve(Class<?> type);
+  static CollectionResolver defaultResolver(MongoDatabase database, CodecRegistry registry) {
+    return context -> {
+      final Class<?> entityClass = context.entityClass();
+      final String collectionName = ContainerNaming.DEFAULT.name(context);
+      return database.getCollection(collectionName)
+              .withDocumentClass(entityClass)
+              .withCodecRegistry(registry);
+    };
+  }
 
 }

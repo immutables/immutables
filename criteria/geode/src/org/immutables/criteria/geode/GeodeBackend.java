@@ -28,10 +28,10 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
 import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
-import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
@@ -58,7 +58,7 @@ public class GeodeBackend implements Backend {
   public Backend.Session open(Context context) {
     Objects.requireNonNull(context, "context");
     @SuppressWarnings("unchecked")
-    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(EntityContext.extractEntity(context));
+    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve((EntityContext) context);
     return new Session(region);
   }
 

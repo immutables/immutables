@@ -58,7 +58,15 @@ public @interface Criteria {
    */
   @Documented
   @Target(ElementType.TYPE)
+  @Retention(RetentionPolicy.RUNTIME)
   @interface Repository {
+
+    /**
+     * Name of destination container (can be table for RDBMS, collection for MongoDB, index for ElasticSearch).
+     * If not specified, name will be derived from the class name like {@code "myDocument"} for {@code MyDocument} class.
+     * @return name of the container (table, collection etc.)
+     */
+    String name() default "";
 
     /**
      * Allows defining repository properties like readable / writable / watchable etc.
