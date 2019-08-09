@@ -86,25 +86,6 @@ import java.util.function.Function;
     [/if]
     [/for]
   }
-
-[for a = type.idAttribute]
-[if a]
-  /**
-   * Find all [type.name](s) given their ids {@code [a.name]}
-   */
-  public ReactiveReader<[type.typeDocument]> findById([a.type] ... [a.name]s) {
-    return findById(java.util.Arrays.asList([a.name]s));
-  }
-
-  /**
-   * Find all [type.name](s) given their ids {@code [a.name]}
-   */
-  public ReactiveReader<[type.typeDocument]> findById(Iterable<? extends [a.type]> [a.name]s) {
-    return find([type.name]Criteria.[toLower type.name].[a.name].in([a.name]s));
-  }
-[/if]
-[/for]
-
 [for facet in type.criteriaRepository.facets]
 [for method in facet.methods]
 
@@ -115,5 +96,4 @@ import java.util.function.Function;
 [/for]
 [/for]
 }
-
 [/template]
