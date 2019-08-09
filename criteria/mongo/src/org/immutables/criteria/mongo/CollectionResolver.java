@@ -28,6 +28,10 @@ import org.immutables.criteria.backend.EntityContext;
  */
 public interface CollectionResolver extends ContainerResolver<MongoCollection<?>> {
 
+  static CollectionResolver defaultResolver(MongoDatabase database) {
+    return defaultResolver(database, database.getCodecRegistry());
+  }
+
   static CollectionResolver defaultResolver(MongoDatabase database, CodecRegistry registry) {
     return context -> {
       final Class<?> entityClass = context.entityClass();

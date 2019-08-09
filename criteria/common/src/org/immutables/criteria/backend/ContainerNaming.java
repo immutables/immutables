@@ -35,6 +35,10 @@ public interface ContainerNaming {
    */
   String name(EntityContext context);
 
+  default String name(Class<?> entityClass) {
+    return name(EntityContext.of(entityClass));
+  }
+
   /**
    * Resolve container name from {@link Criteria.Repository#name()} annotation.
    */

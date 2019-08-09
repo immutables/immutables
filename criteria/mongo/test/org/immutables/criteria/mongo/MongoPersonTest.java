@@ -27,8 +27,9 @@ import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
+import org.immutables.criteria.backend.ContainerNaming;
+import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
@@ -53,7 +54,8 @@ import static org.immutables.check.Checkers.check;
  */
 public class MongoPersonTest extends AbstractPersonTest {
 
-  private static final String COLLECTION_NAME = "test";
+  private static final String COLLECTION_NAME = ContainerNaming.DEFAULT
+          .name(Person.class);
 
   @Rule
   public final MongoResource MONGO = MongoResource.create();
@@ -71,19 +73,17 @@ public class MongoPersonTest extends AbstractPersonTest {
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
 
-    final MongoDatabase database = MONGO.database();
+    final MongoDatabase database = MONGO.database()
+            .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
 
     Flowable.fromPublisher(database.createCollection(COLLECTION_NAME))
             .test()
             .awaitDone(1, TimeUnit.SECONDS)
             .assertComplete();
 
-    CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
-    this.collection = database.getCollection(COLLECTION_NAME)
-            .withDocumentClass(Person.class)
-            .withCodecRegistry(registry);
-
-    this.backend = new MongoBackend(x -> collection);
+    CollectionResolver resolver = CollectionResolver.defaultResolver(database);
+    this.collection = resolver.resolve(EntityContext.of(Person.class)).withDocumentClass(Person.class);
+    this.backend = new MongoBackend(resolver);
     this.repository = new PersonRepository(backend);
   }
 
