@@ -24,6 +24,7 @@ import org.immutables.value.processor.meta.ValueType;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -64,6 +65,7 @@ public class CriteriaModelProcessorTest {
   @Test
   public void basic() {
     assertAttribute("string", "org.immutables.criteria.matcher.StringMatcher.Template<R>");
+    assertAttribute("nullableString", "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>>");
     assertAttribute("optionalString", "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>>");
     assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>");
 
@@ -127,6 +129,8 @@ public class CriteriaModelProcessorTest {
   public void havingCriteria() {
     assertAttribute("foo",
             "org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>");
+    assertAttribute("nullableFoo",
+            "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>>");
     assertAttribute("optionalFoo",
             "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>>");
     assertAttribute("listFoo",
@@ -139,12 +143,6 @@ public class CriteriaModelProcessorTest {
             "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
     assertAttribute("listArrayFoo",
             "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
-  }
-
-  @Test
-  public void debug() {
-    assertAttribute("arrayInteger",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>,java.lang.Integer>");
   }
 
   private void assertAttribute(String name, String expected) {
@@ -166,6 +164,7 @@ public class CriteriaModelProcessorTest {
   interface Model {
     String string();
     Optional<String> optionalString();
+    @Nullable String nullableString();
     List<String> stringList();
 
     Optional<Optional<String>> weird1();
@@ -203,6 +202,7 @@ public class CriteriaModelProcessorTest {
 
     // attributes which have criteria defined
     Foo foo();
+    @Nullable Foo nullableFoo();
     Optional<Foo> optionalFoo();
     List<Foo> listFoo();
     List<List<Foo>> listListFoo();

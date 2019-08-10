@@ -22,8 +22,10 @@ import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.encode.TypeExtractor;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -55,7 +57,7 @@ public class CriteriaModel {
     ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
     this.elements = env.getElementUtils();
     this.types = env.getTypeUtils();
-    this.introspectedType = new IntrospectedType(attribute.returnType, env.getTypeUtils(), env.getElementUtils());
+    this.introspectedType = new IntrospectedType(attribute.returnType, attribute.isNullable(), env.getTypeUtils(), env.getElementUtils());
   }
 
   private static class IntrospectedType {
@@ -63,14 +65,16 @@ public class CriteriaModel {
     private final TypeMirror type;
     private final Types types;
     private final Elements elements;
+    private final boolean nullable;
 
     // type erasure will be boxed for primitive types
     private final TypeMirror erasure;
 
-    IntrospectedType(TypeMirror type, Types types, Elements elements) {
+    IntrospectedType(TypeMirror type, boolean nullable, Types types, Elements elements) {
       this.types = types;
       this.elements = elements;
       this.type = Preconditions.checkNotNull(type, "type");
+      this.nullable = nullable;
 
       TypeMirror erasure = types.erasure(type);
       if (erasure.getKind().isPrimitive()) {
@@ -80,7 +84,7 @@ public class CriteriaModel {
     }
 
     public IntrospectedType withType(TypeMirror type) {
-      return new IntrospectedType(type, types, elements);
+      return new IntrospectedType(type, false, types, elements);
     }
 
     private boolean isSubtypeOf(Class<?> maybeSuper) {
@@ -145,6 +149,10 @@ public class CriteriaModel {
     }
 
     private TypeMirror optionalParameter() {
+      if (isNullable()) {
+        return type;
+      }
+
       final String typeName = erasure.toString();
       if ("java.util.OptionalInt".equals(typeName)) {
         return elements.getTypeElement(Integer.class.getName()).asType();
@@ -157,7 +165,14 @@ public class CriteriaModel {
       }
 
       throw new IllegalArgumentException(String.format("%s is not an optional type", type));
+    }
 
+    public boolean isNullable() {
+      return nullable;
+    }
+
+    public boolean useOptional() {
+      return isOptional() || isNullable();
     }
 
     public boolean isOptional() {
@@ -193,18 +208,18 @@ public class CriteriaModel {
     return extractor.get(mirror);
   }
 
-  private Type.Parameterized matcherType(TypeMirror type) {
-    final IntrospectedType introspected = this.introspectedType.withType(type);
+  private Type.Parameterized matcherType(IntrospectedType introspected) {
+    final TypeMirror type = introspected.type;
     final String name;
 
-    if (introspected.hasCriteria()) {
+    if (introspected.useOptional()) {
+      name = "org.immutables.criteria.matcher.OptionalMatcher";
+    } else if (introspected.hasCriteria()) {
       name = type.toString() + "Criteria";
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
-    } else if (introspected.isOptional()) {
-      name =  "org.immutables.criteria.matcher.OptionalMatcher";
     } else if (introspected.isIterable()) {
       name = "org.immutables.criteria.matcher.IterableMatcher";
     } else if (introspected.isArray()) {
@@ -230,13 +245,13 @@ public class CriteriaModel {
   }
 
   public Type.Parameterized buildMatcher() {
-    return buildMatcher(attribute.returnType);
+    return buildMatcher(introspectedType);
   }
 
-  private Type.Parameterized buildMatcher(TypeMirror type) {
-    Preconditions.checkNotNull(type, "type");
-    final IntrospectedType introspected = this.introspectedType.withType(type);
-    final Type.Parameterized matcher = matcherType(type);
+  private Type.Parameterized buildMatcher(IntrospectedType introspected) {
+    Preconditions.checkNotNull(introspected, introspected);
+    final TypeMirror type = introspected.type;
+    final Type.Parameterized matcher = matcherType(introspected);
     if (matcher.arguments.size() > 1) {
       // replace second and maybe third argument
       // first type argument R unchanged
@@ -244,22 +259,23 @@ public class CriteriaModel {
 
       final Type valueType;
       final Type.Variable arg1 = (Type.Variable) matcher.arguments.get(1);
-      if (introspected.isScalar()) {
+
+      if (introspected.useOptional()) {
+        final TypeMirror mirror = introspected.optionalParameter();
+        valueType = toType(mirror);
+        resolver = resolver.bind(arg1, buildMatcher(introspected.withType(mirror)));
+      } else if (introspected.isScalar()) {
         // this is leaf no need to recurse
         valueType = toType(introspected.box());
         resolver = resolver.bind(arg1, (Type.Nonprimitive) valueType);
-      } else if (introspected.isOptional()) {
-        final TypeMirror mirror = introspected.optionalParameter();
-        valueType = toType(mirror);
-        resolver = resolver.bind(arg1, buildMatcher(mirror));
       } else if (introspected.isArray()) {
         final TypeMirror mirror = MoreTypes.asArray(type).getComponentType();
         valueType = toType(mirror);
-        resolver = resolver.bind(arg1, buildMatcher(mirror));
+        resolver = resolver.bind(arg1, buildMatcher(introspected.withType(mirror)));
       } else {
         final TypeMirror mirror = MoreTypes.asDeclared(type).getTypeArguments().get(0);
         valueType = toType(mirror);
-        resolver = resolver.bind(arg1, buildMatcher(mirror));
+        resolver = resolver.bind(arg1, buildMatcher(introspected.withType(mirror)));
       }
 
       if (matcher.arguments.size() > 2) {
