@@ -18,7 +18,6 @@ package org.immutables.criteria.mongo;
 
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.expression.ExpressionConverter;
 
 import java.util.Objects;
@@ -39,9 +38,9 @@ public class MongoBackend implements Backend {
   }
 
   @Override
-  public Session open(Context context) {
+  public Session open(Class<?> context) {
     Objects.requireNonNull(context, "context");
-    return new MongoSession(resolver.resolve((EntityContext) context), converter);
+    return new MongoSession(resolver.resolve(context), converter);
   }
 
 }

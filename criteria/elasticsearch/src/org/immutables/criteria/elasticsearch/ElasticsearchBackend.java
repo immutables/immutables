@@ -23,7 +23,6 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Query;
@@ -31,7 +30,6 @@ import org.reactivestreams.Publisher;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -64,8 +62,7 @@ public class ElasticsearchBackend implements Backend {
 
 
   @Override
-  public Backend.Session open(Context context) {
-    final Class<?> entityType = EntityContext.extractEntity(context);
+  public Backend.Session open(Class<?> entityType) {
     final String index = resolver.resolve(entityType);
     return new Session(entityType, new ElasticsearchOps(restClient, index, mapper, scrollSize));
   }

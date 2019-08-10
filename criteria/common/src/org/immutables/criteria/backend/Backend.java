@@ -25,16 +25,12 @@ import org.reactivestreams.Publisher;
 public interface Backend {
 
   /**
-   * Configuration parameters or settings.
-   */
-  interface Context { }
-
-  /**
-   * Open a session with a given context
-   * @param context context configuration for a session
+   * Open a session (or reuse existing one) with a given context
+   *
+   * @param type entity type for which to open a session
    * @return new session
    */
-  Session open(Context context);
+  Session open(Class<?> type);
 
 
   /**

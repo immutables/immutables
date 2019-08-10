@@ -21,10 +21,9 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.ContainerResolver;
-import org.immutables.criteria.backend.EntityContext;
 
 /**
- * {@link MongoCollection} resolver from {@link EntityContext}.
+ * {@link MongoCollection} resolver for a particular class
  */
 public interface CollectionResolver extends ContainerResolver<MongoCollection<?>> {
 
@@ -33,9 +32,8 @@ public interface CollectionResolver extends ContainerResolver<MongoCollection<?>
   }
 
   static CollectionResolver defaultResolver(MongoDatabase database, CodecRegistry registry) {
-    return context -> {
-      final Class<?> entityClass = context.entityClass();
-      final String collectionName = ContainerNaming.DEFAULT.name(context);
+    return entityClass -> {
+      final String collectionName = ContainerNaming.DEFAULT.name(entityClass);
       return database.getCollection(collectionName)
               .withDocumentClass(entityClass)
               .withCodecRegistry(registry);

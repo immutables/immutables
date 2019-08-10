@@ -38,7 +38,7 @@ public class NoopBackend implements Backend {
   }
 
   @Override
-  public Session open(Context context) {
+  public Session open(Class<?> context) {
     return new Session();
   }
 

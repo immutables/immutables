@@ -27,24 +27,19 @@ import java.util.Objects;
 public interface ContainerNaming {
 
   /**
-   * Resolve container name for a particular {@link EntityContext}. Container in this context means
+   * Resolve container name for a particular type. Container in this context means
    * table, collection, index etc.
    *
    * @throws UnsupportedOperationException if name can't be derived
    * @return name of the container (never null)
    */
-  String name(EntityContext context);
-
-  default String name(Class<?> entityClass) {
-    return name(EntityContext.of(entityClass));
-  }
+  String name(Class<?> type);
 
   /**
    * Resolve container name from {@link Criteria.Repository#name()} annotation.
    */
-  ContainerNaming FROM_ANNOTATION = context -> {
-    Objects.requireNonNull(context, "context");
-    final Class<?> entityClass = EntityContext.extractEntity(context);
+  ContainerNaming FROM_ANNOTATION = entityClass -> {
+    Objects.requireNonNull(entityClass, "entityClass");
     final String name = entityClass.getAnnotation(Criteria.Repository.class).name();
     if (name.isEmpty()) {
       throw new UnsupportedOperationException(String.format("%s.name annotation is not defined on %s",
@@ -56,9 +51,8 @@ public interface ContainerNaming {
   /**
    * Converts class simple name ({@link Class#getSimpleName()}) to camel format: {@code MyClass} into {@code myClass}
    */
-  ContainerNaming FROM_CLASSNAME = context -> {
-    Objects.requireNonNull(context, "context");
-    final Class<?> entityClass = EntityContext.extractEntity(context);
+  ContainerNaming FROM_CLASSNAME = entityClass -> {
+    Objects.requireNonNull(entityClass, "entityClass");
     return CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_CAMEL).convert(entityClass.getSimpleName());
   };
 

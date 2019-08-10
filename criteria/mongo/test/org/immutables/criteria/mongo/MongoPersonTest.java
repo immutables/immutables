@@ -29,7 +29,6 @@ import org.bson.BsonInt32;
 import org.bson.BsonString;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
@@ -82,7 +81,7 @@ public class MongoPersonTest extends AbstractPersonTest {
             .assertComplete();
 
     CollectionResolver resolver = CollectionResolver.defaultResolver(database);
-    this.collection = resolver.resolve(EntityContext.of(Person.class)).withDocumentClass(Person.class);
+    this.collection = resolver.resolve(Person.class).withDocumentClass(Person.class);
     this.backend = new MongoBackend(resolver);
     this.repository = new PersonRepository(backend);
   }

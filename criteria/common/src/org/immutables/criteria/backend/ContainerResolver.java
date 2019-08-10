@@ -22,6 +22,6 @@ package org.immutables.criteria.backend;
  */
 public interface ContainerResolver<T> {
 
-  T resolve(EntityContext context);
+  T resolve(Class<?> context);
 
 }

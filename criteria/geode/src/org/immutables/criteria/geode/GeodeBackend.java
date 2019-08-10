@@ -26,7 +26,6 @@ import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.backend.WriteResult;
@@ -55,10 +54,10 @@ public class GeodeBackend implements Backend {
   }
 
   @Override
-  public Backend.Session open(Context context) {
+  public Backend.Session open(Class<?> context) {
     Objects.requireNonNull(context, "context");
     @SuppressWarnings("unchecked")
-    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve((EntityContext) context);
+    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(context);
     return new Session(region);
   }
 

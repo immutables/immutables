@@ -19,7 +19,6 @@ package org.immutables.criteria.inmemory;
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
-import org.immutables.criteria.backend.EntityContext;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Query;
@@ -47,8 +46,7 @@ public class InMemoryBackend implements Backend {
   }
 
   @Override
-  public Session open(Context context) {
-    final Class<?> type = EntityContext.extractEntity(context);
+  public Session open(Class<?> type) {
     final Map<Object, Object> store = classToStore.computeIfAbsent(type, key -> new ConcurrentHashMap<>());
     return new Session(type, store);
   }
