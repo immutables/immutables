@@ -53,20 +53,20 @@ public class TypeHolderTest {
 
     // == Optionals
     TypeHolderCriteria.typeHolder
-            .optBoolean.value().isFalse()
-            .optBoolean.value().isTrue()
+            .optBoolean.isFalse()
+            .optBoolean.isTrue()
             .optBoolean.isAbsent()
             .optInt.isAbsent()
             .optLong.isAbsent()
-            .optLong.value().lessThan(11L)
+            .optLong.lessThan(11L)
             .optLong2.isAbsent()
-            .optLong2.value().lessThan(22L)
+            .optLong2.lessThan(22L)
             .optShort.isPresent()
             .optDouble.isPresent()
-            .optDouble.value().greaterThan(22D)
-            .optDouble2.value().lessThan(11D)
+            .optDouble.greaterThan(22D)
+            .optDouble2.lessThan(11D)
             .optFloat.isAbsent()
-            .optShort.value().lessThan((short) 22)
+            .optShort.lessThan((short) 22)
             .optShort.isAbsent();
 
     // == Boxed
@@ -119,7 +119,7 @@ public class TypeHolderTest {
   public void dates() {
     TypeHolderCriteria.typeHolder
             .localDate.atMost(LocalDate.MIN)
-            .optLocalDate.value().atMost(LocalDate.MAX)
+            .optLocalDate.atMost(LocalDate.MAX)
             .localDates.contains(LocalDate.MAX);
   }
 
@@ -130,7 +130,7 @@ public class TypeHolderTest {
 
     TypeHolderCriteria.typeHolder
             .utilDate.atMost(date)
-            .optUtilDate.value().atMost(date)
+            .optUtilDate.atMost(date)
             .utilDates.all().atLeast(date);
   }
 
@@ -141,14 +141,14 @@ public class TypeHolderTest {
   public void bigIntegerAndDecimal() {
     TypeHolderCriteria.typeHolder
             .bigDecimal.atLeast(BigDecimal.ONE)
-            .optBigDecimal.value().atLeast(BigDecimal.ONE)
+            .optBigDecimal.atLeast(BigDecimal.ONE)
             .bigDecimals.contains(BigDecimal.TEN)
             .bigDecimals.notEmpty()
             .bigDecimals.any().atLeast(BigDecimal.ONE);
 
     TypeHolderCriteria.typeHolder
             .bigInteger.atLeast(BigInteger.ONE)
-            .optBigInteger.value().atLeast(BigInteger.ONE)
+            .optBigInteger.atLeast(BigInteger.ONE)
             .bigIntegers.contains(BigInteger.TEN)
             .bigIntegers.notEmpty()
             .bigIntegers.any().atLeast(BigInteger.ONE);
@@ -160,7 +160,7 @@ public class TypeHolderTest {
               .foos.none().is(TypeHolder.Foo.TWO)
               .foo.is(TypeHolder.Foo.ONE)
               .optFoo.isPresent()
-              .optFoo.value().is(TypeHolder.Foo.ONE);
+              .optFoo.is(TypeHolder.Foo.ONE);
   }
 
   @Test

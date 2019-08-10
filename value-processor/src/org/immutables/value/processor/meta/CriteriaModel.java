@@ -29,6 +29,7 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.Arrays;
@@ -83,6 +84,10 @@ public class CriteriaModel {
       this.erasure = erasure;
     }
 
+    public TypeMirror type() {
+      return type;
+    }
+
     public IntrospectedType withType(TypeMirror type) {
       return new IntrospectedType(type, false, types, elements);
     }
@@ -127,6 +132,10 @@ public class CriteriaModel {
       return type.getKind() == TypeKind.ARRAY;
     }
 
+    public boolean hasOptionalMatcher() {
+      return isString() || isComparable() || isBoolean();
+    }
+
     public boolean isComparable() {
       return isSubtypeOf(Comparable.class);
     }
@@ -148,23 +157,26 @@ public class CriteriaModel {
       return element != null && CriteriaMirror.find(element).isPresent();
     }
 
-    private TypeMirror optionalParameter() {
+    private IntrospectedType optionalParameter() {
       if (isNullable()) {
-        return type;
+        return withType(type);
       }
 
       final String typeName = erasure.toString();
+      final TypeMirror newType;
       if ("java.util.OptionalInt".equals(typeName)) {
-        return elements.getTypeElement(Integer.class.getName()).asType();
+        newType = elements.getTypeElement(Integer.class.getName()).asType();
       } else if ("java.util.OptionalLong".equals(typeName)) {
-        return elements.getTypeElement(Long.class.getName()).asType();
+        newType = elements.getTypeElement(Long.class.getName()).asType();
       } else if ("java.util.OptionalDouble".equals(typeName)) {
-        return elements.getTypeElement(Double.class.getName()).asType();
+        newType = elements.getTypeElement(Double.class.getName()).asType();
       } else if ("java.util.Optional".equals(erasure.toString()) || "com.google.common.base.Optional".equals(erasure.toString())) {
-        return MoreTypes.asDeclared(type).getTypeArguments().get(0);
+        newType = MoreTypes.asDeclared(type).getTypeArguments().get(0);
+      } else {
+        throw new IllegalArgumentException(String.format("%s is not an optional type", type));
       }
 
-      throw new IllegalArgumentException(String.format("%s is not an optional type", type));
+      return withType(newType);
     }
 
     public boolean isNullable() {
@@ -213,7 +225,17 @@ public class CriteriaModel {
     final String name;
 
     if (introspected.useOptional()) {
-      name = "org.immutables.criteria.matcher.OptionalMatcher";
+      IntrospectedType param = introspected.optionalParameter();
+      // use optional intersection-types ?
+      if (param.isString()) {
+        name = "org.immutables.criteria.matcher.OptionalStringMatcher.Template";
+      } else if (param.isBoolean()) {
+        name = "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template";
+      } else if (param.isComparable()) {
+        name = "org.immutables.criteria.matcher.OptionalComparableMatcher.Template";
+      } else {
+        name = "org.immutables.criteria.matcher.OptionalMatcher";
+      }
     } else if (introspected.hasCriteria()) {
       name = type.toString() + "CriteriaTemplate";
     } else if (introspected.isBoolean()) {
@@ -259,9 +281,14 @@ public class CriteriaModel {
       final Type.Variable arg1 = (Type.Variable) matcher.arguments.get(1);
 
       if (introspected.useOptional()) {
-        final TypeMirror mirror = introspected.optionalParameter();
-        valueType = toType(mirror);
-        resolver = resolver.bind(arg1, buildMatcher(introspected.withType(mirror)));
+        final IntrospectedType newType = introspected.optionalParameter();
+        valueType = toType(newType.type());
+        if (newType.hasOptionalMatcher()) {
+          // don't recurse if optional matcher is present like OptionalComparableMatcher
+          resolver = resolver.bind(arg1, (Type.Nonprimitive) valueType);
+        } else {
+          resolver = resolver.bind(arg1, buildMatcher(newType));
+        }
       } else if (introspected.isScalar()) {
         // this is leaf no need to recurse
         valueType = toType(introspected.box());

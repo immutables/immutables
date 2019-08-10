@@ -44,10 +44,10 @@ public class NestedTest {
     assertExpressional(RootCriteria.root.a.value().b.value().c.value().value.is("gem")
             , "call op=EQUAL path=a.b.c.value constant=gem");
 
-    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().is("gem")
+    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.is("gem")
             , "call op=EQUAL path=a.b.c.hidden constant=gem");
 
-    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.value().with(s -> s.is("gem"))
+    assertExpressional(RootCriteria.root.a.value().b.value().c.value().hidden.with(s -> s.is("gem"))
             , "call op=EQUAL path=a.b.c.hidden constant=gem");
 
     assertExpressional(RootCriteria.root.a.value().with(a -> a.b.isPresent()),
@@ -66,7 +66,7 @@ public class NestedTest {
             "call op=EQUAL path=a.b.c.value constant=gem"
     );
 
-    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.hidden.value().with(h -> h.is("gem"))))),
+    assertExpressional(RootCriteria.root.a.value().with(a -> a.b.value().with(b -> b.c.value().with(c -> c.hidden.with(h -> h.is("gem"))))),
             "call op=EQUAL path=a.b.c.hidden constant=gem"
     );
 

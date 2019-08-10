@@ -78,17 +78,17 @@ public class InMemoryExpressionEvaluatorTest {
     check(evaluate(crit.nickName.isAbsent(), person.withNickName(Optional.empty())));
 
     // == value().$expr
-    check(!evaluate(crit.nickName.value().isNot("Smith"), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().in("Smith", "Nobody"), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().in("Nobody", "Sky"), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().notIn("Nobody", "Sky"), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.isNot("Smith"), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.in("Smith", "Nobody"), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.in("Nobody", "Sky"), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.notIn("Nobody", "Sky"), person.withNickName("Smith")));
 
     // == value($expr)
-    check(evaluate(crit.nickName.value().with(v -> v.is("Smith")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().with(v -> v.isNot("Smith")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().with(v -> v.in("Smith", "Nobody")), person.withNickName("Smith")));
-    check(!evaluate(crit.nickName.value().with(v -> v.in("Nobody", "Sky")), person.withNickName("Smith")));
-    check(evaluate(crit.nickName.value().with(v -> v.notIn("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.with(v -> v.is("Smith")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.with(v -> v.isNot("Smith")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.with(v -> v.in("Smith", "Nobody")), person.withNickName("Smith")));
+    check(!evaluate(crit.nickName.with(v -> v.in("Nobody", "Sky")), person.withNickName("Smith")));
+    check(evaluate(crit.nickName.with(v -> v.notIn("Nobody", "Sky")), person.withNickName("Smith")));
   }
 
   @Test

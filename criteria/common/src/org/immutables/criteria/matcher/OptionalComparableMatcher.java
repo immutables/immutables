@@ -17,21 +17,21 @@
 package org.immutables.criteria.matcher;
 
 /**
- * Matcher for optional attributes
+ * Intersection type between {@link OptionalMatcher} and {@link ComparableMatcher}.
+ *
+ * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalMatcher}
+ * on long expressions with many optional elements.
+ *
+ * @param <R> root criteria type
  */
-public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher {
-
-  /**
-   * Apply context-specific matcher if value is present
-   */
-  default S value() {
-    return Matchers.extract(this).<R, S>factory().createNested();
-  }
+public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, PresentAbsentMatcher<R> {
 
   /**
    * Self-type for this matcher
    */
-  interface Self<S> extends OptionalMatcher<Self<S>, S>, Disjunction<Self<S>> {}
+  interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
+
+  interface Template<R, V extends Comparable<? super V>> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
@@ -43,6 +43,5 @@ public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher 
 
     return ctx -> (R) new Local(ctx);
   }
-
 
 }

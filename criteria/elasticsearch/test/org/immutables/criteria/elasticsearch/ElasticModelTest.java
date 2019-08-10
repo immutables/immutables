@@ -90,8 +90,8 @@ public class ElasticModelTest {
     assertCount(crit.string.in("not", "not"), 0);
     assertCount(crit.string.is("bar"), 1);
     assertCount(crit.string.is("hello"), 0);
-    assertCount(crit.optionalString.value().is("optFoo"), 1);
-    assertCount(crit.optionalString.value().is("missing"), 0);
+    assertCount(crit.optionalString.is("optFoo"), 1);
+    assertCount(crit.optionalString.is("missing"), 0);
     assertCount(crit.intNumber.atMost(42).string.is("foo"), 1);
     assertCount(crit.intNumber.atMost(11), 0);
 
