@@ -18,6 +18,7 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
+import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonRepository;
@@ -44,13 +45,14 @@ public class GeodePersonTest extends AbstractPersonTest  {
     region =  cache.<String, Person>createRegionFactory()
             .setKeyConstraint(String.class)
             .setValueConstraint(Person.class)
-            .create("persons");
+            .create(ContainerNaming.DEFAULT.name(Person.class));
   }
 
   @Before
   public void setUp() throws Exception {
     region.clear();
-    repository = new PersonRepository(new GeodeBackend(x -> region));
+    GeodeBackend backend = new GeodeBackend(RegionResolver.defaultResolver(GEODE.cache()));
+    repository = new PersonRepository(backend);
   }
 
 

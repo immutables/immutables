@@ -16,8 +16,15 @@
 
 package org.immutables.criteria.elasticsearch;
 
-public interface IndexResolver {
+import org.immutables.criteria.backend.ContainerNaming;
+import org.immutables.criteria.backend.ContainerResolver;
+
+public interface IndexResolver extends ContainerResolver<String> {
 
   String resolve(Class<?> entityType);
+
+  static IndexResolver defaultResolver() {
+    return ContainerNaming.DEFAULT::name;
+  }
 
 }

@@ -25,9 +25,21 @@ import java.util.Objects;
 
 public interface RegionResolver extends ContainerResolver<Region<?, ?>> {
 
-  static RegionResolver createDefault(GemFireCache cache) {
+  /**
+   * Resolve region using default {@link ContainerNaming#DEFAULT} naming convention.
+   * @see org.apache.geode.cache.RegionService#getRegion(String)
+   */
+  static RegionResolver defaultResolver(GemFireCache cache) {
     Objects.requireNonNull(cache, "cache");
-    return ctx -> cache.getRegion(ContainerNaming.DEFAULT.name(ctx));
+    return ctx -> {
+      String name = ContainerNaming.DEFAULT.name(ctx);
+      Region<Object, Object> region = cache.getRegion(name);
+      if (region == null) {
+        throw new IllegalArgumentException(String.format("Failed to find geode region for %s. " +
+                "Region %s not found in %s cache", ctx.getName(), name, cache.getName()));
+      }
+      return region;
+    };
   }
 
 }
