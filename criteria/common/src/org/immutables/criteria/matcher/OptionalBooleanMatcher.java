@@ -29,7 +29,7 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
-    class Local extends ContextHolder.AbstractHolder implements Self {
+    class Local extends AbstractContextHolder implements Self {
       private Local(CriteriaContext context) {
         super(context);
       }

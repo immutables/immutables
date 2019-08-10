@@ -46,19 +46,29 @@ public final class Matchers {
 
   }
 
+  public static CriteriaContext extract(Criterion<?> criterion) {
+    Objects.requireNonNull(criterion, "criterion");
+
+    if (criterion instanceof AbstractContextHolder) {
+      return ((AbstractContextHolder) criterion).context();
+    }
+
+    throw new IllegalArgumentException(String.format("%s does not implement %s", criterion.getClass().getName(),
+            AbstractContextHolder.class.getSimpleName()));
+  }
   /**
    * Extracts criteria context from an arbitrary object.
-   * @see ContextHolder
+   * @see AbstractContextHolder
    */
-  static CriteriaContext extract(Matcher object) {
+  public static CriteriaContext extract(Matcher object) {
     Objects.requireNonNull(object, "object");
 
-    if (object instanceof ContextHolder) {
-      return ((ContextHolder) object).context();
+    if (object instanceof AbstractContextHolder) {
+      return ((AbstractContextHolder) object).context();
     }
 
     throw new IllegalArgumentException(String.format("%s does not implement %s", object.getClass().getName(),
-            ContextHolder.class.getSimpleName()));
+            AbstractContextHolder.class.getSimpleName()));
   }
 
   static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {

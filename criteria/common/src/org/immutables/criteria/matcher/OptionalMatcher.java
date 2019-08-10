@@ -35,7 +35,7 @@ public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher 
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
-    class Local extends ContextHolder.AbstractHolder implements Self {
+    class Local extends AbstractContextHolder implements Self {
       private Local(CriteriaContext context) {
         super(context);
       }

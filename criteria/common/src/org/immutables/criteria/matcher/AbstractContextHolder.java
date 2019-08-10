@@ -14,32 +14,37 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.matcher;
 
-import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.matcher.AbstractContextHolder;
-import org.immutables.criteria.matcher.Matchers;
 
 import java.util.Objects;
 
-public final class Criterias {
+/**
+ * Exposes context of a matcher / criteria. Context is similar to "state".
+ * Used as private API (not visible in regular API).
+ *
+ * @see org.immutables.criteria.Criterion
+ * @see Matcher
+ */
+public abstract class AbstractContextHolder {
 
-  private Criterias() {}
+  private final CriteriaContext context;
+
+  protected AbstractContextHolder(CriteriaContext context) {
+    this.context = Objects.requireNonNull(context, "context");
+  }
 
   /**
-   * Extracts {@link Query} from a criteria. Any criteria implements (or holds)
-   * {@code Queryable} interface at runtime.
+   * Expose current context of the matcher. This method is used to extract and combine different
+   * expressions (matchers).
    */
-  public static Query toQuery(Criterion<?> criteria) {
-    Objects.requireNonNull(criteria, "criteria");
+  CriteriaContext context() {
+    return context;
+  }
 
-    if (criteria instanceof Queryable) {
-      return ((Queryable) criteria).query();
-    }
-
-    return Matchers.extract(criteria).query();
+  Query query() {
+    return context().query();
   }
 
 }
