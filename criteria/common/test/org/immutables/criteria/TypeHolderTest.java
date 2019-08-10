@@ -105,15 +105,14 @@ public class TypeHolderTest {
   public void arrays() {
     TypeHolderCriteria.typeHolder
             .booleanArray.isEmpty()
-            .booleanArray.hasLength(11)
-            .booleanArray.asList().hasSize(1)
-            .booleanArray.asList().contains(true)
-            .bigIntegerArray.asList().contains(BigInteger.ONE)
-            .bigDecimalArray.asList().contains(BigDecimal.ONE)
-            .fooArray.asList().contains(TypeHolder.Foo.ONE)
-            .timeZoneArray.asList().contains(TimeZone.getDefault())
-            .localDateArray.asList().contains(LocalDate.MAX)
-            .utilDateArray.asList().contains(new java.util.Date());
+            .booleanArray.hasSize(11)
+            .booleanArray.contains(true)
+            .bigIntegerArray.contains(BigInteger.ONE)
+            .bigDecimalArray.contains(BigDecimal.ONE)
+            .fooArray.contains(TypeHolder.Foo.ONE)
+            .timeZoneArray.contains(TimeZone.getDefault())
+            .localDateArray.contains(LocalDate.MAX)
+            .utilDateArray.contains(new java.util.Date());
   }
 
   @Test

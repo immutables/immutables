@@ -220,10 +220,8 @@ public class CriteriaModel {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
-    } else if (introspected.isIterable()) {
+    } else if (introspected.isIterable() || introspected.isArray()) {
       name = "org.immutables.criteria.matcher.IterableMatcher";
-    } else if (introspected.isArray()) {
-      name = "org.immutables.criteria.matcher.ArrayMatcher";
     } else if (introspected.isComparable()) {
       name = "org.immutables.criteria.matcher.ComparableMatcher.Template";
     } else {

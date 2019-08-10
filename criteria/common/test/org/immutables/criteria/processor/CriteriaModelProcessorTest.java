@@ -73,9 +73,9 @@ public class CriteriaModelProcessorTest {
     assertAttribute("integer",
             "org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>");
     assertAttribute("arrayInteger",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>,java.lang.Integer>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Integer>,java.lang.Integer>");
     assertAttribute("arrayArrayInteger",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>,java.lang.Integer>,java.lang.Integer[]>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>,java.lang.Integer>,java.lang.Integer[]>");
     assertAttribute("optionalInteger",
             "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R,java.lang.Integer>>");
     assertAttribute("optionalInteger2",
@@ -109,7 +109,7 @@ public class CriteriaModelProcessorTest {
   @Test
   public void array() {
     assertAttribute("arrayDouble",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Double>,java.lang.Double>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.ComparableMatcher.Template<R, java.lang.Double>,java.lang.Double>");
 
   }
 
@@ -138,11 +138,11 @@ public class CriteriaModelProcessorTest {
     assertAttribute("listListFoo",
             "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>");
     assertAttribute("arrayFoo",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
     assertAttribute("arrayArrayFoo",
-            "org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
     assertAttribute("listArrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.ArrayMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
   }
 
   private void assertAttribute(String name, String expected) {
