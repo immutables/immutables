@@ -44,7 +44,7 @@ import java.util.stream.StreamSupport;
  *
  * <p>Probably most useful in testing scenarios</p>
  */
-public class InMemoryExpressionEvaluator<T> implements Predicate<T> {
+class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
   /**
    * Sentinel used for Three-Valued Logic: true / false / unknown

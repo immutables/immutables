@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Backend backed by a {@link Map} (usually {@link java.util.concurrent.ConcurrentMap}).
+ * Backend backed by a {@link Map} (usually {@link ConcurrentMap}).
  */
 public class InMemoryBackend implements Backend {
 
