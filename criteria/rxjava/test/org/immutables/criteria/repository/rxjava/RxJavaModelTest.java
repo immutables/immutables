@@ -17,7 +17,7 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
-import org.immutables.criteria.repository.NoopBackend;
+import org.immutables.criteria.repository.FakeBackend;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -26,13 +26,13 @@ public class RxJavaModelTest {
 
   @Test
   public void rxjava() throws InterruptedException {
-    RxJavaModelRepository repo = new RxJavaModelRepository(new NoopBackend(Flowable.empty()));
+    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.empty()));
     repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertNoValues();
   }
 
   @Test
   public void error() {
-    RxJavaModelRepository repo = new RxJavaModelRepository(new NoopBackend(Flowable.error(new RuntimeException("boom"))));
+    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.error(new RuntimeException("boom"))));
     repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertErrorMessage("boom");
   }
 }

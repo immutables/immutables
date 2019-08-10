@@ -25,15 +25,15 @@ import java.util.Objects;
 /**
  * Backend which returns same result for any operation. Intended for tests
  */
-public class NoopBackend implements Backend {
+public class FakeBackend implements Backend {
 
   private final Publisher<?> existing;
 
-  public NoopBackend() {
+  public FakeBackend() {
     this(Flowable.empty());
   }
 
-  public NoopBackend(Publisher<?> existing) {
+  public FakeBackend(Publisher<?> existing) {
     this.existing = Objects.requireNonNull(existing, "result");
   }
 

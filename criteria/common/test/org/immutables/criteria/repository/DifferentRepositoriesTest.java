@@ -22,22 +22,22 @@ public class DifferentRepositoriesTest {
 
   @Test
   public void empty() {
-    EmptyRepository empty = new EmptyRepository(new NoopBackend());
+    EmptyRepository empty = new EmptyRepository(new FakeBackend());
   }
 
   @Test
   public void sync() {
-    SyncModelRepository sync = new SyncModelRepository(new NoopBackend());
+    SyncModelRepository sync = new SyncModelRepository(new FakeBackend());
   }
 
   @Test
   public void heterogenious() {
-    HeterogeniousRepository repo = new HeterogeniousRepository(new NoopBackend());
+    HeterogeniousRepository repo = new HeterogeniousRepository(new FakeBackend());
   }
 
   @Test
   public void async() {
-    AsyncModelRepository async = new AsyncModelRepository(new NoopBackend());
+    AsyncModelRepository async = new AsyncModelRepository(new FakeBackend());
   }
 
 }
