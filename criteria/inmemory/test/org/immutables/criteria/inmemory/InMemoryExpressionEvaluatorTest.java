@@ -44,7 +44,7 @@ public class InMemoryExpressionEvaluatorTest {
 
   @Test
   public void reflection() {
-    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    final PersonCriteria crit = PersonCriteria.person;
 
     final ImmutablePerson person = example.withFullName("John");
 
@@ -93,7 +93,7 @@ public class InMemoryExpressionEvaluatorTest {
 
   @Test
   public void booleans() {
-    final PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    final PersonCriteria crit = PersonCriteria.person;
 
     final ImmutablePerson person = example.withFullName("A");
 

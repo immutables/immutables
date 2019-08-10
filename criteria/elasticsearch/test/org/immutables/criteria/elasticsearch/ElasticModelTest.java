@@ -79,7 +79,7 @@ public class ElasticModelTest {
 
   @Test
   public void criteria() {
-    ElasticModelCriteria<ElasticModelCriteria.Self> crit = ElasticModelCriteria.elasticModel;
+    ElasticModelCriteria crit = ElasticModelCriteria.elasticModel;
 
     assertCount(crit, 2);
     assertCount(crit.intNumber.is(1), 0);
@@ -97,7 +97,7 @@ public class ElasticModelTest {
 
   }
 
-  private void assertCount(ElasticModelCriteria<?> crit, int count) {
+  private void assertCount(ElasticModelCriteria crit, int count) {
     Observable.fromPublisher(repository.find(crit).fetch())
             .test()
             .awaitDone(1, TimeUnit.SECONDS)

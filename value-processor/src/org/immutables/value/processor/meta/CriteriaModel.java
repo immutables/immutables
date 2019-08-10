@@ -215,7 +215,7 @@ public class CriteriaModel {
     if (introspected.useOptional()) {
       name = "org.immutables.criteria.matcher.OptionalMatcher";
     } else if (introspected.hasCriteria()) {
-      name = type.toString() + "Criteria";
+      name = type.toString() + "CriteriaTemplate";
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isString()) {
@@ -289,13 +289,15 @@ public class CriteriaModel {
 
 
   public MatcherDefinition matcher() {
-    return new MatcherDefinition(buildMatcher());
+    return new MatcherDefinition(attribute, buildMatcher());
   }
 
-  public class MatcherDefinition {
+  public static class MatcherDefinition {
+    private final ValueAttribute attribute;
     private final Type.Parameterized type;
 
-    private MatcherDefinition(Type.Parameterized type) {
+    private MatcherDefinition(ValueAttribute attribute, Type.Parameterized type) {
+      this.attribute = attribute;
       this.type = Preconditions.checkNotNull(type, "type");
     }
 
@@ -311,7 +313,7 @@ public class CriteriaModel {
       final String name = type.reference.name;
       final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
       if (hasCriteria) {
-        firstCreator = String.format("%s.create(%%s)", name);
+        firstCreator = String.format("%s.create(%%s)", attribute.returnType.toString() + "Criteria");
       } else {
         final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
         firstCreator = String.format("%s.creator().create(%%s)", newName);
@@ -340,8 +342,12 @@ public class CriteriaModel {
         return newName + ".creator()";
       } else if (name.endsWith("Matcher")) {
         return name + ".creator()";
-      } else {
+      } else if (name.endsWith("Template")) {
+        // remove template
+        name = name.substring(0, name.lastIndexOf("Template"));
         // criteria
+        return "ctx -> " + name + ".create(ctx)";
+      } else {
         return "ctx -> " + name + ".create(ctx)";
       }
     }
