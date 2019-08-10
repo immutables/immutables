@@ -74,9 +74,8 @@ import [starImport];
 [/for]
 
 /**
- * A {@code [type.name]Criteria} provides type-safe API for retrieving documents
- * from a generic data-source.
- * <p>This class is immutable and thus thread-safe.</p>
+ * Base class for {@link [type.name]Criteria} also used as matcher attribute on other criterias.
+ * @param <R> root self-type for fluent API
  */
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
 @javax.annotation.concurrent.ThreadSafe
@@ -125,8 +124,9 @@ import [a.unwrappedElementType]Criteria;
 import [starImport];
 [/for]
 /**
- * A {@code [type.name]Criteria} provides type-safe API for retrieving documents
- * from a generic data-source.
+ * A {@code [type.name]Criteria} provides fluent, type-safe API for querying documents
+ * based on {@link [type.name]} model.
+ *
  * <p>This class is immutable and thus thread-safe.</p>
  */
 [if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
