@@ -340,7 +340,7 @@ public class CriteriaModel {
       final String name = type.reference.name;
       final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
       if (hasCriteria) {
-        firstCreator = String.format("%s.create(%%s)", attribute.returnType.toString() + "Criteria");
+        firstCreator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
       } else {
         final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
         firstCreator = String.format("%s.creator().create(%%s)", newName);
@@ -353,7 +353,7 @@ public class CriteriaModel {
         secondCreator = creator(type.arguments.get(1));
       }
 
-      final String withCreators = String.format("withCreators(ctx -> %s.create(ctx), %s)", attribute.containingType.name() + "Criteria", secondCreator);
+      final String withCreators = String.format("withCreators(%s.creator(), %s)", attribute.containingType.name() + "Criteria", secondCreator);
       return String.format(firstCreator, new StringBuilder().append("context.").append(withPath).append(".").append(withCreators));
     }
 
@@ -373,9 +373,9 @@ public class CriteriaModel {
         // remove template
         name = name.substring(0, name.lastIndexOf("Template"));
         // criteria
-        return "ctx -> " + name + ".create(ctx)";
+        return name + ".creator()";
       } else {
-        return "ctx -> " + name + ".create(ctx)";
+        return name + ".creator()";
       }
     }
   }

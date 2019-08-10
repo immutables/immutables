@@ -139,16 +139,11 @@ import [starImport];
      implements Disjunction<[type.name]CriteriaTemplate<[type.name]Criteria>>  {
 
   /** Default criteria instance */
-  public static final [type.name]Criteria [toLower type.name] = create();
-
-  /** Factory method to create an instance of [type.name]Criteria */
-  private static [type.name]Criteria create() {
-    return new Private();
-  }
+  public static final [type.name]Criteria [toLower type.name] = new Private();
 
   /** Used to instantiate [type.name]Criteria by other criterias */
-  public static [type.name]Criteria create(CriteriaContext context) {
-     return new Private(context);
+  public static CriteriaCreator<[type.name]Criteria> creator() {
+     return (CriteriaContext ctx) ->  new Private(ctx);
   }
 
   private [type.name]Criteria(CriteriaContext context) {
@@ -166,10 +161,6 @@ import [starImport];
     private Private(CriteriaContext context) {
       super(context);
       this.context = context;
-    }
-
-    private static CriteriaCreator<[type.name]Criteria> creator() {
-      return (CriteriaContext ctx) ->  new Private(ctx);
     }
 
     @Override
