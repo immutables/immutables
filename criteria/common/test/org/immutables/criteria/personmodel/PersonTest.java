@@ -21,12 +21,12 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 
+@Ignore("used for compile-time testing only")
 public class PersonTest {
 
   @Test
-  @Ignore("used for compile-time testing only")
   public void collection() {
-    PersonCriteria.person
+    PersonCriteria crit = PersonCriteria.person
             .pets.any().name.notEmpty()
             .age.atMost(22)
             .isActive.isFalse()
@@ -45,4 +45,15 @@ public class PersonTest {
             .interests.contains("test");
   }
 
+  /**
+   * Make sure use-friendly criteria is returned after
+   */
+  @Test
+  public void returnNiceCriteria() {
+    PersonCriteria crit = PersonCriteria.person;
+    crit = crit.age.atLeast(21);
+    crit = crit.or(crit.fullName.notEmpty());
+    crit = crit.not(f -> f.isActive.isTrue()); // TODO classcast exception here
+    crit = crit.bestFriend.value().with(f -> f.hobby.endsWith("test"));
+  }
 }

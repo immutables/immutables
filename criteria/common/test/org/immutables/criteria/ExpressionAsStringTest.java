@@ -36,7 +36,7 @@ public class ExpressionAsStringTest {
 
   @Test
   public void string() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
     assertExpressional(crit.bestFriend.isPresent(), "call op=IS_PRESENT path=bestFriend");
     assertExpressional(crit.bestFriend.isAbsent(), "call op=IS_ABSENT path=bestFriend");
@@ -56,7 +56,7 @@ public class ExpressionAsStringTest {
 
   @Test
   public void with() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
     assertExpressional(crit.with(c -> c.fullName.is("John")),
             "call op=EQUAL path=fullName constant=John");
@@ -109,7 +109,7 @@ public class ExpressionAsStringTest {
 
   @Test
   public void not() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
     assertExpressional(crit.fullName.not(n -> n.is("John")),
             "call op=NOT",
@@ -124,9 +124,9 @@ public class ExpressionAsStringTest {
 
   @Test
   public void and() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
-    PersonCriteria<PersonCriteria.Self> other = PersonCriteria.person
+    PersonCriteria other = PersonCriteria.person
             .and(crit.age.atMost(1)).and(crit.age.atLeast(2));
 
     assertExpressional(other, "call op=AND",
@@ -148,9 +148,9 @@ public class ExpressionAsStringTest {
 
   @Test
   public void or() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
-    PersonCriteria<PersonCriteria.Self> other = PersonCriteria.person
+    PersonCriteria other = PersonCriteria.person
             .or(crit.age.atMost(1)).or(crit.age.atLeast(2));
 
     assertExpressional(other, "call op=OR",
@@ -176,7 +176,7 @@ public class ExpressionAsStringTest {
    */
   @Test
   public void andOrCombined() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
 
     // A or (B and C)
     assertExpressional(crit.age.is(1).or()
@@ -242,7 +242,7 @@ public class ExpressionAsStringTest {
 
   @Test
   public void next() {
-    PersonCriteria<PersonCriteria.Self> crit = PersonCriteria.person;
+    PersonCriteria crit = PersonCriteria.person;
     assertExpressional(crit.bestFriend.value().hobby.is("ski"), "call op=EQUAL path=bestFriend.hobby constant=ski");
 
     assertExpressional(crit.bestFriend.value().hobby.is("ski")

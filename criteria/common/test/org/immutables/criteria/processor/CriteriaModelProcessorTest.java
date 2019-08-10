@@ -128,21 +128,21 @@ public class CriteriaModelProcessorTest {
   @Test
   public void havingCriteria() {
     assertAttribute("foo",
-            "org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>");
+            "org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>");
     assertAttribute("nullableFoo",
-            "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>>");
+            "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>>");
     assertAttribute("optionalFoo",
-            "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>>");
+            "org.immutables.criteria.matcher.OptionalMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>>");
     assertAttribute("listFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
     assertAttribute("listListFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,java.util.List<org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>>");
     assertAttribute("arrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
     assertAttribute("arrayArrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
     assertAttribute("listArrayFoo",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteria<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo[]>");
   }
 
   private void assertAttribute(String name, String expected) {
