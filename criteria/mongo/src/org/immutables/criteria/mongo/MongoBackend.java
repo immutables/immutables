@@ -32,7 +32,7 @@ public class MongoBackend implements Backend {
   private final CollectionResolver resolver;
   private final ExpressionConverter<Bson> converter;
 
-  MongoBackend(CollectionResolver resolver) {
+  public MongoBackend(CollectionResolver resolver) {
     this.resolver = Objects.requireNonNull(resolver, "resolver");
     this.converter = Mongos.converter();
   }
