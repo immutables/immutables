@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.immutables.criteria.matcher;
 
+
 /**
- * Matcher for optional attributes
+ * Intersection type between {@link OptionalMatcher} and {@link BooleanMatcher}
+ *
+ * @param <R> root criteria type
  */
-public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher {
+public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbsentMatcher<R> {
 
-  /**
-   * Apply context-specific matcher if value is present
-   */
-  default S value() {
-    return Matchers.extract(this).<R, S>factory().createNested();
-  }
+  interface Self extends Template<Self> {}
 
-  /**
-   * Self-type for this matcher
-   */
-  interface Self<S> extends OptionalMatcher<Self<S>, S>, Disjunction<Self<S>> {}
+  interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>  {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
@@ -43,6 +37,5 @@ public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher 
 
     return ctx -> (R) new Local(ctx);
   }
-
 
 }
