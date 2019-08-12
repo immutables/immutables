@@ -24,6 +24,7 @@ import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Visitors;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -190,6 +192,21 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
           return compare <= 0;
         }
       }
+
+      if (op == Operators.MATCHES) {
+        Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
+
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(left instanceof CharSequence, "%s is not string (or CharSequence)", left);
+        Preconditions.checkArgument(right instanceof Pattern, "%s is not regex pattern", right);
+        return ((Pattern) right).asPredicate().test(left.toString());
+      }
+
 
       throw new UnsupportedOperationException("Don't know how to handle " + op);
     }

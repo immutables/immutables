@@ -26,6 +26,7 @@ import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Evaluating expression into <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html">Elastic Query DSL</a>
@@ -117,6 +118,15 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return builder;
     }
 
+    if (op == Operators.MATCHES) {
+      // regex
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      Preconditions.checkArgument(value instanceof Pattern, "%s is not regex pattern", value);
+      // In elastic / lucene, patterns match the entire string.
+      return QueryBuilders.regexpQuery(field, ((Pattern) value).pattern());
+    }
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }

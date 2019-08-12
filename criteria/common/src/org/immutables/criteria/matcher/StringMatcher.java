@@ -16,6 +16,10 @@
 
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.Operators;
+
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
@@ -46,9 +50,11 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
   /**
    * Checks wherever string matches regular expression
+   * @param regex pattern to match for
    */
   default R matches(Pattern regex) {
-    throw new UnsupportedOperationException();
+    Objects.requireNonNull(regex, "regexp");
+    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.MATCHES, e, Expressions.constant(regex)));
   }
 
   /**

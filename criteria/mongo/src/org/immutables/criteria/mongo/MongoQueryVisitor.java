@@ -35,6 +35,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -102,6 +103,15 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       }
 
       throw new UnsupportedOperationException("Unknown comparison " + call);
+    }
+
+    if (op == Operators.MATCHES) {
+      // regular expression
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      Preconditions.checkArgument(value instanceof Pattern, "%s is not regex pattern", value);
+      return Filters.regex(field, (Pattern) value);
     }
 
 

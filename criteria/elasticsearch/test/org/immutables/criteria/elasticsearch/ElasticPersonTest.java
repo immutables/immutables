@@ -23,14 +23,17 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
+import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Test;
 
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Start embedded ES instance. Insert document(s) then find it.
@@ -84,9 +87,34 @@ public class ElasticPersonTest extends AbstractPersonTest  {
     }
   }
 
+  /**
+   * Elastic has special <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/regexp-syntax.html">regex syntax</a>
+   * and not all java patterns are supported. Testing separately here
+   */
+  @Test
+  public void regex_forElastic() {
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John"));
+
+    check(repository().find(criteria().fullName.matches(Pattern.compile("John")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(criteria().fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J..n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J...")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("...n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(1);
+
+    insert(generator.next().withFullName("Marry"));
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(2);
+  }
+
+
   @Override
   protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY);
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
+            Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY);
   }
 
   @Override

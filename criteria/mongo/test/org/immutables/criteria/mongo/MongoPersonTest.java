@@ -27,7 +27,10 @@ import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
+import org.immutables.check.Checkers;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
@@ -45,8 +48,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.immutables.check.Checkers.check;
 
 /**
  * Basic tests of mongo adapter
@@ -72,8 +73,10 @@ public class MongoPersonTest extends AbstractPersonTest {
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
 
+    final CodecRegistry registry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), JacksonCodecs.registryFromMapper(mapper));
+
     final MongoDatabase database = MONGO.database()
-            .withCodecRegistry(JacksonCodecs.registryFromMapper(mapper));
+            .withCodecRegistry(registry);
 
     Flowable.fromPublisher(database.createCollection(COLLECTION_NAME))
             .test()
@@ -98,14 +101,14 @@ public class MongoPersonTest extends AbstractPersonTest {
             .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
             .find()).toList().blockingGet();
 
-    check(docs).hasSize(1);
-    check(docs.get(0).get("_id")).is(new BsonString("id123"));
-    check(docs.get(0).get("age")).is(new BsonInt32(22));
+    Checkers.check(docs).hasSize(1);
+    Checkers.check(docs.get(0).get("_id")).is(new BsonString("id123"));
+    Checkers.check(docs.get(0).get("age")).is(new BsonInt32(22));
 
     // query using repository
     final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
-    check(persons).hasSize(1);
-    check(persons.get(0).id()).is("id123");
+    Checkers.check(persons).hasSize(1);
+    Checkers.check(persons.get(0).id()).is("id123");
   }
 
   @Test
@@ -117,16 +120,16 @@ public class MongoPersonTest extends AbstractPersonTest {
             .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
             .find()).toList().blockingGet();
 
-    check(docs).hasSize(1);
+    Checkers.check(docs).hasSize(1);
     final LocalDate expected = LocalDate.of(1990, 2, 2);
     final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-    check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
+    Checkers.check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
   }
-
 
   @Override
   protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY);
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
+            Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY, Feature.REGEX);
   }
 
   @Override

@@ -38,11 +38,17 @@ public final class Operators {
   // some elements match (at least one)
   public static final Operator ANY = new SimpleOperator("ANY", Boolean.class);
 
-  // means collection is empty
+  // means collection (or string) is empty
   public static final Operator EMPTY = new SimpleOperator("EMPTY", Boolean.class);
 
-  // size of the collection
+  // size of the collection (or string)
   public static final Operator SIZE = new SimpleOperator("SIZE", Long.class);
+
+  /**
+   * String regexp matching
+   */
+  public static final Operator MATCHES = new SimpleOperator("MATCHES", Boolean.class);
+
 
   // contains
   public static final Operator CONTAINS = new SimpleOperator("CONTAINS", Boolean.class);

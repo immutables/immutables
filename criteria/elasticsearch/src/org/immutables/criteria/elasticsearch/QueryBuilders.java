@@ -387,7 +387,9 @@ class QueryBuilders {
 
     @Override
     ObjectNode toJson(ObjectMapper mapper) {
-      throw new UnsupportedOperationException();
+      ObjectNode result = mapper.createObjectNode();
+      result.with("regexp").with(fieldName).put("value", value);
+      return result;
     }
   }
 

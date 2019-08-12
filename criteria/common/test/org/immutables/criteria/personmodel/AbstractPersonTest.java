@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -49,7 +50,8 @@ public abstract class AbstractPersonTest {
     DELETE,
     DELETE_BY_QUERY,
     WATCH,
-    ORDER_BY
+    ORDER_BY,
+    REGEX // regular expression for match() operator
   }
 
   /**
@@ -65,7 +67,7 @@ public abstract class AbstractPersonTest {
   /**
    * Create person criteria
    */
-  private static PersonCriteria criteria() {
+  protected static PersonCriteria criteria() {
     return PersonCriteria.person;
   }
 
@@ -346,6 +348,31 @@ public abstract class AbstractPersonTest {
     assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()).limit(5), Ordering.natural().reverse());
   }
 
+  @Test
+  public void regex() {
+    Assume.assumeTrue(features().contains(Feature.REGEX));
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John"));
+
+    check(repository().find(criteria().fullName.matches(Pattern.compile("John")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J..n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J...")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("...n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("^Jo")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("hn$")))).hasSize(1);
+    check(repository().find(criteria().fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J\\w+n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(1);
+
+    insert(generator.next().withFullName("Marry"));
+    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("^Ma")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile("ry$")))).hasSize(1);
+    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(2);
+  }
+
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {
     List<T> parts = fetch(reader).stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
@@ -364,7 +391,7 @@ public abstract class AbstractPersonTest {
             .assertComplete();
   }
 
-  private CriteriaChecker<Person> check(Reader<Person, ?> reader) {
+  protected CriteriaChecker<Person> check(Reader<Person, ?> reader) {
     return CriteriaChecker.of(reader);
   }
 
