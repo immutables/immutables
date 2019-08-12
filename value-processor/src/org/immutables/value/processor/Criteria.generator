@@ -82,7 +82,7 @@ import [starImport];
 [/if]
 @javax.annotation.concurrent.Immutable
 [atGenerated type]
-[type.typeDocument.access]class [type.name]CriteriaTemplate<R> extends AbstractContextHolder implements Criterion<[type.typeDocument]>,
+[type.typeDocument.access]abstract class [type.name]CriteriaTemplate<R> extends AbstractContextHolder implements Criterion<[type.typeDocument]>,
             AndMatcher<[type.name]Criteria>, OrMatcher<[type.name]Criteria>,
             NotMatcher<R, [type.name]Criteria>,
             WithMatcher<R, [type.name]Criteria> {
