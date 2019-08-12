@@ -126,6 +126,7 @@ public final class CriteriaContext implements Queryable {
     Objects.requireNonNull(fn, "fn");
     final Expression apply = fn.apply(path);
     final DnfExpression newExpression = expression.and(apply);
+    List<CriteriaCreator<?>> creators = ImmutableList.<CriteriaCreator<?>>builder().add(this.creators.get(0)).add(this.creators.get(0)).build();
     return new CriteriaContext(entityClass, newExpression, parent != null ? parent.path : null, creators, parent);
   }
 

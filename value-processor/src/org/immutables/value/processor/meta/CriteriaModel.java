@@ -22,14 +22,12 @@ import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.encode.TypeExtractor;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.util.Arrays;
@@ -105,7 +103,7 @@ public class CriteriaModel {
 
     public boolean isBoolean() {
       return type.getKind() == TypeKind.BOOLEAN ||
-             isSubtypeOf(Boolean.class);
+              isSubtypeOf(Boolean.class);
     }
 
     public boolean isNumber() {
@@ -191,7 +189,7 @@ public class CriteriaModel {
       final List<String> names = Arrays.asList("java.util.Optional", "java.util.OptionalInt",
               "java.util.OptionalDouble", "java.util.OptionalLong", Optional.class.getName());
 
-      for (String name: names) {
+      for (String name : names) {
         final Element element = elements.getTypeElement(name);
         if (element != null && isSubtypeOf(element)) {
           return true;
@@ -322,10 +320,13 @@ public class CriteriaModel {
   public static class MatcherDefinition {
     private final ValueAttribute attribute;
     private final Type.Parameterized type;
+    private final IntrospectedType introspectedType;
 
     private MatcherDefinition(ValueAttribute attribute, Type.Parameterized type) {
       this.attribute = attribute;
       this.type = Preconditions.checkNotNull(type, "type");
+      ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
+      this.introspectedType = new IntrospectedType(attribute.returnType, false, env.getTypeUtils(), env.getElementUtils());
     }
 
     public Type.Parameterized matcherType() {
@@ -346,37 +347,44 @@ public class CriteriaModel {
         firstCreator = String.format("%s.creator().create(%%s)", newName);
       }
 
-      final String secondCreator;
-      if (hasCriteria || type.arguments.size() <= 1) {
-        secondCreator = creator(type);
-      } else {
-        secondCreator = creator(type.arguments.get(1));
-      }
+      final String secondCreator = secondCreator();
 
       final String withCreators = String.format("withCreators(%s.creator(), %s)", attribute.containingType.name() + "Criteria", secondCreator);
       return String.format(firstCreator, new StringBuilder().append("context.").append(withPath).append(".").append(withCreators));
     }
 
-    private String creator(Type type) {
-      if (!(type instanceof Type.Parameterized)) {
-        return "org.immutables.criteria.matcher.ObjectMatcher.creator()";
+    private String secondCreator() {
+      String name = type.reference.name;
+      if (name.endsWith(".Template")) {
+        // scalar matcher
+        return name.substring(0, name.lastIndexOf('.')) + ".creator()";
+      }
+
+      if (!(introspectedType.type().getKind() == TypeKind.DECLARED ||
+              introspectedType.isOptional() || introspectedType.isIterable())) {
+        return attribute.containingType.element.getSimpleName() + "Criteria.creator()";
+      }
+
+      final DeclaredType declaredType = MoreTypes.asDeclared(introspectedType.type());
+
+      if (declaredType.getTypeArguments().isEmpty()) {
+        // same as first
+        return attribute.containingType.element.getSimpleName() + "Criteria.creator()";
+      }
+
+      Preconditions.checkArgument(declaredType.getTypeArguments().size() == 1, "Expected single arg for ", declaredType);
+      IntrospectedType type2 = introspectedType.withType(declaredType.getTypeArguments().get(0));
+
+      if (type2.hasCriteria()) {
+        return type2.erasure + "Criteria.creator()";
       }
 
       Type.Parameterized param = (Type.Parameterized) type;
-      String name = param.reference.name;
-      if (name.endsWith(".Template")) {
-        final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
-        return newName + ".creator()";
-      } else if (name.endsWith("Matcher")) {
-        return name + ".creator()";
-      } else if (name.endsWith("Template")) {
-        // remove template
-        name = name.substring(0, name.lastIndexOf("Template"));
-        // criteria
-        return name + ".creator()";
-      } else {
+      if (name.endsWith("Matcher")) {
         return name + ".creator()";
       }
+
+      throw new IllegalArgumentException("Can't detect second creator for " + introspectedType.type());
     }
   }
 }
