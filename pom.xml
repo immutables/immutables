@@ -109,7 +109,7 @@
     <elasticsearch.version>7.1.0</elasticsearch.version>
     <reactive-streams.version>1.0.2</reactive-streams.version>
     <log4j2.version>2.11.2</log4j2.version>
-    <mongo-java-server.version>1.14.0</mongo-java-server.version>
+    <mongo-java-server.version>1.18.2</mongo-java-server.version>
     <jackson.version>2.8.11</jackson.version>
     <jackson-databind.version>2.8.11.3</jackson-databind.version>
     <junit.version>4.12</junit.version>
