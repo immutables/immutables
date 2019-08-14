@@ -138,15 +138,11 @@ import [starImport];
      implements Disjunction<[type.name]CriteriaTemplate<[type.name]Criteria>>  {
 
   /** Default criteria instance */
-  public static final [type.name]Criteria [toLower type.name] = new [type.name]Criteria();
+  public static final [type.name]Criteria [toLower type.name] = new [type.name]Criteria(new CriteriaContext([type.typeDocument].class, creator()));
 
   /** Used to instantiate [type.name]Criteria by other criterias */
   public static CriteriaCreator<[type.name]Criteria> creator() {
-     return (CriteriaContext ctx) ->  new [type.name]Criteria(ctx);
-  }
-
-  private [type.name]Criteria() {
-    this(new CriteriaContext([type.typeDocument].class, creator()));
+     return [type.name]Criteria::new;
   }
 
   private [type.name]Criteria(CriteriaContext context) {
