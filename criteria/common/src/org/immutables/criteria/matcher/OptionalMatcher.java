@@ -25,7 +25,8 @@ public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher 
    * Apply context-specific matcher if value is present
    */
   default S value() {
-    return Matchers.extract(this).<R, S>factory().createNested();
+    // CriteriaContext.this.creator;
+    return Matchers.extract(this).<S>create();
   }
 
   /**

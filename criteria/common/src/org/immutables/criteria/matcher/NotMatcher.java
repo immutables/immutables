@@ -42,9 +42,8 @@ public interface NotMatcher<R, C> extends Matcher {
    */
   default R not(UnaryOperator<C> operator) {
     final CriteriaContext context = Matchers.extract(this);
-    final CriteriaCreator.Factory<R, C> factory = context.<R, C>factory();
     final UnaryOperator<Expression> expr = e -> Expressions.not(Matchers.toInnerExpression(context, operator).apply(e));
-    return factory.createRoot(expr);
+    return context.applyAndCreateRoot(expr);
   }
 
 }

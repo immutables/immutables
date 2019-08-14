@@ -335,22 +335,20 @@ public class CriteriaModel {
 
     // TODO the logic here is messy. Cleanup creator API and update this method
     public String creator() {
-      final String withPath = String.format("withPath(%s.class, \"%s\")", attribute.containingType.typeDocument().toString(), attribute.name());
 
-      final String firstCreator;
+      final String creator;
       final String name = type.reference.name;
       final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
       if (hasCriteria) {
-        firstCreator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
+        creator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
       } else {
         final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
-        firstCreator = String.format("%s.creator().create(%%s)", newName);
+        creator = String.format("%s.creator().create(%%s)", newName);
       }
 
-      final String secondCreator = secondCreator();
-
-      final String withCreators = String.format("withCreators(%s.creator(), %s)", attribute.containingType.name() + "Criteria", secondCreator);
-      return String.format(firstCreator, new StringBuilder().append("context.").append(withPath).append(".").append(withCreators));
+      final String withPath = String.format("newChild(%s.class, \"%s\", %s)", attribute.containingType.typeDocument().toString(),
+              attribute.name(), secondCreator());
+      return String.format(creator, new StringBuilder().append("context.").append(withPath));
     }
 
     private String secondCreator() {

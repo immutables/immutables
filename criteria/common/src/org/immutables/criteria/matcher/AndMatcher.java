@@ -38,7 +38,7 @@ public interface AndMatcher<R extends Criterion<?>> extends Matcher {
   default R and(R other) {
     final CriteriaContext context = Matchers.extract(this);
     final UnaryOperator<Expression> expr = e -> Expressions.and(Matchers.concat(e, other));
-    return context.<R, Object>factory().createRoot(expr);
+    return context.applyAndCreateRoot(expr);
   }
 
 }

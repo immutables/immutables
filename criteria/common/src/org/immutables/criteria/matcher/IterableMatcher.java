@@ -29,18 +29,15 @@ import java.util.function.UnaryOperator;
 public interface IterableMatcher<R, S, V> extends Matcher {
 
   default S all() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ALL, e);
-    return Matchers.extract(this).<R, S>factory().createNested(expr);
+    throw new UnsupportedOperationException();
   }
 
   default S none() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.NONE, e);
-    return Matchers.extract(this).<R, S>factory().createNested(expr);
+    throw new UnsupportedOperationException();
   }
 
   default S any() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.ANY, e);
-    return Matchers.extract(this).<R, S>factory().createNested(expr);
+    throw new UnsupportedOperationException();
   }
 
   default S at(int index) {
@@ -48,20 +45,20 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   }
 
   default R contains(V value) {
-    return Matchers.extract(this).<R, S>factory().createRoot(e -> Expressions.call(Operators.CONTAINS, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.CONTAINS, e));
   }
 
   default R isEmpty() {
-    return Matchers.extract(this).<R, S>factory().createRoot(e -> Expressions.call(Operators.EMPTY, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EMPTY, e));
   }
 
   default R notEmpty() {
-    return Matchers.extract(this).<R, S>factory().createRoot(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
   }
 
   default R hasSize(int size) {
     UnaryOperator<Expression> expr = e -> Expressions.call(Operators.SIZE, e, Expressions.constant(size));
-    return Matchers.extract(this).<R, S>factory().createRoot(expr);
+    return Matchers.extract(this).applyAndCreateRoot(expr);
 
   }
 

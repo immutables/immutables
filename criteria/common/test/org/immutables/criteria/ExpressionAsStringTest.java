@@ -170,11 +170,10 @@ public class ExpressionAsStringTest {
 
   @Test
   public void debug() {
-    assertExpressional(PersonCriteria.person.with(p1 -> p1.with(p2-> p2.fullName.is("a"))),
-            "call op=EQUAL path=fullName constant=a");
-
-    assertExpressional(PersonCriteria.person.with(p1 -> p1.with(p2-> p2.with(p3 -> p3.fullName.is("a")))),
-            "call op=EQUAL path=fullName constant=a");
+    assertExpressional(PersonCriteria.person.bestFriend.value().hobby.with(h -> h.is("a").is("b")),
+            "call op=AND",
+            "  call op=EQUAL path=bestFriend.hobby constant=a",
+            "  call op=EQUAL path=bestFriend.hobby constant=b");
   }
 
   @Test

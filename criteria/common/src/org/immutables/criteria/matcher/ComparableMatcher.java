@@ -37,7 +37,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   default R lessThan(V upper) {
     Objects.requireNonNull(upper, "upper");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.LESS_THAN, e, Expressions.constant(upper)));
   }
 
   /**
@@ -46,7 +46,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   default R greaterThan(V lower) {
     Objects.requireNonNull(lower, "lower");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.GREATER_THAN, e, Expressions.constant(lower)));
   }
 
   /**
@@ -54,7 +54,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   default R atMost(V upperInclusive) {
     Objects.requireNonNull(upperInclusive, "upperInclusive");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.LESS_THAN_OR_EQUAL, e, Expressions.constant(upperInclusive)));
   }
 
   /**
@@ -62,7 +62,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   default R atLeast(V lowerInclusive) {
     Objects.requireNonNull(lowerInclusive, "lowerInclusive");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.GREATER_THAN_OR_EQUAL, e, Expressions.constant(lowerInclusive)));
   }
 
   /**
@@ -80,7 +80,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
       return Expressions.and(lower, upper);
     };
 
-    return Matchers.extract(this).<R, Object>factory().createRoot(unary);
+    return Matchers.extract(this).applyAndCreateRoot(unary);
   }
 
   /**

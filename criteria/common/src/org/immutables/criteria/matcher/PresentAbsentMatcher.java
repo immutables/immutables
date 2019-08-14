@@ -30,11 +30,11 @@ public interface PresentAbsentMatcher<R> extends Matcher {
 
   default R isPresent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);
-    return Matchers.extract(this).<R, Object>factory().createRoot(expr);
+    return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 
   default R isAbsent() {
     final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_ABSENT, e);
-    return Matchers.extract(this).<R, Object>factory().createRoot(expr);
+    return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 }

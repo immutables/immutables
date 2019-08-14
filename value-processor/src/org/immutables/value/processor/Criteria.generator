@@ -146,7 +146,7 @@ import [starImport];
   }
 
   private [type.name]Criteria() {
-    this(new CriteriaContext([type.typeDocument].class, creator()).withCreators(creator(), creator()));
+    this(new CriteriaContext([type.typeDocument].class, creator()));
   }
 
   private [type.name]Criteria(CriteriaContext context) {

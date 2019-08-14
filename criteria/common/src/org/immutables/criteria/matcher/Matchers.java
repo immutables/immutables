@@ -73,8 +73,8 @@ public final class Matchers {
 
   static <C> UnaryOperator<Expression> toInnerExpression(CriteriaContext context, UnaryOperator<C> expr) {
     return expression -> {
-      final CriteriaContext newContext = context.newChild();
-      final C initial = (C) newContext.factory().createRoot();
+      final CriteriaContext newContext = context.nested();
+      final C initial = (C) newContext.creator().create(newContext);
       final C changed = expr.apply(initial);
       return Matchers.extract((Matcher) changed).query().filter().orElseThrow(() -> new IllegalStateException("filter should be set"));
     };

@@ -35,11 +35,11 @@ import java.util.Objects;
 public interface ObjectMatcher<R, V> extends Matcher {
 
   default R is(V value) {
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EQUAL, e, Expressions.constant(value)));
   }
 
   default R isNot(V value) {
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.NOT_EQUAL, e, Expressions.constant(value)));
   }
 
   default R in(V v1, V v2, V ... rest) {
@@ -62,12 +62,12 @@ public interface ObjectMatcher<R, V> extends Matcher {
 
   default R in(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   default R notIn(Iterable<? extends V> values) {
     Objects.requireNonNull(values, "values");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.NOT_IN, e, Expressions.constant(ImmutableList.copyOf(values))));
   }
 
   /**

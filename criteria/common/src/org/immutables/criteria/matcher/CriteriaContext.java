@@ -16,15 +16,12 @@
 
 package org.immutables.criteria.matcher;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
 
 import java.lang.reflect.Member;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
@@ -34,86 +31,71 @@ import java.util.function.UnaryOperator;
  */
 public final class CriteriaContext implements Queryable {
 
-  private final List<CriteriaCreator<?>> creators;
   private final DnfExpression expression;
   private final Path path;
   private final Class<?> entityClass;
+  private final CriteriaContext root;
   private final CriteriaContext parent;
+  private final CriteriaCreator<?> creator;
 
   public CriteriaContext(Class<?> entityClass, CriteriaCreator<?> creator) {
-    this(entityClass, new DnfExpression(), null, ImmutableList.of(creator), null);
+    this(entityClass, new DnfExpression(), null, creator, null);
   }
 
-  private CriteriaContext(Class<?> entityClass, DnfExpression expression, Path path, List<CriteriaCreator<?>> creators, CriteriaContext parent) {
-    this.creators = ImmutableList.copyOf( creators);
+  private CriteriaContext(Class<?> entityClass, DnfExpression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
     this.expression = expression;
     this.path = path;
+    this.creator = Objects.requireNonNull(creator, "creator");
     this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
     this.parent = parent;
-  }
-
-  public <T1, T2> CriteriaContext withCreators(CriteriaCreator<T1> c1, CriteriaCreator<T2> c2) {
-    Objects.requireNonNull(c1, "c1");
-    Objects.requireNonNull(c2, "c2");
-
-    // keep root unchanged here (it should change only for nested matchers)
-    final CriteriaCreator<?> root = creators.get(0);
-    return new CriteriaContext(entityClass, expression, path, ImmutableList.of(root, c2), parent);
-  }
-
-  public <T1, T2> CriteriaCreator.Factory<T1, T2> factory() {
-    Preconditions.checkState(creators.size() == 2, "Expected size == 2 got %s", creators.size());
-
-    return new CriteriaCreator.Factory<T1, T2>() {
-      @Override
-      public CriteriaCreator<T2> nested() {
-        return (CriteriaCreator<T2>) creators.get(1);
-      }
-
-      @Override
-      public CriteriaCreator<T1> root() {
-        return (CriteriaCreator<T1>) creators.get(0);
-      }
-
-      @Override
-      public CriteriaContext context() {
-        return CriteriaContext.this;
-      }
-    };
-  }
-
-
-  public <T1, T2> CriteriaContext newChild() {
-    return new CriteriaContext(entityClass, new DnfExpression(), path, ImmutableList.of(factory().nested(), creators.get(1)), this);
-  }
-
-
-  public CriteriaContext ofParent() {
-    Preconditions.checkState(parent != null, "parent is null");
-    final DnfExpression newExpression = parent.expression.and(expression);
-    return new CriteriaContext(entityClass, newExpression, path.parent().orElse(null), creators, parent.parent);
+    this.root = parent != null ? parent.root() : this;
   }
 
   public Path path() {
     return path;
   }
 
-  private CriteriaContext withPath(Path newPath) {
-    return new CriteriaContext(entityClass, expression, newPath, creators, parent);
+  CriteriaContext root() {
+    return root;
+  }
+
+  @SuppressWarnings("unchecked")
+  <R> R create() {
+    return (R) creator.create(this);
+  }
+
+  CriteriaCreator creator() {
+    return creator;
+  }
+
+  /**
+   * Create context as root but keep same expression
+   */
+  private CriteriaContext newRoot() {
+    CriteriaContext rootContext = root();
+    return new CriteriaContext(entityClass, expression, rootContext.path, rootContext.creator, null);
   }
 
   /**
    *  adds an intermediate path
    */
-  public CriteriaContext withPath(Class<?> type, String pathAsString) {
-    // clazz ==
+  public <T> CriteriaContext newChild(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
+    // push
     final Member member = Reflections.member(type, pathAsString);
     final Path newPath = this.path != null ? this.path.with(member) : Path.of(member);
-    return withPath(newPath);
+    return new CriteriaContext(entityClass, expression, newPath, creator, this);
+  }
+
+  /**
+   * Create nested context for lambdas used in {@link WithMatcher} or {@link NotMatcher}.
+   * It is considered new root expression
+   */
+  <T1, T2> CriteriaContext nested() {
+    return new CriteriaContext(entityClass, new DnfExpression(), path, creator, null);
   }
 
   public CriteriaContext or() {
-    return new CriteriaContext(entityClass, expression.or(), path, creators, parent);
+    return new CriteriaContext(entityClass, expression.or(), path, creator, parent);
   }
 
   @Override
@@ -122,12 +104,15 @@ public final class CriteriaContext implements Queryable {
     return !expression.isEmpty() ? query.withFilter(expression.simplify()) : query;
   }
 
-  public CriteriaContext apply(UnaryOperator<Expression> fn) {
+  <R> R applyAndCreateRoot(UnaryOperator<Expression> fn) {
+    return apply(fn).newRoot().create();
+  }
+
+  CriteriaContext apply(UnaryOperator<Expression> fn) {
     Objects.requireNonNull(fn, "fn");
     final Expression apply = fn.apply(path);
     final DnfExpression newExpression = expression.and(apply);
-    List<CriteriaCreator<?>> creators = ImmutableList.<CriteriaCreator<?>>builder().add(this.creators.get(0)).add(this.creators.get(0)).build();
-    return new CriteriaContext(entityClass, newExpression, parent != null ? parent.path : null, creators, parent);
+    final CriteriaContext parentOrSelf = parent != null ? parent : this;
+    return new CriteriaContext(entityClass, newExpression, parentOrSelf.path, parentOrSelf.creator, parentOrSelf.parent);
   }
-
 }

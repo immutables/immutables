@@ -37,7 +37,7 @@ public interface OrMatcher<R extends Criterion<?>> extends Matcher {
    */
   default R or(R other) {
     final UnaryOperator<Expression> expr = e -> Expressions.or(Matchers.concat(e, other));
-    return Matchers.extract(this).apply(expr).or().<R, Object>factory().createRoot();
+    return Matchers.extract(this).apply(expr).or().root().create();
   }
 
 }

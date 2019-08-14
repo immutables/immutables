@@ -54,7 +54,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
    */
   default R matches(Pattern regex) {
     Objects.requireNonNull(regex, "regexp");
-    return Matchers.extract(this).<R, Object>factory().createRoot(e -> Expressions.call(Operators.MATCHES, e, Expressions.constant(regex)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.MATCHES, e, Expressions.constant(regex)));
   }
 
   /**

@@ -15,40 +15,11 @@
  */
 package org.immutables.criteria.matcher;
 
-import org.immutables.criteria.expression.Expression;
-
-import java.util.function.UnaryOperator;
-
 /**
  * Criteria factory. Instantiate matcher / criteria form existing (or new) context.
  */
 public interface CriteriaCreator<R> {
 
   R create(CriteriaContext context);
-
-  interface Factory<T1, T2>  {
-
-    CriteriaContext context();
-
-    CriteriaCreator<T1> root();
-
-    CriteriaCreator<T2> nested();
-
-    default T1 createRoot(UnaryOperator<Expression> operator) {
-      return root().create(context().apply(operator));
-    }
-
-    default T1 createRoot() {
-      return root().create(context());
-    }
-
-    default T2 createNested(UnaryOperator<Expression> operator) {
-      return nested().create(context().apply(operator));
-    }
-
-    default T2 createNested() {
-      return nested().create(context());
-    }
-  }
 
 }

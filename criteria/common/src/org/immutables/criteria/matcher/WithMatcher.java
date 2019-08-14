@@ -45,7 +45,7 @@ public interface WithMatcher<R, C> extends Matcher {
   default R with(UnaryOperator<C> operator) {
     final CriteriaContext context = Matchers.extract(this);
     final UnaryOperator<Expression> expr = e -> Matchers.toInnerExpression(context, operator).apply(e);
-    return context.<R, C>factory().createRoot(expr);
+    return context.applyAndCreateRoot(expr);
   }
 
 }
