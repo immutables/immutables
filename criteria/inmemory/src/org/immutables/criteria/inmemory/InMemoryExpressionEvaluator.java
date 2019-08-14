@@ -24,7 +24,6 @@ import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.expression.Visitors;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
@@ -207,6 +206,19 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return ((Pattern) right).asPredicate().test(left.toString());
       }
 
+      if (op == Operators.STARTS_WITH || op == Operators.ENDS_WITH) {
+        Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
+
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(left instanceof CharSequence, "%s is not string (or CharSequence)", left);
+        Preconditions.checkArgument(right instanceof CharSequence, "%s is not string (or CharSequence)", right);
+        return op == Operators.STARTS_WITH ? left.toString().startsWith(right.toString()) : left.toString().endsWith(right.toString());
+      }
 
       throw new UnsupportedOperationException("Don't know how to handle " + op);
     }

@@ -128,6 +128,20 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return QueryBuilders.regexpQuery(field, ((Pattern) value).pattern());
     }
 
+    if (op == Operators.STARTS_WITH) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      return QueryBuilders.prefixQuery(field, value.toString());
+    }
+
+    if (op == Operators.ENDS_WITH) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = Visitors.toPath(args.get(0)).toStringPath();
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      return QueryBuilders.wildcardQuery(field, "*" + value.toString());
+    }
+
     throw new UnsupportedOperationException("Don't know how to handle " + call);
   }
 

@@ -28,10 +28,16 @@ import java.util.regex.Pattern;
  */
 public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
+  /**
+   * Check that attribute is an empty string
+   */
   default R isEmpty() {
     return is("");
   }
 
+  /**
+   * Check that attribute is not an empty string
+   */
   default R notEmpty() {
     return isNot("");
   }
@@ -40,12 +46,20 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Check that string attribute starts with {@code prefix} prefix
+   */
   default R startsWith(CharSequence prefix) {
-    throw new UnsupportedOperationException();
+    Objects.requireNonNull(prefix, "prefix");
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.STARTS_WITH, e, Expressions.constant(prefix.toString())));
   }
 
+  /**
+   * Check that string attribute ends with {@code suffix} suffix
+   */
   default R endsWith(CharSequence suffix) {
-    throw new UnsupportedOperationException();
+    Objects.requireNonNull(suffix, "suffix");
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.ENDS_WITH, e, Expressions.constant(suffix.toString())));
   }
 
   /**

@@ -49,6 +49,15 @@ public final class Operators {
    */
   public static final Operator MATCHES = new SimpleOperator("MATCHES", Boolean.class);
 
+  /**
+   * Check that string starts with a prefix
+   */
+  public static final Operator STARTS_WITH =  new SimpleOperator("STARTS_WITH", Boolean.class);
+
+  /**
+   * Check that string ends with a suffix
+   */
+  public static final Operator ENDS_WITH =  new SimpleOperator("ENDS_WITH", Boolean.class);
 
   // contains
   public static final Operator CONTAINS = new SimpleOperator("CONTAINS", Boolean.class);

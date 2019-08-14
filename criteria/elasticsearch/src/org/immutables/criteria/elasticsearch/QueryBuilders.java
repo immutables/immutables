@@ -176,6 +176,15 @@ class QueryBuilders {
     return new ExistsQueryBuilder(name);
   }
 
+
+  static PrefixQueryBuilder prefixQuery(String name, String prefix) {
+    return new PrefixQueryBuilder(name, prefix);
+  }
+
+  static WildcardQueryBuilder wildcardQuery(String name, String wildcard) {
+    return new WildcardQueryBuilder(name, wildcard);
+  }
+
   /**
    * A query that matches on all documents.
    */
@@ -407,6 +416,43 @@ class QueryBuilders {
     ObjectNode toJson(ObjectMapper mapper) {
       ObjectNode result = mapper.createObjectNode();
       result.with("exists").put("field", fieldName);
+      return result;
+    }
+  }
+
+  /**
+   * Constructs a query that only match on documents that the field has a value in them.
+   */
+  static class PrefixQueryBuilder extends QueryBuilder {
+    private final String fieldName;
+    private final String value;
+
+    PrefixQueryBuilder(final String fieldName, String value) {
+      this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
+      this.value = Objects.requireNonNull(value, "value");
+    }
+
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      result.with("prefix").put(fieldName, value);
+      return result;
+    }
+  }
+
+  static class WildcardQueryBuilder extends QueryBuilder {
+    private final String fieldName;
+    private final String wildcard;
+
+    private WildcardQueryBuilder(String fieldName, String wildcard) {
+      this.fieldName = Objects.requireNonNull(fieldName, "fieldName");
+      this.wildcard = Objects.requireNonNull(wildcard, "wildcard");
+    }
+
+    @Override
+    ObjectNode toJson(ObjectMapper mapper) {
+      ObjectNode result = mapper.createObjectNode();
+      result.with("wildcard").put(fieldName, wildcard);
       return result;
     }
   }

@@ -114,6 +114,18 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.regex(field, (Pattern) value);
     }
 
+    if (op == Operators.STARTS_WITH || op == Operators.ENDS_WITH) {
+      // regular expression
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      final String pattern = String.format("%s%s%s",
+              op == Operators.STARTS_WITH ? "^": "",
+              Pattern.quote(value.toString()),
+              op == Operators.ENDS_WITH ? "$" : "");
+      return Filters.regex(field, Pattern.compile(pattern));
+    }
+
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }

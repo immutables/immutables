@@ -51,7 +51,8 @@ public abstract class AbstractPersonTest {
     DELETE_BY_QUERY,
     WATCH,
     ORDER_BY,
-    REGEX // regular expression for match() operator
+    REGEX, // regular expression for match() operator
+    STRING_PREFIX_SUFFIX // startsWith / endsWith operators a are supported
   }
 
   /**
@@ -371,6 +372,39 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().fullName.matches(Pattern.compile("^Ma")))).hasSize(1);
     check(repository().find(criteria().fullName.matches(Pattern.compile("ry$")))).hasSize(1);
     check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(2);
+  }
+
+  @Test
+  public void startsWith() {
+    Assume.assumeTrue(features().contains(Feature.STRING_PREFIX_SUFFIX));
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John"));
+
+    // == starts with
+    check(repository().find(criteria().fullName.startsWith(""))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("J"))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("Jo"))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("Jooo"))).empty();
+    check(repository().find(criteria().fullName.startsWith("John"))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("j"))).empty();
+    check(repository().find(criteria().fullName.startsWith("john"))).empty(); // not case sensitive
+
+    // === ends with
+    check(repository().find(criteria().fullName.endsWith(""))).hasSize(1);
+    check(repository().find(criteria().fullName.endsWith("n"))).hasSize(1);
+    check(repository().find(criteria().fullName.endsWith("hn"))).hasSize(1);
+    check(repository().find(criteria().fullName.endsWith("ohn"))).hasSize(1);
+    check(repository().find(criteria().fullName.endsWith("N"))).empty();
+
+    insert(generator.next().withFullName("Mary"));
+    check(repository().find(criteria().fullName.startsWith(""))).hasSize(2);
+    check(repository().find(criteria().fullName.startsWith("Ma"))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("Mary"))).hasSize(1);
+    check(repository().find(criteria().fullName.startsWith("Jo"))).hasSize(1);
+
+    check(repository().find(criteria().fullName.endsWith(""))).hasSize(2);
+    check(repository().find(criteria().fullName.endsWith("y"))).hasSize(1);
+    check(repository().find(criteria().fullName.endsWith("Mary"))).hasSize(1);
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {
