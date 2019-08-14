@@ -52,7 +52,7 @@ public class InMemoryExpressionEvaluatorTest {
     check(evaluate(crit.age.isNot(11), person));
     check(evaluate(crit.age.is(11), person.withAge(11)));
     check(evaluate(crit.age.is(22).fullName.is("John"), person));
-    check(!evaluate(crit.age.is(22).fullName.is("Marry"), person));
+    check(!evaluate(crit.age.is(22).fullName.is("Mary"), person));
 
     check(!evaluate(crit.age.in(1, 2, 3), person));
     check(evaluate(crit.age.notIn(1, 2, 3), person));

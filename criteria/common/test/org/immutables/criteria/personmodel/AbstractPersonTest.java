@@ -365,7 +365,7 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().fullName.matches(Pattern.compile("J\\w+n")))).hasSize(1);
     check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(1);
 
-    insert(generator.next().withFullName("Marry"));
+    insert(generator.next().withFullName("Mary"));
     check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
     check(repository().find(criteria().fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
     check(repository().find(criteria().fullName.matches(Pattern.compile("^Ma")))).hasSize(1);

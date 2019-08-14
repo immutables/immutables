@@ -45,10 +45,10 @@ public class ExpressionAsStringTest {
             "call op=EQUAL path=bestFriend.hobby constant=ski");
     assertExpressional(crit.fullName.in("n1", "n2"), "call op=IN path=fullName constant=[n1, n2]");
 
-    assertExpressional(crit.fullName.is("John").or().fullName.is("Marry"),
+    assertExpressional(crit.fullName.is("John").or().fullName.is("Mary"),
             "call op=OR",
                     "  call op=EQUAL path=fullName constant=John",
-                    "  call op=EQUAL path=fullName constant=Marry");
+                    "  call op=EQUAL path=fullName constant=Mary");
 
     assertExpressional(crit.bestFriend.value().hobby.is("ski"),
                     "call op=EQUAL path=bestFriend.hobby constant=ski");

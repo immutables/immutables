@@ -35,7 +35,7 @@ PersonCriteria.person.id.notIn("bad_id");
 // query on Strings, Comparables and Optionals
 person
     .fullName.is("John") // basic equal
-    .fullName.isNot("Marry") // not equal
+    .fullName.isNot("Mary") // not equal
     .fullName.endsWith("Smith") // string condition
     .fullName.is(3.1415D) // ERROR! will not compile since fullName is String (not double)
     .nickName.isPresent() // for Optional attribute
