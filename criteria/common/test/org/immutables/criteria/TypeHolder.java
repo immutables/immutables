@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
@@ -129,5 +130,10 @@ interface TypeHolder {
   Optional<List<String>> weird2();
   List<Optional<String>> weird3();
   Optional<OptionalInt> weird4();
+  Optional<Map<String, String>> weird5();
+
+  Map<String, String> map();
+  Optional<Map<String, String>> optionalMap();
+  List<Map<String, String>> maps();
 
 }
