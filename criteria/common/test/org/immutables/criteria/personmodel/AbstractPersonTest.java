@@ -78,7 +78,7 @@ public abstract class AbstractPersonTest {
    */
   @Test
   public void limit() {
-    Assume.assumeTrue(features().contains(Feature.QUERY_WITH_LIMIT));
+    assumeFeature(Feature.QUERY_WITH_LIMIT);
     final int size = 5;
     Flowable.fromPublisher(repository().insert(new PersonGenerator().stream()
             .limit(size).collect(Collectors.toList())))
@@ -93,7 +93,7 @@ public abstract class AbstractPersonTest {
       check(repository().find(criteria().id.is("id0")).limit(i)).hasSize(1);
     }
 
-    Assume.assumeTrue(features().contains(Feature.QUERY_WITH_OFFSET));
+    assumeFeature(Feature.QUERY_WITH_OFFSET);
     check(repository().findAll().limit(1).offset(1)).hasSize(1);
     check(repository().findAll().limit(2).offset(2)).hasSize(2);
     check(repository().findAll().limit(1).offset(size + 1)).empty();
@@ -101,7 +101,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void comparison() {
-   Assume.assumeTrue(features().contains(Feature.QUERY));
+   assumeFeature(Feature.QUERY);
    final Person john = new PersonGenerator().next()
             .withId("id123")
             .withDateOfBirth(LocalDate.of(1990, 2, 2))
@@ -249,7 +249,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void basic() {
-    Assume.assumeTrue(features().contains(Feature.QUERY));
+    assumeFeature(Feature.QUERY);
 
     final Person john = new PersonGenerator().next()
             .withFullName("John")
@@ -307,7 +307,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void orderBy() {
-    Assume.assumeTrue(features().contains(Feature.ORDER_BY));
+    assumeFeature(Feature.ORDER_BY);
     final PersonGenerator generator = new PersonGenerator();
     final int count = 10;
     final List<Person> persons = new ArrayList<>();
@@ -352,7 +352,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void regex() {
-    Assume.assumeTrue(features().contains(Feature.REGEX));
+    assumeFeature(Feature.REGEX);
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John"));
 
@@ -377,7 +377,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void startsOrEndsWith() {
-    Assume.assumeTrue(features().contains(Feature.STRING_PREFIX_SUFFIX));
+    assumeFeature(Feature.STRING_PREFIX_SUFFIX);
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John"));
 
@@ -410,7 +410,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void stringContains() {
-    Assume.assumeTrue(features().contains(Feature.STRING_PREFIX_SUFFIX));
+    assumeFeature(Feature.STRING_PREFIX_SUFFIX);
     final PersonGenerator generator = new PersonGenerator();
     // on empty
     check(repository().find(criteria().fullName.contains(""))).empty();
@@ -432,7 +432,7 @@ public abstract class AbstractPersonTest {
 
   @Test
   public void iterableHasSize() {
-    Assume.assumeTrue(features().contains(Feature.ITERABLE_SIZE));
+    assumeFeature(Feature.ITERABLE_SIZE);
     final PersonGenerator generator = new PersonGenerator();
     // no pets
     insert(generator.next().withFullName("John"));
@@ -457,6 +457,10 @@ public abstract class AbstractPersonTest {
     // negation
     check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam");
     check(repository().find(criteria().not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
+  }
+
+  private void assumeFeature(Feature feature) {
+    Assume.assumeTrue(features().contains(feature));
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {
