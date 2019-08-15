@@ -39,13 +39,31 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static org.immutables.check.Checkers.check;
 
 public class JacksonCodecsTest {
+
+  private final static ImmutableBsonModel DEFAULT = ImmutableBsonModel.builder()
+          .utilDate(new java.util.Date())
+          .localDate(LocalDate.now())
+          .pattern(Pattern.compile("a.*b"))
+          .objectId(ObjectId.get())
+          .putMap("key1", "val1")
+          .addStringSet("one")
+          .intArray(1)
+          .addIntList(4, 5, 6)
+          .build();
+
+  private final ObjectMapper mapper = new ObjectMapper()
+          .registerModule(new BsonModule())
+          .registerModule(new GuavaModule());
 
   /**
    * Test that regular expression is correctly encoded
@@ -67,34 +85,41 @@ public class JacksonCodecsTest {
 
   @Test
   public void encodeDecode() throws IOException {
-    BsonModel model = ImmutableBsonModel.builder().utilDate(new java.util.Date())
-            .localDate(LocalDate.now())
-            .pattern(Pattern.compile("a.*b"))
-            .objectId(ObjectId.get())
-            .putMap("key1", "val1")
-            .build();
-
-    final ObjectMapper mapper = new ObjectMapper().registerModule(new BsonModule())
-            .registerModule(new GuavaModule());
+    BsonModel model = DEFAULT;
     final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
 
-    BasicOutputBuffer buffer = new BasicOutputBuffer();
-    BsonWriter writer = new BsonBinaryWriter(buffer);
-
-    registry.get(BsonModel.class).encode(writer, model, EncoderContext.builder().build());
-
-    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
-    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
-    BsonParser parser = new BsonParser(ioContext, 0, reader);
-
     // read
-    BsonModel model2 = mapper.readValue(parser, BsonModel.class);
+    BsonModel model2 = writeThenRead(registry, mapper, model);
 
     check(model2.localDate()).is(model.localDate());
     check(model2.utilDate()).is(model.utilDate());
     check(model2.objectId()).is(model.objectId());
     check(model2.map().keySet()).isOf("key1");
     check(model2.map()).is(model.map());
+  }
+
+  @Test
+  public void array() throws IOException {
+    final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
+
+    List<String> strings = Arrays.asList("one", "two", "three");
+    List<Integer> integers = Arrays.asList(1, 2, 3);
+    // ensure array of different sizes
+    for (int i = 1; i < strings.size(); i++) {
+      BsonModel model = DEFAULT.withStringSet(strings.subList(0, i)).withIntList(integers.subList(0, i));
+      writeThenRead(registry, mapper, model);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T writeThenRead(CodecRegistry registry, ObjectMapper mapper, T value) throws IOException {
+    BasicOutputBuffer buffer = new BasicOutputBuffer();
+    BsonWriter writer = new BsonBinaryWriter(buffer);
+    registry.get((Class<T>) value.getClass()).encode(writer, value, EncoderContext.builder().build());
+    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
+    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+    BsonParser parser = new BsonParser(ioContext, 0, reader);
+    return mapper.readValue(parser, (Class<T>) value.getClass());
   }
 
   @Value.Immutable
@@ -105,7 +130,10 @@ public class JacksonCodecsTest {
       LocalDate localDate();
       Pattern pattern();
       ObjectId objectId();
+      Set<String> stringSet();
       Map<String, String> map();
+      int[] intArray();
+      List<Integer> intList();
   }
 
 }

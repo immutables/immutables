@@ -18,15 +18,21 @@ package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.Module;
+import org.bson.codecs.BigDecimalCodec;
 import org.bson.codecs.BsonValueCodecProvider;
-import org.bson.codecs.ValueCodecProvider;
+import org.bson.codecs.ByteArrayCodec;
+import org.bson.codecs.DateCodec;
+import org.bson.codecs.Decimal128Codec;
+import org.bson.codecs.ObjectIdCodec;
+import org.bson.codecs.PatternCodec;
+import org.bson.codecs.UuidCodec;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
 
-/**
- * Registers default BSON codecs like {@link ValueCodecProvider},  {@link BsonValueCodecProvider} and
- * {@link Jsr310CodecProvider}  so BSON types can be serialized / deserialized by Jackson in
+/*
+ * Registers default BSON codecs like {@link ValueCodecProvider} or
+ * {@link Jsr310CodecProvider} so BSON types can be serialized / deserialized by Jackson in
  * native format.
  */
 public class BsonModule extends Module {
@@ -52,8 +58,18 @@ public class BsonModule extends Module {
   }
 
   private static CodecRegistry defaultRegistry() {
-    return CodecRegistries.fromProviders(new BsonValueCodecProvider(),
-            new ValueCodecProvider(), new Jsr310CodecProvider());
+    CodecRegistry standard = CodecRegistries.fromProviders(
+            new BsonValueCodecProvider(),
+            new Jsr310CodecProvider());
+
+    // avoid codecs for String / Long / Boolean etc. They're already handled by jackson
+    // choose the ones which need to be serialized in non-JSON format (BSON)
+    CodecRegistry others = CodecRegistries.fromCodecs(new ObjectIdCodec(),
+            new DateCodec(), new UuidCodec(), new Decimal128Codec(),
+            new PatternCodec(),
+            new BigDecimalCodec(), new ByteArrayCodec());
+
+    return CodecRegistries.fromRegistries(standard, others);
   }
 
   @Override
