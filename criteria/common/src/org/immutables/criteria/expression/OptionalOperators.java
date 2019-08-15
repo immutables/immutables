@@ -16,18 +16,16 @@
 
 package org.immutables.criteria.expression;
 
-import com.google.common.collect.ImmutableSet;
-
-public final class OperatorTables {
-
-  private OperatorTables() {}
+public enum  OptionalOperators  implements Operator {
 
   /**
-   * List of operators which can be used on comparables (like numbers)
+   * Optional (nullable) attribute is present (exists)
    */
-  public static final ImmutableSet<Operator> COMPARISON = ImmutableSet.of(Operators.EQUAL,
-          Operators.NOT_EQUAL, ComparableOperators.GREATER_THAN, ComparableOperators.GREATER_THAN_OR_EQUAL,
-          ComparableOperators.LESS_THAN, ComparableOperators.LESS_THAN_OR_EQUAL, ComparableOperators.BETWEEN);
+  IS_PRESENT,
 
+  /**
+   * Optional (nullable) attribute is absent (missing).
+   */
+  IS_ABSENT;
 
 }

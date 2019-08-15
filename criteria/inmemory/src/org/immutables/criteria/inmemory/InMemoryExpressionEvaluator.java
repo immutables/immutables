@@ -24,6 +24,7 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 
@@ -134,15 +135,15 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         throw new UnsupportedOperationException(String.format("Expected boolean for op %s but got %s", op, value.getClass().getName()));
       }
 
-      if (op == Operators.IS_ABSENT || op == Operators.IS_PRESENT) {
+      if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
         Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
 
         if (left == UNKNOWN) {
-         return (op == Operators.IS_ABSENT);
+         return (op == OptionalOperators.IS_ABSENT);
         }
 
-        return (op == Operators.IS_ABSENT) ? Objects.isNull(left) : Objects.nonNull(left);
+        return (op == OptionalOperators.IS_ABSENT) ? Objects.isNull(left) : Objects.nonNull(left);
       }
 
       if (op == Operators.AND || op == Operators.OR) {

@@ -27,8 +27,4 @@ public interface Operator {
    */
   String name();
 
-  /**
-   * Expected return type
-   */
-  Class<?> returnType();
 }

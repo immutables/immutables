@@ -27,8 +27,8 @@ import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
-import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
@@ -62,11 +62,11 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
     }
 
-    if (op == Operators.IS_ABSENT || op == Operators.IS_PRESENT) {
+    if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Bson exists = Filters.exists(field);
-      return op == Operators.IS_PRESENT ? exists : Filters.not(exists);
+      return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {
@@ -89,7 +89,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return negate(args.get(0));
     }
 
-    if (OperatorTables.COMPARISON.contains(op)) {
+    if (ComparableOperators.isComparable(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Object value = Visitors.toConstant(args.get(1)).value();

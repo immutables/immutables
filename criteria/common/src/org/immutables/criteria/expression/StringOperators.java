@@ -16,22 +16,22 @@
 
 package org.immutables.criteria.expression;
 
-public final class StringOperators {
-
-  private StringOperators() {}
+public enum StringOperators implements Operator {
 
   /**
-   * String regexp matching
+   * Regexp matching
+   * @see java.util.regex.Pattern
    */
-  public static final Operator MATCHES = new SimpleOperator("MATCHES", Boolean.class);
-  /**
-   * Check that string starts with a prefix
-   */
-  public static final Operator STARTS_WITH =  new SimpleOperator("STARTS_WITH", Boolean.class);
-  /**
-   * Check that string ends with a suffix
-   */
-  public static final Operator ENDS_WITH =  new SimpleOperator("ENDS_WITH", Boolean.class);
+  MATCHES,
 
+  /**
+   * String starts with a prefix
+   */
+  STARTS_WITH,
+
+  /**
+   * String ends with a suffix
+   */
+  ENDS_WITH;
 
 }

@@ -16,25 +16,32 @@
 
 package org.immutables.criteria.expression;
 
-public final class Operators {
+public enum Operators implements Operator {
 
-  private Operators() {}
+  /**
+   * One element equal ({@code =}) to another (object equality)
+   */
+  EQUAL,
 
-  public static final Operator EQUAL = new SimpleOperator("EQUAL", Boolean.class);
+  /**
+   * One element NOT equal ({@code !=}) to another (object equality)
+   */
+  NOT_EQUAL,
 
-  public static final Operator NOT_EQUAL = new SimpleOperator("NOT_EQUAL", Boolean.class);
+  /**
+   * Element present in a collection
+   */
+  IN,
 
-  public static final Operator IN = new SimpleOperator("IN", Boolean.class);
-
-  public static final Operator NOT_IN = new SimpleOperator("NOT IN", Boolean.class);
+  /**
+   * Element NOT present in a collection
+   */
+  NOT_IN,
 
   // boolean ops
-  public static final Operator AND = new SimpleOperator("AND", Boolean.class);
-  public static final Operator OR = new SimpleOperator("OR", Boolean.class);
-  public static final Operator NOT = new SimpleOperator("NOT", Boolean.class);
+  AND,
+  OR,
+  NOT,
 
-  // vs is null / is not null ?
-  public static final Operator IS_PRESENT = new SimpleOperator("IS_PRESENT", Boolean.class);
-  public static final Operator IS_ABSENT = new SimpleOperator("IS_ABSENT", Boolean.class);
 
 }

@@ -25,8 +25,8 @@ import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
-import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
@@ -78,7 +78,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     }
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL ||
-            op == Operators.IN || OperatorTables.COMPARISON.contains(op)) {
+            op == Operators.IN || ComparableOperators.isComparable(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       return binaryOperator(call);
     }
@@ -90,7 +90,7 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
       return new OqlWithVariables(variables, newOql);
     }
 
-    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT || op == Operators.NOT) {
+    if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT || op == Operators.NOT) {
       return unaryOperator(call);
     }
 
@@ -107,10 +107,10 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
     Preconditions.checkArgument(args.size() == 1,
             "Size should be == 1 for unary operator %s but was %s", op, args.size());
 
-    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
+    if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be == 1 for %s but was %s", op, args.size());
       final Path path = Visitors.toPath(args.get(0));
-      final String isNull = op == Operators.IS_PRESENT ? "!= null" : "= null";
+      final String isNull = op == OptionalOperators.IS_PRESENT ? "!= null" : "= null";
       return oql(pathFn.apply(path) + " " + isNull);
     } else if (op == Operators.NOT) {
       return oql("NOT (" + args.get(0).accept(this).oql() + ")");

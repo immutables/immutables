@@ -16,12 +16,24 @@
 
 package org.immutables.criteria.expression;
 
-public class ComparableOperators {
+import java.util.Arrays;
+import java.util.Objects;
 
-  // comparables
-  public static final Operator BETWEEN = new SimpleOperator("BETWEEN", Boolean.class);
-  public static final Operator GREATER_THAN = new SimpleOperator("GREATER_THAN", Boolean.class);
-  public static final Operator GREATER_THAN_OR_EQUAL = new SimpleOperator("GREATER_THAN_OR_EQUAL", Boolean.class);
-  public static final Operator LESS_THAN = new SimpleOperator("LESS_THAN", Boolean.class);
-  public static final Operator LESS_THAN_OR_EQUAL = new SimpleOperator("LESS_THAN_OR_EQUAL", Boolean.class);
+/**
+ * List of operator for {@link Comparable}
+ */
+public enum ComparableOperators implements Operator {
+
+  GREATER_THAN,
+
+  GREATER_THAN_OR_EQUAL,
+
+  LESS_THAN,
+
+  LESS_THAN_OR_EQUAL;
+
+  public static boolean isComparable(Operator operator) {
+    Objects.requireNonNull(operator, "operator");
+    return Arrays.stream(values()).anyMatch(v -> v.name().equals(operator.name()));
+  }
 }

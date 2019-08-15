@@ -19,6 +19,7 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.OptionalOperators;
 
 import java.util.function.UnaryOperator;
 
@@ -29,12 +30,12 @@ import java.util.function.UnaryOperator;
 public interface PresentAbsentMatcher<R> extends Matcher {
 
   default R isPresent() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_PRESENT, e);
+    final UnaryOperator<Expression> expr = e -> Expressions.call(OptionalOperators.IS_PRESENT, e);
     return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 
   default R isAbsent() {
-    final UnaryOperator<Expression> expr = e -> Expressions.call(Operators.IS_ABSENT, e);
+    final UnaryOperator<Expression> expr = e -> Expressions.call(OptionalOperators.IS_ABSENT, e);
     return Matchers.extract(this).applyAndCreateRoot(expr);
   }
 }

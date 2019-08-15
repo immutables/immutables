@@ -16,26 +16,36 @@
 
 package org.immutables.criteria.expression;
 
-public final class IterableOperators {
+public enum IterableOperators implements Operator {
 
-  // means collection  is empty
-  public static final Operator EMPTY = new SimpleOperator("EMPTY", Boolean.class);
+  /**
+   * Empty collection
+   */
+  EMPTY,
 
-  // size of the collection
-  public static final Operator SIZE = new SimpleOperator("SIZE", Long.class);
+  /**
+   * Size of a collection
+   */
+  SIZE,
 
-  // contains
-  public static final Operator CONTAINS = new SimpleOperator("CONTAINS", Boolean.class);
+  /**
+   * Collection contains an element
+   */
+  CONTAINS,
 
-  // all elements match
-  public static final Operator ALL = new SimpleOperator("ALL", Boolean.class);
+  /**
+   * All elements match a condition
+   */
+  ALL,
 
-  // no elements match
-  public static final Operator NONE = new SimpleOperator("NONE", Boolean.class);
+  /**
+   * None of the elements match a condition
+   */
+  NONE,
 
-  // some elements match (at least one)
-  public static final Operator ANY = new SimpleOperator("ANY", Boolean.class);
-
-  private IterableOperators() {}
+  /**
+   * Some elements match a condition
+   */
+  ANY;
 
 }

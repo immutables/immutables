@@ -22,8 +22,8 @@ import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
-import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
@@ -71,12 +71,12 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return builder;
     }
 
-    if (op == Operators.IS_PRESENT || op == Operators.IS_ABSENT) {
+    if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT) {
       final String field = Visitors.toPath(args.get(0)).toStringPath();
 
       QueryBuilders.QueryBuilder builder = QueryBuilders.existsQuery(field);
 
-      if (op == Operators.IS_ABSENT) {
+      if (op == OptionalOperators.IS_ABSENT) {
         builder = QueryBuilders.boolQuery().mustNot(builder);
       }
 
@@ -99,7 +99,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return QueryBuilders.boolQuery().mustNot(builder);
     }
 
-    if (OperatorTables.COMPARISON.contains(op)) {
+    if (ComparableOperators.isComparable(op)) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
       final Object value = Visitors.toConstant(args.get(1)).value();
