@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.mongodb.client.model.Filters;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
@@ -38,6 +39,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -69,9 +71,11 @@ public class JacksonCodecsTest {
             .localDate(LocalDate.now())
             .pattern(Pattern.compile("a.*b"))
             .objectId(ObjectId.get())
+            .putMap("key1", "val1")
             .build();
 
-    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper());
+    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper())
+            .registerModule(new GuavaModule());
     final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
 
     BasicOutputBuffer buffer = new BasicOutputBuffer();
@@ -89,6 +93,8 @@ public class JacksonCodecsTest {
     check(model2.localDate()).is(model.localDate());
     check(model2.utilDate()).is(model.utilDate());
     check(model2.objectId()).is(model.objectId());
+    check(model2.map().keySet()).isOf("key1");
+    check(model2.map()).is(model.map());
   }
 
   @Value.Immutable
@@ -99,6 +105,7 @@ public class JacksonCodecsTest {
       LocalDate localDate();
       Pattern pattern();
       ObjectId objectId();
+      Map<String, String> map();
   }
 
 }
