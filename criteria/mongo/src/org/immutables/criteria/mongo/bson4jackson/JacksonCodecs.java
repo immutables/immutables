@@ -36,19 +36,21 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.Deserializers;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Preconditions;
 import org.bson.AbstractBsonReader;
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
+import org.bson.codecs.BsonValueCodecProvider;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
+import org.bson.codecs.ValueCodecProvider;
 import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.criteria.mongo.Wrapper;
 
 import java.io.IOException;
@@ -65,6 +67,9 @@ public final class JacksonCodecs {
 
   private JacksonCodecs() {}
 
+  /**
+   * Create {@link CodecRegistry} adapter on the top of existing mapper instance
+   */
   public static CodecRegistry registryFromMapper(final ObjectMapper mapper) {
     Preconditions.checkNotNull(mapper, "mapper");
     return new CodecRegistry() {
@@ -79,12 +84,28 @@ public final class JacksonCodecs {
     };
   }
 
-  public static <T> JsonSerializer<T> serializer(final Codec<T> codec) {
+  /**
+   * Registers default BSON codecs {@code BsonValueProvider / ValueCodecProvider / Jsr310} as jackson module
+   * so BSON types can be serialized / deserialized
+   * @return same mapper instance registered bson codecs(s)
+   */
+  public static ObjectMapper register(ObjectMapper mapper) {
+    Objects.requireNonNull(mapper, "mapper");
+    final CodecRegistry registry = CodecRegistries.fromRegistries(
+            CodecRegistries.fromProviders(new BsonValueCodecProvider()),
+            CodecRegistries.fromProviders(new ValueCodecProvider()),
+            CodecRegistries.fromProviders(new Jsr310CodecProvider())
+    );
+
+    return mapper.registerModule(module(registry));
+  }
+
+  static <T> JsonSerializer<T> serializer(final Codec<T> codec) {
     Objects.requireNonNull(codec, "codec");
     return new CodecSerializer<>(codec);
   }
 
-  public static <T> JsonDeserializer<T> deserializer(final Codec<T> codec) {
+  static <T> JsonDeserializer<T> deserializer(final Codec<T> codec) {
     Objects.requireNonNull(codec, "codec");
     return new JsonDeserializer<T>() {
       @Override
@@ -95,7 +116,7 @@ public final class JacksonCodecs {
     };
   }
 
-  public static Serializers serializers(final CodecRegistry registry) {
+  static Serializers serializers(final CodecRegistry registry) {
     Objects.requireNonNull(registry, "registry");
     return new Serializers.Base() {
       @Override
@@ -110,7 +131,7 @@ public final class JacksonCodecs {
     };
   }
 
-  public static Deserializers deserializers(final CodecRegistry registry) {
+  static Deserializers deserializers(final CodecRegistry registry) {
     Objects.requireNonNull(registry, "registry");
     return new Deserializers.Base() {
       @Override
@@ -132,6 +153,9 @@ public final class JacksonCodecs {
     return module(CodecRegistries.fromProviders(provider));
   }
 
+  /**
+   * Create module from existing registry
+   */
   public static Module module(final CodecRegistry registry) {
     Preconditions.checkNotNull(registry, "registry");
     return new Module() {
@@ -149,6 +173,13 @@ public final class JacksonCodecs {
       public void setupModule(SetupContext context) {
         context.addSerializers(serializers(registry));
         context.addDeserializers(deserializers(registry));
+      }
+
+      @Override
+      public Object getTypeId() {
+        // return null so multiple modules can be registered
+        // with same ObjectMapper instance
+        return null;
       }
     };
   }

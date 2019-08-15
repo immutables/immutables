@@ -27,9 +27,7 @@ import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
-import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.jsr310.Jsr310CodecProvider;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
@@ -67,14 +65,13 @@ public class MongoPersonTest extends AbstractPersonTest {
 
   @Before
   public void setUp() throws Exception {
-    final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(JacksonCodecs.module(new Jsr310CodecProvider()))
+
+    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper())
             .registerModule(new GuavaModule())
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
 
-    final CodecRegistry registry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), JacksonCodecs.registryFromMapper(mapper));
-
+    final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
     final MongoDatabase database = MONGO.database()
             .withCodecRegistry(registry);
 
