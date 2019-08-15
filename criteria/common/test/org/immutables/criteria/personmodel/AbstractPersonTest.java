@@ -442,6 +442,8 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Mary").withPets(Collections.emptyList()));
     // single pet
     insert(generator.next().withFullName("Adam").withPets(ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build()));
+    insert(generator.next().withFullName("Paul").withPets(ImmutablePet.builder().name("nummy").type(Pet.PetType.cat).build()));
+
     // two pets
     insert(generator.next().withFullName("Emma").withPets(
             ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build(),
@@ -453,11 +455,11 @@ public abstract class AbstractPersonTest {
     // 2. size == 0 vs empty / notEmpty
 
     // check(repository().find(criteria().pets.hasSize(0))).toList(Person::fullName).isOf("Mary", "John");
-    check(repository().find(criteria().pets.hasSize(1))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(criteria().pets.hasSize(1))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul");
     check(repository().find(criteria().pets.hasSize(2))).toList(Person::fullName).isOf("Emma");
 
     // negation
-    check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam");
+    check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam", "Paul");
     check(repository().find(criteria().not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
   }
 
