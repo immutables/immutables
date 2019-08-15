@@ -52,7 +52,7 @@ public class JacksonCodecsTest {
    */
   @Test
   public void regex() {
-    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper());
+    final ObjectMapper mapper = new ObjectMapper().registerModule(new BsonModule());
     final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
 
     Consumer<Bson> validate = bson -> {
@@ -74,7 +74,7 @@ public class JacksonCodecsTest {
             .putMap("key1", "val1")
             .build();
 
-    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper())
+    final ObjectMapper mapper = new ObjectMapper().registerModule(new BsonModule())
             .registerModule(new GuavaModule());
     final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
 

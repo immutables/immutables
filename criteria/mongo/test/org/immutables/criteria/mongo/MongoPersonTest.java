@@ -30,6 +30,7 @@ import org.bson.BsonString;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.backend.ContainerNaming;
+import org.immutables.criteria.mongo.bson4jackson.BsonModule;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
@@ -66,7 +67,8 @@ public class MongoPersonTest extends AbstractPersonTest {
   @Before
   public void setUp() throws Exception {
 
-    final ObjectMapper mapper = JacksonCodecs.register(new ObjectMapper())
+    final ObjectMapper mapper = new ObjectMapper()
+            .registerModule(new BsonModule())
             .registerModule(new GuavaModule())
             .registerModule(new Jdk8Module())
             .registerModule(new IdAnnotationModule());
