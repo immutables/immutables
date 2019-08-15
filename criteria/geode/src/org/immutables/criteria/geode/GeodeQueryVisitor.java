@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
+import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
@@ -130,13 +131,13 @@ class GeodeQueryVisitor extends AbstractExpressionVisitor<OqlWithVariables> {
       operator = op == Operators.EQUAL ? "=" : "!=";
     } else if (op == Operators.IN || op == Operators.NOT_IN) {
       operator = op == Operators.IN ? "in" : "not in";
-    } else if (op == Operators.GREATER_THAN) {
+    } else if (op == ComparableOperators.GREATER_THAN) {
       operator = ">";
-    } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+    } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {
       operator = ">=";
-    } else if (op == Operators.LESS_THAN) {
+    } else if (op == ComparableOperators.LESS_THAN) {
       operator = "<";
-    } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+    } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
       operator = "<=";
     } else {
       throw new IllegalArgumentException("Unknown binary operator " + call);

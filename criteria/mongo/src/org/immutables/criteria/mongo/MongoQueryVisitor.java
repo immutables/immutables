@@ -23,12 +23,14 @@ import org.bson.conversions.Bson;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
+import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.lang.reflect.AnnotatedElement;
@@ -92,20 +94,20 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Object value = Visitors.toConstant(args.get(1)).value();
 
-      if (op == Operators.GREATER_THAN) {
+      if (op == ComparableOperators.GREATER_THAN) {
         return Filters.gt(field, value);
-      } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+      } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {
         return Filters.gte(field, value);
-      } else if (op == Operators.LESS_THAN) {
+      } else if (op == ComparableOperators.LESS_THAN) {
         return Filters.lt(field, value);
-      } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+      } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
         return Filters.lte(field, value);
       }
 
       throw new UnsupportedOperationException("Unknown comparison " + call);
     }
 
-    if (op == Operators.MATCHES) {
+    if (op == StringOperators.MATCHES) {
       // regular expression
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
@@ -114,15 +116,15 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.regex(field, (Pattern) value);
     }
 
-    if (op == Operators.STARTS_WITH || op == Operators.ENDS_WITH) {
+    if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
       // regular expression
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Object value = Visitors.toConstant(args.get(1)).value();
       final String pattern = String.format("%s%s%s",
-              op == Operators.STARTS_WITH ? "^": "",
+              op == StringOperators.STARTS_WITH ? "^": "",
               Pattern.quote(value.toString()),
-              op == Operators.ENDS_WITH ? "$" : "");
+              op == StringOperators.ENDS_WITH ? "$" : "");
       return Filters.regex(field, Pattern.compile(pattern));
     }
 

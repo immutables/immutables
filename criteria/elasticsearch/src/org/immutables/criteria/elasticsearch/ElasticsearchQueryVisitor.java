@@ -19,10 +19,12 @@ package org.immutables.criteria.elasticsearch;
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
+import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.OperatorTables;
 import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
 import java.util.List;
@@ -103,13 +105,13 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       final Object value = Visitors.toConstant(args.get(1)).value();
       final QueryBuilders.RangeQueryBuilder builder = QueryBuilders.rangeQuery(field);
 
-      if (op == Operators.GREATER_THAN) {
+      if (op == ComparableOperators.GREATER_THAN) {
         builder.gt(value);
-      } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+      } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {
         builder.gte(value);
-      } else if (op == Operators.LESS_THAN) {
+      } else if (op == ComparableOperators.LESS_THAN) {
         builder.lt(value);
-      } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+      } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
         builder.lte(value);
       } else {
         throw new UnsupportedOperationException("Unknown comparison " + call);
@@ -118,7 +120,7 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return builder;
     }
 
-    if (op == Operators.MATCHES) {
+    if (op == StringOperators.MATCHES) {
       // regex
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
@@ -128,14 +130,14 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return QueryBuilders.regexpQuery(field, ((Pattern) value).pattern());
     }
 
-    if (op == Operators.STARTS_WITH) {
+    if (op == StringOperators.STARTS_WITH) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
       final Object value = Visitors.toConstant(args.get(1)).value();
       return QueryBuilders.prefixQuery(field, value.toString());
     }
 
-    if (op == Operators.ENDS_WITH) {
+    if (op == StringOperators.ENDS_WITH) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
       final Object value = Visitors.toConstant(args.get(1)).value();

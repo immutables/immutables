@@ -18,12 +18,14 @@ package org.immutables.criteria.inmemory;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.Call;
+import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.StringOperators;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
@@ -163,8 +165,8 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
       }
 
       // comparables
-      if (Arrays.asList(Operators.GREATER_THAN, Operators.GREATER_THAN_OR_EQUAL,
-              Operators.LESS_THAN, Operators.LESS_THAN_OR_EQUAL).contains(op)) {
+      if (Arrays.asList(ComparableOperators.GREATER_THAN, ComparableOperators.GREATER_THAN_OR_EQUAL,
+              ComparableOperators.LESS_THAN, ComparableOperators.LESS_THAN_OR_EQUAL).contains(op)) {
 
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
 
@@ -181,18 +183,18 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
         final int compare = left.compareTo(right);
 
-        if (op == Operators.GREATER_THAN) {
+        if (op == ComparableOperators.GREATER_THAN) {
           return compare > 0;
-        } else if (op == Operators.GREATER_THAN_OR_EQUAL) {
+        } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {
           return compare >= 0;
-        } else if (op == Operators.LESS_THAN) {
+        } else if (op == ComparableOperators.LESS_THAN) {
           return compare < 0;
-        } else if (op == Operators.LESS_THAN_OR_EQUAL) {
+        } else if (op == ComparableOperators.LESS_THAN_OR_EQUAL) {
           return compare <= 0;
         }
       }
 
-      if (op == Operators.MATCHES) {
+      if (op == StringOperators.MATCHES) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
         final Object right = args.get(1).accept(this);
@@ -206,7 +208,7 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return ((Pattern) right).asPredicate().test(left.toString());
       }
 
-      if (op == Operators.STARTS_WITH || op == Operators.ENDS_WITH) {
+      if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
         final Object right = args.get(1).accept(this);
@@ -217,7 +219,7 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
         Preconditions.checkArgument(left instanceof CharSequence, "%s is not string (or CharSequence)", left);
         Preconditions.checkArgument(right instanceof CharSequence, "%s is not string (or CharSequence)", right);
-        return op == Operators.STARTS_WITH ? left.toString().startsWith(right.toString()) : left.toString().endsWith(right.toString());
+        return op == StringOperators.STARTS_WITH ? left.toString().startsWith(right.toString()) : left.toString().endsWith(right.toString());
       }
 
       throw new UnsupportedOperationException("Don't know how to handle " + op);

@@ -16,18 +16,22 @@
 
 package org.immutables.criteria.expression;
 
-import com.google.common.collect.ImmutableSet;
+public final class StringOperators {
 
-public final class OperatorTables {
-
-  private OperatorTables() {}
+  private StringOperators() {}
 
   /**
-   * List of operators which can be used on comparables (like numbers)
+   * String regexp matching
    */
-  public static final ImmutableSet<Operator> COMPARISON = ImmutableSet.of(Operators.EQUAL,
-          Operators.NOT_EQUAL, ComparableOperators.GREATER_THAN, ComparableOperators.GREATER_THAN_OR_EQUAL,
-          ComparableOperators.LESS_THAN, ComparableOperators.LESS_THAN_OR_EQUAL, ComparableOperators.BETWEEN);
+  public static final Operator MATCHES = new SimpleOperator("MATCHES", Boolean.class);
+  /**
+   * Check that string starts with a prefix
+   */
+  public static final Operator STARTS_WITH =  new SimpleOperator("STARTS_WITH", Boolean.class);
+  /**
+   * Check that string ends with a suffix
+   */
+  public static final Operator ENDS_WITH =  new SimpleOperator("ENDS_WITH", Boolean.class);
 
 
 }

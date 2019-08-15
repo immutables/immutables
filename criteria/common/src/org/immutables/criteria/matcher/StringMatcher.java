@@ -17,7 +17,7 @@
 package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.StringOperators;
 
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -51,7 +51,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
    */
   default R startsWith(CharSequence prefix) {
     Objects.requireNonNull(prefix, "prefix");
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.STARTS_WITH, e, Expressions.constant(prefix.toString())));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(StringOperators.STARTS_WITH, e, Expressions.constant(prefix.toString())));
   }
 
   /**
@@ -59,7 +59,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
    */
   default R endsWith(CharSequence suffix) {
     Objects.requireNonNull(suffix, "suffix");
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.ENDS_WITH, e, Expressions.constant(suffix.toString())));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(StringOperators.ENDS_WITH, e, Expressions.constant(suffix.toString())));
   }
 
   /**
@@ -68,7 +68,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
    */
   default R matches(Pattern regex) {
     Objects.requireNonNull(regex, "regexp");
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.MATCHES, e, Expressions.constant(regex)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(StringOperators.MATCHES, e, Expressions.constant(regex)));
   }
 
   /**

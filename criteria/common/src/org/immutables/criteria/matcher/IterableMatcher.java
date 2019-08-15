@@ -18,7 +18,7 @@ package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
+import org.immutables.criteria.expression.IterableOperators;
 
 import java.util.function.UnaryOperator;
 
@@ -45,19 +45,19 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   }
 
   default R contains(V value) {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.CONTAINS, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e));
   }
 
   default R isEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(Operators.EMPTY, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.EMPTY, e));
   }
 
   default R notEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.not(Expressions.call(Operators.EMPTY, e)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.not(Expressions.call(IterableOperators.EMPTY, e)));
   }
 
   default R hasSize(int size) {
-    UnaryOperator<Expression> expr = e -> Expressions.call(Operators.SIZE, e, Expressions.constant(size));
+    UnaryOperator<Expression> expr = e -> Expressions.call(IterableOperators.SIZE, e, Expressions.constant(size));
     return Matchers.extract(this).applyAndCreateRoot(expr);
 
   }
