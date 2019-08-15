@@ -42,8 +42,12 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
     return isNot("");
   }
 
+  /**
+   *  Check that attribute contains {@code other}
+   */
   default R contains(CharSequence other) {
-    throw new UnsupportedOperationException();
+    Objects.requireNonNull(other, "other");
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(StringOperators.CONTAINS, e, Expressions.constant(other.toString())));
   }
 
   /**

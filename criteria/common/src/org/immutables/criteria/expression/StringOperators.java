@@ -25,6 +25,11 @@ public enum StringOperators implements Operator {
   MATCHES,
 
   /**
+   * One string contains another
+   */
+  CONTAINS,
+
+  /**
    * String starts with a prefix
    */
   STARTS_WITH,

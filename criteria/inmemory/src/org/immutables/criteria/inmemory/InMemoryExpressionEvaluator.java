@@ -209,7 +209,7 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return ((Pattern) right).asPredicate().test(left.toString());
       }
 
-      if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
+      if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH || op == StringOperators.CONTAINS) {
         Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);
         final Object right = args.get(1).accept(this);
@@ -220,6 +220,11 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
         Preconditions.checkArgument(left instanceof CharSequence, "%s is not string (or CharSequence)", left);
         Preconditions.checkArgument(right instanceof CharSequence, "%s is not string (or CharSequence)", right);
+
+        if (op == StringOperators.CONTAINS) {
+          return left.toString().contains(right.toString());
+        }
+
         return op == StringOperators.STARTS_WITH ? left.toString().startsWith(right.toString()) : left.toString().endsWith(right.toString());
       }
 

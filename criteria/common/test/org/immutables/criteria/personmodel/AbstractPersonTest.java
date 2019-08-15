@@ -375,7 +375,7 @@ public abstract class AbstractPersonTest {
   }
 
   @Test
-  public void startsWith() {
+  public void startsOrEndsWith() {
     Assume.assumeTrue(features().contains(Feature.STRING_PREFIX_SUFFIX));
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John"));
@@ -405,6 +405,28 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().fullName.endsWith(""))).hasSize(2);
     check(repository().find(criteria().fullName.endsWith("y"))).hasSize(1);
     check(repository().find(criteria().fullName.endsWith("Mary"))).hasSize(1);
+  }
+
+  @Test
+  public void stringContains() {
+    Assume.assumeTrue(features().contains(Feature.STRING_PREFIX_SUFFIX));
+    final PersonGenerator generator = new PersonGenerator();
+    // on empty
+    check(repository().find(criteria().fullName.contains(""))).empty();
+    check(repository().find(criteria().fullName.contains("J"))).empty();
+    check(repository().find(criteria().fullName.contains("John"))).empty();
+
+    insert(generator.next().withFullName("John"));
+
+//    check(repository().find(criteria().fullName.contains(""))).hasSize(1);
+    check(repository().find(criteria().fullName.contains("J"))).hasSize(1);
+    check(repository().find(criteria().fullName.contains("John"))).hasSize(1);
+    check(repository().find(criteria().fullName.contains("John1"))).empty();
+    check(repository().find(criteria().fullName.contains("Mary"))).empty();
+    check(repository().find(criteria().fullName.contains("X"))).empty();
+    check(repository().find(criteria().fullName.contains("oh"))).hasSize(1);
+    check(repository().find(criteria().fullName.contains("ohn"))).hasSize(1);
+    check(repository().find(criteria().fullName.contains("n"))).hasSize(1);
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {

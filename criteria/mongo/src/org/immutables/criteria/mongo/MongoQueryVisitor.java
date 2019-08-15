@@ -107,11 +107,15 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       throw new UnsupportedOperationException("Unknown comparison " + call);
     }
 
-    if (op == StringOperators.MATCHES) {
+    if (op == StringOperators.MATCHES || op == StringOperators.CONTAINS) {
       // regular expression
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
+      Object value = Visitors.toConstant(args.get(1)).value();
+      if (op == StringOperators.CONTAINS) {
+        // handle special case for string contains with regexp
+        value = Pattern.compile(".*" + Pattern.quote(value.toString()) + ".*");
+      }
       Preconditions.checkArgument(value instanceof Pattern, "%s is not regex pattern", value);
       return Filters.regex(field, (Pattern) value);
     }

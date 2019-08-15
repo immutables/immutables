@@ -137,11 +137,11 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return QueryBuilders.prefixQuery(field, value.toString());
     }
 
-    if (op == StringOperators.ENDS_WITH) {
+    if (op == StringOperators.ENDS_WITH || op == StringOperators.CONTAINS) {
       Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
       final String field = Visitors.toPath(args.get(0)).toStringPath();
       final Object value = Visitors.toConstant(args.get(1)).value();
-      return QueryBuilders.wildcardQuery(field, "*" + value.toString());
+      return QueryBuilders.wildcardQuery(field, "*" + value.toString() + (op == StringOperators.CONTAINS ? "*" : ""));
     }
 
     throw new UnsupportedOperationException("Don't know how to handle " + call);
