@@ -26,6 +26,7 @@ import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
+import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
@@ -132,6 +133,14 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.regex(field, Pattern.compile(pattern));
     }
 
+    if (op == IterableOperators.HAS_SIZE) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      Preconditions.checkArgument(value instanceof Number, "%s is not a number", value);
+      int size = ((Number) value).intValue();
+      return Filters.size(field, size);
+    }
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }

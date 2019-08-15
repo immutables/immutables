@@ -52,7 +52,8 @@ public abstract class AbstractPersonTest {
     WATCH,
     ORDER_BY,
     REGEX, // regular expression for match() operator
-    STRING_PREFIX_SUFFIX // startsWith / endsWith operators a are supported
+    STRING_PREFIX_SUFFIX, // startsWith / endsWith operators a are supported
+    ITERABLE_SIZE // supports filtering on iterables sizes
   }
 
   /**
@@ -427,6 +428,35 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().fullName.contains("oh"))).hasSize(1);
     check(repository().find(criteria().fullName.contains("ohn"))).hasSize(1);
     check(repository().find(criteria().fullName.contains("n"))).hasSize(1);
+  }
+
+  @Test
+  public void iterableHasSize() {
+    Assume.assumeTrue(features().contains(Feature.ITERABLE_SIZE));
+    final PersonGenerator generator = new PersonGenerator();
+    // no pets
+    insert(generator.next().withFullName("John"));
+    // empty pets
+    insert(generator.next().withFullName("Mary").withPets(Collections.emptyList()));
+    // single pet
+    insert(generator.next().withFullName("Adam").withPets(ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build()));
+    // two pets
+    insert(generator.next().withFullName("Emma").withPets(
+            ImmutablePet.builder().name("fluffy").type(Pet.PetType.gecko).build(),
+            ImmutablePet.builder().name("oopsy").type(Pet.PetType.panda).build()
+    ));
+
+    //TODO handle edge cases. empty vs missing iterable:
+    // 1. how is it persisted vs in-memory representation ?
+    // 2. size == 0 vs empty / notEmpty
+
+    // check(repository().find(criteria().pets.hasSize(0))).toList(Person::fullName).isOf("Mary", "John");
+    check(repository().find(criteria().pets.hasSize(1))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(criteria().pets.hasSize(2))).toList(Person::fullName).isOf("Emma");
+
+    // negation
+    check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam");
+    check(repository().find(criteria().not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {

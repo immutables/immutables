@@ -26,7 +26,7 @@ public enum IterableOperators implements Operator {
   /**
    * Size of a collection
    */
-  SIZE,
+  HAS_SIZE,
 
   /**
    * Collection contains an element

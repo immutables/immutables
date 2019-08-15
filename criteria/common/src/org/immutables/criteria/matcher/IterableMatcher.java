@@ -57,7 +57,7 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   }
 
   default R hasSize(int size) {
-    UnaryOperator<Expression> expr = e -> Expressions.call(IterableOperators.SIZE, e, Expressions.constant(size));
+    UnaryOperator<Expression> expr = e -> Expressions.call(IterableOperators.HAS_SIZE, e, Expressions.constant(size));
     return Matchers.extract(this).applyAndCreateRoot(expr);
 
   }

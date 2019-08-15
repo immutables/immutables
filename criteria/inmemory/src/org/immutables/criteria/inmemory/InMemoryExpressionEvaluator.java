@@ -17,11 +17,13 @@
 package org.immutables.criteria.inmemory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionVisitor;
+import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
@@ -226,6 +228,23 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         }
 
         return op == StringOperators.STARTS_WITH ? left.toString().startsWith(right.toString()) : left.toString().endsWith(right.toString());
+      }
+
+      if (op == IterableOperators.HAS_SIZE) {
+        Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
+
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(left instanceof Iterable, "%s is not iterable", left);
+        Preconditions.checkArgument(right instanceof Number, "%s is not a number", left);
+        final Iterable<?> iter = (Iterable<?>) left;
+        final int size = ((Number) right).intValue();
+
+        return Iterables.size(iter) == size;
       }
 
       throw new UnsupportedOperationException("Don't know how to handle " + op);
