@@ -30,7 +30,9 @@ public class InMemoryPersonTest extends AbstractPersonTest  {
   protected Set<Feature> features() {
     return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
             Feature.QUERY_WITH_OFFSET, Feature.REGEX,
-            Feature.STRING_PREFIX_SUFFIX, Feature.ITERABLE_SIZE);
+            Feature.STRING_PREFIX_SUFFIX,
+            Feature.ITERABLE_SIZE,
+            Feature.ITERABLE_CONTAINS);
   }
 
   @Override

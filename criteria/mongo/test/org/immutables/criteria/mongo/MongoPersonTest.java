@@ -64,6 +64,16 @@ public class MongoPersonTest extends AbstractPersonTest {
   private MongoBackend backend;
   private PersonRepository repository;
 
+  @Override
+  protected Set<Feature> features() {
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
+            Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY, Feature.REGEX,
+            Feature.STRING_PREFIX_SUFFIX,
+            Feature.ITERABLE_SIZE
+            // Feature.ITERABLE_CONTAINS doesn't work yet
+    );
+  }
+
   @Before
   public void setUp() throws Exception {
 
@@ -123,14 +133,6 @@ public class MongoPersonTest extends AbstractPersonTest {
     final LocalDate expected = LocalDate.of(1990, 2, 2);
     final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     Checkers.check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
-  }
-
-  @Override
-  protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT,
-            Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY, Feature.REGEX,
-            Feature.STRING_PREFIX_SUFFIX,
-            Feature.ITERABLE_SIZE);
   }
 
   @Override

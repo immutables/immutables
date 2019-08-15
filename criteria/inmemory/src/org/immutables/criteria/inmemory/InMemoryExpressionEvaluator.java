@@ -247,6 +247,19 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return Iterables.size(iter) == size;
       }
 
+      if (op == IterableOperators.CONTAINS) {
+        Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
+
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(left instanceof Iterable, "%s is not iterable", left);
+        return Iterables.contains((Iterable<?>) left, right);
+      }
+
       throw new UnsupportedOperationException("Don't know how to handle " + op);
     }
 

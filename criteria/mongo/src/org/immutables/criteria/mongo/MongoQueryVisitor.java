@@ -142,6 +142,13 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.size(field, size);
     }
 
+    if (op == IterableOperators.CONTAINS) {
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      return Filters.eq(field, value);
+    }
+
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
 

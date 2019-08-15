@@ -52,8 +52,10 @@ public abstract class AbstractPersonTest {
     WATCH,
     ORDER_BY,
     REGEX, // regular expression for match() operator
+    // TODO re-use Operator interface as feature flag
     STRING_PREFIX_SUFFIX, // startsWith / endsWith operators a are supported
-    ITERABLE_SIZE // supports filtering on iterables sizes
+    ITERABLE_SIZE, // supports filtering on iterables sizes
+    ITERABLE_CONTAINS // can search inside inner collections
   }
 
   /**
@@ -457,6 +459,22 @@ public abstract class AbstractPersonTest {
     // negation
     check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam");
     check(repository().find(criteria().not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
+  }
+
+  @Test
+  public void iterableContains() {
+    assumeFeature(Feature.ITERABLE_CONTAINS);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John"));
+    insert(generator.next().withFullName("Mary").withInterests("skiing"));
+    insert(generator.next().withFullName("Adam").withInterests("hiking", "swimming"));
+    insert(generator.next().withFullName("Emma").withInterests("cooking", "skiing"));
+
+    check(repository().find(criteria().interests.contains("skiing"))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Emma");
+    check(repository().find(criteria().interests.contains("hiking"))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(criteria().interests.contains("cooking"))).toList(Person::fullName).isOf("Emma");
+    check(repository().find(criteria().interests.contains("swimming"))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(criteria().interests.contains("dancing"))).empty();
   }
 
   private void assumeFeature(Feature feature) {

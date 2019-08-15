@@ -45,7 +45,7 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   }
 
   default R contains(V value) {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e, Expressions.constant(value)));
   }
 
   default R isEmpty() {
