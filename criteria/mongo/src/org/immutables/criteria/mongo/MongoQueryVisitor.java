@@ -56,28 +56,12 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
-    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
-
-      return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
-    }
 
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
       final Bson exists = Filters.exists(field);
       return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
-    }
-
-    if (op == Operators.IN || op == Operators.NOT_IN) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final List<Object> values = Visitors.toConstant(args.get(1)).values();
-      Preconditions.checkNotNull(values, "not expected to be null %s", args.get(1));
-
-      return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
     }
 
     if (op == Operators.AND || op == Operators.OR) {
@@ -87,15 +71,28 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
       return op == Operators.AND ? Filters.and(list) : Filters.or(list);
     }
+
     if (op == Operators.NOT) {
       return negate(args.get(0));
     }
 
-    if (ComparableOperators.isComparable(op)) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
+    if (op.arity() == Operator.Arity.BINARY) {
+      return binaryCall(call);
+    }
 
+    throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
+  }
+
+  private Bson binaryCall(Call call) {
+    Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "%s is not binary", call.operator());
+    final Operator op = call.operator();
+    final String field = toMongoFieldName(Visitors.toPath(call.arguments().get(0)));
+    final Object value = Visitors.toConstant(call.arguments().get(1)).value();
+    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
+      return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
+    }
+
+    if (ComparableOperators.isComparable(op)) {
       if (op == ComparableOperators.GREATER_THAN) {
         return Filters.gt(field, value);
       } else if (op == ComparableOperators.GREATER_THAN_OR_EQUAL) {
@@ -109,36 +106,33 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       throw new UnsupportedOperationException("Unknown comparison " + call);
     }
 
-    if (op == StringOperators.MATCHES || op == StringOperators.CONTAINS) {
-      // regular expression
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      Object value = Visitors.toConstant(args.get(1)).value();
-      if (op == StringOperators.CONTAINS) {
-        // handle special case for string contains with regexp
-        value = Pattern.compile(".*" + Pattern.quote(value.toString()) + ".*");
-      }
-      Preconditions.checkArgument(value instanceof Pattern, "%s is not regex pattern", value);
-      return Filters.regex(field, (Pattern) value);
+    if (op == Operators.IN || op == Operators.NOT_IN) {
+      final List<Object> values = Visitors.toConstant(call.arguments().get(1)).values();
+      Preconditions.checkNotNull(values, "not expected to be null for %s", op);
+      return op == Operators.IN ? Filters.in(field, values) : Filters.nin(field, values);
     }
 
-    if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
-      // regular expression
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
-      final String pattern = String.format("%s%s%s",
-              op == StringOperators.STARTS_WITH ? "^": "",
-              Pattern.quote(value.toString()),
-              op == StringOperators.ENDS_WITH ? "$" : "");
-      return Filters.regex(field, Pattern.compile(pattern));
+    if (op == StringOperators.MATCHES || op == StringOperators.CONTAINS) {
+      Object newValue = value;
+      if (op == StringOperators.CONTAINS) {
+        // handle special case for string contains with regexp
+        newValue = Pattern.compile(".*" + Pattern.quote(value.toString()) + ".*");
+      }
+      Preconditions.checkArgument(newValue instanceof Pattern, "%s is not regex pattern", value);
+      return Filters.regex(field, (Pattern) newValue);
+    }
+
+    if (op == IterableOperators.HAS_SIZE) {
+      Preconditions.checkArgument(value instanceof Number, "%s is not a number", value);
+      int size = ((Number) value).intValue();
+      return Filters.size(field, size);
+    }
+
+    if (op == IterableOperators.CONTAINS) {
+      return Filters.eq(field, value);
     }
 
     if (op == StringOperators.HAS_LENGTH) {
-      // regular expression
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
       Preconditions.checkArgument(value instanceof Number, "%s is not a number", value);
       final int length = ((Number) value).intValue();
       // use strLenCP function
@@ -148,23 +142,16 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return Filters.and(Filters.exists(field), Filters.ne(field, null), lengthExpr);
     }
 
-    if (op == IterableOperators.HAS_SIZE) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
-      Preconditions.checkArgument(value instanceof Number, "%s is not a number", value);
-      int size = ((Number) value).intValue();
-      return Filters.size(field, size);
+    if (op == StringOperators.STARTS_WITH || op == StringOperators.ENDS_WITH) {
+      // regular expression
+      final String pattern = String.format("%s%s%s",
+              op == StringOperators.STARTS_WITH ? "^": "",
+              Pattern.quote(value.toString()),
+              op == StringOperators.ENDS_WITH ? "$" : "");
+      return Filters.regex(field, Pattern.compile(pattern));
     }
 
-    if (op == IterableOperators.CONTAINS) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Object value = Visitors.toConstant(args.get(1)).value();
-      return Filters.eq(field, value);
-    }
-
-    throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
+    throw new UnsupportedOperationException(String.format("Unsupported binary call %s", call));
   }
 
   /**
