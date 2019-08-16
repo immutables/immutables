@@ -19,6 +19,7 @@ package org.immutables.criteria.mongo;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
@@ -131,6 +132,20 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
               Pattern.quote(value.toString()),
               op == StringOperators.ENDS_WITH ? "$" : "");
       return Filters.regex(field, Pattern.compile(pattern));
+    }
+
+    if (op == StringOperators.HAS_LENGTH) {
+      // regular expression
+      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final Object value = Visitors.toConstant(args.get(1)).value();
+      Preconditions.checkArgument(value instanceof Number, "%s is not a number", value);
+      final int length = ((Number) value).intValue();
+      // use strLenCP function
+      // https://docs.mongodb.com/manual/reference/operator/aggregation/strLenCP/#exp._S_strLenCP
+      final Bson lengthExpr  = Document.parse(String.format("{$expr:{$eq:[{$strLenCP: \"$%s\"}, %d]}}}", field, length));
+      // field should exists and not be null
+      return Filters.and(Filters.exists(field), Filters.ne(field, null), lengthExpr);
     }
 
     if (op == IterableOperators.HAS_SIZE) {

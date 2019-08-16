@@ -37,6 +37,11 @@ public enum StringOperators implements Operator {
   /**
    * String ends with a suffix
    */
-  ENDS_WITH;
+  ENDS_WITH,
+
+  /**
+   * String has particular length. Eg. {@code 0} for empty string.
+   */
+  HAS_LENGTH;
 
 }

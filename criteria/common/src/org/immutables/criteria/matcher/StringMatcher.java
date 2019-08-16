@@ -78,8 +78,8 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
   /**
    * Predicate for length of a string
    */
-  default R hasLength(int size) {
-    throw new UnsupportedOperationException();
+  default R hasLength(int length) {
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(StringOperators.HAS_LENGTH, e, Expressions.constant(length)));
   }
 
   /**

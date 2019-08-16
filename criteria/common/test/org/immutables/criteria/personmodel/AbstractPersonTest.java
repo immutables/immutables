@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -55,7 +56,8 @@ public abstract class AbstractPersonTest {
     // TODO re-use Operator interface as feature flag
     STRING_PREFIX_SUFFIX, // startsWith / endsWith operators a are supported
     ITERABLE_SIZE, // supports filtering on iterables sizes
-    ITERABLE_CONTAINS // can search inside inner collections
+    ITERABLE_CONTAINS, // can search inside inner collections
+    STRING_LENGTH
   }
 
   /**
@@ -477,6 +479,23 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().interests.contains("cooking"))).toList(Person::fullName).isOf("Emma");
     check(repository().find(criteria().interests.contains("swimming"))).toList(Person::fullName).isOf("Adam");
     check(repository().find(criteria().interests.contains("dancing"))).empty();
+  }
+
+  @Test
+  public void stringLength() {
+    assumeFeature(Feature.STRING_LENGTH);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John").withNickName(Optional.empty()));
+    insert(generator.next().withFullName("Adam").withNickName(""));
+    insert(generator.next().withFullName("Mary").withNickName("a"));
+    insert(generator.next().withFullName("Emma").withNickName("bb"));
+    insert(generator.next().withFullName("James").withNickName("ccc"));
+
+    check(repository().find(criteria().nickName.hasLength(0))).toList(Person::fullName).hasContentInAnyOrder("Adam");
+    check(repository().find(criteria().nickName.hasLength(1))).toList(Person::fullName).hasContentInAnyOrder("Mary");
+    check(repository().find(criteria().nickName.hasLength(2))).toList(Person::fullName).hasContentInAnyOrder("Emma");
+    check(repository().find(criteria().nickName.hasLength(3))).toList(Person::fullName).hasContentInAnyOrder("James");
+    check(repository().find(criteria().nickName.hasLength(4))).toList(Person::fullName).isEmpty();
   }
 
   private void assumeFeature(Feature feature) {

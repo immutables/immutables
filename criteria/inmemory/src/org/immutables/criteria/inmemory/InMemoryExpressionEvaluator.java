@@ -260,6 +260,21 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         return Iterables.contains((Iterable<?>) left, right);
       }
 
+      if (op == StringOperators.HAS_LENGTH) {
+        Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
+        final Object left = args.get(0).accept(this);
+        final Object right = args.get(1).accept(this);
+
+        if (left == UNKNOWN || right == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(left instanceof CharSequence, "%s is not CharSequence", left);
+        Preconditions.checkArgument(right instanceof Number, "%s is not Number", right);
+        int length = ((Number) right).intValue();
+        return left.toString().length() == length;
+      }
+
       throw new UnsupportedOperationException("Don't know how to handle " + op);
     }
 
