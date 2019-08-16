@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
 import org.immutables.criteria.Criteria;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -33,12 +34,24 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
- * Allows mapping of {@code ID} property (declared as {@link Criteria.Id})
+ * Allows mapping of {@code ID} property (usually declared as {@link Criteria.Id})
  * to {@code _id} attribute in mongo document.
  */
 public class IdAnnotationModule extends Module {
 
-  private static final Class<Criteria.Id> CRITERIA_ID_CLASS = Criteria.Id.class;
+  private static final Class<Criteria.Id> DEFAULT_ID_ANNOTATION = Criteria.Id.class;
+
+  private final Class<? extends Annotation> annotationClass;
+
+  public IdAnnotationModule() {
+    this(DEFAULT_ID_ANNOTATION);
+  }
+
+  // not yet ready to expose it
+  private IdAnnotationModule(Class<? extends Annotation> annotationClass) {
+    super();
+    this.annotationClass = Objects.requireNonNull(annotationClass, "annotationClass");
+  }
 
   @Override
   public String getModuleName() {
@@ -52,7 +65,7 @@ public class IdAnnotationModule extends Module {
 
   @Override
   public void setupModule(SetupContext context) {
-    IdAnnotationIntrospector introspector = new IdAnnotationIntrospector(m -> m.isAnnotationPresent(CRITERIA_ID_CLASS));
+    IdAnnotationIntrospector introspector = new IdAnnotationIntrospector(m -> m.isAnnotationPresent(annotationClass));
     context.insertAnnotationIntrospector(introspector);
   }
 
