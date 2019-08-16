@@ -21,27 +21,36 @@ public enum Operators implements Operator {
   /**
    * One element equal ({@code =}) to another (object equality)
    */
-  EQUAL,
+  EQUAL(Arity.BINARY),
 
   /**
    * One element NOT equal ({@code !=}) to another (object equality)
    */
-  NOT_EQUAL,
+  NOT_EQUAL(Arity.BINARY),
 
   /**
    * Element present in a collection
    */
-  IN,
+  IN(Arity.BINARY),
 
   /**
    * Element NOT present in a collection
    */
-  NOT_IN,
+  NOT_IN(Arity.BINARY),
 
   // boolean ops
-  AND,
-  OR,
-  NOT,
+  AND(Arity.BINARY),
+  OR(Arity.BINARY),
+  NOT(Arity.UNARY);
 
+  private final Arity arity;
 
+  Operators(Arity arity) {
+    this.arity = arity;
+  }
+
+  @Override
+  public Arity arity() {
+    return arity;
+  }
 }

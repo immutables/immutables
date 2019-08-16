@@ -24,16 +24,28 @@ import java.util.Objects;
  */
 public enum ComparableOperators implements Operator {
 
-  GREATER_THAN,
+  GREATER_THAN(Arity.BINARY),
 
-  GREATER_THAN_OR_EQUAL,
+  GREATER_THAN_OR_EQUAL(Arity.BINARY),
 
-  LESS_THAN,
+  LESS_THAN(Arity.BINARY),
 
-  LESS_THAN_OR_EQUAL;
+  LESS_THAN_OR_EQUAL(Arity.BINARY);
+
+  private final Arity arity;
+
+  ComparableOperators(Arity arity) {
+    this.arity = arity;
+  }
+
+  @Override
+  public Arity arity() {
+    return arity;
+  }
 
   public static boolean isComparable(Operator operator) {
     Objects.requireNonNull(operator, "operator");
     return Arrays.stream(values()).anyMatch(v -> v.name().equals(operator.name()));
   }
+
 }

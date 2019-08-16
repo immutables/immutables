@@ -21,11 +21,22 @@ public enum  OptionalOperators  implements Operator {
   /**
    * Optional (nullable) attribute is present (exists)
    */
-  IS_PRESENT,
+  IS_PRESENT(Arity.UNARY),
 
   /**
    * Optional (nullable) attribute is absent (missing).
    */
-  IS_ABSENT;
+  IS_ABSENT(Arity.UNARY);
 
+  private final Arity arity;
+
+  OptionalOperators(Arity arity) {
+    this.arity = arity;
+  }
+
+
+  @Override
+  public Arity arity() {
+    return arity;
+  }
 }

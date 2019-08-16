@@ -21,31 +21,41 @@ public enum IterableOperators implements Operator {
   /**
    * Empty collection
    */
-  EMPTY,
+  EMPTY(Arity.UNARY),
 
   /**
    * Size of a collection
    */
-  HAS_SIZE,
+  HAS_SIZE(Arity.BINARY),
 
   /**
    * Collection contains an element
    */
-  CONTAINS,
+  CONTAINS(Arity.BINARY),
 
   /**
    * All elements match a condition
    */
-  ALL,
+  ALL(Arity.BINARY),
 
   /**
    * None of the elements match a condition
    */
-  NONE,
+  NONE(Arity.BINARY),
 
   /**
    * Some elements match a condition
    */
-  ANY;
+  ANY(Arity.BINARY);
 
+  private final Arity arity;
+
+  IterableOperators(Arity arity) {
+    this.arity = arity;
+  }
+
+  @Override
+  public Arity arity() {
+    return arity;
+  }
 }

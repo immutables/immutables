@@ -27,4 +27,31 @@ public interface Operator {
    */
   String name();
 
+  /**
+   * Number of arguments for operator.
+   * @see <a href="https://en.wikipedia.org/wiki/Arity">Arity</a>
+   */
+  Arity arity();
+
+  /**
+   * Arity is number of arguments current operator takes.
+   * @see <a href="https://en.wikipedia.org/wiki/Arity">Arity</a>
+   */
+  enum Arity {
+    /**
+     * Single argument operator. Can be prefix or postfix. Example {@code NOT a}, {@code a++}, {@code -a}
+     */
+    UNARY,
+
+    /**
+     * Operator with two arguments. Example {@code a AND b}, {@code a + b}, {@code a > b}, {@code a in b}
+     */
+    BINARY,
+
+    /**
+     * Ternary operator with three arguments. Example {@code a ? b: c}
+     */
+    TERNARY
+  }
+
 }

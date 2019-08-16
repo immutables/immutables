@@ -22,26 +22,36 @@ public enum StringOperators implements Operator {
    * Regexp matching
    * @see java.util.regex.Pattern
    */
-  MATCHES,
+  MATCHES(Arity.BINARY),
 
   /**
    * One string contains another
    */
-  CONTAINS,
+  CONTAINS(Arity.BINARY),
 
   /**
    * String starts with a prefix
    */
-  STARTS_WITH,
+  STARTS_WITH(Arity.BINARY),
 
   /**
    * String ends with a suffix
    */
-  ENDS_WITH,
+  ENDS_WITH(Arity.BINARY),
 
   /**
    * String has particular length. Eg. {@code 0} for empty string.
    */
-  HAS_LENGTH;
+  HAS_LENGTH(Arity.BINARY);
 
+  private final Arity arity;
+
+  StringOperators(Arity arity) {
+    this.arity = arity;
+  }
+
+  @Override
+  public Arity arity() {
+    return arity;
+  }
 }
