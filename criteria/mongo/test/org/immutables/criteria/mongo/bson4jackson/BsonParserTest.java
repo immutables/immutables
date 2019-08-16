@@ -128,24 +128,25 @@ public class BsonParserTest {
   }
 
   /**
-   * Converts string to json
+   * Performs several json read / writes in binary format
    */
-  private void compare(String string) throws IOException {
-    jacksonBson(string);
-    bsonJackson(string);
+  private void compare(String json) throws IOException {
+    jacksonThenBson(json);
+    bsonThenJackson(json);
+    jacksonThenJackson(json);
   }
 
   /**
    * write with Jackson read with Bson.
-   * Inverse of {@link #bsonJackson(String)}
+   * Inverse of {@link #bsonThenJackson(String)}
    */
-  private void jacksonBson(String json) throws IOException {
+  private void jacksonThenBson(String json) throws IOException {
     ObjectNode toWrite = maybeWrap(mapper.readTree(json));
 
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     BsonWriter writer = new BsonBinaryWriter(buffer);
     BsonGenerator generator = new BsonGenerator(0, mapper, writer);
-    // write wti jackson
+    // write with jackson
     mapper.writeValue(generator, toWrite);
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
 
@@ -164,9 +165,9 @@ public class BsonParserTest {
 
   /**
    * write with BSON read with jackson.
-   * inverse of {@link #jacksonBson(String)}
+   * inverse of {@link #jacksonThenBson(String)}
    */
-  private void bsonJackson(String json) throws IOException {
+  private void bsonThenJackson(String json) throws IOException {
     ObjectNode toWrite = maybeWrap(mapper.readTree(json));
 
     BasicOutputBuffer buffer = new BasicOutputBuffer();
@@ -188,6 +189,28 @@ public class BsonParserTest {
        check(maybeUnwrap(actual)).is(maybeUnwrap(expected));
        fail("Should have failed before");
     }
+  }
+
+  /**
+   * Read and Write in Jackson API but using BSON reader/writer adapters
+   */
+  private void jacksonThenJackson(String json) throws IOException {
+    ObjectNode expected = maybeWrap(mapper.readTree(json));
+
+    BasicOutputBuffer buffer = new BasicOutputBuffer();
+    BsonWriter writer = new BsonBinaryWriter(buffer);
+
+    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    // write with Jackson
+    mapper.writeValue(generator, expected);
+
+    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
+    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
+    BsonParser parser = new BsonParser(ioContext, 0, reader);
+
+    // read with Jackson
+    JsonNode actual = mapper.readValue(parser, JsonNode.class);
+    check(actual).is(expected);
   }
 
   private ObjectNode maybeWrap(JsonNode toChange)  {
