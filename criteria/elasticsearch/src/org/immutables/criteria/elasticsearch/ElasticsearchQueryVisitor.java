@@ -44,33 +44,6 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     final Operator op = call.operator();
     final List<Expression> args = call.arguments();
 
-    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final Object right = Visitors.toConstant(args.get(1)).value();
-
-      QueryBuilders.QueryBuilder builder = QueryBuilders.termQuery(field, right);
-      if (op == Operators.NOT_EQUAL) {
-        builder = QueryBuilders.boolQuery().mustNot(builder);
-      }
-
-      return builder;
-    }
-
-    if (op == Operators.IN || op == Operators.NOT_IN) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final List<Object> values = Visitors.toConstant(args.get(1)).values();
-
-      QueryBuilders.QueryBuilder builder = QueryBuilders.termsQuery(field, values);
-
-      if (op == Operators.NOT_IN) {
-        builder = QueryBuilders.boolQuery().mustNot(builder);
-      }
-
-      return builder;
-    }
-
     if (op == OptionalOperators.IS_PRESENT || op == OptionalOperators.IS_ABSENT) {
       final String field = Visitors.toPath(args.get(0)).toStringPath();
 
@@ -99,10 +72,43 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return QueryBuilders.boolQuery().mustNot(builder);
     }
 
+    if (op.arity() == Operator.Arity.BINARY) {
+      return binaryCall(call);
+    }
+
+    throw new UnsupportedOperationException("Don't know how to handle " + call);
+  }
+
+  private QueryBuilders.QueryBuilder binaryCall(Call call) {
+    final List<Expression> arguments = call.arguments();
+    Preconditions.checkArgument(arguments.size() == 2, "Size should be 2 for %s but was %s",
+            call.operator(), arguments.size());
+    final Operator op = call.operator();
+    final String field = Visitors.toPath(arguments.get(0)).toStringPath();
+    final Object value = Visitors.toConstant(arguments.get(1)).value();
+
+    if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
+      QueryBuilders.QueryBuilder builder = QueryBuilders.termQuery(field, value);
+      if (op == Operators.NOT_EQUAL) {
+        builder = QueryBuilders.boolQuery().mustNot(builder);
+      }
+
+      return builder;
+    }
+
+    if (op == Operators.IN || op == Operators.NOT_IN) {
+      final List<Object> values = Visitors.toConstant(arguments.get(1)).values();
+
+      QueryBuilders.QueryBuilder builder = QueryBuilders.termsQuery(field, values);
+
+      if (op == Operators.NOT_IN) {
+        builder = QueryBuilders.boolQuery().mustNot(builder);
+      }
+
+      return builder;
+    }
+
     if (ComparableOperators.isComparable(op)) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final Object value = Visitors.toConstant(args.get(1)).value();
       final QueryBuilders.RangeQueryBuilder builder = QueryBuilders.rangeQuery(field);
 
       if (op == ComparableOperators.GREATER_THAN) {
@@ -120,31 +126,20 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
       return builder;
     }
 
+    if (op == StringOperators.STARTS_WITH) {
+      return QueryBuilders.prefixQuery(field, value.toString());
+    }
+
     if (op == StringOperators.MATCHES) {
-      // regex
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final Object value = Visitors.toConstant(args.get(1)).value();
       Preconditions.checkArgument(value instanceof Pattern, "%s is not regex pattern", value);
       // In elastic / lucene, patterns match the entire string.
       return QueryBuilders.regexpQuery(field, ((Pattern) value).pattern());
     }
-
-    if (op == StringOperators.STARTS_WITH) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final Object value = Visitors.toConstant(args.get(1)).value();
-      return QueryBuilders.prefixQuery(field, value.toString());
-    }
-
     if (op == StringOperators.ENDS_WITH || op == StringOperators.CONTAINS) {
-      Preconditions.checkArgument(args.size() == 2, "Size should be 2 for %s but was %s", op, args.size());
-      final String field = Visitors.toPath(args.get(0)).toStringPath();
-      final Object value = Visitors.toConstant(args.get(1)).value();
       return QueryBuilders.wildcardQuery(field, "*" + value.toString() + (op == StringOperators.CONTAINS ? "*" : ""));
     }
 
-    throw new UnsupportedOperationException("Don't know how to handle " + call);
+    throw new UnsupportedOperationException(String.format("Call %s not supported", call));
   }
 
 }
