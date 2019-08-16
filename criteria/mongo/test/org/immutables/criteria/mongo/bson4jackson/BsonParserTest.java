@@ -21,9 +21,14 @@ import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.MongoClientSettings;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.bson.BsonWriter;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
 import org.junit.Test;
 
@@ -31,7 +36,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.immutables.check.Checkers.check;
+import static org.junit.Assert.fail;
 
+/**
+ * Low-level parser tests.
+ */
 public class BsonParserTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
@@ -122,30 +131,75 @@ public class BsonParserTest {
    * Converts string to json
    */
   private void compare(String string) throws IOException {
+    jacksonBson(string);
+    bsonJackson(string);
+  }
 
-    JsonNode expected = mapper.readTree(string);
+  /**
+   * write with Jackson read with Bson.
+   * Inverse of {@link #bsonJackson(String)}
+   */
+  private void jacksonBson(String json) throws IOException {
+    ObjectNode toWrite = maybeWrap(mapper.readTree(json));
 
-    // BSON likes encoding full document (not simple elements like BsonValue)
-    if (!expected.isObject()) {
-      ObjectNode temp = mapper.createObjectNode();
-      temp.set("ignore", expected);
-      expected = temp;
+    BasicOutputBuffer buffer = new BasicOutputBuffer();
+    BsonWriter writer = new BsonBinaryWriter(buffer);
+    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    // write wti jackson
+    mapper.writeValue(generator, toWrite);
+    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
+
+    // read with BSON
+    BsonDocument actual = MongoClientSettings.getDefaultCodecRegistry()
+            .get(BsonDocument.class)
+            .decode(reader, DecoderContext.builder().build());
+
+    // compare results
+    BsonDocument expected = BsonDocument.parse(toWrite.toString());
+    if (!expected.equals(actual)) {
+      check(maybeUnwrap(actual)).is(maybeUnwrap(expected));
+      fail("Should have failed before");
     }
+  }
+
+  /**
+   * write with BSON read with jackson.
+   * inverse of {@link #jacksonBson(String)}
+   */
+  private void bsonJackson(String json) throws IOException {
+    ObjectNode toWrite = maybeWrap(mapper.readTree(json));
 
     BasicOutputBuffer buffer = new BasicOutputBuffer();
     BsonWriter writer = new BsonBinaryWriter(buffer);
 
-    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
-    // write
-    mapper.writeValue(generator, expected);
+    // write with BSON
+    BsonDocument expected = BsonDocument.parse(toWrite.toString());
+    MongoClientSettings.getDefaultCodecRegistry().get(BsonDocument.class)
+            .encode(writer, expected, EncoderContext.builder().build());
 
     BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
     IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
     BsonParser parser = new BsonParser(ioContext, 0, reader);
 
-    // read
-    JsonNode actual = mapper.readValue(parser, JsonNode.class);
-    check(actual).is(expected);
+    // read with jackson
+    BsonDocument actual = BsonDocument.parse(mapper.readValue(parser, JsonNode.class).toString());
+
+    if (!actual.equals(expected)) {
+       check(maybeUnwrap(actual)).is(maybeUnwrap(expected));
+       fail("Should have failed before");
+    }
   }
 
+  private ObjectNode maybeWrap(JsonNode toChange)  {
+    // BSON likes encoding full document (not simple elements like BsonValue)
+    if (!toChange.isObject()) {
+      toChange = mapper.createObjectNode().set("ignore", toChange);
+    }
+
+    return (ObjectNode) toChange;
+  }
+
+  private BsonValue maybeUnwrap(BsonDocument document) {
+    return document.containsKey("ignore") ? document.get("ignore") : document;
+  }
 }
