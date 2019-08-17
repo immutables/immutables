@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
 
   /**
-   * Check that attribute is an empty string
+   * Check for empty string (equivalent to {@code string.length() == 0})
    */
   default R isEmpty() {
     return is("");
   }
 
   /**
-   * Check that attribute is not an empty string
+   * Check for NON-empty string (equivalent to {@code string.length() > 0})
    */
   default R notEmpty() {
     return isNot("");

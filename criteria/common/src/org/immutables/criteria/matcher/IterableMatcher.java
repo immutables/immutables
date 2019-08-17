@@ -48,10 +48,16 @@ public interface IterableMatcher<R, S, V> extends Matcher {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e, Expressions.constant(value)));
   }
 
+  /**
+   * Match iterable attribute to be empty (equivalent to {@code iterable.size() == 0})
+   */
   default R isEmpty() {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.IS_EMPTY, e));
   }
 
+  /**
+   * Match iterable attribute to be NOT empty (equivalent to {@code iterable.size() > 0})
+   */
   default R notEmpty() {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.NOT_EMPTY, e));
   }
