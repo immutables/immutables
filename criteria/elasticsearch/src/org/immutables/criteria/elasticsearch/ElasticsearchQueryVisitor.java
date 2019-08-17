@@ -88,12 +88,17 @@ class ElasticsearchQueryVisitor extends AbstractExpressionVisitor<QueryBuilders.
     final Object value = Visitors.toConstant(arguments.get(1)).value();
 
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
-      QueryBuilders.QueryBuilder builder = QueryBuilders.termQuery(field, value);
+      QueryBuilders.QueryBuilder term = QueryBuilders.termQuery(field, value);
       if (op == Operators.NOT_EQUAL) {
-        builder = QueryBuilders.boolQuery().mustNot(builder);
+        QueryBuilders.BoolQueryBuilder bool = QueryBuilders.boolQuery().mustNot(term);
+        if ("".equals(value)) {
+          // string is not empty (should also exists)
+          bool = bool.should(QueryBuilders.existsQuery(field));
+        }
+        term = bool;
       }
 
-      return builder;
+      return term;
     }
 
     if (op == Operators.IN || op == Operators.NOT_IN) {

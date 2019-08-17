@@ -498,6 +498,24 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().nickName.hasLength(4))).toList(Person::fullName).isEmpty();
   }
 
+  /**
+   * Edge case for empty/non-empty string for null values.
+   * {@code string.notEmpty} should not return empty / missing values
+   */
+  @Test
+  public void stringEmptyNotEmpty() {
+    assumeFeature(Feature.STRING_PREFIX_SUFFIX);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John").withNickName(Optional.empty()));
+    insert(generator.next().withFullName("Adam").withNickName(""));
+    insert(generator.next().withFullName("Mary").withNickName("a"));
+
+    check(repository().find(criteria().nickName.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("Adam");
+    check(repository().find(criteria().nickName.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary");
+    check(repository().find(criteria().nickName.isAbsent())).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(criteria().nickName.isPresent())).toList(Person::fullName).hasContentInAnyOrder("Adam", "Mary");
+  }
+
   private void assumeFeature(Feature feature) {
     Assume.assumeTrue(features().contains(feature));
   }

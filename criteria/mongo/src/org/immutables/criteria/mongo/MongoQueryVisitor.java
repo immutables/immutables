@@ -60,7 +60,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
-      final Bson exists = Filters.exists(field);
+      final Bson exists = Filters.and(Filters.exists(field), Filters.ne(field, null));
       return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
     }
 
@@ -89,6 +89,10 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
     final String field = toMongoFieldName(Visitors.toPath(call.arguments().get(0)));
     final Object value = Visitors.toConstant(call.arguments().get(1)).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
+      if ("".equals(value) && op == Operators.NOT_EQUAL) {
+        // special case for empty string. string != "" should not return missing strings
+        return Filters.and(Filters.nin(field, value, null), Filters.exists(field));
+      }
       return op == Operators.EQUAL ? Filters.eq(field, value) : Filters.ne(field, value);
     }
 
