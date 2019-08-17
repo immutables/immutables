@@ -27,7 +27,7 @@ import java.util.List;
  * Synchronous (blocking) reader operations.
  * @param <T> entity type
  */
-public class SyncReader<T> extends AbstractReader<T, SyncReader<T>> {
+public class SyncReader<T> extends AbstractReader<SyncReader<T>> {
 
   private final Backend.Session session;
 

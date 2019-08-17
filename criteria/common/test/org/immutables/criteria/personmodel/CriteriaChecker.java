@@ -20,9 +20,7 @@ import com.google.common.base.Preconditions;
 import io.reactivex.Flowable;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.expression.Queryable;
 import org.immutables.criteria.repository.Repositories;
-import org.immutables.criteria.repository.Repository;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.immutables.criteria.repository.Reader;
 
@@ -97,7 +95,7 @@ public class CriteriaChecker<T> {
     return query.toString();
   }
 
-  public static <T> CriteriaChecker<T> of(Reader<T, ?> reader) {
+  public static <T> CriteriaChecker<T> of(Reader<?> reader) {
     Preconditions.checkArgument(reader instanceof ReactiveReader,
             "%s should implement %s", reader.getClass(), ReactiveReader.class.getName());
 

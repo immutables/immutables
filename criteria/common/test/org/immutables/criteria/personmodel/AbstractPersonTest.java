@@ -535,7 +535,7 @@ public abstract class AbstractPersonTest {
     Assume.assumeTrue(features().contains(feature));
   }
 
-  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<Person, ?> reader, Ordering<T> ordering) {
+  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<?> reader, Ordering<T> ordering) {
     List<T> parts = fetch(reader).stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
       throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));
@@ -553,7 +553,7 @@ public abstract class AbstractPersonTest {
             .assertComplete();
   }
 
-  protected CriteriaChecker<Person> check(Reader<Person, ?> reader) {
+  protected CriteriaChecker<Person> check(Reader<?> reader) {
     return CriteriaChecker.of(reader);
   }
 
@@ -561,7 +561,7 @@ public abstract class AbstractPersonTest {
     return check(repository().find(criterion));
   }
 
-  private List<Person> fetch(Reader<Person, ?> reader) {
+  private List<Person> fetch(Reader<?> reader) {
     return Flowable.fromPublisher(((ReactiveReader<Person>) reader).fetch()).toList().blockingGet();
   }
 

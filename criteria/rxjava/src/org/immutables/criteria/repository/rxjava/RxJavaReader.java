@@ -24,7 +24,7 @@ import org.immutables.criteria.repository.AbstractReader;
 /**
  * Reader returning {@link Flowable} type
  */
-public class RxJavaReader<T> extends AbstractReader<T, RxJavaReader<T>> {
+public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> {
 
   private final Backend.Session session;
 

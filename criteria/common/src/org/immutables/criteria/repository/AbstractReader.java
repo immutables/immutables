@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * Template class for Readers. For future API compatibility prefer extend it rather than
  * implement {@link Reader} directly.s
  */
-public abstract class AbstractReader<T, R extends Reader<T, R>> implements Reader<T, R> {
+public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
 
   private final Query query;
   private final Backend.Session session;
@@ -48,7 +48,7 @@ public abstract class AbstractReader<T, R extends Reader<T, R>> implements Reade
   /**
    * Perform read operation returning generic {@link Publisher}
    */
-  protected Publisher<T> fetchInternal() {
+  protected <T> Publisher<T> fetchInternal() {
     return session.execute(StandardOperations.Select.of(query));
   }
 

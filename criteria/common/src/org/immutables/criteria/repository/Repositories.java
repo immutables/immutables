@@ -30,7 +30,7 @@ public final class Repositories {
   /**
    * Extract current query from the reader
    */
-  public static Query toQuery(Reader<?, ?> reader) {
+  public static Query toQuery(Reader<?> reader) {
     Objects.requireNonNull(reader, "reader");
     Preconditions.checkArgument(reader instanceof AbstractReader,
             "expected %s to be instance of %s", reader.getClass().getName(), AbstractReader.class.getName());

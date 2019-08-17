@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
-public class AsyncReader<T> extends AbstractReader<T, AsyncReader<T>> {
+public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> {
 
   private final Backend.Session session;
 

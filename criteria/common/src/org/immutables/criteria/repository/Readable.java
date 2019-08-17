@@ -23,7 +23,7 @@ import org.immutables.criteria.Criterion;
  * @param <T> entity type
  * @param <R> self-type of reader
  */
-public interface Readable<T, R extends Reader<T, R>> extends Facet {
+public interface Readable<T, R extends Reader<R>> extends Facet {
 
   R find(Criterion<T> criteria);
 

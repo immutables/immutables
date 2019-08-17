@@ -22,10 +22,9 @@ import org.immutables.criteria.expression.Ordering;
  * Allows chaining operations (like adding {@code offset} / {@code limit}) on some particular query.
  * Subclasses may add other attributes specific to their repository.
  *
- * @param <T> entity type
  * @param <R> reader type (self type)
  */
-public interface Reader<T, R> {
+public interface Reader<R> {
 
   R orderBy(Ordering first, Ordering... rest);
 

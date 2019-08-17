@@ -85,11 +85,11 @@ public class ScrollingTest {
   public void noLimit() throws Exception {
     ElasticModelRepository repository = new ElasticModelRepository(backend(1024));
 
-    CriteriaChecker.of(repository.findAll())
+    CriteriaChecker.<ElasticModel>of(repository.findAll())
             .toList(ElasticModel::string)
             .hasSize(SIZE);
 
-    CriteriaChecker.of(repository.findAll().orderBy(ElasticModelCriteria.elasticModel.string.asc()))
+    CriteriaChecker.<ElasticModel>of(repository.findAll().orderBy(ElasticModelCriteria.elasticModel.string.asc()))
             .toList(ElasticModel::string)
             .hasSize(SIZE);
 
@@ -110,7 +110,7 @@ public class ScrollingTest {
         final int expected = Math.min(SIZE, limit);
 
         // with limit
-        CriteriaChecker.of(repository.findAll().limit(limit))
+        CriteriaChecker.<ElasticModel>of(repository.findAll().limit(limit))
                 .toList(ElasticModel::string)
                 .hasSize(expected);
 
@@ -121,7 +121,7 @@ public class ScrollingTest {
                 .limit(expected)
                 .collect(Collectors.toList());
         // add order by
-        CriteriaChecker.of(repository.findAll().limit(limit)
+        CriteriaChecker.<ElasticModel>of(repository.findAll().limit(limit)
                 .orderBy(ElasticModelCriteria.elasticModel.string.asc()))
                 .toList(ElasticModel::string)
                 .isOf(expectedStrings);

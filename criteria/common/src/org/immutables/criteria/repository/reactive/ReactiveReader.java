@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * Reactive implementation of the reader.
  */
-public final class ReactiveReader<T> extends AbstractReader<T, ReactiveReader<T>>  {
+public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>>  {
 
   private final Backend.Session session;
 
