@@ -49,11 +49,11 @@ public interface IterableMatcher<R, S, V> extends Matcher {
   }
 
   default R isEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.EMPTY, e));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.IS_EMPTY, e));
   }
 
   default R notEmpty() {
-    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.not(Expressions.call(IterableOperators.EMPTY, e)));
+    return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.NOT_EMPTY, e));
   }
 
   default R hasSize(int size) {

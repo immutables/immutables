@@ -110,6 +110,18 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
         throw new UnsupportedOperationException(String.format("Expected boolean for op %s but got %s", op, value.getClass().getName()));
       }
 
+      if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
+        Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+        final Object value = args.get(0).accept(this);
+        if (value == UNKNOWN) {
+          return UNKNOWN;
+        }
+
+        Preconditions.checkArgument(value instanceof Iterable, "%s not iterable", value.getClass().getName());
+        final boolean empty = Iterables.isEmpty((Iterable<?>) value);
+        return (op == IterableOperators.IS_EMPTY) == empty;
+      }
+
       if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
         Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
         final Object left = args.get(0).accept(this);

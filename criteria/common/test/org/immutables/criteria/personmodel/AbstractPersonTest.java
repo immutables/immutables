@@ -466,6 +466,21 @@ public abstract class AbstractPersonTest {
   }
 
   @Test
+  public void emptyNotEmptyIterable() {
+    assumeFeature(Feature.ITERABLE_SIZE);
+    final PersonGenerator generator = new PersonGenerator();
+    // no pets
+    insert(generator.next().withFullName("John").withInterests());
+    insert(generator.next().withFullName("Mary").withInterests("skiing"));
+    insert(generator.next().withFullName("Adam").withInterests("skiing", "biking"));
+
+    check(repository().find(criteria().interests.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(criteria().interests.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
+    check(repository().find(criteria().not(p -> p.interests.notEmpty()))).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(criteria().not(p -> p.interests.isEmpty()))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
+  }
+
+  @Test
   public void iterableContains() {
     assumeFeature(Feature.ITERABLE_CONTAINS);
     final PersonGenerator generator = new PersonGenerator();

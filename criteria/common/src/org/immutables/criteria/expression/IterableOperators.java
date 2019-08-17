@@ -21,7 +21,12 @@ public enum IterableOperators implements Operator {
   /**
    * Empty collection
    */
-  EMPTY(Arity.UNARY),
+  IS_EMPTY(Arity.UNARY),
+
+  /**
+   * Collection of size > 0
+   */
+  NOT_EMPTY(Arity.UNARY),
 
   /**
    * Size of a collection

@@ -37,6 +37,7 @@ import org.immutables.criteria.expression.Visitors;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -76,9 +77,17 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
       return negate(args.get(0));
     }
 
+    if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
+      Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
+      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
+              : Filters.and(Filters.exists(field), Filters.nin(field, Collections.emptyList(), null));
+    }
+
     if (op.arity() == Operator.Arity.BINARY) {
       return binaryCall(call);
     }
+
 
     throw new UnsupportedOperationException(String.format("Not yet supported (%s): %s", call.operator(), call));
   }
