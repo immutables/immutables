@@ -44,8 +44,10 @@ public enum ComparableOperators implements Operator {
   }
 
   public static boolean isComparable(Operator operator) {
-    Objects.requireNonNull(operator, "operator");
-    return Arrays.stream(values()).anyMatch(v -> v.name().equals(operator.name()));
+    if (!(operator instanceof ComparableOperators)) {
+      return false;
+    }
+    return Arrays.asList(values()).contains(operator);
   }
 
 }
