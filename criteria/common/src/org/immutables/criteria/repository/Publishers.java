@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.function.Function;
 
 /**
  * Set of utilities to convert {@link Publisher} into {@link CompletionStage}, {@code List}, other types
@@ -47,6 +48,13 @@ public final class Publishers {
    */
   public static <X> X blockingGet(Publisher<X> publisher) {
     return Flowable.fromPublisher(publisher).singleOrError().blockingGet();
+  }
+
+  /**
+   * Applies map function to each element emitted by {@code publisher}
+   */
+  public static <T, R> Publisher<R> map(Publisher<T> publisher, Function<? super T, ? extends R> mapper) {
+    return Flowable.fromPublisher(publisher).map(mapper::apply);
   }
 
   /**
