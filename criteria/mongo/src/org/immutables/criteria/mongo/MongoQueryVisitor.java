@@ -16,12 +16,10 @@
 
 package org.immutables.criteria.mongo;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.Criteria;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
@@ -31,15 +29,11 @@ import org.immutables.criteria.expression.IterableOperators;
 import org.immutables.criteria.expression.Operator;
 import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
-import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Member;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -60,7 +54,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final String field = Mongos.toMongoFieldName(Visitors.toPath(args.get(0)));
       final Bson exists = Filters.and(Filters.exists(field), Filters.ne(field, null));
       return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
     }
@@ -79,7 +73,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = toMongoFieldName(Visitors.toPath(args.get(0)));
+      final String field = Mongos.toMongoFieldName(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
               : Filters.and(Filters.exists(field), Filters.nin(field, Collections.emptyList(), null));
     }
@@ -95,7 +89,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
   private Bson binaryCall(Call call) {
     Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "%s is not binary", call.operator());
     final Operator op = call.operator();
-    final String field = toMongoFieldName(Visitors.toPath(call.arguments().get(0)));
+    final String field = Mongos.toMongoFieldName(Visitors.toPath(call.arguments().get(0)));
     final Object value = Visitors.toConstant(call.arguments().get(1)).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       if ("".equals(value) && op == Operators.NOT_EQUAL) {
@@ -199,24 +193,6 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     // don't really know how to negate here
     return Filters.not(notCall.accept(this));
-  }
-
-  private static String toMongoFieldName(Path path) {
-    Function<AnnotatedElement, String> toStringFn = a -> {
-      Objects.requireNonNull(a, "null element");
-      if (a.isAnnotationPresent(Criteria.Id.class)) {
-        return "_id";
-      } else if (a instanceof Member) {
-        return ((Member) a).getName();
-      } else if (a instanceof Class) {
-        return ((Class) a).getSimpleName();
-      }
-
-      throw new IllegalArgumentException("Don't know how to name " + a);
-    };
-
-
-    return path.paths().stream().map(toStringFn::apply).collect(Collectors.joining("."));
   }
 
 }

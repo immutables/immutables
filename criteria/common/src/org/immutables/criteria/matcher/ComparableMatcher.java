@@ -88,7 +88,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>> {}
+  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

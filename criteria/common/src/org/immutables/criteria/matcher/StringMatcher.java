@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
  * String specific predicates like {@code startsWith}, {@code contains} etc.
  * @param <R> root criteria type
  */
-public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
+public interface StringMatcher<R> extends ComparableMatcher<R, String> {
 
   /**
    * Check for empty string (equivalent to {@code string.length() == 0})
@@ -87,7 +87,7 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String>  {
    */
   interface Self extends Template<Self>, Disjunction<StringMatcher<Self>> {}
 
-  interface Template<R> extends StringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>{}
+  interface Template<R> extends StringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<String> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

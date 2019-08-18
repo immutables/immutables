@@ -16,6 +16,8 @@
 package org.immutables.criteria.matcher;
 
 
+import java.util.Optional;
+
 /**
  * Intersection type between {@link OptionalMatcher} and {@link BooleanMatcher}
  *
@@ -25,7 +27,7 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
 
   interface Self extends Template<Self> {}
 
-  interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>  {}
+  interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<Boolean>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

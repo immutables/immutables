@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.matcher;
 
+import java.util.Optional;
+
 /**
  * Intersection type between {@link OptionalMatcher} and {@link ComparableMatcher}.
  *
@@ -31,7 +33,7 @@ public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> e
    */
   interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface Template<R, V extends Comparable<? super V>> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>> {}
+  interface Template<R, V extends Comparable<? super V>> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<Optional<V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

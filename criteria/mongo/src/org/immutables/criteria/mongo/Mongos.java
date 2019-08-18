@@ -16,8 +16,16 @@
 
 package org.immutables.criteria.mongo;
 
+import com.google.common.base.Function;
 import org.bson.conversions.Bson;
+import org.immutables.criteria.Criteria;
 import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.expression.Path;
+
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Member;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Util methods for mongo adapter.
@@ -33,4 +41,21 @@ final class Mongos {
     return expression -> expression.accept(new MongoQueryVisitor());
   }
 
+  static String toMongoFieldName(Path path) {
+    Function<AnnotatedElement, String> toStringFn = a -> {
+      Objects.requireNonNull(a, "null element");
+      if (a.isAnnotationPresent(Criteria.Id.class)) {
+        return "_id";
+      } else if (a instanceof Member) {
+        return ((Member) a).getName();
+      } else if (a instanceof Class) {
+        return ((Class) a).getSimpleName();
+      }
+
+      throw new IllegalArgumentException("Don't know how to name " + a);
+    };
+
+
+    return path.paths().stream().map(toStringFn::apply).collect(Collectors.joining("."));
+  }
 }

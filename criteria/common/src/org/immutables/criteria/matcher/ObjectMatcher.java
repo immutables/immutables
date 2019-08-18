@@ -75,7 +75,7 @@ public interface ObjectMatcher<R, V> extends Matcher {
    */
   interface Self<V> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface Template<R, V> extends ObjectMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>{}
+  interface Template<R, V> extends ObjectMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

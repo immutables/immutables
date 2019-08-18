@@ -18,17 +18,22 @@ package org.immutables.criteria.personmodel;
 
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
+import org.immutables.check.Checkers;
+import org.immutables.check.IterableChecker;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.reactivestreams.Publisher;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +53,7 @@ public abstract class AbstractPersonTest {
     QUERY,
     QUERY_WITH_LIMIT,
     QUERY_WITH_OFFSET,
+    QUERY_WITH_PROJECTION, // projections are supported
     DELETE,
     DELETE_BY_QUERY,
     WATCH,
@@ -531,6 +537,41 @@ public abstract class AbstractPersonTest {
     check(repository().find(criteria().nickName.isPresent())).toList(Person::fullName).hasContentInAnyOrder("Adam", "Mary");
   }
 
+  @Test
+  public void projection_basic() {
+    assumeFeature(Feature.QUERY_WITH_PROJECTION);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21));
+    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22));
+    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23));
+
+    check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
+    check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
+    check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
+
+    check(repository().findAll().select(criteria().id, criteria().fullName).map((id, name) -> id).fetch())
+            .isOf("id1", "id2", "id3");
+
+    check(repository().findAll().select(criteria().id, criteria().fullName).map((id, name) -> name).fetch())
+            .isOf("John", "Mary", "Emma");
+  }
+
+  /**
+   * Projection of fields which have container-like attributes: {@code Optional<T>}, {@code List<T>} etc.
+   */
+  @Ignore
+  @Test
+  public void projection_ofContainers() {
+    assumeFeature(Feature.QUERY_WITH_PROJECTION);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withFullName("John").withNickName(Optional.empty()));
+    insert(generator.next().withFullName("Mary").withNickName("a"));
+    insert(generator.next().withFullName("Emma").withNickName("b"));
+
+    check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
+    check(repository().findAll().select(criteria().nickName, criteria().age).map((a, b) -> a).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
+  }
+
   private void assumeFeature(Feature feature) {
     Assume.assumeTrue(features().contains(feature));
   }
@@ -559,6 +600,10 @@ public abstract class AbstractPersonTest {
 
   private CriteriaChecker<Person> check(Criterion<Person> criterion) {
     return check(repository().find(criterion));
+  }
+
+  private <T> IterableChecker<List<T>, T> check(Publisher<T> publisher) {
+    return Checkers.check(Flowable.fromPublisher(publisher).toList().blockingGet());
   }
 
   private List<Person> fetch(Reader<?> reader) {

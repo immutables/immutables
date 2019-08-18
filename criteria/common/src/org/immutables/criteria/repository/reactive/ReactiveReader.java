@@ -18,7 +18,10 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.matcher.Matchers;
+import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
+import org.immutables.criteria.repository.Fetcher;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -26,13 +29,15 @@ import java.util.Objects;
 /**
  * Reactive implementation of the reader.
  */
-public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>>  {
+public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> implements Fetcher<Publisher<T>> {
 
   private final Backend.Session session;
+  private final Query query;
 
   public ReactiveReader(Query query, Backend.Session session) {
     super(query, session);
     this.session = Objects.requireNonNull(session, "session");
+    this.query = Objects.requireNonNull(query, "query");
   }
 
   @Override
@@ -40,7 +45,33 @@ public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>>  
     return new ReactiveReader<>(query, session);
   }
 
+  public <T1> ReactiveFetcher<T1> select(Projection<T1> proj1) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
+    return new ReactiveMapper1<T1>(newQuery, session).map();
+  }
+
+  public <T1, T2> ReactiveMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2));
+    return new ReactiveMapper2<>(newQuery, session);
+  }
+
+  public <T1, T2, T3> ReactiveMapper3<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3));
+    return new ReactiveMapper3<>(newQuery, session);
+  }
+
+  public <T1, T2, T3, T4> ReactiveMapper4<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4));
+    return new ReactiveMapper4<>(newQuery, session);
+  }
+
+  public <T1, T2, T3, T4, T5> ReactiveMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
+    return new ReactiveMapper5<>(newQuery, session);
+  }
+
+  @Override
   public Publisher<T> fetch() {
-    return fetchInternal();
+    return new ReactiveFetcher<T>(query, session).fetch();
   }
 }

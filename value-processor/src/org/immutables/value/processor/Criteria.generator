@@ -52,6 +52,7 @@ import org.immutables.criteria.matcher.BooleanMatcher;
 import org.immutables.criteria.matcher.NotMatcher;
 import org.immutables.criteria.matcher.WithMatcher;
 import org.immutables.criteria.matcher.ComparableMatcher;
+import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.ExpressionVisitor;
 import org.immutables.criteria.expression.Expressions;
@@ -85,7 +86,7 @@ import [starImport];
 [type.typeDocument.access]abstract class [type.name]CriteriaTemplate<R> extends AbstractContextHolder implements Criterion<[type.typeDocument]>,
             AndMatcher<[type.name]Criteria>, OrMatcher<[type.name]Criteria>,
             NotMatcher<R, [type.name]Criteria>,
-            WithMatcher<R, [type.name]Criteria> {
+            WithMatcher<R, [type.name]Criteria>, Projection<[type.typeDocument]> {
 
    [for a in type.allMarshalingAttributes]
    public final [a.criteria.matcher.matcherType] [a.name];

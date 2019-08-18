@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.matcher;
 
+import java.util.Optional;
+
 /**
  * Intersection type between {@link OptionalMatcher} and {@link StringMatcher}
  * @param <R> root criteria type
@@ -24,7 +26,7 @@ public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsen
 
   interface Self extends Template<Self>, Disjunction<OptionalStringMatcher<Self>> {}
 
-  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>{}
+  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

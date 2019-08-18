@@ -16,11 +16,18 @@
 
 package org.immutables.criteria.expression;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A set of predefined utilities and factories for expressions like {@link Constant} or {@link Call}
@@ -47,6 +54,19 @@ public final class Expressions {
 
   public static Expression or(Iterable<? extends Expression> expressions) {
     return reduce(Operators.OR, expressions);
+  }
+
+  public static Type returnType(Path path) {
+    Objects.requireNonNull(path, "path");
+    final AnnotatedElement element = path.annotatedElement();
+    Objects.requireNonNull(element, "path.element");
+    if (element instanceof Field)  {
+      return ((Field) element).getGenericType();
+    } else if (element instanceof Method) {
+      return ((Method) element).getGenericReturnType();
+    }
+
+    throw new IllegalArgumentException(String.format("%s should be field or method but was %s", path, element.getClass().getSimpleName()));
   }
 
   public static Query root(Class<?> entityClass) {

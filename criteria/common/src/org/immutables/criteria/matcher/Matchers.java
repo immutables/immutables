@@ -19,6 +19,7 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Query;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +45,11 @@ public final class Matchers {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
+  }
+
+  public static Expression toExpression(Projection<?> projection) {
+    Objects.requireNonNull(projection, "projection");
+    return extract((Matcher) projection).path();
   }
 
   public static CriteriaContext extract(Criterion<?> criterion) {

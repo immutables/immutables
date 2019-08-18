@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.FindPublisher;
@@ -23,12 +24,15 @@ import com.mongodb.reactivestreams.client.MongoCollection;
 import io.reactivex.Flowable;
 import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
@@ -68,9 +72,14 @@ class MongoSession implements Backend.Session {
   }
 
   private <T> Publisher<T> query(StandardOperations.Select<T> select) {
-    @SuppressWarnings("unchecked")
-    final MongoCollection<T> collection = (MongoCollection<T>) this.collection;
     final Query query = select.query();
+    final boolean hasProjections = !query.projections().isEmpty();
+
+    @SuppressWarnings("unchecked")
+    final MongoCollection<T> collection = (MongoCollection<T>) (hasProjections ?
+            this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(), CodecRegistries.fromProviders(new TupleCodecProvider(query))))
+            : this.collection);
+
     final FindPublisher<T> find = collection.find(toBson(query));
     if (!query.collations().isEmpty()) {
       // add sorting
@@ -85,6 +94,18 @@ class MongoSession implements Backend.Session {
     }
     query.limit().ifPresent(limit -> find.limit((int) limit));
     query.offset().ifPresent(offset -> find.skip((int) offset));
+
+
+    if (hasProjections) {
+      List<String> fields = query.projections()
+              .stream().map(p -> Mongos.toMongoFieldName((Path) p))
+              .collect(Collectors.toList());
+
+      find.projection(Projections.include(fields));
+      return find;
+    }
+
+    // post-process result with projections
     return find;
   }
 

@@ -18,19 +18,23 @@ package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.matcher.Matchers;
+import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Publishers;
+import org.immutables.criteria.repository.Fetcher;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
-public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> {
+public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements Fetcher<CompletionStage<List<T>>> {
 
+  private final Query query;
   private final Backend.Session session;
 
-  public AsyncReader(Query query, Backend.Session session) {
+  AsyncReader(Query query, Backend.Session session) {
     super(query, session);
+    this.query = query;
     this.session = Objects.requireNonNull(session, "session");
   }
 
@@ -39,7 +43,33 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> {
     return new AsyncReader<>(query, session);
   }
 
+  public <T1> AsyncFetcher<T1> select(Projection<T1> proj1) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
+    return new AsyncMapper1<T1>(newQuery, session).map();
+  }
+
+  public <T1, T2> AsyncMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2));
+    return new AsyncMapper2<>(newQuery, session);
+  }
+
+  public <T1, T2, T3> AsyncMapper3<T1, T2, T3> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3));
+    return new AsyncMapper3<>(newQuery, session);
+  }
+
+  public <T1, T2, T3, T4> AsyncMapper4<T1, T2, T3, T4> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4));
+    return new AsyncMapper4<>(newQuery, session);
+  }
+
+  public <T1, T2, T3, T4, T5> AsyncMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
+    Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
+    return new AsyncMapper5<>(newQuery, session);
+  }
+
+  @Override
   public CompletionStage<List<T>> fetch() {
-    return Publishers.toListFuture(fetchInternal());
+    return new AsyncFetcher<T>(query, session).fetch();
   }
 }
