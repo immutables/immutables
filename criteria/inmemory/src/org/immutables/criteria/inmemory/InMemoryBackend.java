@@ -21,9 +21,11 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,16 +78,32 @@ public class InMemoryBackend implements Backend {
     private <T> Publisher<T> query(StandardOperations.Select<T> select) {
       final Query query = select.query();
       Stream<T> stream = (Stream<T>) store.values().stream();
+
+      // filter
       if (query.filter().isPresent()) {
         Predicate<T> predicate = InMemoryExpressionEvaluator.of(query.filter().get());
-
         stream = stream.filter(predicate);
       }
 
+      // sort
       if (!query.collations().isEmpty()) {
-        throw new UnsupportedOperationException(String.format("%s does not support sorting: %s",
-                InMemoryBackend.class.getSimpleName(),
-                query.collations().stream().map(c -> c.path().toStringPath()).collect(Collectors.joining(", "))));
+        Comparator<T> comparator = null;
+        for (Collation collation: query.collations()) {
+          Function<T, Comparable<?>> fn = obj -> (Comparable<?>) new ReflectionFieldExtractor<>(obj).extract(collation.path());
+          @SuppressWarnings("unchecked")
+          Comparator<T> newComparator = Comparator.<T, Comparable>comparing(fn);
+          if (!collation.direction().isAscending()) {
+            newComparator = newComparator.reversed();
+          }
+
+          if (comparator != null) {
+            comparator = comparator.thenComparing(newComparator);
+          } else {
+            comparator = newComparator;
+          }
+        }
+
+        stream = stream.sorted(comparator);
       }
 
       if (query.offset().isPresent()) {
