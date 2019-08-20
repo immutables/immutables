@@ -38,6 +38,7 @@ import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -136,6 +137,12 @@ public class MongoPersonTest extends AbstractPersonTest {
     final LocalDate expected = LocalDate.of(1990, 2, 2);
     final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
     Checkers.check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
+  }
+
+  @Ignore("projection on containers does not yet work in mongo")
+  @Override
+  public void projection_ofContainers() {
+
   }
 
   @Override

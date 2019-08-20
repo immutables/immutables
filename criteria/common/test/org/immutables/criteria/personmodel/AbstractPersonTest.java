@@ -558,7 +558,6 @@ public abstract class AbstractPersonTest {
   /**
    * Projection of fields which have container-like attributes: {@code Optional<T>}, {@code List<T>} etc.
    */
-  @Ignore
   @Test
   public void projection_ofContainers() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
@@ -568,7 +567,9 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four"));
 
     check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
-    check(repository().findAll().select(criteria().nickName, criteria().age).map((a, b) -> a).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
+    check(repository().findAll().select(criteria().fullName, criteria().nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+            .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
+                    new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
   }
 
   private void assumeFeature(Feature feature) {
