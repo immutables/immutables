@@ -36,7 +36,7 @@ class Scrolling<T> {
 
   private final ElasticsearchOps ops;
 
-  private final Class<T> type;
+  private final JsonConverter<T> converter;
 
   private final int scrollSize;
 
@@ -45,9 +45,9 @@ class Scrolling<T> {
    */
   private final Duration keepAlive = Duration.ofMinutes(1);
 
-  Scrolling(ElasticsearchOps ops, Class<T> type) {
+  Scrolling(ElasticsearchOps ops, JsonConverter<T> converter) {
     this.ops = ops;
-    this.type = type;
+    this.converter = converter;
     this.scrollSize = ops.scrollSize;
   }
 
@@ -58,7 +58,7 @@ class Scrolling<T> {
 
     if (scrollSize > limit) {
       // don't use scrolling when batch size is greater than limit
-      return ops.search(query, type);
+      return ops.search(query, converter);
     }
 
     // override size during scrolling
@@ -72,7 +72,7 @@ class Scrolling<T> {
             .map(AccumulatedResult::result)
             .flatMapIterable(r -> r.searchHits().hits())
             .compose(f -> hasLimit ? f.limit(limit) : f) // limit number of elements
-            .map(hit -> ops.jsonConverter(type).apply(hit.source()));
+            .map(hit -> converter.convert(hit.source()));
   }
 
   private FlowableTransformer<AccumulatedResult, AccumulatedResult> transformer() {

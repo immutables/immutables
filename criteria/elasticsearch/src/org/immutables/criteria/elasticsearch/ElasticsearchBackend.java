@@ -71,7 +71,9 @@ public class ElasticsearchBackend implements Backend {
     private final ObjectMapper mapper;
     private final ElasticsearchOps ops;
     private final Function<Object, Object> idExtractor;
+    private final JsonConverter<Object> converter;
     private final boolean hasId;
+
 
     private Session(Class<?> entityClass, ElasticsearchOps ops) {
       Objects.requireNonNull(entityClass, "entityClass");
@@ -86,6 +88,7 @@ public class ElasticsearchBackend implements Backend {
         // id not supported
       }
       this.idExtractor = idExtractor;
+      this.converter = DefaultConverter.<Object>of(mapper, entityClass);
       this.hasId = hasId;
     }
 
@@ -113,14 +116,18 @@ public class ElasticsearchBackend implements Backend {
         });
       }
 
-      final Class<T> type = (Class<T>) query.entityPath().annotatedElement();
+      JsonConverter converter = this.converter;
+
+      if (!query.projections().isEmpty()) {
+        converter = new ToTupleConverter(query, mapper);
+      }
 
       final Flowable<T> flowable;
       if (query.offset().isPresent()) {
         // scroll doesn't work with offset
-        flowable = ops.search(json, type);
+        flowable = ops.search(json, (JsonConverter<T>) converter);
       } else {
-        flowable = ops.scrolledSearch(json, type);
+        flowable = ops.scrolledSearch(json, (JsonConverter<T>) converter);
       }
 
       return flowable;

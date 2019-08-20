@@ -564,9 +564,9 @@ public abstract class AbstractPersonTest {
   public void projection_ofContainers() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
     final PersonGenerator generator = new PersonGenerator();
-    insert(generator.next().withFullName("John").withNickName(Optional.empty()));
-    insert(generator.next().withFullName("Mary").withNickName("a"));
-    insert(generator.next().withFullName("Emma").withNickName("b"));
+    insert(generator.next().withFullName("John").withNickName(Optional.empty()).withInterests("one"));
+    insert(generator.next().withFullName("Mary").withNickName("a").withInterests("one", "two", "three"));
+    insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four"));
 
     check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
     check(repository().findAll().select(criteria().nickName, criteria().age).map((a, b) -> a).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));

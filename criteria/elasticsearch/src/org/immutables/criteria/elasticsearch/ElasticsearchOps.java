@@ -188,8 +188,8 @@ class ElasticsearchOps {
   /**
    * See <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html">Scroll API</a>
    */
-  <T> Flowable<T> scrolledSearch(ObjectNode query, Class<T> type) {
-    return new Scrolling<>(this, type).scroll(query);
+  <T> Flowable<T> scrolledSearch(ObjectNode query, JsonConverter<T> converter) {
+    return new Scrolling<>(this, converter).scroll(query);
   }
 
   /**
@@ -214,10 +214,10 @@ class ElasticsearchOps {
     return rawHttp(request).ignoreElement();
   }
 
-  <T> Flowable<T> search(ObjectNode query, Class<T> type) {
+  <T> Flowable<T> search(ObjectNode query, JsonConverter<T> converter) {
     return searchRaw(query, Collections.emptyMap()).toFlowable()
             .flatMapIterable(r -> r.searchHits().hits())
-            .map(x -> jsonConverter(type).apply(x.source()));
+            .map(x -> converter.convert(x.source()));
   }
 
   Single<Json.Result> searchRaw(ObjectNode query, Map<String, String> httpParams) {
