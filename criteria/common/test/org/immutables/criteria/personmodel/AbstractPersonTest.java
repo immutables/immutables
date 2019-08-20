@@ -573,7 +573,7 @@ public abstract class AbstractPersonTest {
   }
 
   private void assumeFeature(Feature feature) {
-    Assume.assumeTrue(features().contains(feature));
+    Assume.assumeTrue(String.format("Feature %s not supported by current backend", feature), features().contains(feature));
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<?> reader, Ordering<T> ordering) {
