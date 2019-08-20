@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.reactivestreams.Publisher;
 
 import java.time.LocalDate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -549,11 +550,9 @@ public abstract class AbstractPersonTest {
     check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
     check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
 
-    check(repository().findAll().select(criteria().id, criteria().fullName).map((id, name) -> id).fetch())
-            .isOf("id1", "id2", "id3");
 
-    check(repository().findAll().select(criteria().id, criteria().fullName).map((id, name) -> name).fetch())
-            .isOf("John", "Mary", "Emma");
+    check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+            .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
   }
 
   /**
