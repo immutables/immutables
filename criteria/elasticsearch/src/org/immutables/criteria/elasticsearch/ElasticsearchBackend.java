@@ -128,7 +128,7 @@ public class ElasticsearchBackend implements Backend {
 
     private Publisher<WriteResult> insert(StandardOperations.Insert<Object> insert) {
       if (insert.values().isEmpty()) {
-        return Flowable.just(WriteResult.UNKNOWN);
+        return Flowable.just(WriteResult.unknown());
       }
 
       // sets _id attribute (if entity has @Criteria.Id annotation)
@@ -141,7 +141,7 @@ public class ElasticsearchBackend implements Backend {
 
       return Flowable.fromCallable(() -> {
         ops.insertBulk(docs);
-        return WriteResult.UNKNOWN;
+        return WriteResult.unknown();
       });
     }
   }

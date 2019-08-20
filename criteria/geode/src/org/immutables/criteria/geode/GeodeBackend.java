@@ -95,7 +95,7 @@ public class GeodeBackend implements Backend {
 
     private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
       if (op.values().isEmpty()) {
-        return Flowable.just(WriteResult.UNKNOWN);
+        return Flowable.just(WriteResult.unknown());
       }
 
       // TODO cache id extractor
@@ -104,7 +104,7 @@ public class GeodeBackend implements Backend {
       final Region<Object, T> region = (Region<Object, T>) this.region;
       return Flowable.fromCallable(() -> {
         region.putAll(toInsert);
-        return WriteResult.UNKNOWN;
+        return WriteResult.unknown();
       });
     }
 
@@ -112,7 +112,7 @@ public class GeodeBackend implements Backend {
       if (!op.query().filter().isPresent()) {
         // no filter means delete all (ie clear whole region)
         return Completable.fromRunnable(region::clear)
-                .toSingleDefault(WriteResult.UNKNOWN)
+                .toSingleDefault(WriteResult.unknown())
                 .toFlowable();
       }
 
@@ -122,7 +122,7 @@ public class GeodeBackend implements Backend {
       if (ids.isPresent()) {
         // delete by key: map.remove(key)
         return Completable.fromRunnable(() -> region.removeAll(ids.get()))
-                .toSingleDefault(WriteResult.UNKNOWN)
+                .toSingleDefault(WriteResult.unknown())
                 .toFlowable();
       }
 
@@ -134,7 +134,7 @@ public class GeodeBackend implements Backend {
       return Single.fromCallable(() -> region.getRegionService()
               .getQueryService().newQuery(query).execute(oql.variables().toArray(new Object[0])))
               .flatMapCompletable(list -> Completable.fromRunnable(() -> region.removeAll((Collection<Object>) list)))
-              .toSingleDefault(WriteResult.UNKNOWN)
+              .toSingleDefault(WriteResult.unknown())
               .toFlowable();
     }
 

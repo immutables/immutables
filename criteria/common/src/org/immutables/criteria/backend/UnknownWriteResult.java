@@ -23,6 +23,8 @@ import java.util.OptionalLong;
  */
 final class UnknownWriteResult implements WriteResult {
 
+  static final UnknownWriteResult INSTANCE = new UnknownWriteResult();
+
   UnknownWriteResult() {}
 
   @Override

@@ -101,7 +101,7 @@ public class InMemoryBackend implements Backend {
 
     private <T> Publisher<WriteResult> insert(StandardOperations.Insert<T> op) {
       if (op.values().isEmpty()) {
-        return Flowable.just(WriteResult.UNKNOWN);
+        return Flowable.just(WriteResult.unknown());
       }
 
       final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
@@ -109,7 +109,7 @@ public class InMemoryBackend implements Backend {
       final Map<Object, T> store = (Map<Object, T>) this.store;
       return Flowable.fromCallable(() -> {
         store.putAll(toInsert);
-        return WriteResult.UNKNOWN;
+        return WriteResult.unknown();
       });
     }
   }

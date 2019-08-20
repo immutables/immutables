@@ -112,13 +112,13 @@ class MongoSession implements Backend.Session {
   private Publisher<WriteResult> delete(StandardOperations.Delete delete) {
     final Bson filter = toBson(delete.query());
     return Flowable.fromPublisher(collection.deleteMany(filter))
-            .map(r -> WriteResult.UNKNOWN);
+            .map(r -> WriteResult.unknown());
   }
 
   private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
     final List<Object> values = (List<Object>) insert.values();
-    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.UNKNOWN);
+    return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.unknown());
   }
 
   private <X> Publisher<X> watch(StandardOperations.Watch<X> operation) {
