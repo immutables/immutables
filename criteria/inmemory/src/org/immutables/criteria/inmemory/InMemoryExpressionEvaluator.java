@@ -30,15 +30,8 @@ import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.StringOperators;
 
-import javax.annotation.Nullable;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -258,87 +251,9 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
     @Override
     public Object visit(Path path) {
       final Object extracted = extractor.extract(path);
-      return unwrapOptional(extracted);
+      return extracted == null ? UNKNOWN : extracted;
     }
   }
 
-  /**
-   * Get value from Optional or {@link #UNKNOWN} if empty
-   */
-  private static Object unwrapOptional(Object maybeOptional) {
-    if ((maybeOptional instanceof Optional)) {
-      return  ((Optional) maybeOptional).orElse(UNKNOWN);
-    }
-
-    if (maybeOptional instanceof com.google.common.base.Optional) {
-      return ((com.google.common.base.Optional) maybeOptional).or(UNKNOWN);
-    }
-
-    return maybeOptional;
-  }
-
-
-  private interface ValueExtractor<T> {
-    @Nullable
-    Object extract(Path path);
-  }
-
-  private static class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
-    private final T object;
-
-    private ReflectionFieldExtractor(T object) {
-      this.object = object;
-    }
-
-    @Nullable
-    @Override
-    public Object extract(Path path) {
-      Objects.requireNonNull(path, "path");
-
-      Object result = object;
-
-      for (AnnotatedElement member: path.paths()) {
-        result = extract(result, (Member) member);
-        result = unwrapOptional(result);
-        if (result == UNKNOWN) {
-          return UNKNOWN;
-        }
-      }
-
-      // convert null to unknown
-      return result == null ? UNKNOWN : result;
-    }
-
-    private static Object extract(Object instance, Member member) {
-      if (instance == null) {
-        return UNKNOWN;
-      }
-
-      try {
-        // TODO caching
-        final Object result;
-        if (member instanceof Method) {
-          final Method method = (Method) member;
-          if (!method.isAccessible()) {
-            method.setAccessible(true);
-          }
-          result = method.invoke(instance);
-        } else if (member instanceof Field) {
-          Field field = (Field) member;
-          if (!field.isAccessible()) {
-            field.setAccessible(true);
-          }
-          result = field.get(instance);
-        } else {
-          throw new IllegalArgumentException(String.format("%s is not field or method", member));
-        }
-
-        return result;
-      } catch (IllegalAccessException | InvocationTargetException e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-  }
 
 }
