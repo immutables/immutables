@@ -560,9 +560,9 @@ public abstract class AbstractPersonTest {
   public void projection_ofContainers() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
     final PersonGenerator generator = new PersonGenerator();
-    insert(generator.next().withFullName("John").withNickName(Optional.empty()).withInterests("one"));
-    insert(generator.next().withFullName("Mary").withNickName("a").withInterests("one", "two", "three"));
-    insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four"));
+    insert(generator.next().withFullName("John").withNickName(Optional.empty()).withInterests("one").withIsActive(true));
+    insert(generator.next().withFullName("Mary").withNickName("a").withInterests("one", "two", "three").withIsActive(false));
+    insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four").withIsActive(true));
 
     // nickname
     check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
@@ -570,6 +570,8 @@ public abstract class AbstractPersonTest {
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
 
+
+    check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
   }
 
   private void assumeFeature(Feature feature) {
