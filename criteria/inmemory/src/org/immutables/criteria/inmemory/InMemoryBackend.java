@@ -124,7 +124,7 @@ public class InMemoryBackend implements Backend {
 
     private <T> Publisher<WriteResult> insert(StandardOperations.Insert<T> op) {
       if (op.values().isEmpty()) {
-        return Flowable.just(WriteResult.unknown());
+        return Flowable.just(WriteResult.empty());
       }
 
       final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));

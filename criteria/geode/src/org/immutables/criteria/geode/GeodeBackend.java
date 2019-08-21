@@ -95,7 +95,7 @@ public class GeodeBackend implements Backend {
 
     private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
       if (op.values().isEmpty()) {
-        return Flowable.just(WriteResult.unknown());
+        return Flowable.just(WriteResult.empty());
       }
 
       // TODO cache id extractor

@@ -19,26 +19,26 @@ package org.immutables.criteria.backend;
 import java.util.OptionalLong;
 
 /**
- * Used as a <b>null object</b> if backend can't provide information about a write operation
+ * Usually result of a no-op write.
  */
-final class UnknownWriteResult implements WriteResult {
+class EmptyWriteResult implements WriteResult {
 
-  static final UnknownWriteResult INSTANCE = new UnknownWriteResult();
+  static final WriteResult INSTANCE = new EmptyWriteResult();
 
-  private UnknownWriteResult() {}
+  private EmptyWriteResult() {}
 
   @Override
   public OptionalLong insertedCount() {
-    return OptionalLong.empty();
+    return OptionalLong.of(0);
   }
 
   @Override
   public OptionalLong deletedCount() {
-    return OptionalLong.empty();
+    return OptionalLong.of(0);
   }
 
   @Override
   public OptionalLong updatedCount() {
-    return OptionalLong.empty();
+    return OptionalLong.of(0);
   }
 }

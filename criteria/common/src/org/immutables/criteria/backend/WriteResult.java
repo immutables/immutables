@@ -25,10 +25,17 @@ import java.util.OptionalLong;
 public interface WriteResult {
 
   /**
-   * Default value used when backend doesn't return statistics about a write operation
+   * Backend doesn't return statistics about a write operation
    */
   static WriteResult unknown() {
     return UnknownWriteResult.INSTANCE;
+  }
+
+  /**
+   * Write operation was a no-op. No changes happened on the backend.
+   */
+  static WriteResult empty() {
+    return EmptyWriteResult.INSTANCE;
   }
 
   /**
