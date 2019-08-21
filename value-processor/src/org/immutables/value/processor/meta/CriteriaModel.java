@@ -146,6 +146,10 @@ public class CriteriaModel {
       return isSubtypeOf(Map.class);
     }
 
+    public boolean isMatcher() {
+      return isSubtypeOf(elements.getTypeElement("org.immutables.criteria.matcher.Matcher"));
+    }
+
     public TypeMirror box() {
       return type.getKind().isPrimitive() ? types.boxedClass(MoreTypes.asPrimitiveType(type)).asType() : type;
     }
@@ -232,7 +236,7 @@ public class CriteriaModel {
       } else if (param.isComparable()) {
         name = "org.immutables.criteria.matcher.OptionalComparableMatcher.Template";
       } else {
-        name = "org.immutables.criteria.matcher.OptionalMatcher";
+        name = "org.immutables.criteria.matcher.OptionalMatcher.Template";
       }
     } else if (introspected.hasCriteria()) {
       name = type.toString() + "CriteriaTemplate";
@@ -326,7 +330,7 @@ public class CriteriaModel {
       this.attribute = attribute;
       this.type = Preconditions.checkNotNull(type, "type");
       ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
-      this.introspectedType = new IntrospectedType(attribute.returnType, false, env.getTypeUtils(), env.getElementUtils());
+      this.introspectedType = new IntrospectedType(attribute.returnType, attribute.isNullable(), env.getTypeUtils(), env.getElementUtils());
     }
 
     public Type.Parameterized matcherType() {
@@ -338,7 +342,7 @@ public class CriteriaModel {
 
       final String creator;
       final String name = type.reference.name;
-      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
+      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType() && !attribute.isNullable();
       if (hasCriteria) {
         creator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
       } else {
@@ -352,10 +356,15 @@ public class CriteriaModel {
     }
 
     private String secondCreator() {
-      String name = type.reference.name;
-      if (name.endsWith(".Template")) {
-        // scalar matcher
-        return name.substring(0, name.lastIndexOf('.')) + ".creator()";
+      final String name = type.reference.name;
+
+      if (introspectedType.isScalar() && !introspectedType.useOptional()) {
+        String newName = name.endsWith(".Template") ?  name.substring(0, name.lastIndexOf('.'))  : name;
+        if (introspectedType.hasCriteria() && newName.endsWith("Template")) {
+          // PersonCriteriaTemplate -> PersonCriteria
+          newName = newName.substring(0, newName.lastIndexOf("Template"));
+        }
+        return newName + ".creator()";
       }
 
       if (!(introspectedType.type().getKind() == TypeKind.DECLARED ||
@@ -366,23 +375,33 @@ public class CriteriaModel {
       final DeclaredType declaredType = MoreTypes.asDeclared(introspectedType.type());
 
       if (declaredType.getTypeArguments().isEmpty()) {
-        // same as first
-        return attribute.containingType.element.getSimpleName() + "Criteria.creator()";
+        final String prefix = introspectedType.hasCriteria() ? introspectedType.type.toString() : attribute.containingType.element.getSimpleName().toString();
+
+        return prefix + "Criteria.creator()";
       }
 
-      Preconditions.checkArgument(declaredType.getTypeArguments().size() == 1, "Expected single arg for ", declaredType);
+      if (declaredType.getTypeArguments().size() != 1) {
+        // don't know how to handle this arg
+        return "org.immutables.criteria.matcher.ObjectMatcher.creator()";
+      }
+
+      Preconditions.checkArgument(declaredType.getTypeArguments().size() == 1, "Expected single arg for %s but got %s", declaredType, declaredType.getTypeArguments().size());
       IntrospectedType type2 = introspectedType.withType(declaredType.getTypeArguments().get(0));
 
       if (type2.hasCriteria()) {
         return type2.erasure + "Criteria.creator()";
       }
 
-      Type.Parameterized param = (Type.Parameterized) type;
       if (name.endsWith("Matcher")) {
         return name + ".creator()";
       }
 
-      throw new IllegalArgumentException("Can't detect second creator for " + introspectedType.type());
+      if (name.endsWith(".Template")) {
+        // scalar matcher
+        return name.substring(0, name.lastIndexOf('.')) + ".creator()";
+      }
+
+      throw new IllegalArgumentException("Can't detect second creator for " + introspectedType.type() + " of attribute " + attribute.name());
     }
   }
 }
