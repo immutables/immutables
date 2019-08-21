@@ -26,14 +26,19 @@ import com.mongodb.client.model.Filters;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonDocument;
+import org.bson.BsonDocumentReader;
+import org.bson.BsonInt32;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonWriter;
+import org.bson.Document;
+import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.types.ObjectId;
 import org.immutables.value.Value;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -59,6 +64,7 @@ public class JacksonCodecsTest {
           .addStringSet("one")
           .intArray(1)
           .addIntList(4, 5, 6)
+          .document(new Document("docKey", 42))
           .build();
 
   private final ObjectMapper mapper = new ObjectMapper()
@@ -96,6 +102,39 @@ public class JacksonCodecsTest {
     check(model2.objectId()).is(model.objectId());
     check(model2.map().keySet()).isOf("key1");
     check(model2.map()).is(model.map());
+    check(model2.document().keySet()).hasContentInAnyOrder("docKey");
+  }
+
+  /**
+   * TODO better handle native BSON container types (eg. Map / List) inside regular immutable objects
+   */
+  @Ignore("currently fails docs inside docs")
+  @Test
+  public void docOfDoc() throws IOException {
+    BsonModel model = DEFAULT.withDocument(new Document("key", new Document("realKey", 42)));
+    writeThenRead(JacksonCodecs.registryFromMapper(mapper), mapper, model);
+  }
+
+  /**
+   * Reading directly {@link BsonDocument}
+   */
+  @Test
+  public void bsonDocument() throws IOException {
+    final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
+    BsonDocument expected = new BsonDocument("a", new BsonInt32(1));
+    BsonDocument actual= registry.get(BsonDocument.class).decode(new BsonDocumentReader(expected), DecoderContext.builder().build());
+    check(actual).is(expected);
+  }
+
+  /**
+   * Reading directly {@link Document}
+   */
+  @Test
+  public void document() throws IOException {
+    final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
+    Document expected = new Document("a", 1);
+    Document actual= registry.get(Document.class).decode(new BsonDocumentReader(expected.toBsonDocument(BsonDocument.class, registry)), DecoderContext.builder().build());
+    check(actual).is(expected);
   }
 
   @Test
@@ -134,6 +173,7 @@ public class JacksonCodecsTest {
       Map<String, String> map();
       int[] intArray();
       List<Integer> intList();
+      Document document();
   }
 
 }

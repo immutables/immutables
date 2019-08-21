@@ -29,17 +29,23 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.Deserializers;
+import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.annotations.Beta;
 import org.bson.AbstractBsonReader;
+import org.bson.BsonDocument;
 import org.bson.BsonReader;
 import org.bson.BsonWriter;
+import org.bson.Document;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
@@ -80,6 +86,14 @@ public final class JacksonCodecs {
     };
   }
 
+  private static <T> Codec<T> findCodecOrNull(CodecRegistry registry, Class<T> type) {
+    try {
+      return registry.get(type);
+    } catch (CodecConfigurationException e) {
+      return null;
+    }
+  }
+
   private static <T> JsonSerializer<T> serializer(final Codec<T> codec) {
     Objects.requireNonNull(codec, "codec");
     return new CodecSerializer<>(codec);
@@ -109,6 +123,16 @@ public final class JacksonCodecs {
           return null;
         }
       }
+
+      @Override
+      public JsonSerializer<?> findMapSerializer(SerializationConfig config, MapType type, BeanDescription beanDesc, JsonSerializer<Object> keySerializer, TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
+        final Class<?> raw = type.getRawClass();
+        if (BsonDocument.class.isAssignableFrom(raw) || Document.class.isAssignableFrom(raw)) {
+          Codec<?> codec = findCodecOrNull(registry, type.getRawClass());
+          return codec == null ? null : serializer(codec);
+        }
+        return null;
+      }
     };
   }
 
@@ -117,12 +141,18 @@ public final class JacksonCodecs {
     return new Deserializers.Base() {
       @Override
       public JsonDeserializer<?> findBeanDeserializer(JavaType type, DeserializationConfig config, BeanDescription beanDesc) throws JsonMappingException {
-        try {
-          final Codec<?> codec = registry.get(type.getRawClass());
-          return deserializer(codec);
-        } catch (CodecConfigurationException ignore) {
-          return null;
+        Codec<?> codec = findCodecOrNull(registry, type.getRawClass());
+        return codec == null ? null : deserializer(codec);
+      }
+
+      @Override
+      public JsonDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config, BeanDescription beanDesc, KeyDeserializer keyDeserializer, TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer) throws JsonMappingException {
+        final Class<?> raw = type.getRawClass();
+        if (BsonDocument.class.isAssignableFrom(raw) || Document.class.isAssignableFrom(raw)) {
+          Codec<?> codec = findCodecOrNull(registry, type.getRawClass());
+          return codec == null ? null : deserializer(codec);
         }
+        return null;
       }
     };
   }

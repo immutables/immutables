@@ -17,6 +17,7 @@ package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
@@ -43,7 +44,6 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
    * The ObjectCodec used to parse the Bson object(s)
    */
   private ObjectCodec _codec;
-
 
   BsonParser(IOContext ctxt, int jsonFeatures, AbstractBsonReader reader) {
     super(ctxt, jsonFeatures);
@@ -183,9 +183,45 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     }
   }
 
+
   @Override
-  public JsonToken nextToken() throws IOException {
+  public JsonToken nextToken() {
     return _currToken = next();
+  }
+
+  @Override
+  public boolean isExpectedStartObjectToken() {
+    // in some cases BsonReader should advance later than Jackson Parser
+    if (state() == AbstractBsonReader.State.INITIAL) {
+      nextToken();
+    }
+
+    return _currToken == JsonToken.START_OBJECT;
+  }
+
+  @Override
+  public JsonToken getCurrentToken() {
+    if (state() == AbstractBsonReader.State.INITIAL) {
+      return JsonToken.START_OBJECT;
+    }
+
+    return _currToken;
+  }
+
+  @Override
+  public JsonToken currentToken() {
+    return getCurrentToken();
+  }
+
+  @Override
+  public int currentTokenId() {
+    JsonToken token = getCurrentToken();
+    return token == null ? JsonTokenId.ID_NO_TOKEN : token.id();
+  }
+
+  @Override
+  public int getCurrentTokenId() {
+    return currentTokenId();
   }
 
   private JsonToken next() {
