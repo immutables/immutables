@@ -37,9 +37,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -62,61 +60,57 @@ class TupleCodecProvider implements CodecProvider {
     return null;
   }
 
+  private static class FieldDecoder {
+    private final String mongoField;
+    private final Type type;
+    private final Decoder<?> decoder;
+
+    private FieldDecoder(Path path, CodecRegistry registry) {
+      this.mongoField = Mongos.toMongoFieldName(path);
+      this.type = Expressions.returnType(path);
+      if (!(type instanceof Class)) {
+        throw new UnsupportedOperationException(String.format("Can't project field %s because of generic type %s. " +
+                        "Currently only non-generic types (eg. String, LocalDate etc.) are supported in projections (not List<T> / Optional<T>).",
+                mongoField,
+                type));
+      }
+
+      this.decoder = registry.get((Class<?>) type);
+    }
+
+    Object decode(BsonValue bson) {
+      final Object value;
+      if (!bson.isDocument()) {
+        value = decoder.decode(new BsonValueReader(bson), DecoderContext.builder().build());
+      } else {
+        value = decoder.decode(new BsonDocumentReader(bson.asDocument()), DecoderContext.builder().build());
+      }
+
+      return value;
+    }
+  }
 
   private static class TupleCodec implements Codec<ProjectedTuple> {
     private final CodecRegistry registry;
     private final Query query;
-    private final List<Path> projections;
-    private final List<Type> types;
-    private final List<String> fields;
-    private final Map<String, Decoder<?>> decoderMap;
+    private final List<FieldDecoder> decoders;
 
     private TupleCodec(CodecRegistry registry, Query query) {
       this.query = query;
-      final List<Path> projections = query.projections().stream().map(e -> (Path) e).collect(Collectors.toList());
-      if (projections.isEmpty()) {
+      if (query.projections().isEmpty()) {
         throw new IllegalArgumentException(String.format("No projections defined in query %s", query));
       }
       this.registry = Objects.requireNonNull(registry, "registry");
-      this.projections = projections;
-      this.types = projections.stream().map(Expressions::returnType).collect(Collectors.toList());
-      this.fields = projections.stream().map(Mongos::toMongoFieldName).collect(Collectors.toList());
-      // ensure no generic currently
-      for (int i = 0; i < projections.size(); i++) {
-        Type type = types.get(i);
-        String field = fields.get(i);
-        if (!(type instanceof Class)) {
-          throw new UnsupportedOperationException(String.format("Can't project field %s of %s because of generic type %s. " +
-                  "Currently only non-generic types (eg. String, LocalDate etc.) are supported in projections (not List<T> / Optional<T>).",
-                  field,
-                  query.entityPath().annotatedElement().getName(),
-                  type));
-        }
-      }
-      final Function<Path, Decoder<?>> decoderFn = path -> registry.get((Class<?>)  Expressions.returnType(path));
-      this.decoderMap = projections.stream()
-              .collect(Collectors.toMap(Mongos::toMongoFieldName, decoderFn));
+      this.decoders = query.projections().stream().map(p -> new FieldDecoder((Path) p, registry)).collect(Collectors.toList());
     }
 
     @Override
     public ProjectedTuple decode(BsonReader reader, DecoderContext decoderContext) {
       BsonDocument doc = registry.get(BsonDocument.class).decode(reader, decoderContext);
-      List<Object> values = new ArrayList<>();
-      for (int i = 0; i < projections.size(); i++) {
-        String path = Mongos.toMongoFieldName(projections.get(i));
-        List<String> paths = Arrays.asList(path.split("\\."));
-        BsonValue bson = resolveOrNull(doc, paths);
-        Decoder<?> decoder = decoderMap.get(path);
-        if (decoder == null) {
-          throw new AssertionError("No decoder found for path " + path);
-        }
-        final Object value;
-        if (!bson.isDocument()) {
-          value = decoder.decode(new BsonValueReader(bson), decoderContext);
-        } else {
-          value = decoder.decode(new BsonDocumentReader(bson.asDocument()), decoderContext);
-        }
-        values.add(value);
+      final List<Object> values = new ArrayList<>();
+      for (FieldDecoder field: decoders) {
+        BsonValue bson = resolveOrNull(doc, Arrays.asList(field.mongoField.split("\\.")));
+        values.add(field.decode(bson));
       }
 
       return ProjectedTuple.of(query.projections(), values);
