@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.mongo;
+package org.immutables.criteria.mongo.codecs;
 
+import com.google.common.reflect.TypeToken;
+import com.mongodb.MongoClientSettings;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonNull;
@@ -32,6 +34,7 @@ import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.mongo.Mongos;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -41,13 +44,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * Provider for {@link ProjectedTuple}
+ * Provider for {@link ProjectedTuple}. Used when there are projections.
  */
-class TupleCodecProvider implements CodecProvider {
+public class TupleCodecProvider implements CodecProvider {
 
   private final Query query;
 
-  TupleCodecProvider(Query query) {
+  public TupleCodecProvider(Query query) {
     this.query = Objects.requireNonNull(query, "query");
   }
 
@@ -68,14 +71,7 @@ class TupleCodecProvider implements CodecProvider {
     private FieldDecoder(Path path, CodecRegistry registry) {
       this.mongoField = Mongos.toMongoFieldName(path);
       this.type = Expressions.returnType(path);
-      if (!(type instanceof Class)) {
-        throw new UnsupportedOperationException(String.format("Can't project field %s because of generic type %s. " +
-                        "Currently only non-generic types (eg. String, LocalDate etc.) are supported in projections (not List<T> / Optional<T>).",
-                mongoField,
-                type));
-      }
-
-      this.decoder = registry.get((Class<?>) type);
+      this.decoder = SimpleRegistry.of(registry).get(TypeToken.of(type));
     }
 
     Object decode(BsonValue bson) {
@@ -165,6 +161,5 @@ class TupleCodecProvider implements CodecProvider {
       return value.isDocument() ? value.asDocument() : new BsonDocument("value", value);
     }
   }
-
 
 }

@@ -24,7 +24,6 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.junit.Assume;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -549,7 +547,7 @@ public abstract class AbstractPersonTest {
     check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
     check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
     check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
-
+    check(repository().findAll().select(criteria().dateOfBirth).fetch()).notEmpty();
 
     check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
@@ -566,10 +564,12 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Mary").withNickName("a").withInterests("one", "two", "three"));
     insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four"));
 
+    // nickname
     check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
     check(repository().findAll().select(criteria().fullName, criteria().nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
+
   }
 
   private void assumeFeature(Feature feature) {

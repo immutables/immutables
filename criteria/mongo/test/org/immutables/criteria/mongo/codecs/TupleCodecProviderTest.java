@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.mongo;
+package org.immutables.criteria.mongo.codecs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
@@ -32,10 +32,12 @@ import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.mongo.bson4jackson.BsonModule;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
+import org.immutables.criteria.mongo.codecs.TupleCodecProvider;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.Optional;
 
 import static org.immutables.check.Checkers.check;
 
@@ -65,7 +67,6 @@ public class TupleCodecProviderTest {
   /**
    * Projection of an optional attribute
    */
-  @Ignore("Types with parameters are not suppored in projections right now")
   @Test
   public void optionalAttribute_nickname() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.nickName));
@@ -74,10 +75,10 @@ public class TupleCodecProviderTest {
 
     ProjectedTuple tuple1 = codec.decode(new BsonDocumentReader(new BsonDocument("nickName", new BsonString("aaa"))), DecoderContext.builder().build());
     check(tuple1.values()).hasSize(1);
-    check(tuple1.values().get(0)).asString().is("aaa");
+    check((Optional<String>) tuple1.values().get(0)).is(Optional.of("aaa"));
 
     ProjectedTuple tuple2 = codec.decode(new BsonDocumentReader(new BsonDocument()), DecoderContext.builder().build());
     check(tuple2.values()).hasSize(1);
-
+    check((Optional<String>) tuple2.values().get(0)).is(Optional.empty());
   }
 }

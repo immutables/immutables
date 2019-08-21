@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 /**
  * Util methods for mongo adapter.
  */
-final class Mongos {
+public final class Mongos {
 
   private Mongos() {}
 
@@ -41,7 +41,7 @@ final class Mongos {
     return expression -> expression.accept(new MongoQueryVisitor());
   }
 
-  static String toMongoFieldName(Path path) {
+  public static String toMongoFieldName(Path path) {
     Function<AnnotatedElement, String> toStringFn = a -> {
       Objects.requireNonNull(a, "null element");
       if (a.isAnnotationPresent(Criteria.Id.class)) {
