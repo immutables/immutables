@@ -540,17 +540,19 @@ public abstract class AbstractPersonTest {
   public void projection_basic() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
     final PersonGenerator generator = new PersonGenerator();
-    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21));
-    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22));
-    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23));
+    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21).withIsActive(true));
+    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false));
+    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true));
 
     check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
     check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
     check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
     check(repository().findAll().select(criteria().dateOfBirth).fetch()).notEmpty();
+    check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
 
     check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
+
   }
 
   /**
@@ -570,8 +572,8 @@ public abstract class AbstractPersonTest {
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
 
-
-    check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
+    check(repository().findAll().select(criteria().address).fetch()).notEmpty();
+    check(repository().findAll().select(criteria().bestFriend).fetch()).notEmpty();
   }
 
   private void assumeFeature(Feature feature) {
