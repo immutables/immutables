@@ -43,7 +43,7 @@ public interface BooleanMatcher<R> extends Matcher {
    */
   interface Self extends Template<Self> {}
 
-  interface Template<R> extends BooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Boolean>  {}
+  interface Template<R> extends BooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Boolean>, Aggregation.ObjectAggregation  {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

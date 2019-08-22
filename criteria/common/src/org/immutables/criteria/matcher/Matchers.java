@@ -52,6 +52,11 @@ public final class Matchers {
     return extract((Matcher) projection).path();
   }
 
+  public static Expression toExpression(Aggregation<?> aggregation) {
+    Objects.requireNonNull(aggregation, "aggregation");
+    return extract((Matcher) aggregation).expression();
+  }
+
   public static CriteriaContext extract(Criterion<?> criterion) {
     Objects.requireNonNull(criterion, "criterion");
 

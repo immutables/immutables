@@ -31,7 +31,7 @@ import java.util.function.UnaryOperator;
  */
 public final class CriteriaContext implements Queryable {
 
-  private final DnfExpression expression;
+  private final Expression expression;
   private final Path path;
   private final Class<?> entityClass;
   private final CriteriaContext root;
@@ -42,7 +42,7 @@ public final class CriteriaContext implements Queryable {
     this(entityClass, new DnfExpression(), null, creator, null);
   }
 
-  private CriteriaContext(Class<?> entityClass, DnfExpression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
+  private CriteriaContext(Class<?> entityClass, Expression expression, Path path, CriteriaCreator<?> creator, CriteriaContext parent) {
     this.expression = expression;
     this.path = path;
     this.creator = Objects.requireNonNull(creator, "creator");
@@ -55,13 +55,17 @@ public final class CriteriaContext implements Queryable {
     return path;
   }
 
+  public Expression expression() {
+    return expression;
+  }
+
   CriteriaContext root() {
     return root;
   }
 
   @SuppressWarnings("unchecked")
   <R> R create() {
-    return (R) creator.create(this);
+    return (R) createWith(creator);
   }
 
   CriteriaCreator creator() {
@@ -95,13 +99,25 @@ public final class CriteriaContext implements Queryable {
   }
 
   public CriteriaContext or() {
-    return new CriteriaContext(entityClass, expression.or(), path, creator, parent);
+    return new CriteriaContext(entityClass, dnfExpression().or(), path, creator, parent);
+  }
+
+  private DnfExpression dnfExpression() {
+    return (DnfExpression) expression;
   }
 
   @Override
   public Query query() {
     final Query query = Query.of(entityClass);
-    return !expression.isEmpty() ? query.withFilter(expression.simplify()) : query;
+    return !dnfExpression().isEmpty() ? query.withFilter(dnfExpression().simplify()) : query;
+  }
+
+  <R> R createWith(CriteriaCreator<R> creator) {
+    return creator.create(this);
+  }
+
+  CriteriaContext applyRaw(UnaryOperator<Expression> fn) {
+    return new CriteriaContext(entityClass, fn.apply(path), path, creator, parent);
   }
 
   <R> R applyAndCreateRoot(UnaryOperator<Expression> fn) {
@@ -111,7 +127,7 @@ public final class CriteriaContext implements Queryable {
   CriteriaContext apply(UnaryOperator<Expression> fn) {
     Objects.requireNonNull(fn, "fn");
     final Expression apply = fn.apply(path);
-    final DnfExpression newExpression = expression.and(apply);
+    final DnfExpression newExpression = dnfExpression().and(apply);
     final CriteriaContext parentOrSelf = parent != null ? parent : this;
     return new CriteriaContext(entityClass, newExpression, parentOrSelf.path, parentOrSelf.creator, parentOrSelf.parent);
   }

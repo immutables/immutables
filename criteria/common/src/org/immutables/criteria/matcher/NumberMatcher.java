@@ -30,7 +30,7 @@ public interface NumberMatcher<R, V extends Number & Comparable<? super V>> exte
 
   interface Template<R, V extends Number & Comparable<? super V>> extends NumberMatcher<R, V>, WithMatcher<R, Self<V>>,
           NotMatcher<R, Self<V>>,
-          Projection<V> {}
+          Projection<V>, Aggregation.NumberAggregation<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

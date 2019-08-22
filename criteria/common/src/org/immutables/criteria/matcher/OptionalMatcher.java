@@ -36,7 +36,7 @@ public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Match
    */
   interface Self<S, V> extends Template<Self<S, V>, S, V>, Disjunction<Self<S, V>> {}
 
-  interface Template<R, S, V> extends OptionalMatcher<R, S, V>, Projection<Optional<V>> {}
+  interface Template<R, S, V> extends OptionalMatcher<R, S, V>, Projection<Optional<V>>, Aggregation.ObjectAggregation {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

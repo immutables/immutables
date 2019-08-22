@@ -16,6 +16,9 @@
 
 package org.immutables.criteria.matcher;
 
+import org.immutables.criteria.expression.AggregationOperators;
+import org.immutables.criteria.expression.Expressions;
+
 import java.util.Optional;
 import java.util.OptionalDouble;
 
@@ -23,46 +26,57 @@ public interface Aggregation<T> extends Projection<T> {
 
   interface ObjectAggregation extends Count<Long> {}
 
-  interface ComparableAggregation<T> extends Min<T>, Max<T> {}
+  interface ComparableAggregation<T> extends Min<T>, Max<T>, ObjectAggregation {}
 
-  interface NumberAggregation<T> extends ComparableAggregation<T>, ObjectAggregation, Avg<Double>, Sum<Double> {}
+  interface NumberAggregation<T> extends ComparableAggregation<T>, Avg<Double>, Sum<Double> {}
 
-  interface OptionalComparableAggregation<T> extends ComparableAggregation<Optional<T>>, ObjectAggregation {}
+  interface OptionalComparableAggregation<T> extends ComparableAggregation<Optional<T>>  {}
 
-  interface NullableComparableAggregation<T> extends ComparableAggregation<T>, ObjectAggregation {}
+  interface NullableComparableAggregation<T> extends ComparableAggregation<T> {}
 
   interface OptionalNumberAggregation<T> extends OptionalComparableAggregation<Optional<T>>, Avg<OptionalDouble>, Sum<OptionalDouble> {}
 
   interface NullableNumberAggregation<T> extends NullableComparableAggregation<T>, Avg<Double>, Sum<Double> {}
 
-  interface Min<T>  {
+  interface Min<T> {
     default Aggregation<T> min() {
-      return null;
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.call(AggregationOperators.MIN, e)).createWith(creator());
     }
   }
 
   interface Max<T>  {
     default Aggregation<T> max() {
-      return null;
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.call(AggregationOperators.MAX, e)).createWith(creator());
     }
   }
 
   interface Count<T>  {
     default Aggregation<T> count() {
-      return null;
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.call(AggregationOperators.COUNT, e)).createWith(creator());
     }
   }
 
   interface Avg<T> {
     default Aggregation<T> avg() {
-      return null;
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.call(AggregationOperators.AVG, e)).createWith(creator());
     }
   }
 
   interface Sum<T> {
     default Aggregation<T> sum() {
-      return null;
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.call(AggregationOperators.SUM, e)).createWith(creator());
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> CriteriaCreator<T> creator() {
+    class Local extends AbstractContextHolder implements Aggregation<T>, Matcher {
+      private Local(CriteriaContext context) {
+        super(context);
+      }
+    }
+
+    return ctx -> (T) new Local(ctx);
   }
 
 }

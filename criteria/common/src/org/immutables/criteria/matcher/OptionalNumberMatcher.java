@@ -34,7 +34,7 @@ public interface OptionalNumberMatcher<R, V extends Number & Comparable<? super 
   interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
   interface Template<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<Optional<V>> {}
+          NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.OptionalNumberAggregation<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
