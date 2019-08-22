@@ -107,7 +107,7 @@ public class CriteriaModel {
     }
 
     public boolean isNumber() {
-      return type.getKind().isPrimitive() && !isBoolean() || isSubtypeOf(Number.class);
+      return type.getKind().isPrimitive() && !isBoolean() && type.getKind() != TypeKind.CHAR || isSubtypeOf(Number.class);
     }
 
     public boolean isContainer() {
@@ -131,7 +131,7 @@ public class CriteriaModel {
     }
 
     public boolean hasOptionalMatcher() {
-      return isString() || isComparable() || isBoolean();
+      return isString() || isComparable() || isBoolean() || isNumber();
     }
 
     public boolean isComparable() {
@@ -233,6 +233,8 @@ public class CriteriaModel {
         name = "org.immutables.criteria.matcher.OptionalStringMatcher.Template";
       } else if (param.isBoolean()) {
         name = "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template";
+      } else if (param.isNumber()) {
+        name = "org.immutables.criteria.matcher.OptionalNumberMatcher.Template";
       } else if (param.isComparable()) {
         name = "org.immutables.criteria.matcher.OptionalComparableMatcher.Template";
       } else {
@@ -242,6 +244,8 @@ public class CriteriaModel {
       name = type.toString() + "CriteriaTemplate";
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
+    } else if (introspected.isNumber()) {
+      name = "org.immutables.criteria.matcher.NumberMatcher.Template";
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
     } else if (introspected.isIterable() || introspected.isArray()) {

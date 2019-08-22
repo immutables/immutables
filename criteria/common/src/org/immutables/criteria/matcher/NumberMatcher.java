@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.immutables.criteria.matcher;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
 
 /**
- * Intersection type between {@link OptionalMatcher} and {@link StringMatcher}
+ * Matcher for numbers
+ *
  * @param <R> root criteria type
  */
-public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsentMatcher<R> {
+public interface NumberMatcher<R, V extends Number & Comparable<? super V>> extends ComparableMatcher<R, V>, OrderMatcher {
 
-  interface Self extends Template<Self>, Disjunction<OptionalStringMatcher<Self>> {}
+  /**
+   * Self-type for this matcher
+   */
+  interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>> {}
+  interface Template<R, V extends Number & Comparable<? super V>> extends NumberMatcher<R, V>, WithMatcher<R, Self<V>>,
+          NotMatcher<R, Self<V>>,
+          Projection<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
@@ -39,4 +42,6 @@ public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsen
 
     return ctx -> (R) new Local(ctx);
   }
+
+
 }
