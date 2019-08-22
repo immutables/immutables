@@ -106,6 +106,9 @@ public class ElasticsearchBackend implements Backend {
 
     private <T> Flowable<T> select(StandardOperations.Select<T> op) {
       final Query query = op.query();
+      if (!query.groupBy().isEmpty()) {
+        throw new UnsupportedOperationException("GroupBy not supported by " + ElasticsearchBackend.class.getSimpleName());
+      }
       final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));

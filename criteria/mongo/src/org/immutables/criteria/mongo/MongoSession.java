@@ -74,6 +74,10 @@ class MongoSession implements Backend.Session {
 
   private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     final Query query = select.query();
+    if (!query.groupBy().isEmpty()) {
+      throw new UnsupportedOperationException("Group By not supported by " + MongoBackend.class.getSimpleName());
+    }
+
     final boolean hasProjections = !query.projections().isEmpty();
 
     @SuppressWarnings("unchecked")

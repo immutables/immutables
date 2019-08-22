@@ -87,6 +87,9 @@ public class GeodeBackend implements Backend {
     }
 
     private <T> Flowable<T> query(StandardOperations.Select<T> op) {
+      if (!op.query().groupBy().isEmpty()) {
+        throw new UnsupportedOperationException("GroupBy not supported by " + GeodeBackend.class.getSimpleName());
+      }
       return Flowable.<Collection<T>>fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
         return (Collection<T>) region.getRegionService().getQueryService().newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));

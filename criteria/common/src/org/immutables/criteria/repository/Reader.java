@@ -17,6 +17,7 @@
 package org.immutables.criteria.repository;
 
 import org.immutables.criteria.expression.Ordering;
+import org.immutables.criteria.matcher.Projection;
 
 /**
  * Allows chaining operations (like adding {@code offset} / {@code limit}) on some particular query.
@@ -26,9 +27,11 @@ import org.immutables.criteria.expression.Ordering;
  */
 public interface Reader<R> {
 
-  R orderBy(Ordering first, Ordering... rest);
+  R orderBy(Ordering first, Ordering ... rest);
 
   R limit(long limit);
 
   R offset(long offset);
+
+  R groupBy(Projection<?> first, Projection<?> ... rest);
 }

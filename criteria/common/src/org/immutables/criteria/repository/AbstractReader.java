@@ -19,8 +19,11 @@ package org.immutables.criteria.repository;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Collation;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.matcher.Matchers;
+import org.immutables.criteria.matcher.Projection;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
@@ -61,6 +64,10 @@ public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
 
   @Override
   public R orderBy(Ordering first, Ordering... rest) {
+    if (!query.collations().isEmpty()) {
+      throw new IllegalStateException("OrderBy was already set");
+    }
+
     final List<Ordering> orderings = new ArrayList<>();
     orderings.add(first);
     orderings.addAll(Arrays.asList(rest));
@@ -77,5 +84,19 @@ public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
   @Override
   public R offset(long offset) {
     return newReader(query.withOffset(offset));
+  }
+
+  @Override
+  public R groupBy(Projection<?> first, Projection<?> ... rest) {
+    if (!query.groupBy().isEmpty()) {
+      throw new IllegalStateException("GroupBy was already set");
+    }
+
+    final List<Projection<?>> all = new ArrayList<>();
+    all.add(first);
+    all.addAll(Arrays.asList(rest));
+
+    final List<Expression> groupBy = all.stream().map(Matchers::toExpression).collect(Collectors.toList());
+    return newReader(query.addGroupBy(groupBy));
   }
 }
