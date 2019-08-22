@@ -21,8 +21,6 @@ import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Mappers;
-import org.immutables.criteria.repository.Publishers;
-import org.reactivestreams.Publisher;
 
 public class ReactiveMapper3<T1, T2, T3> {
 
@@ -34,7 +32,7 @@ public class ReactiveMapper3<T1, T2, T3> {
     this.session = session;
   }
 
-  public <R> ReactiveFetcher<R> map(MapperFunction3<R, T1, T2, T3> mapFn) {
+  public <R> ReactiveFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
     return new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
   }
 

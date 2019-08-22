@@ -33,7 +33,7 @@ public class AsyncMapper5<T1, T2, T3, T4, T5> {
     this.session = session;
   }
 
-  public <R> AsyncFetcher<R> map(MapperFunction5<R, T1, T2, T3, T4, T5> mapFn) {
+  public <R> AsyncFetcher<R> map(MapperFunction5<T1, T2, T3, T4, T5, R> mapFn) {
     ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
     return new AsyncFetcher<R>(delegate);
   }

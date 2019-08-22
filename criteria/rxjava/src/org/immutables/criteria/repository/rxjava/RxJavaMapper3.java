@@ -19,7 +19,6 @@ package org.immutables.criteria.repository.rxjava;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
@@ -34,7 +33,7 @@ public class RxJavaMapper3<T1, T2, T3> {
     this.session = session;
   }
 
-  public <R> RxJavaFetcher<R> map(MapperFunction3<R, T1, T2, T3> mapFn) {
+  public <R> RxJavaFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
     ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
     return new RxJavaFetcher<>(delegate);
   }

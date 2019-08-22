@@ -36,7 +36,7 @@ public final class Mappers {
   }
 
   @SuppressWarnings("unchecked")
-  public static <R, T1, T2> Function<ProjectedTuple, R> fromTuple(MapperFunction2<R, T1, T2> fn) {
+  public static <R, T1, T2> Function<ProjectedTuple, R> fromTuple(MapperFunction2<T1, T2, R> fn) {
     return tuple -> {
       if (tuple.values().size() != 2) {
         throw new IllegalArgumentException(String.format("Expected tuple of size 2 got %d", tuple.values().size()));
@@ -50,7 +50,7 @@ public final class Mappers {
   }
 
   @SuppressWarnings("unchecked")
-  public static <R, T1, T2, T3> Function<ProjectedTuple, R> fromTuple(MapperFunction3<R, T1, T2, T3> fn) {
+  public static <R, T1, T2, T3> Function<ProjectedTuple, R> fromTuple(MapperFunction3<T1, T2, T3, R> fn) {
     return tuple -> {
       if (tuple.values().size() != 3) {
         throw new IllegalArgumentException(String.format("Expected tuple of size 3 got %d", tuple.values().size()));
@@ -64,7 +64,7 @@ public final class Mappers {
   }
 
   @SuppressWarnings("unchecked")
-  public static <R, T1, T2, T3, T4> Function<ProjectedTuple, R> fromTuple(MapperFunction4<R, T1, T2, T3, T4> fn) {
+  public static <R, T1, T2, T3, T4> Function<ProjectedTuple, R> fromTuple(MapperFunction4<T1, T2, T3, T4, R> fn) {
     return tuple -> {
       if (tuple.values().size() != 4) {
         throw new IllegalArgumentException(String.format("Expected tuple of size 4 got %d", tuple.values().size()));
@@ -79,7 +79,7 @@ public final class Mappers {
   }
 
   @SuppressWarnings("unchecked")
-  public static <R, T1, T2, T3, T4, T5> Function<ProjectedTuple, R> fromTuple(MapperFunction5<R, T1, T2, T3, T4, T5> fn) {
+  public static <R, T1, T2, T3, T4, T5> Function<ProjectedTuple, R> fromTuple(MapperFunction5<T1, T2, T3, T4, T5, R> fn) {
     return tuple -> {
       if (tuple.values().size() != 5) {
         throw new IllegalArgumentException(String.format("Expected tuple of size 5 got %d", tuple.values().size()));

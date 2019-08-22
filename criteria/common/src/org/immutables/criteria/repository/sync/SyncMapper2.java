@@ -21,11 +21,7 @@ import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.Mappers;
-import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
-import org.reactivestreams.Publisher;
-
-import java.util.List;
 
 public class SyncMapper2<T1, T2> {
 
@@ -37,7 +33,7 @@ public class SyncMapper2<T1, T2> {
     this.session = session;
   }
 
-  public <R> SyncFetcher<R> map(MapperFunction2<R, T1, T2> mapFn) {
+  public <R> SyncFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
     final ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
     return new SyncFetcher<>(delegate);
   }

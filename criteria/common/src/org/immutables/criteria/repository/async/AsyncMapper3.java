@@ -19,12 +19,9 @@ package org.immutables.criteria.repository.async;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Mappers;
-import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
-import org.reactivestreams.Publisher;
 
 public class AsyncMapper3<T1, T2, T3> {
 
@@ -36,7 +33,7 @@ public class AsyncMapper3<T1, T2, T3> {
     this.session = session;
   }
 
-  public <R> AsyncFetcher<R> map(MapperFunction3<R, T1, T2, T3> mapFn) {
+  public <R> AsyncFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
     ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
     return new AsyncFetcher<R>(delegate);
   }

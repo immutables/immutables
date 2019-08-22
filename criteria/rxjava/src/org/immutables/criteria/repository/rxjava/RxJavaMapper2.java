@@ -33,7 +33,7 @@ public class RxJavaMapper2<T1, T2> {
     this.session = session;
   }
 
-  public <R> RxJavaFetcher<R> map(MapperFunction2<R, T1, T2> mapFn) {
+  public <R> RxJavaFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
     ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
     return new RxJavaFetcher<>(delegate);
   }

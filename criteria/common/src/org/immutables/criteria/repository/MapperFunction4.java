@@ -16,6 +16,6 @@
 
 package org.immutables.criteria.repository;
 
-public interface MapperFunction4<R, T1, T2, T3, T4> {
+public interface MapperFunction4<T1, T2, T3, T4, R> {
   R apply(T1 arg1, T2 arg2, T3 arg3, T4 arg4);
 }
