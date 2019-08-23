@@ -29,6 +29,7 @@ import org.bson.BsonInt32;
 import org.bson.BsonString;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.check.Checkers;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.mongo.bson4jackson.BsonModule;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
@@ -36,7 +37,6 @@ import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,7 +62,6 @@ public class MongoPersonTest extends AbstractPersonTest {
   private MongoCollection<Person> collection;
 
   private MongoBackend backend;
-  private PersonRepository repository;
 
   @Override
   protected Set<Feature> features() {
@@ -77,8 +76,13 @@ public class MongoPersonTest extends AbstractPersonTest {
     );
   }
 
+  @Override
+  protected Backend backend() {
+    return backend;
+  }
+
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
 
     final ObjectMapper mapper = new ObjectMapper()
             .registerModule(new BsonModule())
@@ -98,7 +102,6 @@ public class MongoPersonTest extends AbstractPersonTest {
     CollectionResolver resolver = CollectionResolver.defaultResolver(database);
     this.collection = resolver.resolve(Person.class).withDocumentClass(Person.class);
     this.backend = new MongoBackend(resolver);
-    this.repository = new PersonRepository(backend);
   }
 
   /**
@@ -138,8 +141,4 @@ public class MongoPersonTest extends AbstractPersonTest {
     Checkers.check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
   }
 
-  @Override
-  protected PersonRepository repository() {
-    return repository;
-  }
 }

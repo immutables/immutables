@@ -18,6 +18,7 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
 import org.apache.geode.cache.Region;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
@@ -37,7 +38,7 @@ public class GeodePersonTest extends AbstractPersonTest  {
 
   private static Region<String, Person> region;
 
-  private PersonRepository repository;
+  private GeodeBackend backend;
 
   @BeforeClass
   public static void setup() {
@@ -61,15 +62,15 @@ public class GeodePersonTest extends AbstractPersonTest  {
     return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY);
   }
 
+  @Override
+  protected Backend backend() {
+    return backend;
+  }
+
   @Ignore
   @Override
   public void nested() {
     // nested doesn't work yet in Geode. Need custom PDX serializer
-  }
-
-  @Override
-  protected PersonRepository repository() {
-    return repository;
   }
 
 }

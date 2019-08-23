@@ -16,14 +16,17 @@
 
 package org.immutables.criteria.personmodel;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.check.Checkers;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -33,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -73,7 +77,17 @@ public abstract class AbstractPersonTest {
   /**
    * Exposted repository
    */
-  protected abstract PersonRepository repository();
+  protected abstract Backend backend();
+
+  protected PersonRepository repository;
+
+  protected PersonRepository repository() {
+    if (repository == null) {
+      Backend backend = Objects.requireNonNull(backend(), "backend is null");
+      repository = new PersonRepository(backend);
+    }
+    return repository;
+  }
 
   /**
    * Create person criteria
