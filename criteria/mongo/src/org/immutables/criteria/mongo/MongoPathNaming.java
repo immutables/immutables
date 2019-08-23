@@ -17,7 +17,9 @@
 package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 
 import java.lang.reflect.AnnotatedElement;
@@ -46,5 +48,9 @@ class MongoPathNaming implements PathNaming {
 
 
     return path.paths().stream().map(toStringFn).collect(Collectors.joining("."));
+  }
+
+  ExpressionNaming toExpression() {
+    return expression -> MongoPathNaming.this.name((Path) expression);
   }
 }

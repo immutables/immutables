@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.google.common.reflect.TypeToken;
+import com.mongodb.MongoClientSettings;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonNull;
@@ -29,10 +30,9 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
-import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.mongo.codecs.SimpleRegistry;
 
@@ -49,18 +49,18 @@ import java.util.stream.Collectors;
 class TupleCodecProvider implements CodecProvider {
 
   private final Query query;
-  private final PathNaming pathNaming;
+  private final ExpressionNaming naming;
 
-  TupleCodecProvider(Query query, PathNaming pathNaming) {
+  TupleCodecProvider(Query query, ExpressionNaming naming) {
     this.query = Objects.requireNonNull(query, "query");
-    this.pathNaming = Objects.requireNonNull(pathNaming, "pathNaming");
+    this.naming = Objects.requireNonNull(naming, "naming");
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public <T> Codec<T> get(Class<T> clazz, CodecRegistry registry) {
     if (clazz == ProjectedTuple.class) {
-      return (Codec<T>) new TupleCodec(registry, query, pathNaming);
+      return (Codec<T>) new TupleCodec(registry, query, naming);
     }
     return null;
   }
@@ -70,9 +70,9 @@ class TupleCodecProvider implements CodecProvider {
     private final Type type;
     private final Decoder<?> decoder;
 
-    private FieldDecoder(Path path, String name, CodecRegistry registry) {
+    private FieldDecoder(Expression expression, String name, CodecRegistry registry) {
       this.mongoField = name;
-      this.type = path.returnType();
+      this.type = expression.returnType();
       this.decoder = SimpleRegistry.of(registry).get(TypeToken.of(type));
     }
 
@@ -83,7 +83,6 @@ class TupleCodecProvider implements CodecProvider {
       } else {
         value = decoder.decode(new BsonDocumentReader(bson.asDocument()), DecoderContext.builder().build());
       }
-
       return value;
     }
   }
@@ -93,18 +92,20 @@ class TupleCodecProvider implements CodecProvider {
     private final Query query;
     private final List<FieldDecoder> decoders;
 
-    private TupleCodec(CodecRegistry registry, Query query, PathNaming pathNaming) {
+    private TupleCodec(CodecRegistry registry, Query query, ExpressionNaming naming) {
       this.query = query;
       if (query.projections().isEmpty()) {
         throw new IllegalArgumentException(String.format("No projections defined in query %s", query));
       }
       this.registry = Objects.requireNonNull(registry, "registry");
-      this.decoders = query.projections().stream().map(p -> new FieldDecoder((Path) p, pathNaming.name((Path) p), registry)).collect(Collectors.toList());
+      this.decoders = query.projections().stream().map(p -> new FieldDecoder(p, naming.name(p), registry)).collect(Collectors.toList());
     }
 
     @Override
     public ProjectedTuple decode(BsonReader reader, DecoderContext decoderContext) {
-      BsonDocument doc = registry.get(BsonDocument.class).decode(reader, decoderContext);
+
+//      BsonDocument doc = registry.get(BsonDocument.class).decode(reader, decoderContext);
+      BsonDocument doc = MongoClientSettings.getDefaultCodecRegistry().get(BsonDocument.class).decode(reader, decoderContext);
       final List<Object> values = new ArrayList<>();
       for (FieldDecoder field: decoders) {
         BsonValue bson = resolveOrNull(doc, Arrays.asList(field.mongoField.split("\\.")));

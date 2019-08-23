@@ -26,6 +26,7 @@ import org.bson.BsonString;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
@@ -55,7 +56,7 @@ public class TupleCodecProviderTest {
   public void age() {
 
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.age));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming());
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple = codec.decode(new BsonDocumentReader(new BsonDocument("age", new BsonInt32(10))), DecoderContext.builder().build());
@@ -70,7 +71,7 @@ public class TupleCodecProviderTest {
   @Test
   public void optionalAttribute_nickname() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.nickName));
-    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming());
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
 
     ProjectedTuple tuple1 = codec.decode(new BsonDocumentReader(new BsonDocument("nickName", new BsonString("aaa"))), DecoderContext.builder().build());

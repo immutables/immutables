@@ -17,9 +17,12 @@
 package org.immutables.criteria.backend;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +31,7 @@ import java.util.List;
 public class ProjectedTuple {
 
   private final List<Expression> paths;
-  private final List<?> values;
+  private final List<?> values; // values can be null
 
   private ProjectedTuple(List<Expression> paths, List<?> values) {
     if (values.size() != paths.size()) {
@@ -47,10 +50,11 @@ public class ProjectedTuple {
   }
 
   public static ProjectedTuple of(Iterable<Expression> paths, Iterable<?> values) {
-    return new ProjectedTuple(ImmutableList.copyOf(paths), ImmutableList.copyOf(values));
+    // values can be null
+    return new ProjectedTuple(ImmutableList.copyOf(paths), Collections.unmodifiableList(Lists.newArrayList(values)));
   }
 
   public static ProjectedTuple ofSingle(Expression path, Object value) {
-    return of(ImmutableList.of(path), ImmutableList.of(value));
+    return of(ImmutableList.of(path), Collections.singleton(value));
   }
 }

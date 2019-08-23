@@ -94,7 +94,13 @@ public final class Matchers {
 
   public static Expression toExpression(Projection<?> projection) {
     Objects.requireNonNull(projection, "projection");
-    return extract((Matcher) projection).path();
+    CriteriaContext context = extract((Matcher) projection);
+    Expression expression = context.expression();
+    // ugly hack for now
+    if (expression instanceof DnfExpression) {
+      return context.path();
+    }
+    return context.expression();
   }
 
   public static Expression toExpression(Aggregation<?> aggregation) {

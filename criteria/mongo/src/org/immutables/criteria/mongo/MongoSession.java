@@ -27,6 +27,7 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
@@ -76,17 +77,26 @@ class MongoSession implements Backend.Session {
 
   private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     final Query query = select.query();
-    if (!query.groupBy().isEmpty()) {
-      throw new UnsupportedOperationException("Group By not supported by " + MongoBackend.class.getSimpleName());
-    }
 
+    final boolean hasAggregations =  !query.groupBy().isEmpty();
     final boolean hasProjections = !query.projections().isEmpty();
+    ExpressionNaming expressionNaming = hasAggregations ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
+
+
+
 
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) (hasProjections ?
             this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(),
-                    CodecRegistries.fromProviders(new TupleCodecProvider(query, pathNaming))))
+                    CodecRegistries.fromProviders(new TupleCodecProvider(query, expressionNaming))))
             : this.collection);
+
+    if (hasAggregations) {
+      // aggregations
+      AggregationQuery agg = new AggregationQuery(query, pathNaming);
+      return (Publisher<T>) collection.aggregate(agg.toPipeline(), ProjectedTuple.class);
+    }
+
 
     final FindPublisher<T> find = collection.find(toBson(query));
     if (!query.collations().isEmpty()) {

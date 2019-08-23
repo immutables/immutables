@@ -68,6 +68,10 @@ class BackendResource extends ExternalResource implements AutoCloseable {
     return backend;
   }
 
+  public MongoDatabase database() {
+    return database;
+  }
+
   public <T> MongoCollection<T> collection(Class<T> entityType) {
     return resolver.resolve(entityType).withDocumentClass(entityType);
   }

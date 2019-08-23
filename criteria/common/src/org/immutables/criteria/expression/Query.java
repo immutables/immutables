@@ -113,6 +113,11 @@ public final class Query  {
     return new Query(entityPath, projections, filter, collations, newGroupBy, limit, offset);
   }
 
+  public Query addGroupBy(Expression ... groupBy) {
+    Objects.requireNonNull(projections, "groupBy");
+    return addGroupBy(Arrays.asList(groupBy));
+  }
+
   public List<Expression> groupBy() {
     return this.groupBy;
   }

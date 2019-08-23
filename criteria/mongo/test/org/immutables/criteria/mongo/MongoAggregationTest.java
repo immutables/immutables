@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria.mongo;
 
-import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.personmodel.PersonAggregationTest;
+import org.junit.Rule;
+import org.junit.rules.RuleChain;
 
-public interface ExpressionNaming extends NamingStrategy<Expression> {
+public class MongoAggregationTest extends PersonAggregationTest  {
 
-  /**
-   * Give a name to a expression
-   */
+  private final MongoResource mongo = MongoResource.create();
+  private final BackendResource backend = new BackendResource(mongo.database());
+
+  @Rule
+  public final RuleChain chain= RuleChain.outerRule(mongo).around(backend);
+
   @Override
-  String name(Expression expression);
-
-  static ExpressionNaming of(NamingStrategy<Expression> delegate) {
-    return delegate::name;
+  protected Backend backend() {
+    return backend.backend();
   }
+
 
 }

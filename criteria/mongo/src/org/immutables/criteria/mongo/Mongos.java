@@ -23,7 +23,7 @@ import org.immutables.criteria.expression.ExpressionConverter;
 /**
  * Util methods for mongo adapter.
  */
-public final class Mongos {
+final class Mongos {
 
   private Mongos() {}
 
@@ -31,7 +31,7 @@ public final class Mongos {
    * Convert existing expression to Bson
    */
   static ExpressionConverter<Bson> converter(PathNaming pathNaming) {
-    return expression -> expression.accept(new MongoQueryVisitor(pathNaming));
+    return expression -> expression.accept(new FindVisitor(pathNaming));
   }
 
 }
