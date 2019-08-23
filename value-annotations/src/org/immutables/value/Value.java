@@ -759,8 +759,8 @@ public @interface Value {
 
     /**
      * This funny-named named attribute, when enabled makes default accessor methods defined in
-     * interfaces/traits to behave as if they annotated as {@literal @}{@link Value.Default}.
-     * This is not a default behaviour to preserve compatibility and also to have an choice to not
+     * interfaces/traits behave as if they annotated as {@literal @}{@link Value.Default}.
+     * This is not a default behaviour to preserve compatibility and also to have a choice to not
      * opt-in for this new functionality when not needed.
      * @return if consider default method accessors as {@literal @}{@code Value.Default}
      */
