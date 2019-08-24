@@ -114,4 +114,18 @@ public class Path implements Expression {
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return visitor.visit(this, context);
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(parent, annotatedElement);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Path path = (Path) o;
+    return Objects.equals(parent, path.parent) &&
+            Objects.equals(annotatedElement, path.annotatedElement);
+  }
 }
