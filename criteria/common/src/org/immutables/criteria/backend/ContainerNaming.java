@@ -24,7 +24,7 @@ import java.util.Objects;
 /**
  * Resolves container name given a class. Container in this context means table, collection, index etc.
  */
-public interface ContainerNaming {
+public interface ContainerNaming extends NamingStrategy<Class<?>> {
 
   /**
    * Resolve container name for a particular type. Container in this context means
@@ -33,6 +33,7 @@ public interface ContainerNaming {
    * @throws UnsupportedOperationException if name can't be derived
    * @return name of the container (never null)
    */
+  @Override
   String name(Class<?> type);
 
   /**
