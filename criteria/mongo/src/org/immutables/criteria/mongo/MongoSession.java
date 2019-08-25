@@ -27,6 +27,7 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
@@ -34,7 +35,6 @@ import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.mongo.codecs.TupleCodecProvider;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -47,10 +47,12 @@ class MongoSession implements Backend.Session {
 
   private final ExpressionConverter<Bson> converter;
   private final MongoCollection<?> collection;
+  private final PathNaming pathNaming;
 
-  MongoSession(MongoCollection<?> collection, ExpressionConverter<Bson> converter) {
+  MongoSession(MongoCollection<?> collection,  PathNaming pathNaming) {
     this.collection = Objects.requireNonNull(collection, "collection");
-    this.converter = converter;
+    this.converter = Mongos.converter(pathNaming);
+    this.pathNaming = pathNaming;
   }
 
   private Bson toBson(Query query) {
@@ -82,7 +84,8 @@ class MongoSession implements Backend.Session {
 
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) (hasProjections ?
-            this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(), CodecRegistries.fromProviders(new TupleCodecProvider(query))))
+            this.collection.withDocumentClass(ProjectedTuple.class).withCodecRegistry(CodecRegistries.fromRegistries(this.collection.getCodecRegistry(),
+                    CodecRegistries.fromProviders(new TupleCodecProvider(query, pathNaming))))
             : this.collection);
 
     final FindPublisher<T> find = collection.find(toBson(query));
@@ -103,7 +106,7 @@ class MongoSession implements Backend.Session {
 
     if (hasProjections) {
       List<String> fields = query.projections()
-              .stream().map(p -> Mongos.toMongoFieldName((Path) p))
+              .stream().map(p -> pathNaming.name((Path) p))
               .collect(Collectors.toList());
 
       find.projection(Projections.include(fields));

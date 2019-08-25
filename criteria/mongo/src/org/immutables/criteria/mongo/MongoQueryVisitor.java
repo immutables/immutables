@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
@@ -34,6 +35,7 @@ import org.immutables.criteria.expression.Visitors;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -42,8 +44,11 @@ import java.util.stream.Collectors;
  */
 class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
-  MongoQueryVisitor() {
+  private final PathNaming pathNaming;
+
+  MongoQueryVisitor(PathNaming pathNaming) {
     super(e -> { throw new UnsupportedOperationException(); });
+    this.pathNaming = Objects.requireNonNull(pathNaming, "pathNaming");
   }
 
   @Override
@@ -54,7 +59,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == OptionalOperators.IS_ABSENT || op == OptionalOperators.IS_PRESENT) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = Mongos.toMongoFieldName(Visitors.toPath(args.get(0)));
+      final String field = pathNaming.name(Visitors.toPath(args.get(0)));
       final Bson exists = Filters.and(Filters.exists(field), Filters.ne(field, null));
       return op == OptionalOperators.IS_PRESENT ? exists : Filters.not(exists);
     }
@@ -73,7 +78,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
 
     if (op == IterableOperators.IS_EMPTY || op == IterableOperators.NOT_EMPTY) {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
-      final String field = Mongos.toMongoFieldName(Visitors.toPath(args.get(0)));
+      final String field = pathNaming.name(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
               : Filters.and(Filters.exists(field), Filters.nin(field, Collections.emptyList(), null));
     }
@@ -89,7 +94,7 @@ class MongoQueryVisitor extends AbstractExpressionVisitor<Bson> {
   private Bson binaryCall(Call call) {
     Preconditions.checkArgument(call.operator().arity() == Operator.Arity.BINARY, "%s is not binary", call.operator());
     final Operator op = call.operator();
-    final String field = Mongos.toMongoFieldName(Visitors.toPath(call.arguments().get(0)));
+    final String field = pathNaming.name(Visitors.toPath(call.arguments().get(0)));
     final Object value = Visitors.toConstant(call.arguments().get(1)).value();
     if (op == Operators.EQUAL || op == Operators.NOT_EQUAL) {
       if ("".equals(value) && op == Operators.NOT_EQUAL) {

@@ -16,9 +16,8 @@
 
 package org.immutables.criteria.mongo;
 
-import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.ExpressionConverter;
+import org.immutables.criteria.backend.PathNaming;
 
 import java.util.Objects;
 
@@ -30,17 +29,17 @@ import java.util.Objects;
 public class MongoBackend implements Backend {
 
   private final CollectionResolver resolver;
-  private final ExpressionConverter<Bson> converter;
+  private final PathNaming pathNaming;
 
   public MongoBackend(CollectionResolver resolver) {
     this.resolver = Objects.requireNonNull(resolver, "resolver");
-    this.converter = Mongos.converter();
+    this.pathNaming = new MongoPathNaming();
   }
 
   @Override
   public Session open(Class<?> context) {
     Objects.requireNonNull(context, "context");
-    return new MongoSession(resolver.resolve(context), converter);
+    return new MongoSession(resolver.resolve(context), pathNaming);
   }
 
 }
