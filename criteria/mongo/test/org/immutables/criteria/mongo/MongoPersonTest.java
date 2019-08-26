@@ -16,52 +16,37 @@
 
 package org.immutables.criteria.mongo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.reactivestreams.client.MongoCollection;
-import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.reactivex.Flowable;
 import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
-import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.check.Checkers;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.mongo.bson4jackson.BsonModule;
-import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
-import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Basic tests of mongo adapter
  */
 public class MongoPersonTest extends AbstractPersonTest {
 
-  private static final String COLLECTION_NAME = ContainerNaming.DEFAULT
-          .name(Person.class);
+  private final MongoResource database = MongoResource.create();
+  private final BackendResource backend = new BackendResource(database.database());
 
   @Rule
-  public final MongoResource MONGO = MongoResource.create();
-
-  private MongoCollection<Person> collection;
-
-  private MongoBackend backend;
+  public final RuleChain chain= RuleChain.outerRule(database).around(backend);
 
   @Override
   protected Set<Feature> features() {
@@ -78,30 +63,7 @@ public class MongoPersonTest extends AbstractPersonTest {
 
   @Override
   protected Backend backend() {
-    return backend;
-  }
-
-  @Before
-  public void setUp() {
-
-    final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new BsonModule())
-            .registerModule(new GuavaModule())
-            .registerModule(new Jdk8Module())
-            .registerModule(new IdAnnotationModule());
-
-    final CodecRegistry registry = JacksonCodecs.registryFromMapper(mapper);
-    final MongoDatabase database = MONGO.database()
-            .withCodecRegistry(registry);
-
-    Flowable.fromPublisher(database.createCollection(COLLECTION_NAME))
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertComplete();
-
-    CollectionResolver resolver = CollectionResolver.defaultResolver(database);
-    this.collection = resolver.resolve(Person.class).withDocumentClass(Person.class);
-    this.backend = new MongoBackend(resolver);
+    return backend.backend();
   }
 
   /**
@@ -111,7 +73,7 @@ public class MongoPersonTest extends AbstractPersonTest {
   public void idAttribute() {
     insert(new PersonGenerator().next().withId("id123").withAge(22));
     // query directly
-    final List<BsonDocument> docs = Flowable.fromPublisher(collection
+    final List<BsonDocument> docs = Flowable.fromPublisher(backend.collection(Person.class)
             .withDocumentClass(BsonDocument.class)
             .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
             .find()).toList().blockingGet();
@@ -130,7 +92,7 @@ public class MongoPersonTest extends AbstractPersonTest {
   public void jsr310() {
     insert(new PersonGenerator().next().withDateOfBirth(LocalDate.of(1990, 2, 2)));
     // query directly
-    final List<BsonDocument> docs = Flowable.fromPublisher(collection
+    final List<BsonDocument> docs = Flowable.fromPublisher(backend.collection(Person.class)
             .withDocumentClass(BsonDocument.class)
             .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
             .find()).toList().blockingGet();

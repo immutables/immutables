@@ -75,7 +75,7 @@ public abstract class AbstractPersonTest {
   protected abstract Set<Feature> features();
 
   /**
-   * Exposted repository
+   * Backend instantiated by subclasses
    */
   protected abstract Backend backend();
 
