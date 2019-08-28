@@ -19,7 +19,9 @@ package org.immutables.criteria.expression;
 import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A constant. {@code true}, {@code 1}, {@code "foo"}, {@code null} etc.
@@ -27,9 +29,11 @@ import java.util.List;
 public final class Constant implements Expression {
 
   private final Object value;
+  private final Class<?> type;
 
-  private Constant(Object value) {
+  private Constant(Object value, Class<?> type) {
     this.value = value;
+    this.type = Objects.requireNonNull(type, "type");
   }
 
   /**
@@ -59,13 +63,25 @@ public final class Constant implements Expression {
     return ImmutableList.of(value);
   }
 
+  public static Constant of(Object value, Class<?> type) {
+    return new Constant(value, type);
+  }
+
   public static Constant of(Object value) {
-    return new Constant(value);
+    if (value == null) {
+      throw new NullPointerException(String.format("value is null. Use %s.of(Object, Class<?>)", Constant.class.getSimpleName()));
+    }
+    return of(value, value.getClass());
   }
 
   @Nullable
   @Override
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return visitor.visit(this, context);
+  }
+
+  @Override
+  public Type returnType() {
+    return type;
   }
 }

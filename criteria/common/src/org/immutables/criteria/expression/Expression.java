@@ -17,6 +17,7 @@
 package org.immutables.criteria.expression;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 
 /**
  * Expression is a <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a> (IR)
@@ -33,5 +34,11 @@ public interface Expression {
   default <R> R accept(ExpressionVisitor<R> visitor) {
     return accept(Expressions.toBiVisitor(visitor), null);
   }
+
+  /**
+   * Java type (possibly with generics) for this expression
+   * @return type representing this expression.
+   */
+  Type returnType();
 
 }

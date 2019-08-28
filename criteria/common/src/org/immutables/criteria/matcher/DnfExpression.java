@@ -23,6 +23,7 @@ import org.immutables.criteria.expression.ExpressionBiVisitor;
 import org.immutables.criteria.expression.Expressions;
 
 import javax.annotation.Nullable;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,5 +104,10 @@ class DnfExpression implements Expression {
   @Override
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return simplify().accept(visitor, context);
+  }
+
+  @Override
+  public Type returnType() {
+    return simplify().returnType();
   }
 }

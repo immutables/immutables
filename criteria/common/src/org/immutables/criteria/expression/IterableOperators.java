@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import java.lang.reflect.Type;
+
 public enum IterableOperators implements Operator {
 
   /**
@@ -63,4 +65,10 @@ public enum IterableOperators implements Operator {
   public Arity arity() {
     return arity;
   }
+
+  @Override
+  public Type returnType() {
+    return Boolean.class;
+  }
+
 }

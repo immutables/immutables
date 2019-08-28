@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import java.lang.reflect.Type;
+
 public enum StringOperators implements Operator {
 
   /**
@@ -53,5 +55,10 @@ public enum StringOperators implements Operator {
   @Override
   public Arity arity() {
     return arity;
+  }
+
+  @Override
+  public Type returnType() {
+    return Boolean.class;
   }
 }

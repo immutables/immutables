@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.expression;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 
 public enum AggregationOperators implements Operator {
@@ -35,6 +36,11 @@ public enum AggregationOperators implements Operator {
   @Override
   public Arity arity() {
     return arity;
+  }
+
+  @Override
+  public Type returnType() {
+    return Number.class;
   }
 
   public static boolean isAggregation(Operator operator) {

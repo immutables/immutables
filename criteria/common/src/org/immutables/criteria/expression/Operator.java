@@ -16,6 +16,8 @@
 
 package org.immutables.criteria.expression;
 
+import java.lang.reflect.Type;
+
 /**
  * Marker interface for now.
  * Operators can be {@code >}, {@code min}, {@code abs} etc.
@@ -32,6 +34,11 @@ public interface Operator {
    * @see <a href="https://en.wikipedia.org/wiki/Arity">Arity</a>
    */
   Arity arity();
+
+  /**
+   * Default result type of applying this operator
+   */
+  Type returnType();
 
   /**
    * Arity is number of arguments current operator takes.

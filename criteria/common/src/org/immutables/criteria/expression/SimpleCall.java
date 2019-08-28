@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,6 +52,11 @@ class SimpleCall implements Call {
   @Override
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return visitor.visit(this, context);
+  }
+
+  @Override
+  public Type returnType() {
+    return operator.returnType();
   }
 
   @Override

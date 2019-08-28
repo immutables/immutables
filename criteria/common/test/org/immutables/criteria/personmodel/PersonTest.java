@@ -28,6 +28,10 @@ public class PersonTest {
   public void collection() {
     PersonCriteria crit = PersonCriteria.person
             .pets.any().name.notEmpty()
+            .age.atLeast(11)
+            .fullName.startsWith("John")
+            .isActive.isTrue()
+
             .age.atMost(22)
             .isActive.isFalse()
             .interests.none().startsWith("foo")

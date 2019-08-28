@@ -21,7 +21,10 @@ import com.google.common.collect.ImmutableList;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Field;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,10 +38,25 @@ public class Path implements Expression {
 
   private final Path parent;
   private final AnnotatedElement annotatedElement;
+  private final Type returnType;
 
   Path(Path parent, AnnotatedElement annotatedElement) {
     this.parent = parent;
     this.annotatedElement = Objects.requireNonNull(annotatedElement, "annotatedElement");
+    this.returnType = extractReturnType(annotatedElement);
+  }
+
+  private static Type extractReturnType(AnnotatedElement element) {
+    Objects.requireNonNull(element, "element");
+    if (element instanceof Field)  {
+      return ((Field) element).getGenericType();
+    } else if (element instanceof Method) {
+      return ((Method) element).getGenericReturnType();
+    } else if (element instanceof Class) {
+      return (Class<?>) element;
+    }
+
+    throw new IllegalArgumentException(String.format("%s should be %s or %s but was %s", element.getClass().getName(), Field.class.getSimpleName(), Method.class.getSimpleName(), element));
   }
 
   public Optional<Path> parent() {
@@ -113,6 +131,11 @@ public class Path implements Expression {
   @Override
   public <R, C> R accept(ExpressionBiVisitor<R, C> visitor, @Nullable C context) {
     return visitor.visit(this, context);
+  }
+
+  @Override
+  public Type returnType() {
+    return returnType;
   }
 
   @Override

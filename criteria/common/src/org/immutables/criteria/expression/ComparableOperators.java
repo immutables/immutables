@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.expression;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -41,6 +42,11 @@ public enum ComparableOperators implements Operator {
   @Override
   public Arity arity() {
     return arity;
+  }
+
+  @Override
+  public Type returnType() {
+    return Boolean.class;
   }
 
   public static boolean isComparable(Operator operator) {
