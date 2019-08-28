@@ -22,6 +22,9 @@ package org.immutables.criteria.backend;
  */
 public interface NamingStrategy<T> {
 
-  String name(T value);
+  /**
+   * Give a generic or specific name to an entity
+   */
+  String name(T toName);
 
 }

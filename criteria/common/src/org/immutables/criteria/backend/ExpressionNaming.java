@@ -16,21 +16,14 @@
 
 package org.immutables.criteria.backend;
 
-import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.expression.Expression;
 
-/**
- * Strategy to name {@link Path}s (represent as String).
- *
- * @see org.immutables.criteria.Criteria.Id
- */
-public interface PathNaming extends NamingStrategy<Path> {
+public interface ExpressionNaming extends NamingStrategy<Expression> {
 
   /**
-   * Return name of a field (aka {@link Path}) like {@code a.b.c} or {@code _id}.
-   * Should take in consideration {@code ID} naming properties of the backend.
-   * @param path
-   * @return path representation as string
+   * Give a name to a expression
    */
   @Override
-  String name(Path path);
+  String name(Expression expression);
+
 }
