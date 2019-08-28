@@ -72,7 +72,7 @@ class TupleCodecProvider implements CodecProvider {
 
     private FieldDecoder(Path path, String name, CodecRegistry registry) {
       this.mongoField = name;
-      this.type = Expressions.returnType(path);
+      this.type = path.returnType();
       this.decoder = SimpleRegistry.of(registry).get(TypeToken.of(type));
     }
 

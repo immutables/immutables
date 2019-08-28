@@ -50,8 +50,8 @@ public final class Expressions {
     return reduce(Operators.OR, expressions);
   }
 
-  public static Type returnType(Path path) {
-    return path.returnType();
+  public static Expression aggregation(AggregationOperators operator, Type returnType, Expression expression) {
+    return new AggregationCall(ImmutableList.of(expression), operator, returnType);
   }
 
   public static Query root(Class<?> entityClass) {

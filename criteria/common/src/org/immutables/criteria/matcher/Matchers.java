@@ -16,14 +16,22 @@
 
 package org.immutables.criteria.matcher;
 
+import com.google.common.base.Preconditions;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +53,43 @@ public final class Matchers {
             .filter(Objects::nonNull)
             .collect(Collectors.toList());
 
+  }
+
+  /**
+   * Gets generic type variable of an interface at runtime using reflection API.
+   */
+  static Type genericTypeOf(Object from, Class<?> searchFor) {
+    Objects.requireNonNull(from, "from");
+    Objects.requireNonNull(searchFor, "searchFor");
+    Preconditions.checkArgument(searchFor.isInterface(), "%s not an interface", searchFor);
+    final Class<?> start = from.getClass();
+    Set<Class<?>> visited = new HashSet<>();
+    Deque<Class<?>> toVisit = new ArrayDeque<>();
+    toVisit.push(start);
+    while (!toVisit.isEmpty()) {
+      Class<?> type = toVisit.pop();
+      if (Arrays.asList(type.getInterfaces()).contains(searchFor)) {
+        for (Type genericType: type.getGenericInterfaces()) {
+          if ((genericType instanceof ParameterizedType) && ((ParameterizedType) genericType).getRawType().equals(searchFor)) {
+            ParameterizedType parameterized = (ParameterizedType) genericType;
+            Type[] args = parameterized.getActualTypeArguments();
+            if (args.length != 1) {
+              throw new IllegalArgumentException(String.format("While extracting generic type of %s. Expected single generic variable for %s but got %d: %s", searchFor, genericType, args.length, Arrays.asList(args)));
+            }
+            return args[0];
+          }
+        }
+      }
+
+      // continue searching
+      if (visited.add(type)) {
+        Set<Class<?>> candidates = new HashSet<>(Arrays.asList(type.getInterfaces()));
+        candidates.removeAll(visited);
+        toVisit.addAll(candidates);
+      }
+    }
+
+    throw new IllegalArgumentException(String.format("Couldn't find %s in type-hierarchy of %s", searchFor, start));
   }
 
   public static Expression toExpression(Projection<?> projection) {

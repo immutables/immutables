@@ -71,7 +71,7 @@ class ToTupleConverter implements JsonConverter<ProjectedTuple>  {
       this.path =  path;
       this.mapper = mapper;
       this.pathAsString = path.toStringPath();
-      this.javaType = mapper.getTypeFactory().constructType(Expressions.returnType(path));
+      this.javaType = mapper.getTypeFactory().constructType(path.returnType());
     }
 
     Object convert(JsonNode json) {
