@@ -25,6 +25,7 @@ import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.mongodb.client.model.Filters;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
+import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonInt32;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -60,11 +62,13 @@ public class JacksonCodecsTest {
           .localDate(LocalDate.now())
           .pattern(Pattern.compile("a.*b"))
           .objectId(ObjectId.get())
+          .uuid(UUID.randomUUID())
           .putMap("key1", "val1")
           .addStringSet("one")
           .intArray(1)
           .addIntList(4, 5, 6)
           .document(new Document("docKey", 42))
+          .bsonDocument(new BsonDocument("one", new BsonDocument("two", new BsonDateTime(12345L))))
           .build();
 
   private final ObjectMapper mapper = new ObjectMapper()
@@ -169,11 +173,13 @@ public class JacksonCodecsTest {
       LocalDate localDate();
       Pattern pattern();
       ObjectId objectId();
+      UUID uuid();
       Set<String> stringSet();
       Map<String, String> map();
       int[] intArray();
       List<Integer> intList();
       Document document();
+      BsonDocument bsonDocument();
   }
 
 }

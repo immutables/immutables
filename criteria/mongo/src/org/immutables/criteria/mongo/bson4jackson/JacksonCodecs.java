@@ -20,8 +20,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -41,11 +39,12 @@ import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.annotations.Beta;
-import org.bson.AbstractBsonReader;
 import org.bson.BsonDocument;
 import org.bson.BsonReader;
+import org.bson.BsonValue;
 import org.bson.BsonWriter;
 import org.bson.Document;
+import org.bson.RawBsonDocument;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
@@ -53,11 +52,12 @@ import org.bson.codecs.configuration.CodecConfigurationException;
 import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 import org.immutables.criteria.mongo.Wrapper;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Utility class to convert to / from {@link CodecRegistry} and {@link ObjectMapper}.
@@ -67,23 +67,21 @@ import java.util.Objects;
 @Beta
 public final class JacksonCodecs {
 
-  private JacksonCodecs() {}
+  /**
+   * Selects native BSON codec for ser/deser
+   */
+  private static final Predicate<JavaType> IS_BSON_TYPE = type -> {
+    Class<?> raw = type.getRawClass();
+    return BsonValue.class.isAssignableFrom(raw) || Document.class.isAssignableFrom(raw) || Bson.class.isAssignableFrom(raw);
+  };
+
 
   /**
    * Create {@link CodecRegistry} adapter on the top of existing mapper instance
    */
   public static CodecRegistry registryFromMapper(final ObjectMapper mapper) {
     Objects.requireNonNull(mapper, "mapper");
-    return new CodecRegistry() {
-      @Override
-      public <T> Codec<T> get(final Class<T> clazz) {
-        final JavaType javaType = mapper.getTypeFactory().constructType(clazz);
-        if (!mapper.canSerialize(clazz) || !mapper.canDeserialize(javaType)) {
-          throw new CodecConfigurationException(String.format("%s (javaType: %s) not supported by Jackson Mapper", clazz, javaType));
-        }
-        return new JacksonCodec<>(clazz, mapper);
-      }
-    };
+    return CodecRegistries.fromRegistries(new NativeCodecRegistry(mapper), JacksonCodecRegistry.of(mapper));
   }
 
   private static <T> Codec<T> findCodecOrNull(CodecRegistry registry, Class<T> type) {
@@ -126,8 +124,7 @@ public final class JacksonCodecs {
 
       @Override
       public JsonSerializer<?> findMapSerializer(SerializationConfig config, MapType type, BeanDescription beanDesc, JsonSerializer<Object> keySerializer, TypeSerializer elementTypeSerializer, JsonSerializer<Object> elementValueSerializer) {
-        final Class<?> raw = type.getRawClass();
-        if (BsonDocument.class.isAssignableFrom(raw) || Document.class.isAssignableFrom(raw)) {
+        if (IS_BSON_TYPE.test(type)) {
           Codec<?> codec = findCodecOrNull(registry, type.getRawClass());
           return codec == null ? null : serializer(codec);
         }
@@ -147,8 +144,7 @@ public final class JacksonCodecs {
 
       @Override
       public JsonDeserializer<?> findMapDeserializer(MapType type, DeserializationConfig config, BeanDescription beanDesc, KeyDeserializer keyDeserializer, TypeDeserializer elementTypeDeserializer, JsonDeserializer<?> elementDeserializer) throws JsonMappingException {
-        final Class<?> raw = type.getRawClass();
-        if (BsonDocument.class.isAssignableFrom(raw) || Document.class.isAssignableFrom(raw)) {
+        if (IS_BSON_TYPE.test(type)) {
           Codec<?> codec = findCodecOrNull(registry, type.getRawClass());
           return codec == null ? null : deserializer(codec);
         }
@@ -167,7 +163,7 @@ public final class JacksonCodecs {
   /**
    * Create module from existing registry
    */
-  public static Module module(final CodecRegistry registry) {
+  private static Module module(final CodecRegistry registry) {
     Objects.requireNonNull(registry, "registry");
     return new Module() {
       @Override
@@ -195,56 +191,28 @@ public final class JacksonCodecs {
     };
   }
 
-  private static class CodecSerializer<T> extends StdSerializer<T> {
+  static class CodecSerializer<T> extends StdSerializer<T> {
 
     private final Codec<T> codec;
 
     private CodecSerializer(Codec<T> codec) {
       super(codec.getEncoderClass());
-      this.codec = codec;
+      this.codec = Objects.requireNonNull(codec, "codec");
     }
 
     @Override
-    public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+    public void serialize(T value, JsonGenerator gen, SerializerProvider serializers) {
       BsonWriter writer = ((BsonGenerator) gen).unwrap();
       codec.encode(writer, value, EncoderContext.builder().build());
     }
-  }
 
-  private static class JacksonCodec<T> implements Codec<T> {
-
-    private final Class<T> clazz;
-    private final ObjectMapper mapper;
-
-    private JacksonCodec(Class<T> clazz, ObjectMapper mapper) {
-      this.clazz = Objects.requireNonNull(clazz, "clazz");
-      this.mapper = Objects.requireNonNull(mapper, "mapper");
-    }
-
-    @Override
-    public T decode(BsonReader reader, DecoderContext decoderContext) {
-      final IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
-      final BsonParser parser = new BsonParser(ioContext, 0, (AbstractBsonReader) reader);
-      try {
-        return mapper.readValue(parser, getEncoderClass());
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
-    }
-
-    @Override
-    public void encode(BsonWriter writer, T value, EncoderContext encoderContext) {
-      final BsonGenerator generator = new BsonGenerator(0, mapper, writer);
-      try {
-        mapper.writerFor(getEncoderClass()).writeValue(generator, value);
-      } catch (IOException e) {
-        throw new UncheckedIOException("Couldn't serialize [" + value + "] as " + getEncoderClass(), e);
-      }
-    }
-
-    @Override
-    public Class<T> getEncoderClass() {
-      return clazz;
+    /**
+     * Expose original codec for BSON read/write pass-through
+     */
+    Codec<T> codec() {
+      return codec;
     }
   }
+
+  private JacksonCodecs() {}
 }
