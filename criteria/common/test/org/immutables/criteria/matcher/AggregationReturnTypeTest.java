@@ -17,6 +17,7 @@
 package org.immutables.criteria.matcher;
 
 import com.google.common.reflect.TypeToken;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Optional;
@@ -24,7 +25,11 @@ import java.util.OptionalDouble;
 
 import static org.immutables.check.Checkers.check;
 
-public class MatchersTest {
+/**
+ * Validation of generic type variable (at runtime) returned from aggregation types.
+ * These types are used during deserialization for aggregated query result: {@code select avg(age) from users}
+ */
+public class AggregationReturnTypeTest {
 
   private static class Dummy implements Aggregation.Count<Long>, Aggregation.Avg<OptionalDouble>, Aggregation.Min<Optional<Double>>, Aggregation.Sum<Integer> {}
 
@@ -35,5 +40,13 @@ public class MatchersTest {
     check(Matchers.genericTypeOf(dummy, Aggregation.Avg.class)).is(OptionalDouble.class);
     check(Matchers.genericTypeOf(dummy, Aggregation.Min.class)).is(new TypeToken<Optional<Double>>() {}.getType());
     check(Matchers.genericTypeOf(dummy, Aggregation.Sum.class)).is(Integer.class);
+  }
+
+  @Ignore("not yet working")
+  @Test
+  public void type2() {
+    class Dummy2 implements OptionalNumberMatcher.Template<Void, Long> {}
+    check(Matchers.genericTypeOf(new Dummy2(), Aggregation.Max.class)).is(Number.class);
+    check(Matchers.genericTypeOf(new Dummy2(), Aggregation.Min.class)).is(Number.class);
   }
 }
