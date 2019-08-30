@@ -21,7 +21,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
-import org.immutables.criteria.backend.NamingStrategy;
+import org.immutables.criteria.NamingStrategy;
 
 import java.util.Iterator;
 import java.util.Objects;

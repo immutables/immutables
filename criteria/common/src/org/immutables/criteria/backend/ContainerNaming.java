@@ -18,6 +18,7 @@ package org.immutables.criteria.backend;
 
 import com.google.common.base.CaseFormat;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.NamingStrategy;
 
 import java.util.Objects;
 

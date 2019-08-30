@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria;
 
 /**
  * Allows to name things like {@code Path}, {@code Container} etc.
@@ -24,6 +24,8 @@ public interface NamingStrategy<T> {
 
   /**
    * Give a generic or specific name to an entity
+   * @param toName instance to name
+   * @return string representation of {@code toName}
    */
   String name(T toName);
 
