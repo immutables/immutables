@@ -102,9 +102,9 @@ public abstract class PersonAggregationTest {
     check(repository().findAll()
             .orderBy(person.nickName.desc())
             .groupBy(person.nickName)
-            .select(person.nickName, person.age.max(), person.age.min(), person.age.count())
-            .map((nickName, max, min, count) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count)))
-            .isOf("nick=b max=40 min=40 count=1", "nick=a max=30 min=20 count=2", "nick=null max=10 min=10 count=1");
+            .select(person.nickName, person.age.max(), person.age.min(), person.age.count(), person.age.sum())
+            .map((nickName, max, min, count, sum) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count + " sum=" + sum.intValue())))
+            .isOf("nick=b max=40 min=40 count=1 sum=40", "nick=a max=30 min=20 count=2 sum=50", "nick=null max=10 min=10 count=1 sum=10");
 
   }
 
