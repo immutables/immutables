@@ -87,7 +87,9 @@ public interface StringMatcher<R> extends ComparableMatcher<R, String> {
    */
   interface Self extends Template<Self>, Disjunction<StringMatcher<Self>> {}
 
-  interface Template<R> extends StringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<String>, Aggregation.ComparableAggregation<String> {}
+  interface Template<R> extends StringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<String>, AggregationTemplate {}
+
+  interface AggregationTemplate extends Aggregation.Count, Aggregation.Min<String>, Aggregation.Max<String> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

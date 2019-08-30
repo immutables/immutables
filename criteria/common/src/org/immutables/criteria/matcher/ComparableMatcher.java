@@ -22,6 +22,7 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**
@@ -69,7 +70,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    * Checks that attribute is in {@code [lower, upper]} range (lower included, upper included).
    * (equivalent to {@code lowerInclusive <= $this <= upperInclusive})
    * @param lowerInclusive lower value (inclusive)
-   * @param upperInclusive upper value (inclusive)
+   * @param AggregationReturnTypeTest.javaupperInclusive upper value (inclusive)
    */
   default R between(V lowerInclusive, V upperInclusive) {
     Objects.requireNonNull(lowerInclusive, "lowerInclusive");
@@ -88,7 +89,9 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    */
   interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
-  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<V>, Aggregation.ComparableAggregation<V> {}
+  interface Template<R, V extends Comparable<? super V>> extends ComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<V>, AggregationTemplate<V> {}
+
+  interface AggregationTemplate<V> extends Aggregation.Count, Aggregation.Max<V>, Aggregation.Min<V> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

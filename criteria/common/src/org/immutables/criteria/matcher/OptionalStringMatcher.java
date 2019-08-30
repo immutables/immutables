@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.matcher;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -27,7 +26,9 @@ public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsen
 
   interface Self extends Template<Self>, Disjunction<OptionalStringMatcher<Self>> {}
 
-  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>>, Aggregation.OptionalComparableAggregation<String> {}
+  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>>, AggregationTemplate {}
+
+  interface AggregationTemplate extends Aggregation.Count, Aggregation.Max<Optional<String>>, Aggregation.Min<Optional<String>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

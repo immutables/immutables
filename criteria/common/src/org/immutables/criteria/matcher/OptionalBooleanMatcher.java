@@ -27,7 +27,7 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
 
   interface Self extends Template<Self> {}
 
-  interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<Boolean>> {}
+  interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<Boolean>>, Aggregation.Count {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

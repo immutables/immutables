@@ -17,6 +17,7 @@
 package org.immutables.criteria.matcher;
 
 import java.util.Optional;
+import java.util.OptionalDouble;
 
 /**
  * Intersection type between {@link OptionalMatcher} and {@link NumberMatcher}.
@@ -34,7 +35,9 @@ public interface OptionalNumberMatcher<R, V extends Number & Comparable<? super 
   interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
 
   interface Template<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.OptionalNumberAggregation<V> {}
+          NotMatcher<R, Self<V>>, Projection<Optional<V>>, AggregationTemplate<V> {}
+
+  interface AggregationTemplate<V> extends Aggregation.Count, Aggregation.Min<Optional<V>>, Aggregation.Max<Optional<V>>, Aggregation.Sum<OptionalDouble>, Aggregation.Avg<OptionalDouble> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

@@ -33,7 +33,7 @@ public class AggregationReturnTypeTest {
 
   @Test
   public void basic() {
-    class Dummy implements Aggregation.Count<Long>, Aggregation.Avg<OptionalDouble>, Aggregation.Min<Optional<Double>>, Aggregation.Sum<Integer> {}
+    class Dummy implements Aggregation.Count, Aggregation.Avg<OptionalDouble>, Aggregation.Min<Optional<Double>>, Aggregation.Sum<Integer> {}
 
     check(Matchers.aggregationType(Dummy.class, Aggregation.Count.class, "count")).is(Long.class);
     check(Matchers.aggregationType(Dummy.class, Aggregation.Avg.class, "avg")).is(OptionalDouble.class);

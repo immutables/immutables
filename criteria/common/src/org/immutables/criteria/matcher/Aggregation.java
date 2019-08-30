@@ -19,24 +19,7 @@ package org.immutables.criteria.matcher;
 import org.immutables.criteria.expression.AggregationOperators;
 import org.immutables.criteria.expression.Expressions;
 
-import java.util.Optional;
-import java.util.OptionalDouble;
-
 public interface Aggregation<T> extends Projection<T> {
-
-  interface ObjectAggregation extends Count<Long> {}
-
-  interface ComparableAggregation<T> extends Min<T>, Max<T>, ObjectAggregation {}
-
-  interface NumberAggregation<T> extends ComparableAggregation<T>, Avg<Double>, Sum<Double> {}
-
-  interface OptionalComparableAggregation<T> extends ComparableAggregation<Optional<T>>  {}
-
-  interface NullableComparableAggregation<T> extends ComparableAggregation<T> {}
-
-  interface OptionalNumberAggregation<T> extends OptionalComparableAggregation<T>, Avg<OptionalDouble>, Sum<OptionalDouble> {}
-
-  interface NullableNumberAggregation<T> extends NullableComparableAggregation<T>, Avg<Double>, Sum<Double> {}
 
   interface Min<T> {
     default Aggregation<T> min() {
@@ -50,9 +33,9 @@ public interface Aggregation<T> extends Projection<T> {
     }
   }
 
-  interface Count<T>  {
-    default Aggregation<T> count() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.COUNT, Matchers.aggregationType(getClass(), Count.class, "count"), e)).createWith(creator());
+  interface Count  {
+    default Aggregation<Long> count() {
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.COUNT, Long.class, e)).createWith(creator());
     }
   }
 
