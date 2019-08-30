@@ -67,7 +67,7 @@ public abstract class PersonAggregationTest {
     check(repository().findAll()
             .orderBy(person.nickName.desc())
             .groupBy(person.nickName)
-            .select(person.nickName, person.age.count())
+            .select(person.nickName, person.age.max())
             .map((nickName, age) -> true) // ignore
     ).isEmpty();
   }
@@ -98,6 +98,13 @@ public abstract class PersonAggregationTest {
             .select(person.nickName, person.age.count())
             .map((nickName, age) -> (nickName.orElse(null) + "." + age)))
             .isOf("b.1", "a.2", "null.1");
+
+    check(repository().findAll()
+            .orderBy(person.nickName.desc())
+            .groupBy(person.nickName)
+            .select(person.nickName, person.age.max(), person.age.min(), person.age.count())
+            .map((nickName, max, min, count) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count)))
+            .isOf("nick=b max=40 min=40 count=1", "nick=a max=30 min=20 count=2", "nick=null max=10 min=10 count=1");
 
   }
 
