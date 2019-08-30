@@ -34,37 +34,37 @@ public interface Aggregation<T> extends Projection<T> {
 
   interface NullableComparableAggregation<T> extends ComparableAggregation<T> {}
 
-  interface OptionalNumberAggregation<T> extends OptionalComparableAggregation<Optional<T>>, Avg<OptionalDouble>, Sum<OptionalDouble> {}
+  interface OptionalNumberAggregation<T> extends OptionalComparableAggregation<T>, Avg<OptionalDouble>, Sum<OptionalDouble> {}
 
   interface NullableNumberAggregation<T> extends NullableComparableAggregation<T>, Avg<Double>, Sum<Double> {}
 
   interface Min<T> {
     default Aggregation<T> min() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MIN, Matchers.genericTypeOf(this, Min.class), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MIN, Matchers.aggregationType(getClass(), Min.class, "min"), e)).createWith(creator());
     }
   }
 
   interface Max<T>  {
     default Aggregation<T> max() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MAX, Matchers.genericTypeOf(this, Max.class), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MAX, Matchers.aggregationType(getClass(), Max.class, "max"), e)).createWith(creator());
     }
   }
 
   interface Count<T>  {
     default Aggregation<T> count() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.COUNT, Matchers.genericTypeOf(this, Count.class), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.COUNT, Matchers.aggregationType(getClass(), Count.class, "count"), e)).createWith(creator());
     }
   }
 
   interface Avg<T> {
     default Aggregation<T> avg() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.AVG, Matchers.genericTypeOf(this, Avg.class), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.AVG, Matchers.aggregationType(getClass(), Avg.class, "avg"), e)).createWith(creator());
     }
   }
 
   interface Sum<T> {
     default Aggregation<T> sum() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.SUM, Matchers.genericTypeOf(this, Sum.class), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.SUM, Matchers.aggregationType(getClass(), Sum.class, "sum"), e)).createWith(creator());
     }
   }
 

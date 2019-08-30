@@ -17,11 +17,11 @@
 package org.immutables.criteria.matcher;
 
 import com.google.common.reflect.TypeToken;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.UUID;
 
 import static org.immutables.check.Checkers.check;
 
@@ -31,22 +31,81 @@ import static org.immutables.check.Checkers.check;
  */
 public class AggregationReturnTypeTest {
 
-  private static class Dummy implements Aggregation.Count<Long>, Aggregation.Avg<OptionalDouble>, Aggregation.Min<Optional<Double>>, Aggregation.Sum<Integer> {}
-
   @Test
-  public void genericType() {
-    Dummy dummy = new Dummy();
-    check(Matchers.genericTypeOf(dummy, Aggregation.Count.class)).is(Long.class);
-    check(Matchers.genericTypeOf(dummy, Aggregation.Avg.class)).is(OptionalDouble.class);
-    check(Matchers.genericTypeOf(dummy, Aggregation.Min.class)).is(new TypeToken<Optional<Double>>() {}.getType());
-    check(Matchers.genericTypeOf(dummy, Aggregation.Sum.class)).is(Integer.class);
+  public void basic() {
+    class Dummy implements Aggregation.Count<Long>, Aggregation.Avg<OptionalDouble>, Aggregation.Min<Optional<Double>>, Aggregation.Sum<Integer> {}
+
+    check(Matchers.aggregationType(Dummy.class, Aggregation.Count.class, "count")).is(Long.class);
+    check(Matchers.aggregationType(Dummy.class, Aggregation.Avg.class, "avg")).is(OptionalDouble.class);
+    check(Matchers.aggregationType(Dummy.class, Aggregation.Min.class, "min")).is(new TypeToken<Optional<Double>>() {}.getType());
+    check(Matchers.aggregationType(Dummy.class, Aggregation.Sum.class, "sum")).is(Integer.class);
   }
 
-  @Ignore("not yet working")
   @Test
-  public void type2() {
-    class Dummy2 implements OptionalNumberMatcher.Template<Void, Long> {}
-    check(Matchers.genericTypeOf(new Dummy2(), Aggregation.Max.class)).is(Number.class);
-    check(Matchers.genericTypeOf(new Dummy2(), Aggregation.Min.class)).is(Number.class);
+  public void number() {
+    class MyNumber implements NumberMatcher.Template<Void, Long> {}
+    check(Matchers.aggregationType(MyNumber.class, Aggregation.Max.class, "max")).is(Long.class);
+    check(Matchers.aggregationType(MyNumber.class, Aggregation.Min.class, "min")).is(Long.class);
+    check(Matchers.aggregationType(MyNumber.class, Aggregation.Sum.class, "sum")).is(Double.class);
+    check(Matchers.aggregationType(MyNumber.class, Aggregation.Avg.class, "avg")).is(Double.class);
+    check(Matchers.aggregationType(MyNumber.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void optionalNumber() {
+    class MyOptionalNumber implements OptionalNumberMatcher.Template<Void, Long> {}
+    check(Matchers.aggregationType(MyOptionalNumber.class, Aggregation.Min.class, "min")).is(new TypeToken<Optional<Long>>() {}.getType());
+    check(Matchers.aggregationType(MyOptionalNumber.class, Aggregation.Max.class, "max")).is(new TypeToken<Optional<Long>>() {}.getType());
+    check(Matchers.aggregationType(MyOptionalNumber.class, Aggregation.Sum.class, "sum")).is(OptionalDouble.class);
+    check(Matchers.aggregationType(MyOptionalNumber.class, Aggregation.Avg.class, "avg")).is(OptionalDouble.class);
+    check(Matchers.aggregationType(MyOptionalNumber.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void comparable() {
+    class MyTemplate implements ComparableMatcher.Template<Void, String> {}
+
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Min.class, "min")).is(String.class);
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Max.class, "max")).is(String.class);
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void optionalComparable() {
+    class MyTemplate implements OptionalComparableMatcher.Template<Void, UUID> {}
+
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Min.class, "min")).is(new TypeToken<Optional<UUID>>() {}.getType());
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Max.class, "max")).is(new TypeToken<Optional<UUID>>() {}.getType());
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void object() {
+    class MyTemplate implements ObjectMatcher.Template<Void, String> {}
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void booleanMatcher() {
+    class MyTemplate implements BooleanMatcher.Template {}
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void string() {
+    class MyTemplate implements StringMatcher.Template<Void> {}
+
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Min.class, "min")).is(String.class);
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Max.class, "max")).is(String.class);
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
+  }
+
+  @Test
+  public void optionalString() {
+    class MyTemplate implements OptionalStringMatcher.Template<Void> {}
+
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Min.class, "min")).is(new TypeToken<Optional<String>>() {}.getType());
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Max.class, "max")).is(new TypeToken<Optional<String>>() {}.getType());
+    check(Matchers.aggregationType(MyTemplate.class, Aggregation.Count.class, "count")).is(Long.class);
   }
 }

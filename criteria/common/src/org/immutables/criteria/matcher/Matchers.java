@@ -17,11 +17,13 @@
 package org.immutables.criteria.matcher;
 
 import com.google.common.base.Preconditions;
+import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -56,40 +58,28 @@ public final class Matchers {
   }
 
   /**
-   * Gets generic type variable of an interface at runtime using reflection API.
+   * Gets generic type variable of aggregation interface.
    */
-  static Type genericTypeOf(Object from, Class<?> searchFor) {
-    Objects.requireNonNull(from, "from");
-    Objects.requireNonNull(searchFor, "searchFor");
-    Preconditions.checkArgument(searchFor.isInterface(), "%s not an interface", searchFor);
-    final Class<?> start = from.getClass();
-    Set<Class<?>> visited = new HashSet<>();
-    Deque<Class<?>> toVisit = new ArrayDeque<>();
-    toVisit.push(start);
-    while (!toVisit.isEmpty()) {
-      Class<?> type = toVisit.pop();
-      if (Arrays.asList(type.getInterfaces()).contains(searchFor)) {
-        for (Type genericType: type.getGenericInterfaces()) {
-          if ((genericType instanceof ParameterizedType) && ((ParameterizedType) genericType).getRawType().equals(searchFor)) {
-            ParameterizedType parameterized = (ParameterizedType) genericType;
-            Type[] args = parameterized.getActualTypeArguments();
-            if (args.length != 1) {
-              throw new IllegalArgumentException(String.format("While extracting generic type of %s. Expected single generic variable for %s but got %d: %s", searchFor, genericType, args.length, Arrays.asList(args)));
-            }
-            return args[0];
-          }
-        }
+  static Type aggregationType(Class<?> from, Class<?> searchFor, String methodName) {
+    try {
+      final Method method = searchFor.getMethod(methodName);
+      Type type = TypeToken.of(from).resolveType(method.getGenericReturnType()).getType();
+      if (!(type instanceof ParameterizedType)) {
+        throw new IllegalArgumentException(String.format("Expected %s for method %s but got %s", ParameterizedType.class.getSimpleName(), searchFor.getSimpleName() + "." + methodName, type));
+      }
+      ParameterizedType parameterized = (ParameterizedType) type;
+      if (parameterized.getRawType() != Aggregation.class) {
+        throw new IllegalArgumentException(String.format("Expected %s but got %s", Aggregation.class, parameterized.getRawType()));
       }
 
-      // continue searching
-      if (visited.add(type)) {
-        Set<Class<?>> candidates = new HashSet<>(Arrays.asList(type.getInterfaces()));
-        candidates.removeAll(visited);
-        toVisit.addAll(candidates);
+      if (parameterized.getActualTypeArguments().length != 1) {
+        throw new IllegalArgumentException(String.format("Expected single type parameter for %s got %d", parameterized, parameterized.getActualTypeArguments().length));
       }
+
+      return parameterized.getActualTypeArguments()[0];
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
     }
-
-    throw new IllegalArgumentException(String.format("Couldn't find %s in type-hierarchy of %s", searchFor, start));
   }
 
   public static Expression toExpression(Projection<?> projection) {
