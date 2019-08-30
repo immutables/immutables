@@ -53,7 +53,7 @@ public class ScrollingTest {
   @BeforeClass
   public static void elasticseachInit() throws Exception {
     ElasticsearchBackend backend = backend();
-    final ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.mapper, 1024);
+    final ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.objectMapper, 1024);
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
@@ -78,7 +78,7 @@ public class ScrollingTest {
   }
 
   private static ElasticsearchBackend backend(int scrollSize) {
-    return new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, x -> "test", scrollSize);
+    return new ElasticsearchBackend(ElasticsearchSetup.builder(RESOURCE.restClient()).objectMapper(MAPPER).resolver(ignore -> "test").scrollSize(scrollSize).build());
   }
 
   @Test
@@ -143,7 +143,7 @@ public class ScrollingTest {
             .performRequest(new Request("GET", "/_nodes/stats/indices/search"));
 
     try (InputStream is = response.getEntity().getContent()) {
-      final ObjectNode node = backend().mapper.readValue(is, ObjectNode.class);
+      final ObjectNode node = backend().objectMapper.readValue(is, ObjectNode.class);
       final String path = "/indices/search/scroll_current";
       final JsonNode scrollCurrent = node.with("nodes").elements().next().at(path);
       if (scrollCurrent.isMissingNode()) {

@@ -44,7 +44,6 @@
             <groupId>org.immutables</groupId>
             <artifactId>value</artifactId>
             <version>${project.version}</version>
-            <scope>test</scope>
             <optional>true</optional>
         </dependency>
         <dependency>

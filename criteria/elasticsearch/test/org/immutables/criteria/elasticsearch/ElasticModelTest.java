@@ -73,7 +73,7 @@ public class ElasticModelTest {
 
   @Before
   public void setupRepository() throws Exception {
-    ElasticsearchBackend backend = new ElasticsearchBackend(RESOURCE.restClient(), MAPPER, x -> INDEX_NAME);
+    ElasticsearchBackend backend = new ElasticsearchBackend(ElasticsearchSetup.builder(RESOURCE.restClient()).objectMapper(MAPPER).resolver(ignore -> INDEX_NAME).build());
     this.repository = new ElasticModelRepository(backend);
   }
 

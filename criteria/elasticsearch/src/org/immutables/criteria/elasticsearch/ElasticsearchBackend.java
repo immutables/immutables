@@ -40,35 +40,26 @@ import java.util.stream.Collectors;
 public class ElasticsearchBackend implements Backend {
 
   final RestClient restClient;
-  final ObjectMapper mapper;
+  final ObjectMapper objectMapper;
   private final IndexResolver resolver;
   private final int scrollSize;
 
-  public ElasticsearchBackend(RestClient restClient,
-                              ObjectMapper mapper,
-                              IndexResolver resolver) {
-    this(restClient, mapper, resolver, 1024);
+  public ElasticsearchBackend(ElasticsearchSetup setup) {
+    Objects.requireNonNull(setup, "setup");
+    this.restClient = setup.restClient();
+    this.objectMapper = setup.objectMapper();
+    this.resolver = setup.resolver();
+    this.scrollSize = setup.scrollSize();
   }
-
-  ElasticsearchBackend(RestClient restClient,
-                              ObjectMapper mapper,
-                              IndexResolver resolver,
-                              int scrollSize) {
-    this.restClient = Objects.requireNonNull(restClient, "restClient");
-    this.mapper = Objects.requireNonNull(mapper, "mapper");
-    this.resolver = Objects.requireNonNull(resolver, "resolver");
-    this.scrollSize = scrollSize;
-  }
-
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     final String index = resolver.resolve(entityType);
-    return new Session(entityType, new ElasticsearchOps(restClient, index, mapper, scrollSize));
+    return new Session(entityType, new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
   }
 
   private static class Session implements Backend.Session {
-    private final ObjectMapper mapper;
+    private final ObjectMapper objectMapper;
     private final ElasticsearchOps ops;
     private final Function<Object, Object> idExtractor;
     private final JsonConverter<Object> converter;
@@ -78,7 +69,7 @@ public class ElasticsearchBackend implements Backend {
     private Session(Class<?> entityClass, ElasticsearchOps ops) {
       Objects.requireNonNull(entityClass, "entityClass");
       this.ops = Objects.requireNonNull(ops, "ops");
-      this.mapper = ops.mapper();
+      this.objectMapper = ops.mapper();
       Function<Object, Object> idExtractor = Function.identity();
       boolean hasId = false;
       try {
@@ -88,7 +79,7 @@ public class ElasticsearchBackend implements Backend {
         // id not supported
       }
       this.idExtractor = idExtractor;
-      this.converter = DefaultConverter.<Object>of(mapper, entityClass);
+      this.converter = DefaultConverter.<Object>of(objectMapper, entityClass);
       this.hasId = hasId;
     }
 
@@ -109,20 +100,20 @@ public class ElasticsearchBackend implements Backend {
       if (!query.groupBy().isEmpty()) {
         throw new UnsupportedOperationException("GroupBy not supported by " + ElasticsearchBackend.class.getSimpleName());
       }
-      final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(mapper).convert(f)).orElseGet(mapper::createObjectNode);
+      final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(objectMapper).convert(f)).orElseGet(objectMapper::createObjectNode);
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));
       if (!query.collations().isEmpty()) {
         final ArrayNode sort = json.withArray("sort");
         query.collations().forEach(c -> {
-          sort.add(mapper.createObjectNode().put(c.path().toStringPath(), c.direction().isAscending() ? "asc" : "desc"));
+          sort.add(objectMapper.createObjectNode().put(c.path().toStringPath(), c.direction().isAscending() ? "asc" : "desc"));
         });
       }
 
       JsonConverter converter = this.converter;
 
       if (!query.projections().isEmpty()) {
-        converter = new ToTupleConverter(query, mapper);
+        converter = new ToTupleConverter(query, objectMapper);
       }
 
       final Flowable<T> flowable;
@@ -143,10 +134,10 @@ public class ElasticsearchBackend implements Backend {
 
       // sets _id attribute (if entity has @Criteria.Id annotation)
       final BiFunction<Object, ObjectNode, ObjectNode> idFn = (entity, node) ->
-              hasId ? (ObjectNode) node.set("_id", mapper.valueToTree(idExtractor.apply(entity))) : node;
+              hasId ? (ObjectNode) node.set("_id", objectMapper.valueToTree(idExtractor.apply(entity))) : node;
 
       final List<ObjectNode> docs = insert.values().stream()
-              .map(e -> idFn.apply(e, mapper.valueToTree(e)))
+              .map(e -> idFn.apply(e, objectMapper.valueToTree(e)))
               .collect(Collectors.toList());
 
       return Flowable.fromCallable(() -> {

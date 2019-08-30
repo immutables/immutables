@@ -25,7 +25,6 @@ import com.google.common.collect.ImmutableMap;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -77,7 +76,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
     ops.createIndex(model);
 
-    this.backend = new ElasticsearchBackend(ELASTIC.restClient(), MAPPER, x -> INDEX_NAME);
+    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).resolver(ignore -> INDEX_NAME).build());
   }
 
   @After
