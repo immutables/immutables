@@ -17,7 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import org.bson.conversions.Bson;
-import org.immutables.criteria.expression.PathNaming;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.ExpressionConverter;
 
 /**

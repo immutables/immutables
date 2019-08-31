@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.expression;
+package org.immutables.criteria.backend;
 
-import org.immutables.criteria.NamingStrategy;
+import org.immutables.criteria.backend.NamingStrategy;
 import org.immutables.criteria.expression.Path;
 
 /**

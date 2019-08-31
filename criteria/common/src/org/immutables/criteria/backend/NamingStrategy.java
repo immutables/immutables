@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.backend;
 
 /**
  * Allows to name things like {@code Path}, {@code Container} etc.

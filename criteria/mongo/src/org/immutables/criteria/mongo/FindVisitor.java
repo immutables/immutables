@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.expression.PathNaming;
+import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.AbstractExpressionVisitor;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.ComparableOperators;
