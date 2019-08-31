@@ -49,8 +49,9 @@ public class GeodeBackend implements Backend {
 
   private final RegionResolver resolver;
 
-  public GeodeBackend(RegionResolver resolver) {
-    this.resolver = Objects.requireNonNull(resolver, "resolver");
+  public GeodeBackend(GeodeSetup setup) {
+    Objects.requireNonNull(setup, "setup");
+    this.resolver = setup.regionResolver();
   }
 
   @Override

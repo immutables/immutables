@@ -86,7 +86,7 @@ public class GeodeCqTest {
   @Test
   public void pubsub() throws Exception {
 
-    PersonRepository repository = new PersonRepository(new GeodeBackend(x -> region));
+    PersonRepository repository = new PersonRepository(new GeodeBackend(GeodeSetup.of(x -> region)));
 
     TestSubscriber<WatchEvent<Person>> events = Flowable.fromPublisher(repository.watcher(PersonCriteria.person).watch())
             .test();

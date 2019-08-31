@@ -52,7 +52,7 @@ public class GeodePersonTest extends AbstractPersonTest  {
   @Before
   public void setUp() throws Exception {
     region.clear();
-    GeodeBackend backend = new GeodeBackend(RegionResolver.defaultResolver(GEODE.cache()));
+    GeodeBackend backend = new GeodeBackend(GeodeSetup.of(RegionResolver.defaultResolver(GEODE.cache())));
     repository = new PersonRepository(backend);
   }
 
