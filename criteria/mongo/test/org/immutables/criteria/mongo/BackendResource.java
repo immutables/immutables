@@ -61,7 +61,7 @@ class BackendResource extends ExternalResource implements AutoCloseable {
     this.registry = JacksonCodecs.registryFromMapper(mapper);
     this.closer = Closer.create();
     this.resolver = new LazyResolver();
-    this.backend = new MongoBackend(resolver);
+    this.backend = new MongoBackend(MongoSetup.of(this.resolver));
   }
 
   public MongoBackend backend() {

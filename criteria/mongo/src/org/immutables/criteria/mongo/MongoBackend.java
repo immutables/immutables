@@ -31,8 +31,9 @@ public class MongoBackend implements Backend {
   private final CollectionResolver resolver;
   private final PathNaming pathNaming;
 
-  public MongoBackend(CollectionResolver resolver) {
-    this.resolver = Objects.requireNonNull(resolver, "resolver");
+  public MongoBackend(MongoSetup setup) {
+    Objects.requireNonNull(setup, "setup");
+    this.resolver = setup.collectionResolver();
     this.pathNaming = new MongoPathNaming();
   }
 
