@@ -55,9 +55,8 @@ public class MongoPersonTest extends AbstractPersonTest {
             Feature.QUERY_WITH_OFFSET, Feature.ORDER_BY, Feature.REGEX,
             Feature.STRING_PREFIX_SUFFIX,
             Feature.ITERABLE_SIZE,
-            Feature.ITERABLE_CONTAINS
-            // Feature.STRING_LENGTH //$strLenCP not supported by mongo-java-server can't be tested in unit test
-            // see https://github.com/bwaldvogel/mongo-java-server/issues/87
+            Feature.ITERABLE_CONTAINS,
+            Feature.STRING_LENGTH
     );
   }
 
