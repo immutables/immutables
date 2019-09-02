@@ -20,7 +20,6 @@ import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.base.GeneratorBase;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
-import org.immutables.criteria.mongo.Wrapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;

@@ -44,8 +44,10 @@ class NativeCodecRegistry implements CodecRegistry  {
 
     try {
       JsonSerializer<?> ser = mapper.getSerializerProviderInstance().findValueSerializer(javaType);
-      if (ser instanceof JacksonCodecs.CodecSerializer) {
-        return ((JacksonCodecs.CodecSerializer<T>) ser).codec();
+      if (ser instanceof Wrapper) {
+        @SuppressWarnings("unchecked")
+        Codec<T> codec = ((Wrapper<Codec<T>>) ser).unwrap();
+        return codec;
       }
     } catch (JsonMappingException e) {
       throw new CodecConfigurationException("Exception for " + javaType, e);

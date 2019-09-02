@@ -30,8 +30,8 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.jsr310.Jsr310CodecProvider;
 
-/*
- * Registers default BSON codecs like {@link ValueCodecProvider} or
+/**
+ * Registers default BSON codecs like {@link BsonValueCodecProvider} or
  * {@link Jsr310CodecProvider} so BSON types can be serialized / deserialized by Jackson in
  * native format.
  */

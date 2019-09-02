@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.mongo;
+package org.immutables.criteria.mongo.bson4jackson;
 
 /**
  * Allows retrieving delegates to access non-standard methods which

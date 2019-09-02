@@ -24,7 +24,6 @@ import com.fasterxml.jackson.core.io.IOContext;
 import org.bson.AbstractBsonReader;
 import org.bson.BsonReader;
 import org.bson.BsonType;
-import org.immutables.criteria.mongo.Wrapper;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;

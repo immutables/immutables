@@ -39,12 +39,10 @@ import com.fasterxml.jackson.databind.ser.Serializers;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.google.common.annotations.Beta;
-import org.bson.BsonDocument;
 import org.bson.BsonReader;
 import org.bson.BsonValue;
 import org.bson.BsonWriter;
 import org.bson.Document;
-import org.bson.RawBsonDocument;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
@@ -53,7 +51,6 @@ import org.bson.codecs.configuration.CodecProvider;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.immutables.criteria.mongo.Wrapper;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -191,7 +188,7 @@ public final class JacksonCodecs {
     };
   }
 
-  static class CodecSerializer<T> extends StdSerializer<T> {
+  static class CodecSerializer<T> extends StdSerializer<T> implements Wrapper<Codec<T>> {
 
     private final Codec<T> codec;
 
@@ -209,7 +206,8 @@ public final class JacksonCodecs {
     /**
      * Expose original codec for BSON read/write pass-through
      */
-    Codec<T> codec() {
+    @Override
+    public Codec<T> unwrap() {
       return codec;
     }
   }
