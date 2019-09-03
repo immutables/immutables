@@ -18,7 +18,7 @@ package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
@@ -56,12 +56,12 @@ public class InMemoryBackend implements Backend {
 
   private static class Session implements Backend.Session {
 
-    private final Function<Object, Object> idExtractor;
+    private final IdExtractor<Object, Object> idExtractor;
     private final Map<Object, Object> store;
 
     private Session(Class<?> entityClass, Map<Object, Object> store) {
       this.store = Objects.requireNonNull(store, "store");
-      this.idExtractor = Backends.idExtractor((Class<Object>) entityClass);
+      this.idExtractor = IdExtractor.reflection((Class<Object>) entityClass);
 
     }
 
@@ -131,7 +131,7 @@ public class InMemoryBackend implements Backend {
         return Flowable.just(WriteResult.empty());
       }
 
-      final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
+      final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
       @SuppressWarnings("unchecked")
       final Map<Object, T> store = (Map<Object, T>) this.store;
       return Flowable.fromCallable(() -> {

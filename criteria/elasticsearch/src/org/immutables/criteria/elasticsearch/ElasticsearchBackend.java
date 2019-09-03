@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Query;
@@ -31,7 +31,6 @@ import org.reactivestreams.Publisher;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +61,7 @@ public class ElasticsearchBackend implements Backend {
   private static class Session implements Backend.Session {
     private final ObjectMapper objectMapper;
     private final ElasticsearchOps ops;
-    private final Function<Object, Object> idExtractor;
+    private final IdExtractor<Object, Object> idExtractor;
     private final JsonConverter<Object> converter;
     private final boolean hasId;
 
@@ -71,10 +70,10 @@ public class ElasticsearchBackend implements Backend {
       Objects.requireNonNull(entityClass, "entityClass");
       this.ops = Objects.requireNonNull(ops, "ops");
       this.objectMapper = ops.mapper();
-      Function<Object, Object> idExtractor = Function.identity();
+      IdExtractor<Object, Object> idExtractor = IdExtractor.from(x -> x);
       boolean hasId = false;
       try {
-        idExtractor = Backends.idExtractor((Class<Object>) entityClass);
+        idExtractor = IdExtractor.reflection((Class<Object>) entityClass);
         hasId = true;
       } catch (IllegalArgumentException ignore) {
         // id not supported
@@ -135,7 +134,7 @@ public class ElasticsearchBackend implements Backend {
 
       // sets _id attribute (if entity has @Criteria.Id annotation)
       final BiFunction<Object, ObjectNode, ObjectNode> idFn = (entity, node) ->
-              hasId ? (ObjectNode) node.set("_id", objectMapper.valueToTree(idExtractor.apply(entity))) : node;
+              hasId ? (ObjectNode) node.set("_id", objectMapper.valueToTree(idExtractor.extract(entity))) : node;
 
       final List<ObjectNode> docs = insert.values().stream()
               .map(e -> idFn.apply(e, objectMapper.valueToTree(e)))

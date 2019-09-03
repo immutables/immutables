@@ -27,7 +27,7 @@ import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
 import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
@@ -125,7 +125,7 @@ public class GeodeBackend implements Backend {
       }
 
       // TODO cache id extractor
-      final Function<T, Object> idExtractor = Backends.idExtractor((Class<T>) op.values().get(0).getClass());
+      final Function<T, Object> idExtractor = IdExtractor.reflection((Class<T>) op.values().get(0).getClass())::extract;
       final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
       final Region<Object, T> region = (Region<Object, T>) this.region;
       return Flowable.fromCallable(() -> {

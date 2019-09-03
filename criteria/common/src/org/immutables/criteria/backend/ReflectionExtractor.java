@@ -17,9 +17,9 @@
 package org.immutables.criteria.backend;
 
 import com.google.common.base.Preconditions;
-import org.immutables.criteria.Criteria;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,23 +31,14 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
-/**
- * Utils for backend implementations
- */
-public final class Backends {
+final class ReflectionExtractor {
 
-  private Backends() {}
-
-  /**
-   * Return function which extracts identifier (key) from existing instance.
-   * Identifier is defined on POJOs with {@link Criteria.Id} annotation.
-   * @throws IllegalArgumentException if {@link Criteria.Id} annotation is not declared in any methods
-   * or fields.
-   */
-  public static <T, K> Function<T, K> idExtractor(final Class<T> type) {
+  public static <T, K> Function<T, K> of(Class<T> type, Predicate<AnnotatedElement> predicate) {
     Objects.requireNonNull(type, "type");
-    final Class<? extends Annotation> annotationClass = Criteria.Id.class;
+    Objects.requireNonNull(predicate, "predicate");
+
     final Set<Class<?>> visited = new HashSet<>();
     visited.add(Object.class); // don't visit Object
     final Deque<Class<?>> toVisit = new ArrayDeque<>();
@@ -60,10 +51,7 @@ public final class Backends {
 
       // look for fields
       for (Field field: current.getFields()) {
-        if (field.getAnnotation(annotationClass) != null) {
-          if (!field.isAccessible()) {
-            field.setAccessible(true);
-          }
+        if (predicate.test(field)) {
           return new FieldExtractor<>(field);
         }
       }
@@ -72,10 +60,7 @@ public final class Backends {
       for (Method method: current.getMethods()) {
         if (method.getParameterCount() == 0 &&
                 Modifier.isPublic(method.getModifiers()) &&
-                method.getAnnotation(annotationClass) != null) {
-          if (!method.isAccessible()) {
-            method.setAccessible(true);
-          }
+                predicate.test(method)) {
           return new MethodExtractor<>(method);
         }
       }
@@ -86,8 +71,18 @@ public final class Backends {
       toVisit.addAll(Arrays.asList(current.getInterfaces()));
     }
 
-    throw new IllegalArgumentException(String.format("Annotation %s not found in methods or fields of %s", annotationClass.getName(), type));
+    throw new IllegalArgumentException(String.format("None of the fields or methods from %s matched predicate", type));
   }
+
+  public static <T, K> Function<T, K> of(Class<T> type, Class<? extends Annotation> annotation) {
+    Objects.requireNonNull(annotation, "annotation");
+    try {
+      return of(type, elem -> elem.isAnnotationPresent(annotation));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException(String.format("Annotation %s not found in %s", annotation, type));
+    }
+  }
+
 
   /**
    * Extracts value by calling a method using reflection
@@ -97,6 +92,9 @@ public final class Backends {
 
     private MethodExtractor(Method method) {
       this.method = Objects.requireNonNull(method, "method");
+      if (!method.isAccessible()) {
+        method.setAccessible(true);
+      }
       Preconditions.checkArgument(method.getParameterCount() == 0, "expected not parameters for %s", method);
     }
 
@@ -107,7 +105,7 @@ public final class Backends {
         @SuppressWarnings("unchecked")
         K result = (K) method.invoke(instance);
         return result;
-      } catch (IllegalAccessException|InvocationTargetException e) {
+      } catch (IllegalAccessException| InvocationTargetException e) {
         throw new RuntimeException(e);
       }
     }
@@ -121,6 +119,9 @@ public final class Backends {
 
     private FieldExtractor(Field field) {
       this.field = Objects.requireNonNull(field, "field");
+      if (!field.isAccessible()) {
+        field.setAccessible(true);
+      }
     }
 
     @Override
@@ -136,4 +137,5 @@ public final class Backends {
     }
   }
 
+  private ReflectionExtractor() {}
 }
