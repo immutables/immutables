@@ -16,110 +16,66 @@
 
 package org.immutables.criteria.expression;
 
-import com.google.common.collect.ImmutableList;
+import org.immutables.value.Value;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
  * Query which is composed of predicates, projections, limit, offset, group by and order by expressions.
  */
-public final class Query  {
+@Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
+@Value.Immutable
+public abstract class Query {
 
-  private final Class<?> entityClass;
-  private final List<Expression> projections;
-  private final Expression filter;
-  private final List<Collation> collations;
-  private final List<Expression> groupBy;
-  private final Long limit;
-  private final Long offset;
+  @Value.Parameter
+  public abstract Class<?> entityClass();
 
-  private Query(Class<?> entityClass, List<Expression> projections, Expression filter, List<Collation> collations, List<Expression> groupBy, Long limit, Long offset) {
-    this.entityClass = Objects.requireNonNull(entityClass, "entityClass");
-    this.projections = ImmutableList.copyOf(projections);
-    this.collations = ImmutableList.copyOf(collations);
-    this.groupBy = ImmutableList.copyOf(groupBy);
-    this.filter = filter;
-    this.limit = limit;
-    this.offset = offset;
-  }
+  public abstract Optional<Expression> filter();
 
-  public Class<?> entityClass() {
-    return this.entityClass;
-  }
+  public abstract OptionalLong limit();
 
-  public Optional<Expression> filter() {
-    return Optional.ofNullable(filter);
-  }
+  public abstract OptionalLong offset();
 
-  public OptionalLong limit() {
-    return limit == null ? OptionalLong.empty() : OptionalLong.of(limit);
-  }
+  public abstract List<Expression> projections();
 
-  public Query withLimit(long limit) {
-    return new Query(entityClass, projections, filter, collations, groupBy, limit, offset);
-  }
+  public abstract List<Collation> collations();
 
-  public OptionalLong offset() {
-    return offset == null ? OptionalLong.empty() : OptionalLong.of(offset);
-  }
-
-  public Query withOffset(long offset) {
-    return new Query(entityClass, projections, filter, collations, groupBy, limit, offset);
-  }
+  public abstract List<Expression> groupBy();
 
   public static Query of(Class<?> entityClass) {
-    return new Query(entityClass, ImmutableList.of(), null, ImmutableList.of(), ImmutableList.of(), null, null);
+    return ImmutableQuery.of(entityClass);
   }
 
   public Query withFilter(Expression filter) {
-    Objects.requireNonNull(filter, "filter");
-    return new Query(entityClass, projections, filter, collations, groupBy, limit, offset);
+    return ImmutableQuery.copyOf(this).withFilter(filter);
   }
 
   public Query addCollations(Iterable<Collation> collations) {
-    Objects.requireNonNull(collations, "collations");
-    List<Collation> newCollations = ImmutableList.<Collation>builder().addAll(this.collations).addAll(collations).build();
-    return new Query(entityClass, projections, filter, newCollations, groupBy, limit, offset);
-  }
-
-  public Query addProjections(Iterable<Expression> projections) {
-    Objects.requireNonNull(projections, "projections");
-    List<Expression> newProjections = ImmutableList.<Expression>builder().addAll(this.projections).addAll(projections).build();
-    return new Query(entityClass, newProjections, filter, collations, groupBy, limit, offset);
+    return ImmutableQuery.builder().from(this).addAllCollations(collations).build();
   }
 
   public Query addProjections(Expression ... projections) {
-    Objects.requireNonNull(projections, "projections");
-    return addProjections(Arrays.asList(projections));
-  }
-
-  public List<Expression> projections() {
-    return projections;
-  }
-
-  public List<Collation> collations() {
-    return collations;
+    return ImmutableQuery.builder().from(this).addProjections(projections).build();
   }
 
   public Query addGroupBy(Iterable<Expression> groupBy) {
-    Objects.requireNonNull(projections, "groupBy");
-    List<Expression> newGroupBy = ImmutableList.<Expression>builder().addAll(this.groupBy).addAll(groupBy).build();
-    return new Query(entityClass, projections, filter, collations, newGroupBy, limit, offset);
+    return ImmutableQuery.builder().from(this).addAllGroupBy(groupBy).build();
   }
 
   public Query addGroupBy(Expression ... groupBy) {
-    Objects.requireNonNull(projections, "groupBy");
-    return addGroupBy(Arrays.asList(groupBy));
+    return ImmutableQuery.builder().from(this).addGroupBy(groupBy).build();
   }
 
-  public List<Expression> groupBy() {
-    return this.groupBy;
+  public Query withOffset(long offset) {
+    return ImmutableQuery.copyOf(this).withOffset(offset);
+  }
+
+  public Query withLimit(long limit) {
+    return ImmutableQuery.copyOf(this).withLimit(limit);
   }
 
   @Override
@@ -127,22 +83,31 @@ public final class Query  {
     final StringWriter string = new StringWriter();
     final PrintWriter writer = new PrintWriter(string);
 
+    final DebugExpressionVisitor<Object> visitor = new DebugExpressionVisitor<>(writer);
     writer.append("entity: ").append(entityClass().getName()).println();
 
-    if (filter != null) {
-      writer.append("filter: ");
-      filter.accept(new DebugExpressionVisitor<>(writer));
+    if (!projections().isEmpty()) {
+      projections().forEach(p -> p.accept(visitor));
       writer.println();
     }
 
-    if (limit != null) {
-      writer.append(" limit:").append(String.valueOf(limit)).println();
+    filter().ifPresent(f -> {
+      writer.append("filter: ");
+
+      f.accept(visitor);
+      writer.println();
+    });
+
+    if (!groupBy().isEmpty()) {
+      writer.append("groupBy: ");
+      groupBy().forEach(g -> g.accept(visitor));
+      writer.println();
     }
 
-    if (offset != null) {
-      writer.append(" offset:").append(String.valueOf(offset)).println();
-    }
+    limit().ifPresent(limit -> writer.append(" limit:").append(String.valueOf(limit)).println());
+    offset().ifPresent(offset -> writer.append(" offset:").append(String.valueOf(offset)).println());
 
     return string.toString();
+
   }
 }
