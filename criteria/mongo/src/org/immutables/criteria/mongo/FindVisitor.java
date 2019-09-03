@@ -33,6 +33,7 @@ import org.immutables.criteria.expression.OptionalOperators;
 import org.immutables.criteria.expression.StringOperators;
 import org.immutables.criteria.expression.Visitors;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -81,7 +82,7 @@ class FindVisitor extends AbstractExpressionVisitor<Bson> {
       Preconditions.checkArgument(args.size() == 1, "Size should be 1 for %s but was %s", op, args.size());
       final String field = naming.name(Visitors.toPath(args.get(0)));
       return op == IterableOperators.IS_EMPTY ? Filters.eq(field, Collections.emptyList())
-              : Filters.and(Filters.exists(field), Filters.nin(field, Collections.emptyList(), null));
+              : Filters.and(Filters.exists(field), Filters.nin(field, Arrays.asList(Collections.emptyList(), null)));
     }
 
     if (op.arity() == Operator.Arity.BINARY) {

@@ -82,6 +82,7 @@ class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private static Object maybeUnwrapOptional(Object maybeOptional) {
     if ((maybeOptional instanceof Optional)) {
       return  ((Optional) maybeOptional).orElse(null);

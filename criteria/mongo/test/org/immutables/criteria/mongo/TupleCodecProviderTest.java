@@ -67,6 +67,7 @@ public class TupleCodecProviderTest {
    * Projection of an optional attribute
    */
   @Test
+  @SuppressWarnings("unchecked")
   public void optionalAttribute_nickname() {
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.nickName));
     TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());

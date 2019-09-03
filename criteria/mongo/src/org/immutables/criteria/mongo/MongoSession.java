@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 class MongoSession implements Backend.Session {
 
   private final ExpressionConverter<Bson> converter;

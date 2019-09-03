@@ -95,6 +95,7 @@ public class CriteriaChecker<T> {
     return query.toString();
   }
 
+  @SuppressWarnings("unchecked")
   public static <T> CriteriaChecker<T> of(Reader<?> reader) {
     Preconditions.checkArgument(reader instanceof ReactiveReader,
             "%s should implement %s", reader.getClass(), ReactiveReader.class.getName());

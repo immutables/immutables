@@ -37,12 +37,12 @@ class UniqueCachedNaming<T> implements NamingStrategy<T> {
 
   private static final Suggester<?> PREFIX_SUGGESTER = (first, attempts, size) -> "expr" + size;
 
-  private final Suggester<T> suggester;
   private final BiMap<T, String> names;
 
   private UniqueCachedNaming(Iterable<T> values) {
     Objects.requireNonNull(values, "values");
-    this.suggester = (Suggester<T>) PREFIX_SUGGESTER;
+    @SuppressWarnings("unchecked")
+    Suggester<T> suggester = (Suggester<T>) PREFIX_SUGGESTER;
     final BiMap<T, String> map = HashBiMap.create();
     for (T value: values) {
       if (!map.containsKey(value)) {

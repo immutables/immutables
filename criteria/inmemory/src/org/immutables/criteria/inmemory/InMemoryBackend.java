@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 /**
  * Backend backed by a {@link Map} (usually {@link ConcurrentMap}).
  */
+@SuppressWarnings("unchecked")
 public class InMemoryBackend implements Backend {
 
   /** mapping between class and its store */

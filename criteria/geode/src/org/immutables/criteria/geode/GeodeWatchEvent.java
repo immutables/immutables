@@ -34,7 +34,9 @@ class GeodeWatchEvent<T> implements WatchEvent<T> {
 
   GeodeWatchEvent(CqEvent cqEvent) {
     this.key = Objects.requireNonNull(cqEvent.getKey(), "event.key");
-    this.newValue = (T) cqEvent.getNewValue();
+    @SuppressWarnings("unchecked")
+    final T newValue = (T) cqEvent.getNewValue();
+    this.newValue = newValue;
     this.operation = toOperation(cqEvent);
   }
 

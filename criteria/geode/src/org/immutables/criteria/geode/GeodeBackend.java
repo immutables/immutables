@@ -62,6 +62,7 @@ public class GeodeBackend implements Backend {
     return new Session(region);
   }
 
+  @SuppressWarnings("unchecked")
   private static class Session implements Backend.Session {
 
     private final Region<Object, Object> region;

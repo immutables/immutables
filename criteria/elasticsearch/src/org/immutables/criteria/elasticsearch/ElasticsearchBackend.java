@@ -58,6 +58,7 @@ public class ElasticsearchBackend implements Backend {
     return new Session(entityType, new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
   }
 
+  @SuppressWarnings("unchecked")
   private static class Session implements Backend.Session {
     private final ObjectMapper objectMapper;
     private final ElasticsearchOps ops;

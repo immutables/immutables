@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.personmodel;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Ordering;
 import io.reactivex.Flowable;
 import org.immutables.check.Checkers;
@@ -26,7 +25,6 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.reactive.ReactiveReader;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -625,7 +623,9 @@ public abstract class AbstractPersonTest {
   }
 
   private List<Person> fetch(Reader<?> reader) {
-    return Flowable.fromPublisher(((ReactiveReader<Person>) reader).fetch()).toList().blockingGet();
+    @SuppressWarnings("unchecked")
+    ReactiveReader<Person> reactiveReader = (ReactiveReader<Person>) reader;
+    return Flowable.fromPublisher(reactiveReader.fetch()).toList().blockingGet();
   }
 
 }

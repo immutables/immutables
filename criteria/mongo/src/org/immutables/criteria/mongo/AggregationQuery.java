@@ -66,6 +66,7 @@ class AggregationQuery {
     List<Path> paths = Stream.concat(query.projections().stream(), Stream.concat(query.groupBy().stream(), query.collations().stream().map(Collation::expression)))
             .map(AggregationQuery::extractPath).collect(Collectors.toList());
 
+    @SuppressWarnings("unchecked")
     ExpressionNaming naming = ExpressionNaming.of(UniqueCachedNaming.of(paths.iterator()));
     paths.forEach(p -> biMap.put(p, naming.name(p)));
 
@@ -109,7 +110,11 @@ class AggregationQuery {
   private class MatchPipeline implements Pipeline {
     @Override
     public void process(Consumer<Bson> consumer) {
-      query.filter().ifPresent(expr -> consumer.accept(Aggregates.match(expr.accept(new FindVisitor(pathNaming)))));
+      query.filter().ifPresent(expr -> {
+        Bson filter = expr.accept(new FindVisitor(pathNaming));
+        Objects.requireNonNull(filter, "null filter");
+        consumer.accept(Aggregates.match(filter));
+      });
     }
   }
 
