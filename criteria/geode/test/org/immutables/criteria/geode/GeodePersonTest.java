@@ -52,14 +52,14 @@ public class GeodePersonTest extends AbstractPersonTest  {
   @Before
   public void setUp() throws Exception {
     region.clear();
-    GeodeBackend backend = new GeodeBackend(GeodeSetup.of(RegionResolver.defaultResolver(GEODE.cache())));
+    GeodeBackend backend = new GeodeBackend(GeodeSetup.of(GEODE.cache()));
     repository = new PersonRepository(backend);
   }
 
 
   @Override
   protected Set<Feature> features() {
-    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY);
+    return EnumSet.of(Feature.DELETE, Feature.QUERY, Feature.QUERY_WITH_LIMIT, Feature.ORDER_BY, Feature.QUERY_WITH_PROJECTION);
   }
 
   @Override

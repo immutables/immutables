@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.geode;
 
+import com.google.common.base.Preconditions;
 import io.reactivex.BackpressureStrategy;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
@@ -24,16 +25,20 @@ import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
+import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.Backends;
+import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -92,10 +97,26 @@ public class GeodeBackend implements Backend {
       if (!op.query().groupBy().isEmpty()) {
         throw new UnsupportedOperationException("GroupBy not supported by " + GeodeBackend.class.getSimpleName());
       }
-      return Flowable.<Collection<T>>fromCallable(() -> {
+
+      // for projections use tuple function
+      Function<Object, T> maybeTupleFn = op.query().projections().isEmpty() ? x -> (T) x : obj -> (T) toTuple(op.query(), obj);
+
+      return Flowable.fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
-        return (Collection<T>) region.getRegionService().getQueryService().newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
-      }).flatMapIterable(x -> x);
+        return (Iterable<Object>) region.getRegionService().getQueryService().newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
+      })
+        .flatMapIterable(x -> x)
+        .map(maybeTupleFn::apply);
+    }
+
+    private static ProjectedTuple toTuple(Query query, Object result) {
+      if (!(result instanceof Struct)) {
+        Preconditions.checkArgument(query.projections().size() == 1, "Expected single projection got %s", query.projections().size());
+        return ProjectedTuple.ofSingle(query.projections().get(0), result);
+      }
+
+      Struct struct = (Struct) result;
+      return ProjectedTuple.of(query.projections(), Arrays.asList(struct.getFieldValues()));
     }
 
     private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
@@ -156,8 +177,20 @@ public class GeodeBackend implements Backend {
     }
 
     private OqlWithVariables toOql(Query query, boolean useBindVariables) {
-      final StringBuilder oql = new StringBuilder();
-      oql.append("SELECT * FROM ").append(region.getFullPath());
+      final StringBuilder oql = new StringBuilder("SELECT");
+      if (query.projections().isEmpty()) {
+        oql.append(" * ");
+      } else {
+        // explicitly add list of projections
+        List<String> paths = query.projections().stream().map(p -> (Path) p)
+                .map(Path::toStringPath)
+                .collect(Collectors.toList());
+        oql.append(" ");
+        oql.append(String.join( ", ", paths));
+        oql.append(" ");
+      }
+
+      oql.append(" FROM ").append(region.getFullPath());
       final List<Object> variables = new ArrayList<>();
       if (query.filter().isPresent()) {
         OqlWithVariables withVars = Geodes.converter(useBindVariables).convert(query.filter().get());
