@@ -95,14 +95,7 @@ public class Path implements Expression {
   }
 
   public static Path of(AnnotatedElement annotatedElement) {
-    if (annotatedElement instanceof Class) {
-      return of((Class<?>) annotatedElement);
-    }
     return new Path(null, annotatedElement);
-  }
-
-  public static EntityPath of(Class<?> entity) {
-    return new EntityPath(entity);
   }
 
   /**
