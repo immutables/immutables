@@ -39,7 +39,7 @@ public interface ContainerNaming extends NamingStrategy<Class<?>> {
   /**
    * Resolve container name from {@link Criteria.Repository#name()} annotation.
    */
-  ContainerNaming FROM_ANNOTATION = entityClass -> {
+  ContainerNaming FROM_REPOSITORY_ANNOTATION = entityClass -> {
     Objects.requireNonNull(entityClass, "entityClass");
     final String name = entityClass.getAnnotation(Criteria.Repository.class).name();
     if (name.isEmpty()) {
@@ -62,7 +62,7 @@ public interface ContainerNaming extends NamingStrategy<Class<?>> {
    */
   ContainerNaming DEFAULT = context -> {
     try {
-      return FROM_ANNOTATION.name(context);
+      return FROM_REPOSITORY_ANNOTATION.name(context);
     } catch (UnsupportedOperationException ignore) {
       return FROM_CLASSNAME.name(context);
     }
