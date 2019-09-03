@@ -16,7 +16,10 @@
 
 package org.immutables.criteria.geode;
 
+import org.apache.geode.cache.GemFireCache;
 import org.immutables.value.Value;
+
+import java.util.Objects;
 
 /**
  * Setup configuration to connect to Geode cluster
@@ -27,6 +30,12 @@ public interface GeodeSetup {
 
   @Value.Parameter
   RegionResolver regionResolver();
+
+
+  static GeodeSetup of(GemFireCache cache) {
+    Objects.requireNonNull(cache, "cache");
+    return of(RegionResolver.defaultResolver(cache));
+  }
 
   static GeodeSetup of(RegionResolver resolver) {
     return ImmutableGeodeSetup.of(resolver);

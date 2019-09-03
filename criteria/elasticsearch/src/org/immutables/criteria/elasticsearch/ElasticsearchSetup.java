@@ -46,12 +46,14 @@ public interface ElasticsearchSetup extends Backend.Setup {
     return 1024;
   }
 
+  static ElasticsearchSetup of(RestClient restClient) {
+    return builder(restClient).build();
+  }
+
   static Builder builder(RestClient restClient) {
     return new Builder().restClient(restClient);
   }
 
-  class Builder extends ImmutableElasticsearchSetup.Builder {
-
-  }
+  class Builder extends ImmutableElasticsearchSetup.Builder {}
 
 }
