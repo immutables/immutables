@@ -16,22 +16,23 @@
 
 package org.immutables.criteria.mongo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.ContainerResolver;
 
+import java.util.Objects;
+
 /**
  * {@link MongoCollection} resolver for a particular class
  */
 public interface CollectionResolver extends ContainerResolver<MongoCollection<?>> {
 
-  static CollectionResolver defaultResolver(MongoDatabase database) {
-    return defaultResolver(database, database.getCodecRegistry());
-  }
-
   static CollectionResolver defaultResolver(MongoDatabase database, CodecRegistry registry) {
+    Objects.requireNonNull(database, "database");
+    Objects.requireNonNull(registry, "registry");
     return entityClass -> {
       final String collectionName = ContainerNaming.DEFAULT.name(entityClass);
       return database.getCollection(collectionName)

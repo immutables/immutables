@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.value.Value;
 
 /**
@@ -30,6 +31,10 @@ public interface MongoSetup {
 
   static MongoSetup of(CollectionResolver resolver) {
     return ImmutableMongoSetup.of(resolver);
+  }
+
+  static MongoSetup of(MongoDatabase database) {
+    return ImmutableMongoSetup.of(CollectionResolver.defaultResolver(database, database.getCodecRegistry()));
   }
 
   static Builder builder() {
