@@ -29,6 +29,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.immutables.check.Checkers.check;
+
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
@@ -98,10 +100,7 @@ public class ElasticModelTest {
   }
 
   private void assertCount(ElasticModelCriteria crit, int count) {
-    Observable.fromPublisher(repository.find(crit).fetch())
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertValueCount(count);
+    check(repository.find(crit).fetch()).hasSize(count);
   }
 
 }

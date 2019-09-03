@@ -17,16 +17,13 @@
 package org.immutables.criteria.personmodel;
 
 import com.google.common.collect.Ordering;
-import io.reactivex.Flowable;
 import org.immutables.check.Checkers;
-import org.immutables.check.IterableChecker;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Reader;
-import org.immutables.criteria.repository.reactive.ReactiveReader;
+import org.immutables.criteria.repository.sync.SyncReader;
 import org.junit.Assume;
 import org.junit.Test;
-import org.reactivestreams.Publisher;
 
 import java.time.LocalDate;
 import java.util.AbstractMap;
@@ -37,7 +34,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -101,10 +97,8 @@ public abstract class AbstractPersonTest {
   public void limit() {
     assumeFeature(Feature.QUERY_WITH_LIMIT);
     final int size = 5;
-    Flowable.fromPublisher(repository().insert(new PersonGenerator().stream()
-            .limit(size).collect(Collectors.toList())))
-            .singleOrError()
-            .blockingGet();
+    repository().insert(new PersonGenerator().stream()
+            .limit(size).collect(Collectors.toList()));
 
     for (int i = 1; i < size * size; i++) {
       check(repository().findAll().limit(i)).hasSize(Math.min(i, size));
@@ -556,13 +550,13 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false));
     insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true));
 
-    check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
-    check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
-    check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
-    check(repository().findAll().select(criteria().dateOfBirth).fetch()).notEmpty();
-    check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
+    Checkers.check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
+    Checkers.check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
+    Checkers.check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
+    Checkers.check(repository().findAll().select(criteria().dateOfBirth).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
 
-    check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
 
   }
@@ -579,21 +573,21 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four").withIsActive(true));
 
     // nickname
-    check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
-    check(repository().findAll().select(criteria().fullName, criteria().nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
+    Checkers.check(repository().findAll().select(criteria().fullName, criteria().nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
 
-    check(repository().findAll().select(criteria().address).fetch()).notEmpty();
-    check(repository().findAll().select(criteria().bestFriend).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(criteria().address).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(criteria().bestFriend).fetch()).notEmpty();
   }
 
   private void assumeFeature(Feature feature) {
     Assume.assumeTrue(String.format("Feature %s not supported by current backend", feature), features().contains(feature));
   }
 
-  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, Reader<?> reader, Ordering<T> ordering) {
-    List<T> parts = fetch(reader).stream().map(extractor).collect(Collectors.toList());
+  private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncReader<Person> reader, Ordering<T> ordering) {
+    List<T> parts = reader.fetch().stream().map(extractor).collect(Collectors.toList());
     if (!ordering.isOrdered(parts)) {
       throw new AssertionError(String.format("%s is not ordered. Expected: %s", parts, ordering.sortedCopy(parts)));
     }
@@ -604,10 +598,7 @@ public abstract class AbstractPersonTest {
   }
 
   protected void insert(Iterable<? extends Person> persons) {
-    Flowable.fromPublisher(repository().insert(persons))
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertComplete();
+    repository().insert(persons);
   }
 
   protected CriteriaChecker<Person> check(Reader<?> reader) {
@@ -616,16 +607,6 @@ public abstract class AbstractPersonTest {
 
   private CriteriaChecker<Person> check(Criterion<Person> criterion) {
     return check(repository().find(criterion));
-  }
-
-  private <T> IterableChecker<List<T>, T> check(Publisher<T> publisher) {
-    return Checkers.check(Flowable.fromPublisher(publisher).toList().blockingGet());
-  }
-
-  private List<Person> fetch(Reader<?> reader) {
-    @SuppressWarnings("unchecked")
-    ReactiveReader<Person> reactiveReader = (ReactiveReader<Person>) reader;
-    return Flowable.fromPublisher(reactiveReader.fetch()).toList().blockingGet();
   }
 
 }

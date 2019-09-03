@@ -82,7 +82,7 @@ public class MongoPersonTest extends AbstractPersonTest {
     Checkers.check(docs.get(0).get("age")).is(new BsonInt32(22));
 
     // query using repository
-    final List<Person> persons= Flowable.fromPublisher(repository.findAll().fetch()).toList().blockingGet();
+    final List<Person> persons= repository.findAll().fetch();
     Checkers.check(persons).hasSize(1);
     Checkers.check(persons.get(0).id()).is("id123");
   }

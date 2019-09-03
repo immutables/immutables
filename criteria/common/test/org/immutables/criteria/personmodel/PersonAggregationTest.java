@@ -16,18 +16,16 @@
 
 package org.immutables.criteria.personmodel;
 
-import io.reactivex.Flowable;
 import org.immutables.check.Checkers;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.sync.SyncFetcher;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 public abstract class PersonAggregationTest {
 
@@ -113,14 +111,11 @@ public abstract class PersonAggregationTest {
   }
 
   protected void insert(Iterable<? extends Person> persons) {
-    Flowable.fromPublisher(repository().insert(persons))
-            .test()
-            .awaitDone(1, TimeUnit.SECONDS)
-            .assertComplete();
+    repository().insert(persons);
   }
 
-  <T> IterableChecker<List<T>, T> check(ReactiveFetcher<T> fetcher) {
-    return Checkers.check(Flowable.fromPublisher(fetcher.fetch()).toList().blockingGet());
+  <T> IterableChecker<List<T>, T> check(SyncFetcher<T> fetcher) {
+    return Checkers.check(fetcher.fetch());
   }
 
 }

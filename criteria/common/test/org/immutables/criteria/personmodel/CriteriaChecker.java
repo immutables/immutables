@@ -17,15 +17,18 @@
 package org.immutables.criteria.personmodel;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Futures;
 import io.reactivex.Flowable;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.Repositories;
-import org.immutables.criteria.repository.reactive.ReactiveReader;
+import org.immutables.criteria.repository.Fetcher;
 import org.immutables.criteria.repository.Reader;
+import org.immutables.criteria.repository.Repositories;
+import org.immutables.criteria.repository.async.AsyncReader;
+import org.immutables.criteria.repository.reactive.ReactiveReader;
+import org.immutables.criteria.repository.sync.SyncReader;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -37,12 +40,10 @@ import static org.immutables.check.Checkers.check;
  */
 public class CriteriaChecker<T> {
 
-  private final ReactiveReader<T> reader;
   private final Query query;
   private final List<T> result;
 
-  private CriteriaChecker(ReactiveReader<T> reader) {
-    this.reader = Objects.requireNonNull(reader, "reader");
+  private CriteriaChecker(Reader<T> reader) {
     this.query = Repositories.toQuery(reader);
     this.result = fetch(reader);
   }
@@ -84,8 +85,19 @@ public class CriteriaChecker<T> {
     return check(result.stream().map(fn).collect(Collectors.toList()));
   }
 
-  private static <T> List<T> fetch(ReactiveReader<T> reader) {
-    return Flowable.fromPublisher(reader.fetch()).toList().blockingGet();
+  private static <T> List<T> fetch(Reader<T> reader) {
+    final List<T> result;
+    if (reader instanceof SyncReader) {
+      result = ((SyncReader<T>) reader).fetch();
+    } else if (reader instanceof ReactiveReader) {
+      result = Flowable.fromPublisher(((ReactiveReader<T>) reader).fetch()).toList().blockingGet();
+    } else if (reader instanceof AsyncReader) {
+      result = Futures.getUnchecked(((AsyncReader<T>) reader).fetch().toCompletableFuture());
+    } else {
+      throw new IllegalArgumentException("Unknown reader " + reader);
+    }
+
+    return result;
   }
 
   /**
@@ -97,10 +109,10 @@ public class CriteriaChecker<T> {
 
   @SuppressWarnings("unchecked")
   public static <T> CriteriaChecker<T> of(Reader<?> reader) {
-    Preconditions.checkArgument(reader instanceof ReactiveReader,
-            "%s should implement %s", reader.getClass(), ReactiveReader.class.getName());
+    Preconditions.checkArgument(reader instanceof Fetcher,
+            "%s should implement %s", reader.getClass(), Fetcher.class.getName());
 
-    return new CriteriaChecker<>((ReactiveReader<T>) reader);
+    return new CriteriaChecker<>((Reader<T>) reader);
   }
 
 }

@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.immutables.check.Checkers.check;
@@ -94,10 +93,7 @@ public class GeodeCqTest {
     final PersonGenerator generator = new PersonGenerator();
     final int count = 4;
     for (int i = 0; i < count; i++) {
-      Flowable.fromPublisher(repository.insert(generator.next().withId("id" + i)))
-              .test()
-              .awaitDone(1, TimeUnit.SECONDS)
-              .assertComplete();
+      repository.insert(generator.next().withId("id" + i));
     }
 
     check(region.keySet()).notEmpty();

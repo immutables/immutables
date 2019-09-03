@@ -17,8 +17,8 @@
 package org.immutables.criteria;
 
 import org.immutables.criteria.repository.Facet;
-import org.immutables.criteria.repository.reactive.ReactiveReadable;
-import org.immutables.criteria.repository.reactive.ReactiveWritable;
+import org.immutables.criteria.repository.sync.SyncReadable;
+import org.immutables.criteria.repository.sync.SyncWritable;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -72,7 +72,7 @@ public @interface Criteria {
      * Allows defining repository properties like readable / writable / watchable etc.
      * @return list of facets the repository should support
      */
-    Class<? extends Facet>[] facets() default {ReactiveReadable.class, ReactiveWritable.class};
+    Class<? extends Facet>[] facets() default {SyncReadable.class, SyncWritable.class};
   }
 
 
