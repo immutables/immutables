@@ -19,6 +19,7 @@ package org.immutables.criteria;
 
 import org.immutables.value.Value;
 
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -53,6 +54,16 @@ interface TypeHolder {
   Short shortValue();
   Byte byteValue();
   Character charValue();
+
+  // == nullable version of boxed primitives
+  @Nullable Boolean nullableBoolean();
+  @Nullable Double nullableDouble();
+  @Nullable Float nullableFloat();
+  @Nullable Integer nullableInteger();
+  @Nullable Long nullableLong();
+  @Nullable Short nullableShort();
+  @Nullable Byte nullableByte();
+  @Nullable Character nullableCharacter();
 
   // == scalar optionals
   Optional<Boolean> optBoolean();
@@ -93,6 +104,7 @@ interface TypeHolder {
 
   Foo foo();
   Optional<Foo> optFoo();
+  @Nullable Foo nullableFoo();
   List<Foo> foos();
   Foo[] fooArray();
 
@@ -111,11 +123,13 @@ interface TypeHolder {
   // BigInteger and BigDecimal
   BigInteger bigInteger();
   Optional<BigInteger> optBigInteger();
+  @Nullable BigInteger nullableBigInteger();
   List<BigInteger> bigIntegers();
   BigInteger[] bigIntegerArray();
 
   BigDecimal bigDecimal();
   Optional<BigDecimal> optBigDecimal();
+  @Nullable BigDecimal nullableBigDecimal();
   List<BigDecimal> bigDecimals();
   BigDecimal[] bigDecimalArray();
 
