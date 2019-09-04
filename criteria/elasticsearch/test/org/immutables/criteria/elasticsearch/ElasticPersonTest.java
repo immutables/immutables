@@ -23,7 +23,9 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.ImmutableMap;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
+import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
 import org.junit.After;
 import org.junit.Before;
@@ -49,7 +51,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
           .registerModule(new GuavaModule())
           .registerModule(new Jdk8Module());
 
-  private static final String INDEX_NAME = "persons";
+  private static final String INDEX_NAME = ContainerNaming.DEFAULT.name(Person.class);
 
   private ElasticsearchBackend backend;
 
@@ -76,7 +78,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
     ops.createIndex(model);
 
-    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).resolver(ignore -> INDEX_NAME).build());
+    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).build());
   }
 
   @After

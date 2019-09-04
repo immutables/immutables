@@ -25,6 +25,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
@@ -113,6 +114,10 @@ public class ElasticsearchBackend implements Backend {
       JsonConverter converter = this.converter;
 
       if (!query.projections().isEmpty()) {
+        ArrayNode projection = query.projections().stream()
+                 .map(p -> ((Path) p).toStringPath())
+                 .reduce(objectMapper.createArrayNode(), ArrayNode::add, (old, newNode) -> newNode);
+        json.set("_source", projection);
         converter = new ToTupleConverter(query, objectMapper);
       }
 
