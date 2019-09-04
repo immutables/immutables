@@ -26,9 +26,12 @@ public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsen
 
   interface Self extends Template<Self>, Disjunction<OptionalStringMatcher<Self>> {}
 
-  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>>, AggregationTemplate {}
+  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>>, Aggregation.ComparableTemplate<Optional<String>> {}
 
-  interface AggregationTemplate extends Aggregation.Count, Aggregation.Max<Optional<String>>, Aggregation.Min<Optional<String>> {}
+  /**
+   * Similar to main {@link OptionalStringMatcher.Template} but with {@code @Nullable} projections and aggregations
+   */
+  interface NullableTemplate<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<String>, Aggregation.ComparableTemplate<String> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

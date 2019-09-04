@@ -29,6 +29,11 @@ public interface OptionalBooleanMatcher<R> extends BooleanMatcher<R>, PresentAbs
 
   interface Template<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<Boolean>>, Aggregation.Count {}
 
+  /**
+   * Similar to main {@link OptionalBooleanMatcher.Template} but with {@code @Nullable} projections and aggregations
+   */
+  interface NullableTemplate<R> extends OptionalBooleanMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Boolean>, Aggregation.Count {}
+
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
     class Local extends AbstractContextHolder implements Self {

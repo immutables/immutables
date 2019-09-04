@@ -21,6 +21,20 @@ import org.immutables.criteria.expression.Expressions;
 
 public interface Aggregation<T> extends Projection<T> {
 
+  /**
+   * Used to provide aggregation template for comparable types ({@link Comparable}).
+   * @param <MINMAX> type of min/max value(s). Can be optional type.
+   */
+  interface ComparableTemplate<MINMAX> extends Count, Min<MINMAX>, Max<MINMAX> {}
+
+  /**
+   * Used to provide aggregation template for numeric types (eg. {@link Number}).
+   * @param <MINMAX> type of min/max value(s). Can be optional type.
+   * @param <SUM> type of the sum computation. Can be optional type.
+   * @param <AVG> type of the average computation. Can be optional type.
+   */
+  interface NumberTemplate<MINMAX, SUM, AVG> extends Count, ComparableTemplate<MINMAX>, Sum<SUM>, Avg<AVG> {}
+
   interface Min<T> {
     default Aggregation<T> min() {
       return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MIN, Matchers.aggregationType(getClass(), Min.class, "min"), e)).createWith(creator());

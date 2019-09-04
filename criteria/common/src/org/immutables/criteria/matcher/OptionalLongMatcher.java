@@ -16,32 +16,32 @@
 
 package org.immutables.criteria.matcher;
 
-import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 
 /**
- * Matcher for optional attributes
+ * Intersection type between {@link OptionalMatcher} and {@link NumberMatcher}.
+ *
+ * <p>Syntax sugar to avoid chaining {@code value()} method from {@link OptionalMatcher}
+ * on long expressions with many optional elements.
+ *
+ * @param <R> root criteria type
  */
-public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Matcher {
-
-  /**
-   * Apply context-specific matcher if value is present
-   */
-  default S value() {
-    // CriteriaContext.this.creator;
-    return Matchers.extract(this).<S>create();
-  }
+public interface OptionalLongMatcher<R> extends OptionalNumberMatcher<R, Long> {
 
   /**
    * Self-type for this matcher
    */
-  interface Self<S, V> extends Template<Self<S, V>, S, V>, Disjunction<Self<S, V>> {}
+  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
 
-  interface Template<R, S, V> extends OptionalMatcher<R, S, V>, Projection<Optional<V>>, Aggregation.Count {}
+  interface Template<R> extends OptionalLongMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<OptionalLong>, Aggregation.NumberTemplate<OptionalLong, OptionalLong, OptionalDouble> {}
 
   /**
-   * Similar to main {@link OptionalMatcher.Template} but with {@code @Nullable} projections and aggregations
+   * Similar to main {@link OptionalLongMatcher.Template} but with {@code @Nullable} projections and aggregations
    */
-  interface NullableTemplate<R, S, V> extends OptionalMatcher<R, S, V>, Projection<V>, Aggregation.Count {}
+  interface NullableTemplate<R> extends OptionalLongMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<Long>, Aggregation.NumberTemplate<Long, Long, Double> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
@@ -53,6 +53,5 @@ public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Match
 
     return ctx -> (R) new Local(ctx);
   }
-
 
 }

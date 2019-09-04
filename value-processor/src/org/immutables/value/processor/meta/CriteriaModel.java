@@ -30,6 +30,8 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -108,6 +110,26 @@ public class CriteriaModel {
 
     public boolean isNumber() {
       return type.getKind().isPrimitive() && !isBoolean() && type.getKind() != TypeKind.CHAR || isSubtypeOf(Number.class);
+    }
+
+    public boolean isInteger() {
+      return type.getKind() == TypeKind.INT || isSubtypeOf(Integer.class);
+    }
+
+    public boolean isLong() {
+      return type.getKind() == TypeKind.LONG || isSubtypeOf(Long.class);
+    }
+
+    public boolean isDouble() {
+      return type.getKind() == TypeKind.DOUBLE || isSubtypeOf(Double.class);
+    }
+
+    public boolean isBigInteger() {
+      return isSubtypeOf(BigInteger.class);
+    }
+
+    public boolean isBigDecimal() {
+      return isSubtypeOf(BigDecimal.class);
     }
 
     public boolean isContainer() {
@@ -224,7 +246,7 @@ public class CriteriaModel {
 
   private Type.Parameterized matcherType(IntrospectedType introspected) {
     final TypeMirror type = introspected.type;
-    final String name;
+    String name;
 
     if (introspected.useOptional()) {
       IntrospectedType param = introspected.optionalParameter();
@@ -234,7 +256,20 @@ public class CriteriaModel {
       } else if (param.isBoolean()) {
         name = "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template";
       } else if (param.isNumber()) {
-        name = "org.immutables.criteria.matcher.OptionalNumberMatcher.Template";
+        if (param.isInteger()) {
+          name = "org.immutables.criteria.matcher.OptionalIntMatcher.Template";
+        } else if (param.isLong()) {
+          name = "org.immutables.criteria.matcher.OptionalLongMatcher.Template";
+        } else if (param.isDouble()) {
+          name = "org.immutables.criteria.matcher.OptionalDoubleMatcher.Template";
+        } else if (param.isBigInteger()) {
+          name = "org.immutables.criteria.matcher.OptionalBigIntegerMatcher.Template";
+        } else if (param.isBigDecimal()) {
+          name = "org.immutables.criteria.matcher.OptionalBigDecimalMatcher.Template";
+        } else {
+          // generic number
+          name = "org.immutables.criteria.matcher.OptionalNumberMatcher.Template";
+        }
       } else if (param.isComparable()) {
         name = "org.immutables.criteria.matcher.OptionalComparableMatcher.Template";
       } else {
@@ -245,7 +280,20 @@ public class CriteriaModel {
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isNumber()) {
-      name = "org.immutables.criteria.matcher.NumberMatcher.Template";
+      if (introspected.isInteger()) {
+        name = "org.immutables.criteria.matcher.IntegerMatcher.Template";
+      } else if (introspected.isLong()) {
+        name = "org.immutables.criteria.matcher.LongMatcher.Template";
+      } else if (introspected.isDouble()) {
+        name = "org.immutables.criteria.matcher.DoubleMatcher.Template";
+      } else if (introspected.isBigInteger()) {
+        name = "org.immutables.criteria.matcher.BigIntegerMatcher.Template";
+      } else if (introspected.isBigDecimal()) {
+        name = "org.immutables.criteria.matcher.BigDecimalMatcher.Template";
+      } else {
+        // generic number
+        name = "org.immutables.criteria.matcher.NumberMatcher.Template";
+      }
     } else if (introspected.isString()) {
       name = "org.immutables.criteria.matcher.StringMatcher.Template";
     } else if (introspected.isIterable() || introspected.isArray()) {
@@ -254,6 +302,11 @@ public class CriteriaModel {
       name = "org.immutables.criteria.matcher.ComparableMatcher.Template";
     } else {
       name = "org.immutables.criteria.matcher.ObjectMatcher.Template";
+    }
+
+    if (introspected.isNullable() && !introspected.isOptional()) {
+      // use NullableTemplate because projections and aggregation need to return T not Optional<T>
+      name = name.replaceFirst("\\.Template", "\\.NullableTemplate");
     }
 
     final Element element = elements.getTypeElement(name);
@@ -341,16 +394,20 @@ public class CriteriaModel {
       return this.type;
     }
 
+    private boolean isTemplate(String name) {
+      return name.endsWith(".Template") || name.endsWith(".NullableTemplate");
+    }
+
     // TODO the logic here is messy. Cleanup creator API and update this method
     public String creator() {
 
       final String creator;
       final String name = type.reference.name;
-      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType() && !attribute.isNullable();
+      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
       if (hasCriteria) {
         creator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
       } else {
-        final String newName = name.endsWith(".Template") ? name.substring(0, name.lastIndexOf('.')) : name;
+        final String newName = isTemplate(name) ? name.substring(0, name.lastIndexOf('.')) : name;
         creator = String.format("%s.creator().create(%%s)", newName);
       }
 
@@ -361,9 +418,8 @@ public class CriteriaModel {
 
     private String secondCreator() {
       final String name = type.reference.name;
-
-      if (introspectedType.isScalar() && !introspectedType.useOptional()) {
-        String newName = name.endsWith(".Template") ?  name.substring(0, name.lastIndexOf('.'))  : name;
+      if (introspectedType.isScalar()) {
+        String newName = isTemplate(name) ?  name.substring(0, name.lastIndexOf('.'))  : name;
         if (introspectedType.hasCriteria() && newName.endsWith("Template")) {
           // PersonCriteriaTemplate -> PersonCriteria
           newName = newName.substring(0, newName.lastIndexOf("Template"));
@@ -400,7 +456,7 @@ public class CriteriaModel {
         return name + ".creator()";
       }
 
-      if (name.endsWith(".Template")) {
+      if (isTemplate(name)) {
         // scalar matcher
         return name.substring(0, name.lastIndexOf('.')) + ".creator()";
       }

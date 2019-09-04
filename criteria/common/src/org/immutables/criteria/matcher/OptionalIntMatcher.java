@@ -16,8 +16,9 @@
 
 package org.immutables.criteria.matcher;
 
-import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 
 /**
  * Intersection type between {@link OptionalMatcher} and {@link NumberMatcher}.
@@ -27,21 +28,22 @@ import java.util.OptionalDouble;
  *
  * @param <R> root criteria type
  */
-public interface OptionalNumberMatcher<R, V extends Number & Comparable<? super V>> extends NumberMatcher<R, V>, PresentAbsentMatcher<R> {
+public interface OptionalIntMatcher<R> extends OptionalNumberMatcher<R, Integer> {
 
   /**
    * Self-type for this matcher
    */
-  interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
+  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
 
-  interface Template<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.NumberTemplate<Optional<V>, OptionalDouble, OptionalDouble> {}
+  interface Template<R> extends OptionalIntMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<OptionalInt>, Aggregation.NumberTemplate<OptionalInt, OptionalLong, OptionalDouble> {}
 
   /**
-   * Similar to main {@link OptionalNumberMatcher.Template} but with {@code @Nullable} projections and aggregations
+   * Similar to main {@link OptionalIntMatcher.Template} but with {@code @Nullable} projections and aggregations
    */
-  interface NullableTemplate<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<V>, Aggregation.NumberTemplate<V, Double, Double>{}
+  interface NullableTemplate<R> extends OptionalIntMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<Integer>, Aggregation.NumberTemplate<Integer, Long, Double> {}
+
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

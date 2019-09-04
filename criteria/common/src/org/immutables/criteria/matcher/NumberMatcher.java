@@ -16,8 +16,6 @@
 package org.immutables.criteria.matcher;
 
 
-import java.util.Optional;
-
 /**
  * Matcher for numbers
  *
@@ -34,7 +32,7 @@ public interface NumberMatcher<R, V extends Number & Comparable<? super V>> exte
           NotMatcher<R, Self<V>>,
           Projection<V>, AggregationTemplate<V> {}
 
-  interface AggregationTemplate<V> extends Aggregation.Count, Aggregation.Min<V>, Aggregation.Max<V>, Aggregation.Sum<Double>, Aggregation.Avg<Double> {}
+  interface AggregationTemplate<V> extends Aggregation.NumberTemplate<V, Double, Double> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

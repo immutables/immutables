@@ -80,14 +80,14 @@ public abstract class PersonAggregationTest {
     check(repository().findAll()
             .groupBy(person.nickName)
             .select(person.nickName, person.age.sum())
-            .map((nickName, age) -> (nickName.orElse(null) + "." + age.intValue())))
+            .map((nickName, age) -> (nickName.orElse(null) + "." + age)))
             .hasContentInAnyOrder("a.50", "b.40", "null.10");
 
     check(repository().findAll()
             .orderBy(person.nickName.asc())
             .groupBy(person.nickName)
             .select(person.nickName, person.age.sum())
-            .map((nickName, age) -> (nickName.orElse(null) + "." + age.intValue())))
+            .map((nickName, age) -> (nickName.orElse(null) + "." + age)))
             .isOf("null.10", "a.50", "b.40");
 
     check(repository().findAll()
@@ -101,7 +101,7 @@ public abstract class PersonAggregationTest {
             .orderBy(person.nickName.desc())
             .groupBy(person.nickName)
             .select(person.nickName, person.age.max(), person.age.min(), person.age.count(), person.age.sum())
-            .map((nickName, max, min, count, sum) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count + " sum=" + sum.intValue())))
+            .map((nickName, max, min, count, sum) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count + " sum=" + sum)))
             .isOf("nick=b max=40 min=40 count=1 sum=40", "nick=a max=30 min=20 count=2 sum=50", "nick=null max=10 min=10 count=1 sum=10");
 
   }

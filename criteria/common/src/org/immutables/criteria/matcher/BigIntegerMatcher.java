@@ -13,35 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.immutables.criteria.matcher;
 
-import java.util.Optional;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 /**
- * Matcher for optional attributes
+ * Matcher for {@link java.math.BigInteger}
+ *
+ * @param <R> root criteria type
  */
-public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Matcher {
-
-  /**
-   * Apply context-specific matcher if value is present
-   */
-  default S value() {
-    // CriteriaContext.this.creator;
-    return Matchers.extract(this).<S>create();
-  }
+public interface BigIntegerMatcher<R> extends NumberMatcher<R, BigInteger>, OrderMatcher {
 
   /**
    * Self-type for this matcher
    */
-  interface Self<S, V> extends Template<Self<S, V>, S, V>, Disjunction<Self<S, V>> {}
+  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
 
-  interface Template<R, S, V> extends OptionalMatcher<R, S, V>, Projection<Optional<V>>, Aggregation.Count {}
-
-  /**
-   * Similar to main {@link OptionalMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R, S, V> extends OptionalMatcher<R, S, V>, Projection<V>, Aggregation.Count {}
+  interface Template<R> extends BigIntegerMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>,
+          Projection<BigInteger>, Aggregation.NumberTemplate<BigInteger, BigInteger, BigDecimal> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

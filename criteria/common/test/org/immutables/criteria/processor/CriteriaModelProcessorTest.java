@@ -28,6 +28,8 @@ import org.junit.Test;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -66,50 +68,11 @@ public class CriteriaModelProcessorTest {
 
   @Test
   public void debug() {
-    assertAttribute("optionalBoolean",
-            "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template<R>");
+    checkCreator("nullableFoo").contains("OptionalMatcher.creator()");
   }
 
   @Test
   public void basic() {
-    assertAttribute("string", "org.immutables.criteria.matcher.StringMatcher.Template<R>");
-
-    checkCreator("string").not().contains("ModelCriteria.creator()");
-
-    assertAttribute("nullableString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R>");
-    assertAttribute("optionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R>");
-    assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>");
-    checkCreator("stringList").contains("IterableMatcher.creator()");
-
-    assertAttribute("integer",
-            "org.immutables.criteria.matcher.NumberMatcher.Template<R,java.lang.Integer>");
-    assertAttribute("arrayInteger",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.NumberMatcher.Template<R, java.lang.Integer>,java.lang.Integer>");
-    assertAttribute("arrayArrayInteger",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.NumberMatcher.Template<R,java.lang.Integer>,java.lang.Integer>,java.lang.Integer[]>");
-    assertAttribute("optionalInteger",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Integer>");
-    assertAttribute("optionalInteger2",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Integer>");
-
-    assertAttribute("longValue",
-            "org.immutables.criteria.matcher.NumberMatcher.Template<R,java.lang.Long>");
-    assertAttribute("optionalLong",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Long>");
-    assertAttribute("optionalLong2",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Long>");
-
-    assertAttribute("doubleValue",
-            "org.immutables.criteria.matcher.NumberMatcher.Template<R,java.lang.Double>");
-    assertAttribute("optionalDouble",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Double>");
-    assertAttribute("optionalDouble2",
-            "org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Double>");
-
-    assertAttribute("booleanValue",
-            "org.immutables.criteria.matcher.BooleanMatcher.Template<R>");
-    assertAttribute("optionalBoolean",
-            "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template<R>");
 
     assertAttribute("timeZone",
             "org.immutables.criteria.matcher.ObjectMatcher.Template<R,java.util.TimeZone>");
@@ -120,7 +83,7 @@ public class CriteriaModelProcessorTest {
   @Test
   public void array() {
     assertAttribute("arrayDouble",
-            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.NumberMatcher.Template<R, java.lang.Double>,java.lang.Double>");
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.DoubleMatcher.Template<R>,java.lang.Double>");
 
   }
 
@@ -133,7 +96,85 @@ public class CriteriaModelProcessorTest {
     assertAttribute("weird3",
             "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.OptionalStringMatcher.Template<R>,java.util.Optional<java.lang.String>>");
     assertAttribute("weird4",
-            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalNumberMatcher.Template<R,java.lang.Integer>,java.util.OptionalInt>");
+            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>,java.util.OptionalInt>");
+  }
+
+  @Test
+  public void forLong() {
+    assertAttribute("longValue",
+            "org.immutables.criteria.matcher.LongMatcher.Template<R>");
+    assertAttribute("optionalLong",
+            "org.immutables.criteria.matcher.OptionalLongMatcher.Template<R>");
+    assertAttribute("optionalLong2",
+            "org.immutables.criteria.matcher.OptionalLongMatcher.Template<R>");
+    assertAttribute("nullableLong",
+            "org.immutables.criteria.matcher.OptionalLongMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void forDouble() {
+    assertAttribute("doubleValue",
+            "org.immutables.criteria.matcher.DoubleMatcher.Template<R>");
+    assertAttribute("optionalDouble",
+            "org.immutables.criteria.matcher.OptionalDoubleMatcher.Template<R>");
+    assertAttribute("optionalDouble2",
+            "org.immutables.criteria.matcher.OptionalDoubleMatcher.Template<R>");
+    assertAttribute("nullableDouble",
+            "org.immutables.criteria.matcher.OptionalDoubleMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void forInteger() {
+    assertAttribute("integer",
+            "org.immutables.criteria.matcher.IntegerMatcher.Template<R>");
+    assertAttribute("arrayInteger",
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer>");
+    assertAttribute("arrayArrayInteger",
+            "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer>,java.lang.Integer[]>");
+    assertAttribute("optionalInteger",
+            "org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>");
+    assertAttribute("optionalInteger2",
+            "org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>");
+    assertAttribute("nullableInteger",
+            "org.immutables.criteria.matcher.OptionalIntMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void bigInteger() {
+    assertAttribute("bigInteger", "org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>");
+    assertAttribute("arrayBigInteger", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger>");
+    assertAttribute("listBigInteger", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigIntegerMatcher.Template<R>,java.math.BigInteger>");
+    assertAttribute("optionalBigInteger", "org.immutables.criteria.matcher.OptionalBigIntegerMatcher.Template<R>");
+    assertAttribute("nullableBigInteger", "org.immutables.criteria.matcher.OptionalBigIntegerMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void bigDecimal() {
+    assertAttribute("bigDecimal", "org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>");
+    assertAttribute("arrayBigDecimal", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal>");
+    assertAttribute("listBigDecimal", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.BigDecimalMatcher.Template<R>,java.math.BigDecimal>");
+    assertAttribute("optionalBigDecimal", "org.immutables.criteria.matcher.OptionalBigDecimalMatcher.Template<R>");
+    assertAttribute("nullableBigDecimal", "org.immutables.criteria.matcher.OptionalBigDecimalMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void forBoolean() {
+    assertAttribute("booleanValue",
+            "org.immutables.criteria.matcher.BooleanMatcher.Template<R>");
+    assertAttribute("optionalBoolean",
+            "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template<R>");
+    assertAttribute("nullableBoolean",
+            "org.immutables.criteria.matcher.OptionalBooleanMatcher.NullableTemplate<R>");
+  }
+
+  @Test
+  public void string() {
+    assertAttribute("string", "org.immutables.criteria.matcher.StringMatcher.Template<R>");
+    checkCreator("string").not().contains("ModelCriteria.creator()");
+    assertAttribute("nullableString", "org.immutables.criteria.matcher.OptionalStringMatcher.NullableTemplate<R>");
+    assertAttribute("optionalString", "org.immutables.criteria.matcher.OptionalStringMatcher.Template<R>");
+    assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>");
+    checkCreator("stringList").contains("IterableMatcher.creator()");
   }
 
   @Test
@@ -146,7 +187,7 @@ public class CriteriaModelProcessorTest {
 
 
     assertAttribute("nullableFoo",
-            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
+            "org.immutables.criteria.matcher.OptionalMatcher.NullableTemplate<R,org.immutables.criteria.processor.CriteriaModelProcessorTest.FooCriteriaTemplate<R>,org.immutables.criteria.processor.CriteriaModelProcessorTest.Foo>");
 
     checkCreator("nullableFoo").contains("FooCriteria.creator()");
     checkCreator("nullableFoo").contains("OptionalMatcher.creator()");
@@ -213,23 +254,42 @@ public class CriteriaModelProcessorTest {
     List<Integer> listInteger();
     OptionalInt optionalInteger();
     Optional<Integer> optionalInteger2();
+    @Nullable Integer nullableInteger();
 
     long longValue();
     long[] arrayLong();
     List<Long> listLong();
     OptionalLong optionalLong();
     Optional<Long> optionalLong2();
+    @Nullable Long nullableLong();
 
     double doubleValue();
     double[] arrayDouble();
     List<Double> listDouble();
     OptionalDouble optionalDouble();
     Optional<Double> optionalDouble2();
+    @Nullable Double nullableDouble();
+
+    // == BigDecimal
+    BigDecimal bigDecimal();
+    BigDecimal[] arrayBigDecimal();
+    List<BigDecimal> listBigDecimal();
+    Optional<BigDecimal> optionalBigDecimal();
+    @Nullable BigDecimal nullableBigDecimal();
+
+    // == BigInteger
+    BigInteger bigInteger();
+    BigInteger[] arrayBigInteger();
+    List<BigInteger> listBigInteger();
+    Optional<BigInteger> optionalBigInteger();
+    @Nullable BigInteger nullableBigInteger();
+
 
     boolean booleanValue();
     boolean[] arrayBoolean();
     List<Boolean> listBoolean();
     Optional<Boolean> optionalBoolean();
+    @Nullable Boolean nullableBoolean();
 
     // non-comparable
     TimeZone timeZone();
