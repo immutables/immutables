@@ -18,7 +18,6 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
-import org.immutables.criteria.backend.Backend;
 import org.immutables.value.Value;
 
 /**
@@ -26,7 +25,7 @@ import org.immutables.value.Value;
  */
 @Value.Style(visibility = Value.Style.ImplementationVisibility.PACKAGE)
 @Value.Immutable
-public interface ElasticsearchSetup extends Backend.Setup {
+public interface ElasticsearchSetup {
 
   @Value.Parameter
   RestClient restClient();

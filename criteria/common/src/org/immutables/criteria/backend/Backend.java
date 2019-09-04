@@ -33,11 +33,6 @@ public interface Backend {
   Session open(Class<?> type);
 
   /**
-   * Configuration to create a backend. Usually has connection settings and other parameters.
-   */
-  interface Setup { }
-
-  /**
    * Context specific "connection" to the back-end. Typically creates isolated view on a table,
    * collection (mongo) or class.
    */
