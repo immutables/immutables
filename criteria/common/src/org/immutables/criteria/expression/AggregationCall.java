@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * Call using aggregation functions like {@code SUM}, {@code COUNT}, {@code MAX}, {@code AVG} etc.
  */
-class AggregationCall extends SimpleCall {
+public class AggregationCall extends SimpleCall {
 
   private final Type returnType;
 

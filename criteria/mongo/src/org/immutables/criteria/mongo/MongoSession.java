@@ -32,6 +32,7 @@ import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
@@ -79,7 +80,7 @@ class MongoSession implements Backend.Session {
   private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     final Query query = select.query();
 
-    final boolean hasAggregations =  !query.groupBy().isEmpty();
+    final boolean hasAggregations =  !query.groupBy().isEmpty() || query.projections().stream().anyMatch(p -> p instanceof AggregationCall);
     final boolean hasProjections = !query.projections().isEmpty();
     ExpressionNaming expressionNaming = hasAggregations ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
 
