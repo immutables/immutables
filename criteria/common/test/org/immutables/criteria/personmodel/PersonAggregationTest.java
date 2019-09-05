@@ -22,6 +22,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.sync.SyncFetcher;
 import org.junit.Test;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +104,28 @@ public abstract class PersonAggregationTest {
             .select(person.nickName, person.age.max(), person.age.min(), person.age.count(), person.age.sum())
             .map((nickName, max, min, count, sum) -> ("nick=" + nickName.orElse(null) + " max=" + max + " min=" + min + " count=" + count + " sum=" + sum)))
             .isOf("nick=b max=40 min=40 count=1 sum=40", "nick=a max=30 min=20 count=2 sum=50", "nick=null max=10 min=10 count=1 sum=10");
+  }
 
+  @Test
+  public void agg2() {
+    LocalDate now = LocalDate.now();
+    insert(generator.next().withNickName("a").withAge(20).withDateOfBirth(now.minusYears(20)));
+    insert(generator.next().withNickName("a").withAge(20).withDateOfBirth(now.minusYears(20)));
+    insert(generator.next().withNickName("b").withAge(40).withDateOfBirth(now.minusYears(40)));
+    insert(generator.next().withNickName(Optional.empty()).withAge(10).withDateOfBirth(now.minusYears(10)));
+
+    check(repository().findAll()
+            .groupBy(person.dateOfBirth, person.nickName)
+            .select(person.nickName, person.dateOfBirth, person.age.sum())
+            .map((nickName, dateOfBirth, age) -> (nickName.orElse(null) + "." + dateOfBirth + "." + age)))
+            .hasContentInAnyOrder("a." + now.minusYears(20) + "." + 40, "b." + now.minusYears(40) + "." + 40, "null." + now.minusYears(10) + "." + 10);
+
+    // different order of group by
+    check(repository().findAll()
+            .groupBy(person.nickName, person.dateOfBirth)
+            .select(person.nickName, person.dateOfBirth, person.age.sum())
+            .map((nickName, dateOfBirth, age) -> (nickName.orElse(null) + "." + dateOfBirth + "." + age)))
+            .hasContentInAnyOrder("a." + now.minusYears(20) + "." + 40, "b." + now.minusYears(40) + "." + 40, "null." + now.minusYears(10) + "." + 10);
   }
 
   /**
