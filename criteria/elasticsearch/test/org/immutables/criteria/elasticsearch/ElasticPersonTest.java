@@ -97,18 +97,18 @@ public class ElasticPersonTest extends AbstractPersonTest  {
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John"));
 
-    check(repository().find(criteria().fullName.matches(Pattern.compile("John")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
-    check(repository().find(criteria().fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J..n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J...")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("...n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("John")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(person.fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
+    check(repository().find(person.fullName.matches(Pattern.compile("J..n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("J...")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("...n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile(".*")))).hasSize(1);
 
     insert(generator.next().withFullName("Mary"));
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(2);
+    check(repository().find(person.fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile(".*")))).hasSize(2);
   }
 
 

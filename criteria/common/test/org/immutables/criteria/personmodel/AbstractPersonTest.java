@@ -63,6 +63,8 @@ public abstract class AbstractPersonTest {
     STRING_LENGTH
   }
 
+  protected final PersonCriteria person = PersonCriteria.person;
+
   /**
    * List of features to be tested
    */
@@ -84,13 +86,6 @@ public abstract class AbstractPersonTest {
   }
 
   /**
-   * Create person criteria
-   */
-  protected static PersonCriteria criteria() {
-    return PersonCriteria.person;
-  }
-
-  /**
    * limit and offset
    */
   @Test
@@ -105,7 +100,7 @@ public abstract class AbstractPersonTest {
     }
 
     for (int i = 1; i < 3; i++) {
-      check(repository().find(criteria().id.is("id0")).limit(i)).hasSize(1);
+      check(repository().find(person.id.is("id0")).limit(i)).hasSize(1);
     }
 
     assumeFeature(Feature.QUERY_WITH_OFFSET);
@@ -124,22 +119,22 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(criteria().age.atLeast(22)).hasSize(1);
-    check(criteria().age.greaterThan(22)).empty();
-    check(criteria().age.lessThan(22)).empty();
-    check(criteria().age.atMost(22)).hasSize(1);
+    check(person.age.atLeast(22)).hasSize(1);
+    check(person.age.greaterThan(22)).empty();
+    check(person.age.lessThan(22)).empty();
+    check(person.age.atMost(22)).hasSize(1);
 
     // look up using id
-    check(criteria().id.is("id123")).hasSize(1);
-    check(criteria().id.in("foo", "bar", "id123")).hasSize(1);
-    check(criteria().id.in("foo", "bar", "qux")).empty();
+    check(person.id.is("id123")).hasSize(1);
+    check(person.id.in("foo", "bar", "id123")).hasSize(1);
+    check(person.id.in("foo", "bar", "qux")).empty();
 
     // jsr310. dates and time
-    check(criteria().dateOfBirth.greaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
-    check(criteria().dateOfBirth.greaterThan(LocalDate.of(2000, 1, 1))).empty();
-    check(criteria().dateOfBirth.atMost(LocalDate.of(1990, 2, 2))).hasSize(1);
-    check(criteria().dateOfBirth.atMost(LocalDate.of(1990, 2, 1))).empty();
-    check(criteria().dateOfBirth.is(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(person.dateOfBirth.greaterThan(LocalDate.of(1990, 1, 1))).hasSize(1);
+    check(person.dateOfBirth.greaterThan(LocalDate.of(2000, 1, 1))).empty();
+    check(person.dateOfBirth.atMost(LocalDate.of(1990, 2, 2))).hasSize(1);
+    check(person.dateOfBirth.atMost(LocalDate.of(1990, 2, 1))).empty();
+    check(person.dateOfBirth.is(LocalDate.of(1990, 2, 2))).hasSize(1);
   }
 
   @Test
@@ -147,61 +142,61 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().age.is(30)).hasSize(1);
-    check(criteria().age.is(31)).empty();
-    check(criteria().age.isNot(31)).hasSize(1);
+    check(person.age.is(30)).hasSize(1);
+    check(person.age.is(31)).empty();
+    check(person.age.isNot(31)).hasSize(1);
 
     // at least
-    check(criteria().age.atLeast(29)).hasSize(1);
-    check(criteria().age.atLeast(30)).hasSize(1);
-    check(criteria().age.atLeast(31)).empty();
+    check(person.age.atLeast(29)).hasSize(1);
+    check(person.age.atLeast(30)).hasSize(1);
+    check(person.age.atLeast(31)).empty();
 
     // at most
-    check(criteria().age.atMost(31)).hasSize(1);
-    check(criteria().age.atMost(30)).hasSize(1);
-    check(criteria().age.atMost(29)).empty();
+    check(person.age.atMost(31)).hasSize(1);
+    check(person.age.atMost(30)).hasSize(1);
+    check(person.age.atMost(29)).empty();
 
-    check(criteria().age.greaterThan(29)).hasSize(1);
-    check(criteria().age.greaterThan(30)).empty();
-    check(criteria().age.greaterThan(31)).empty();
+    check(person.age.greaterThan(29)).hasSize(1);
+    check(person.age.greaterThan(30)).empty();
+    check(person.age.greaterThan(31)).empty();
 
-    check(criteria().age.in(Arrays.asList(1, 2, 3))).empty();
-    check(criteria().age.in(1, 2, 3)).empty();
-    check(criteria().age.in(29, 30, 31)).hasSize(1);
-    check(criteria().age.in(Arrays.asList(29, 30, 31))).hasSize(1);
-    check(criteria().age.notIn(1, 2, 3)).hasSize(1);
-    check(criteria().age.notIn(39, 30, 31)).empty();
+    check(person.age.in(Arrays.asList(1, 2, 3))).empty();
+    check(person.age.in(1, 2, 3)).empty();
+    check(person.age.in(29, 30, 31)).hasSize(1);
+    check(person.age.in(Arrays.asList(29, 30, 31))).hasSize(1);
+    check(person.age.notIn(1, 2, 3)).hasSize(1);
+    check(person.age.notIn(39, 30, 31)).empty();
 
-    check(criteria().age.atLeast(30).age.atMost(31)).hasSize(1);
-    check(criteria().age.lessThan(30).age.greaterThan(31)).empty();
+    check(person.age.atLeast(30).age.atMost(31)).hasSize(1);
+    check(person.age.lessThan(30).age.greaterThan(31)).empty();
 
     // multiple filters on the same field
-    check(criteria().age.is(30).age.greaterThan(31)).empty();
-    check(criteria().age.is(30).age.isNot(30).or().age.is(30)).hasSize(1);
-    check(criteria().age.is(30).age.greaterThan(30).or().age.is(31)).empty();
+    check(person.age.is(30).age.greaterThan(31)).empty();
+    check(person.age.is(30).age.isNot(30).or().age.is(30)).hasSize(1);
+    check(person.age.is(30).age.greaterThan(30).or().age.is(31)).empty();
 
     // add second person
     Person adam = new PersonGenerator().next().withId("adam").withFullName("Adam").withAge(40);
     insert(adam);
 
-    check(criteria().age.is(30)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.is(40)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.atLeast(29)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.atLeast(30)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.atLeast(31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.atMost(31)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.atMost(30)).toList().hasContentInAnyOrder(john);
-    check(criteria().age.atMost(29)).empty();
-    check(criteria().age.greaterThan(29)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.greaterThan(30)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.greaterThan(31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.in(Arrays.asList(1, 2, 3))).empty();
-    check(criteria().age.in(Arrays.asList(29, 30, 40, 44))).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.notIn(30, 31)).toList().hasContentInAnyOrder(adam);
-    check(criteria().age.notIn(1, 2)).toList().hasContentInAnyOrder(john, adam);
-    check(criteria().age.lessThan(1)).empty();
-    check(criteria().age.lessThan(30)).empty();
-    check(criteria().age.lessThan(31)).hasSize(1);
+    check(person.age.is(30)).toList().hasContentInAnyOrder(john);
+    check(person.age.is(40)).toList().hasContentInAnyOrder(adam);
+    check(person.age.atLeast(29)).toList().hasContentInAnyOrder(john, adam);
+    check(person.age.atLeast(30)).toList().hasContentInAnyOrder(john, adam);
+    check(person.age.atLeast(31)).toList().hasContentInAnyOrder(adam);
+    check(person.age.atMost(31)).toList().hasContentInAnyOrder(john);
+    check(person.age.atMost(30)).toList().hasContentInAnyOrder(john);
+    check(person.age.atMost(29)).empty();
+    check(person.age.greaterThan(29)).toList().hasContentInAnyOrder(john, adam);
+    check(person.age.greaterThan(30)).toList().hasContentInAnyOrder(adam);
+    check(person.age.greaterThan(31)).toList().hasContentInAnyOrder(adam);
+    check(person.age.in(Arrays.asList(1, 2, 3))).empty();
+    check(person.age.in(Arrays.asList(29, 30, 40, 44))).toList().hasContentInAnyOrder(john, adam);
+    check(person.age.notIn(30, 31)).toList().hasContentInAnyOrder(adam);
+    check(person.age.notIn(1, 2)).toList().hasContentInAnyOrder(john, adam);
+    check(person.age.lessThan(1)).empty();
+    check(person.age.lessThan(30)).empty();
+    check(person.age.lessThan(31)).hasSize(1);
   }
 
   @Test
@@ -209,21 +204,21 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().age.between(0, 40)).hasSize(1);
-    check(criteria().age.between(30, 30)).hasSize(1);
-    check(criteria().age.between(30, 31)).hasSize(1);
-    check(criteria().age.between(29, 30)).hasSize(1);
-    check(criteria().age.between(29, 31)).hasSize(1);
-    check(criteria().age.between(30, 35)).hasSize(1);
+    check(person.age.between(0, 40)).hasSize(1);
+    check(person.age.between(30, 30)).hasSize(1);
+    check(person.age.between(30, 31)).hasSize(1);
+    check(person.age.between(29, 30)).hasSize(1);
+    check(person.age.between(29, 31)).hasSize(1);
+    check(person.age.between(30, 35)).hasSize(1);
 
-    check(criteria().age.between(21, 29)).empty();
-    check(criteria().age.between(29, 29)).empty();
-    check(criteria().age.between(31, 31)).empty();
-    check(criteria().age.between(31, 32)).empty();
+    check(person.age.between(21, 29)).empty();
+    check(person.age.between(29, 29)).empty();
+    check(person.age.between(31, 31)).empty();
+    check(person.age.between(31, 32)).empty();
 
     // invalid
-    check(criteria().age.between(31, 30)).empty();
-    check(criteria().age.between(32, 29)).empty();
+    check(person.age.between(31, 30)).empty();
+    check(person.age.between(32, 29)).empty();
   }
 
   /**
@@ -234,31 +229,31 @@ public abstract class AbstractPersonTest {
     Person john = new PersonGenerator().next().withId("john").withFullName("John").withAge(30);
     insert(john);
 
-    check(criteria().not(p -> p.id.is("john"))).empty();
-    check(criteria().not(p -> p.id.is("john").age.is(30))).empty();
-    check(criteria().not(p -> p.id.is("john").age.is(31))).hasSize(1);
-    check(criteria().not(p -> p.id.in("john", "john").age.in(30, 30))).empty();
-    check(criteria().not(p -> p.id.in("john", "john").or().age.in(30, 30))).empty();
-    check(criteria().not(p -> p.id.in("d", "d").age.in(99, 99))).hasSize(1);
-    check(criteria().not(p -> p.id.in("d", "d").or().age.in(99, 99))).hasSize(1);
+    check(person.not(p -> p.id.is("john"))).empty();
+    check(person.not(p -> p.id.is("john").age.is(30))).empty();
+    check(person.not(p -> p.id.is("john").age.is(31))).hasSize(1);
+    check(person.not(p -> p.id.in("john", "john").age.in(30, 30))).empty();
+    check(person.not(p -> p.id.in("john", "john").or().age.in(30, 30))).empty();
+    check(person.not(p -> p.id.in("d", "d").age.in(99, 99))).hasSize(1);
+    check(person.not(p -> p.id.in("d", "d").or().age.in(99, 99))).hasSize(1);
 
-    check(criteria().not(p -> p.id.is("john1").or().id.is("john"))).empty();
-    check(criteria().not(p -> p.id.is("john1").or().id.is("john2"))).hasSize(1);
-    check(criteria().not(p -> p.id.isNot("john"))).hasSize(1);
-    check(criteria().not(p -> p.age.atLeast(29).age.atMost(31))).empty();
+    check(person.not(p -> p.id.is("john1").or().id.is("john"))).empty();
+    check(person.not(p -> p.id.is("john1").or().id.is("john2"))).hasSize(1);
+    check(person.not(p -> p.id.isNot("john"))).hasSize(1);
+    check(person.not(p -> p.age.atLeast(29).age.atMost(31))).empty();
 
-    check(criteria().not(p -> p.age.is(30)).not(p2 -> p2.id.is("john"))).empty();
-    check(criteria().not(p -> p.age.is(31)).not(p2 -> p2.id.is("DUMMY"))).hasSize(1);
+    check(person.not(p -> p.age.is(30)).not(p2 -> p2.id.is("john"))).empty();
+    check(person.not(p -> p.age.is(31)).not(p2 -> p2.id.is("DUMMY"))).hasSize(1);
 
     // double not
-    check(criteria().not(p -> p.not(p2 -> p2.id.is("john")))).hasSize(1);
+    check(person.not(p -> p.not(p2 -> p2.id.is("john")))).hasSize(1);
 
     // triple not
-    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.is("john"))))).empty();
-    check(criteria().not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isNot("john"))))).hasSize(1);
+    check(person.not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.is("john"))))).empty();
+    check(person.not(p1 -> p1.not(p2 -> p2.not(p3 -> p3.id.isNot("john"))))).hasSize(1);
 
-    check(criteria().not(p -> p.age.greaterThan(29))).empty();
-    check(criteria().not(p -> p.age.greaterThan(31))).hasSize(1);
+    check(person.not(p -> p.age.greaterThan(29))).empty();
+    check(person.not(p -> p.age.greaterThan(31))).hasSize(1);
 
   }
 
@@ -273,27 +268,27 @@ public abstract class AbstractPersonTest {
 
     insert(john);
 
-    check(criteria().fullName.is("John")).hasSize(1);
-    check(criteria().fullName.isNot("John")).empty();
-    check(criteria().fullName.is("John")
+    check(person.fullName.is("John")).hasSize(1);
+    check(person.fullName.isNot("John")).empty();
+    check(person.fullName.is("John")
             .age.isNot(1)).hasSize(1);
-    check(criteria().fullName.is("John")
+    check(person.fullName.is("John")
             .age.is(22)).hasSize(1);
-    check(criteria().fullName.is("_MISSING_")).empty();
-    check(criteria().fullName.in("John", "test2")).hasSize(1);
-    check(criteria().fullName.notIn("John", "test2")).empty();
+    check(person.fullName.is("_MISSING_")).empty();
+    check(person.fullName.in("John", "test2")).hasSize(1);
+    check(person.fullName.notIn("John", "test2")).empty();
 
     // true / false
-    check(criteria().isActive.isTrue()).hasSize(1);
-    check(criteria().isActive.isFalse()).empty();
+    check(person.isActive.isTrue()).hasSize(1);
+    check(person.isActive.isFalse()).empty();
 
     // isPresent / isAbsent
-    check(criteria().address.isAbsent()).empty();
-    check(criteria().address.isPresent()).notEmpty();
+    check(person.address.isAbsent()).empty();
+    check(person.address.isPresent()).notEmpty();
 
     // simple OR
-    check(criteria().address.isAbsent().or().address.isPresent()).notEmpty();
-    check(criteria().isActive.isFalse().or().isActive.isTrue()).notEmpty();
+    check(person.address.isAbsent().or().address.isPresent()).notEmpty();
+    check(person.isActive.isFalse().or().isActive.isTrue()).notEmpty();
   }
 
   @Test
@@ -301,23 +296,23 @@ public abstract class AbstractPersonTest {
     final ImmutablePerson john = new PersonGenerator().next().withBestFriend(ImmutableFriend.builder().hobby("ski").build());
     insert(john);
     final Address address = john.address().get();
-    check(criteria().address.value().city.is(address.city())).notEmpty();
-    check(criteria().address.value().zip.is(address.zip())).notEmpty();
-    check(criteria().address.value().zip.is(address.zip())).toList().hasContentInAnyOrder(john);
-    check(criteria().address.value().state.is(address.state())).toList().hasContentInAnyOrder(john);
-    check(criteria().address.value().city.is("__MISSING__")).empty();
-    check(criteria().bestFriend.value().hobby.is("ski")).notEmpty();
-    check(criteria().bestFriend.value().hobby.is("__MISSING__")).empty();
+    check(person.address.value().city.is(address.city())).notEmpty();
+    check(person.address.value().zip.is(address.zip())).notEmpty();
+    check(person.address.value().zip.is(address.zip())).toList().hasContentInAnyOrder(john);
+    check(person.address.value().state.is(address.state())).toList().hasContentInAnyOrder(john);
+    check(person.address.value().city.is("__MISSING__")).empty();
+    check(person.bestFriend.value().hobby.is("ski")).notEmpty();
+    check(person.bestFriend.value().hobby.is("__MISSING__")).empty();
   }
 
   @Test
   public void empty() {
     check(repository().findAll()).empty();
-    check(repository().find(criteria())).empty();
+    check(repository().find(person)).empty();
 
     insert(new PersonGenerator().next());
     check(repository().findAll()).notEmpty();
-    check(repository().find(criteria())).notEmpty();
+    check(repository().find(person)).notEmpty();
   }
 
   @Test
@@ -333,36 +328,36 @@ public abstract class AbstractPersonTest {
     Collections.shuffle(persons);
     insert(persons);
 
-    check(repository().findAll().orderBy(criteria().age.asc())).hasSize(count);
-    check(repository().findAll().orderBy(criteria().age.asc()).limit(1)).toList(Person::fullName).isOf("name9");
-    check(repository().findAll().orderBy(criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
-    check(repository().findAll().orderBy(criteria().age.asc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
+    check(repository().findAll().orderBy(person.age.asc())).hasSize(count);
+    check(repository().findAll().orderBy(person.age.asc()).limit(1)).toList(Person::fullName).isOf("name9");
+    check(repository().findAll().orderBy(person.age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(person.age.asc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
 
-    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(1)).toList(Person::fullName).isOf("name0");
-    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
-    check(repository().findAll().orderBy(criteria().fullName.asc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
+    check(repository().findAll().orderBy(person.fullName.asc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(person.fullName.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(person.fullName.asc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
 
-    check(repository().findAll().orderBy(criteria().age.desc())).hasSize(count);
-    check(repository().findAll().orderBy(criteria().age.desc()).limit(1)).toList(Person::fullName).isOf("name0");
-    check(repository().findAll().orderBy(criteria().age.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
-    check(repository().findAll().orderBy(criteria().age.desc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
+    check(repository().findAll().orderBy(person.age.desc())).hasSize(count);
+    check(repository().findAll().orderBy(person.age.desc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(person.age.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(person.age.desc()).limit(3)).toList(Person::fullName).isOf("name0", "name1", "name2");
 
-    check(repository().findAll().orderBy(criteria().fullName.desc())).hasSize(count);
-    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(1)).toList(Person::fullName).isOf("name9");
-    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
-    check(repository().findAll().orderBy(criteria().fullName.desc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
-
-
-    check(repository().findAll().orderBy(criteria().fullName.asc(), criteria().age.asc()).limit(1)).toList(Person::fullName).isOf("name0");
-    check(repository().findAll().orderBy(criteria().fullName.asc(), criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
-    check(repository().findAll().orderBy(criteria().fullName.desc(), criteria().age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
-    check(repository().findAll().orderBy(criteria().age.desc(), criteria().fullName.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(person.fullName.desc())).hasSize(count);
+    check(repository().findAll().orderBy(person.fullName.desc()).limit(1)).toList(Person::fullName).isOf("name9");
+    check(repository().findAll().orderBy(person.fullName.desc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(person.fullName.desc()).limit(3)).toList(Person::fullName).isOf("name9", "name8", "name7");
 
 
-    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.asc()), Ordering.natural());
-    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.asc()).limit(5), Ordering.natural());
-    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()), Ordering.natural().reverse());
-    assertOrdered(Person::age, repository().findAll().orderBy(criteria().age.desc()).limit(5), Ordering.natural().reverse());
+    check(repository().findAll().orderBy(person.fullName.asc(), person.age.asc()).limit(1)).toList(Person::fullName).isOf("name0");
+    check(repository().findAll().orderBy(person.fullName.asc(), person.age.asc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+    check(repository().findAll().orderBy(person.fullName.desc(), person.age.asc()).limit(2)).toList(Person::fullName).isOf("name9", "name8");
+    check(repository().findAll().orderBy(person.age.desc(), person.fullName.desc()).limit(2)).toList(Person::fullName).isOf("name0", "name1");
+
+
+    assertOrdered(Person::age, repository().findAll().orderBy(person.age.asc()), Ordering.natural());
+    assertOrdered(Person::age, repository().findAll().orderBy(person.age.asc()).limit(5), Ordering.natural());
+    assertOrdered(Person::age, repository().findAll().orderBy(person.age.desc()), Ordering.natural().reverse());
+    assertOrdered(Person::age, repository().findAll().orderBy(person.age.desc()).limit(5), Ordering.natural().reverse());
   }
 
   @Test
@@ -371,23 +366,23 @@ public abstract class AbstractPersonTest {
     final PersonGenerator generator = new PersonGenerator();
     insert(generator.next().withFullName("John"));
 
-    check(repository().find(criteria().fullName.matches(Pattern.compile("John")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J..n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J...")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("...n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("^Jo")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("hn$")))).hasSize(1);
-    check(repository().find(criteria().fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J\\w+n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("John")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("J..n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("J...")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("...n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("^Jo")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("hn$")))).hasSize(1);
+    check(repository().find(person.fullName.not(s ->s.matches(Pattern.compile("J.*n"))))).empty();
+    check(repository().find(person.fullName.matches(Pattern.compile("J\\w+n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile(".*")))).hasSize(1);
 
     insert(generator.next().withFullName("Mary"));
-    check(repository().find(criteria().fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("^Ma")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile("ry$")))).hasSize(1);
-    check(repository().find(criteria().fullName.matches(Pattern.compile(".*")))).hasSize(2);
+    check(repository().find(person.fullName.matches(Pattern.compile("J.*n")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("M.*ry")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("^Ma")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile("ry$")))).hasSize(1);
+    check(repository().find(person.fullName.matches(Pattern.compile(".*")))).hasSize(2);
   }
 
   @Test
@@ -397,30 +392,30 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("John"));
 
     // == starts with
-    check(repository().find(criteria().fullName.startsWith(""))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("J"))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("Jo"))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("Jooo"))).empty();
-    check(repository().find(criteria().fullName.startsWith("John"))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("j"))).empty();
-    check(repository().find(criteria().fullName.startsWith("john"))).empty(); // not case sensitive
+    check(repository().find(person.fullName.startsWith(""))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("J"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("Jo"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("Jooo"))).empty();
+    check(repository().find(person.fullName.startsWith("John"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("j"))).empty();
+    check(repository().find(person.fullName.startsWith("john"))).empty(); // not case sensitive
 
     // === ends with
-    check(repository().find(criteria().fullName.endsWith(""))).hasSize(1);
-    check(repository().find(criteria().fullName.endsWith("n"))).hasSize(1);
-    check(repository().find(criteria().fullName.endsWith("hn"))).hasSize(1);
-    check(repository().find(criteria().fullName.endsWith("ohn"))).hasSize(1);
-    check(repository().find(criteria().fullName.endsWith("N"))).empty();
+    check(repository().find(person.fullName.endsWith(""))).hasSize(1);
+    check(repository().find(person.fullName.endsWith("n"))).hasSize(1);
+    check(repository().find(person.fullName.endsWith("hn"))).hasSize(1);
+    check(repository().find(person.fullName.endsWith("ohn"))).hasSize(1);
+    check(repository().find(person.fullName.endsWith("N"))).empty();
 
     insert(generator.next().withFullName("Mary"));
-    check(repository().find(criteria().fullName.startsWith(""))).hasSize(2);
-    check(repository().find(criteria().fullName.startsWith("Ma"))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("Mary"))).hasSize(1);
-    check(repository().find(criteria().fullName.startsWith("Jo"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith(""))).hasSize(2);
+    check(repository().find(person.fullName.startsWith("Ma"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("Mary"))).hasSize(1);
+    check(repository().find(person.fullName.startsWith("Jo"))).hasSize(1);
 
-    check(repository().find(criteria().fullName.endsWith(""))).hasSize(2);
-    check(repository().find(criteria().fullName.endsWith("y"))).hasSize(1);
-    check(repository().find(criteria().fullName.endsWith("Mary"))).hasSize(1);
+    check(repository().find(person.fullName.endsWith(""))).hasSize(2);
+    check(repository().find(person.fullName.endsWith("y"))).hasSize(1);
+    check(repository().find(person.fullName.endsWith("Mary"))).hasSize(1);
   }
 
   @Test
@@ -428,21 +423,21 @@ public abstract class AbstractPersonTest {
     assumeFeature(Feature.STRING_PREFIX_SUFFIX);
     final PersonGenerator generator = new PersonGenerator();
     // on empty
-    check(repository().find(criteria().fullName.contains(""))).empty();
-    check(repository().find(criteria().fullName.contains("J"))).empty();
-    check(repository().find(criteria().fullName.contains("John"))).empty();
+    check(repository().find(person.fullName.contains(""))).empty();
+    check(repository().find(person.fullName.contains("J"))).empty();
+    check(repository().find(person.fullName.contains("John"))).empty();
 
     insert(generator.next().withFullName("John"));
 
-//    check(repository().find(criteria().fullName.contains(""))).hasSize(1);
-    check(repository().find(criteria().fullName.contains("J"))).hasSize(1);
-    check(repository().find(criteria().fullName.contains("John"))).hasSize(1);
-    check(repository().find(criteria().fullName.contains("John1"))).empty();
-    check(repository().find(criteria().fullName.contains("Mary"))).empty();
-    check(repository().find(criteria().fullName.contains("X"))).empty();
-    check(repository().find(criteria().fullName.contains("oh"))).hasSize(1);
-    check(repository().find(criteria().fullName.contains("ohn"))).hasSize(1);
-    check(repository().find(criteria().fullName.contains("n"))).hasSize(1);
+//    check(repository().find(person.fullName.contains(""))).hasSize(1);
+    check(repository().find(person.fullName.contains("J"))).hasSize(1);
+    check(repository().find(person.fullName.contains("John"))).hasSize(1);
+    check(repository().find(person.fullName.contains("John1"))).empty();
+    check(repository().find(person.fullName.contains("Mary"))).empty();
+    check(repository().find(person.fullName.contains("X"))).empty();
+    check(repository().find(person.fullName.contains("oh"))).hasSize(1);
+    check(repository().find(person.fullName.contains("ohn"))).hasSize(1);
+    check(repository().find(person.fullName.contains("n"))).hasSize(1);
   }
 
   @Test
@@ -467,13 +462,13 @@ public abstract class AbstractPersonTest {
     // 1. how is it persisted vs in-memory representation ?
     // 2. size == 0 vs empty / notEmpty
 
-    // check(repository().find(criteria().pets.hasSize(0))).toList(Person::fullName).isOf("Mary", "John");
-    check(repository().find(criteria().pets.hasSize(1))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul");
-    check(repository().find(criteria().pets.hasSize(2))).toList(Person::fullName).isOf("Emma");
+    // check(repository().find(person.pets.hasSize(0))).toList(Person::fullName).isOf("Mary", "John");
+    check(repository().find(person.pets.hasSize(1))).toList(Person::fullName).hasContentInAnyOrder("Adam", "Paul");
+    check(repository().find(person.pets.hasSize(2))).toList(Person::fullName).isOf("Emma");
 
     // negation
-    check(repository().find(criteria().not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam", "Paul");
-    check(repository().find(criteria().not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
+    check(repository().find(person.not(p -> p.pets.hasSize(1)))).toList(Person::fullName).not().isOf("Adam", "Paul");
+    check(repository().find(person.not(p -> p.pets.hasSize(2)))).toList(Person::fullName).not().isOf("Emma");
   }
 
   @Test
@@ -485,10 +480,10 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Mary").withInterests("skiing"));
     insert(generator.next().withFullName("Adam").withInterests("skiing", "biking"));
 
-    check(repository().find(criteria().interests.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("John");
-    check(repository().find(criteria().interests.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
-    check(repository().find(criteria().not(p -> p.interests.notEmpty()))).toList(Person::fullName).hasContentInAnyOrder("John");
-    check(repository().find(criteria().not(p -> p.interests.isEmpty()))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
+    check(repository().find(person.interests.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(person.interests.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
+    check(repository().find(person.not(p -> p.interests.notEmpty()))).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(person.not(p -> p.interests.isEmpty()))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Adam");
   }
 
   @Test
@@ -500,11 +495,11 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Adam").withInterests("hiking", "swimming"));
     insert(generator.next().withFullName("Emma").withInterests("cooking", "skiing"));
 
-    check(repository().find(criteria().interests.contains("skiing"))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Emma");
-    check(repository().find(criteria().interests.contains("hiking"))).toList(Person::fullName).isOf("Adam");
-    check(repository().find(criteria().interests.contains("cooking"))).toList(Person::fullName).isOf("Emma");
-    check(repository().find(criteria().interests.contains("swimming"))).toList(Person::fullName).isOf("Adam");
-    check(repository().find(criteria().interests.contains("dancing"))).empty();
+    check(repository().find(person.interests.contains("skiing"))).toList(Person::fullName).hasContentInAnyOrder("Mary", "Emma");
+    check(repository().find(person.interests.contains("hiking"))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(person.interests.contains("cooking"))).toList(Person::fullName).isOf("Emma");
+    check(repository().find(person.interests.contains("swimming"))).toList(Person::fullName).isOf("Adam");
+    check(repository().find(person.interests.contains("dancing"))).empty();
   }
 
   @Test
@@ -517,11 +512,11 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Emma").withNickName("bb"));
     insert(generator.next().withFullName("James").withNickName("ccc"));
 
-    check(repository().find(criteria().nickName.hasLength(0))).toList(Person::fullName).hasContentInAnyOrder("Adam");
-    check(repository().find(criteria().nickName.hasLength(1))).toList(Person::fullName).hasContentInAnyOrder("Mary");
-    check(repository().find(criteria().nickName.hasLength(2))).toList(Person::fullName).hasContentInAnyOrder("Emma");
-    check(repository().find(criteria().nickName.hasLength(3))).toList(Person::fullName).hasContentInAnyOrder("James");
-    check(repository().find(criteria().nickName.hasLength(4))).toList(Person::fullName).isEmpty();
+    check(repository().find(person.nickName.hasLength(0))).toList(Person::fullName).hasContentInAnyOrder("Adam");
+    check(repository().find(person.nickName.hasLength(1))).toList(Person::fullName).hasContentInAnyOrder("Mary");
+    check(repository().find(person.nickName.hasLength(2))).toList(Person::fullName).hasContentInAnyOrder("Emma");
+    check(repository().find(person.nickName.hasLength(3))).toList(Person::fullName).hasContentInAnyOrder("James");
+    check(repository().find(person.nickName.hasLength(4))).toList(Person::fullName).isEmpty();
   }
 
   /**
@@ -536,10 +531,10 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Adam").withNickName(""));
     insert(generator.next().withFullName("Mary").withNickName("a"));
 
-    check(repository().find(criteria().nickName.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("Adam");
-    check(repository().find(criteria().nickName.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary");
-    check(repository().find(criteria().nickName.isAbsent())).toList(Person::fullName).hasContentInAnyOrder("John");
-    check(repository().find(criteria().nickName.isPresent())).toList(Person::fullName).hasContentInAnyOrder("Adam", "Mary");
+    check(repository().find(person.nickName.isEmpty())).toList(Person::fullName).hasContentInAnyOrder("Adam");
+    check(repository().find(person.nickName.notEmpty())).toList(Person::fullName).hasContentInAnyOrder("Mary");
+    check(repository().find(person.nickName.isAbsent())).toList(Person::fullName).hasContentInAnyOrder("John");
+    check(repository().find(person.nickName.isPresent())).toList(Person::fullName).hasContentInAnyOrder("Adam", "Mary");
   }
 
   @Test
@@ -550,13 +545,13 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false));
     insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true));
 
-    Checkers.check(repository().findAll().select(criteria().age).fetch()).hasContentInAnyOrder(21, 22, 23);
-    Checkers.check(repository().findAll().select(criteria().fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
-    Checkers.check(repository().findAll().select(criteria().id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
-    Checkers.check(repository().findAll().select(criteria().dateOfBirth).fetch()).notEmpty();
-    Checkers.check(repository().findAll().select(criteria().isActive).fetch()).hasContentInAnyOrder(true, false, true);
+    Checkers.check(repository().findAll().select(person.age).fetch()).hasContentInAnyOrder(21, 22, 23);
+    Checkers.check(repository().findAll().select(person.fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
+    Checkers.check(repository().findAll().select(person.id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
+    Checkers.check(repository().findAll().select(person.dateOfBirth).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(person.isActive).fetch()).hasContentInAnyOrder(true, false, true);
 
-    Checkers.check(repository().findAll().select(criteria().id, criteria().fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(person.id, person.fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
 
   }
@@ -573,13 +568,13 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withFullName("Emma").withNickName("b").withInterests("four").withIsActive(true));
 
     // nickname
-    Checkers.check(repository().findAll().select(criteria().nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
-    Checkers.check(repository().findAll().select(criteria().fullName, criteria().nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(person.nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
+    Checkers.check(repository().findAll().select(person.fullName, person.nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
 
-    Checkers.check(repository().findAll().select(criteria().address).fetch()).notEmpty();
-    Checkers.check(repository().findAll().select(criteria().bestFriend).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(person.address).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(person.bestFriend).fetch()).notEmpty();
   }
 
   private void assumeFeature(Feature feature) {
