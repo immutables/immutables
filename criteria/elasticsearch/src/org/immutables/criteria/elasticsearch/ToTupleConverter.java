@@ -40,7 +40,7 @@ class ToTupleConverter implements JsonConverter<ProjectedTuple>  {
   private final List<ProjectedField> fields;
 
   ToTupleConverter(Query query, ObjectMapper mapper) {
-    Preconditions.checkArgument(!query.projections().isEmpty(), "no projections defined");
+    Preconditions.checkArgument(query.hasProjections(), "no projections defined");
     this.query = query;
     this.fields = query.projections().stream().map(e -> new ProjectedField(e, mapper)).collect(Collectors.toList());
   }

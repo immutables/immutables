@@ -37,7 +37,7 @@ class TupleExtractor  {
   private final Query query;
 
   TupleExtractor(Query query) {
-    Preconditions.checkArgument(!query.projections().isEmpty(), "no projections defined");
+    Preconditions.checkArgument(query.hasProjections(), "no projections defined");
     this.query = query;
   }
 

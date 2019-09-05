@@ -151,7 +151,7 @@ class AggregationQuery {
       }
 
       // $project part
-      if (!query.projections().isEmpty()) {
+      if (query.hasProjections()) {
         for (int i = 0; i < query.projections().size(); i++) {
           Expression expr = query.projections().get(i);
           final String alias = naming.get(extractPath(expr));

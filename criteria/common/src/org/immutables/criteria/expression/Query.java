@@ -46,6 +46,20 @@ public abstract class Query {
 
   public abstract List<Expression> groupBy();
 
+  /**
+   * Check if current query has any projections
+   */
+  public boolean hasProjections() {
+    return !projections().isEmpty();
+  }
+
+  /**
+   * Check if current query has any aggregation calls
+   */
+  public boolean hasAggregations() {
+    return !groupBy().isEmpty() || projections().stream().anyMatch(p -> p instanceof AggregationCall);
+  }
+
   public static Query of(Class<?> entityClass) {
     return ImmutableQuery.of(entityClass);
   }

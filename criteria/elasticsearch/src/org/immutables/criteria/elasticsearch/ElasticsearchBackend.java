@@ -113,7 +113,7 @@ public class ElasticsearchBackend implements Backend {
 
       JsonConverter converter = this.converter;
 
-      if (!query.projections().isEmpty()) {
+      if (query.hasProjections()) {
         ArrayNode projection = query.projections().stream()
                  .map(p -> ((Path) p).toStringPath())
                  .reduce(objectMapper.createArrayNode(), ArrayNode::add, (old, newNode) -> newNode);

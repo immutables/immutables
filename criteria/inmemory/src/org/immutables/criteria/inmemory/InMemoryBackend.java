@@ -110,7 +110,7 @@ public class InMemoryBackend implements Backend {
         stream = stream.sorted(comparator);
       }
 
-      if (!query.projections().isEmpty()) {
+      if (query.hasProjections()) {
         final TupleExtractor extractor = new TupleExtractor(query);
         stream = (Stream<T>) stream.map(extractor::extract);
       }

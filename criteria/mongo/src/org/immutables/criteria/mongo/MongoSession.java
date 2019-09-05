@@ -80,12 +80,9 @@ class MongoSession implements Backend.Session {
   private <T> Publisher<T> query(StandardOperations.Select<T> select) {
     final Query query = select.query();
 
-    final boolean hasAggregations =  !query.groupBy().isEmpty() || query.projections().stream().anyMatch(p -> p instanceof AggregationCall);
-    final boolean hasProjections = !query.projections().isEmpty();
+    final boolean hasAggregations =  query.hasAggregations();
+    final boolean hasProjections = query.hasProjections();
     ExpressionNaming expressionNaming = hasAggregations ? ExpressionNaming.of(UniqueCachedNaming.of(query.projections())) : expression -> pathNaming.name((Path) expression);
-
-
-
 
     @SuppressWarnings("unchecked")
     final MongoCollection<T> collection = (MongoCollection<T>) (hasProjections ?
