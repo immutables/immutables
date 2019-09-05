@@ -31,7 +31,7 @@ public class ReactiveMapper1<T1> extends ReactiveFetcher<T1> {
   private final Backend.Session session;
   private final Function<ProjectedTuple, ?> mapFn;
 
-  ReactiveMapper1(Query query, Backend.Session session) {
+  public ReactiveMapper1(Query query, Backend.Session session) {
     super(query, session);
     this.query = query;
     this.session = session;

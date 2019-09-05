@@ -23,6 +23,7 @@ import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.reactive.ReactiveMapper1;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
@@ -31,24 +32,19 @@ import java.util.function.Function;
 
 public class SyncMapper1<T1> extends SyncFetcher<T1> {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveMapper1<T1> delegate;
 
   SyncMapper1(Query query, Backend.Session session) {
-    super(query, session);
-    this.query = query;
-    this.session = session;
+    super(new ReactiveFetcher<>(query, session));
+    this.delegate = new ReactiveMapper1<>(query, session);
   }
 
   public SyncFetcher<Optional<T1>> asOptional() {
-    final Function<ProjectedTuple, Optional<T1>> fn = Mappers.<T1>fromTuple().andThen(Optional::ofNullable);
-    final ReactiveFetcher<Optional<T1>> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(fn);
-    return new SyncFetcher<>(delegate);
+    return new SyncFetcher<>(delegate.asOptional());
   }
 
   @Override
   public List<T1> fetch() {
-    final ReactiveFetcher<T1> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple());
     return new SyncFetcher<>(delegate).fetch();
   }
 

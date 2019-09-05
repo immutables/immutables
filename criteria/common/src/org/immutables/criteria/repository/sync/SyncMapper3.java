@@ -17,24 +17,19 @@
 package org.immutables.criteria.repository.sync;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.MapperFunction3;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.reactive.ReactiveMapper3;
 
 public class SyncMapper3<T1, T2, T3> {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveMapper3<T1, T2, T3> delegate;
 
   SyncMapper3(Query query, Backend.Session session) {
-    this.query = query;
-    this.session = session;
+    this.delegate = new ReactiveMapper3<>(query, session);
   }
 
   public <R> SyncFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    final ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
-    return new SyncFetcher<>(delegate);
+    return new SyncFetcher<>(delegate.map(mapFn));
   }
 }

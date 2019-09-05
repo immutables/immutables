@@ -16,8 +16,6 @@
 
 package org.immutables.criteria.repository.sync;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Fetcher;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
@@ -28,10 +26,6 @@ import java.util.Objects;
 public class SyncFetcher<T> implements Fetcher<List<T>> {
 
   private final ReactiveFetcher<T> fetcher;
-
-  SyncFetcher(Query query, Backend.Session session) {
-    this(new ReactiveFetcher<>(query, session));
-  }
 
   SyncFetcher(ReactiveFetcher<T> fetcher) {
     this.fetcher = Objects.requireNonNull(fetcher, "fetcher");

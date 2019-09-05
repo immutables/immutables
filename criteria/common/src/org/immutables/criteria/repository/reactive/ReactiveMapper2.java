@@ -22,14 +22,16 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.Mappers;
 
+import java.util.Objects;
+
 public class ReactiveMapper2<T1, T2> {
 
   private final Query query;
   private final Backend.Session session;
 
-  ReactiveMapper2(Query query, Backend.Session session) {
-    this.query = query;
-    this.session = session;
+  public ReactiveMapper2(Query query, Backend.Session session) {
+    this.query = Objects.requireNonNull(query, "query");
+    this.session = Objects.requireNonNull(session, "session");
   }
 
   public <R> ReactiveFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {

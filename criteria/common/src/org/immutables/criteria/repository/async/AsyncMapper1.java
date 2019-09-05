@@ -17,24 +17,30 @@
 package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
-import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.reactive.ReactiveMapper1;
 
-public class AsyncMapper1<T1> {
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionStage;
 
-  private final Query query;
-  private final Backend.Session session;
+public class AsyncMapper1<T1> extends AsyncFetcher<T1> {
+
+  private final ReactiveMapper1<T1> delegate;
 
   AsyncMapper1(Query query, Backend.Session session) {
-    this.query = query;
-    this.session = session;
+    super(new ReactiveFetcher<>(query, session));
+    this.delegate = new ReactiveMapper1<>(query, session);
   }
 
-  public <R> AsyncFetcher<R> map() {
-    ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple());
-    return new AsyncFetcher<R>(delegate);
+  public AsyncFetcher<Optional<T1>> asOptional() {
+    return new AsyncFetcher<>(delegate.asOptional());
   }
+
+  @Override
+  public CompletionStage<List<T1>> fetch() {
+    return new AsyncFetcher<>(delegate).fetch();
+  }
+
 }

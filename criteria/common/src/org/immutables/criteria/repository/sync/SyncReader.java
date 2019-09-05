@@ -22,6 +22,7 @@ import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
 import org.immutables.criteria.repository.Fetcher;
+import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
 
@@ -72,7 +73,7 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Fetc
 
   @Override
   public List<T> fetch() {
-    return new SyncFetcher<T>(query, session).fetch();
+    return new SyncFetcher<T>(new ReactiveFetcher<>(query, session)).fetch();
   }
 
 }

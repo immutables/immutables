@@ -16,8 +16,6 @@
 
 package org.immutables.criteria.repository.async;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Fetcher;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
@@ -29,10 +27,6 @@ import java.util.concurrent.CompletionStage;
 public class AsyncFetcher<T> implements Fetcher<CompletionStage<List<T>>> {
 
   private final ReactiveFetcher<T> fetcher;
-
-  AsyncFetcher(Query query, Backend.Session session) {
-    this(new ReactiveFetcher<>(query, session));
-  }
 
   AsyncFetcher(ReactiveFetcher<T> fetcher) {
     this.fetcher = Objects.requireNonNull(fetcher, "fetcher");

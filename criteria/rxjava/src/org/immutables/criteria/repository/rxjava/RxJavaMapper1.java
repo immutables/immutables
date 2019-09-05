@@ -18,34 +18,27 @@ package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.reactive.ReactiveMapper1;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 public class RxJavaMapper1<T1> extends RxJavaFetcher<T1> {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveMapper1<T1> delegate;
 
   RxJavaMapper1(Query query, Backend.Session session) {
     super(new ReactiveFetcher<>(query, session));
-    this.query = query;
-    this.session = session;
+    this.delegate = new ReactiveMapper1<>(query, session);
   }
 
   public RxJavaFetcher<Optional<T1>> asOptional() {
-    final Function<ProjectedTuple, Optional<T1>> fn = Mappers.<T1>fromTuple().andThen(Optional::ofNullable);
-    final ReactiveFetcher<Optional<T1>> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(fn);
-    return new RxJavaFetcher<>(delegate);
+    return new RxJavaFetcher<>(delegate.asOptional());
   }
 
   @Override
   public Flowable<T1> fetch() {
-    ReactiveFetcher<T1> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple());
     return new RxJavaFetcher<>(delegate).fetch();
   }
 

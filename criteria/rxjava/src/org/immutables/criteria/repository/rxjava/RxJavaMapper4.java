@@ -17,24 +17,19 @@
 package org.immutables.criteria.repository.rxjava;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction4;
-import org.immutables.criteria.repository.Mappers;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
+import org.immutables.criteria.repository.reactive.ReactiveMapper4;
 
 public class RxJavaMapper4<T1, T2, T3, T4> {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveMapper4<T1, T2, T3, T4> delegate;
 
   RxJavaMapper4(Query query, Backend.Session session) {
-    this.query = query;
-    this.session = session;
+    this.delegate = new ReactiveMapper4<>(query, session);
   }
 
   public <R> RxJavaFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn) {
-    ReactiveFetcher<R> delegate = new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
-    return new RxJavaFetcher<>(delegate);
+    return new RxJavaFetcher<>(delegate.map(mapFn));
   }
 }

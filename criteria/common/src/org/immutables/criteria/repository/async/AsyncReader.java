@@ -22,6 +22,7 @@ import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
 import org.immutables.criteria.repository.Fetcher;
+import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,9 +44,9 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements Fe
     return new AsyncReader<>(query, session);
   }
 
-  public <T1> AsyncFetcher<T1> select(Projection<T1> proj1) {
+  public <T1> AsyncMapper1<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new AsyncMapper1<T1>(newQuery, session).map();
+    return new AsyncMapper1<T1>(newQuery, session);
   }
 
   public <T1, T2> AsyncMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
@@ -70,6 +71,6 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements Fe
 
   @Override
   public CompletionStage<List<T>> fetch() {
-    return new AsyncFetcher<T>(query, session).fetch();
+    return new AsyncFetcher<T>(new ReactiveFetcher<>(query, session)).fetch();
   }
 }
