@@ -39,10 +39,22 @@ public class FakeBackend implements Backend {
 
   @Override
   public Session open(Class<?> context) {
-    return new Session();
+    return new Session(context);
   }
 
   private class Session implements Backend.Session {
+
+    private final Class<?> entityType;
+
+
+    private Session(Class<?> entityType) {
+      this.entityType = entityType;
+    }
+
+    @Override
+    public Class<?> entityType() {
+      return entityType;
+    }
 
     @SuppressWarnings("unchecked")
     @Override

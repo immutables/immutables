@@ -25,12 +25,9 @@ import java.util.Objects;
 
 public class RxJavaReadable<T> implements RxJavaRepository.Readable<T> {
 
-  private final Query query;
   private final Backend.Session session;
 
-  public RxJavaReadable(Class<T> entity, Backend.Session session) {
-    Objects.requireNonNull(entity, "entity");
-    this.query = Query.of(entity);
+  public RxJavaReadable(Backend.Session session) {
     this.session = Objects.requireNonNull(session, "session");
   }
 
@@ -41,6 +38,6 @@ public class RxJavaReadable<T> implements RxJavaRepository.Readable<T> {
 
   @Override
   public RxJavaReader<T> findAll() {
-    return new RxJavaReader<>(query, session);
+    return new RxJavaReader<>(Query.of(session.entityType()), session);
   }
 }

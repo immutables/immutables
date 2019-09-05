@@ -37,6 +37,9 @@ public interface Backend {
    * collection (mongo) or class.
    */
   interface Session {
+
+    Class<?> entityType();
+
     /**
      * Apply an operation on the back-end. {@code operation} in this context can mean query / update
      * / insert  / index etc.

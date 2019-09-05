@@ -63,6 +63,11 @@ class MongoSession implements Backend.Session {
   }
 
   @Override
+  public Class<?> entityType() {
+    return collection.getDocumentClass();
+  }
+
+  @Override
   public <X> Publisher<X> execute(Backend.Operation operation) {
     if (operation instanceof StandardOperations.Select) {
       return query((StandardOperations.Select<X>) operation);

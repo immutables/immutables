@@ -25,12 +25,9 @@ import java.util.Objects;
 
 public class ReactiveReadable<T> implements ReactiveRepository.Readable<T> {
 
-  private final Query query;
   private final Backend.Session session;
 
-  public ReactiveReadable(Class<T> entity, Backend.Session session) {
-    Objects.requireNonNull(entity, "entity");
-    this.query = Query.of(entity);
+  public ReactiveReadable(Backend.Session session) {
     this.session = Objects.requireNonNull(session, "session");
   }
 
@@ -41,7 +38,7 @@ public class ReactiveReadable<T> implements ReactiveRepository.Readable<T> {
 
   @Override
   public ReactiveReader<T> findAll() {
-    return new ReactiveReader<>(query, session);
+    return new ReactiveReader<>(Query.of(session.entityType()), session);
   }
 
 }

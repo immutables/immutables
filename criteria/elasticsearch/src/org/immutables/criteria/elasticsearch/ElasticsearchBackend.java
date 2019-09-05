@@ -60,6 +60,7 @@ public class ElasticsearchBackend implements Backend {
 
   @SuppressWarnings("unchecked")
   private static class Session implements Backend.Session {
+    private final Class<?> entityType;
     private final ObjectMapper objectMapper;
     private final ElasticsearchOps ops;
     private final IdExtractor<Object, Object> idExtractor;
@@ -69,6 +70,7 @@ public class ElasticsearchBackend implements Backend {
 
     private Session(Class<?> entityClass, ElasticsearchOps ops) {
       Objects.requireNonNull(entityClass, "entityClass");
+      this.entityType = entityClass;
       this.ops = Objects.requireNonNull(ops, "ops");
       this.objectMapper = ops.mapper();
       IdExtractor<Object, Object> idExtractor = IdExtractor.from(x -> x);
@@ -82,6 +84,11 @@ public class ElasticsearchBackend implements Backend {
       this.idExtractor = idExtractor;
       this.converter = DefaultConverter.<Object>of(objectMapper, entityClass);
       this.hasId = hasId;
+    }
+
+    @Override
+    public Class<?> entityType() {
+      return entityType;
     }
 
     @Override

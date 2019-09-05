@@ -28,12 +28,9 @@ import java.util.Objects;
  */
 public class AsyncReadable<T> implements AsyncRepository.Readable<T> {
 
-  private final Query query;
   private final Backend.Session session;
 
-  public AsyncReadable(Class<T> entity, Backend.Session session) {
-    Objects.requireNonNull(entity, "query");
-    this.query = Query.of(entity);
+  public AsyncReadable(Backend.Session session) {
     this.session = Objects.requireNonNull(session, "session");
   }
 
@@ -44,6 +41,6 @@ public class AsyncReadable<T> implements AsyncRepository.Readable<T> {
 
   @Override
   public AsyncReader<T> findAll() {
-    return new AsyncReader<>(query, session);
+    return new AsyncReader<>(Query.of(session.entityType()), session);
   }
 }

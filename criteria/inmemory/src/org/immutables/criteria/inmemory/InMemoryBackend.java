@@ -56,13 +56,20 @@ public class InMemoryBackend implements Backend {
 
   private static class Session implements Backend.Session {
 
+    private final Class<?> entityType;
     private final IdExtractor<Object, Object> idExtractor;
     private final Map<Object, Object> store;
 
-    private Session(Class<?> entityClass, Map<Object, Object> store) {
+    private Session(Class<?> entityType, Map<Object, Object> store) {
+      this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
-      this.idExtractor = IdExtractor.reflection((Class<Object>) entityClass);
+      this.idExtractor = IdExtractor.reflection((Class<Object>) entityType);
 
+    }
+
+    @Override
+    public Class<?> entityType() {
+      return entityType;
     }
 
     @Override

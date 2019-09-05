@@ -72,16 +72,23 @@ public class GeodeBackend implements Backend {
     Objects.requireNonNull(context, "context");
     @SuppressWarnings("unchecked")
     Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(context);
-    return new Session(region);
+    return new Session(context, region);
   }
 
   @SuppressWarnings("unchecked")
   private static class Session implements Backend.Session {
 
+    private final Class<?> entityType;
     private final Region<Object, Object> region;
 
-    private Session(Region<Object, Object> region) {
+    private Session(Class<?> entityType, Region<Object, Object> region) {
+      this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
+    }
+
+    @Override
+    public Class<?> entityType() {
+      return entityType;
     }
 
     @Override
