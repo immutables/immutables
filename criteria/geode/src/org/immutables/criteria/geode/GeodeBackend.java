@@ -33,6 +33,7 @@ import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
@@ -59,6 +60,7 @@ public class GeodeBackend implements Backend {
    * Convert Geode specific {@link QueryService#UNDEFINED} value to null
    */
   private final static Function<Object, Object> UNDEFINED_TO_NULL = value -> QueryService.UNDEFINED.equals(value) ? null : value;
+
 
   public GeodeBackend(GeodeSetup setup) {
     Objects.requireNonNull(setup, "setup");
@@ -100,13 +102,8 @@ public class GeodeBackend implements Backend {
     }
 
     private <T> Flowable<T> query(StandardOperations.Select<T> op) {
-
-      if (op.query().hasAggregations()) {
-        throw new UnsupportedOperationException("Aggregations not yet supported by " + GeodeBackend.class.getSimpleName());
-      }
-
       // for projections use tuple function
-      Function<Object, T> maybeTupleFn = op.query().projections().isEmpty() ? x -> (T) x : obj -> (T) toTuple(op.query(), obj);
+      Function<Object, T> maybeTupleFn = op.query().projections().isEmpty() ? x -> (T) x : obj -> (T) Geodes.castNumbers(toTuple(op.query(), obj));
 
       return Flowable.fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
@@ -116,15 +113,16 @@ public class GeodeBackend implements Backend {
         .map(maybeTupleFn::apply);
     }
 
-    private static ProjectedTuple toTuple(Query query, Object result) {
-      if (!(result instanceof Struct)) {
+    private static ProjectedTuple toTuple(Query query, Object value) {
+      if (!(value instanceof Struct)) {
+        // most likely single projection
         Preconditions.checkArgument(query.projections().size() == 1, "Expected single projection got %s", query.projections().size());
-        return ProjectedTuple.ofSingle(query.projections().get(0), UNDEFINED_TO_NULL.apply(result));
+        Expression projection = query.projections().get(0);
+        return ProjectedTuple.ofSingle(projection, UNDEFINED_TO_NULL.apply(value));
       }
 
-      Struct struct = (Struct) result;
-      // convert undefined to nulls
-      List<?> values = Arrays.stream(struct.getFieldValues()).map(UNDEFINED_TO_NULL).collect(Collectors.toList());
+      Struct struct = (Struct) value;
+      List<Object> values = Arrays.stream(struct.getFieldValues()).map(UNDEFINED_TO_NULL).collect(Collectors.toList());
       return ProjectedTuple.of(query.projections(), values);
     }
 
@@ -187,12 +185,12 @@ public class GeodeBackend implements Backend {
 
     private OqlWithVariables toOql(Query query, boolean useBindVariables) {
       final StringBuilder oql = new StringBuilder("SELECT");
-      if (query.projections().isEmpty()) {
+      if (!query.hasProjections()) {
         oql.append(" * ");
       } else {
         // explicitly add list of projections
-        List<String> paths = query.projections().stream().map(p -> (Path) p)
-                .map(Path::toStringPath)
+        List<String> paths = query.projections().stream()
+                .map(Session::toProjection)
                 .collect(Collectors.toList());
         oql.append(" ");
         oql.append(String.join( ", ", paths));
@@ -207,6 +205,11 @@ public class GeodeBackend implements Backend {
         variables.addAll(withVars.variables());
       }
 
+      if (!query.groupBy().isEmpty()) {
+        oql.append(" GROUP BY ");
+        oql.append(query.groupBy().stream().map(Session::toProjection).collect(Collectors.joining(", ")));
+      }
+
       if (!query.collations().isEmpty()) {
         oql.append(" ORDER BY ");
         final String orderBy = query.collations().stream()
@@ -219,6 +222,15 @@ public class GeodeBackend implements Backend {
       query.limit().ifPresent(limit -> oql.append(" LIMIT ").append(limit));
       query.offset().ifPresent(offset -> oql.append(" OFFSET ").append(offset));
       return new OqlWithVariables(variables, oql.toString());
+    }
+
+    private static String toProjection(Expression expression) {
+      if (expression instanceof AggregationCall) {
+        AggregationCall aggregation = (AggregationCall) expression;
+        return String.format("%s(%s)", aggregation.operator().name(), toProjection(aggregation.arguments().get(0)));
+      }
+
+      return ((Path) expression).toStringPath();
     }
   }
 }

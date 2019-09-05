@@ -144,7 +144,7 @@ public abstract class PersonAggregationTest {
             .hasContentInAnyOrder("count=4 sum=100 max=40 min=10 avg=25.00");
 
     // add filter nickName != null
-    check(repository().find(person.nickName.isPresent())
+    check(repository().find(person.age.greaterThan(10))
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
             .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=3 sum=90 max=40 min=20 avg=30.00");

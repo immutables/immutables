@@ -19,9 +19,7 @@ package org.immutables.criteria.backend;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Path;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,7 +35,8 @@ public class ProjectedTuple {
     if (values.size() != paths.size()) {
       throw new IllegalArgumentException(String.format("Different sizes %d (values) vs %d (paths)", values.size(), paths.size()));
     }
-    this.values = values;
+
+    this.values = Collections.unmodifiableList(values);
     this.paths = paths;
   }
 
@@ -51,10 +50,11 @@ public class ProjectedTuple {
 
   public static ProjectedTuple of(Iterable<Expression> paths, Iterable<?> values) {
     // values can be null
-    return new ProjectedTuple(ImmutableList.copyOf(paths), Collections.unmodifiableList(Lists.newArrayList(values)));
+    return new ProjectedTuple(ImmutableList.copyOf(paths), Lists.newArrayList(values));
   }
 
   public static ProjectedTuple ofSingle(Expression path, Object value) {
     return of(ImmutableList.of(path), Collections.singleton(value));
   }
+
 }

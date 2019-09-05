@@ -18,6 +18,7 @@ package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
 import org.immutables.criteria.expression.Expression;
@@ -26,6 +27,8 @@ import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +46,44 @@ class Geodes {
   static ExpressionConverter<OqlWithVariables> converter(boolean useBindVariables) {
     return expression -> expression.accept(new GeodeQueryVisitor(useBindVariables));
   }
+
+  /**
+   * Used to convert between types. Sometimes geode backend returns different types for aggregate functions like AVG / MIN / MAX.
+   * Eg. Long vs Integer
+   */
+  static ProjectedTuple castNumbers(ProjectedTuple tuple) {
+    List<Object> newVaues = new ArrayList<>();
+    for (int i = 0; i < tuple.values().size(); i++) {
+      newVaues.add(convert(tuple.values().get(i), tuple.paths().get(i).returnType()));
+    }
+
+    return ProjectedTuple.of(tuple.paths(), newVaues);
+  }
+
+  private static Object convert(Object value, Type destinationType) {
+    if (value == null) {
+      return null;
+    }
+
+    if (value.getClass() == destinationType) {
+      // no need to cast
+      return value;
+    }
+
+    // try to convert between numbers
+    if (value instanceof Number) {
+      Primitive primitive = Primitive.ofAny(destinationType);
+      if (primitive != null && !primitive.boxClass.isInstance(value)) {
+        // cast
+        return primitive.cast((Number) value);
+      }
+    }
+
+    // don't know what to do with this value
+    // return AS IS
+    return value;
+  }
+
 
   /**
    * Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
