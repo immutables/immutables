@@ -553,6 +553,20 @@ public abstract class AbstractPersonTest {
 
     Checkers.check(repository().findAll().select(person.id, person.fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
+  }
+
+  @Test
+  public void projection_nulls() {
+    assumeFeature(Feature.QUERY_WITH_PROJECTION);
+    final PersonGenerator generator = new PersonGenerator();
+    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21).withBestFriend(Optional.empty()));
+    insert(generator.next().withId("id2").withFullName("Mary").withNickName(Optional.empty()).withAge(22).withBestFriend(Optional.empty()));
+    insert(generator.next().withId("id3").withFullName("Emma").withNickName(Optional.empty()).withAge(23).withBestFriend(Optional.empty()));
+
+    Checkers.check(repository().findAll().select(person.nickName, person.bestFriend.value().hobby)
+            .map((nickName, hobby) -> nickName.orElse("") + (hobby == null ? "" : hobby))
+            .fetch())
+            .hasContentInAnyOrder("", "", "");
 
   }
 

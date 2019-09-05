@@ -25,6 +25,7 @@ import io.reactivex.Single;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.CqAttributesFactory;
 import org.apache.geode.cache.query.CqQuery;
+import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.IdExtractor;
@@ -116,7 +117,9 @@ public class GeodeBackend implements Backend {
       }
 
       Struct struct = (Struct) result;
-      return ProjectedTuple.of(query.projections(), Arrays.asList(struct.getFieldValues()));
+      // convert undefined to nulls
+      List<?> values = Arrays.stream(struct.getFieldValues()).map(v -> QueryService.UNDEFINED.equals(v) ? null : v).collect(Collectors.toList());
+      return ProjectedTuple.of(query.projections(), values);
     }
 
     private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
