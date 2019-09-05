@@ -100,8 +100,9 @@ public class GeodeBackend implements Backend {
     }
 
     private <T> Flowable<T> query(StandardOperations.Select<T> op) {
-      if (!op.query().groupBy().isEmpty()) {
-        throw new UnsupportedOperationException("GroupBy not supported by " + GeodeBackend.class.getSimpleName());
+
+      if (op.query().hasAggregations()) {
+        throw new UnsupportedOperationException("Aggregations not yet supported by " + GeodeBackend.class.getSimpleName());
       }
 
       // for projections use tuple function

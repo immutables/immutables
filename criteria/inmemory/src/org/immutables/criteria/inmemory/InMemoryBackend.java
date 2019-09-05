@@ -78,8 +78,8 @@ public class InMemoryBackend implements Backend {
 
     private <T> Publisher<T> query(StandardOperations.Select<T> select) {
       final Query query = select.query();
-      if (!query.groupBy().isEmpty()) {
-        throw new UnsupportedOperationException("GroupBy not supported by " + InMemoryBackend.class.getSimpleName());
+      if (query.hasAggregations()) {
+        throw new UnsupportedOperationException("Aggregations are not yet supported by " + InMemoryBackend.class.getSimpleName());
       }
       Stream<T> stream = (Stream<T>) store.values().stream();
 
