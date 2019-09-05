@@ -38,7 +38,7 @@ public class ReactiveFetcher<T> implements Fetcher<Publisher<T>> {
 
   @Override
   public Publisher<T> fetch() {
-    return session.execute(StandardOperations.Select.of(query));
+    return session.execute(StandardOperations.Select.of(query)).publisher();
   }
 
   public <X> ReactiveFetcher<X> map(Function<T, X> mapFn) {

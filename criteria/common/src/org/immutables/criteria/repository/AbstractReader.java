@@ -52,7 +52,7 @@ public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
    * Perform read operation returning generic {@link Publisher}
    */
   protected <T> Publisher<T> fetchInternal() {
-    return session.execute(StandardOperations.Select.of(query));
+    return session.execute(StandardOperations.Select.of(query)).publisher();
   }
 
   /**

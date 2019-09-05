@@ -20,9 +20,9 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ImmutableWatch;
+import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.backend.WatchEvent;
 import org.immutables.criteria.repository.Watcher;
 import org.reactivestreams.Publisher;
 
@@ -40,7 +40,7 @@ public final class ReactiveWatcher<T> implements Watcher<T, Publisher<WatchEvent
 
   @Override
   public Publisher<WatchEvent<T>> watch() {
-    return session.execute(ImmutableWatch.of(query));
+    return session.execute(ImmutableWatch.of(query)).publisher();
   }
 
   @Override

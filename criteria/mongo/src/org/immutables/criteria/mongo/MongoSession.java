@@ -27,12 +27,12 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
-import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
@@ -68,15 +68,19 @@ class MongoSession implements Backend.Session {
   }
 
   @Override
-  public <X> Publisher<X> execute(Backend.Operation operation) {
+  public Backend.Result execute(Backend.Operation operation) {
+    return DefaultResult.of(executeInternal(operation));
+  }
+
+  private Publisher<?> executeInternal(Backend.Operation operation) {
     if (operation instanceof StandardOperations.Select) {
-      return query((StandardOperations.Select<X>) operation);
+      return query((StandardOperations.Select<?>) operation);
     } else if (operation instanceof StandardOperations.Insert) {
-      return (Publisher<X>) insert((StandardOperations.Insert) operation);
+      return insert((StandardOperations.Insert) operation);
     } else if (operation instanceof StandardOperations.Delete) {
-      return (Publisher<X>) delete((StandardOperations.Delete) operation);
+      return delete((StandardOperations.Delete) operation);
     } else if (operation instanceof StandardOperations.Watch) {
-      return watch((StandardOperations.Watch<X>) operation);
+      return watch((StandardOperations.Watch<?>) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));

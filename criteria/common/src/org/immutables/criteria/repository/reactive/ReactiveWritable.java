@@ -34,12 +34,12 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
 
   @Override
   public Publisher<WriteResult> insert(Iterable<? extends T> docs) {
-    return session.execute(StandardOperations.Insert.ofValues(docs));
+    return session.execute(StandardOperations.Insert.ofValues(docs)).publisher();
   }
 
   @Override
   public Publisher<WriteResult> delete(Criterion<T> criteria) {
-    return session.execute(StandardOperations.Delete.of(criteria));
+    return session.execute(StandardOperations.Delete.of(criteria)).publisher();
   }
 
 }

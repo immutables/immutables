@@ -18,6 +18,7 @@ package org.immutables.criteria.repository;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.DefaultResult;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -56,10 +57,9 @@ public class FakeBackend implements Backend {
       return entityType;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> Publisher<T> execute(Operation operation) {
-      return (Publisher<T>) existing;
+    public Result execute(Operation operation) {
+      return DefaultResult.of(existing);
     }
   }
 }

@@ -33,6 +33,12 @@ public interface Backend {
   Session open(Class<?> entityType);
 
   /**
+   * Generic operation to be executed on the back-end. Typical operations include
+   * query, update, delete etc.
+   */
+  interface Operation { }
+
+  /**
    * Context specific "connection" to the back-end. Typically creates isolated view on a table,
    * collection (mongo) or class.
    */
@@ -44,18 +50,26 @@ public interface Backend {
      * Apply an operation on the back-end. {@code operation} in this context can mean query / update
      * / insert  / index etc.
      *
-     * <p>Depending on operation, publisher can represent empty, single, multiple or unbounded event flow.
      *
      * @param operation operation to be performed on the back-end.
-     * @return empty, single, multiple or unbounded event flow
+     * @return result of the operation
      */
-    <T> Publisher<T> execute(Operation operation);
+    Result execute(Operation operation);
+
   }
 
   /**
-   * Generic operation to be executed on the back-end. Typical operations include
-   * query, update, delete etc.
+   * Result of an operation which gives access to stream of events
    */
-  interface Operation { }
+  interface Result {
+
+    /**
+     * Depending on operation, publisher can represent empty, single, multiple or unbounded event flow.
+     *
+     * @return empty, single, multiple or unbounded event flow
+     */
+    <T> Publisher<T> publisher();
+
+  }
 
 }

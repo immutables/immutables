@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
@@ -92,15 +93,15 @@ public class ElasticsearchBackend implements Backend {
     }
 
     @Override
-    public <T> Publisher<T> execute(Operation query) {
+    public Result execute(Operation query) {
       Objects.requireNonNull(query, "query");
       if (query instanceof StandardOperations.Insert) {
-        return (Publisher<T>) insert((StandardOperations.Insert<Object>) query);
+        return DefaultResult.of(insert((StandardOperations.Insert<Object>) query));
       } else if (query instanceof StandardOperations.Select) {
-        return select((StandardOperations.Select<T>) query);
+        return DefaultResult.of(select((StandardOperations.Select<?>) query));
       }
 
-      return Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query)));
+      return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query))));
     }
 
     private <T> Flowable<T> select(StandardOperations.Select<T> op) {

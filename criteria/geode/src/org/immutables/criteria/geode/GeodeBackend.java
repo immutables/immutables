@@ -28,6 +28,7 @@ import org.apache.geode.cache.query.CqQuery;
 import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
@@ -92,17 +93,20 @@ public class GeodeBackend implements Backend {
     }
 
     @Override
-    public <T> Publisher<T> execute(Operation operation) {
-      if (operation instanceof StandardOperations.Select) {
-        return query((StandardOperations.Select<T>) operation);
-      } else if (operation instanceof StandardOperations.Insert) {
-        return (Publisher<T>) insert((StandardOperations.Insert) operation);
-      } else if (operation instanceof StandardOperations.Delete) {
-        return (Publisher<T>) delete((StandardOperations.Delete) operation);
-      } else if (operation instanceof StandardOperations.Watch) {
-        return (Publisher<T>) watch((StandardOperations.Watch<T>) operation);
-      }
+    public Result execute(Operation operation) {
+      return DefaultResult.of(executeInternal(operation));
+    }
 
+    private Publisher<?> executeInternal(Operation operation) {
+      if (operation instanceof StandardOperations.Select) {
+        return query((StandardOperations.Select<?>) operation);
+      } else if (operation instanceof StandardOperations.Insert) {
+        return insert((StandardOperations.Insert) operation);
+      } else if (operation instanceof StandardOperations.Delete) {
+        return delete((StandardOperations.Delete) operation);
+      } else if (operation instanceof StandardOperations.Watch) {
+        return watch((StandardOperations.Watch<?>) operation);
+      }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported by %s",
               operation, GeodeBackend.class.getSimpleName())));

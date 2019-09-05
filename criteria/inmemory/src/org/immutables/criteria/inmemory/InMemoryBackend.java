@@ -18,6 +18,7 @@ package org.immutables.criteria.inmemory;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
@@ -73,11 +74,15 @@ public class InMemoryBackend implements Backend {
     }
 
     @Override
-    public <T> Publisher<T> execute(Operation operation) {
+    public Result execute(Operation operation) {
+      return DefaultResult.of(executeInternal(operation));
+    }
+
+    private Publisher<?> executeInternal(Operation operation) {
       if (operation instanceof StandardOperations.Select) {
-        return query((StandardOperations.Select<T>) operation);
+        return query((StandardOperations.Select<?>) operation);
       } else if (operation instanceof StandardOperations.Insert) {
-        return (Publisher<T>) insert((StandardOperations.Insert<T>) operation);
+        return insert((StandardOperations.Insert<?>) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
