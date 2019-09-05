@@ -563,11 +563,20 @@ public abstract class AbstractPersonTest {
     insert(generator.next().withId("id2").withFullName("Mary").withNickName(Optional.empty()).withAge(22).withBestFriend(Optional.empty()));
     insert(generator.next().withId("id3").withFullName("Emma").withNickName(Optional.empty()).withAge(23).withBestFriend(Optional.empty()));
 
+    Checkers.check(repository().findAll().select(person.nickName)
+            .fetch())
+            .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
+
+    // normally bestFriend.hobby is Projection<String> but with person.bestFriend.hobby it becomes Projection<Optional<Sting>> because person.bestFriend is optional
+    Checkers.check(repository().findAll().select(person.bestFriend.value().hobby)
+            .asOptional()
+            .fetch())
+            .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
+
     Checkers.check(repository().findAll().select(person.nickName, person.bestFriend.value().hobby)
             .map((nickName, hobby) -> nickName.orElse("") + (hobby == null ? "" : hobby))
             .fetch())
             .hasContentInAnyOrder("", "", "");
-
   }
 
   /**

@@ -55,6 +55,11 @@ public class GeodeBackend implements Backend {
 
   private final RegionResolver resolver;
 
+  /**
+   * Convert Geode specific {@link QueryService#UNDEFINED} value to null
+   */
+  private final static Function<Object, Object> UNDEFINED_TO_NULL = value -> QueryService.UNDEFINED.equals(value) ? null : value;
+
   public GeodeBackend(GeodeSetup setup) {
     Objects.requireNonNull(setup, "setup");
     this.resolver = setup.regionResolver();
@@ -113,12 +118,12 @@ public class GeodeBackend implements Backend {
     private static ProjectedTuple toTuple(Query query, Object result) {
       if (!(result instanceof Struct)) {
         Preconditions.checkArgument(query.projections().size() == 1, "Expected single projection got %s", query.projections().size());
-        return ProjectedTuple.ofSingle(query.projections().get(0), result);
+        return ProjectedTuple.ofSingle(query.projections().get(0), UNDEFINED_TO_NULL.apply(result));
       }
 
       Struct struct = (Struct) result;
       // convert undefined to nulls
-      List<?> values = Arrays.stream(struct.getFieldValues()).map(v -> QueryService.UNDEFINED.equals(v) ? null : v).collect(Collectors.toList());
+      List<?> values = Arrays.stream(struct.getFieldValues()).map(UNDEFINED_TO_NULL).collect(Collectors.toList());
       return ProjectedTuple.of(query.projections(), values);
     }
 

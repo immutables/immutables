@@ -45,9 +45,9 @@ public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> i
     return new ReactiveReader<>(query, session);
   }
 
-  public <T1> ReactiveFetcher<T1> select(Projection<T1> proj1) {
+  public <T1> ReactiveMapper1<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new ReactiveMapper1<T1>(newQuery, session).map();
+    return new ReactiveMapper1<T1>(newQuery, session);
   }
 
   public <T1, T2> ReactiveMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {

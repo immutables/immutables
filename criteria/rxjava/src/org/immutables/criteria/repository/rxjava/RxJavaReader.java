@@ -44,9 +44,9 @@ public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements 
   }
 
 
-  public <T1> RxJavaFetcher<T1> select(Projection<T1> proj1) {
+  public <T1> RxJavaMapper1<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new RxJavaMapper1<T1>(newQuery, session).map();
+    return new RxJavaMapper1<T1>(newQuery, session);
   }
 
   public <T1, T2> RxJavaMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {

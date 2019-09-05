@@ -45,9 +45,9 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Fetc
     return new SyncReader<>(query, session);
   }
 
-  public <T1> SyncFetcher<T1> select(Projection<T1> proj1) {
+  public <T1> SyncMapper1<T1> select(Projection<T1> proj1) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1));
-    return new SyncMapper1<T1>(newQuery, session).map();
+    return new SyncMapper1<T1>(newQuery, session);
   }
 
   public <T1, T2> SyncMapper2<T1, T2> select(Projection<T1> proj1, Projection<T2> proj2) {
