@@ -68,11 +68,11 @@ public class GeodeBackend implements Backend {
   }
 
   @Override
-  public Backend.Session open(Class<?> context) {
-    Objects.requireNonNull(context, "context");
+  public Backend.Session open(Class<?> entityType) {
+    Objects.requireNonNull(entityType, "context");
     @SuppressWarnings("unchecked")
-    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(context);
-    return new Session(context, region);
+    Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(entityType);
+    return new Session(entityType, region);
   }
 
   @SuppressWarnings("unchecked")

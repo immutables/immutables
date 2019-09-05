@@ -38,8 +38,8 @@ public class FakeBackend implements Backend {
   }
 
   @Override
-  public Session open(Class<?> context) {
-    return new Session(context);
+  public Session open(Class<?> entityType) {
+    return new Session(entityType);
   }
 
   private class Session implements Backend.Session {

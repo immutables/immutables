@@ -27,10 +27,10 @@ public interface Backend {
   /**
    * Open a session (or reuse existing one) with a given context
    *
-   * @param type entity type for which to open a session
+   * @param entityType entity entityType for which to open a session
    * @return new session
    */
-  Session open(Class<?> type);
+  Session open(Class<?> entityType);
 
   /**
    * Context specific "connection" to the back-end. Typically creates isolated view on a table,

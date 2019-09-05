@@ -49,9 +49,9 @@ public class InMemoryBackend implements Backend {
   }
 
   @Override
-  public Session open(Class<?> type) {
-    final Map<Object, Object> store = classToStore.computeIfAbsent(type, key -> new ConcurrentHashMap<>());
-    return new Session(type, store);
+  public Session open(Class<?> entityType) {
+    final Map<Object, Object> store = classToStore.computeIfAbsent(entityType, key -> new ConcurrentHashMap<>());
+    return new Session(entityType, store);
   }
 
   private static class Session implements Backend.Session {

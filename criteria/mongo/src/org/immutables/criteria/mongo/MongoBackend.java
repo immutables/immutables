@@ -38,9 +38,9 @@ public class MongoBackend implements Backend {
   }
 
   @Override
-  public Session open(Class<?> context) {
-    Objects.requireNonNull(context, "context");
-    return new MongoSession(resolver.resolve(context), pathNaming);
+  public Session open(Class<?> entityType) {
+    Objects.requireNonNull(entityType, "context");
+    return new MongoSession(resolver.resolve(entityType), pathNaming);
   }
 
 }
