@@ -17,7 +17,6 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -32,6 +31,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.ResponseListener;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.backend.WriteResult;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -100,9 +100,9 @@ class ElasticsearchOps {
     restClient().performRequest(r);
   }
 
-  void deleteIndex() throws IOException {
+  Completable deleteIndex() throws IOException {
     final Request r = new Request("DELETE", "/" + index);
-    restClient().performRequest(r);
+    return rawHttp(r).ignoreElement();
   }
 
   /**
@@ -123,7 +123,7 @@ class ElasticsearchOps {
     }
   }
 
-  void insertDocument(ObjectNode document) throws IOException {
+  Single<WriteResult> insertDocument(ObjectNode document) throws IOException {
     Objects.requireNonNull(index, "index");
     Objects.requireNonNull(document, "document");
     String uri = String.format(Locale.ROOT, "/%s/_doc?refresh", index);
@@ -131,15 +131,19 @@ class ElasticsearchOps {
             ContentType.APPLICATION_JSON);
     final Request r = new Request("POST", uri);
     r.setEntity(entity);
-    restClient().performRequest(r);
+    return rawHttp(r).map(x -> WriteResult.unknown());
   }
 
-  void insertBulk(List<ObjectNode> documents) throws IOException {
+  Single<WriteResult> insertBulk(List<ObjectNode> documents) {
+    return Single.defer(() -> insertBulkInternal(documents));
+  }
+
+  private Single<WriteResult> insertBulkInternal(List<ObjectNode> documents) throws JsonProcessingException {
     Objects.requireNonNull(documents, "documents");
 
     if (documents.isEmpty()) {
       // nothing to process
-      return;
+      return Single.just(WriteResult.empty());
     }
 
     final List<String> bulk = new ArrayList<>(documents.size() * 2);
@@ -161,20 +165,10 @@ class ElasticsearchOps {
 
     final Request r = new Request("POST", "/_bulk?refresh");
     r.setEntity(entity);
-    restClient().performRequest(r);
+    return rawHttp(r).map(x -> WriteResult.unknown());
   }
 
-  <T> Function<JsonNode, T> jsonConverter(Class<T> type) {
-    return json -> {
-      try {
-        return mapper.treeToValue(json, type);
-      } catch (JsonProcessingException e) {
-        throw new UncheckedIOException(e);
-      }
-    };
-  }
-
-  <T> Function<Response, Json.Result> responseConverter() {
+  private <T> Function<Response, Json.Result> responseConverter() {
     return response -> {
       try (InputStream is = response.getEntity().getContent()) {
         return mapper.readValue(is, Json.Result.class);

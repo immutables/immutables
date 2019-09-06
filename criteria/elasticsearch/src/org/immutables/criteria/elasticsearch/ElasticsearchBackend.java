@@ -153,10 +153,7 @@ public class ElasticsearchBackend implements Backend {
               .map(e -> idFn.apply(e, objectMapper.valueToTree(e)))
               .collect(Collectors.toList());
 
-      return Flowable.fromCallable(() -> {
-        ops.insertBulk(docs);
-        return WriteResult.unknown();
-      });
+      return ops.insertBulk(docs).toFlowable();
     }
   }
 }

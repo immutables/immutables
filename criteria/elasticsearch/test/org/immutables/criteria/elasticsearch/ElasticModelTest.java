@@ -70,7 +70,7 @@ public class ElasticModelTest {
                 .put("bool", false)
                 .put("intNumber", 44);
 
-    ops.insertBulk(Arrays.asList(doc1, doc2));
+    ops.insertBulk(Arrays.asList(doc1, doc2)).blockingGet();
   }
 
   @Before

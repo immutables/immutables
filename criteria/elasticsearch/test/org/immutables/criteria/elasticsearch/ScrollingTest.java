@@ -69,7 +69,7 @@ public class ScrollingTest {
               .put("bool", true)
               .put("intNumber", i);
 
-      ops.insertDocument(doc);
+      ops.insertDocument(doc).blockingGet();
     }
   }
 
