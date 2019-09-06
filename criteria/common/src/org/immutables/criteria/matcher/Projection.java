@@ -17,7 +17,7 @@
 package org.immutables.criteria.matcher;
 
 /**
- * Means current field matcher can be used in projections
+ * Means current field (or attribute) can be used in projections
  * @param <T> type of the field
  */
 public interface Projection<T> {

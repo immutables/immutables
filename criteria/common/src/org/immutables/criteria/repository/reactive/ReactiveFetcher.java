@@ -26,6 +26,9 @@ import org.reactivestreams.Publisher;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * Reactive implementation for fetcher
+ */
 public class ReactiveFetcher<T> implements Fetcher<Publisher<T>> {
 
   private final Query query;

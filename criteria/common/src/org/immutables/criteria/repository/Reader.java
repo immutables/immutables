@@ -27,11 +27,27 @@ import org.immutables.criteria.matcher.Projection;
  */
 public interface Reader<R> {
 
+  /**
+   * Define ordering scheme
+   * @param first
+   * @param rest
+   */
   R orderBy(Ordering first, Ordering ... rest);
 
+  /**
+   * Set max number of documents to return
+   * @param limit number of documents
+   */
   R limit(long limit);
 
+  /**
+   * Number of documents to skip
+   * @param offset number of documents
+   */
   R offset(long offset);
 
+  /**
+   * Define grouping attribute
+   */
   R groupBy(Projection<?> first, Projection<?> ... rest);
 }

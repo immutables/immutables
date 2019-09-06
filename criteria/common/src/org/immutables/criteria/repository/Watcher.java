@@ -19,7 +19,7 @@ package org.immutables.criteria.repository;
 /**
  * Observer for, potentially, unbounded flow of events
  * @param <T> entity type
- * @param <R> return type
+ * @param <R> return type (usually reactive)
  */
 public interface Watcher<T, R> {
   R watch();

@@ -16,14 +16,15 @@
 
 package org.immutables.criteria;
 
-import com.google.common.base.Preconditions;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.matcher.AbstractContextHolder;
 import org.immutables.criteria.matcher.Matchers;
 
 import java.util.Objects;
 
+/**
+ * Set of utilities for criterias
+ */
 public final class Criterias {
 
   private Criterias() {}

@@ -25,8 +25,15 @@ import org.immutables.criteria.Criterion;
  */
 public interface Readable<T, R extends Reader<R>> extends Facet {
 
+  /**
+   * Find elements given a filter (represented as Criteria)
+   * @param criteria criteria predicate
+   */
   R find(Criterion<T> criteria);
 
+  /**
+   * Retrieve all elements without any predicate
+   */
   R findAll();
 
 }

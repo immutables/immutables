@@ -20,6 +20,9 @@ import org.immutables.criteria.backend.ProjectedTuple;
 
 import java.util.function.Function;
 
+/**
+ * Set of functions to process a {@link ProjectedTuple}
+ */
 public final class Mappers {
   private Mappers() {}
 

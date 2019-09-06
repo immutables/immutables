@@ -21,7 +21,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * List of operator for {@link Comparable}
+ * List of operators for {@link Comparable}
  */
 public enum ComparableOperators implements Operator {
 

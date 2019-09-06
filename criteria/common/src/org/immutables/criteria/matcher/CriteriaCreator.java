@@ -20,6 +20,9 @@ package org.immutables.criteria.matcher;
  */
 public interface CriteriaCreator<R> {
 
+  /**
+   * Create new instance given a context
+   */
   R create(CriteriaContext context);
 
 }

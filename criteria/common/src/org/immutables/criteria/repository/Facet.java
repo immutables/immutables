@@ -17,8 +17,9 @@
 package org.immutables.criteria.repository;
 
 /**
- * Facet defines property of the repository like readable, writable, watchable etc.
- * Also used for fine-grained generation of the repository like synchronous / asynchronous reader.
+ * Facet defines property (functionality) of the repository like readable, writable, watchable etc.
+ *
+ * It is also used for fine-grained generation of the repository like synchronous / asynchronous reader.
  */
 public interface Facet {
 
