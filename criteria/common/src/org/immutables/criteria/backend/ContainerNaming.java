@@ -41,12 +41,12 @@ public interface ContainerNaming extends NamingStrategy<Class<?>> {
    */
   ContainerNaming FROM_REPOSITORY_ANNOTATION = entityClass -> {
     Objects.requireNonNull(entityClass, "entityClass");
-    final String name = entityClass.getAnnotation(Criteria.Repository.class).name();
-    if (name.isEmpty()) {
+    final Criteria.Repository annotation = entityClass.getAnnotation(Criteria.Repository.class);
+    if (annotation == null || annotation.name().isEmpty()) {
       throw new UnsupportedOperationException(String.format("%s.name annotation is not defined on %s",
               Criteria.Repository.class.getSimpleName(), entityClass.getName()));
     }
-    return name;
+    return annotation.name();
   };
 
   /**
