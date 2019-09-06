@@ -81,10 +81,12 @@ public class GeodeBackend implements Backend {
 
     private final Class<?> entityType;
     private final Region<Object, Object> region;
+    private final IdExtractor<Object, Object> idExtractor;
 
     private Session(Class<?> entityType, Region<Object, Object> region) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
+      this.idExtractor = IdExtractor.reflection((Class<Object>) entityType);
     }
 
     @Override
@@ -142,9 +144,7 @@ public class GeodeBackend implements Backend {
         return Flowable.just(WriteResult.empty());
       }
 
-      // TODO cache id extractor
-      final Function<Object, Object> idExtractor = IdExtractor.<Object, Object>reflection((Class<Object>) op.values().get(0).getClass())::extract;
-      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
+      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
       final Region<Object, Object> region = this.region;
       return Flowable.fromCallable(() -> {
         region.putAll(toInsert);
