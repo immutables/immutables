@@ -36,12 +36,12 @@ public final class StandardOperations {
    * Query sent to a backend similar to SQL {@code SELECT} clause.
    */
   @Value.Immutable
-  public interface Select<T> extends Backend.Operation {
+  public interface Select extends Backend.Operation {
 
     @Value.Parameter
     Query query();
 
-    static <T> ImmutableSelect<T> of(Query query) {
+    static ImmutableSelect of(Query query) {
       return ImmutableSelect.of(query);
     }
   }
@@ -50,15 +50,16 @@ public final class StandardOperations {
    * Insert operation for a list of objects.
    */
   @Value.Immutable
-  public interface Insert<V> extends Backend.Operation {
+  public interface Insert extends Backend.Operation {
 
     /**
      * List of values to be inserted
      */
-    List<V> values();
+    @Value.Parameter
+    List<?> values();
 
-    static <V> Insert<V> ofValues(Iterable<V> values) {
-      return ImmutableInsert.<V>builder().values(ImmutableList.copyOf(values)).build();
+    static Insert ofValues(Iterable<?> values) {
+      return ImmutableInsert.of(ImmutableList.copyOf(values));
     }
 
   }
@@ -77,10 +78,9 @@ public final class StandardOperations {
   }
 
   @Value.Immutable
-  public interface Watch<T> extends Backend.Operation {
+  public interface Watch extends Backend.Operation {
     @Value.Parameter
     Query query();
-
   }
 
 

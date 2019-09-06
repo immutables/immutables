@@ -80,15 +80,15 @@ public class InMemoryBackend implements Backend {
 
     private Publisher<?> executeInternal(Operation operation) {
       if (operation instanceof StandardOperations.Select) {
-        return query((StandardOperations.Select<?>) operation);
+        return query((StandardOperations.Select) operation);
       } else if (operation instanceof StandardOperations.Insert) {
-        return insert((StandardOperations.Insert<?>) operation);
+        return insert((StandardOperations.Insert) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
     }
 
-    private <T> Publisher<T> query(StandardOperations.Select<T> select) {
+    private <T> Publisher<T> query(StandardOperations.Select select) {
       final Query query = select.query();
       if (query.hasAggregations()) {
         throw new UnsupportedOperationException("Aggregations are not yet supported by " + InMemoryBackend.class.getSimpleName());
@@ -138,16 +138,14 @@ public class InMemoryBackend implements Backend {
       return Flowable.fromIterable(stream.collect(Collectors.toList()));
     }
 
-    private <T> Publisher<WriteResult> insert(StandardOperations.Insert<T> op) {
+    private <T> Publisher<WriteResult> insert(StandardOperations.Insert op) {
       if (op.values().isEmpty()) {
         return Flowable.just(WriteResult.empty());
       }
 
-      final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
-      @SuppressWarnings("unchecked")
-      final Map<Object, T> store = (Map<Object, T>) this.store;
+      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
       return Flowable.fromCallable(() -> {
-        store.putAll(toInsert);
+        this.store.putAll(toInsert);
         return WriteResult.unknown();
       });
     }

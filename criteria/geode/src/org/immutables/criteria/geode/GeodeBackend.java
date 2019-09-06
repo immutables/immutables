@@ -99,20 +99,20 @@ public class GeodeBackend implements Backend {
 
     private Publisher<?> executeInternal(Operation operation) {
       if (operation instanceof StandardOperations.Select) {
-        return query((StandardOperations.Select<?>) operation);
+        return query((StandardOperations.Select) operation);
       } else if (operation instanceof StandardOperations.Insert) {
         return insert((StandardOperations.Insert) operation);
       } else if (operation instanceof StandardOperations.Delete) {
         return delete((StandardOperations.Delete) operation);
       } else if (operation instanceof StandardOperations.Watch) {
-        return watch((StandardOperations.Watch<?>) operation);
+        return watch((StandardOperations.Watch) operation);
       }
 
       return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported by %s",
               operation, GeodeBackend.class.getSimpleName())));
     }
 
-    private <T> Flowable<T> query(StandardOperations.Select<T> op) {
+    private <T> Flowable<T> query(StandardOperations.Select op) {
       // for projections use tuple function
       Function<Object, T> maybeTupleFn = op.query().projections().isEmpty() ? x -> (T) x : obj -> (T) Geodes.castNumbers(toTuple(op.query(), obj));
 
@@ -137,15 +137,15 @@ public class GeodeBackend implements Backend {
       return ProjectedTuple.of(query.projections(), values);
     }
 
-    private <T> Flowable<WriteResult> insert(StandardOperations.Insert<T> op) {
+    private Flowable<WriteResult> insert(StandardOperations.Insert op) {
       if (op.values().isEmpty()) {
         return Flowable.just(WriteResult.empty());
       }
 
       // TODO cache id extractor
-      final Function<T, Object> idExtractor = IdExtractor.reflection((Class<T>) op.values().get(0).getClass())::extract;
-      final Map<Object, T> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
-      final Region<Object, T> region = (Region<Object, T>) this.region;
+      final Function<Object, Object> idExtractor = IdExtractor.<Object, Object>reflection((Class<Object>) op.values().get(0).getClass())::extract;
+      final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor, x -> x));
+      final Region<Object, Object> region = this.region;
       return Flowable.fromCallable(() -> {
         region.putAll(toInsert);
         return WriteResult.unknown();
@@ -182,7 +182,7 @@ public class GeodeBackend implements Backend {
               .toFlowable();
     }
 
-    private <T> Publisher<WatchEvent<T>> watch(StandardOperations.Watch<T> operation) {
+    private <T> Publisher<WatchEvent<T>> watch(StandardOperations.Watch operation) {
       return Flowable.create(e -> {
         final FlowableEmitter<WatchEvent<T>> emitter = e.serialize();
         final String oql = toOql(operation.query(), false).oql();

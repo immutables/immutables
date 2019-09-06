@@ -96,15 +96,15 @@ public class ElasticsearchBackend implements Backend {
     public Result execute(Operation query) {
       Objects.requireNonNull(query, "query");
       if (query instanceof StandardOperations.Insert) {
-        return DefaultResult.of(insert((StandardOperations.Insert<Object>) query));
+        return DefaultResult.of(insert((StandardOperations.Insert) query));
       } else if (query instanceof StandardOperations.Select) {
-        return DefaultResult.of(select((StandardOperations.Select<?>) query));
+        return DefaultResult.of(select((StandardOperations.Select) query));
       }
 
       return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query))));
     }
 
-    private <T> Flowable<T> select(StandardOperations.Select<T> op) {
+    private <T> Flowable<T> select(StandardOperations.Select op) {
       final Query query = op.query();
       if (query.hasAggregations()) {
         throw new UnsupportedOperationException("Aggregations not yet supported by " + ElasticsearchBackend.class.getSimpleName());
@@ -140,7 +140,7 @@ public class ElasticsearchBackend implements Backend {
       return flowable;
     }
 
-    private Publisher<WriteResult> insert(StandardOperations.Insert<Object> insert) {
+    private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
       if (insert.values().isEmpty()) {
         return Flowable.just(WriteResult.empty());
       }

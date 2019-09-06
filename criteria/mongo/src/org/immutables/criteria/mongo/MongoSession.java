@@ -74,19 +74,19 @@ class MongoSession implements Backend.Session {
 
   private Publisher<?> executeInternal(Backend.Operation operation) {
     if (operation instanceof StandardOperations.Select) {
-      return query((StandardOperations.Select<?>) operation);
+      return query((StandardOperations.Select) operation);
     } else if (operation instanceof StandardOperations.Insert) {
       return insert((StandardOperations.Insert) operation);
     } else if (operation instanceof StandardOperations.Delete) {
       return delete((StandardOperations.Delete) operation);
     } else if (operation instanceof StandardOperations.Watch) {
-      return watch((StandardOperations.Watch<?>) operation);
+      return watch((StandardOperations.Watch) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
   }
 
-  private <T> Publisher<T> query(StandardOperations.Select<T> select) {
+  private <T> Publisher<T> query(StandardOperations.Select select) {
     final Query query = select.query();
 
     final boolean hasAggregations =  query.hasAggregations();
@@ -147,7 +147,7 @@ class MongoSession implements Backend.Session {
     return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.unknown());
   }
 
-  private <X> Publisher<X> watch(StandardOperations.Watch<X> operation) {
+  private <X> Publisher<X> watch(StandardOperations.Watch operation) {
     final MongoCollection<X> collection = (MongoCollection<X>) this.collection;
     final Bson filter = new Document("fullDocument", toBson(operation.query()));
     return Flowable.fromPublisher(collection.watch(Collections.singletonList(filter))
