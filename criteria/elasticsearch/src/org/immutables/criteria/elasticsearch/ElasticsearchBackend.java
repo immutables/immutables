@@ -19,17 +19,20 @@ package org.immutables.criteria.elasticsearch;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Preconditions;
 import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.reactivestreams.Publisher;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -104,12 +107,24 @@ public class ElasticsearchBackend implements Backend {
       return DefaultResult.of(Flowable.error(new UnsupportedOperationException(String.format("Op %s not supported", query))));
     }
 
-    private <T> Flowable<T> select(StandardOperations.Select op) {
+    private Flowable<ProjectedTuple> aggregate(StandardOperations.Select op) {
+      final Query query = op.query();
+      Preconditions.checkArgument(query.hasAggregations(), "No Aggregations");
+      AggregateQueryBuilder builder = new AggregateQueryBuilder(query, objectMapper, ops.mapping);
+      return ops.searchRaw(builder.jsonQuery(), Collections.emptyMap())
+              .map(builder::processResult)
+              .toFlowable()
+              .flatMapIterable(x -> x);
+    }
+
+    private Flowable<?> select(StandardOperations.Select op) {
       final Query query = op.query();
       if (query.hasAggregations()) {
-        throw new UnsupportedOperationException("Aggregations not yet supported by " + ElasticsearchBackend.class.getSimpleName());
+        return aggregate(op);
       }
-      final ObjectNode json = query.filter().map(f -> Elasticsearch.converter(objectMapper).convert(f)).orElseGet(objectMapper::createObjectNode);
+      final ObjectNode json = objectMapper.createObjectNode();
+
+      query.filter().ifPresent(f -> json.set("query", Elasticsearch.query(objectMapper).convert(f)));
       query.limit().ifPresent(limit -> json.put("size", limit));
       query.offset().ifPresent(offset -> json.put("from", offset));
       if (!query.collations().isEmpty()) {
@@ -129,12 +144,12 @@ public class ElasticsearchBackend implements Backend {
         converter = new ToTupleConverter(query, objectMapper);
       }
 
-      final Flowable<T> flowable;
+      final Flowable<?> flowable;
       if (query.offset().isPresent()) {
         // scroll doesn't work with offset
-        flowable = ops.search(json, (JsonConverter<T>) converter);
+        flowable = ops.search(json, (JsonConverter<?>) converter);
       } else {
-        flowable = ops.scrolledSearch(json, (JsonConverter<T>) converter);
+        flowable = ops.scrolledSearch(json, (JsonConverter<?>) converter);
       }
 
       return flowable;

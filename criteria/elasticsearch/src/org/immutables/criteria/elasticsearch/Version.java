@@ -16,27 +16,32 @@
 
 package org.immutables.criteria.elasticsearch;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.immutables.criteria.expression.ExpressionConverter;
+import com.google.common.base.Preconditions;
 
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-final class Elasticsearch {
+/**
+ * Elastic cluster version. Useful because depending on version one might generate different queries.
+ */
+class Version {
 
-  private  Elasticsearch() {}
+  private static final Pattern MAJOR_VERSION = Pattern.compile("^\\d+");
 
-  /**
-   * {@code query} part of the JSON
-   */
-  static ExpressionConverter<ObjectNode> query(ObjectMapper mapper) {
-    Objects.requireNonNull(mapper, "expression");
+  final int major;
+  final String full;
 
-    return expression -> {
-      final ElasticsearchQueryVisitor visitor = new ElasticsearchQueryVisitor();
-      final QueryBuilders.QueryBuilder builder = expression.accept(visitor);
-      return QueryBuilders.constantScoreQuery(builder).toJson(mapper);
-    };
+  private Version(String full) {
+    this.full = Objects.requireNonNull(full, "full");;
+
+    Matcher matcher = MAJOR_VERSION.matcher(full);
+    Preconditions.checkArgument(matcher.lookingAt(), "Invalid version string: %s", full);
+    this.major = Integer.parseInt(matcher.group());
+  }
+
+  static Version of(String full) {
+    return new Version(full);
   }
 
 }

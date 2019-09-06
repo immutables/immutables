@@ -24,7 +24,6 @@ import com.google.common.base.Preconditions;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
-import org.apache.http.HttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
@@ -44,13 +43,15 @@ import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * Helper methods to operate with ES cluster. Create / delete index, search etc.
+ * Helper methods to operate on ES index: search, scroll etc.
  */
 class ElasticsearchOps {
 
   private final RxJavaTransport transport;
   private final ObjectMapper mapper;
   private final String index;
+  final Mapping mapping;
+  final Version version;
 
   /**
    * batch size of scroll
@@ -63,67 +64,13 @@ class ElasticsearchOps {
     this.index = Objects.requireNonNull(index, "index");
     Preconditions.checkArgument(scrollSize > 0, "Invalid scrollSize: %s", scrollSize);
     this.scrollSize = scrollSize;
-  }
-
-  /**
-   * Creates index in elastic search given a mapping. Mapping can contain nested fields expressed
-   * as dots({@code .}).
-   *
-   * <p>Example
-   * <pre>
-   *  {@code
-   *     b.a: long
-   *     b.b: keyword
-   *  }
-   * </pre>
-   *
-   * @param mapping field and field type mapping
-   * @throws IOException if there is an error
-   */
-  Completable createIndex(Map<String, String> mapping) throws IOException {
-    Objects.requireNonNull(index, "index");
-    Objects.requireNonNull(mapping, "mapping");
-
-    ObjectNode mappings = mapper().createObjectNode();
-
-    ObjectNode properties = mappings.with("mappings").with("properties");
-    for (Map.Entry<String, String> entry: mapping.entrySet()) {
-      applyMapping(properties, entry.getKey(), entry.getValue());
-    }
-
-    // create index and mapping
-    final HttpEntity entity = new StringEntity(mapper().writeValueAsString(mappings),
-            ContentType.APPLICATION_JSON);
-    final Request r = new Request("PUT", "/" + index);
-    r.setEntity(entity);
-    return transport.execute(r).ignoreElement();
-  }
-
-  Completable deleteIndex() {
-    final Request r = new Request("DELETE", "/" + index);
-    return transport.execute(r).ignoreElement();
-  }
-
-  /**
-   * Creates nested mappings for an index. This function is called recursively for each level.
-   *
-   * @param parent current parent
-   * @param key field name
-   * @param type ES mapping type ({@code keyword}, {@code long} etc.)
-   */
-  private static void applyMapping(ObjectNode parent, String key, String type) {
-    final int index = key.indexOf('.');
-    if (index > -1) {
-      String prefix  = key.substring(0, index);
-      String suffix = key.substring(index + 1);
-      applyMapping(parent.with(prefix).with("properties"), suffix, type);
-    } else {
-      parent.with(key).put("type", type);
-    }
+    IndexOps ops = new IndexOps(restClient, mapper, index);
+    // cache mapping and version
+    this.mapping = ops.mapping().blockingGet();
+    this.version = ops.version().blockingGet();
   }
 
   Single<WriteResult> insertDocument(ObjectNode document) throws IOException {
-    Objects.requireNonNull(index, "index");
     Objects.requireNonNull(document, "document");
     String uri = String.format(Locale.ROOT, "/%s/_doc?refresh", index);
     StringEntity entity = new StringEntity(mapper().writeValueAsString(document),
@@ -167,15 +114,18 @@ class ElasticsearchOps {
     return transport.execute(r).map(x -> WriteResult.unknown());
   }
 
+
+  private <T> T convert(Response response, Class<T> type) {
+    try (InputStream is = response.getEntity().getContent()) {
+      return mapper.readValue(is, type);
+    } catch (IOException e) {
+      final String message = String.format("Couldn't parse HTTP response %s into %s", response, type.getSimpleName());
+      throw new UncheckedIOException(message, e);
+    }
+  }
+
   private Function<Response, Json.Result> responseConverter() {
-    return response -> {
-      try (InputStream is = response.getEntity().getContent()) {
-        return mapper.readValue(is, Json.Result.class);
-      } catch (IOException e) {
-        final String message = String.format("Couldn't parse HTTP response %s into %s", response, Json.Result.class.getSimpleName());
-        throw new UncheckedIOException(message, e);
-      }
-    };
+    return response -> convert(response, Json.Result.class);
   }
 
   /**

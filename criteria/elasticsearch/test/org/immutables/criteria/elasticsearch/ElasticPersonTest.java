@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.google.common.collect.ImmutableMap;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
@@ -33,7 +32,6 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.EnumSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -51,32 +49,17 @@ public class ElasticPersonTest extends AbstractPersonTest  {
           .registerModule(new GuavaModule())
           .registerModule(new Jdk8Module());
 
-  private static final String INDEX_NAME = ContainerNaming.DEFAULT.name(Person.class);
+  static final String INDEX_NAME = ContainerNaming.DEFAULT.name(Person.class);
 
   private ElasticsearchBackend backend;
 
-  private ElasticsearchOps ops;
+  private IndexOps ops;
 
   @Before
   public void setupRepository() throws Exception {
-    ops = new ElasticsearchOps(ELASTIC.restClient(), INDEX_NAME, MAPPER, 1024);
+    ops = new IndexOps(ELASTIC.restClient(), MAPPER, INDEX_NAME);
 
-    // person model
-    // TODO automatically generate it from Class
-    Map<String, String> model = ImmutableMap.<String, String>builder()
-            .put("id", "keyword")
-            .put("isActive", "boolean")
-            .put("fullName", "keyword")
-            .put("nickName", "keyword")
-            .put("age", "integer")
-            .put("dateOfBirth", "date")
-            .put("address.street", "keyword")
-            .put("address.state", "keyword")
-            .put("address.zip", "keyword")
-            .put("address.city", "keyword")
-            .build();
-
-    ops.createIndex(model).blockingGet();
+    ops.create(PersonModel.MAPPING).blockingGet();
 
     this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).build());
   }
@@ -84,7 +67,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
   @After
   public void tearDown() throws Exception {
     if (ops != null) {
-      ops.deleteIndex().blockingGet();
+      ops.delete().blockingGet();
     }
   }
 

@@ -19,7 +19,6 @@ package org.immutables.criteria.elasticsearch;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import io.reactivex.Observable;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -27,7 +26,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static org.immutables.check.Checkers.check;
 
@@ -47,8 +45,6 @@ public class ElasticModelTest {
 
   @BeforeClass
   public static void setupElastic() throws Exception {
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER, 1024);
-
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
             .put("optionalString", "keyword")
@@ -56,7 +52,9 @@ public class ElasticModelTest {
             .put("intNumber", "integer")
             .build();
 
-    ops.createIndex(model).blockingGet();
+    new IndexOps(RESOURCE.restClient(), MAPPER, INDEX_NAME).create(model).blockingGet();
+
+    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER, 1024);
 
     ObjectNode doc1 = MAPPER.createObjectNode()
                 .put("string", "foo")

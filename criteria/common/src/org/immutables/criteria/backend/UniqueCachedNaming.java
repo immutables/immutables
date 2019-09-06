@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.backend;
 
+import com.google.common.base.Converter;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -33,13 +34,31 @@ import java.util.Objects;
  */
 public class UniqueCachedNaming<T> implements NamingStrategy<T> {
 
-
   private static final Suggester<?> PREFIX_SUGGESTER = (first, attempts, size) -> "expr" + size;
 
   private final BiMap<T, String> names;
 
+  private final Converter<T, String> converter;
+
   private UniqueCachedNaming(Iterable<T> values) {
     Objects.requireNonNull(values, "values");
+    this.names = buildBiMap(values);
+    this.converter =  new Converter<T, String>() {
+      @Override
+      protected String doForward(T toName) {
+        Preconditions.checkArgument(names.containsKey(toName), "%s was not cached", toName);
+        return names.get(toName);
+      }
+
+      @Override
+      protected T doBackward(String fromName) {
+        Preconditions.checkArgument(names.containsValue(fromName), "name %s not found", fromName);
+        return names.inverse().get(fromName);
+      }
+    };
+  }
+
+  private static <T> BiMap<T, String> buildBiMap(Iterable<T> values) {
     @SuppressWarnings("unchecked")
     Suggester<T> suggester = (Suggester<T>) PREFIX_SUGGESTER;
     final BiMap<T, String> map = HashBiMap.create();
@@ -50,13 +69,17 @@ public class UniqueCachedNaming<T> implements NamingStrategy<T> {
           name = suggester.suggest(value, i, map.size());
           if (!map.containsValue(name)) {
             map.put(value, name);
-            break; // attempts loop
+            break; // name found, break the loop
           }
         }
       }
     }
 
-    this.names = ImmutableBiMap.copyOf(map);
+    return ImmutableBiMap.copyOf(map);
+  }
+
+  public Converter<T, String> asConverter() {
+    return converter;
   }
 
   /**
@@ -68,9 +91,7 @@ public class UniqueCachedNaming<T> implements NamingStrategy<T> {
 
   @Override
   public String name(T toName) {
-    Objects.requireNonNull(toName, "toName");
-    Preconditions.checkArgument(names.containsKey(toName), "%s was not cached", toName);
-    return names.get(toName);
+    return asConverter().convert(toName);
   }
 
   public static <T> UniqueCachedNaming<T> of(Iterable<T> iterable) {

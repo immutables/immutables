@@ -52,8 +52,6 @@ public class ScrollingTest {
 
   @BeforeClass
   public static void elasticseachInit() throws Exception {
-    ElasticsearchBackend backend = backend();
-    final ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.objectMapper, 1024);
 
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
@@ -62,7 +60,10 @@ public class ScrollingTest {
             .put("intNumber", "integer")
             .build();
 
-    ops.createIndex(model).blockingGet();
+    new IndexOps(RESOURCE.restClient(), MAPPER, "test").create(model).blockingGet();
+
+    ElasticsearchBackend backend = backend();
+    ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.objectMapper, 1024);
     for (int i = 0; i < SIZE; i++) {
       ObjectNode doc = MAPPER.createObjectNode()
               .put("string", "s" + i)
