@@ -56,7 +56,7 @@ public class ElasticModelTest {
             .put("intNumber", "integer")
             .build();
 
-    ops.createIndex(model);
+    ops.createIndex(model).blockingGet();
 
     ObjectNode doc1 = MAPPER.createObjectNode()
                 .put("string", "foo")

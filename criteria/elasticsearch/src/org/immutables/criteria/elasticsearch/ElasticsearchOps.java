@@ -29,7 +29,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
-import org.elasticsearch.client.ResponseListener;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.WriteResult;
 
@@ -49,7 +48,7 @@ import java.util.function.Function;
  */
 class ElasticsearchOps {
 
-  private final RestClient restClient;
+  private final RxJavaTransport transport;
   private final ObjectMapper mapper;
   private final String index;
 
@@ -59,7 +58,7 @@ class ElasticsearchOps {
   final int scrollSize;
 
   ElasticsearchOps(RestClient restClient, String index, ObjectMapper mapper, int scrollSize) {
-    this.restClient = Objects.requireNonNull(restClient, "restClient");
+    this.transport = new RxJavaTransport(restClient);
     this.mapper = Objects.requireNonNull(mapper, "mapper");
     this.index = Objects.requireNonNull(index, "index");
     Preconditions.checkArgument(scrollSize > 0, "Invalid scrollSize: %s", scrollSize);
@@ -81,7 +80,7 @@ class ElasticsearchOps {
    * @param mapping field and field type mapping
    * @throws IOException if there is an error
    */
-  void createIndex(Map<String, String> mapping) throws IOException {
+  Completable createIndex(Map<String, String> mapping) throws IOException {
     Objects.requireNonNull(index, "index");
     Objects.requireNonNull(mapping, "mapping");
 
@@ -97,12 +96,12 @@ class ElasticsearchOps {
             ContentType.APPLICATION_JSON);
     final Request r = new Request("PUT", "/" + index);
     r.setEntity(entity);
-    restClient().performRequest(r);
+    return transport.execute(r).ignoreElement();
   }
 
-  Completable deleteIndex() throws IOException {
+  Completable deleteIndex() {
     final Request r = new Request("DELETE", "/" + index);
-    return rawHttp(r).ignoreElement();
+    return transport.execute(r).ignoreElement();
   }
 
   /**
@@ -116,7 +115,7 @@ class ElasticsearchOps {
     final int index = key.indexOf('.');
     if (index > -1) {
       String prefix  = key.substring(0, index);
-      String suffix = key.substring(index + 1, key.length());
+      String suffix = key.substring(index + 1);
       applyMapping(parent.with(prefix).with("properties"), suffix, type);
     } else {
       parent.with(key).put("type", type);
@@ -131,7 +130,7 @@ class ElasticsearchOps {
             ContentType.APPLICATION_JSON);
     final Request r = new Request("POST", uri);
     r.setEntity(entity);
-    return rawHttp(r).map(x -> WriteResult.unknown());
+    return transport.execute(r).map(x -> WriteResult.unknown());
   }
 
   Single<WriteResult> insertBulk(List<ObjectNode> documents) {
@@ -165,10 +164,10 @@ class ElasticsearchOps {
 
     final Request r = new Request("POST", "/_bulk?refresh");
     r.setEntity(entity);
-    return rawHttp(r).map(x -> WriteResult.unknown());
+    return transport.execute(r).map(x -> WriteResult.unknown());
   }
 
-  private <T> Function<Response, Json.Result> responseConverter() {
+  private Function<Response, Json.Result> responseConverter() {
     return response -> {
       try (InputStream is = response.getEntity().getContent()) {
         return mapper.readValue(is, Json.Result.class);
@@ -196,7 +195,7 @@ class ElasticsearchOps {
             .put("scroll", "1m")
             .put("scroll_id", scrollId);
     request.setJsonEntity(payload.toString());
-    return rawHttp(request).map(r -> responseConverter().apply(r));
+    return transport.execute(request).map(r -> responseConverter().apply(r));
   }
 
   Completable closeScroll(Iterable<String> scrollIds) {
@@ -205,7 +204,7 @@ class ElasticsearchOps {
     scrollIds.forEach(array::add);
     final Request request = new Request("DELETE", "/_search/scroll");
     request.setJsonEntity(payload.toString());
-    return rawHttp(request).ignoreElement();
+    return transport.execute(request).ignoreElement();
   }
 
   <T> Flowable<T> search(ObjectNode query, JsonConverter<T> converter) {
@@ -218,32 +217,11 @@ class ElasticsearchOps {
       final Request request = new Request("POST", String.format("/%s/_search", index));
       httpParams.forEach(request::addParameter);
       request.setJsonEntity(query.toString());
-      return rawHttp(request).map(r -> responseConverter().apply(r));
-  }
-
-  Single<Response> rawHttp(Request request) {
-    return Single.create(source -> {
-      restClient.performRequestAsync(request, new ResponseListener() {
-        @Override
-        public void onSuccess(Response response) {
-          source.onSuccess(response);
-        }
-
-        @Override
-        public void onFailure(Exception exception) {
-          source.onError(exception);
-        }
-      });
-    });
+      return transport.execute(request).map(r -> responseConverter().apply(r));
   }
 
   ObjectMapper mapper() {
     return mapper;
   }
-
-  private RestClient restClient() {
-    return restClient;
-  }
-
 
 }

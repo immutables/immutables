@@ -76,7 +76,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
             .put("address.city", "keyword")
             .build();
 
-    ops.createIndex(model);
+    ops.createIndex(model).blockingGet();
 
     this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).build());
   }
@@ -84,7 +84,7 @@ public class ElasticPersonTest extends AbstractPersonTest  {
   @After
   public void tearDown() throws Exception {
     if (ops != null) {
-      ops.deleteIndex();
+      ops.deleteIndex().blockingGet();
     }
   }
 

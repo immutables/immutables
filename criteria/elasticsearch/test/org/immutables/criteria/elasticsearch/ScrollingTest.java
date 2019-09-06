@@ -62,7 +62,7 @@ public class ScrollingTest {
             .put("intNumber", "integer")
             .build();
 
-    ops.createIndex(model);
+    ops.createIndex(model).blockingGet();
     for (int i = 0; i < SIZE; i++) {
       ObjectNode doc = MAPPER.createObjectNode()
               .put("string", "s" + i)
