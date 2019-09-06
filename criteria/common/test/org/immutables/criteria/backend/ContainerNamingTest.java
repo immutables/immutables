@@ -21,6 +21,9 @@ import org.junit.Test;
 
 import static org.immutables.check.Checkers.check;
 
+/**
+ * Check that container name is correctly derived from class
+ */
 public class ContainerNamingTest {
 
   @Test
@@ -28,6 +31,8 @@ public class ContainerNamingTest {
     check(ContainerNaming.DEFAULT.name(M1.class)).is("m1");
     check(ContainerNaming.DEFAULT.name(M2.class)).is("m2");
     check(ContainerNaming.DEFAULT.name(M3.class)).is("changed");
+    check(ContainerNaming.DEFAULT.name(M4.class)).is("UPPERCASE");
+    check(ContainerNaming.DEFAULT.name(MyClass.class)).is("myClass");
   }
 
   @Criteria
@@ -39,5 +44,9 @@ public class ContainerNamingTest {
   @Criteria.Repository(name = "changed")
   private static class M3 {}
 
+  @Criteria.Repository(name = "UPPERCASE")
+  private static class M4 {}
+
+  private static class MyClass {}
 
 }
