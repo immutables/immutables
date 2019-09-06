@@ -82,11 +82,13 @@ public class GeodeBackend implements Backend {
     private final Class<?> entityType;
     private final Region<Object, Object> region;
     private final IdExtractor<Object, Object> idExtractor;
+    private final QueryService queryService;
 
     private Session(Class<?> entityType, Region<Object, Object> region) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
       this.idExtractor = IdExtractor.reflection((Class<Object>) entityType);
+      this.queryService = region.getRegionService().getQueryService();
     }
 
     @Override
@@ -120,7 +122,7 @@ public class GeodeBackend implements Backend {
 
       return Flowable.fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
-        return (Iterable<Object>) region.getRegionService().getQueryService().newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
+        return (Iterable<Object>) queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
       })
         .flatMapIterable(x -> x)
         .map(maybeTupleFn::apply);
@@ -175,8 +177,7 @@ public class GeodeBackend implements Backend {
 
       final String query = String.format("select distinct e.key from %s.entries e where %s", region.getFullPath(), oql.oql());
 
-      return Single.fromCallable(() -> region.getRegionService()
-              .getQueryService().newQuery(query).execute(oql.variables().toArray(new Object[0])))
+      return Single.fromCallable(() -> queryService.newQuery(query).execute(oql.variables().toArray(new Object[0])))
               .flatMapCompletable(list -> Completable.fromRunnable(() -> region.removeAll((Collection<Object>) list)))
               .toSingleDefault(WriteResult.unknown())
               .toFlowable();
@@ -188,7 +189,7 @@ public class GeodeBackend implements Backend {
         final String oql = toOql(operation.query(), false).oql();
         final CqAttributesFactory factory = new CqAttributesFactory();
         factory.addCqListener(new GeodeEventListener<>(oql, emitter));
-        final CqQuery cqQuery = region.getRegionService().getQueryService().newCq(oql, factory.create());
+        final CqQuery cqQuery = queryService.newCq(oql, factory.create());
         emitter.setDisposable(new CqDisposable(cqQuery));
         cqQuery.execute();
       }, BackpressureStrategy.ERROR);
