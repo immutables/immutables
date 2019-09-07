@@ -541,15 +541,17 @@ public abstract class AbstractPersonTest {
   public void projection_basic() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
     final PersonGenerator generator = new PersonGenerator();
-    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21).withIsActive(true));
-    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false));
-    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true));
+    final LocalDate dob = LocalDate.now().minusYears(22);
+    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21).withIsActive(true).withDateOfBirth(dob));
+    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false).withDateOfBirth(dob));
+    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true).withDateOfBirth(dob));
 
     Checkers.check(repository().findAll().select(person.age).fetch()).hasContentInAnyOrder(21, 22, 23);
     Checkers.check(repository().findAll().select(person.fullName).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
     Checkers.check(repository().findAll().select(person.id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
-    Checkers.check(repository().findAll().select(person.dateOfBirth).fetch()).notEmpty();
+    Checkers.check(repository().findAll().select(person.dateOfBirth).fetch()).hasContentInAnyOrder(dob, dob, dob);
     Checkers.check(repository().findAll().select(person.isActive).fetch()).hasContentInAnyOrder(true, false, true);
+    Checkers.check(repository().findAll().select(person.isActive, person.dateOfBirth).map((x, date) -> date).fetch()).hasContentInAnyOrder(dob, dob, dob);
 
     Checkers.check(repository().findAll().select(person.id, person.fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
