@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.sync;
+package org.immutables.criteria.backend;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
-import org.immutables.criteria.repository.reactive.ReactiveMapper2;
+/**
+ * Thrown when one element is expected, but multiple
+ * are retrieved.
+ */
+public class NonUniqueResultException extends BackendException {
 
-public class SyncMapper2<T1, T2> {
-
-  private final ReactiveMapper2<T1, T2> delegate;
-
-  SyncMapper2(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper2<>(query, session);
+  public NonUniqueResultException(String message) {
+    super(message);
   }
 
-  public <R> SyncFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
-    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
-  }
+
+
 }

@@ -21,24 +21,25 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Synchronous (blocking) reader operations.
  * @param <T> entity type
  */
-public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Fetcher<List<T>> {
+public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements SyncFetcher<T> {
 
   private final Query query;
   private final Backend.Session session;
+  private final SyncFetcher<T> fetcher;
 
   public SyncReader(Query query, Backend.Session session) {
-    super(query, session);
+    super(query);
     this.query = query;
     this.session = session;
+    this.fetcher = SyncFetcherDelegate.of(query, session);
   }
 
   @Override
@@ -73,7 +74,22 @@ public class SyncReader<T> extends AbstractReader<SyncReader<T>> implements Fetc
 
   @Override
   public List<T> fetch() {
-    return new SyncFetcher<T>(new ReactiveFetcher<>(query, session)).fetch();
+    return fetcher.fetch();
+  }
+
+  @Override
+  public T one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public Optional<T> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public boolean exists() {
+    return fetcher.exists();
   }
 
 }

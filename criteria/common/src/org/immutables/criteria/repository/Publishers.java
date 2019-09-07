@@ -50,11 +50,23 @@ public final class Publishers {
     return Flowable.fromPublisher(publisher).singleOrError().blockingGet();
   }
 
+  public static <X> Publisher<X> limit(Publisher<X> publisher, long count) {
+    return Flowable.fromPublisher(publisher).limit(count);
+  }
+
+  public static <X> Publisher<List<X>> toList(Publisher<X> publisher) {
+    return Flowable.fromPublisher(publisher).toList().toFlowable();
+  }
+
   /**
    * Applies map function to each element emitted by {@code publisher}
    */
   public static <T, R> Publisher<R> map(Publisher<T> publisher, Function<? super T, ? extends R> mapper) {
     return Flowable.fromPublisher(publisher).map(mapper::apply);
+  }
+
+  public static  <T, R> Publisher<R> flatMapIterable(Publisher<T> publisher, Function<? super T, ? extends Iterable<? extends R>> mapper) {
+    return Flowable.fromPublisher(publisher).flatMapIterable(mapper::apply);
   }
 
   /**

@@ -21,22 +21,23 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
-public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements Fetcher<CompletionStage<List<T>>> {
+public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements AsyncFetcher<T> {
 
   private final Query query;
   private final Backend.Session session;
+  private final AsyncFetcherDelegate<T> fetcher;
 
   AsyncReader(Query query, Backend.Session session) {
-    super(query, session);
+    super(query);
     this.query = query;
     this.session = Objects.requireNonNull(session, "session");
+    this.fetcher = AsyncFetcherDelegate.of(query, session);
   }
 
   @Override
@@ -71,6 +72,21 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements Fe
 
   @Override
   public CompletionStage<List<T>> fetch() {
-    return new AsyncFetcher<T>(new ReactiveFetcher<>(query, session)).fetch();
+    return fetcher.fetch();
+  }
+
+  @Override
+  public CompletionStage<T> one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public CompletionStage<Optional<T>> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public CompletionStage<Boolean> exists() {
+    return fetcher.exists();
   }
 }

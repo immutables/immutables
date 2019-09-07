@@ -16,8 +16,6 @@
 
 package org.immutables.criteria.repository;
 
-public interface Fetcher<R> {
-
-  R fetch();
+public interface Fetcher<T> {
 
 }

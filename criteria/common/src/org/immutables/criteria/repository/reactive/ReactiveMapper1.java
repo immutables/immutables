@@ -23,25 +23,47 @@ import org.immutables.criteria.repository.Mappers;
 import org.reactivestreams.Publisher;
 
 import java.util.Optional;
+import java.util.function.Function;
 
-public class ReactiveMapper1<T1> extends ReactiveFetcher<T1> {
+public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
 
   private final Query query;
   private final Backend.Session session;
+  private final ReactiveFetcher<T1> fetcher;
 
   public ReactiveMapper1(Query query, Backend.Session session) {
-    super(query, session);
     this.query = query;
     this.session = session;
+    this.fetcher = ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.<T1>fromTuple());
   }
 
   public ReactiveFetcher<Optional<T1>> asOptional() {
-    return new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
+    return ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
   }
 
   @Override
   public Publisher<T1> fetch() {
-    return new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.<T1>fromTuple()).fetch();
+    return fetcher.fetch();
+  }
+
+  @Override
+  public Publisher<T1> one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public Publisher<T1> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public Publisher<Boolean> exists() {
+    return fetcher.exists();
+  }
+
+  @Override
+  public <X> ReactiveFetcher<X> map(Function<? super T1, ? extends X> mapFn) {
+    return fetcher.map(mapFn);
   }
 
 }

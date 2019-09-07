@@ -17,25 +17,28 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Fetcher;
 
 /**
  * Reader returning {@link Flowable} type
  */
-public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements Fetcher<Flowable<T>> {
+public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements RxJavaFetcher<T> {
 
   private final Query query;
   private final Backend.Session session;
+  private final RxJavaFetcher<T> fetcher;
 
   RxJavaReader(Query query, Backend.Session session) {
-    super(query, session);
+    super(query);
     this.query = query;
     this.session = session;
+    this.fetcher = RxJavaFetcherDelegate.of(query, session);
   }
 
   @Override
@@ -74,6 +77,21 @@ public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements 
    */
   @Override
   public Flowable<T> fetch() {
-    return Flowable.fromPublisher(fetchInternal());
+    return fetcher.fetch();
+  }
+
+  @Override
+  public Single<T> one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public Maybe<T> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public Single<Boolean> exists() {
+    return fetcher.exists();
   }
 }

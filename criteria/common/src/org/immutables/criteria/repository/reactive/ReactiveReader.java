@@ -21,23 +21,25 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Fetcher;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Reactive implementation of the reader.
  */
-public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> implements Fetcher<Publisher<T>> {
+public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> implements ReactiveFetcher<T> {
 
   private final Backend.Session session;
   private final Query query;
+  private final ReactiveFetcher<T> fetcher;
 
   public ReactiveReader(Query query, Backend.Session session) {
-    super(query, session);
+    super(query);
     this.session = Objects.requireNonNull(session, "session");
     this.query = Objects.requireNonNull(query, "query");
+    this.fetcher = ReactiveFetcher.of(query, session);
   }
 
   @Override
@@ -72,6 +74,26 @@ public final class ReactiveReader<T> extends AbstractReader<ReactiveReader<T>> i
 
   @Override
   public Publisher<T> fetch() {
-    return new ReactiveFetcher<T>(query, session).fetch();
+    return fetcher.fetch();
+  }
+
+  @Override
+  public Publisher<T> one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public Publisher<T> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public Publisher<Boolean> exists() {
+    return fetcher.exists();
+  }
+
+  @Override
+  public <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn) {
+    return fetcher.map(mapFn);
   }
 }

@@ -30,6 +30,6 @@ public class RxJavaMapper4<T1, T2, T3, T4> {
   }
 
   public <R> RxJavaFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn) {
-    return new RxJavaFetcher<>(delegate.map(mapFn));
+    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
 }

@@ -35,6 +35,6 @@ public class ReactiveMapper2<T1, T2> {
   }
 
   public <R> ReactiveFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
-    return new ReactiveFetcher<ProjectedTuple>(query, session).map(Mappers.fromTuple(mapFn));
+    return ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.fromTuple(mapFn));
   }
 }

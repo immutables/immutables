@@ -30,6 +30,6 @@ public class SyncMapper3<T1, T2, T3> {
   }
 
   public <R> SyncFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return new SyncFetcher<>(delegate.map(mapFn));
+    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
 }

@@ -16,24 +16,34 @@
 
 package org.immutables.criteria.repository.sync;
 
+import org.immutables.criteria.backend.NonUniqueResultException;
 import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.Publishers;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
-public class SyncFetcher<T> implements Fetcher<List<T>> {
+public interface SyncFetcher<T> extends Fetcher<T> {
 
-  private final ReactiveFetcher<T> fetcher;
+  List<T> fetch();
 
-  SyncFetcher(ReactiveFetcher<T> fetcher) {
-    this.fetcher = Objects.requireNonNull(fetcher, "fetcher");
-  }
+  /**
+   * Check that <i>exactly one</i> element is matched by current query and return it.
+   * @throws NonUniqueResultException if result size is not one
+   * @return matched element
+   */
+  T one();
 
-  @Override
-  public List<T> fetch() {
-    return Publishers.blockingListGet(fetcher.fetch());
-  }
+  /**
+   * Check that <i>at most one</i> element is matched by current query and return it (if available).
+   * @return Publisher with zero or one element, or Publisher that throws {@link NonUniqueResultException}
+   */
+  Optional<T> oneOrNone();
+
+  /**
+   * Check that current query matches any elements.
+   * @return {@code true} if there are any matches / {@code false} otherwise
+   */
+  boolean exists();
+
 
 }

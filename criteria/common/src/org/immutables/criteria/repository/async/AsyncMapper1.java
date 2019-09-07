@@ -18,29 +18,44 @@ package org.immutables.criteria.repository.async;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 import org.immutables.criteria.repository.reactive.ReactiveMapper1;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
-public class AsyncMapper1<T1> extends AsyncFetcher<T1> {
+public class AsyncMapper1<T1> implements AsyncFetcher<T1> {
 
-  private final ReactiveMapper1<T1> delegate;
+  private final ReactiveMapper1<T1> mapper;
+  private final AsyncFetcherDelegate<T1> fetcher;
 
   AsyncMapper1(Query query, Backend.Session session) {
-    super(new ReactiveFetcher<>(query, session));
-    this.delegate = new ReactiveMapper1<>(query, session);
+    this.mapper = new ReactiveMapper1<>(query, session);
+    this.fetcher = AsyncFetcherDelegate.fromReactive(mapper);
   }
 
   public AsyncFetcher<Optional<T1>> asOptional() {
-    return new AsyncFetcher<>(delegate.asOptional());
+    return AsyncFetcherDelegate.fromReactive(mapper.asOptional());
   }
 
   @Override
   public CompletionStage<List<T1>> fetch() {
-    return new AsyncFetcher<>(delegate).fetch();
+    return fetcher.fetch();
+  }
+
+  @Override
+  public CompletionStage<T1> one() {
+    return fetcher.one();
+  }
+
+  @Override
+  public CompletionStage<Optional<T1>> oneOrNone() {
+    return fetcher.oneOrNone();
+  }
+
+  @Override
+  public CompletionStage<Boolean> exists() {
+    return fetcher.exists();
   }
 
 }

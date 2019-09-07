@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.async;
+package org.immutables.criteria.backend;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction3;
-import org.immutables.criteria.repository.reactive.ReactiveMapper3;
+/**
+ * Signals an error in the backend
+ */
+public class BackendException extends RuntimeException {
 
-public class AsyncMapper3<T1, T2, T3> {
-
-  private final ReactiveMapper3<T1, T2, T3> delegate;
-
-  AsyncMapper3(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper3<>(query, session);
+  public BackendException(String message) {
+    super(message);
   }
 
-  public <R> AsyncFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  public BackendException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public BackendException(Throwable cause) {
+    super(cause);
   }
 }

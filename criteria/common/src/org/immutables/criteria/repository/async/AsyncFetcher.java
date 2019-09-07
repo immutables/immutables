@@ -16,25 +16,34 @@
 
 package org.immutables.criteria.repository.async;
 
+import org.immutables.criteria.backend.NonUniqueResultException;
 import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.Publishers;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
-public class AsyncFetcher<T> implements Fetcher<CompletionStage<List<T>>> {
+public interface AsyncFetcher<T> extends Fetcher<T> {
 
-  private final ReactiveFetcher<T> fetcher;
+  CompletionStage<List<T>> fetch();
 
-  AsyncFetcher(ReactiveFetcher<T> fetcher) {
-    this.fetcher = Objects.requireNonNull(fetcher, "fetcher");
-  }
+  /**
+   * Check that <i>exactly one</i> element is matched by current query and return it.
+   * @throws NonUniqueResultException if result size is not one
+   * @return matched element
+   */
+  CompletionStage<T> one();
 
-  @Override
-  public CompletionStage<List<T>> fetch() {
-    return Publishers.toListFuture(fetcher.fetch());
-  }
+  /**
+   * Check that <i>at most one</i> element is matched by current query and return it (if available).
+   * @return Future with optional element
+   */
+  CompletionStage<Optional<T>> oneOrNone();
+
+  /**
+   * Check that current query matches any elements.
+   * @return Future holding  {@code true} value if there are any matches / {@code false} otherwise
+   */
+  CompletionStage<Boolean> exists();
 
 }

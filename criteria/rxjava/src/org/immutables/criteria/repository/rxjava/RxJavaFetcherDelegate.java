@@ -21,41 +21,43 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.reactive.ReactiveMapper1;
+import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
-import java.util.Optional;
+import java.util.Objects;
 
-public class RxJavaMapper1<T1> implements RxJavaFetcher<T1> {
+class RxJavaFetcherDelegate<T> implements RxJavaFetcher<T> {
 
-  private final ReactiveMapper1<T1> mapper;
-  private final RxJavaFetcher<T1> fetcher;
+  private final ReactiveFetcher<T> delegate;
 
-  RxJavaMapper1(Query query, Backend.Session session) {
-    this.mapper = new ReactiveMapper1<>(query, session);
-    this.fetcher = RxJavaFetcherDelegate.fromReactive(mapper);
-  }
-
-  public RxJavaFetcher<Optional<T1>> asOptional() {
-    return RxJavaFetcherDelegate.fromReactive(mapper.asOptional());
+  private RxJavaFetcherDelegate(ReactiveFetcher<T> delegate) {
+    this.delegate = Objects.requireNonNull(delegate, "delegate");
   }
 
   @Override
-  public Flowable<T1> fetch() {
-    return fetcher.fetch();
+  public Flowable<T> fetch() {
+    return Flowable.fromPublisher(delegate.fetch());
   }
 
   @Override
-  public Single<T1> one() {
-    return fetcher.one();
+  public Single<T> one() {
+    return Single.fromPublisher(delegate.one());
   }
 
   @Override
-  public Maybe<T1> oneOrNone() {
-    return fetcher.oneOrNone();
+  public Maybe<T> oneOrNone() {
+    return Flowable.fromPublisher(delegate.oneOrNone()).singleElement();
   }
 
   @Override
   public Single<Boolean> exists() {
-    return fetcher.exists();
+    return Single.fromPublisher(delegate.exists());
+  }
+
+  static <T> RxJavaFetcherDelegate<T> fromReactive(ReactiveFetcher<T> delegate) {
+    return new RxJavaFetcherDelegate<T>(delegate);
+  }
+
+  static <T> RxJavaFetcherDelegate<T> of(Query query, Backend.Session session) {
+    return fromReactive(ReactiveFetcher.of(query, session));
   }
 }

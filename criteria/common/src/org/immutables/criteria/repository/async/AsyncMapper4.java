@@ -30,6 +30,6 @@ public class AsyncMapper4<T1, T2, T3, T4> {
   }
 
   public <R> AsyncFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn) {
-    return new AsyncFetcher<R>(delegate.map(mapFn));
+    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
 }

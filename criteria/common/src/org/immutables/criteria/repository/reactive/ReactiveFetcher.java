@@ -17,51 +17,50 @@
 package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.Publishers;
 import org.reactivestreams.Publisher;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
- * Reactive implementation for fetcher
+ * Reactive interface for fetcher
  */
-public class ReactiveFetcher<T> implements Fetcher<Publisher<T>> {
+public interface ReactiveFetcher<T> extends Fetcher<T> {
 
-  private final Query query;
-  private final Backend.Session session;
+  /**
+   * Fetch all results
+   */
+  Publisher<T> fetch();
 
-  public ReactiveFetcher(Query query, Backend.Session session) {
-    this.query = Objects.requireNonNull(query, "query");
-    this.session = Objects.requireNonNull(session, "session");
+  /**
+   * Check that <i>exactly one</i> element is matched by current query and return it.
+   * @return Publisher with single element, or Publisher that throws {@link org.immutables.criteria.backend.NonUniqueResultException}
+   */
+  Publisher<T> one();
+
+  /**
+   * Check that <i>at most one</i> element is matched by current query and return it (if available).
+   * @return Publisher with zero or one element, or Publisher that throws {@link org.immutables.criteria.backend.NonUniqueResultException}
+   */
+  Publisher<T> oneOrNone();
+
+  /**
+   * Check that current query matches any elements.
+   * @return Publisher with single boolean ({@code true / false} if there is a match)
+   */
+  Publisher<Boolean> exists();
+
+  /**
+   * Applies a mapping function to each element emitted by current fetcher
+   */
+  <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn);
+
+  /**
+   * Factory method
+   */
+  static <T> ReactiveFetcher<T> of(Query query, Backend.Session session) {
+    return new ReactiveFetcherDelegate<T>(query, session);
   }
-
-  @Override
-  public Publisher<T> fetch() {
-    return session.execute(StandardOperations.Select.of(query)).publisher();
-  }
-
-  public <X> ReactiveFetcher<X> map(Function<T, X> mapFn) {
-    return new MappedFetcher<T, X>(query, session, mapFn);
-  }
-
-  private static class MappedFetcher<T, R> extends ReactiveFetcher<R> {
-    private final Function<? super T, ? extends R> mapFn;
-
-    private MappedFetcher(Query query, Backend.Session session, Function<? super T, ? extends R> mapFn) {
-      super(query, session);
-      this.mapFn = Objects.requireNonNull(mapFn, "mapFn");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Publisher<R> fetch() {
-      return Publishers.map((Publisher<T>) super.fetch(), mapFn);
-    }
-  }
-
 
 }

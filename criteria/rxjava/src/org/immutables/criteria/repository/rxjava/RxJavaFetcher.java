@@ -17,21 +17,32 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
+import org.immutables.criteria.backend.NonUniqueResultException;
 import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.reactive.ReactiveFetcher;
 
-import java.util.Objects;
+public interface RxJavaFetcher<T> extends Fetcher<T> {
 
-public class RxJavaFetcher<T> implements Fetcher<Flowable<T>> {
+  Flowable<T> fetch();
 
-  private final ReactiveFetcher<T> delegate;
+  /**
+   * Check that <i>exactly one</i> element is matched by current query and return it.
+   * @return Single with matched element or {@link NonUniqueResultException} if result size is not one
+   */
+  Single<T> one();
 
-  RxJavaFetcher(ReactiveFetcher<T> delegate) {
-    this.delegate = Objects.requireNonNull(delegate, "delegate");
-  }
+  /**
+   * Check that <i>at most one</i> element is matched by current query and return it (if available).
+   * @return Maybe as result or {@link NonUniqueResultException}
+   */
+  Maybe<T> oneOrNone();
 
-  @Override
-  public Flowable<T> fetch() {
-    return Flowable.fromPublisher(delegate.fetch());
-  }
+  /**
+   * Check that current query matches any elements.
+   * @return Single with {@code true} if there are any matches / {@code false} otherwise
+   */
+  Single<Boolean> exists();
+
+
 }

@@ -16,15 +16,12 @@
 
 package org.immutables.criteria.repository;
 
-import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Ordering;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
-import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,21 +36,12 @@ import java.util.stream.Collectors;
 public abstract class AbstractReader<R extends Reader<R>> implements Reader<R> {
 
   private final Query query;
-  private final Backend.Session session;
 
-  protected AbstractReader(Query query, Backend.Session session) {
+  protected AbstractReader(Query query) {
     this.query = Objects.requireNonNull(query, "query");
-    this.session = Objects.requireNonNull(session, "backend");
   }
 
   protected abstract R newReader(Query query);
-
-  /**
-   * Perform read operation returning generic {@link Publisher}
-   */
-  protected <T> Publisher<T> fetchInternal() {
-    return session.execute(StandardOperations.Select.of(query)).publisher();
-  }
 
   /**
    * Expose current query (used mostly for SPIs)
