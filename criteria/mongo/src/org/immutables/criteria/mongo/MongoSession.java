@@ -32,6 +32,7 @@ import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
+import org.immutables.criteria.backend.UniqueCachedNaming;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;

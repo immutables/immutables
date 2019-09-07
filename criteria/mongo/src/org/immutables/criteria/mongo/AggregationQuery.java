@@ -31,6 +31,7 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.backend.UniqueCachedNaming;
 import org.immutables.criteria.expression.AggregationOperators;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Collation;

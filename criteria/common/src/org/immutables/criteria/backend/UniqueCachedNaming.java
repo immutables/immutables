@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.mongo;
+package org.immutables.criteria.backend;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
-import org.immutables.criteria.backend.NamingStrategy;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -32,7 +31,7 @@ import java.util.Objects;
  *
  * @param <T>
  */
-class UniqueCachedNaming<T> implements NamingStrategy<T> {
+public class UniqueCachedNaming<T> implements NamingStrategy<T> {
 
 
   private static final Suggester<?> PREFIX_SUGGESTER = (first, attempts, size) -> "expr" + size;
@@ -74,11 +73,11 @@ class UniqueCachedNaming<T> implements NamingStrategy<T> {
     return names.get(toName);
   }
 
-  static <T> UniqueCachedNaming<T> of(Iterable<T> iterable) {
+  public static <T> UniqueCachedNaming<T> of(Iterable<T> iterable) {
     return new UniqueCachedNaming<>(iterable);
   }
 
-  static <T> UniqueCachedNaming of(Iterator<T> iterator) {
+  public static <T> UniqueCachedNaming of(Iterator<T> iterator) {
     return of(ImmutableList.copyOf(iterator));
   }
 
