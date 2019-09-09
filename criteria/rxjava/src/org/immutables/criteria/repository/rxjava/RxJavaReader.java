@@ -16,14 +16,22 @@
 
 package org.immutables.criteria.repository.rxjava;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Reader returning {@link Flowable} type
@@ -71,6 +79,15 @@ public class RxJavaReader<T> extends AbstractReader<RxJavaReader<T>> implements 
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
     return new RxJavaMapper5<>(newQuery, session);
   }
+
+  public RxJavaMapperTuple select(Iterable<Projection<?>> projections) {
+    Objects.requireNonNull(projections, "projections");
+    Preconditions.checkArgument(!Iterables.isEmpty(projections), "empty projections");
+    List<Expression> expressions = StreamSupport.stream(projections.spliterator(), false).map(Matchers::toExpression).collect(Collectors.toList());
+    Query newQuery = this.query.addProjections(expressions);
+    return new RxJavaMapperTuple(newQuery, session);
+  }
+
 
   /**
    * Fetch available results in async fashion

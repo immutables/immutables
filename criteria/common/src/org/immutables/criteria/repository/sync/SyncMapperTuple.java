@@ -14,27 +14,26 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.reactive;
+package org.immutables.criteria.repository.sync;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
-import org.immutables.criteria.repository.Mappers;
+import org.immutables.criteria.repository.MapperFunction5;
 import org.immutables.criteria.repository.Tuple;
+import org.immutables.criteria.repository.reactive.ReactiveMapper5;
+import org.immutables.criteria.repository.reactive.ReactiveMapperTuple;
 
-import java.util.Objects;
+import java.util.function.Function;
 
-public class ReactiveMapper2<T1, T2> {
+public class SyncMapperTuple {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveMapperTuple delegate;
 
-  public ReactiveMapper2(Query query, Backend.Session session) {
-    this.query = Objects.requireNonNull(query, "query");
-    this.session = Objects.requireNonNull(session, "session");
+  SyncMapperTuple(Query query, Backend.Session session) {
+    this.delegate = new ReactiveMapperTuple(query, session);
   }
 
-  public <R> ReactiveFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
-    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.fromTuple(mapFn));
+  public <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
+    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
 }

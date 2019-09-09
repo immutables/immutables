@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.matcher;
+package org.immutables.criteria.repository;
 
-import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.matcher.Projection;
 
 import java.util.List;
 
+/**
+ * Interface for generic query result projection
+ */
 public interface Tuple {
 
-  <T> T get(int index);
+  /**
+   * Type safe access to a projection
+   */
+  <T> T get(Projection<T> projection);
 
-  <T> T get(Expression expression);
+  /**
+   * Return current tuple as list of values
+   */
+  List<?> values();
 
-  List<Element> asList();
-
-  interface Element {
-
-    Expression expression();
-
-    Object value();
-  }
 }

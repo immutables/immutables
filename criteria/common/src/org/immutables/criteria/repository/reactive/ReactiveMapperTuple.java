@@ -18,23 +18,23 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
-import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.Tuple;
 
 import java.util.Objects;
+import java.util.function.Function;
 
-public class ReactiveMapper2<T1, T2> {
+public class ReactiveMapperTuple {
 
   private final Query query;
   private final Backend.Session session;
 
-  public ReactiveMapper2(Query query, Backend.Session session) {
+  public ReactiveMapperTuple(Query query, Backend.Session session) {
     this.query = Objects.requireNonNull(query, "query");
     this.session = Objects.requireNonNull(session, "session");
   }
 
-  public <R> ReactiveFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
-    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.fromTuple(mapFn));
+  public <R> ReactiveFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
+    return ReactiveFetcher.<Tuple>of(query, session).map(mapFn);
   }
+  
 }

@@ -18,9 +18,13 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.NonUniqueResultException;
+import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.matcher.Matchers;
+import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.Publishers;
+import org.immutables.criteria.repository.Tuple;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
@@ -94,17 +98,50 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
   }
 
   private static class MappedFetcher<T, R> extends ReactiveFetcherDelegate<R> {
+
     private final Function<? super T, ? extends R> mapFn;
 
     private MappedFetcher(Query query, Backend.Session session, Function<? super T, ? extends R> mapFn) {
       super(query, session);
-      this.mapFn = Objects.requireNonNull(mapFn, "mapFn");
+      Objects.requireNonNull(mapFn, "mapFn");
+      if (query.hasProjections()) {
+        // expect ProjectedTuple from backend
+        @SuppressWarnings("unchecked")
+        Function<T, T> newMapFn = tuple -> (T) new ProjectedTupleAdapter((ProjectedTuple) tuple);
+        this.mapFn = mapFn.compose(newMapFn);
+      } else {
+        this.mapFn = mapFn;
+      }
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public Publisher<R> fetch() {
       return Publishers.map((Publisher<T>) super.fetch(), mapFn);
+    }
+
+  }
+
+  /**
+   * Used to convert backend {@link ProjectedTuple} into repository specific {@link Tuple} interface
+   */
+  private static class ProjectedTupleAdapter implements Tuple {
+
+    private final ProjectedTuple delegate;
+
+    private ProjectedTupleAdapter(ProjectedTuple delegate) {
+      this.delegate = Objects.requireNonNull(delegate, "delegate");
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T get(Projection<T> projection) {
+      return (T) delegate.get(Matchers.toExpression(projection));
+    }
+
+    @Override
+    public List<?> values() {
+      return delegate.values();
     }
   }
 

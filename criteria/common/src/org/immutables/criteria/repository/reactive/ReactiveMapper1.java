@@ -17,9 +17,9 @@
 package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Mappers;
+import org.immutables.criteria.repository.Tuple;
 import org.reactivestreams.Publisher;
 
 import java.util.Optional;
@@ -34,11 +34,11 @@ public class ReactiveMapper1<T1> implements ReactiveFetcher<T1> {
   public ReactiveMapper1(Query query, Backend.Session session) {
     this.query = query;
     this.session = session;
-    this.fetcher = ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.<T1>fromTuple());
+    this.fetcher = ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple());
   }
 
   public ReactiveFetcher<Optional<T1>> asOptional() {
-    return ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
+    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.<T1>fromTuple().andThen(Optional::ofNullable));
   }
 
   @Override

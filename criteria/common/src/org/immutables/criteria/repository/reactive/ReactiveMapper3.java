@@ -17,10 +17,10 @@
 package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Mappers;
+import org.immutables.criteria.repository.Tuple;
 
 import java.util.Objects;
 
@@ -35,7 +35,7 @@ public class ReactiveMapper3<T1, T2, T3> {
   }
 
   public <R> ReactiveFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return ReactiveFetcher.<ProjectedTuple>of(query, session).map(Mappers.fromTuple(mapFn));
+    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.fromTuple(mapFn));
   }
 
 }

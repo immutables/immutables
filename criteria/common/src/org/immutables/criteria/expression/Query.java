@@ -76,6 +76,10 @@ public abstract class Query {
     return ImmutableQuery.builder().from(this).addProjections(projections).build();
   }
 
+  public Query addProjections(Iterable<Expression> projections) {
+    return ImmutableQuery.builder().from(this).addAllProjections(projections).build();
+  }
+
   public Query addGroupBy(Iterable<Expression> groupBy) {
     return ImmutableQuery.builder().from(this).addAllGroupBy(groupBy).build();
   }

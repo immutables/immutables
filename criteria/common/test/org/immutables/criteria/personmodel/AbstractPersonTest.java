@@ -558,6 +558,21 @@ public abstract class AbstractPersonTest {
   }
 
   @Test
+  public void projection_tuple() {
+    assumeFeature(Feature.QUERY_WITH_PROJECTION);
+    final PersonGenerator generator = new PersonGenerator();
+    final LocalDate dob = LocalDate.now().minusYears(22);
+    insert(generator.next().withId("id1").withFullName("John").withNickName(Optional.empty()).withAge(21).withIsActive(true).withDateOfBirth(dob));
+    insert(generator.next().withId("id2").withFullName("Mary").withNickName("a").withAge(22).withIsActive(false).withDateOfBirth(dob));
+    insert(generator.next().withId("id3").withFullName("Emma").withNickName("b").withAge(23).withIsActive(true).withDateOfBirth(dob));
+
+    Checkers.check(repository().findAll().select(Collections.singleton(person.age)).map(x -> x.get(person.age)).fetch()).hasContentInAnyOrder(21, 22, 23);
+    Checkers.check(repository().findAll().select(Collections.singleton(person.fullName)).map(x -> x.get(person.fullName)).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
+    Checkers.check(repository().findAll().select(Collections.singleton(person.dateOfBirth)).map(x -> x.get(person.dateOfBirth)).fetch()).hasContentInAnyOrder(dob, dob, dob);
+    Checkers.check(repository().findAll().select(Arrays.asList(person.isActive, person.dateOfBirth)).map(x -> x.get(person.dateOfBirth)).fetch()).hasContentInAnyOrder(dob, dob, dob);
+  }
+
+  @Test
   public void projection_nulls() {
     assumeFeature(Feature.QUERY_WITH_PROJECTION);
     final PersonGenerator generator = new PersonGenerator();
@@ -569,14 +584,30 @@ public abstract class AbstractPersonTest {
             .fetch())
             .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
 
+    // with tuple
+    Checkers.check(repository().findAll().select(Collections.singleton(person.nickName)).map(x -> x.get(person.nickName))
+            .fetch())
+            .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
+
     // normally bestFriend.hobby is Projection<String> but with person.bestFriend.hobby it becomes Projection<Optional<Sting>> because person.bestFriend is optional
     Checkers.check(repository().findAll().select(person.bestFriend.value().hobby)
             .asOptional()
             .fetch())
             .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
 
+    // same as before but with tuple
+    Checkers.check(repository().findAll().select(Collections.singleton(person.bestFriend.value().hobby))
+            .map(x -> Optional.ofNullable(x.get(person.bestFriend.value().hobby)))
+            .fetch())
+            .hasContentInAnyOrder(Optional.empty(), Optional.empty(), Optional.empty());
+
     Checkers.check(repository().findAll().select(person.nickName, person.bestFriend.value().hobby)
             .map((nickName, hobby) -> nickName.orElse("") + (hobby == null ? "" : hobby))
+            .fetch())
+            .hasContentInAnyOrder("", "", "");
+
+    Checkers.check(repository().findAll().select(Arrays.asList(person.nickName, person.bestFriend.value().hobby))
+            .map(tuple -> tuple.get(person.nickName).orElse("") + Optional.ofNullable(tuple.get(person.bestFriend.value().hobby)).orElse(""))
             .fetch())
             .hasContentInAnyOrder("", "", "");
   }

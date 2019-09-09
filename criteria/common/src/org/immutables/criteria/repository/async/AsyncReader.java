@@ -16,7 +16,10 @@
 
 package org.immutables.criteria.repository.async;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
@@ -26,6 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements AsyncFetcher<T> {
 
@@ -68,6 +73,14 @@ public class AsyncReader<T> extends AbstractReader<AsyncReader<T>> implements As
   public <T1, T2, T3, T4, T5> AsyncMapper5<T1, T2, T3, T4, T5> select(Projection<T1> proj1, Projection<T2> proj2, Projection<T3> proj3, Projection<T4> proj4, Projection<T5> proj5) {
     Query newQuery = this.query.addProjections(Matchers.toExpression(proj1), Matchers.toExpression(proj2), Matchers.toExpression(proj3), Matchers.toExpression(proj4), Matchers.toExpression(proj5));
     return new AsyncMapper5<>(newQuery, session);
+  }
+
+  public AsyncMapperTuple select(Iterable<Projection<?>> projections) {
+    Objects.requireNonNull(projections, "projections");
+    Preconditions.checkArgument(!Iterables.isEmpty(projections), "empty projections");
+    List<Expression> expressions = StreamSupport.stream(projections.spliterator(), false).map(Matchers::toExpression).collect(Collectors.toList());
+    Query newQuery = this.query.addProjections(expressions);
+    return new AsyncMapperTuple(newQuery, session);
   }
 
   @Override
