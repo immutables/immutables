@@ -1,5 +1,6 @@
 /*
  * Copyright 2019 Immutables Authors and Contributors
+ * Copyright 2016-2018 Apache Software Foundation (ASF)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +36,7 @@ import java.util.Objects;
  * versions simultaneously.
  *
  * <p>Jackson API is used to generate ES query as JSON document.
+ * <p>Some parts of this class have been copied from <a href="https://calcite.apache.org/">Apache Calcite</a> project.
  */
 class QueryBuilders {
 
