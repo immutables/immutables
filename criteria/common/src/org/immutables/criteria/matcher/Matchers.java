@@ -16,24 +16,18 @@
 
 package org.immutables.criteria.matcher;
 
-import com.google.common.base.Preconditions;
 import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Query;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -60,7 +54,7 @@ public final class Matchers {
   /**
    * Gets generic type variable of aggregation interface.
    */
-  static Type aggregationType(Class<?> from, Class<?> searchFor, String methodName) {
+  static Type aggregationType(Class<?> from, Class<?> searchFor, String methodName, Expression fallback) {
     try {
       final Method method = searchFor.getMethod(methodName);
       Type type = TypeToken.of(from).resolveType(method.getGenericReturnType()).getType();
@@ -76,11 +70,18 @@ public final class Matchers {
         throw new IllegalArgumentException(String.format("Expected single type parameter for %s got %d", parameterized, parameterized.getActualTypeArguments().length));
       }
 
-      return parameterized.getActualTypeArguments()[0];
+      Type resolved = parameterized.getActualTypeArguments()[0];
+      if (resolved instanceof TypeVariable) {
+        // still unresolved
+        // resolve manually using provided Expression returnType
+        return TypeToken.of(searchFor).resolveType(fallback.returnType()).getType();
+      }
+      return resolved;
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     }
   }
+
 
   public static Expression toExpression(Projection<?> projection) {
     Objects.requireNonNull(projection, "projection");

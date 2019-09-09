@@ -133,17 +133,32 @@ public abstract class PersonAggregationTest {
    */
   @Test
   public void no_groupBy() {
-    insert(generator.next().withNickName("a").withAge(20));
-    insert(generator.next().withNickName("a").withAge(30));
-    insert(generator.next().withNickName("b").withAge(40));
-    insert(generator.next().withNickName(Optional.empty()).withAge(10));
+    insert(generator.next().withNickName("a").withAge(20).withDateOfBirth(LocalDate.of(2012, 2, 1)));
+    insert(generator.next().withNickName("a").withAge(30).withDateOfBirth(LocalDate.of(2013, 3, 1)));
+    insert(generator.next().withNickName("b").withAge(40).withDateOfBirth(LocalDate.of(2014, 4, 1)));
+    insert(generator.next().withNickName(Optional.empty()).withAge(10).withDateOfBirth(LocalDate.of(2015, 5, 1)));
 
     check(repository().findAll()
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
             .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=4 sum=100 max=40 min=10 avg=25.00");
 
-    // add filter nickName != null
+    check(repository().findAll()
+            .select(person.dateOfBirth.max()))
+            .hasContentInAnyOrder(LocalDate.of(2015, 5, 1));
+
+    check(repository().findAll()
+            .select(person.dateOfBirth.min(), person.dateOfBirth.max())
+            .map((min, max) -> String.format("min=%s max=%s", min, max)))
+            .hasContentInAnyOrder("min=2012-02-01 max=2015-05-01");
+
+    check(repository().findAll()
+            .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
+            .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
+            .hasContentInAnyOrder("count=4 sum=100 max=40 min=10 avg=25.00");
+
+
+    // add filter age > 10
     check(repository().find(person.age.greaterThan(10))
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
             .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))

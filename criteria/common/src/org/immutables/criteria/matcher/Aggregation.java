@@ -37,13 +37,13 @@ public interface Aggregation<T> extends Projection<T> {
 
   interface Min<T> {
     default Aggregation<T> min() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MIN, Matchers.aggregationType(getClass(), Min.class, "min"), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MIN, Matchers.aggregationType(getClass(), Min.class, "min", e), e)).createWith(creator());
     }
   }
 
   interface Max<T>  {
     default Aggregation<T> max() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MAX, Matchers.aggregationType(getClass(), Max.class, "max"), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.MAX, Matchers.aggregationType(getClass(), Max.class, "max", e), e)).createWith(creator());
     }
   }
 
@@ -55,13 +55,13 @@ public interface Aggregation<T> extends Projection<T> {
 
   interface Avg<T> {
     default Aggregation<T> avg() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.AVG, Matchers.aggregationType(getClass(), Avg.class, "avg"), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.AVG, Matchers.aggregationType(getClass(), Avg.class, "avg", e), e)).createWith(creator());
     }
   }
 
   interface Sum<T> {
     default Aggregation<T> sum() {
-      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.SUM, Matchers.aggregationType(getClass(), Sum.class, "sum"), e)).createWith(creator());
+      return Matchers.extract((Matcher) this).applyRaw(e -> Expressions.aggregation(AggregationOperators.SUM, Matchers.aggregationType(getClass(), Sum.class, "sum", e), e)).createWith(creator());
     }
   }
 
