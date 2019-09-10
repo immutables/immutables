@@ -19,7 +19,10 @@ package org.immutables.criteria.repository.sync;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction3;
+import org.immutables.criteria.repository.Tuple;
 import org.immutables.criteria.repository.reactive.ReactiveMapper3;
+
+import java.util.function.Function;
 
 public class SyncMapper3<T1, T2, T3> {
 
@@ -32,4 +35,9 @@ public class SyncMapper3<T1, T2, T3> {
   public <R> SyncFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
     return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
+
+  public <R> SyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
+    return SyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  }
+
 }

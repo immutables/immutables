@@ -19,7 +19,10 @@ package org.immutables.criteria.repository.async;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction4;
+import org.immutables.criteria.repository.Tuple;
 import org.immutables.criteria.repository.reactive.ReactiveMapper4;
+
+import java.util.function.Function;
 
 public class AsyncMapper4<T1, T2, T3, T4> {
 
@@ -32,4 +35,9 @@ public class AsyncMapper4<T1, T2, T3, T4> {
   public <R> AsyncFetcher<R> map(MapperFunction4<T1, T2, T3, T4, R> mapFn) {
     return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
+
+  public <R> AsyncFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
+    return AsyncFetcherDelegate.fromReactive(delegate.map(mapFn));
+  }
+
 }

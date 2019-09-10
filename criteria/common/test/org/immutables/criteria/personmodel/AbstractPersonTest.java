@@ -553,7 +553,7 @@ public abstract class AbstractPersonTest {
     Checkers.check(repository().findAll().select(person.isActive).fetch()).hasContentInAnyOrder(true, false, true);
     Checkers.check(repository().findAll().select(person.isActive, person.dateOfBirth).map((x, date) -> date).fetch()).hasContentInAnyOrder(dob, dob, dob);
 
-    Checkers.check(repository().findAll().select(person.id, person.fullName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(person.id, person.fullName).map((k, v) -> new AbstractMap.SimpleImmutableEntry(k, v)).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("id1", "John"), new AbstractMap.SimpleImmutableEntry<>("id2", "Mary"), new AbstractMap.SimpleImmutableEntry<>("id3", "Emma"));
   }
 
@@ -570,6 +570,7 @@ public abstract class AbstractPersonTest {
     Checkers.check(repository().findAll().select(Collections.singleton(person.fullName)).map(x -> x.get(person.fullName)).fetch()).hasContentInAnyOrder("John", "Mary", "Emma");
     Checkers.check(repository().findAll().select(Collections.singleton(person.dateOfBirth)).map(x -> x.get(person.dateOfBirth)).fetch()).hasContentInAnyOrder(dob, dob, dob);
     Checkers.check(repository().findAll().select(Arrays.asList(person.isActive, person.dateOfBirth)).map(x -> x.get(person.dateOfBirth)).fetch()).hasContentInAnyOrder(dob, dob, dob);
+    Checkers.check(repository().findAll().select(person.isActive, person.dateOfBirth).map(tuple -> tuple.get(person.dateOfBirth)).fetch()).hasContentInAnyOrder(dob, dob, dob);
   }
 
   @Test
@@ -625,7 +626,7 @@ public abstract class AbstractPersonTest {
 
     // nickname
     Checkers.check(repository().findAll().select(person.nickName).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("a"), Optional.of("b"));
-    Checkers.check(repository().findAll().select(person.fullName, person.nickName).map(AbstractMap.SimpleImmutableEntry::new).fetch())
+    Checkers.check(repository().findAll().select(person.fullName, person.nickName).map((k, v) -> new AbstractMap.SimpleImmutableEntry(k, v)).fetch())
             .hasContentInAnyOrder(new AbstractMap.SimpleImmutableEntry<>("John", Optional.empty()), new AbstractMap.SimpleImmutableEntry<>("Mary", Optional.of("a")),
                     new AbstractMap.SimpleImmutableEntry<>("Emma", Optional.of("b")));
 

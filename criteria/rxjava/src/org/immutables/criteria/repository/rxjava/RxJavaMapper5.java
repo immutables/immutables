@@ -19,7 +19,10 @@ package org.immutables.criteria.repository.rxjava;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.MapperFunction5;
+import org.immutables.criteria.repository.Tuple;
 import org.immutables.criteria.repository.reactive.ReactiveMapper5;
+
+import java.util.function.Function;
 
 public class RxJavaMapper5<T1, T2, T3, T4, T5> {
 
@@ -32,4 +35,9 @@ public class RxJavaMapper5<T1, T2, T3, T4, T5> {
   public <R> RxJavaFetcher<R> map(MapperFunction5<T1, T2, T3, T4, T5, R> mapFn) {
     return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
+
+  public <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
+    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  }
+
 }
