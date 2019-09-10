@@ -70,7 +70,7 @@ public interface ComparableMatcher<R, V extends Comparable<? super V>> extends O
    * Checks that attribute is in {@code [lower, upper]} range (lower included, upper included).
    * (equivalent to {@code lowerInclusive <= $this <= upperInclusive})
    * @param lowerInclusive lower value (inclusive)
-   * @param AggregationReturnTypeTest.javaupperInclusive upper value (inclusive)
+   * @param upperInclusive upper value (inclusive)
    */
   default R between(V lowerInclusive, V upperInclusive) {
     Objects.requireNonNull(lowerInclusive, "lowerInclusive");
