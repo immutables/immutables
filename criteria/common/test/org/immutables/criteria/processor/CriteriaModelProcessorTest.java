@@ -96,7 +96,7 @@ public class CriteriaModelProcessorTest {
     assertAttribute("weird3",
             "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.OptionalStringMatcher.Template<R>,java.util.Optional<java.lang.String>>");
     assertAttribute("weird4",
-            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>,java.util.OptionalInt>");
+            "org.immutables.criteria.matcher.OptionalMatcher.Template<R,org.immutables.criteria.matcher.OptionalIntegerMatcher.Template<R>,java.util.OptionalInt>");
   }
 
   @Test
@@ -132,11 +132,11 @@ public class CriteriaModelProcessorTest {
     assertAttribute("arrayArrayInteger",
             "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.IntegerMatcher.Template<R>,java.lang.Integer>,java.lang.Integer[]>");
     assertAttribute("optionalInteger",
-            "org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>");
+            "org.immutables.criteria.matcher.OptionalIntegerMatcher.Template<R>");
     assertAttribute("optionalInteger2",
-            "org.immutables.criteria.matcher.OptionalIntMatcher.Template<R>");
+            "org.immutables.criteria.matcher.OptionalIntegerMatcher.Template<R>");
     assertAttribute("nullableInteger",
-            "org.immutables.criteria.matcher.OptionalIntMatcher.NullableTemplate<R>");
+            "org.immutables.criteria.matcher.OptionalIntegerMatcher.NullableTemplate<R>");
   }
 
   @Test

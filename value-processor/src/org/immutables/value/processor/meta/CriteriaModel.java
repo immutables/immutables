@@ -257,7 +257,7 @@ public class CriteriaModel {
         name = "org.immutables.criteria.matcher.OptionalBooleanMatcher.Template";
       } else if (param.isNumber()) {
         if (param.isInteger()) {
-          name = "org.immutables.criteria.matcher.OptionalIntMatcher.Template";
+          name = "org.immutables.criteria.matcher.OptionalIntegerMatcher.Template";
         } else if (param.isLong()) {
           name = "org.immutables.criteria.matcher.OptionalLongMatcher.Template";
         } else if (param.isDouble()) {

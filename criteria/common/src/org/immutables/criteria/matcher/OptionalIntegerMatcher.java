@@ -28,20 +28,20 @@ import java.util.OptionalLong;
  *
  * @param <R> root criteria type
  */
-public interface OptionalIntMatcher<R> extends OptionalNumberMatcher<R, Integer> {
+public interface OptionalIntegerMatcher<R> extends OptionalNumberMatcher<R, Integer> {
 
   /**
    * Self-type for this matcher
    */
   interface Self extends Template<Self>, Disjunction<Template<Self>> {}
 
-  interface Template<R> extends OptionalIntMatcher<R>, WithMatcher<R, Self>,
+  interface Template<R> extends OptionalIntegerMatcher<R>, WithMatcher<R, Self>,
           NotMatcher<R, Self>, Projection<OptionalInt>, Aggregation.NumberTemplate<OptionalInt, OptionalLong, OptionalDouble> {}
 
   /**
-   * Similar to main {@link OptionalIntMatcher.Template} but with {@code @Nullable} projections and aggregations
+   * Similar to main {@link OptionalIntegerMatcher.Template} but with {@code @Nullable} projections and aggregations
    */
-  interface NullableTemplate<R> extends OptionalIntMatcher<R>, WithMatcher<R, Self>,
+  interface NullableTemplate<R> extends OptionalIntegerMatcher<R>, WithMatcher<R, Self>,
           NotMatcher<R, Self>, Projection<Integer>, Aggregation.NumberTemplate<Integer, Long, Double> {}
 
 

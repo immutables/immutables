@@ -25,6 +25,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 import static org.immutables.check.Checkers.check;
@@ -53,6 +54,7 @@ public class ElasticModelTest {
             .build();
 
     new IndexOps(RESOURCE.restClient(), MAPPER, INDEX_NAME).create(model).blockingGet();
+
 
     final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER, 1024);
 
