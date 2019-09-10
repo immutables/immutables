@@ -21,8 +21,12 @@ import org.junit.Test;
 public class NodeTest {
 
   @Test
-  public void name() {
-    NodeCriteria.node.parent.isPresent();
-    NodeCriteria.node.children.isEmpty();
+  public void nodes() {
+    NodeCriteria node = NodeCriteria.node;
+    node.parent.value().children.isEmpty();
+    node.parent.isPresent();
+    node.parent.value().value.is("foo");
+    node.value.is("bar");
+    node.children.isEmpty();
   }
 }

@@ -33,17 +33,10 @@ public interface OptionalIntegerMatcher<R> extends OptionalNumberMatcher<R, Inte
   /**
    * Self-type for this matcher
    */
-  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
+  interface Self extends Template<Self, Void>, Disjunction<Template<Self, Void>> {}
 
-  interface Template<R> extends OptionalIntegerMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<OptionalInt>, Aggregation.NumberTemplate<OptionalInt, OptionalLong, OptionalDouble> {}
-
-  /**
-   * Similar to main {@link OptionalIntegerMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R> extends OptionalIntegerMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<Integer>, Aggregation.NumberTemplate<Integer, Long, Double> {}
-
+  interface Template<R, P> extends OptionalIntegerMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<P>, Aggregation.NumberTemplate<OptionalInt, OptionalLong, OptionalDouble> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

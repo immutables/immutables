@@ -30,4 +30,5 @@ import java.util.Optional;
 interface Node {
   Optional<Node> parent();
   List<Node> children();
+  String value();
 }

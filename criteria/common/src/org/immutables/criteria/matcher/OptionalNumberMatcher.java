@@ -32,10 +32,10 @@ public interface OptionalNumberMatcher<R, V extends Number & Comparable<? super 
   /**
    * Self-type for this matcher
    */
-  interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
+  interface Self<V extends Number & Comparable<? super V>> extends Template<Self<V>, V, Void>, Disjunction<Template<Self<V>, V, Void>> {}
 
-  interface Template<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.NumberTemplate<Optional<V>, OptionalDouble, OptionalDouble> {}
+  interface Template<R, V extends Number & Comparable<? super V>, P> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
+          NotMatcher<R, Self<V>>, Projection<P>, Aggregation.NumberTemplate<Optional<V>, OptionalDouble, OptionalDouble> {}
 
   /**
    * Similar to main {@link OptionalNumberMatcher.Template} but with {@code @Nullable} projections and aggregations

@@ -31,14 +31,9 @@ public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> e
   /**
    * Self-type for this matcher
    */
-  interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V>, Disjunction<Template<Self<V>, V>> {}
+  interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V, Void>, Disjunction<Template<Self<V>, V, Void>> {}
 
-  interface Template<R, V extends Comparable<? super V>> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.ComparableTemplate<Optional<V>> {}
-
-  /**
-   * Similar to main {@link OptionalComparableMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R, V extends Comparable<? super V>> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<V>, Aggregation.ComparableTemplate<V> {}
+  interface Template<R, V extends Comparable<? super V>, P> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.ComparableTemplate<Optional<V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

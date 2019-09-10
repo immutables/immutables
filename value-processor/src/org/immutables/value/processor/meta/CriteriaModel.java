@@ -304,11 +304,6 @@ public class CriteriaModel {
       name = "org.immutables.criteria.matcher.ObjectMatcher.Template";
     }
 
-    if (introspected.isNullable() && !introspected.isOptional()) {
-      // use NullableTemplate because projections and aggregation need to return T not Optional<T>
-      name = name.replaceFirst("\\.Template", "\\.NullableTemplate");
-    }
-
     final Element element = elements.getTypeElement(name);
     final Type.Parameterized matcherType;
     if (element == null) {
@@ -342,6 +337,15 @@ public class CriteriaModel {
       if (introspected.useOptional()) {
         final IntrospectedType newType = introspected.optionalParameter();
         valueType = toType(newType.type());
+        // resolve P
+        for (Type.Nonprimitive arg: matcher.arguments) {
+          if (arg instanceof Type.Variable && ((Type.Variable) arg).name.equals("P")) {
+            // resolve projection type (P) for .Template<R, P>.
+            // projection type is identical to attribute type
+            // Example .Template<R, Optional<Boolean>>
+            resolver = resolver.bind((Type.Variable) arg, factory.reference(type.toString()));
+          }
+        }
         if (newType.hasOptionalMatcher()) {
           // don't recurse if optional matcher is present like OptionalComparableMatcher
           resolver = resolver.bind(arg1, (Type.Nonprimitive) valueType);
@@ -362,8 +366,8 @@ public class CriteriaModel {
         resolver = resolver.bind(arg1, buildMatcher(introspected.withType(mirror)));
       }
 
-      if (matcher.arguments.size() > 2) {
-        // last parameter is usually value
+      if (matcher.arguments.size() > 2 && ((Type.Variable) matcher.arguments.get(2)).name.equals("V")) {
+        // parameter called V is usually value type
         resolver = resolver.bind((Type.Variable) matcher.arguments.get(2), (Type.Nonprimitive) valueType);
       }
 
@@ -380,18 +384,18 @@ public class CriteriaModel {
 
   public static class MatcherDefinition {
     private final ValueAttribute attribute;
-    private final Type.Parameterized type;
+    private final Type.Parameterized matcherType;
     private final IntrospectedType introspectedType;
 
-    private MatcherDefinition(ValueAttribute attribute, Type.Parameterized type) {
+    private MatcherDefinition(ValueAttribute attribute, Type.Parameterized matcherType) {
       this.attribute = attribute;
-      this.type = Preconditions.checkNotNull(type, "type");
+      this.matcherType = Preconditions.checkNotNull(matcherType, "type");
       ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
       this.introspectedType = new IntrospectedType(attribute.returnType, attribute.isNullable(), env.getTypeUtils(), env.getElementUtils());
     }
 
     public Type.Parameterized matcherType() {
-      return this.type;
+      return this.matcherType;
     }
 
     private boolean isTemplate(String name) {
@@ -402,7 +406,7 @@ public class CriteriaModel {
     public String creator() {
 
       final String creator;
-      final String name = type.reference.name;
+      final String name = matcherType.reference.name;
       final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
       if (hasCriteria) {
         creator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
@@ -417,7 +421,7 @@ public class CriteriaModel {
     }
 
     private String secondCreator() {
-      final String name = type.reference.name;
+      final String name = matcherType.reference.name;
       if (introspectedType.isScalar()) {
         String newName = isTemplate(name) ?  name.substring(0, name.lastIndexOf('.'))  : name;
         if (introspectedType.hasCriteria() && newName.endsWith("Template")) {

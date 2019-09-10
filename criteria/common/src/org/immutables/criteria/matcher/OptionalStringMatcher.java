@@ -24,9 +24,9 @@ import java.util.Optional;
  */
 public interface OptionalStringMatcher<R> extends StringMatcher<R>, PresentAbsentMatcher<R> {
 
-  interface Self extends Template<Self>, Disjunction<OptionalStringMatcher<Self>> {}
+  interface Self extends Template<Self, Void>, Disjunction<OptionalStringMatcher<Self>> {}
 
-  interface Template<R> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<Optional<String>>, Aggregation.ComparableTemplate<Optional<String>> {}
+  interface Template<R, P> extends OptionalStringMatcher<R>, WithMatcher<R, Self>, NotMatcher<R, Self>, Projection<P>, Aggregation.ComparableTemplate<Optional<String>> {}
 
   /**
    * Similar to main {@link OptionalStringMatcher.Template} but with {@code @Nullable} projections and aggregations

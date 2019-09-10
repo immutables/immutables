@@ -33,16 +33,10 @@ public interface OptionalBigIntegerMatcher<R> extends OptionalNumberMatcher<R, B
   /**
    * Self-type for this matcher
    */
-  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
+  interface Self extends Template<Self, Void>, Disjunction<Template<Self, Void>> {}
 
-  interface Template<R> extends OptionalBigIntegerMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<Optional<BigInteger>>, Aggregation.NumberTemplate<Optional<BigInteger>, Optional<BigInteger>, Optional<BigDecimal>> {}
-
-  /**
-   * Similar to main {@link OptionalBigIntegerMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R> extends OptionalBigIntegerMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<BigInteger>, Aggregation.NumberTemplate<BigInteger, BigInteger, BigDecimal> {}
+  interface Template<R, P> extends OptionalBigIntegerMatcher<R>, WithMatcher<R, Self>,
+          NotMatcher<R, Self>, Projection<P>, Aggregation.NumberTemplate<Optional<BigInteger>, Optional<BigInteger>, Optional<BigDecimal>> {}
 
 
   @SuppressWarnings("unchecked")

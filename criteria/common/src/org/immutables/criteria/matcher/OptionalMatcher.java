@@ -16,12 +16,10 @@
 
 package org.immutables.criteria.matcher;
 
-import java.util.Optional;
-
 /**
  * Matcher for optional attributes
  */
-public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Matcher {
+public interface OptionalMatcher<R, S> extends PresentAbsentMatcher<R>, Matcher {
 
   /**
    * Apply context-specific matcher if value is present
@@ -34,14 +32,9 @@ public interface OptionalMatcher<R, S, V> extends PresentAbsentMatcher<R>, Match
   /**
    * Self-type for this matcher
    */
-  interface Self<S, V> extends Template<Self<S, V>, S, V>, Disjunction<Self<S, V>> {}
+  interface Self<S> extends Template<Self<S>, S, Void>, Disjunction<Self<S>> {}
 
-  interface Template<R, S, V> extends OptionalMatcher<R, S, V>, Projection<Optional<V>>, Aggregation.Count {}
-
-  /**
-   * Similar to main {@link OptionalMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R, S, V> extends OptionalMatcher<R, S, V>, Projection<V>, Aggregation.Count {}
+  interface Template<R, S, P> extends OptionalMatcher<R, S>, Projection<P>, Aggregation.Count {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {

@@ -31,16 +31,10 @@ public interface OptionalDoubleMatcher<R> extends OptionalNumberMatcher<R, Doubl
   /**
    * Self-type for this matcher
    */
-  interface Self extends Template<Self>, Disjunction<Template<Self>> {}
+  interface Self extends Template<Self, Void>, Disjunction<Template<Self, Void>> {}
 
-  interface Template<R> extends OptionalDoubleMatcher<R>, WithMatcher<R, Self>,
+  interface Template<R, P> extends OptionalDoubleMatcher<R>, WithMatcher<R, Self>,
           NotMatcher<R, Self>, Projection<OptionalDouble>, Aggregation.NumberTemplate<OptionalDouble, OptionalDouble, OptionalDouble> {}
-
-  /**
-   * Similar to main {@link OptionalDoubleMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R> extends OptionalDoubleMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<Double>, Aggregation.NumberTemplate<Double, Double, Double> {}
 
 
   @SuppressWarnings("unchecked")
