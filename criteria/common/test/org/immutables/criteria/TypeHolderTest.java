@@ -32,142 +32,88 @@ import java.util.concurrent.TimeUnit;
 @Ignore
 public class TypeHolderTest {
 
-
   @Test
-  public void name() {
-    // primitives
-    TypeHolderCriteria.typeHolder
-            .booleanPrimitive.isTrue()
-            .booleanPrimitive.isFalse()
-            .intPrimitive.is(0)
-            .intPrimitive.greaterThan(22)
-            .longPrimitive.lessThan(22L)
-            .longPrimitive.in(1L, 2L, 3L)
-            .charPrimitive.is('A')
-            .doublePrimitive.greaterThan(1.1)
-            .doublePrimitive.in(1D, 2D, 3D)
-            .floatPrimitive.is(33F)
-            .floatPrimitive.greaterThan(12F)
-            .shortPrimitive.greaterThan((short) 2)
-            .bytePrimitive.isNot((byte) 0);
-
-    // == Optionals
-    TypeHolderCriteria.typeHolder
-            .optBoolean.isFalse()
-            .optBoolean.isTrue()
-            .optBoolean.isAbsent()
-            .optInt.isAbsent()
-            .optLong.isAbsent()
-            .optLong.lessThan(11L)
-            .optLong2.isAbsent()
-            .optLong2.lessThan(22L)
-            .optShort.isPresent()
-            .optDouble.isPresent()
-            .optDouble.greaterThan(22D)
-            .optDouble2.lessThan(11D)
-            .optFloat.isAbsent()
-            .optShort.lessThan((short) 22)
-            .optShort.isAbsent();
-
-    // == Boxed
-    TypeHolderCriteria.typeHolder
-            .doubleValue.lessThan(22D)
-            .booleanValue.isTrue()
-            .booleanValue.isFalse()
-            .intValue.lessThan(22)
-            .doubleValue.lessThan(1D)
-            .shortValue.lessThan((short) 11)
-            .byteValue.greaterThan((byte) 2)
-            .longValue.lessThan(44L);
-
-    // == lists
-    TypeHolderCriteria.typeHolder
-            .booleans.any().isTrue()
-            .booleans.notEmpty()
-            .booleans.hasSize(1)
-            .bytes.none().is((byte) 0)
-            .bytes.hasSize(1)
-            .shorts.any().is((short) 22)
-            .shorts.hasSize(1)
-            .integers.any().atLeast(11)
-            .integers.notEmpty()
-            .integers.hasSize(1)
-            .longs.none().greaterThan(11L)
-            .longs.hasSize(2)
-            .doubles.none().lessThan(1D)
-            .doubles.hasSize(2)
-            .floats.all().greaterThan(22F)
-            .chars.isEmpty()
-            .chars.any().greaterThan('A');
-  }
-
-  @Test
-  public void arrays() {
-    TypeHolderCriteria.typeHolder
-            .booleanArray.isEmpty()
-            .booleanArray.hasSize(11)
-            .booleanArray.contains(true)
-            .bigIntegerArray.contains(BigInteger.ONE)
-            .bigDecimalArray.contains(BigDecimal.ONE)
-            .fooArray.contains(TypeHolder.Foo.ONE)
-            .timeZoneArray.contains(TimeZone.getDefault())
-            .localDateArray.contains(LocalDate.MAX)
-            .utilDateArray.contains(new java.util.Date());
+  public void booleanValue() {
+    BooleanHolderCriteria.booleanHolder
+            .value.isTrue()
+            .value.isFalse()
+            .value.is(true)
+            .value.is(false)
+            .boxed.isTrue()
+            .boxed.isFalse()
+            .nullable.isAbsent()
+            .nullable.isTrue();
   }
 
   @Test
   public void dates() {
-    TypeHolderCriteria.typeHolder
-            .localDate.atMost(LocalDate.MIN)
-            .optLocalDate.atMost(LocalDate.MAX)
-            .localDates.contains(LocalDate.MAX);
+    LocalDateHolderCriteria.localDateHolder
+            .value.atMost(LocalDate.MIN)
+            .optional.atMost(LocalDate.MAX)
+            .list.contains(LocalDate.MAX)
+            .not(d -> d.array.isEmpty());
   }
 
   @Test
   public void javaUtilDate() {
-
     final Date date = new Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(10));
-
-    TypeHolderCriteria.typeHolder
-            .utilDate.atMost(date)
-            .optUtilDate.atMost(date)
-            .utilDates.all().atLeast(date);
+    DateHolderCriteria.dateHolder
+            .value.atMost(date)
+            .value.atLeast(date)
+            .array.contains(date)
+            .list.contains(date)
+            .optional.atMost(date)
+            .optional.isAbsent()
+            .optional.isAbsent()
+            .nullable.isAbsent()
+            .nullable.atLeast(date)
+            .nullable.atMost(date)
+            .nullable.isPresent();
   }
 
   /**
    * Test for BigInteger and BigDecimal
    */
   @Test
-  public void bigIntegerAndDecimal() {
-    TypeHolderCriteria.typeHolder
-            .bigDecimal.atLeast(BigDecimal.ONE)
-            .optBigDecimal.atLeast(BigDecimal.ONE)
-            .bigDecimals.contains(BigDecimal.TEN)
-            .bigDecimals.notEmpty()
-            .bigDecimals.any().atLeast(BigDecimal.ONE);
+  public void bigInteger() {
+    BigIntegerHolderCriteria.bigIntegerHolder
+            .value.atLeast(BigInteger.ONE)
+            .optional.atLeast(BigInteger.ONE)
+            .list.contains(BigInteger.ONE)
+            .array.contains(BigInteger.ONE)
+            .list.notEmpty()
+            .array.isEmpty();
+  }
 
-    TypeHolderCriteria.typeHolder
-            .bigInteger.atLeast(BigInteger.ONE)
-            .optBigInteger.atLeast(BigInteger.ONE)
-            .bigIntegers.contains(BigInteger.TEN)
-            .bigIntegers.notEmpty()
-            .bigIntegers.any().atLeast(BigInteger.ONE);
+  @Test
+  public void bigDecimal() {
+    BigDecimalHolderCriteria.bigDecimalHolder
+            .value.atLeast(BigDecimal.ONE)
+            .optional.atLeast(BigDecimal.ONE)
+            .list.contains(BigDecimal.ONE)
+            .array.contains(BigDecimal.ONE)
+            .list.notEmpty()
+            .array.isEmpty();
   }
 
   @Test
   public void enumCheck() {
-      TypeHolderCriteria.typeHolder
-              .foos.none().is(TypeHolder.Foo.TWO)
-              .foo.is(TypeHolder.Foo.ONE)
-              .optFoo.isPresent()
-              .optFoo.is(TypeHolder.Foo.ONE);
+    EnumHolderCriteria.enumHolder
+              .list.none().is(TypeHolder.Foo.TWO)
+              .list.hasSize(1)
+              .array.hasSize(1)
+              .value.is(TypeHolder.Foo.ONE)
+              .value.isNot(TypeHolder.Foo.ONE)
+              .optional.isPresent()
+              .optional.is(TypeHolder.Foo.ONE);
   }
 
   @Test
   public void timeZones() {
-    TypeHolderCriteria.typeHolder
-            .timeZone.is(TimeZone.getDefault())
-            .optTimeZone.value().is(TimeZone.getDefault())
-            .timeZones.contains(TimeZone.getDefault());
+    TimeZoneHolderCriteria.timeZoneHolder
+            .value.is(TimeZone.getDefault())
+            .optional.value().is(TimeZone.getDefault())
+            .array.contains(TimeZone.getDefault())
+            .list.contains(TimeZone.getDefault());
   }
 }

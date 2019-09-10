@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,123 +32,198 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TimeZone;
 
+/**
+ * Defines various types (long/int/boolean) with containers (like {@code int[]} or {@code List<Boolean>})
+ */
 @Value.Immutable
 @Criteria
 interface TypeHolder {
 
-  // == primitives
-  boolean booleanPrimitive();
-  double doublePrimitive();
-  float floatPrimitive();
-  int intPrimitive();
-  long longPrimitive();
-  short shortPrimitive();
-  byte bytePrimitive();
-  char charPrimitive();
+  @Value.Immutable
+  @Criteria
+  interface BooleanHolder {
+    boolean value();
+    Boolean boxed();
+    @Nullable Boolean nullable();
+    boolean[] array();
+    List<Boolean> list();
+    Optional<Boolean> optional();
+  }
 
-  // == boxed version of primitives
-  Boolean booleanValue();
-  Double doubleValue();
-  Float floatValue();
-  Integer intValue();
-  Long longValue();
-  Short shortValue();
-  Byte byteValue();
-  Character charValue();
+  @Value.Immutable
+  @Criteria
+  interface ByteHolder {
+    byte value();
+    Byte boxed();
+    @Nullable Byte nullable();
+    byte[] array();
+    List<Byte> list();
+    Optional<Byte> optional();
+  }
 
-  // == nullable version of boxed primitives
-  @Nullable Boolean nullableBoolean();
-  @Nullable Double nullableDouble();
-  @Nullable Float nullableFloat();
-  @Nullable Integer nullableInteger();
-  @Nullable Long nullableLong();
-  @Nullable Short nullableShort();
-  @Nullable Byte nullableByte();
-  @Nullable Character nullableCharacter();
+  @Value.Immutable
+  @Criteria
+  interface ShortHolder {
+    short value();
+    Short boxed();
+    @Nullable Short nullable();
+    short[] array();
+    List<Short> list();
+    Optional<Short> optional();
+  }
 
-  // == scalar optionals
-  Optional<Boolean> optBoolean();
-  OptionalDouble optDouble();
-  Optional<Double> optDouble2();
-  Optional<Float> optFloat();
-  OptionalInt optInt();
-  Optional<Integer> optInt2();
-  OptionalLong optLong();
-  Optional<Long> optLong2();
-  Optional<Short> optShort();
-  Optional<Byte> optByte();
-  Optional<Character> optChar();
+  @Value.Immutable
+  @Criteria
+  interface FloatHolder {
+    float value();
+    Float boxed();
+    @Nullable Float nullable();
+    float[] array();
+    List<Float> list();
+    Optional<Float> optional();
+  }
 
-  // == lists
-  List<Boolean> booleans();
-  List<Double> doubles();
-  List<Float> floats();
-  List<Integer> integers();
-  List<Long> longs();
-  List<Short> shorts();
-  List<Byte> bytes();
-  List<Character> chars();
+  @Value.Immutable
+  @Criteria
+  interface DoubleHolder {
+    double value();
+    Double boxed();
+    @Nullable Double nullable();
+    double[] array();
+    List<Double> list();
+    OptionalDouble optional();
+    Optional<Double> optional2();
+  }
 
-  // == arrays
-  boolean[] booleanArray();
-  double[] doubleArray();
-  float[] floatArray();
-  int[] integerArray();
-  long[] longArray();
-  short[] shortArray();
-  byte[] byteArray();
-  char[] charArray();
+  @Value.Immutable
+  @Criteria
+  interface IntegerHolder {
+    int value();
+    Integer boxed();
+    @Nullable Integer nullable();
+    int[] array();
+    List<Integer> list();
+    OptionalInt optional();
+    Optional<Integer> optional2();
+  }
+
+  @Value.Immutable
+  @Criteria
+  interface LongHolder {
+    long value();
+    Long boxed();
+    @Nullable Long nullable();
+    long[] array();
+    List<Long> list();
+    OptionalLong optional();
+    Optional<Long> optional2();
+  }
+
+  @Value.Immutable
+  @Criteria
+  interface CharacterHolder {
+    char value();
+    Character boxed();
+    @Nullable Character nullable();
+    char[] array();
+    List<Character> list();
+    Optional<Character> optional();
+  }
+
+  @Value.Immutable
+  @Criteria
+  interface BigIntegerHolder {
+    BigInteger value();
+    @Nullable BigInteger nullable();
+    BigInteger[] array();
+    List<BigInteger> list();
+    Optional<BigInteger> optional();
+  }
+
+  @Value.Immutable
+  @Criteria
+  interface BigDecimalHolder {
+    BigDecimal value();
+    @Nullable BigDecimal nullable();
+    BigDecimal[] array();
+    List<BigDecimal> list();
+    Optional<BigDecimal> optional();
+  }
+
+  @Value.Immutable
+  @Criteria
+  interface StringHolder {
+    String value();
+    @Nullable String nullable();
+    String[] array();
+    List<String> list();
+    Optional<String> optional();
+  }
 
   enum Foo {
     ONE, TWO
   }
 
-  Foo foo();
-  Optional<Foo> optFoo();
-  @Nullable Foo nullableFoo();
-  List<Foo> foos();
-  Foo[] fooArray();
+  @Value.Immutable
+  @Criteria
+  interface EnumHolder {
+    Foo value();
+    @Nullable Foo nullable();
+    List<Foo> list();
+    Foo[] array();
+    Optional<Foo> optional();
+  }
 
-  // java.time.*
-  LocalDate localDate();
-  Optional<LocalDate> optLocalDate();
-  List<LocalDate> localDates();
-  LocalDate[] localDateArray();
+  @Value.Immutable
+  @Criteria
+  interface DateHolder {
+    Date value();
+    @Nullable Date nullable();
+    List<Date> list();
+    Date[] array();
+    Optional<Date> optional();
+  }
 
-  // java.util.Date
-  java.util.Date utilDate();
-  Optional<java.util.Date> optUtilDate();
-  List<java.util.Date> utilDates();
-  java.util.Date[] utilDateArray();
+  @Value.Immutable
+  @Criteria
+  interface LocalDateHolder {
+    LocalDate value();
+    @Nullable LocalDate nullable();
+    List<LocalDate> list();
+    LocalDate[] array();
+    Optional<LocalDate> optional();
+  }
 
-  // BigInteger and BigDecimal
-  BigInteger bigInteger();
-  Optional<BigInteger> optBigInteger();
-  @Nullable BigInteger nullableBigInteger();
-  List<BigInteger> bigIntegers();
-  BigInteger[] bigIntegerArray();
+  @Value.Immutable
+  @Criteria
+  interface TimeZoneHolder {
+    TimeZone value();
+    @Nullable TimeZone nullable();
+    List<TimeZone> list();
+    TimeZone[] array();
+    Optional<TimeZone> optional();
+  }
 
-  BigDecimal bigDecimal();
-  Optional<BigDecimal> optBigDecimal();
-  @Nullable BigDecimal nullableBigDecimal();
-  List<BigDecimal> bigDecimals();
-  BigDecimal[] bigDecimalArray();
+  /**
+   * Definitions which usually don't make sense
+   */
+  @Value.Immutable
+  @Criteria
+  interface WeirdHolder {
+    // weird stuff
+    Optional<Optional<String>> weird1();
+    Optional<List<String>> weird2();
+    List<Optional<String>> weird3();
+    Optional<OptionalInt> weird4();
+    Optional<Map<String, String>> weird5();
+  }
 
-  // TimeZone
-  TimeZone timeZone();
-  Optional<TimeZone> optTimeZone();
-  List<TimeZone> timeZones();
-  TimeZone[] timeZoneArray();
+  @Value.Immutable
+  @Criteria
+  interface MapHolder {
+    Map<String, String> map();
+    Optional<Map<String, String>> optionalMap();
+    List<Map<String, String>> maps();
 
-  // weird stuff
-  Optional<Optional<String>> weird1();
-  Optional<List<String>> weird2();
-  List<Optional<String>> weird3();
-  Optional<OptionalInt> weird4();
-  Optional<Map<String, String>> weird5();
-
-  Map<String, String> map();
-  Optional<Map<String, String>> optionalMap();
-  List<Map<String, String>> maps();
-
+  }
 }
