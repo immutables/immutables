@@ -61,7 +61,7 @@ public interface ReactiveFetcher<T> extends Fetcher<T> {
    * Factory method
    */
   static <T> ReactiveFetcher<T> of(Query query, Backend.Session session) {
-    return new ReactiveFetcherDelegate<T>(query, session);
+    return ReactiveFetcherDelegate.of(query, session);
   }
 
 }

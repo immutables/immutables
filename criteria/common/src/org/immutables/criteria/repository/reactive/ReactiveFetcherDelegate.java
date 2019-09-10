@@ -37,9 +37,18 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
   private final Query query;
   private final Backend.Session session;
 
-  ReactiveFetcherDelegate(Query query, Backend.Session session) {
+  private ReactiveFetcherDelegate(Query query, Backend.Session session) {
     this.query = Objects.requireNonNull(query, "query");
     this.session = Objects.requireNonNull(session, "session");
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> ReactiveFetcher<T> of(Query query, Backend.Session session) {
+    return query.hasProjections() ? (ReactiveFetcher<T>) ofTuple(query, session) : new ReactiveFetcherDelegate<>(query, session);
+  }
+
+  private static ReactiveFetcher<Tuple> ofTuple(Query query, Backend.Session session) {
+    return new ReactiveFetcherDelegate<ProjectedTuple>(query, session).map(TupleAdapter::new);
   }
 
   @Override
@@ -94,42 +103,57 @@ class ReactiveFetcherDelegate<T> implements ReactiveFetcher<T> {
 
   @Override
   public <X> ReactiveFetcher<X> map(Function<? super T, ? extends X> mapFn) {
-    return new MappedFetcher<T, X>(query, session, mapFn);
+    return new MappedFetcher<T, X>(this, mapFn);
   }
 
-  private static class MappedFetcher<T, R> extends ReactiveFetcherDelegate<R> {
+  private static class MappedFetcher<T, R> implements ReactiveFetcher<R> {
 
+    private final ReactiveFetcher<T> delegate;
     private final Function<? super T, ? extends R> mapFn;
 
-    private MappedFetcher(Query query, Backend.Session session, Function<? super T, ? extends R> mapFn) {
-      super(query, session);
-      Objects.requireNonNull(mapFn, "mapFn");
-      if (query.hasProjections()) {
-        // expect ProjectedTuple from backend
-        @SuppressWarnings("unchecked")
-        Function<T, T> newMapFn = tuple -> (T) new ProjectedTupleAdapter((ProjectedTuple) tuple);
-        this.mapFn = mapFn.compose(newMapFn);
-      } else {
-        this.mapFn = mapFn;
-      }
+    private MappedFetcher(ReactiveFetcher<T> delegate, Function<? super T, ? extends R> mapFn) {
+      this.delegate = Objects.requireNonNull(delegate, "delegate");
+      this.mapFn = Objects.requireNonNull(mapFn, "mapFn");
     }
 
-    @SuppressWarnings("unchecked")
+    private Publisher<R> map(Publisher<T> publisher) {
+      return Publishers.map(publisher, mapFn);
+    }
+
     @Override
     public Publisher<R> fetch() {
-      return Publishers.map((Publisher<T>) super.fetch(), mapFn);
+      return map(delegate.fetch());
     }
 
+    @Override
+    public Publisher<R> one() {
+      return map(delegate.one());
+    }
+
+    @Override
+    public Publisher<R> oneOrNone() {
+      return map(delegate.oneOrNone());
+    }
+
+    @Override
+    public Publisher<Boolean> exists() {
+      return delegate.exists();
+    }
+
+    @Override
+    public <X> ReactiveFetcher<X> map(Function<? super R, ? extends X> mapFn) {
+      return new MappedFetcher<>(this, mapFn);
+    }
   }
 
   /**
    * Used to convert backend {@link ProjectedTuple} into repository specific {@link Tuple} interface
    */
-  private static class ProjectedTupleAdapter implements Tuple {
+  private static class TupleAdapter implements Tuple {
 
     private final ProjectedTuple delegate;
 
-    private ProjectedTupleAdapter(ProjectedTuple delegate) {
+    private TupleAdapter(ProjectedTuple delegate) {
       this.delegate = Objects.requireNonNull(delegate, "delegate");
     }
 
