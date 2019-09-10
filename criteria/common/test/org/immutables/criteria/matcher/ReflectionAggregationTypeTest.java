@@ -41,6 +41,9 @@ public class ReflectionAggregationTypeTest {
   public void integer() {
     check(Matchers.toExpression(person.age.min()).returnType()).is(Integer.class);
     check(Matchers.toExpression(person.age.max()).returnType()).is(Integer.class);
+    check(Matchers.toExpression(person.age.avg()).returnType()).is(Double.class);
+    check(Matchers.toExpression(person.age.sum()).returnType()).is(Long.class);
+    check(Matchers.toExpression(person.age.count()).returnType()).is(Long.class);
     check(Matchers.toExpression(person.age).returnType()).is(int.class);
   }
 
