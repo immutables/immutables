@@ -22,20 +22,21 @@ import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.Tuple;
 
-import java.util.Objects;
+import java.util.function.Function;
 
 public class ReactiveMapper3<T1, T2, T3> {
 
-  private final Query query;
-  private final Backend.Session session;
+  private final ReactiveFetcher<Tuple> fetcher;
 
   public ReactiveMapper3(Query query, Backend.Session session) {
-    this.query = Objects.requireNonNull(query, "query");
-    this.session = Objects.requireNonNull(session, "session");
+    this.fetcher = ReactiveFetcher.of(query, session);
   }
 
   public <R> ReactiveFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return ReactiveFetcher.<Tuple>of(query, session).map(Mappers.fromTuple(mapFn));
+    return map(Mappers.fromTuple(mapFn));
   }
 
+  public <X> ReactiveFetcher<X> map(Function<? super Tuple, ? extends X> mapFn) {
+    return fetcher.map(mapFn);
+  }
 }
