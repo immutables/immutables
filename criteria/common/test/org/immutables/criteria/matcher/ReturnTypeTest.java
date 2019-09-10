@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.immutables.check.Checkers.check;
 
-public class ReflectionAggregationTypeTest {
+public class ReturnTypeTest {
 
   private final PersonCriteria person = PersonCriteria.person;
 
