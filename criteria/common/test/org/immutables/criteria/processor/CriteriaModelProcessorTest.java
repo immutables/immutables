@@ -57,7 +57,6 @@ public class CriteriaModelProcessorTest {
       if (method.getParameterCount() == 0) {
         final ValueAttribute attribute = findAttribute(method.getName());
         try {
-          attribute.criteria().buildMatcher();
           attribute.criteria().matcher().creator();
         } catch (Exception e) {
           throw new AssertionError(String.format("Failed generating matcher for attribute  %s: %s",
@@ -70,7 +69,7 @@ public class CriteriaModelProcessorTest {
   @Ignore
   @Test
   public void debug() {
-    checkCreator("optionalTimeZone").contains("ObjectMatcher.creator()");
+    checkCreator("optionalFoo").contains("FooCriteria.creator()");
   }
 
   @Ignore("currently fails")
@@ -185,6 +184,12 @@ public class CriteriaModelProcessorTest {
     assertAttribute("stringList", "org.immutables.criteria.matcher.IterableMatcher<R,org.immutables.criteria.matcher.StringMatcher.Template<R>,java.lang.String>");
     checkCreator("stringList").contains("IterableMatcher.creator()");
     checkCreator("arrayList").contains("IterableMatcher.creator()");
+
+  }
+
+  @Test
+  public void creatorDefinition() {
+    checkCreator("arrayList").contains("creator().create(context.newChild(");
   }
 
   @Test
@@ -226,7 +231,7 @@ public class CriteriaModelProcessorTest {
 
   private void assertAttribute(String name, String expected) {
     ValueAttribute attribute = findAttribute(name);
-    final Type element = attribute.criteria().buildMatcher();
+    final Type element = attribute.criteria().matcher().matcherType();
     final UnaryOperator<String> stripFn = str -> str.replaceAll("\\s+", "");
     assertEquals(String.format("for attribute %s", name), stripFn.apply(expected), stripFn.apply(element.toString()));
   }

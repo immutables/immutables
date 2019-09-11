@@ -25,7 +25,6 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -34,6 +33,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +44,9 @@ import java.util.Objects;
  */
 public class CriteriaModel {
 
+
+  private static final String MATCHER = "org.immutables.criteria.matcher.Matcher";
+
   private static final Iterable<Type.Defined> NO_BOUNDS = Collections.emptyList();
 
   private final ValueAttribute attribute;
@@ -51,6 +54,7 @@ public class CriteriaModel {
   private final Elements elements;
   private final Types types;
   private final IntrospectedType introspectedType;
+  private final MatcherDefinition matcherDefinition;
 
   CriteriaModel(ValueAttribute attribute) {
     this.attribute = Preconditions.checkNotNull(attribute, "attribute");
@@ -59,6 +63,8 @@ public class CriteriaModel {
     this.elements = env.getElementUtils();
     this.types = env.getTypeUtils();
     this.introspectedType = new IntrospectedType(attribute.returnType, attribute.isNullable(), env.getTypeUtils(), env.getElementUtils());
+    this.matcherDefinition = new MatcherDefinition(attribute, buildMatcher());
+
   }
 
   private static class IntrospectedType {
@@ -318,6 +324,116 @@ public class CriteriaModel {
     return matcherType;
   }
 
+
+  private static class CreatorVisitor implements Type.Visitor<MatcherDef> {
+    private final Types types;
+    private final Elements elements;
+    private final ValueAttribute attribute;
+
+    private CreatorVisitor(Types types, Elements elements, ValueAttribute attribute) {
+      this.types = types;
+      this.elements = elements;
+      this.attribute = attribute;
+    }
+
+    @Override
+    public MatcherDef primitive(Type.Primitive primitive) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public MatcherDef reference(Type.Reference reference) {
+      return new MatcherDef(reference, creator(reference));
+    }
+
+    private String creator(Type.Reference reference) {
+      if (isMatcher(reference)) {
+        String name = reference.name;
+        if (name.endsWith(".Template")) {
+          name = name.substring(0, name.lastIndexOf(".Template"));
+        }
+
+        if (attribute.hasCriteria() && name.endsWith("Template")) {
+          name = name.substring(0, name.lastIndexOf("Template"));
+        }
+
+        return name + ".creator()";
+      }
+
+      // default (and generic) object matcher
+      return "org.immutables.criteria.matcher.ObjectMatcher.creator()";
+    }
+
+    @Override
+    public MatcherDef parameterized(Type.Parameterized parameterized) {
+      for (Type.Nonprimitive arg: parameterized.arguments) {
+        if (arg instanceof Type.Parameterized) {
+          Type.Parameterized param = (Type.Parameterized) arg;
+          if (isMatcher(param.reference)) {
+            // single match expected for now
+            return new ContainerDef(parameterized.reference, param.accept(this), creator(parameterized.reference));
+          }
+        }
+      }
+
+      return reference(parameterized.reference);
+    }
+
+    private boolean isMatcher(Type.Reference reference) {
+      // is matcher
+      Element element = elements.getTypeElement(reference.name);
+      if (element != null && types.isSubtype(element.asType(), elements.getTypeElement(MATCHER).asType())) {
+        return true;
+      }
+
+      return attribute.hasCriteria();
+    }
+
+    @Override
+    public MatcherDef variable(Type.Variable variable) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public MatcherDef array(Type.Array array) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public MatcherDef superWildcard(Type.Wildcard.Super wildcard) {
+      throw new AssertionError();
+    }
+
+    @Override
+    public MatcherDef extendsWildcard(Type.Wildcard.Extends wildcard) {
+      throw new AssertionError();
+    }
+  }
+
+  /**
+   * Composite matcher for containers like Iterable / Map / Optional / @Nullable
+   */
+  private static class ContainerDef extends MatcherDef {
+
+    public final MatcherDef element;
+
+    private ContainerDef(Type.Defined type, MatcherDef element, String creator) {
+      super(type, creator);
+      this.element = Objects.requireNonNull(element, "element");
+    }
+  }
+
+  private static class MatcherDef {
+    public final Type.Defined type;
+    public final String creator;
+
+    private MatcherDef(Type.Defined type, String creator) {
+      this.type = Objects.requireNonNull(type, "type");
+      this.creator = creator;
+    }
+  }
+
+
   public Type.Parameterized buildMatcher() {
     return buildMatcher(introspectedType);
   }
@@ -379,93 +495,35 @@ public class CriteriaModel {
 
 
   public MatcherDefinition matcher() {
-    return new MatcherDefinition(attribute, buildMatcher());
+    return matcherDefinition;
   }
 
   public static class MatcherDefinition {
     private final ValueAttribute attribute;
     private final Type.Parameterized matcherType;
-    private final IntrospectedType introspectedType;
+    private final MatcherDef def;
 
     private MatcherDefinition(ValueAttribute attribute, Type.Parameterized matcherType) {
       this.attribute = attribute;
       this.matcherType = Preconditions.checkNotNull(matcherType, "type");
       ProcessingEnvironment env = attribute.containingType.constitution.protoclass().environment().processing();
-      this.introspectedType = new IntrospectedType(attribute.returnType, attribute.isNullable(), env.getTypeUtils(), env.getElementUtils());
+      this.def = matcherType.accept(new CreatorVisitor(env.getTypeUtils(), env.getElementUtils(), attribute));
     }
 
     public Type.Parameterized matcherType() {
       return this.matcherType;
     }
 
-    private boolean isTemplate(String name) {
-      return name.endsWith(".Template") || name.endsWith(".NullableTemplate");
-    }
-
-    // TODO the logic here is messy. Cleanup creator API and update this method
     public String creator() {
 
-      final String creator;
-      final String name = matcherType.reference.name;
-      final boolean hasCriteria = attribute.hasCriteria() && !attribute.isContainerType();
-      if (hasCriteria) {
-        creator = String.format("%s.creator().create(%%s)", attribute.returnType.toString() + "Criteria");
-      } else {
-        final String newName = isTemplate(name) ? name.substring(0, name.lastIndexOf('.')) : name;
-        creator = String.format("%s.creator().create(%%s)", newName);
-      }
+      final String first = def.creator;
+      final String second = def instanceof ContainerDef ? ((ContainerDef) def).element.creator : first;
 
-      final String withPath = String.format("newChild(%s.class, \"%s\", %s)", attribute.containingType.typeDocument().toString(),
-              attribute.name(), secondCreator());
-      return String.format(creator, new StringBuilder().append("context.").append(withPath));
+      final String withPath = String.format("context.newChild(%s.class, \"%s\", %s)", attribute.containingType.typeDocument().toString(),
+              attribute.name(), second);
+
+      return String.format("%s.create(%s)", first, withPath);
     }
 
-    private String secondCreator() {
-      final String name = matcherType.reference.name;
-      if (introspectedType.isScalar()) {
-        String newName = isTemplate(name) ?  name.substring(0, name.lastIndexOf('.'))  : name;
-        if (introspectedType.hasCriteria() && newName.endsWith("Template")) {
-          // PersonCriteriaTemplate -> PersonCriteria
-          newName = newName.substring(0, newName.lastIndexOf("Template"));
-        }
-        return newName + ".creator()";
-      }
-
-      if (!(introspectedType.type().getKind() == TypeKind.DECLARED ||
-              introspectedType.isOptional() || introspectedType.isIterable())) {
-        return attribute.containingType.element.getSimpleName() + "Criteria.creator()";
-      }
-
-      final DeclaredType declaredType = MoreTypes.asDeclared(introspectedType.type());
-
-      if (declaredType.getTypeArguments().isEmpty()) {
-        final String prefix = introspectedType.hasCriteria() ? introspectedType.type.toString() : attribute.containingType.element.getSimpleName().toString();
-
-        return prefix + "Criteria.creator()";
-      }
-
-      if (declaredType.getTypeArguments().size() != 1) {
-        // don't know how to handle this arg
-        return "org.immutables.criteria.matcher.ObjectMatcher.creator()";
-      }
-
-      Preconditions.checkArgument(declaredType.getTypeArguments().size() == 1, "Expected single arg for %s but got %s", declaredType, declaredType.getTypeArguments().size());
-      IntrospectedType type2 = introspectedType.withType(declaredType.getTypeArguments().get(0));
-
-      if (type2.hasCriteria()) {
-        return type2.erasure + "Criteria.creator()";
-      }
-
-      if (name.endsWith("Matcher")) {
-        return name + ".creator()";
-      }
-
-      if (isTemplate(name)) {
-        // scalar matcher
-        return name.substring(0, name.lastIndexOf('.')) + ".creator()";
-      }
-
-      throw new IllegalArgumentException("Can't detect second creator for " + introspectedType.type() + " of attribute " + attribute.name());
-    }
   }
 }

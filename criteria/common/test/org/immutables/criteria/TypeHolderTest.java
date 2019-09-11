@@ -16,7 +16,6 @@
 
 package org.immutables.criteria;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -134,7 +133,6 @@ public class TypeHolderTest {
               .optional.is(TypeHolder.Foo.ONE);
   }
 
-  @Ignore("currently there is a bug for non-comparables")
   @Test
   public void timeZones() {
     TimeZoneHolderCriteria.timeZoneHolder
