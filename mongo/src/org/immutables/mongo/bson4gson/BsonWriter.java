@@ -98,7 +98,11 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wra
 
   @Override
   public com.google.gson.stream.JsonWriter value(String value) throws IOException {
-    delegate.writeString(value);
+    if (value == null) {
+      nullValue();
+    } else {
+      delegate.writeString(value);
+    }
     return this;
   }
 
@@ -122,7 +126,7 @@ public class BsonWriter extends com.google.gson.stream.JsonWriter implements Wra
   @Override
   public com.google.gson.stream.JsonWriter value(Boolean value) throws IOException {
     if (value == null) {
-      delegate.writeNull();
+      nullValue();
     } else {
       delegate.writeBoolean(value);
     }
