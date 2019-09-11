@@ -3,6 +3,9 @@ package org.immutables.mongo.bson4gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.internal.bind.TypeAdapters;
+import org.bson.BsonDocument;
+import org.bson.BsonDocumentWriter;
+import org.bson.BsonNull;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,6 +44,25 @@ public class BsonWriterTest {
     write(obj);
   }
 
+  /**
+   * Check that writing nulls does not cause NPE
+   */
+  @Test
+  public void writeNulls() throws IOException {
+    BsonDocument doc = new BsonDocument();
+    BsonWriter writer = new BsonWriter(new BsonDocumentWriter(doc));
+    writer.beginObject();
+    writer.name("nullString"); writer.value((String) null);
+    writer.name("nullBoolean"); writer.value((Boolean) null);
+    writer.name("nullNumber"); writer.value((Long) null);
+    writer.name("null"); writer.nullValue();
+    writer.endObject();
+    writer.flush();
+    check(doc.get("nullString")).is(BsonNull.VALUE);
+    check(doc.get("nullBoolean")).is(BsonNull.VALUE);
+    check(doc.get("nullNumber")).is(BsonNull.VALUE);
+    check(doc.get("null")).is(BsonNull.VALUE);
+  }
 
   private static void write(String string) throws IOException {
     write(TypeAdapters.JSON_ELEMENT.fromJson(string));
