@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.immutables.check.Checkers.check;
 

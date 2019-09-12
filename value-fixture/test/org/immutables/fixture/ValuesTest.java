@@ -17,6 +17,14 @@ package org.immutables.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import nonimmutables.GetterAnnotation;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
+import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
+import org.immutables.fixture.style.ImmutableOptionalWithNullable;
+import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
+import org.junit.jupiter.api.Test;
+
+import javax.ws.rs.POST;
 import java.io.IOException;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.AnnotatedType;
@@ -27,14 +35,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.ws.rs.POST;
-import nonimmutables.GetterAnnotation;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByBuilder;
-import org.immutables.fixture.ImmutableSampleCopyOfTypes.ByConstructorAndWithers;
-import org.immutables.fixture.style.ImmutableOptionalWithNullable;
-import org.immutables.fixture.style.ImmutableOptionalWithoutNullable;
-import org.junit.Test;
+
 import static org.immutables.check.Checkers.check;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ValuesTest {
 
@@ -62,9 +65,9 @@ public class ValuesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = NullPointerException.class)
+  @Test
   public void orderAndNullCheckForConstructor() {
-    ImmutableHostWithPort.of(1, null);
+    assertThrows(NullPointerException.class, () -> ImmutableHostWithPort.of(1, null));
   }
 
   @Test
@@ -344,12 +347,13 @@ public class ValuesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void cannotBuildWrongInvariants() {
+    assertThrows(IllegalStateException.class, () ->
     ImmutableSillyValidatedBuiltValue.builder()
         .value(10)
         .negativeOnly(true)
-        .build();
+        .build());
   }
 
   @Test
@@ -450,9 +454,9 @@ public class ValuesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void cannotConstructWithWrongInvariants() {
-    ImmutableSillyValidatedConstructedValue.of(10, true);
+    assertThrows(IllegalStateException.class, () -> ImmutableSillyValidatedConstructedValue.of(10, true));
   }
 
   @Test
@@ -474,11 +478,11 @@ public class ValuesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = NullPointerException.class)
+  @Test
   public void optionalWhichDoesntAcceptsNullable() {
-    ImmutableOptionalWithoutNullable.builder()
+    assertThrows(NullPointerException.class, () -> ImmutableOptionalWithoutNullable.builder()
         .javaOptional((String) null)
-        .build();
+        .build());
   }
 
   @Test
@@ -519,15 +523,15 @@ public class ValuesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void multipleCheck1() {
-    ImmutableMultipleChecks.C.builder().a(0).b(1).build();
+    assertThrows(IllegalStateException.class, () -> ImmutableMultipleChecks.C.builder().a(0).b(1).build());
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void multipleCheck2() {
-    ImmutableMultipleChecks.C.builder().a(1).b(0).build();
+    assertThrows(IllegalStateException.class, () -> ImmutableMultipleChecks.C.builder().a(1).b(0).build());
   }
 
   @Test

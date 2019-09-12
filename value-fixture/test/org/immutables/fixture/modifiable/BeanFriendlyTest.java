@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
 public class BeanFriendlyTest {

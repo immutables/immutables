@@ -2,7 +2,7 @@ package org.immutables.fixture.nullable;
 
 import static org.immutables.check.Checkers.check;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CustomNullableAnnotationTest {
 

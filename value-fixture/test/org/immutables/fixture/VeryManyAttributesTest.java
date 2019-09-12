@@ -15,7 +15,9 @@
  */
 package org.immutables.fixture;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class VeryManyAttributesTest {
   @Test
@@ -95,9 +97,16 @@ public class VeryManyAttributesTest {
         .build();
   }
 
-  @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+
+
+
+  @Test
   public void noInitBuildOverflow() {
+    assertThrows(IllegalStateException.class, () -> createHuge());
+  }
+
+  @SuppressWarnings("CheckReturnValue")
+  private static void createHuge() {
     ImmutableHugeInterface.builder()
         .number0_0(1)
         .number0_1(1)
@@ -171,7 +180,7 @@ public class VeryManyAttributesTest {
         .number1_69(1)
         .build();
   }
-  
+
   @Test
   @SuppressWarnings("CheckReturnValue")
   public void noOccupationOverflow() {

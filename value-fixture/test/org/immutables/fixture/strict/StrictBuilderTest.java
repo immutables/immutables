@@ -16,25 +16,29 @@
 package org.immutables.fixture.strict;
 
 import com.google.common.base.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class StrictBuilderTest {
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void noReassignment() {
+    assertThrows(IllegalStateException.class, () ->
     ImmutableAar.builder()
         .integer(1)
         .integer(2)
         .bl(true)
-        .build();
+        .build());
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void noReassignmentOptional() {
+    assertThrows(IllegalStateException.class, () ->
     ImmutableBar.builder()
         .opt(1)
         .opt(Optional.absent())
-        .build();
+        .build());
   }
 }

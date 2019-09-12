@@ -16,24 +16,26 @@
 package org.immutables.fixture.style;
 
 import nonimmutables.SampleRuntimeException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import static org.immutables.check.Checkers.check;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings("CheckReturnValue")
 public class SpecifiedExceptionTest {
-  @Test(expected = SampleRuntimeException.class)
+  @Test
   public void itThrowsExpectedConfiguredException() {
-    ImmutableSpecifiedException.builder().build();
+    assertThrows(SampleRuntimeException.class, () -> ImmutableSpecifiedException.builder().build());
   }
 
-  @Test(expected = SampleRuntimeException.class)
+  @Test
   public void throwsSampleExceptionInsteadOfNullPointer() {
-    ImmutableSpecifiedException.builder().someRequiredString(null);
+    assertThrows(SampleRuntimeException.class, () -> ImmutableSpecifiedException.builder().someRequiredString(null));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void itThrowsSpecifiedExceptionOnBuild() {
-    ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new);
+    assertThrows(IllegalArgumentException.class, () -> ImmutableSpecifiedException.builder().buildOrThrow(IllegalArgumentException::new));
   }
 
   @Test

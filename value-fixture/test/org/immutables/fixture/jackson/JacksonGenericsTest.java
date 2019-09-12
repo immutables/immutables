@@ -17,7 +17,7 @@ package org.immutables.fixture.jackson;
 
 import static org.immutables.check.Checkers.check;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class JacksonGenericsTest {
   static class Abc {

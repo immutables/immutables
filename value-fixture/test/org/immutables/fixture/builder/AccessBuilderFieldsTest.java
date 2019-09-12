@@ -17,7 +17,7 @@ package org.immutables.fixture.builder;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AccessBuilderFieldsTest {
   @Test

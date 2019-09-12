@@ -19,7 +19,7 @@ import java.util.OptionalLong;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.Optional;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -15,11 +15,14 @@
  */
 package org.immutables.fixture.nullable;
 
+import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
-import javax.annotation.Nullable;
-import org.junit.Test;
+
 import static org.immutables.check.Checkers.check;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class NullableAttributesTest {
 
@@ -103,11 +106,12 @@ public class NullableAttributesTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nonnullDefaultBlowupOnNull() {
+    assertThrows(NullPointerException.class, () ->
     ImmutableNonnullConstruction.builder()
         .arr()
-        .build();
+        .build());
   }
 
   @Test

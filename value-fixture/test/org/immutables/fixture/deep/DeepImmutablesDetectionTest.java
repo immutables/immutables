@@ -17,7 +17,7 @@ package org.immutables.fixture.deep;
 
 import com.google.common.collect.ImmutableList;
 import org.immutables.fixture.deep.Canvas.Line;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import static org.immutables.check.Checkers.check;

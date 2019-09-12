@@ -15,9 +15,12 @@
  */
 package org.immutables.fixture;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.Field;
-import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PrivateDefaultConstructorTest {
 
@@ -27,9 +30,9 @@ public class PrivateDefaultConstructorTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = NoSuchMethodException.class)
-  public void testOverridePrehash() throws Exception {
-    ImmutablePrivateNoargConstructorOverridePrehash.class.getDeclaredMethod("computeHashCode");
+  @Test
+  public void testOverridePrehash() {
+    assertThrows(NoSuchMethodException.class, () -> ImmutablePrivateNoargConstructorOverridePrehash.class.getDeclaredMethod("computeHashCode"));
   }
   
   @Test

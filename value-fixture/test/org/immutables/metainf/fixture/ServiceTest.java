@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.util.ServiceLoader;
 import java.util.TreeSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.*;
 
 public class ServiceTest {

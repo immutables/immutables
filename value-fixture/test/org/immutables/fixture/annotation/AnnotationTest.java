@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.annotation;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.*;
 
 @An(13)

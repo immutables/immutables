@@ -21,7 +21,7 @@ import nonimmutables.A2;
 import nonimmutables.B1;
 import nonimmutables.C1;
 import nonimmutables.ImmutablePassAnnsTargeting;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
 public class PassAnnotationTest {

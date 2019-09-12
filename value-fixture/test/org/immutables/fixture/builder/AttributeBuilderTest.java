@@ -25,7 +25,7 @@ import org.immutables.fixture.builder.functional.AttributeBuilderBuilderI;
 import org.immutables.fixture.builder.functional.AttributeBuilderValueI;
 import org.immutables.fixture.builder.functional.BuilderFunction;
 import org.immutables.fixture.builder.functional.CopyFunction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("unused")
 public class AttributeBuilderTest {

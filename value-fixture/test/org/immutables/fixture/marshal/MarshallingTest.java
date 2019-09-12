@@ -32,7 +32,7 @@ import org.immutables.fixture.nested.ImmutableBuagra;
 import org.immutables.fixture.nested.ImmutableCadabra;
 import org.immutables.fixture.nested.NonGrouped;
 import org.immutables.fixture.subpack.SillySubstructure;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.immutables.check.Checkers.check;
 

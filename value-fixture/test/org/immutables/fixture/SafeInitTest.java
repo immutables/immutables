@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.*;
 
 public class SafeInitTest {

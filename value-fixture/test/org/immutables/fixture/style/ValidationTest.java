@@ -15,7 +15,7 @@
  */
 package org.immutables.fixture.style;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
 public class ValidationTest {

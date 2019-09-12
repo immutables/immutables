@@ -19,7 +19,7 @@ import static org.immutables.check.Checkers.check;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class BugsTest {
   private static String SAMPLE_JSON = "{\"organizationId\": 172}";

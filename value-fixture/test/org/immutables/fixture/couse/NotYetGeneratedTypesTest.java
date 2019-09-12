@@ -19,7 +19,7 @@ import static org.immutables.check.Checkers.check;
 import org.immutables.fixture.couse.ImmutableEnumUser;
 import org.immutables.fixture.couse.ImmutableHasEnum;
 import org.immutables.fixture.couse.sub.ImmutableHasEnumOtherPackage;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class NotYetGeneratedTypesTest {
   @Test

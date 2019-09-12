@@ -15,14 +15,16 @@
  */
 package org.immutables.fixture.generatorext;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RewriteTest {
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rewrite() {
     // Our changed preconditions will be able to throw IllegalArgumentException
     // instead of NullPointerException
-    ImmutableSampleRewritedImports.of(null);
+    assertThrows(IllegalArgumentException.class, () -> ImmutableSampleRewritedImports.of(null));
   }
 }

@@ -20,7 +20,7 @@ import org.immutables.fixture.jackson.PolymorphicMappings.DatasetLocator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import org.immutables.fixture.jackson.PolymorphicMappings.DatasetIdLocator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class PolymorphicTest {
   ObjectMapper om = new ObjectMapper();

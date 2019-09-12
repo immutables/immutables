@@ -19,8 +19,9 @@ import com.google.common.collect.ImmutableMap;
 import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 import java.util.Collections;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class JdkOnlyTest {
   @Test
@@ -30,9 +31,9 @@ public class JdkOnlyTest {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void checkingOfAttributesBeingSet() {
-    ImmutableJdkUtil.builder().build();
+    assertThrows(IllegalStateException.class, () -> ImmutableJdkUtil.builder().build());
   }
 
   @Test

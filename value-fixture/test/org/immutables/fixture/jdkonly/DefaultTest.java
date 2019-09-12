@@ -16,7 +16,7 @@
 package org.immutables.fixture.jdkonly;
 
 import com.google.common.collect.ImmutableSortedSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.check;
 
 public class DefaultTest {

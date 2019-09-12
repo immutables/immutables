@@ -23,7 +23,7 @@ import org.immutables.fixture.marshal.Marshaling;
 import org.immutables.fixture.nested.ImmutableGroupedClasses.NestedOne;
 import org.immutables.fixture.nested.ImmutableInnerNested.Inner;
 import org.immutables.fixture.nested.ImmutableInnerNested.Nested;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import static org.immutables.check.Checkers.*;
 
 public class NestedValuesTest {
