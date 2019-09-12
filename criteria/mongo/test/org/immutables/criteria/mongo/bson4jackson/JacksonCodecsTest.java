@@ -39,8 +39,8 @@ import org.bson.conversions.Bson;
 import org.bson.io.BasicOutputBuffer;
 import org.bson.types.ObjectId;
 import org.immutables.value.Value;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -112,7 +112,7 @@ public class JacksonCodecsTest {
   /**
    * TODO better handle native BSON container types (eg. Map / List) inside regular immutable objects
    */
-  @Ignore("currently fails docs inside docs")
+  @Disabled("currently fails docs inside docs")
   @Test
   public void docOfDoc() throws IOException {
     BsonModel model = DEFAULT.withDocument(new Document("key", new Document("realKey", 42)));

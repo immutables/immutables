@@ -22,11 +22,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.personmodel.CriteriaChecker;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -37,12 +39,16 @@ import java.util.stream.IntStream;
  * Test for <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html">scrolling functionality</a> of ES
  * @see Scrolling
  */
+@ExtendWith(ElasticExtension.class)
 public class ScrollingTest {
 
-  @ClassRule
-  public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
-
   private static final ObjectMapper MAPPER = ElasticPersonTest.MAPPER;
+
+  private final RestClient restClient;
+
+  ScrollingTest(RestClient restClient)  {
+    this.restClient = restClient;
+  }
 
   /**
    * Should be greater than default elastic {@code size} which is 10.
@@ -50,9 +56,8 @@ public class ScrollingTest {
    */
   private static final int SIZE = 20;
 
-  @BeforeClass
-  public static void elasticseachInit() throws Exception {
-
+  @BeforeEach
+  private void elasticseachInit() throws IOException {
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
             .put("optionalString", "keyword")
@@ -60,10 +65,10 @@ public class ScrollingTest {
             .put("intNumber", "integer")
             .build();
 
-    new IndexOps(RESOURCE.restClient(), MAPPER, "test").create(model).blockingGet();
+    new IndexOps(restClient, MAPPER, "test").create(model).blockingGet();
 
     ElasticsearchBackend backend = backend();
-    ElasticsearchOps ops = new ElasticsearchOps(backend.restClient, "test", backend.objectMapper, 1024);
+    ElasticsearchOps ops = new ElasticsearchOps(restClient, "test", MAPPER, 1024);
     for (int i = 0; i < SIZE; i++) {
       ObjectNode doc = MAPPER.createObjectNode()
               .put("string", "s" + i)
@@ -74,12 +79,12 @@ public class ScrollingTest {
     }
   }
 
-  private static ElasticsearchBackend backend() {
+  private ElasticsearchBackend backend() {
     return backend(1024);
   }
 
-  private static ElasticsearchBackend backend(int scrollSize) {
-    return new ElasticsearchBackend(ElasticsearchSetup.builder(RESOURCE.restClient()).objectMapper(MAPPER).resolver(ignore -> "test").scrollSize(scrollSize).build());
+  private ElasticsearchBackend backend(int scrollSize) {
+    return new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).resolver(ignore -> "test").scrollSize(scrollSize).build());
   }
 
   @Test
@@ -140,7 +145,7 @@ public class ScrollingTest {
    */
   private void assertNoActiveScrolls() throws Exception {
     // get node stats
-    final Response response = RESOURCE.restClient()
+    final Response response = restClient
             .performRequest(new Request("GET", "/_nodes/stats/indices/search"));
 
     try (InputStream is = response.getEntity().getContent()) {

@@ -45,7 +45,7 @@ import static org.immutables.check.Checkers.check;
  */
 public class RepositoryTest {
 
-  @Rule
+  @Rule // TODO migrate to JUnit5 Extension
   public final ProcessorRule rule = new ProcessorRule();
 
   @Test

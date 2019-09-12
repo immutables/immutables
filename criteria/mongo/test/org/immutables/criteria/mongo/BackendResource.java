@@ -19,8 +19,6 @@ package org.immutables.criteria.mongo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.google.common.base.Throwables;
-import com.google.common.io.Closer;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.reactivex.Flowable;
@@ -29,16 +27,13 @@ import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.mongo.bson4jackson.BsonModule;
 import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
-import org.junit.rules.ExternalResource;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Objects;
 
 /**
- * Creates mongo collection on demand. Usually in conjunction with {@link MongoResource}.
+ * Creates mongo collection on demand. Usually in conjunction with {@link MongoExtension}.
  */
-class BackendResource extends ExternalResource implements AutoCloseable {
+class BackendResource  {
 
   private final MongoDatabase database;
 
@@ -47,8 +42,6 @@ class BackendResource extends ExternalResource implements AutoCloseable {
   private final CodecRegistry registry;
 
   private final LazyResolver resolver;
-
-  private final Closer closer;
 
   BackendResource(MongoDatabase database) {
     this.database = Objects.requireNonNull(database, "database");
@@ -59,7 +52,6 @@ class BackendResource extends ExternalResource implements AutoCloseable {
             .registerModule(new IdAnnotationModule());
 
     this.registry = JacksonCodecs.registryFromMapper(mapper);
-    this.closer = Closer.create();
     this.resolver = new LazyResolver();
     this.backend = new MongoBackend(MongoSetup.of(this.resolver));
   }
@@ -86,27 +78,7 @@ class BackendResource extends ExternalResource implements AutoCloseable {
         return database.getCollection(name);
       }
       Flowable.fromPublisher(database.createCollection(name)).blockingFirst();
-      MongoCollection<?> collection = database.getCollection(name).withDocumentClass(entityClass).withCodecRegistry(registry);
-      // register for deletion
-      closer.register(() -> Flowable.fromPublisher(collection.drop()).blockingFirst());
-      return collection;
-    }
-  }
-
-  @Override
-  protected void after() {
-    close();
-  }
-
-  @Override
-  public void close()  {
-    try {
-      closer.close();
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
-      throw new RuntimeException(e);
+      return database.getCollection(name).withDocumentClass(entityClass).withCodecRegistry(registry);
     }
   }
 

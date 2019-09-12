@@ -24,7 +24,6 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.matcher.Projection;
 import org.immutables.criteria.repository.AbstractReader;
-import org.immutables.criteria.repository.Tuple;
 import org.reactivestreams.Publisher;
 
 import java.util.List;

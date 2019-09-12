@@ -16,18 +16,19 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.PersonAggregationTest;
-import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(MongoExtension.class)
 public class MongoAggregationTest extends PersonAggregationTest  {
 
-  private final MongoResource mongo = MongoResource.create();
-  private final BackendResource backend = new BackendResource(mongo.database());
+  private final BackendResource backend;
 
-  @Rule
-  public final RuleChain chain= RuleChain.outerRule(mongo).around(backend);
+  MongoAggregationTest(MongoDatabase database) {
+    this.backend = new BackendResource(database);
+  }
 
   @Override
   protected Backend backend() {

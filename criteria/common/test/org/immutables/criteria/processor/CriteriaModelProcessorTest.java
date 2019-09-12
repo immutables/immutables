@@ -23,7 +23,6 @@ import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.ProcessorRule;
 import org.immutables.value.processor.meta.ValueAttribute;
 import org.immutables.value.processor.meta.ValueType;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,9 +42,18 @@ import java.util.function.UnaryOperator;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Validates field types and constructors of Matchers.
+ *
+ * <p>The reason this was not yet migrated to JUnit5 is because (apparently) tests are executed
+ * in different thread from compiler which makes hard to get correct {@link javax.annotation.processing.ProcessingEnvironment}.
+ * </p>
+ * @see <a href="https://github.com/Kiskae/compile-testing-extension">Junit5 compile extension</a>
+ * @see <a href="https://github.com/google/compile-testing/pull/155">Add JUnit5 implementation of CompilationRule</a>
+ */
 public class CriteriaModelProcessorTest {
 
-  @Rule
+  @Rule // TODO migrate to JUnit5 Extension
   public final ProcessorRule rule = new ProcessorRule();
 
   /**
@@ -66,13 +74,6 @@ public class CriteriaModelProcessorTest {
     }
   }
 
-  @Ignore
-  @Test
-  public void debug() {
-    checkCreator("optionalFoo").contains("FooCriteria.creator()");
-  }
-
-  @Ignore("currently fails")
   @Test
   public void timeZone() {
 

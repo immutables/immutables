@@ -18,7 +18,7 @@ package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
 import org.immutables.criteria.repository.FakeBackend;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 

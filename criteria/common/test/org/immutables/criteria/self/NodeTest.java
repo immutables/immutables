@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.self;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class NodeTest {
 

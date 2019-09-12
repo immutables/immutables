@@ -19,7 +19,6 @@ package org.immutables.criteria.inmemory;
 import com.google.common.base.Preconditions;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Expression;
-import org.immutables.criteria.expression.Expressions;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 

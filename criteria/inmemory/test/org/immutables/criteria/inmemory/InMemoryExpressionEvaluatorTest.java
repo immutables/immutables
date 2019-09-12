@@ -22,7 +22,7 @@ import org.immutables.criteria.personmodel.ImmutableAddress;
 import org.immutables.criteria.personmodel.ImmutablePerson;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.Optional;

@@ -23,7 +23,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.sync.SyncReader;
 import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.AbstractMap;

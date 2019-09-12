@@ -18,9 +18,7 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,14 +38,9 @@ import static org.junit.Assert.assertThat;
  */
 public class JsonTest {
 
-  private ObjectMapper mapper;
-
-  @Before
-  public void setUp() throws Exception {
-    this.mapper = new ObjectMapper()
-            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
-            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-  }
+  private ObjectMapper mapper = new ObjectMapper()
+          .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+          .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
 
   @Test
   public void aggEmpty() throws Exception {

@@ -30,13 +30,13 @@ import org.bson.BsonWriter;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.io.BasicOutputBuffer;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.immutables.check.Checkers.check;
-import static org.junit.Assert.fail;
 
 /**
  * Low-level parser tests.
@@ -159,7 +159,7 @@ public class BsonParserTest {
     BsonDocument expected = BsonDocument.parse(toWrite.toString());
     if (!expected.equals(actual)) {
       check(maybeUnwrap(actual)).is(maybeUnwrap(expected));
-      fail("Should have failed before");
+      Assertions.fail("Should have failed before");
     }
   }
 
@@ -187,7 +187,7 @@ public class BsonParserTest {
 
     if (!actual.equals(expected)) {
        check(maybeUnwrap(actual)).is(maybeUnwrap(expected));
-       fail("Should have failed before");
+       Assertions.fail("Should have failed before");
     }
   }
 

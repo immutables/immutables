@@ -17,41 +17,25 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
-import org.apache.geode.cache.Region;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonAggregationTest;
-import org.immutables.criteria.personmodel.PersonRepository;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(GeodeExtension.class)
 public class GeodeAggregationTest extends PersonAggregationTest {
 
-  @ClassRule
-  public static final GeodeResource GEODE = GeodeResource.create();
+  private final GeodeBackend backend;
 
-  private static Region<String, Person> region;
-
-  private GeodeBackend backend;
-
-  @BeforeClass
-  public static void setup() {
-    Cache cache = GEODE.cache();
-    region =  cache.<String, Person>createRegionFactory()
+  GeodeAggregationTest(Cache cache) {
+    cache.<String, Person>createRegionFactory()
             .setKeyConstraint(String.class)
             .setValueConstraint(Person.class)
             .create(ContainerNaming.DEFAULT.name(Person.class));
-  }
 
-  @Before
-  public void setUp() throws Exception {
-    region.clear();
-    GeodeBackend backend = new GeodeBackend(GeodeSetup.of(GEODE.cache()));
-    repository = new PersonRepository(backend);
+    backend = new GeodeBackend(GeodeSetup.of(cache));
   }
-
 
   @Override
   protected Backend backend() {

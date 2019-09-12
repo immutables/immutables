@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.MongoClientSettings;
+import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.reactivex.Flowable;
 import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
@@ -27,9 +28,8 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -40,13 +40,14 @@ import java.util.Set;
 /**
  * Basic tests of mongo adapter
  */
+@ExtendWith(MongoExtension.class)
 public class MongoPersonTest extends AbstractPersonTest {
 
-  private final MongoResource database = MongoResource.create();
-  private final BackendResource backend = new BackendResource(database.database());
+  private final BackendResource backend;
 
-  @Rule
-  public final RuleChain chain= RuleChain.outerRule(database).around(backend);
+  MongoPersonTest(MongoDatabase database) {
+    this.backend = new BackendResource(database);
+  }
 
   @Override
   protected Set<Feature> features() {

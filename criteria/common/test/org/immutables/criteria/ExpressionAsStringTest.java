@@ -21,7 +21,7 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.StringMatcher;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

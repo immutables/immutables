@@ -17,7 +17,7 @@
 package org.immutables.criteria.backend;
 
 import org.immutables.criteria.Criteria;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.immutables.check.Checkers.check;
 

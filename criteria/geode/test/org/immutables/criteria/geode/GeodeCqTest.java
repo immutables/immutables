@@ -30,8 +30,8 @@ import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.stream.Collectors;
 
@@ -53,7 +53,7 @@ import static org.immutables.check.Checkers.check;
  *   $ create region --name=persons --type=REPLICATE
  * </pre>
  */
-@Ignore // ignored because requires external gemfire instance
+@Disabled // ignored because requires external gemfire instance
 public class GeodeCqTest {
 
   private ClientCache clientCache;

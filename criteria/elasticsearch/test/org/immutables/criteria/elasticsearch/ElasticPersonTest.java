@@ -21,16 +21,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -38,10 +38,11 @@ import java.util.regex.Pattern;
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
+@ExtendWith(ElasticExtension.class)
 public class ElasticPersonTest extends AbstractPersonTest  {
 
-  @ClassRule
-  public static final EmbeddedElasticsearchResource ELASTIC = EmbeddedElasticsearchResource.create();
+  private final Backend backend;
+  private final IndexOps ops;
 
   static final ObjectMapper MAPPER = new ObjectMapper()
           .registerModule(new JavaTimeModule())
@@ -51,24 +52,10 @@ public class ElasticPersonTest extends AbstractPersonTest  {
 
   static final String INDEX_NAME = ContainerNaming.DEFAULT.name(Person.class);
 
-  private ElasticsearchBackend backend;
-
-  private IndexOps ops;
-
-  @Before
-  public void setupRepository() throws Exception {
-    ops = new IndexOps(ELASTIC.restClient(), MAPPER, INDEX_NAME);
-
+  ElasticPersonTest(RestClient restClient) throws IOException {
+    ops = new IndexOps(restClient, MAPPER, INDEX_NAME);
     ops.create(PersonModel.MAPPING).blockingGet();
-
-    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).build());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (ops != null) {
-      ops.delete().blockingGet();
-    }
+    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).build());
   }
 
   /**

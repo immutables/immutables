@@ -24,8 +24,8 @@ import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -82,11 +82,11 @@ public class AggregationQueryTest {
               .map(b -> b.toJson(settings)).collect(Collectors.joining("\n"));
 
       // used to pretty print Assertion error
-      Assert.assertEquals("expected and actual Mongo pipelines do not match",
+      Assertions.assertEquals("expected and actual Mongo pipelines do not match",
               prettyFn.apply(expected),
               prettyFn.apply(actual));
 
-      Assert.fail("Should have failed previously because expected != actual is known to be true");
+      Assertions.fail("Should have failed previously because expected != actual is known to be true");
     }
   }
 }

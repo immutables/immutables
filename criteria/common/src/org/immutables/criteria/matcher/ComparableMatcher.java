@@ -22,7 +22,6 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 /**

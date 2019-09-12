@@ -19,7 +19,6 @@ package org.immutables.criteria.repository.reactive;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.repository.Fetcher;
-import org.immutables.criteria.repository.Tuple;
 import org.reactivestreams.Publisher;
 
 import java.util.function.Function;

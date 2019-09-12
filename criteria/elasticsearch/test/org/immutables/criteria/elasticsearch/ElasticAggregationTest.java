@@ -17,43 +17,29 @@
 package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.PersonAggregationTest;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.io.IOException;
 
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
+@ExtendWith(ElasticExtension.class)
 public class ElasticAggregationTest extends PersonAggregationTest {
 
-  @ClassRule
-  public static final EmbeddedElasticsearchResource ELASTIC = EmbeddedElasticsearchResource.create();
+  private static final ObjectMapper MAPPER = ElasticPersonTest.MAPPER;
 
-  static final ObjectMapper MAPPER = ElasticPersonTest.MAPPER;
+  private static final String INDEX_NAME = ElasticPersonTest.INDEX_NAME;
 
-  static final String INDEX_NAME = ElasticPersonTest.INDEX_NAME;
+  private final ElasticsearchBackend backend;
 
-  private ElasticsearchBackend backend;
-
-  private IndexOps ops;
-
-  @Before
-  public void setupRepository() throws Exception {
-    ops = new IndexOps(ELASTIC.restClient(), MAPPER, INDEX_NAME);
-
+  ElasticAggregationTest(RestClient restClient) throws IOException {
+    IndexOps ops = new IndexOps(restClient, MAPPER, INDEX_NAME);
     ops.create(PersonModel.MAPPING).blockingGet();
-
-    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(ELASTIC.restClient()).objectMapper(MAPPER).build());
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    if (ops != null) {
-      ops.delete().blockingGet();
-    }
+    this.backend = new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).build());
   }
 
   @Override

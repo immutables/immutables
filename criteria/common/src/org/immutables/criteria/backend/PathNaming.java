@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.backend;
 
-import org.immutables.criteria.backend.NamingStrategy;
 import org.immutables.criteria.expression.Path;
 
 /**

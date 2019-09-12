@@ -18,7 +18,6 @@ package org.immutables.criteria.matcher;
 
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Expressions;
-import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.OptionalOperators;
 
 import java.util.function.UnaryOperator;

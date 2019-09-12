@@ -17,45 +17,30 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
-import org.apache.geode.cache.Region;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
 import org.immutables.criteria.personmodel.Person;
-import org.immutables.criteria.personmodel.PersonRepository;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.EnumSet;
 import java.util.Set;
 
+@ExtendWith(GeodeExtension.class)
 public class GeodePersonTest extends AbstractPersonTest  {
 
-  @ClassRule
-  public static final GeodeResource GEODE = GeodeResource.create();
+  private final GeodeBackend backend;
 
-  private static Region<String, Person> region;
-
-  private GeodeBackend backend;
-
-  @BeforeClass
-  public static void setup() {
-    Cache cache = GEODE.cache();
-    region =  cache.<String, Person>createRegionFactory()
+  public GeodePersonTest(Cache cache) {
+    // create region
+    cache.<String, Person>createRegionFactory()
             .setKeyConstraint(String.class)
             .setValueConstraint(Person.class)
             .create(ContainerNaming.DEFAULT.name(Person.class));
-  }
 
-  @Before
-  public void setUp() throws Exception {
-    region.clear();
-    GeodeBackend backend = new GeodeBackend(GeodeSetup.of(GEODE.cache()));
-    repository = new PersonRepository(backend);
+    this.backend =  new GeodeBackend(GeodeSetup.of(cache));
   }
-
 
   @Override
   protected Set<Feature> features() {
@@ -67,7 +52,7 @@ public class GeodePersonTest extends AbstractPersonTest  {
     return backend;
   }
 
-  @Ignore
+  @Disabled
   @Override
   public void nested() {
     // nested doesn't work yet in Geode. Need custom PDX serializer

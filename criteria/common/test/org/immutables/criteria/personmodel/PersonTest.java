@@ -16,12 +16,12 @@
 
 package org.immutables.criteria.personmodel;
 
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-@Ignore("used for compile-time testing only")
+@Disabled("used for compile-time testing only")
 public class PersonTest {
 
   @Test

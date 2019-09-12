@@ -19,13 +19,12 @@ package org.immutables.criteria.elasticsearch;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.elasticsearch.client.RestClient;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 
 import static org.immutables.check.Checkers.check;
@@ -33,19 +32,24 @@ import static org.immutables.check.Checkers.check;
 /**
  * Start embedded ES instance. Insert document(s) then find it.
  */
+@ExtendWith(ElasticExtension.class)
 public class ElasticModelTest {
-
-  @ClassRule
-  public static final EmbeddedElasticsearchResource RESOURCE = EmbeddedElasticsearchResource.create();
 
   private static final ObjectMapper MAPPER = ElasticPersonTest.MAPPER;
 
   private static final String INDEX_NAME = "mymodel";
 
+  private final RestClient restClient;
   private ElasticModelRepository repository;
 
-  @BeforeClass
-  public static void setupElastic() throws Exception {
+  ElasticModelTest(RestClient restClient) throws IOException {
+    this.restClient = restClient;
+    setupElastic();
+    ElasticsearchBackend backend = new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).resolver(ignore -> INDEX_NAME).build());
+    this.repository = new ElasticModelRepository(backend);
+  }
+
+  private void setupElastic() throws IOException {
     Map<String, String> model = ImmutableMap.<String, String>builder()
             .put("string", "keyword")
             .put("optionalString", "keyword")
@@ -53,10 +57,10 @@ public class ElasticModelTest {
             .put("intNumber", "integer")
             .build();
 
-    new IndexOps(RESOURCE.restClient(), MAPPER, INDEX_NAME).create(model).blockingGet();
+    new IndexOps(restClient, MAPPER, INDEX_NAME).create(model).blockingGet();
 
 
-    final ElasticsearchOps ops = new ElasticsearchOps(RESOURCE.restClient(), INDEX_NAME, MAPPER, 1024);
+    final ElasticsearchOps ops = new ElasticsearchOps(restClient, INDEX_NAME, MAPPER, 1024);
 
     ObjectNode doc1 = MAPPER.createObjectNode()
                 .put("string", "foo")
@@ -71,12 +75,6 @@ public class ElasticModelTest {
                 .put("intNumber", 44);
 
     ops.insertBulk(Arrays.asList(doc1, doc2)).blockingGet();
-  }
-
-  @Before
-  public void setupRepository() throws Exception {
-    ElasticsearchBackend backend = new ElasticsearchBackend(ElasticsearchSetup.builder(RESOURCE.restClient()).objectMapper(MAPPER).resolver(ignore -> INDEX_NAME).build());
-    this.repository = new ElasticModelRepository(backend);
   }
 
   @Test

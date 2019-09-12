@@ -16,7 +16,6 @@
 
 package org.immutables.criteria.mongo;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
@@ -24,38 +23,26 @@ import com.mongodb.reactivestreams.client.MongoDatabase;
 import de.bwaldvogel.mongo.MongoServer;
 import de.bwaldvogel.mongo.backend.memory.MemoryBackend;
 import io.reactivex.Flowable;
-import org.junit.rules.ExternalResource;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Objects;
 
-/**
- * JUnit rule which allows to test repository access backed by real database (embedded but fake or remote MongoDB). It
- * is a good habit to run tests on different versions of the database. By default embedded (in memory) java server
- * is used.
- *
- * <p>If you want to connect to external mongo database use system property {@code mongo}.
- * With maven it will look something like this:
- * <pre>
- * {@code $ mvn test -DargLine="-Dmongo=mongodb://localhost"}
- * </pre>
- *
- * @see <a href="https://github.com/bwaldvogel/mongo-java-server">Mongo Java Server</a>
- **/
-public class MongoResource extends ExternalResource implements AutoCloseable  {
-
+class MongoInstance implements AutoCloseable {
 
   private static final String DBNAME = "testDB";
 
   private final Closer closer;
 
+  private final MongoClient client;
   private final MongoDatabase database;
 
-  private MongoResource(final MongoClient client, Closer closer) {
-    Objects.requireNonNull(client, "client");
+  private MongoInstance(MongoClient client) {
+    this(client, Closer.create());
+  }
+
+  private MongoInstance(MongoClient client, Closer closer) {
     Objects.requireNonNull(closer, "closer");
+    this.client = Objects.requireNonNull(client, "client");
     closer.register(client);
 
     // drop database if exists (to have a clean test)
@@ -70,48 +57,35 @@ public class MongoResource extends ExternalResource implements AutoCloseable  {
     this.closer = closer;
   }
 
-  public MongoDatabase database() {
+  MongoClient client() {
+    return client;
+  }
+
+  MongoDatabase database() {
     return database;
   }
 
-  public static MongoResource create() {
+  static MongoInstance create() {
     final String uri = System.getProperty("mongo");
-    final Closer closer = Closer.create();
+
 
     if (uri != null) {
-      // remote mongo server
-      return new MongoResource(MongoClients.create(uri), closer);
+      // connect to remote mongo server
+      return new MongoInstance(MongoClients.create(uri));
     }
 
     final MongoServer server = new MongoServer(new MemoryBackend());
     final InetSocketAddress address = server.bind();
-
-    closer.register(new Closeable() {
-      @Override
-      public void close() throws IOException {
-        server.shutdownNow();
-      }
-    });
+    final Closer closer = Closer.create();
+    closer.register(server::shutdownNow);
 
     final MongoClient client = MongoClients.create(String.format("mongodb://127.0.0.1:%d", address.getPort()));
-    return new MongoResource(client, closer);
-  }
-
-  /**
-   * Cleanup (terminate executor gracefully)
-   */
-  @Override
-  protected void after() {
-    try {
-      close();
-    } catch (Exception e) {
-      Throwables.propagateIfPossible(e);
-      throw new RuntimeException(e);
-    }
+    return new MongoInstance(client, closer);
   }
 
   @Override
   public void close() throws Exception {
     closer.close();
   }
+
 }

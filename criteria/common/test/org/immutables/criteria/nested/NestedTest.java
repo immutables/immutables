@@ -20,9 +20,9 @@ import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.immutables.criteria.expression.Query;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -209,7 +209,7 @@ public class NestedTest {
 
   }
 
-  @Ignore("doesn't return optional statement")
+  @Disabled("doesn't return optional statement")
   @Test
   public void debug() {
     assertExpressional(RootCriteria.root.a.isAbsent().a.value().with(a -> a.value.isEmpty()),
@@ -223,7 +223,7 @@ public class NestedTest {
     final Query query = Criterias.toQuery(crit);
     query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
-    Assert.assertEquals(expected, out.toString().trim());
+    Assertions.assertEquals(expected, out.toString().trim());
   }
 
 }

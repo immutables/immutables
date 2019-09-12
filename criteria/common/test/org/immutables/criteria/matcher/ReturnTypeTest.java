@@ -18,7 +18,7 @@ package org.immutables.criteria.matcher;
 
 import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.Optional;
