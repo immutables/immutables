@@ -113,6 +113,7 @@
     <jackson.version>2.8.11</jackson.version>
     <jackson-databind.version>2.8.11.3</jackson-databind.version>
     <junit.version>4.12</junit.version>
+    <junit5.version>5.5.2</junit5.version>
     <hamcrest.version>1.3</hamcrest.version>
     <mockito.verion>1.10.19</mockito.verion>
     <guava.version>19.0</guava.version>
