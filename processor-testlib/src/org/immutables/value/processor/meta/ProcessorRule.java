@@ -62,6 +62,13 @@ import java.util.Set;
  * }
  * </pre>
  * </p>
+ * <p>TODO: This rule has to be migrated to JUnit5 as <a href="https://junit.org/junit5/docs/current/user-guide/#extensions">extension</a>.
+ * For some examples see:
+ *  <ol>
+ *    <li><a href="https://github.com/Kiskae/compile-testing-extension">compile testing extension</a></li>
+ *    <li><a href="https://github.com/google/compile-testing/pull/155">Add JUnit5 implementation of CompilationRule PR</a></li>
+ *  </ol>
+ * </p>
  */
 public class ProcessorRule implements TestRule  {
 

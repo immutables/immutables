@@ -41,7 +41,14 @@ import static org.immutables.check.Checkers.check;
 
 /**
  * Validation for repository model. It is the one generated in {@link RepositoryModel}
+ *
+ * <p>The reason this was not yet migrated to JUnit5 is because (apparently) tests are executed
+ * in different thread from compiler which makes hard to get correct {@link javax.annotation.processing.ProcessingEnvironment}.
+ * </p>
+ *
  * @see ValueType
+ * @see <a href="https://github.com/Kiskae/compile-testing-extension">Junit5 compile extension</a>
+ * @see <a href="https://github.com/google/compile-testing/pull/155">Add JUnit5 implementation of CompilationRule</a>
  */
 public class RepositoryTest {
 
