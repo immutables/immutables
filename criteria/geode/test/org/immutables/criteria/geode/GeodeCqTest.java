@@ -28,8 +28,8 @@ import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
 import org.immutables.criteria.personmodel.PersonGenerator;
 import org.immutables.criteria.personmodel.PersonRepository;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +60,7 @@ public class GeodeCqTest {
 
   private Region<String, Person> region;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     this.clientCache = new ClientCacheFactory()
             .addPoolLocator("127.0.0.1", 10334)
@@ -75,7 +75,7 @@ public class GeodeCqTest {
     region.clear();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     if (clientCache != null) {
       clientCache.close();

@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -56,7 +56,7 @@ class JsonChecker {
       ObjectWriter writer = MAPPER.writerWithDefaultPrettyPrinter();
       String expectedPretty = writer.writeValueAsString(expected);
       String actualPretty = writer.writeValueAsString(actual);
-      Assert.assertEquals(expectedPretty, actualPretty);
+      Assertions.assertEquals(expectedPretty, actualPretty);
     }
   }
 

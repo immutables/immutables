@@ -20,7 +20,7 @@ import org.immutables.criteria.expression.DebugExpressionVisitor;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.matcher.StringMatcher;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
@@ -355,7 +355,7 @@ public class ExpressionAsStringTest {
     Query query = Criterias.toQuery(crit);
     query.filter().ifPresent(f -> f.accept(new DebugExpressionVisitor<>(new PrintWriter(out))));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
-    Assert.assertEquals(expected, out.toString().trim());
+    Assertions.assertEquals(expected, out.toString().trim());
   }
 
 }

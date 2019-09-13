@@ -21,7 +21,7 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.matcher.Aggregation;
 import org.immutables.criteria.matcher.Matchers;
 import org.immutables.criteria.personmodel.PersonCriteria;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.PrintWriter;
@@ -49,7 +49,7 @@ public class AggregationExpressionTest {
     StringWriter out = new StringWriter();
     expression.accept(new DebugExpressionVisitor<>(new PrintWriter(out)));
     final String expected = Arrays.stream(expectedLines).collect(Collectors.joining(System.lineSeparator()));
-    Assert.assertEquals(expected, out.toString().trim());
+    Assertions.assertEquals(expected, out.toString().trim());
   }
 
 

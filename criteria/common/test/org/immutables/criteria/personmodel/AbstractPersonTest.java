@@ -22,7 +22,7 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.repository.Reader;
 import org.immutables.criteria.repository.sync.SyncReader;
-import org.junit.Assume;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -635,7 +635,7 @@ public abstract class AbstractPersonTest {
   }
 
   private void assumeFeature(Feature feature) {
-    Assume.assumeTrue(String.format("Feature %s not supported by current backend", feature), features().contains(feature));
+    Assumptions.assumeTrue(features().contains(feature), String.format("Feature %s not supported by current backend", feature));
   }
 
   private <T extends Comparable<T>> void assertOrdered(Function<Person, T> extractor, SyncReader<Person> reader, Ordering<T> ordering) {
