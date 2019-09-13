@@ -56,16 +56,17 @@ class BackendResource  {
     this.backend = new MongoBackend(MongoSetup.of(this.resolver));
   }
 
-  public MongoBackend backend() {
+  MongoBackend backend() {
     return backend;
   }
 
-  public MongoDatabase database() {
+  MongoDatabase database() {
     return database;
   }
 
-  public <T> MongoCollection<T> collection(Class<T> entityType) {
-    return resolver.resolve(entityType).withDocumentClass(entityType);
+  @SuppressWarnings("unchecked")
+  <T> MongoCollection<T> collection(Class<T> entityType) {
+    return (MongoCollection<T>) resolver.resolve(entityType);
   }
 
   private class LazyResolver implements CollectionResolver {
@@ -73,11 +74,12 @@ class BackendResource  {
     @Override
     public MongoCollection<?> resolve(Class<?> entityClass) {
       final String name = ContainerNaming.DEFAULT.name(entityClass);
+      final MongoCollection<?> collection;
       // already exists ?
-      if (Flowable.fromPublisher(database.listCollectionNames()).toList().blockingGet().contains(name)) {
-        return database.getCollection(name);
+      if (!Flowable.fromPublisher(database.listCollectionNames()).toList().blockingGet().contains(name)) {
+        Flowable.fromPublisher(database.createCollection(name)).blockingFirst();
       }
-      Flowable.fromPublisher(database.createCollection(name)).blockingFirst();
+
       return database.getCollection(name).withDocumentClass(entityClass).withCodecRegistry(registry);
     }
   }

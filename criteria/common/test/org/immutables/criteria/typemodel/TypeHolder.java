@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.typemodel;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
 import javax.annotation.Nullable;
@@ -31,14 +35,17 @@ import java.util.OptionalDouble;
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TimeZone;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 
 /**
  * Defines various types (long/int/boolean) with containers (like {@code int[]} or {@code List<Boolean>})
  */
-interface TypeHolder {
+public interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface BooleanHolder {
     boolean value();
     Boolean boxed();
@@ -51,6 +58,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface ByteHolder {
     byte value();
     Byte boxed();
@@ -62,6 +70,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface ShortHolder {
     short value();
     Short boxed();
@@ -73,6 +82,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface FloatHolder {
     float value();
     Float boxed();
@@ -84,6 +94,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface DoubleHolder {
     double value();
     Double boxed();
@@ -96,6 +107,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface IntegerHolder {
     int value();
     Integer boxed();
@@ -108,6 +120,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface LongHolder {
     long value();
     Long boxed();
@@ -120,6 +133,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface CharacterHolder {
     char value();
     Character boxed();
@@ -131,6 +145,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface BigIntegerHolder {
     BigInteger value();
     @Nullable BigInteger nullable();
@@ -141,6 +156,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface BigDecimalHolder {
     BigDecimal value();
     @Nullable BigDecimal nullable();
@@ -151,12 +167,25 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
+  @JsonDeserialize(as = ImmutableStringHolder.class)
+  @JsonSerialize(as = ImmutableStringHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface StringHolder {
+
+    @Criteria.Id
+    String id();
+
     String value();
     @Nullable String nullable();
     Optional<String> optional();
     String[] array();
     List<String> list();
+
+    static Supplier<ImmutableStringHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableStringHolder.builder().id("id" + counter.incrementAndGet()).value("foo").nullable(null).array("a1", "a2").addList("l1", "l2").build();
+    }
   }
 
   enum Foo {
@@ -165,6 +194,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface EnumHolder {
     Foo value();
     @Nullable Foo nullable();
@@ -175,6 +205,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface DateHolder {
     Date value();
     @Nullable Date nullable();
@@ -185,6 +216,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface LocalDateHolder {
     LocalDate value();
     @Nullable LocalDate nullable();
@@ -195,6 +227,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface TimeZoneHolder {
     TimeZone value();
     @Nullable TimeZone nullable();
@@ -208,6 +241,7 @@ interface TypeHolder {
    */
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface WeirdHolder {
     // weird stuff
     Optional<Optional<String>> weird1();
@@ -219,6 +253,7 @@ interface TypeHolder {
 
   @Value.Immutable
   @Criteria
+  @Criteria.Repository
   interface MapHolder {
     Map<String, String> map();
     Optional<Map<String, String>> optionalMap();

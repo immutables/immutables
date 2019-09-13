@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria;
+package org.immutables.criteria.typemodel;
 
 import org.junit.jupiter.api.Test;
 
