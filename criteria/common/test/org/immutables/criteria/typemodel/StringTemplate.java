@@ -124,6 +124,31 @@ public abstract class StringTemplate {
   }
 
   @Test
+  void empty() {
+    values(repository.find(string.value.isEmpty())).isEmpty();
+    values(repository.find(string.value.notEmpty())).isEmpty();
+
+    repository.insert(generator.get().withValue("a"));
+    values(repository.find(string.value.isEmpty())).isEmpty();
+    values(repository.find(string.value.notEmpty())).hasContentInAnyOrder("a");
+
+    repository.insert(generator.get().withValue(""));
+    values(repository.find(string.value.isEmpty())).hasContentInAnyOrder("");
+    values(repository.find(string.value.notEmpty())).hasContentInAnyOrder("a");
+
+    repository.insert(generator.get().withValue(" "));
+    values(repository.find(string.value.isEmpty())).hasContentInAnyOrder("");
+    values(repository.find(string.value.notEmpty())).hasContentInAnyOrder("a", " ");
+
+    repository.insert(generator.get().withValue("\n"));
+    values(repository.find(string.value.isEmpty())).hasContentInAnyOrder("");
+    values(repository.find(string.value.notEmpty())).hasContentInAnyOrder("a", " ", "\n");
+
+    repository.insert(generator.get().withValue(""));
+    values(repository.find(string.value.isEmpty())).hasContentInAnyOrder("", "");
+  }
+
+  @Test
   void nullable() {
     repository.insert(generator.get().withValue("null").withNullable(null));
     repository.insert(generator.get().withValue("notnull").withNullable("notnull"));
