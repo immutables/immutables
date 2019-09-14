@@ -40,7 +40,7 @@ public class AggregateQueryBuilderTest {
           .registerModule(new GuavaModule())
           .registerModule(new Jdk8Module());
 
-  private final Mapping mapping = new Mapping(PersonModel.MAPPING);
+  private final Mapping mapping = Mapping.ofElastic(PersonModel.MAPPING);
 
   @Test
   public void agg1() {

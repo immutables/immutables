@@ -18,14 +18,12 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Map;
 
 import static org.immutables.check.Checkers.check;
 
@@ -49,16 +47,8 @@ public class ElasticModelTest {
     this.repository = new ElasticModelRepository(backend);
   }
 
-  private void setupElastic() throws IOException {
-    Map<String, String> model = ImmutableMap.<String, String>builder()
-            .put("string", "keyword")
-            .put("optionalString", "keyword")
-            .put("bool", "boolean")
-            .put("intNumber", "integer")
-            .build();
-
-    new IndexOps(restClient, MAPPER, INDEX_NAME).create(model).blockingGet();
-
+  private void setupElastic()  {
+    new IndexOps(restClient, MAPPER, INDEX_NAME).create(Mappings.of(ElasticModel.class)).blockingGet();
 
     final ElasticsearchOps ops = new ElasticsearchOps(restClient, INDEX_NAME, MAPPER, 1024);
 
@@ -78,7 +68,7 @@ public class ElasticModelTest {
   }
 
   @Test
-  public void criteria() {
+  void criteria() {
     ElasticModelCriteria crit = ElasticModelCriteria.elasticModel;
 
     assertCount(crit, 2);

@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.elasticsearch;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
@@ -28,10 +29,12 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Elastic index operations to create, delete an index.
@@ -65,7 +68,7 @@ class IndexOps {
 
               ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
               Json.visitMappingProperties(properties, builder::put);
-              return new Mapping(builder.build());
+              return Mapping.ofElastic(builder.build());
             });
   }
 
@@ -77,6 +80,19 @@ class IndexOps {
     return transport.execute(request)
             .map(response -> mapper.readValue(response.getEntity().getContent(), ObjectNode.class))
             .map(fn::apply);
+  }
+
+  /**
+   * Creates elastic search mapping (index) on the cluster
+   */
+  Completable create(Mapping mapping) {
+    Objects.requireNonNull(mapping, "mapping");
+    Map<String, String> newMap =  mapping.fields()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().name()));
+
+    return create(newMap);
   }
 
 
@@ -95,7 +111,7 @@ class IndexOps {
    * @param mapping field and field type mapping
    * @throws IOException if there is an error
    */
-  Completable create(Map<String, String> mapping) throws IOException {
+  Completable create(Map<String, String> mapping) {
     Objects.requireNonNull(mapping, "mapping");
 
     ObjectNode mappings = mapper.createObjectNode();
@@ -106,11 +122,15 @@ class IndexOps {
     }
 
     // create index and mapping
-    final HttpEntity entity = new StringEntity(mapper.writeValueAsString(mappings),
-            ContentType.APPLICATION_JSON);
-    final Request r = new Request("PUT", "/" + index);
-    r.setEntity(entity);
-    return transport.execute(r).ignoreElement();
+    try {
+      final HttpEntity entity = new StringEntity(mapper.writeValueAsString(mappings),
+              ContentType.APPLICATION_JSON);
+      final Request r = new Request("PUT", "/" + index);
+      r.setEntity(entity);
+      return transport.execute(r).ignoreElement();
+    } catch (JsonProcessingException e) {
+      throw new UncheckedIOException(e);
+    }
   }
 
   /**

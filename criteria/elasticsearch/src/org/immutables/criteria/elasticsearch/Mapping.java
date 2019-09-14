@@ -46,12 +46,19 @@ class Mapping {
 
   private final Map<String, Datatype> mapping;
 
-  Mapping(final Map<String, String> mapping) {
+  private Mapping(final Map<String, String> mapping) {
     Objects.requireNonNull(mapping, "mapping");
 
     final Map<String, Datatype> transformed = mapping.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> new Datatype(e.getValue())));
     this.mapping = ImmutableMap.copyOf(transformed);
+  }
+
+  /**
+   * Create mapping from existing elastic mapping
+   */
+  static Mapping ofElastic(final Map<String, String> mapping) {
+    return new Mapping(mapping);
   }
 
   /**
