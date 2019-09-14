@@ -56,6 +56,37 @@ public abstract class StringTemplate {
   }
 
   @Test
+  void equality() {
+    values(repository.find(string.value.is(""))).isEmpty();
+    values(repository.find(string.value.isNot(""))).isEmpty();
+    repository.insert(generator.get().withValue("a"));
+    repository.insert(generator.get().withValue("bb"));
+    repository.insert(generator.get().withValue("ccc"));
+
+    values(repository.find(string.value.is("a"))).hasContentInAnyOrder("a");
+    values(repository.find(string.value.is("bb"))).hasContentInAnyOrder("bb");
+    values(repository.find(string.value.isNot("bb"))).hasContentInAnyOrder("a", "ccc");
+    values(repository.find(string.value.isNot("a"))).hasContentInAnyOrder("bb", "ccc");
+    values(repository.find(string.value.in("a", "bb", "ccc"))).hasContentInAnyOrder("a", "bb", "ccc");
+    values(repository.find(string.value.in("a", "bb"))).hasContentInAnyOrder("a", "bb");
+    values(repository.find(string.value.notIn("a", "bb", "ccc"))).isEmpty();
+  }
+
+  @Test
+  void whitespace() {
+    repository.insert(generator.get().withValue(""));
+    repository.insert(generator.get().withValue(" "));
+    repository.insert(generator.get().withValue("\n"));
+
+    values(repository.find(string.value.is(""))).hasContentInAnyOrder("");
+    values(repository.find(string.value.is(" "))).hasContentInAnyOrder(" ");
+    values(repository.find(string.value.is("\n"))).hasContentInAnyOrder("\n");
+    values(repository.find(string.value.isNot(""))).hasContentInAnyOrder(" ", "\n");
+    values(repository.find(string.value.isNot(" "))).hasContentInAnyOrder("", "\n");
+    values(repository.find(string.value.isNot("\n"))).hasContentInAnyOrder(" ", "");
+  }
+
+  @Test
   void endsWith() {
     values(repository.find(string.value.endsWith("a"))).isEmpty();
     values(repository.find(string.value.endsWith(""))).isEmpty();
