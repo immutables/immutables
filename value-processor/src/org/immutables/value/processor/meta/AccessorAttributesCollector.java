@@ -299,7 +299,7 @@ final class AccessorAttributesCollector {
               report(attributeMethodCandidate)
                   .annotationNamed(DefaultMirror.simpleName())
                   .warning(About.INCOMPAT,
-                      "@Value.Default annotation is superflous for default annotation attribute");
+                      "@Value.Default annotation is superfluous for default annotation attribute");
             } else {
               report(attributeMethodCandidate)
                   .annotationNamed(DefaultMirror.simpleName())
@@ -333,7 +333,7 @@ final class AccessorAttributesCollector {
           report(attributeMethodCandidate)
               .annotationNamed(DefaultMirror.simpleName())
               .warning(About.INCOMPAT,
-                  "@Value.Default annotation is superflous for default annotation attribute"
+                  "@Value.Default annotation is superfluous for default annotation attribute"
                       + " when 'defaultAsDefault' style is enabled");
         }
       } else if (derivedAnnotationPresent) {
