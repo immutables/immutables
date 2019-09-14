@@ -23,8 +23,15 @@ public interface IndexResolver extends ContainerResolver<String> {
 
   String resolve(Class<?> entityType);
 
+  /**
+   * Default resolver which uses lower case and simple name of the class: {@code org.MyClass -> myclass}
+   * <p>In elastic, indexes have to be lowercase. From <a href="https://www.elastic.co/guide/en/elasticsearch/guide/current/_document_metadata.html#_index">documentation</a>:
+   * {@code This name must be lowercase, cannot begin with an underscore, and cannot contain commas.}
+   * </p>
+   * @see
+   */
   static IndexResolver defaultResolver() {
-    return ContainerNaming.DEFAULT::name;
+    return entity -> ContainerNaming.DEFAULT.name(entity).toLowerCase();
   }
 
 }
