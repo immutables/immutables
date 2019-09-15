@@ -56,7 +56,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void equality() {
+  protected void equality() {
     values(repository.find(string.value.is(""))).isEmpty();
     values(repository.find(string.value.isNot(""))).isEmpty();
     repository.insert(generator.get().withValue("a"));
@@ -73,7 +73,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void whitespace() {
+  protected void whitespace() {
     repository.insert(generator.get().withValue(""));
     repository.insert(generator.get().withValue(" "));
     repository.insert(generator.get().withValue("\n"));
@@ -87,7 +87,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void endsWith() {
+  protected void endsWith() {
     values(repository.find(string.value.endsWith("a"))).isEmpty();
     values(repository.find(string.value.endsWith(""))).isEmpty();
 
@@ -103,7 +103,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void contains() {
+  protected void contains() {
     values(repository.find(string.value.contains(""))).isEmpty();
     values(repository.find(string.value.contains(" "))).isEmpty();
     values(repository.find(string.value.contains("aa"))).isEmpty();
@@ -124,7 +124,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void empty() {
+  protected void empty() {
     values(repository.find(string.value.isEmpty())).isEmpty();
     values(repository.find(string.value.notEmpty())).isEmpty();
 
@@ -149,7 +149,7 @@ public abstract class StringTemplate {
   }
 
   @Test
-  void nullable() {
+  protected void nullable() {
     repository.insert(generator.get().withValue("null").withNullable(null));
     repository.insert(generator.get().withValue("notnull").withNullable("notnull"));
 
