@@ -19,6 +19,7 @@ package org.immutables.criteria.elasticsearch;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,33 +44,13 @@ class ElasticIntegrationTests {
       String name = IndexResolver.defaultResolver().resolve(entity);
       new IndexOps(restClient, mapper, name).create(Mappings.of(entity)).blockingAwait();
     };
-    this.backend = new AutocreateMappingBackend(backend, onOpen);
+    this.backend = WithSessionCallback.wrap(backend, onOpen);
   }
 
   @Nested
   class StringTest extends StringTemplate {
     private StringTest() {
       super(backend);
-    }
-  }
-
-  /**
-   * Backend wrapper which (auto-)creates ES mappings (aka ES indexes) when new session is requested
-   */
-  private static class AutocreateMappingBackend implements Backend {
-
-    private final Backend backend;
-    private final Consumer<Class<?>> creator; // callback
-
-    private AutocreateMappingBackend(Backend backend, Consumer<Class<?>> onOpen) {
-      this.backend = backend;
-      this.creator = onOpen;
-    }
-
-    @Override
-    public Session open(Class<?> entityType) {
-      creator.accept(entityType);
-      return backend.open(entityType);
     }
   }
 
