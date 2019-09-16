@@ -19,7 +19,6 @@ package org.immutables.criteria.typemodel;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.CriteriaChecker;
-import org.immutables.criteria.repository.sync.SyncReader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -45,15 +44,15 @@ public class LocalDateTemplate {
 
   @Test
   void empty() {
-    ids(repository.find(holder.value.is(LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.isNot(LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.in(LocalDate.now(), LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.notIn(LocalDate.now(), LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.atLeast(LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.atMost(LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.between(LocalDate.now(), LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.greaterThan(LocalDate.now()))).isEmpty();
-    ids(repository.find(holder.value.lessThan(LocalDate.now()))).isEmpty();
+    ids(holder.value.is(LocalDate.now())).isEmpty();
+    ids(holder.value.isNot(LocalDate.now())).isEmpty();
+    ids(holder.value.in(LocalDate.now(), LocalDate.now())).isEmpty();
+    ids(holder.value.notIn(LocalDate.now(), LocalDate.now())).isEmpty();
+    ids(holder.value.atLeast(LocalDate.now())).isEmpty();
+    ids(holder.value.atMost(LocalDate.now())).isEmpty();
+    ids(holder.value.between(LocalDate.now(), LocalDate.now())).isEmpty();
+    ids(holder.value.greaterThan(LocalDate.now())).isEmpty();
+    ids(holder.value.lessThan(LocalDate.now())).isEmpty();
   }
 
   @Test
@@ -61,24 +60,24 @@ public class LocalDateTemplate {
     final LocalDate date1 = LocalDate.now();
     repository.insert(generator.get().withId("id1").withValue(date1));
 
-    ids(repository.find(holder.value.is(date1))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.is(date1.plusDays(1)))).isEmpty();
-    ids(repository.find(holder.value.isNot(date1))).isEmpty();
-    ids(repository.find(holder.value.isNot(date1.plusDays(1)))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.in(date1, date1))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.notIn(date1, date1))).isEmpty();
-    ids(repository.find(holder.value.notIn(date1.plusMonths(1), date1.plusDays(1)))).hasContentInAnyOrder("id1");
+    ids(holder.value.is(date1)).hasContentInAnyOrder("id1");
+    ids(holder.value.is(date1.plusDays(1))).isEmpty();
+    ids(holder.value.isNot(date1)).isEmpty();
+    ids(holder.value.isNot(date1.plusDays(1))).hasContentInAnyOrder("id1");
+    ids(holder.value.in(date1, date1)).hasContentInAnyOrder("id1");
+    ids(holder.value.notIn(date1, date1)).isEmpty();
+    ids(holder.value.notIn(date1.plusMonths(1), date1.plusDays(1))).hasContentInAnyOrder("id1");
 
     final LocalDate date2 = LocalDate.now().plusWeeks(2);
     repository.insert(generator.get().withId("id2").withValue(date1).withValue(date2));
-    ids(repository.find(holder.value.is(date2))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.value.isNot(date2))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.isNot(date1))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.value.in(date1, date2))).hasContentInAnyOrder("id1", "id2");
-    ids(repository.find(holder.value.in(date1.plusDays(1), date2.plusDays(1)))).isEmpty();
-    ids(repository.find(holder.value.notIn(date1, date2))).isEmpty();
-    ids(repository.find(holder.value.notIn(date1.plusDays(1), date2))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.notIn(date1, date2.plusDays(1)))).hasContentInAnyOrder("id2");
+    ids(holder.value.is(date2)).hasContentInAnyOrder("id2");
+    ids(holder.value.isNot(date2)).hasContentInAnyOrder("id1");
+    ids(holder.value.isNot(date1)).hasContentInAnyOrder("id2");
+    ids(holder.value.in(date1, date2)).hasContentInAnyOrder("id1", "id2");
+    ids(holder.value.in(date1.plusDays(1), date2.plusDays(1))).isEmpty();
+    ids(holder.value.notIn(date1, date2)).isEmpty();
+    ids(holder.value.notIn(date1.plusDays(1), date2)).hasContentInAnyOrder("id1");
+    ids(holder.value.notIn(date1, date2.plusDays(1))).hasContentInAnyOrder("id2");
   }
 
   @Test
@@ -91,20 +90,21 @@ public class LocalDateTemplate {
     repository.insert(generator.get().withId("id1").withValue(date1));
     repository.insert(generator.get().withId("id2").withValue(date2));
 
-    ids(repository.find(holder.value.greaterThan(date2))).isEmpty();
-    ids(repository.find(holder.value.greaterThan(date1))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.value.lessThan(date1))).isEmpty();
-    ids(repository.find(holder.value.lessThan(date2))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.between(date1, date2))).hasContentInAnyOrder("id1", "id2");
-    ids(repository.find(holder.value.between(date2.plusDays(1), date2.plusDays(2)))).isEmpty();
-    ids(repository.find(holder.value.between(date2, date1))).isEmpty();
-    ids(repository.find(holder.value.atMost(date1))).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.value.atMost(date1.minusDays(1)))).isEmpty();
-    ids(repository.find(holder.value.atMost(date2))).hasContentInAnyOrder("id1", "id2");
-    ids(repository.find(holder.value.atLeast(date1))).hasContentInAnyOrder("id1", "id2");
-    ids(repository.find(holder.value.atLeast(date2))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.value.atLeast(date2.plusDays(1)))).isEmpty();
+    ids(holder.value.greaterThan(date2)).isEmpty();
+    ids(holder.value.greaterThan(date1)).hasContentInAnyOrder("id2");
+    ids(holder.value.lessThan(date1)).isEmpty();
+    ids(holder.value.lessThan(date2)).hasContentInAnyOrder("id1");
+    ids(holder.value.between(date1, date2)).hasContentInAnyOrder("id1", "id2");
+    ids(holder.value.between(date2.plusDays(1), date2.plusDays(2))).isEmpty();
+    ids(holder.value.between(date2, date1)).isEmpty();
+    ids(holder.value.atMost(date1)).hasContentInAnyOrder("id1");
+    ids(holder.value.atMost(date1.minusDays(1))).isEmpty();
+    ids(holder.value.atMost(date2)).hasContentInAnyOrder("id1", "id2");
+    ids(holder.value.atLeast(date1)).hasContentInAnyOrder("id1", "id2");
+    ids(holder.value.atLeast(date2)).hasContentInAnyOrder("id2");
+    ids(holder.value.atLeast(date2.plusDays(1))).isEmpty();
   }
+
 
   @Test
   void nullable() {
@@ -112,13 +112,13 @@ public class LocalDateTemplate {
     repository.insert(generator.get().withId("id1").withNullable(null));
     repository.insert(generator.get().withId("id2").withNullable(date));
 
-    ids(repository.find(holder.nullable.isPresent())).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.nullable.isAbsent())).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.nullable.is(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.nullable.atLeast(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.nullable.atMost(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.nullable.greaterThan(date))).isEmpty();
-    ids(repository.find(holder.nullable.lessThan(date))).isEmpty();
+    ids(holder.nullable.isPresent()).hasContentInAnyOrder("id2");
+    ids(holder.nullable.isAbsent()).hasContentInAnyOrder("id1");
+    ids(holder.nullable.is(date)).hasContentInAnyOrder("id2");
+    ids(holder.nullable.atLeast(date)).hasContentInAnyOrder("id2");
+    ids(holder.nullable.atMost(date)).hasContentInAnyOrder("id2");
+    ids(holder.nullable.greaterThan(date)).isEmpty();
+    ids(holder.nullable.lessThan(date)).isEmpty();
   }
 
   @Test
@@ -126,17 +126,17 @@ public class LocalDateTemplate {
     LocalDate date = LocalDate.now();
     repository.insert(generator.get().withId("id1").withOptional(Optional.empty()));
     repository.insert(generator.get().withId("id2").withOptional(Optional.of(date)));
-    ids(repository.find(holder.optional.isPresent())).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.optional.isAbsent())).hasContentInAnyOrder("id1");
-    ids(repository.find(holder.optional.is(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.optional.atLeast(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.optional.atMost(date))).hasContentInAnyOrder("id2");
-    ids(repository.find(holder.optional.greaterThan(date))).isEmpty();
-    ids(repository.find(holder.optional.lessThan(date))).isEmpty();
+    ids(holder.optional.isPresent()).hasContentInAnyOrder("id2");
+    ids(holder.optional.isAbsent()).hasContentInAnyOrder("id1");
+    ids(holder.optional.is(date)).hasContentInAnyOrder("id2");
+    ids(holder.optional.atLeast(date)).hasContentInAnyOrder("id2");
+    ids(holder.optional.atMost(date)).hasContentInAnyOrder("id2");
+    ids(holder.optional.greaterThan(date)).isEmpty();
+    ids(holder.optional.lessThan(date)).isEmpty();
   }
 
-  private static IterableChecker<List<String>, String> ids(SyncReader<TypeHolder.LocalDateHolder> reader) {
-    return CriteriaChecker.<TypeHolder.LocalDateHolder>of(reader).toList(TypeHolder.LocalDateHolder::id);
+  private IterableChecker<List<String>, String> ids(LocalDateHolderCriteria criteria) {
+    return CriteriaChecker.<TypeHolder.LocalDateHolder>of(repository.find(criteria)).toList(TypeHolder.LocalDateHolder::id);
   }
 
 }
