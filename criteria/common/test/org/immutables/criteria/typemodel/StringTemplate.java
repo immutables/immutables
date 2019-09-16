@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static org.immutables.check.Checkers.check;
+
 /**
  * Testing various string operations prefix/suffix/length etc.
  */
@@ -148,6 +150,37 @@ public abstract class StringTemplate {
     ids(string.value.isEmpty()).hasContentInAnyOrder("", "");
   }
 
+  @Test
+  protected void projection() {
+    repository.insert(generator.get().withId("id1").withValue("null").withNullable(null).withOptional(Optional.empty()));
+    repository.insert(generator.get().withId("id2").withValue("notnull").withNullable("NOT_NULL").withOptional(Optional.of("NOT_NULL2")));
+
+    // projection of one attribute
+    check(repository.findAll().select(string.id).fetch()).hasContentInAnyOrder("id1", "id2");
+    check(repository.findAll().select(string.value).fetch()).hasContentInAnyOrder("null", "notnull");
+    check(repository.findAll().select(string.nullable).asOptional().fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("NOT_NULL"));
+    check(repository.findAll().select(string.optional).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of("NOT_NULL2"));
+
+
+    // 2 attributes using tuple
+    check(repository.findAll().select(string.nullable, string.optional)
+            .map(tuple -> String.format("nullable=%s optional=%s", tuple.get(string.nullable), tuple.get(string.optional).orElse("<empty>"))).fetch())
+            .hasContentInAnyOrder("nullable=null optional=<empty>", "nullable=NOT_NULL optional=NOT_NULL2");
+    // 2 attributes using mapper
+    check(repository.findAll().select(string.nullable, string.optional)
+            .map((nullable, optional) -> String.format("nullable=%s optional=%s", nullable, optional.orElse("<empty>"))).fetch())
+            .hasContentInAnyOrder("nullable=null optional=<empty>", "nullable=NOT_NULL optional=NOT_NULL2");
+
+    // 3 attributes using tuple
+    check(repository.findAll().select(string.id, string.nullable, string.optional)
+            .map(tuple -> String.format("id=%s nullable=%s optional=%s", tuple.get(string.id), tuple.get(string.nullable), tuple.get(string.optional).orElse("<empty>"))).fetch())
+            .hasContentInAnyOrder("id=id1 nullable=null optional=<empty>", "id=id2 nullable=NOT_NULL optional=NOT_NULL2");
+    // 3 attributes using mapper
+    check(repository.findAll().select(string.id, string.nullable, string.optional)
+            .map((id, nullable, optional) -> String.format("id=%s nullable=%s optional=%s", id, nullable, optional.orElse("<empty>"))).fetch())
+            .hasContentInAnyOrder("id=id1 nullable=null optional=<empty>", "id=id2 nullable=NOT_NULL optional=NOT_NULL2");
+
+  }
 
   @Test
   protected void nullable() {
