@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,5 +37,13 @@ class MongoIntegrationTest {
       super(backend.backend());
     }
   }
+
+  @Nested
+  class BooleanTest extends BooleanTemplate {
+    private BooleanTest() {
+      super(backend.backend());
+    }
+  }
+
 
 }

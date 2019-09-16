@@ -59,6 +59,17 @@ public interface TypeHolder {
     boolean[] array();
     List<Boolean> list();
 
+    static Supplier<ImmutableBooleanHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableBooleanHolder.builder().id("id" + counter.incrementAndGet()).value(counter.get() % 2 == 0)
+              .nullable(counter.getAndIncrement() % 3 == 0 ? null : (counter.getAndIncrement() % 3 == 1))
+              .boxed(counter.getAndIncrement() % 2 == 0 ? Boolean.TRUE : Boolean.FALSE)
+              .array(true, false)
+              .build();
+    }
+
+
+
   }
 
   @Value.Immutable

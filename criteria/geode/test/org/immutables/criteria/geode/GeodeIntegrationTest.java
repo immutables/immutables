@@ -20,6 +20,7 @@ import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
+import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -59,6 +60,18 @@ class GeodeIntegrationTest {
     @Override
     protected void optional() {}
   }
+
+  @Nested
+  class BooleanTest extends BooleanTemplate {
+    private BooleanTest() {
+      super(backend);
+    }
+
+    @Disabled("optionals don't work well in Geode yet (pdx serialization)")
+    @Override
+    protected void optional() {}
+  }
+
 
   private static class AutocreateRegion implements Consumer<Class<?>> {
 

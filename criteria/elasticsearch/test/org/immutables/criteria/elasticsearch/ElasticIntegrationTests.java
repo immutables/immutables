@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
+import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +51,13 @@ class ElasticIntegrationTests {
   @Nested
   class StringTest extends StringTemplate {
     private StringTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class BooleanTest extends BooleanTemplate {
+    private BooleanTest() {
       super(backend);
     }
   }
