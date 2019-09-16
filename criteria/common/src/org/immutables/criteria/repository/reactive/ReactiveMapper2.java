@@ -18,10 +18,10 @@ package org.immutables.criteria.repository.reactive;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.Mappers;
 import org.immutables.criteria.repository.Tuple;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class ReactiveMapper2<T1, T2>  {
@@ -32,7 +32,7 @@ public class ReactiveMapper2<T1, T2>  {
     this.fetcher = ReactiveFetcher.of(query, session);
   }
 
-  public <R> ReactiveFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
+  public <R> ReactiveFetcher<R> map(BiFunction<T1, T2, R> mapFn) {
     return map(Mappers.fromTuple(mapFn));
   }
 

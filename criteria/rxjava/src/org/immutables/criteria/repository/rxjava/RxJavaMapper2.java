@@ -18,10 +18,10 @@ package org.immutables.criteria.repository.rxjava;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction2;
 import org.immutables.criteria.repository.Tuple;
 import org.immutables.criteria.repository.reactive.ReactiveMapper2;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class RxJavaMapper2<T1, T2> {
@@ -32,7 +32,7 @@ public class RxJavaMapper2<T1, T2> {
     this.delegate = new ReactiveMapper2<>(query, session);
   }
 
-  public <R> RxJavaFetcher<R> map(MapperFunction2<T1, T2, R> mapFn) {
+  public <R> RxJavaFetcher<R> map(BiFunction<T1, T2, R> mapFn) {
     return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
 

@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.repository;
 
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -38,7 +39,7 @@ public final class Mappers {
   }
 
   @SuppressWarnings("unchecked")
-  public static <R, T1, T2> Function<Tuple, R> fromTuple(MapperFunction2<T1, T2, R> fn) {
+  public static <R, T1, T2> Function<Tuple, R> fromTuple(BiFunction<T1, T2, R> fn) {
     return tuple -> {
       if (tuple.values().size() != 2) {
         throw new IllegalArgumentException(String.format("Expected tuple of size 2 got %d", tuple.values().size()));
