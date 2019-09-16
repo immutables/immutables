@@ -23,6 +23,7 @@ import org.immutables.criteria.repository.sync.SyncReader;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -159,6 +160,18 @@ public abstract class StringTemplate {
     values(repository.find(string.nullable.is(""))).isEmpty();
     values(repository.find(string.value.is("null"))).hasContentInAnyOrder("null");
     values(repository.find(string.value.is("notnull"))).hasContentInAnyOrder("notnull");
+  }
+
+  @Test
+  protected void optional() {
+    repository.insert(generator.get().withValue("null").withNullable(null).withOptional(Optional.empty()));
+    repository.insert(generator.get().withValue("notnull").withNullable("notnull").withOptional("notempty"));
+
+    values(repository.find(string.optional.isAbsent())).hasContentInAnyOrder("null");
+    values(repository.find(string.optional.isPresent())).hasContentInAnyOrder("notnull");
+    values(repository.find(string.optional.is("null"))).isEmpty();
+    values(repository.find(string.optional.is("notempty"))).hasContentInAnyOrder("notnull");
+    values(repository.find(string.optional.is(""))).isEmpty();
   }
 
   private static IterableChecker<List<String>, String> values(SyncReader<TypeHolder.StringHolder> reader) {

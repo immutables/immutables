@@ -54,6 +54,10 @@ class GeodeIntegrationTest {
     @Disabled
     @Override
     protected void contains() {}
+
+    @Disabled("optionals don't work well in Geode yet (pdx serialization)")
+    @Override
+    protected void optional() {}
   }
 
   private static class AutocreateRegion implements Consumer<Class<?>> {
