@@ -19,14 +19,11 @@ package org.immutables.criteria.typemodel;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.CriteriaChecker;
-import org.immutables.criteria.repository.sync.SyncReader;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-
-import static org.immutables.check.Checkers.check;
 
 /**
  * Testing predicates, projections, sorting etc. on booleans
@@ -48,15 +45,15 @@ public class BooleanTemplate {
    */
   @Test
   void empty() {
-    check(repository.find(holder.value.isFalse()).fetch()).isEmpty();
-    check(repository.find(holder.value.isTrue()).fetch()).isEmpty();
-    check(repository.find(holder.value.is(true)).fetch()).isEmpty();
-    check(repository.find(holder.value.is(true)).fetch()).isEmpty();
-    check(repository.find(holder.value.is(false)).fetch()).isEmpty();
-    check(repository.find(holder.nullable.isTrue()).fetch()).isEmpty();
-    check(repository.find(holder.nullable.isFalse()).fetch()).isEmpty();
-    check(repository.find(holder.optional.isTrue()).fetch()).isEmpty();
-    check(repository.find(holder.optional.isFalse()).fetch()).isEmpty();
+    ids(holder.value.isFalse()).isEmpty();
+    ids(holder.value.isTrue()).isEmpty();
+    ids(holder.value.is(true)).isEmpty();
+    ids(holder.value.is(true)).isEmpty();
+    ids(holder.value.is(false)).isEmpty();
+    ids(holder.nullable.isTrue()).isEmpty();
+    ids(holder.nullable.isFalse()).isEmpty();
+    ids(holder.optional.isTrue()).isEmpty();
+    ids(holder.optional.isFalse()).isEmpty();
   }
 
   @Test
@@ -64,10 +61,10 @@ public class BooleanTemplate {
     repository.insert(generator.get().withId("id1").withValue(true));
     repository.insert(generator.get().withId("id2").withValue(false));
 
-    values(repository.find(holder.value.is(true))).hasContentInAnyOrder("id1");
-    values(repository.find(holder.value.isTrue())).hasContentInAnyOrder("id1");
-    values(repository.find(holder.value.is(false))).hasContentInAnyOrder("id2");
-    values(repository.find(holder.value.isFalse())).hasContentInAnyOrder("id2");
+    ids(holder.value.is(true)).hasContentInAnyOrder("id1");
+    ids(holder.value.isTrue()).hasContentInAnyOrder("id1");
+    ids(holder.value.is(false)).hasContentInAnyOrder("id2");
+    ids(holder.value.isFalse()).hasContentInAnyOrder("id2");
   }
 
   @Test
@@ -76,12 +73,12 @@ public class BooleanTemplate {
     repository.insert(generator.get().withId("id2").withValue(false).withOptional(true));
     repository.insert(generator.get().withId("id3").withValue(false).withOptional(Optional.empty()));
 
-    values(repository.find(holder.optional.isPresent())).hasContentInAnyOrder("id1", "id2");
-    values(repository.find(holder.optional.isAbsent())).hasContentInAnyOrder("id3");
-    values(repository.find(holder.optional.is(true))).hasContentInAnyOrder("id2");
-    values(repository.find(holder.optional.isTrue())).hasContentInAnyOrder("id2");
-    values(repository.find(holder.optional.is(false))).hasContentInAnyOrder("id1");
-    values(repository.find(holder.optional.isFalse())).hasContentInAnyOrder("id1");
+    ids(holder.optional.isPresent()).hasContentInAnyOrder("id1", "id2");
+    ids(holder.optional.isAbsent()).hasContentInAnyOrder("id3");
+    ids(holder.optional.is(true)).hasContentInAnyOrder("id2");
+    ids(holder.optional.isTrue()).hasContentInAnyOrder("id2");
+    ids(holder.optional.is(false)).hasContentInAnyOrder("id1");
+    ids(holder.optional.isFalse()).hasContentInAnyOrder("id1");
   }
 
   @Test
@@ -90,16 +87,16 @@ public class BooleanTemplate {
     repository.insert(generator.get().withId("id2").withValue(false).withNullable(true));
     repository.insert(generator.get().withId("id3").withValue(false).withNullable(null));
 
-    values(repository.find(holder.nullable.isPresent())).hasContentInAnyOrder("id1", "id2");
-    values(repository.find(holder.nullable.isAbsent())).hasContentInAnyOrder("id3");
-    values(repository.find(holder.nullable.is(true))).hasContentInAnyOrder("id2");
-    values(repository.find(holder.nullable.isTrue())).hasContentInAnyOrder("id2");
-    values(repository.find(holder.nullable.is(false))).hasContentInAnyOrder("id1");
-    values(repository.find(holder.nullable.isFalse())).hasContentInAnyOrder("id1");
+    ids(holder.nullable.isPresent()).hasContentInAnyOrder("id1", "id2");
+    ids(holder.nullable.isAbsent()).hasContentInAnyOrder("id3");
+    ids(holder.nullable.is(true)).hasContentInAnyOrder("id2");
+    ids(holder.nullable.isTrue()).hasContentInAnyOrder("id2");
+    ids(holder.nullable.is(false)).hasContentInAnyOrder("id1");
+    ids(holder.nullable.isFalse()).hasContentInAnyOrder("id1");
   }
 
-  private static IterableChecker<List<String>, String> values(SyncReader<TypeHolder.BooleanHolder> reader) {
-    return CriteriaChecker.<TypeHolder.BooleanHolder>of(reader).toList(TypeHolder.BooleanHolder::id);
+  private IterableChecker<List<String>, String> ids(BooleanHolderCriteria criteria) {
+    return CriteriaChecker.<TypeHolder.BooleanHolder>of(repository.find(criteria)).toList(TypeHolder.BooleanHolder::id);
   }
 
 }
