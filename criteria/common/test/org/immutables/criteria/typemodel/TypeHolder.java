@@ -277,6 +277,13 @@ public interface TypeHolder {
     Optional<LocalDate> optional();
     List<LocalDate> list();
     LocalDate[] array();
+
+    static Supplier<ImmutableLocalDateHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableLocalDateHolder.builder().id("id" + counter.incrementAndGet())
+              .value(LocalDate.now())
+              .nullable(null).array(LocalDate.now()).build();
+    }
   }
 
   @Value.Immutable

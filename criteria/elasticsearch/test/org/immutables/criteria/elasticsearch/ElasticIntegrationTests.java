@@ -21,6 +21,7 @@ import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,13 @@ class ElasticIntegrationTests {
   @Nested
   class BooleanTest extends BooleanTemplate {
     private BooleanTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class LocalDateTest extends LocalDateTemplate {
+    private LocalDateTest() {
       super(backend);
     }
   }
