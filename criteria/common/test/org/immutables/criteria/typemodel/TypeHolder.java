@@ -46,7 +46,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableBooleanHolder.class)
+  @JsonSerialize(as = ImmutableBooleanHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface BooleanHolder {
+    @Criteria.Id
+    String id();
     boolean value();
     Boolean boxed();
     @Nullable Boolean nullable();
@@ -95,7 +100,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableDoubleHolder.class)
+  @JsonSerialize(as = ImmutableDoubleHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface DoubleHolder {
+    @Criteria.Id
+    String id();
     double value();
     Double boxed();
     @Nullable Double nullable();
@@ -108,7 +118,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableIntegerHolder.class)
+  @JsonSerialize(as = ImmutableIntegerHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface IntegerHolder {
+    @Criteria.Id
+    String id();
     int value();
     Integer boxed();
     @Nullable Integer nullable();
@@ -121,7 +136,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableLongHolder.class)
+  @JsonSerialize(as = ImmutableLongHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface LongHolder {
+    @Criteria.Id
+    String id();
     long value();
     Long boxed();
     @Nullable Long nullable();
@@ -134,7 +154,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableCharacterHolder.class)
+  @JsonSerialize(as = ImmutableCharacterHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface CharacterHolder {
+    @Criteria.Id
+    String id();
     char value();
     Character boxed();
     @Nullable Character nullable();
@@ -157,7 +182,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableBigDecimalHolder.class)
+  @JsonSerialize(as = ImmutableBigDecimalHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface BigDecimalHolder {
+    @Criteria.Id
+    String id();
     BigDecimal value();
     @Nullable BigDecimal nullable();
     Optional<BigDecimal> optional();
@@ -172,10 +202,8 @@ public interface TypeHolder {
   @JsonSerialize(as = ImmutableStringHolder.class)
   @JsonIgnoreProperties(ignoreUnknown = true)
   interface StringHolder {
-
     @Criteria.Id
     String id();
-
     String value();
     @Nullable String nullable();
     Optional<String> optional();
@@ -195,7 +223,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableEnumHolder.class)
+  @JsonSerialize(as = ImmutableEnumHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface EnumHolder {
+    @Criteria.Id
+    String id();
     Foo value();
     @Nullable Foo nullable();
     Optional<Foo> optional();
@@ -206,7 +239,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableDateHolder.class)
+  @JsonSerialize(as = ImmutableDateHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface DateHolder {
+    @Criteria.Id
+    String id();
     Date value();
     @Nullable Date nullable();
     Optional<Date> optional();
@@ -217,7 +255,12 @@ public interface TypeHolder {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
+  @JsonDeserialize(as = ImmutableLocalDateHolder.class)
+  @JsonSerialize(as = ImmutableLocalDateHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
   interface LocalDateHolder {
+    @Criteria.Id
+    String id();
     LocalDate value();
     @Nullable LocalDate nullable();
     Optional<LocalDate> optional();
