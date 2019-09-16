@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,11 +83,11 @@ class Mappings {
       return "byte";
     } else if (type == Short.class || type == short.class) {
       return "short";
-    } else if (type == Integer.class || type == int.class) {
+    } else if (type == Integer.class || type == int.class || type == OptionalInt.class) {
       return "integer";
-    } else if (type == Long.class || type == long.class) {
+    } else if (type == Long.class || type == long.class || type == OptionalLong.class) {
       return "long";
-    } else if (type == Double.class || type == double.class) {
+    } else if (type == Double.class || type == double.class || type == OptionalDouble.class) {
       return "double";
     } else if (type == Float.class || type == float.class) {
       return "float";
