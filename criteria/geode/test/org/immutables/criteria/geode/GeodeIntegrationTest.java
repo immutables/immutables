@@ -22,6 +22,7 @@ import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
+import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -83,6 +84,14 @@ class GeodeIntegrationTest {
     @Override
     protected void optional() {}
   }
+
+  @Nested
+  class LongTest extends LongTemplate {
+    private LongTest() {
+      super(backend);
+    }
+  }
+
 
   private static class AutocreateRegion implements Consumer<Class<?>> {
 

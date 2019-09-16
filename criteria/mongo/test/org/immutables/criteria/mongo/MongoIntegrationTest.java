@@ -19,6 +19,7 @@ package org.immutables.criteria.mongo;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
+import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,6 +54,11 @@ class MongoIntegrationTest {
     }
   }
 
-
+  @Nested
+  class LongTest extends LongTemplate {
+    private LongTest() {
+      super(backend.backend());
+    }
+  }
 
 }

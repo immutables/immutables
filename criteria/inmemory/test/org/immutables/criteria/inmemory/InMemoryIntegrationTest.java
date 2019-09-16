@@ -19,6 +19,7 @@ package org.immutables.criteria.inmemory;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
+import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Nested;
 
@@ -46,4 +47,12 @@ class InMemoryIntegrationTest {
       super(backend);
     }
   }
+
+  @Nested
+  class LongTest extends LongTemplate {
+    private LongTest() {
+      super(backend);
+    }
+  }
+
 }
