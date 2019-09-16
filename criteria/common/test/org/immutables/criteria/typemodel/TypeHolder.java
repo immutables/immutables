@@ -160,6 +160,11 @@ public interface TypeHolder {
     Optional<Long> optional2();
     long[] array();
     List<Long> list();
+
+    static Supplier<ImmutableLongHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableLongHolder.builder().id("id" + counter.incrementAndGet()).value(counter.get()).boxed(counter.incrementAndGet()).array(1L, 2L).build();
+    }
   }
 
   @Value.Immutable
