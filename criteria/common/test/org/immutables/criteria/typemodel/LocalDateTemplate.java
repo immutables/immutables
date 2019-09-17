@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static org.immutables.check.Checkers.check;
+
 /**
  * Testing predicates, projections, sorting etc. on booleans
  */
@@ -133,6 +135,26 @@ public abstract class LocalDateTemplate {
     ids(holder.optional.atMost(date)).hasContentInAnyOrder("id2");
     ids(holder.optional.greaterThan(date)).isEmpty();
     ids(holder.optional.lessThan(date)).isEmpty();
+  }
+
+  @Test
+  void projection() {
+    LocalDate now1 = LocalDate.of(2010, 1, 1);
+    LocalDate now2 = now1.plusDays(2);
+    repository.insert(generator.get().withId("id1").withValue(now1).withNullable(null)
+            .withOptional(Optional.empty()));
+    repository.insert(generator.get().withId("id2").withValue(now2).withNullable(now2).withOptional(now2));
+
+    // projection of one attribute
+    check(repository.findAll().select(holder.value).fetch()).hasContentInAnyOrder(now1, now2);
+    check(repository.findAll().select(holder.nullable).asOptional().fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of(now2));
+    check(repository.findAll().select(holder.optional).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of(now2));
+
+    // 4 attributes using mapper
+    check(repository.findAll().select(holder.id, holder.value, holder.nullable, holder.optional)
+            .map((id, value, nullable, optional) -> String.format("id=%s value=%s nullable=%s optional=%s", id, value, nullable, optional.orElse(null))).fetch())
+            .hasContentInAnyOrder("id=id1 value=2010-01-01 nullable=null optional=null", "id=id2 value=2010-01-03 nullable=2010-01-03 optional=2010-01-03");
+
   }
 
   private IterableChecker<List<String>, String> ids(LocalDateHolderCriteria criteria) {
