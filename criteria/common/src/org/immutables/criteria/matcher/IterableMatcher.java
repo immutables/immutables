@@ -28,22 +28,6 @@ import java.util.function.UnaryOperator;
  */
 public interface IterableMatcher<R, S, V> extends Matcher {
 
-  default S all() {
-    throw new UnsupportedOperationException();
-  }
-
-  default S none() {
-    throw new UnsupportedOperationException();
-  }
-
-  default S any() {
-    throw new UnsupportedOperationException();
-  }
-
-  default S at(int index) {
-    throw new UnsupportedOperationException();
-  }
-
   default R contains(V value) {
     return Matchers.extract(this).applyAndCreateRoot(e -> Expressions.call(IterableOperators.CONTAINS, e, Expressions.constant(value)));
   }

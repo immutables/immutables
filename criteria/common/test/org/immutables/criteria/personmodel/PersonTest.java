@@ -16,34 +16,29 @@
 
 package org.immutables.criteria.personmodel;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-@Disabled("used for compile-time testing only")
-public class PersonTest {
+class PersonTest {
 
   @Test
-  public void collection() {
-    PersonCriteria crit = PersonCriteria.person
-            .pets.any().name.notEmpty()
-            .age.atLeast(11)
+  void collection() {
+    PersonCriteria crit = PersonCriteria.person;
+    PersonCriteria crit2 = crit.age.atLeast(11)
             .fullName.startsWith("John")
             .isActive.isTrue()
-
             .age.atMost(22)
             .isActive.isFalse()
-            .interests.none().startsWith("foo")
             .or()//.or() should not work
             .isActive.isTrue()
             .or()
             .fullName.not(f -> f.contains("bar").or().contains("foo"))
-            .pets.all().name.notEmpty()
-            .pets.any().name.with(n -> n.endsWith("aaa").or().startsWith("bbb"))
-            .pets.any().name.contains("aaa")
-            .pets.any().name.not(n -> n.contains("bar"))
-            .pets.none().name.hasLength(3)
+//            .pets.all().name.notEmpty()
+//            .pets.any().name.with(n -> n.endsWith("aaa").or().startsWith("bbb"))
+//            .pets.any().name.contains("aaa")
+//            .pets.any().name.not(n -> n.contains("bar"))
+//            .pets.none().name.hasLength(3)
             .not(p -> p.pets.hasSize(2))
             .dateOfBirth.atMost(LocalDate.MAX)
             .interests.contains("test");
@@ -53,7 +48,7 @@ public class PersonTest {
    * Make sure use-friendly criteria is returned after
    */
   @Test
-  public void returnNiceCriteria() {
+  void returnNiceCriteria() {
     PersonCriteria crit = PersonCriteria.person;
     crit = crit.age.atLeast(21);
     crit = crit.or(crit.fullName.notEmpty());
