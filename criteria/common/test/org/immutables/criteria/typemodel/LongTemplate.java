@@ -22,7 +22,11 @@ import org.immutables.criteria.personmodel.CriteriaChecker;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Supplier;
+
+import static org.immutables.check.Checkers.check;
 
 /**
  * Testing various string operations prefix/suffix/length etc.
@@ -85,6 +89,23 @@ public abstract class LongTemplate {
     ids(criteria.value.atLeast(33L)).isEmpty();
     ids(criteria.value.greaterThan(2L)).isEmpty();
     ids(criteria.value.lessThan(0L)).isEmpty();
+  }
+
+  @Test
+  void projection() {
+    repository.insert(generator.get().withId("id1").withValue(1).withNullable(null).withBoxed(1L)
+            .withOptional(OptionalLong.empty()).withOptional2(Optional.of(1L)));
+
+    repository.insert(generator.get().withId("id2").withValue(2).withNullable(2L).withBoxed(2L).withOptional(OptionalLong.of(2))
+            .withOptional2(Optional.empty()));
+
+    // projection of one attribute
+    check(repository.findAll().select(criteria.id).fetch()).hasContentInAnyOrder("id1", "id2");
+    check(repository.findAll().select(criteria.value).fetch()).hasContentInAnyOrder(1L, 2L);
+    check(repository.findAll().select(criteria.nullable).asOptional().fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of(2L));
+    check(repository.findAll().select(criteria.boxed).fetch()).hasContentInAnyOrder(1L, 2L);
+    check(repository.findAll().select(criteria.optional).fetch()).hasContentInAnyOrder(OptionalLong.empty(), OptionalLong.of(2));
+    check(repository.findAll().select(criteria.optional2).fetch()).hasContentInAnyOrder(Optional.of(1L), Optional.empty());
   }
 
   private IterableChecker<List<String>, String> ids(LongHolderCriteria criteria) {
