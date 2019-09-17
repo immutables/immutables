@@ -39,13 +39,13 @@ person
     .fullName.endsWith("Smith") // string condition
     .fullName.is(3.1415D) // ERROR! will not compile since fullName is String (not double)
     .nickName.isPresent() // for Optional attribute
-    .nickName.value().startsWith("Adam") // For Optional<String> attribute
+    .nickName.startsWith("Adam") // For Optional<String> attribute
     .pets.notEmpty() // condition on an Iterable
     .active.isTrue() // boolean
     .or() // disjunction (equivalent to logical OR)
     .age.atLeast(21) // comparable attribute
     .or()
-    .not(p -> p.nickName.value().hasLength(4)); // negation on a Optional<String> attribute
+    .not(p -> p.nickName.hasLength(4)); // negation on a Optional<String> attribute
 
 // apply specific predicate to elements of a collection
 person
@@ -61,7 +61,7 @@ You will notice that there are no `and` statements (conjunctions) that is becaus
 For more complex expressions, one can still combine criterias arbitrarily using `and`s / `or`s / `not`s. 
 Statement like `A and (B or C)` can be written as follows:
 ```java
-person.fullName.isEqualTo("John").and(person.age.isGreaterThan(22).or().nickName.isPresent())
+person.fullName.is("John").and(person.age.greaterThan(22).or().nickName.isPresent())
 ```
 
 Not all entities require repository (`@Criteria.Repository`) but you need to add `@Criteria` to all classes you want to query by. For example, to filter on `Person.pets.name` `Pet` class needs to have `@Criteria` (otherwise `PersonCriteria.pets` will have a very generic Object matcher).
@@ -71,8 +71,8 @@ Not all entities require repository (`@Criteria.Repository`) but you need to add
 instance (mongo, elastic, inmemory etc).
 
 ```java
-MongoCollection<Person> collection = ... // prepare collection with DocumentClass / CodecRegistry
-Backend backend = new MongoBackend(collection);
+MongoDatabase database = ... // prepare with CodecRegistry etc.
+Backend backend = new MongoBackend(MongoSetup.of(database));
 
 // PersonRepository is automatically generated. You need to provide only backend instance 
 PersonRepository repository = new PersonRepository(backend); 
@@ -80,7 +80,7 @@ PersonRepository repository = new PersonRepository(backend);
 repository.insert(ImmutablePerson.builder().id("aaa").fullName("John Smith").age(22).build());
 
 // query repository
-Publisher<Person> result = repository.find(person.fullName.contains("Smith")).fetch();
+List<Person> result = repository.find(person.fullName.contains("Smith")).fetch();
 ``` 
 
 ### Building blocks (nomenclature)
