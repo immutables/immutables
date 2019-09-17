@@ -67,18 +67,22 @@ class TupleCodecProvider implements CodecProvider {
 
   private static class FieldDecoder {
     private final String mongoField;
-    private final Type type;
     private final Decoder<?> decoder;
+    private final boolean isNullable;
 
     private FieldDecoder(Expression expression, String name, CodecRegistry registry) {
       this.mongoField = name;
-      this.type = expression.returnType();
+      Type type = expression.returnType();
+      this.isNullable = !Mongos.isOptional(type);
       this.decoder = SimpleRegistry.of(registry).get(TypeToken.of(type));
     }
 
     Object decode(BsonValue bson) {
       final Object value;
-      if (!bson.isDocument()) {
+      if (isNullable && bson.isNull()) {
+        // return NULL if field is nullable and BSON is null
+        value = null;
+      } else if (!bson.isDocument()) {
         value = decoder.decode(new BsonValueReader(bson), DecoderContext.builder().build());
       } else {
         value = decoder.decode(new BsonDocumentReader(bson.asDocument()), DecoderContext.builder().build());
@@ -88,7 +92,6 @@ class TupleCodecProvider implements CodecProvider {
   }
 
   private static class TupleCodec implements Codec<ProjectedTuple> {
-    private final CodecRegistry registry;
     private final Query query;
     private final List<FieldDecoder> decoders;
 
@@ -97,7 +100,7 @@ class TupleCodecProvider implements CodecProvider {
       if (query.projections().isEmpty()) {
         throw new IllegalArgumentException(String.format("No projections defined in query %s", query));
       }
-      this.registry = Objects.requireNonNull(registry, "registry");
+      Objects.requireNonNull(registry, "registry");
       this.decoders = query.projections().stream().map(p -> new FieldDecoder(p, naming.name(p), registry)).collect(Collectors.toList());
     }
 

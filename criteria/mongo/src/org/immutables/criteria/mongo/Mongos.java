@@ -20,6 +20,13 @@ import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.ExpressionConverter;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+
 /**
  * Util methods for mongo adapter.
  */
@@ -32,6 +39,13 @@ final class Mongos {
    */
   static ExpressionConverter<Bson> converter(PathNaming pathNaming) {
     return expression -> expression.accept(new FindVisitor(pathNaming));
+  }
+
+  /**
+   * Check if current type represents an optional type like {@link OptionalLong}, {@link Optional} etc.
+   */
+  static boolean isOptional(Type type) {
+    return type == Optional.class || type == OptionalDouble.class || type == OptionalLong.class || type == OptionalInt.class || (type instanceof ParameterizedType && ((ParameterizedType) type).getRawType() == Optional.class);
   }
 
 }

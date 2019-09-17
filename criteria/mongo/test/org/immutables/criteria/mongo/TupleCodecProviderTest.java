@@ -19,9 +19,12 @@ package org.immutables.criteria.mongo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import org.bson.BsonArray;
+import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonInt32;
+import org.bson.BsonNull;
 import org.bson.BsonString;
 import org.bson.codecs.Codec;
 import org.bson.codecs.DecoderContext;
@@ -34,8 +37,12 @@ import org.immutables.criteria.mongo.bson4jackson.IdAnnotationModule;
 import org.immutables.criteria.mongo.bson4jackson.JacksonCodecs;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonCriteria;
+import org.immutables.criteria.typemodel.LocalDateHolderCriteria;
+import org.immutables.criteria.typemodel.TypeHolder;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.immutables.check.Checkers.check;
@@ -52,7 +59,6 @@ public class TupleCodecProviderTest {
 
   @Test
   public void age() {
-
     Query query = Query.of(Person.class).addProjections(Matchers.toExpression(PersonCriteria.person.age));
     TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
     Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
@@ -61,6 +67,34 @@ public class TupleCodecProviderTest {
 
     check(tuple.values()).hasSize(1);
     check(tuple.values().get(0)).asString().is("10");
+  }
+
+  @Test
+  void localDate() {
+    LocalDateHolderCriteria criteria = LocalDateHolderCriteria.localDateHolder;
+
+    Query query = Query.of(TypeHolder.LocalDateHolder.class)
+            .addProjections(Matchers.toExpression(criteria.value),  Matchers.toExpression(criteria.nullable), Matchers.toExpression(criteria.optional));
+
+    TupleCodecProvider provider = new TupleCodecProvider(query, new MongoPathNaming().toExpression());
+    Codec<ProjectedTuple> codec = provider.get(ProjectedTuple.class, registry);
+
+    LocalDate now = LocalDate.now();
+    final long millisEpoch = now.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
+
+    BsonDocument doc = new BsonDocument()
+            .append("id", new BsonString("id1"))
+            .append("value", new BsonDateTime(millisEpoch))
+            .append("nullable", BsonNull.VALUE)
+            .append("optional", BsonNull.VALUE)
+            .append("array", new BsonArray())
+            .append("list", new BsonArray());
+
+    ProjectedTuple tuple = codec.decode(new BsonDocumentReader(doc), DecoderContext.builder().build());
+
+    check(tuple.get(Matchers.toExpression(criteria.value))).is(now);
+    check(tuple.get(Matchers.toExpression(criteria.nullable))).isNull();
+    check(tuple.get(Matchers.toExpression(criteria.optional))).is(Optional.empty());
   }
 
   /**
