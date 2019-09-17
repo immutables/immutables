@@ -18,6 +18,7 @@ package org.immutables.fixture.modifiable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
+import java.util.Map;
 import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
 import org.junit.jupiter.api.Test;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -304,5 +305,15 @@ public class ModifiablesTest {
         .toImmutable();
 
     check(f).is(f2);
+  }
+
+  @Test
+  public void setOnMapSetsOptBits() {
+    // test for #1055
+    Map<String, String> map = ImmutableMap.of("1", "2");
+    ModifiableDefaultMap m = ModifiableDefaultMap.create()
+            .setMap(map);
+
+    check(m.getMap()).is(map);
   }
 }
