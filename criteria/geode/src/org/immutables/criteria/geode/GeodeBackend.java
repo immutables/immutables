@@ -49,6 +49,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Backend for <a href="https://geode.apache.org/">Apache Geode</a>
@@ -116,16 +117,17 @@ public class GeodeBackend implements Backend {
               operation, GeodeBackend.class.getSimpleName())));
     }
 
-    private <T> Flowable<T> query(StandardOperations.Select op) {
+    private Flowable<?> query(StandardOperations.Select op) {
       // for projections use tuple function
-      Function<Object, T> maybeTupleFn = op.query().projections().isEmpty() ? x -> (T) x : obj -> (T) Geodes.castNumbers(toTuple(op.query(), obj));
+      Function<Object, Object> tupleFn = op.query().hasProjections() ? obj -> Geodes.castNumbers(toTuple(op.query(), obj)) : x -> x;
 
       return Flowable.fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
-        return (Iterable<Object>) queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
+        Iterable<Object> result = (Iterable<Object>) queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
+        // conversion to tuple should happen before rxjava because it doesn't allow nulls
+        return StreamSupport.stream(result.spliterator(), false).map(tupleFn).collect(Collectors.toList());
       })
-        .flatMapIterable(x -> x)
-        .map(maybeTupleFn::apply);
+        .flatMapIterable(x -> x);
     }
 
     private static ProjectedTuple toTuple(Query query, Object value) {
