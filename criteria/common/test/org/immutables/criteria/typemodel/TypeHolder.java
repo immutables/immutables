@@ -285,6 +285,11 @@ public interface TypeHolder {
     Optional<Date> optional();
     List<Date> list();
     Date[] array();
+    static Supplier<ImmutableDateHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableDateHolder.builder().id("id" + counter.incrementAndGet()).value(new Date()).nullable(null).array(new Date()).addList(new Date()).build();
+    }
+
   }
 
   @Value.Immutable

@@ -22,6 +22,7 @@ import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
@@ -122,6 +123,17 @@ class GeodeIntegrationTest {
     private BigDecimalTest() {
       super(backend);
     }
+  }
+
+  @Nested
+  class DateTest extends DateTemplate {
+    private DateTest() {
+      super(backend);
+    }
+
+    @Disabled
+    @Override
+    protected void optional() {}
   }
 
   private static class AutocreateRegion implements Consumer<Class<?>> {

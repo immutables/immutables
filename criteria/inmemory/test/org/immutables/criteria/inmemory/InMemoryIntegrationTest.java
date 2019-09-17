@@ -19,6 +19,7 @@ package org.immutables.criteria.inmemory;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
@@ -83,6 +84,13 @@ class InMemoryIntegrationTest {
   @Nested
   class BigDecimalTest extends BigDecimalTemplate {
     private BigDecimalTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DateTest extends DateTemplate {
+    private DateTest() {
       super(backend);
     }
   }

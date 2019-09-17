@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -93,7 +94,7 @@ class Mappings {
       return "double";
     } else if (type == Float.class || type == float.class) {
       return "float";
-    } else if (type == LocalDate.class || type == Instant.class || type == LocalDateTime.class) {
+    } else if (type == LocalDate.class || type == Instant.class || type == LocalDateTime.class || type == Date.class) {
       return "date";
     } else if (type instanceof Class && ((Class) type).isEnum()) {
       return "keyword";
