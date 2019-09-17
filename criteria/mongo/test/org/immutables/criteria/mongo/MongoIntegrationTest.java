@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
@@ -27,37 +28,37 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(MongoExtension.class)
 class MongoIntegrationTest {
 
-  private final BackendResource backend;
+  private final Backend backend;
 
   MongoIntegrationTest(MongoDatabase database) {
-    this.backend = new BackendResource(database);
+    this.backend = new BackendResource(database).backend();
   }
 
   @Nested
   class String extends StringTemplate {
     private String() {
-      super(backend.backend());
+      super(backend);
     }
   }
 
   @Nested
   class BooleanTest extends BooleanTemplate {
     private BooleanTest() {
-      super(backend.backend());
+      super(backend);
     }
   }
 
   @Nested
   class LocalDateTest extends LocalDateTemplate {
     private LocalDateTest() {
-      super(backend.backend());
+      super(backend);
     }
   }
 
   @Nested
   class LongTest extends LongTemplate {
     private LongTest() {
-      super(backend.backend());
+      super(backend);
     }
   }
 
