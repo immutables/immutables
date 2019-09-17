@@ -20,6 +20,7 @@ import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
+import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -116,6 +117,12 @@ class GeodeIntegrationTest {
     }
   }
 
+  @Nested
+  class BigDecimalTest extends BigDecimalTemplate {
+    private BigDecimalTest() {
+      super(backend);
+    }
+  }
 
   private static class AutocreateRegion implements Consumer<Class<?>> {
 

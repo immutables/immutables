@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
+import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -98,6 +99,13 @@ class ElasticIntegrationTests {
   @Nested
   class IntegerTest extends IntegerTemplate {
     private IntegerTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class BigDecimalTest extends BigDecimalTemplate {
+    private BigDecimalTest() {
       super(backend);
     }
   }

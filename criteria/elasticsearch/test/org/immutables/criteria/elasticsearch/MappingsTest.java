@@ -57,4 +57,20 @@ class MappingsTest {
     check(mapping.fields().get("optional").name()).is("integer");
     check(mapping.fields().get("nullable").name()).is("integer");
   }
+
+  @Test
+  void bigDecimalHolder() {
+    Mapping mapping = Mappings.of(TypeHolder.BigDecimalHolder.class);
+    check(mapping.fields().get("value").name()).is("double");
+    check(mapping.fields().get("optional").name()).is("double");
+    check(mapping.fields().get("nullable").name()).is("double");
+  }
+
+  @Test
+  void bigIntegerHolder() {
+    Mapping mapping = Mappings.of(TypeHolder.BigIntegerHolder.class);
+    check(mapping.fields().get("value").name()).is("long");
+    check(mapping.fields().get("optional").name()).is("long");
+    check(mapping.fields().get("nullable").name()).is("long");
+  }
 }

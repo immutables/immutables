@@ -18,6 +18,7 @@ package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
@@ -82,6 +83,13 @@ class MongoIntegrationTest {
   @Nested
   class IntegerTest extends IntegerTemplate {
     private IntegerTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class BigDecimalTest extends BigDecimalTemplate {
+    private BigDecimalTest() {
       super(backend);
     }
   }

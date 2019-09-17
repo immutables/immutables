@@ -218,6 +218,11 @@ public interface TypeHolder {
     Optional<BigDecimal> optional();
     BigDecimal[] array();
     List<BigDecimal> list();
+    static Supplier<ImmutableBigDecimalHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableBigDecimalHolder.builder().id("id" + counter.incrementAndGet()).value(BigDecimal.valueOf(counter.longValue())).nullable(null).array(BigDecimal.ONE).addList(BigDecimal.ZERO).build();
+    }
+
   }
 
   @Value.Immutable

@@ -22,6 +22,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -95,6 +97,10 @@ class Mappings {
       return "date";
     } else if (type instanceof Class && ((Class) type).isEnum()) {
       return "keyword";
+    } else if (type == BigDecimal.class) {
+      return "double"; // precession loss ?
+    } else if (type == BigInteger.class) {
+      return "long"; // precession loss ?
     }
 
     throw new IllegalArgumentException("Don't know how to map " + type);
