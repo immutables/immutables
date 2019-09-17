@@ -33,7 +33,7 @@ public interface OptionalComparableMatcher<R, V extends Comparable<? super V>> e
    */
   interface Self<V extends Comparable<? super V>> extends Template<Self<V>, V, Void>, Disjunction<Template<Self<V>, V, Void>> {}
 
-  interface Template<R, V extends Comparable<? super V>, P> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<Optional<V>>, Aggregation.ComparableTemplate<Optional<V>> {}
+  interface Template<R, V extends Comparable<? super V>, P> extends OptionalComparableMatcher<R, V>, WithMatcher<R, Self<V>>, NotMatcher<R, Self<V>>, Projection<P>, Aggregation.ComparableTemplate<Optional<V>> {}
 
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
