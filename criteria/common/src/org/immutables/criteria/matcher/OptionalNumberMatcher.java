@@ -36,13 +36,7 @@ public interface OptionalNumberMatcher<R, V extends Number & Comparable<? super 
 
   interface Template<R, V extends Number & Comparable<? super V>, P> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
           NotMatcher<R, Self<V>>, Projection<P>, Aggregation.NumberTemplate<Optional<V>, OptionalDouble, OptionalDouble> {}
-
-  /**
-   * Similar to main {@link OptionalNumberMatcher.Template} but with {@code @Nullable} projections and aggregations
-   */
-  interface NullableTemplate<R, V extends Number & Comparable<? super V>> extends OptionalNumberMatcher<R, V>, WithMatcher<R, Self<V>>,
-          NotMatcher<R, Self<V>>, Projection<V>, Aggregation.NumberTemplate<V, Double, Double>{}
-
+          
   @SuppressWarnings("unchecked")
   static <R> CriteriaCreator<R> creator() {
     class Local extends AbstractContextHolder implements Self {
