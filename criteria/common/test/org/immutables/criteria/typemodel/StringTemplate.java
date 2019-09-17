@@ -16,9 +16,12 @@
 
 package org.immutables.criteria.typemodel;
 
+import org.immutables.check.Checkers;
 import org.immutables.check.IterableChecker;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.NonUniqueResultException;
 import org.immutables.criteria.personmodel.CriteriaChecker;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -205,6 +208,35 @@ public abstract class StringTemplate {
     ids(string.optional.is("null")).isEmpty();
     ids(string.optional.is("notempty")).hasContentInAnyOrder("notnull");
     ids(string.optional.is("")).isEmpty();
+  }
+
+  /**
+   * validate {@code one() / oneOrNone() / exists()} methods
+   */
+  @Test
+  void fetch() {
+    repository.insert(generator.get().withValue("v1"));
+    repository.insert(generator.get().withValue("v1"));
+    repository.insert(generator.get().withValue("v2"));
+
+    // exists
+    Checkers.check(repository.findAll().exists());
+    Checkers.check(repository.find(string.value.is("v1")).exists());
+    Checkers.check(repository.find(string.value.is("v2")).exists());
+    Checkers.check(!repository.find(string.value.is("v3")).exists());
+
+    // one
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.findAll().one());
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.find(string.value.is("v1")).one());
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.find(string.value.is("v1")).one());
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.find(string.value.is("v3")).one());
+    check(repository.find(string.value.is("v2")).one().value()).is("v2");
+
+    // oneOrNone
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.findAll().oneOrNone());
+    Assertions.assertThrows(NonUniqueResultException.class, () -> repository.find(string.value.is("v1")).oneOrNone());
+    check(repository.find(string.value.is("v2")).oneOrNone().get().value()).is("v2");
+    check(!repository.find(string.value.is("v3")).oneOrNone().isPresent());
   }
 
   private IterableChecker<List<String>, String> ids(StringHolderCriteria criteria) {
