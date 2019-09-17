@@ -100,14 +100,15 @@ public abstract class BooleanTemplate {
 
   @Test
   void projection() {
-    repository.insert(generator.get().withId("id1").withValue(true).withNullable(false).withOptional(Optional.of(false)));
-    repository.insert(generator.get().withId("id2").withValue(false).withNullable(true).withOptional(Optional.of(true)));
-    repository.insert(generator.get().withId("id3").withValue(false).withNullable(null).withOptional(Optional.empty()));
+    repository.insert(generator.get().withId("id1").withValue(true).withNullable(false).withBoxed(Boolean.TRUE).withOptional(Optional.of(false)));
+    repository.insert(generator.get().withId("id2").withValue(false).withNullable(true).withBoxed(Boolean.FALSE).withOptional(Optional.of(true)));
+    repository.insert(generator.get().withId("id3").withValue(false).withNullable(null).withBoxed(Boolean.TRUE).withOptional(Optional.empty()));
 
     // projection of one attribute
     check(repository.findAll().select(holder.id).fetch()).hasContentInAnyOrder("id1", "id2", "id3");
     check(repository.findAll().select(holder.value).fetch()).hasContentInAnyOrder(true, false, false);
     check(repository.findAll().select(holder.nullable).asOptional().fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of(true), Optional.of(false));
+    check(repository.findAll().select(holder.boxed).fetch()).hasContentInAnyOrder(Boolean.TRUE, Boolean.FALSE, Boolean.TRUE);
     check(repository.findAll().select(holder.optional).fetch()).hasContentInAnyOrder(Optional.empty(), Optional.of(true), Optional.of(false));
 
     // 2 attributes using tuple
