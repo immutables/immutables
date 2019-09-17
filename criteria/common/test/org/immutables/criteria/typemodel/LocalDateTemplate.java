@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 /**
  * Testing predicates, projections, sorting etc. on booleans
  */
-public class LocalDateTemplate {
+public abstract class LocalDateTemplate {
 
   private final LocalDateHolderRepository repository;
   private final LocalDateHolderCriteria holder;

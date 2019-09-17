@@ -31,7 +31,7 @@ import static org.immutables.check.Checkers.check;
 /**
  * Testing predicates, projections, sorting etc. on booleans
  */
-public class BooleanTemplate {
+public abstract class BooleanTemplate {
 
   private final BooleanHolderRepository repository;
   private final BooleanHolderCriteria holder;
