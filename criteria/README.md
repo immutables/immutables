@@ -45,7 +45,8 @@ person
     .or() // disjunction (equivalent to logical OR)
     .age.atLeast(21) // comparable attribute
     .or()
-    .not(p -> p.nickName.hasLength(4)); // negation on a Optional<String> attribute
+    .not(p -> p.nickName.hasLength(4)) // negation on a Optional<String> attribute
+    .bestFriend.value().hobby.endsWith("ing"); // chaining criterias on other entities like Optional<Friend> 
 
 // apply specific predicate to elements of a collection
 person
