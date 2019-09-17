@@ -23,6 +23,7 @@ import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
+import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
@@ -107,6 +108,14 @@ class GeodeIntegrationTest {
       super(backend);
     }
   }
+
+  @Nested
+  class IntegerTest extends IntegerTemplate {
+    private IntegerTest() {
+      super(backend);
+    }
+  }
+
 
   private static class AutocreateRegion implements Consumer<Class<?>> {
 

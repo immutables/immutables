@@ -145,6 +145,12 @@ public interface TypeHolder {
     int[] array();
     List<Integer> list();
     OptionalInt optional();
+
+    static Supplier<ImmutableIntegerHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableIntegerHolder.builder().id("id" + counter.incrementAndGet()).value(counter.intValue()).nullable(counter.intValue()).boxed(counter.intValue()).array(1, 2).build();
+    }
+
   }
 
   @Value.Immutable
