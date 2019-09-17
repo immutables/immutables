@@ -233,7 +233,7 @@ public interface TypeHolder {
   }
 
   enum Foo {
-    ONE, TWO
+    ONE, TWO, THREE
   }
 
   @Value.Immutable
@@ -250,6 +250,11 @@ public interface TypeHolder {
     Optional<Foo> optional();
     List<Foo> list();
     Foo[] array();
+    static Supplier<ImmutableEnumHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableEnumHolder.builder().id("id" + counter.incrementAndGet()).value(Foo.values()[(int) (counter.get() % Foo.values().length)]).nullable(null).array(Foo.ONE).addList(Foo.TWO).build();
+    }
+
   }
 
   @Value.Immutable

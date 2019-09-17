@@ -18,6 +18,7 @@ package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
@@ -55,4 +56,10 @@ class InMemoryIntegrationTest {
     }
   }
 
+  @Nested
+  class EnumTest extends EnumTemplate {
+    private EnumTest() {
+      super(backend);
+    }
+  }
 }

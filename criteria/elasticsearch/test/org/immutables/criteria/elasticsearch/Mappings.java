@@ -56,7 +56,7 @@ class Mappings {
 
     for (Method method: methods.collect(Collectors.toSet())) {
       Class<?> returnType = method.getReturnType();
-      // skip arrays and iterables
+      // skip arrays and iterables (we don't handle them yet)
       if (returnType.isArray() || Iterable.class.isAssignableFrom(returnType)) {
         continue;
       }
@@ -93,6 +93,8 @@ class Mappings {
       return "float";
     } else if (type == LocalDate.class || type == Instant.class || type == LocalDateTime.class) {
       return "date";
+    } else if (type instanceof Class && ((Class) type).isEnum()) {
+      return "keyword";
     }
 
     throw new IllegalArgumentException("Don't know how to map " + type);
