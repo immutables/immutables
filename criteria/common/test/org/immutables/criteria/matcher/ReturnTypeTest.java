@@ -19,6 +19,7 @@ package org.immutables.criteria.matcher;
 import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.typemodel.BooleanHolderCriteria;
+import org.immutables.criteria.typemodel.DoubleHolderCriteria;
 import org.immutables.criteria.typemodel.EnumHolderCriteria;
 import org.immutables.criteria.typemodel.IntegerHolderCriteria;
 import org.immutables.criteria.typemodel.LocalDateHolderCriteria;
@@ -88,7 +89,18 @@ class ReturnTypeTest {
     check(projectionType(criteria.value)).is(Boolean.class);
     check(projectionType(criteria.nullable)).is(Boolean.class);
     check(projectionType(criteria.optional)).is(new TypeToken<Optional<Boolean>>() {}.getType());
+  }
 
+  @Test
+  void doubleType() {
+    DoubleHolderCriteria criteria = DoubleHolderCriteria.doubleHolder;
+    check(Matchers.toExpression(criteria.value).returnType()).is(double.class);
+    check(Matchers.toExpression(criteria.value.count()).returnType()).is(Long.class);
+
+    check(projectionType(criteria.value)).is(Double.class);
+    check(projectionType(criteria.nullable)).is(Double.class);
+    check(projectionType(criteria.optional)).is(new TypeToken<OptionalDouble>() {}.getType());
+    check(projectionType(criteria.optional2)).is(new TypeToken<Optional<Double>>() {}.getType());
   }
 
   @Test

@@ -34,7 +34,7 @@ public interface OptionalDoubleMatcher<R> extends OptionalNumberMatcher<R, Doubl
   interface Self extends Template<Self, Void>, Disjunction<Template<Self, Void>> {}
 
   interface Template<R, P> extends OptionalDoubleMatcher<R>, WithMatcher<R, Self>,
-          NotMatcher<R, Self>, Projection<OptionalDouble>, Aggregation.NumberTemplate<OptionalDouble, OptionalDouble, OptionalDouble> {}
+          NotMatcher<R, Self>, Projection<P>, Aggregation.NumberTemplate<OptionalDouble, OptionalDouble, OptionalDouble> {}
 
 
   @SuppressWarnings("unchecked")
