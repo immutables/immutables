@@ -21,6 +21,7 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
@@ -96,6 +97,13 @@ class GeodeIntegrationTest {
   @Nested
   class EnumTest extends EnumTemplate {
     private EnumTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DoubleTest extends DoubleTemplate {
+    private DoubleTest() {
       super(backend);
     }
   }

@@ -67,9 +67,6 @@ public interface TypeHolder {
               .array(true, false)
               .build();
     }
-
-
-
   }
 
   @Value.Immutable
@@ -124,6 +121,12 @@ public interface TypeHolder {
     Optional<Double> optional2();
     double[] array();
     List<Double> list();
+
+    static Supplier<ImmutableDoubleHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableDoubleHolder.builder().id("id" + counter.incrementAndGet()).value(counter.get()).boxed((double) counter.incrementAndGet()).array(1D, 2D).build();
+    }
+
   }
 
   @Value.Immutable

@@ -19,6 +19,7 @@ package org.immutables.criteria.mongo;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.typemodel.BooleanTemplate;
+import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
@@ -66,6 +67,13 @@ class MongoIntegrationTest {
   @Nested
   class EnumTest extends EnumTemplate {
     private EnumTest() {
+      super(backend);
+    }
+  }
+
+  @Nested
+  class DoubleTest extends DoubleTemplate {
+    private DoubleTest() {
       super(backend);
     }
   }

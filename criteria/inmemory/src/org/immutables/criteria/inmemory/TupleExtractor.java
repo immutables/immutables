@@ -67,6 +67,12 @@ class TupleExtractor  {
       throw new IllegalArgumentException("Unknown type " + type + " for path " + path.toStringPath());
     }
 
+    // don't wrap if already optional
+    if (value instanceof OptionalDouble || value instanceof OptionalInt
+            || value instanceof OptionalLong || value instanceof Optional || value instanceof com.google.common.base.Optional) {
+      return value;
+    }
+
     if (Optional.class.isAssignableFrom(klass)) {
       return Optional.ofNullable(value);
     } else if (OptionalDouble.class.isAssignableFrom(klass)) {
