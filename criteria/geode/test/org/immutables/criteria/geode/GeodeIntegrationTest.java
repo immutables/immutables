@@ -27,6 +27,7 @@ import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
+import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
 import org.junit.jupiter.api.Disabled;
@@ -89,6 +90,18 @@ class GeodeIntegrationTest {
     @Override
     protected void optional() {}
   }
+
+  @Nested
+  class LocalDateTimeTest extends LocalDateTimeTemplate {
+    private LocalDateTimeTest() {
+      super(backend);
+    }
+
+    @Disabled
+    @Override
+    protected void optional() {}
+  }
+
 
   @Nested
   class LongTest extends LongTemplate {
