@@ -16,22 +16,12 @@
 
 package org.immutables.criteria.mongo;
 
-import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import io.reactivex.Flowable;
-import org.bson.BsonDocument;
-import org.bson.BsonInt32;
-import org.bson.BsonString;
-import org.immutables.check.Checkers;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
-import org.immutables.criteria.personmodel.Person;
-import org.immutables.criteria.personmodel.PersonGenerator;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,10 +30,10 @@ import java.util.Set;
 @ExtendWith(MongoExtension.class)
 public class MongoPersonTest extends AbstractPersonTest {
 
-  private final BackendResource backend;
+  private final Backend backend;
 
   MongoPersonTest(MongoDatabase database) {
-    this.backend = new BackendResource(database);
+    this.backend = new BackendResource(database).backend();
   }
 
   @Override
@@ -60,29 +50,8 @@ public class MongoPersonTest extends AbstractPersonTest {
 
   @Override
   protected Backend backend() {
-    return backend.backend();
+    return backend;
   }
 
-  /**
-   * Test that {@code _id} attribute is persisted instead of {@code id}
-   */
-  @Test
-  public void idAttribute() {
-    insert(new PersonGenerator().next().withId("id123").withAge(22));
-    // query directly
-    final List<BsonDocument> docs = Flowable.fromPublisher(backend.collection(Person.class)
-            .withDocumentClass(BsonDocument.class)
-            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
-            .find()).toList().blockingGet();
 
-    Checkers.check(docs).hasSize(1);
-    Checkers.check(docs.get(0).get("_id")).is(new BsonString("id123"));
-    Checkers.check(docs.get(0).get("age")).is(new BsonInt32(22));
-
-    // query using repository
-    final List<Person> persons= repository.findAll().fetch();
-    Checkers.check(persons).hasSize(1);
-    Checkers.check(persons.get(0).id()).is("id123");
-  }
-  
 }
