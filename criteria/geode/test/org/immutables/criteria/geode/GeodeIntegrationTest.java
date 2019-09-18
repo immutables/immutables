@@ -25,6 +25,7 @@ import org.immutables.criteria.typemodel.BooleanTemplate;
 import org.immutables.criteria.typemodel.DateTemplate;
 import org.immutables.criteria.typemodel.DoubleTemplate;
 import org.immutables.criteria.typemodel.EnumTemplate;
+import org.immutables.criteria.typemodel.InstantTemplate;
 import org.immutables.criteria.typemodel.IntegerTemplate;
 import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
@@ -101,6 +102,18 @@ class GeodeIntegrationTest {
     @Override
     protected void optional() {}
   }
+
+  @Nested
+  class InstantTest extends InstantTemplate {
+    private InstantTest() {
+      super(backend);
+    }
+
+    @Disabled
+    @Override
+    protected void optional() {}
+  }
+
 
 
   @Nested
