@@ -26,7 +26,10 @@ import org.immutables.value.Value;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -289,7 +292,54 @@ public interface TypeHolder {
       AtomicLong counter = new AtomicLong();
       return () -> ImmutableDateHolder.builder().id("id" + counter.incrementAndGet()).value(new Date()).nullable(null).array(new Date()).addList(new Date()).build();
     }
+  }
 
+  @Value.Immutable
+  @Criteria
+  @Criteria.Repository
+  @JsonDeserialize(as = ImmutableInstantHolder.class)
+  @JsonSerialize(as = ImmutableInstantHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  interface InstantHolder {
+    @Criteria.Id
+    String id();
+    Instant value();
+    @Nullable Instant nullable();
+    Optional<Instant> optional();
+    List<Instant> list();
+    Instant[] array();
+
+    static Supplier<ImmutableInstantHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableInstantHolder.builder().id("id" + counter.incrementAndGet())
+              .value(Instant.now())
+              .nullable(null).array(Instant.now())
+              .build();
+    }
+  }
+
+  @Value.Immutable
+  @Criteria
+  @Criteria.Repository
+  @JsonDeserialize(as = ImmutableLocalDateTimeHolder.class)
+  @JsonSerialize(as = ImmutableLocalDateTimeHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  interface LocalDateTimeHolder {
+    @Criteria.Id
+    String id();
+    LocalDateTime value();
+    @Nullable LocalDateTime nullable();
+    Optional<LocalDateTime> optional();
+    List<LocalDateTime> list();
+    LocalDateTime[] array();
+
+    static Supplier<ImmutableLocalDateTimeHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableLocalDateTimeHolder.builder().id("id" + counter.incrementAndGet())
+              .value(LocalDateTime.now())
+              .nullable(null).array(LocalDateTime.now())
+              .build();
+    }
   }
 
   @Value.Immutable
@@ -314,6 +364,29 @@ public interface TypeHolder {
               .nullable(null).array(LocalDate.now()).build();
     }
   }
+
+  @Value.Immutable
+  @Criteria
+  @Criteria.Repository
+  @JsonDeserialize(as = ImmutableLocalTimeHolder.class)
+  @JsonSerialize(as = ImmutableLocalTimeHolder.class)
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  interface LocalTimeHolder {
+    @Criteria.Id
+    String id();
+    LocalTime value();
+    @Nullable LocalTime nullable();
+    Optional<LocalTime> optional();
+    List<LocalTime> list();
+    LocalTime[] array();
+
+    static Supplier<ImmutableLocalTimeHolder> generator() {
+      AtomicLong counter = new AtomicLong();
+      return () -> ImmutableLocalTimeHolder.builder().id("id" + counter.incrementAndGet())
+              .value(LocalTime.now()).nullable(null).array(LocalTime.now()).build();
+    }
+  }
+
 
   @Value.Immutable
   @Criteria
