@@ -19,7 +19,6 @@ package org.immutables.criteria.mongo;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.reactivestreams.client.MongoDatabase;
 import io.reactivex.Flowable;
-import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
@@ -31,8 +30,6 @@ import org.immutables.criteria.personmodel.PersonGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -87,20 +84,5 @@ public class MongoPersonTest extends AbstractPersonTest {
     Checkers.check(persons).hasSize(1);
     Checkers.check(persons.get(0).id()).is("id123");
   }
-
-  @Test
-  public void jsr310() {
-    insert(new PersonGenerator().next().withDateOfBirth(LocalDate.of(1990, 2, 2)));
-    // query directly
-    final List<BsonDocument> docs = Flowable.fromPublisher(backend.collection(Person.class)
-            .withDocumentClass(BsonDocument.class)
-            .withCodecRegistry(MongoClientSettings.getDefaultCodecRegistry())
-            .find()).toList().blockingGet();
-
-    Checkers.check(docs).hasSize(1);
-    final LocalDate expected = LocalDate.of(1990, 2, 2);
-    final long epochMillis = expected.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli();
-    Checkers.check(docs.get(0).get("dateOfBirth")).is(new BsonDateTime(epochMillis));
-  }
-
+  
 }
