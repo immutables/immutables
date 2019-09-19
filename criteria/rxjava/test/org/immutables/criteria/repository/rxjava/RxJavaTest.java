@@ -17,22 +17,35 @@
 package org.immutables.criteria.repository.rxjava;
 
 import io.reactivex.Flowable;
+import org.immutables.criteria.Criteria;
 import org.immutables.criteria.repository.FakeBackend;
+import org.immutables.value.Value;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
-public class RxJavaModelTest {
+class RxJavaTest {
 
   @Test
-  public void rxjava() throws InterruptedException {
+  void empty() {
     RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.empty()));
     repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertNoValues();
   }
 
   @Test
-  public void error() {
+  void single() {
+    RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.just(ImmutableRxJavaModel.builder().build())));
+    repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertValueCount(1);
+  }
+
+  @Test
+  void error() {
     RxJavaModelRepository repo = new RxJavaModelRepository(new FakeBackend(Flowable.error(new RuntimeException("boom"))));
     repo.findAll().fetch().test().awaitDone(1, TimeUnit.SECONDS).assertErrorMessage("boom");
   }
+
+  @Value.Immutable
+  @Criteria
+  @Criteria.Repository(facets = {RxJavaReadable.class, RxJavaWritable.class, RxJavaWatchable.class})
+  interface RxJavaModel {}
 }
