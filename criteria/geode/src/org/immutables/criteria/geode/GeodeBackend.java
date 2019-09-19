@@ -48,6 +48,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -55,6 +57,8 @@ import java.util.stream.StreamSupport;
  * Backend for <a href="https://geode.apache.org/">Apache Geode</a>
  */
 public class GeodeBackend implements Backend {
+
+  private static final Logger logger = Logger.getLogger(GeodeBackend.class.getName());
 
   private final RegionResolver resolver;
 
@@ -123,6 +127,9 @@ public class GeodeBackend implements Backend {
 
       return Flowable.fromCallable(() -> {
         OqlWithVariables oql = toOql(op.query(), true);
+        if (logger.isLoggable(Level.FINE)) {
+          logger.log(Level.FINE, "Querying Geode with {0}", oql);
+        }
         Iterable<Object> result = (Iterable<Object>) queryService.newQuery(oql.oql()).execute(oql.variables().toArray(new Object[0]));
         // conversion to tuple should happen before rxjava because it doesn't allow nulls
         return StreamSupport.stream(result.spliterator(), false).map(tupleFn).collect(Collectors.toList());

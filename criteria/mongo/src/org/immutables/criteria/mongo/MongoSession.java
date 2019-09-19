@@ -44,10 +44,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 class MongoSession implements Backend.Session {
+
+  private static final Logger logger = Logger.getLogger(MongoSession.class.getName());
 
   private final ExpressionConverter<Bson> converter;
   private final MongoCollection<?> collection;
@@ -60,7 +64,12 @@ class MongoSession implements Backend.Session {
   }
 
   private Bson toBson(Query query) {
-    return query.filter().map(converter::convert).orElseGet(BsonDocument::new);
+    Bson bson = query.filter().map(converter::convert).orElseGet(BsonDocument::new);
+    if (logger.isLoggable(Level.FINE)) {
+      BsonDocument filter = bson.toBsonDocument(BsonDocument.class, collection.getCodecRegistry());
+      logger.log(Level.FINE, "Using filter [{0}] to query {1}", new Object[] {filter, collection.getNamespace()});
+    }
+    return bson;
   }
 
   @Override

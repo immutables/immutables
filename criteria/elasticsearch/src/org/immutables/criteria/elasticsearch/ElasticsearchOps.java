@@ -41,11 +41,15 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Helper methods to operate on ES index: search, scroll etc.
  */
 class ElasticsearchOps {
+
+  private static final Logger logger = Logger.getLogger(ElasticsearchOps.class.getName());
 
   private final RxJavaTransport transport;
   private final ObjectMapper mapper;
@@ -167,6 +171,9 @@ class ElasticsearchOps {
       final Request request = new Request("POST", String.format("/%s/_search", index));
       httpParams.forEach(request::addParameter);
       request.setJsonEntity(query.toString());
+      if (logger.isLoggable(Level.FINE)) {
+        logger.log(Level.FINE, "Performing search {0} on {1}", new Object[] {query, request});
+      }
       return transport.execute(request).map(r -> responseConverter().apply(r));
   }
 

@@ -30,7 +30,7 @@ class OqlWithVariables {
   private final String oql;
 
   OqlWithVariables(List<Object> variables, String oql) {
-    this.variables = variables;
+    this.variables = Objects.requireNonNull(variables, "variables");
     this.oql = Objects.requireNonNull(oql, "oql");
   }
 
@@ -42,4 +42,19 @@ class OqlWithVariables {
     return oql;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("oql=[").append(oql).append("] ");
+    if (!variables.isEmpty()) {
+      builder.append(" with ").append(variables.size()).append(" variables [");
+      for (int i = 0; i < variables.size(); i++) {
+        builder.append("$").append(i + 1).append("=").append(variables.get(i));
+        builder.append(", ");
+      }
+      builder.append("]");
+    }
+
+    return builder.toString();
+  }
 }
