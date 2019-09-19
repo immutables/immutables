@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.repository.rxjava2;
 
+import org.immutables.criteria.Criterias;
+import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper2;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.Objects;
 
-public class RxJavaMapper2<T1, T2> {
+public class RxJavaReadable<T> implements RxJavaRepository.Readable<T> {
 
-  private final ReactiveMapper2<T1, T2> delegate;
+  private final Backend.Session session;
 
-  RxJavaMapper2(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper2<>(query, session);
+  public RxJavaReadable(Backend.Session session) {
+    this.session = Objects.requireNonNull(session, "session");
   }
 
-  public <R> RxJavaFetcher<R> map(BiFunction<T1, T2, R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  @Override
+  public RxJavaReader<T> find(Criterion<T> criteria) {
+    return new RxJavaReader<>(Criterias.toQuery(criteria), session);
   }
 
-  public <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  @Override
+  public RxJavaReader<T> findAll() {
+    return new RxJavaReader<>(Query.of(session.entityType()), session);
   }
-
 }

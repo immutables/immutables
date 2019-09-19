@@ -41,7 +41,7 @@
         <module>mongo</module>
         <module>elasticsearch</module>
         <module>geode</module>
-        <module>rxjava</module>
+        <module>rxjava2</module>
         <module>reactor</module>
     </modules>
 

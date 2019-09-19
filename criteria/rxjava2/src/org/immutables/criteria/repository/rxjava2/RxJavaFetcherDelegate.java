@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.repository.rxjava2;
 
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;

@@ -14,24 +14,29 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.repository.rxjava2;
 
+import io.reactivex.Single;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
-import java.util.Objects;
+public class RxJavaWritable<T> implements RxJavaRepository.Writable<T> {
 
-public class RxJavaWatchable<T> implements RxJavaRepository.Watchable<T> {
+  private final ReactiveWritable<T> writable;
 
-  private final Backend.Session session;
-
-  public RxJavaWatchable(Backend.Session session) {
-    this.session = Objects.requireNonNull(session, "session");
+  public RxJavaWritable(Backend.Session session) {
+    this.writable = new ReactiveWritable<>(session);
   }
 
   @Override
-  public RxJavaWatcher<T> watcher(Criterion<T> criteria) {
-    return new RxJavaWatcher<T>(criteria, session);
+  public Single<WriteResult> insert(Iterable<? extends T> docs) {
+    return Single.fromPublisher(writable.insert(docs));
   }
 
+  @Override
+  public Single<WriteResult> delete(Criterion<T> criteria) {
+    return Single.fromPublisher(writable.delete(criteria));
+  }
 }

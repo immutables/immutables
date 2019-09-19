@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.repository.rxjava2;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.repository.MapperFunction3;
 import org.immutables.criteria.repository.Tuple;
-import org.immutables.criteria.repository.reactive.ReactiveMapper3;
+import org.immutables.criteria.repository.reactive.ReactiveMapperTuple;
 
 import java.util.function.Function;
 
-public class RxJavaMapper3<T1, T2, T3> {
+public class RxJavaMapperTuple {
 
-  private final ReactiveMapper3<T1, T2, T3> delegate;
+  private final ReactiveMapperTuple delegate;
 
-  RxJavaMapper3(Query query, Backend.Session session) {
-    this.delegate = new ReactiveMapper3<>(query, session);
-  }
-
-  public <R> RxJavaFetcher<R> map(MapperFunction3<T1, T2, T3, R> mapFn) {
-    return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
+  RxJavaMapperTuple(Query query, Backend.Session session) {
+    this.delegate = new ReactiveMapperTuple(query, session);
   }
 
   public <R> RxJavaFetcher<R> map(Function<? super Tuple, ? extends R> mapFn) {
     return RxJavaFetcherDelegate.fromReactive(delegate.map(mapFn));
   }
-
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.repository.rxjava;
+package org.immutables.criteria.repository.rxjava2;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;

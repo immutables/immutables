@@ -21,7 +21,7 @@
         <version>2.7.6-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>criteria-rxjava</artifactId>
+    <artifactId>criteria-rxjava2</artifactId>
     <name>${project.groupId}.${project.artifactId}</name>
     <description>
       RxJava implementation for Repository (readers / writers)
