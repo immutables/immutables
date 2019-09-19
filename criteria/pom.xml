@@ -42,6 +42,7 @@
         <module>elasticsearch</module>
         <module>geode</module>
         <module>rxjava</module>
+        <module>reactor</module>
     </modules>
 
 </project>
