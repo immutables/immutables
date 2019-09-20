@@ -34,11 +34,15 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <!-- Guava and jsr 305 annotations are used as required utility.-->
-            <groupId>org.immutables.dependency</groupId>
-            <artifactId>utility</artifactId>
-            <version>${project.version}</version>
-            <type>pom</type>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>${jsr305.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.immutables</groupId>

@@ -78,10 +78,8 @@ import [starImport];
  * Base class for {@link [type.name]Criteria} also used as matcher attribute on other criterias.
  * @param <R> root self-type for fluent API
  */
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
-@javax.annotation.concurrent.ThreadSafe
-[/if]
-@javax.annotation.concurrent.Immutable
+[addAnnotationIfInClasspath type 'javax.annotation.concurrent.ThreadSafe']
+[addAnnotationIfInClasspath type 'javax.annotation.concurrent.Immutable']
 [atGenerated type]
 [type.typeDocument.access]abstract class [type.name]CriteriaTemplate<R> extends AbstractContextHolder implements Criterion<[type.typeDocument]>,
             AndMatcher<[type.name]Criteria>, OrMatcher<[type.name]Criteria>,
@@ -130,10 +128,8 @@ import [starImport];
  *
  * <p>This class is immutable and thus thread-safe.</p>
  */
-[if type allowsClasspathAnnotation 'javax.annotation.concurrent.ThreadSafe']
-@javax.annotation.concurrent.ThreadSafe
-[/if]
-@javax.annotation.concurrent.Immutable
+[addAnnotationIfInClasspath type 'javax.annotation.concurrent.ThreadSafe']
+[addAnnotationIfInClasspath type 'javax.annotation.concurrent.Immutable']
 [atGenerated type]
 [type.typeDocument.access]class [type.name]Criteria extends [type.name]CriteriaTemplate<[type.name]Criteria>
      implements Disjunction<[type.name]CriteriaTemplate<[type.name]Criteria>>  {
@@ -150,6 +146,12 @@ import [starImport];
      super(context);
   }
 }
+[/template]
+
+[template addAnnotationIfInClasspath Type type String name]
+[if type allowsClasspathAnnotation name]
+@[name]
+[/if]
 [/template]
 
 [template atGenerated Type type]

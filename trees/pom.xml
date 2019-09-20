@@ -42,12 +42,10 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <!-- Needed when used with optional ast support classes -->
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility</artifactId>
-      <version>${project.version}</version>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
       <optional>true</optional>
-      <type>pom</type>
+      <version>${guava.version}</version>
     </dependency>
     <dependency>
       <!-- Test only utilities -->

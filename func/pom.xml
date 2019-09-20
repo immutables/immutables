@@ -31,17 +31,16 @@
       <version>${guava.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${jsr305.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.immutables</groupId>
       <artifactId>value-annotations</artifactId>
       <version>${project.version}</version>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.immutables.dependency</groupId>
-      <artifactId>utility</artifactId>
-      <version>${project.version}</version>
-      <type>pom</type>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.immutables</groupId>

@@ -29,7 +29,6 @@
   <url>http://immutables.org</url>
 
   <modules>
-    <module>utility</module>
     <module>testing</module>
     <module>generator</module>
     <module>generator-processor</module>
@@ -124,6 +123,7 @@
     <rxjava2-extensions.version>0.20.10</rxjava2-extensions.version>
     <reactor.version>3.2.12.RELEASE</reactor.version>
     <geode.version>1.9.0</geode.version>
+    <jsr305.version>3.0.1</jsr305.version>
   </properties>
 
   <repositories>
