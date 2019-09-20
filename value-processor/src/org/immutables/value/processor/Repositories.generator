@@ -393,7 +393,6 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
 [for a in type.allMarshalingAttributes,
     wW = a.wrappedElementType,
     uU = a.unwrappedElementType]
-[if a.marshaledName ne '_id']
   [if a.collectionType]
 
   /**
@@ -598,9 +597,6 @@ public static final class Modifier extends Repositories.Modifier<[type.typeDocum
       [/if]
     [/if]
   [/if]
-[else]
-  [-- _id init don't works in Mongodb stable yet --]
-[/if]
 [/for]
 [/template]
 
