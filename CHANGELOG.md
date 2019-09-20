@@ -1,4 +1,8 @@
 
+### 2.8.0 (2019-09-19)
+- Criteria & Repositories API 
+- Not a bugfix release yet, expect more bugfixes in future 2.8.x versions
+
 ### 2.7.4 (2018-12-26)
 - Bugfix and refinements release! Thank you issue reports and PRs!
 - Notable stuff
