@@ -783,6 +783,7 @@ public [thisSetterReturnType type] [v.names.set]([v.atNullability][if type.beanF
         [if v.nullElements.ban][im.requireNonNull type](v, "[v.name] value")[else]v[/if]);
   }
   [/if]
+  [nondefaultSetter v]
   [thisSetterReturn type]
 }
 
