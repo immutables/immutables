@@ -21,13 +21,15 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.io.CharStreams;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Scanner;
 import javax.annotation.processing.Filer;
 import javax.tools.StandardLocation;
 
@@ -80,12 +82,12 @@ public final class ExtensionLoader {
         .getCharContent(true)
         .toString();
   }
-  
-    private static String getClasspathResourceText(URL requestURL) throws IOException {
-        URLConnection connection = requestURL.openConnection();
-        connection.setUseCaches(false);
-        try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8.toString()).useDelimiter("\\A")) {
-            return scanner.hasNext() ? scanner.next() : "";
-        }
+
+  private static String getClasspathResourceText(URL requestURL) throws IOException {
+    URLConnection connection = requestURL.openConnection();
+    connection.setUseCaches(false);
+    try (Reader r = new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8)) {
+      return CharStreams.toString(r);
     }
+  }
 }
