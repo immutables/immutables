@@ -2855,7 +2855,7 @@ static final [output.linesShortable]class Json[type.generics]
 [for v in type.settableAttributes if v.jacksonAnyGetter]
 
   @com.fasterxml.jackson.annotation.JsonAnySetter
-  public void set[toUpper v.name]([v.wrappedElementType] key, [v.wrappedSecondaryElementType] value) {
+  public void set[toUpper v.name]([v.wrappedFirstElementType] key, [v.wrappedSecondaryElementType] value) {
     this.[v.name].put(key, value);
   }
 [/for]
