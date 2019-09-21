@@ -1,6 +1,8 @@
 package org.immutables.fixture.builder.functional;
 
 import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutable;
 import org.immutables.fixture.builder.attribute_builders.FirstPartyImmutableWithDifferentStyle;
 import org.immutables.fixture.builder.attribute_builders.ThirdPartyImmutable;
@@ -18,4 +20,9 @@ public interface AttributeBuilderValueI {
   List<ThirdPartyImmutable> thirdPartyImmutableList();
 
   ThirdPartyImmutableWithPrimitive thirdPartyImmutableWithPrimitive();
+
+  Optional<FirstPartyImmutable> optionalFirstPartyImmutable();
+
+  @Nullable
+  FirstPartyImmutable nullableFirstPartyImmutable();
 }

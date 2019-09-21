@@ -1685,13 +1685,47 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
   [else if v.jdkOptional and ((v.jdkSpecializedOptional or v.optionalAcceptNullable) or v.primitiveElement)]
     this.[v.name] = [maybeCopyOf v][v.name][/maybeCopyOf];
   [else if v.jdkOptional]
-    this.[v.name] = [maybeCopyOf v][requireNonNull type]([v.name], "[v.name]")[/maybeCopyOf];
+    this.[v.name] = [if v.isAttributeBuilder][valueToBuilder v.getAttributeBuilderDescriptor][requireNonNull type]([v.name], "[v.name]")[/valueToBuilder];[else][maybeCopyOf v][requireNonNull type]([v.name], "[v.name]")[/maybeCopyOf];[/if]
   [else]
     this.[v.name] = [optionalOf v]([maybeCopyOf v][v.name][/maybeCopyOf]);
   [/if]
     [nondefaultSetInBuilder v]
     return [builderReturnThis type];
   }
+  [if v.isAttributeBuilder]
+
+    /**
+     * Returns a builder for [sourceDocRef v].
+     *
+     * Once called, the attribute builder field is set to a new instance of the builder.
+     * If called more than once, returns the same builder instance.
+     */
+    [eachLine v.builderAttributeAnnotation]
+    [deprecation v]
+    [builderInitAccess v]final [attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.names.getBuilder]() {
+      if (this.[v.name] == null) {
+        this.[v.name] = [createAttributeBuilder v.getAttributeBuilderDescriptor];
+      }
+      [nondefaultSetInBuilder v]
+      [mandatorySetInBuilder v]
+
+      return this.[v.name];
+    }
+
+    /**
+     * Sets [sourceDocRef v] to the provided builder.
+     */
+    [atCanIgnoreReturnValue type]
+    [eachLine v.builderAttributeAnnotation]
+    [deprecation v]
+    [builderInitAccess v]final [builderReturnType type] [v.names.setBuilder]([v.atNullability][v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [v.name]) {
+      [checkNotIsSet v]
+      this.[v.name] = [v.name];
+      [nondefaultSetInBuilder v]
+      [mandatorySetInBuilder v]
+      return [builderReturnThis type];
+    }
+  [/if]
   [if v.constructorParameters]
 
   /**
@@ -1726,6 +1760,8 @@ checkNotIsSet([v.names.isSet](), "[v.names.raw]");
     [checkNotIsSet v]
   [if v.jdkOptional and type.kind.isFactory]
     this.[v.name] = ([v.type]) [requireNonNull type]([v.name], "[v.name]");
+  [else if v.isAttributeBuilder]
+    this.[v.name] = [convertToBuilderType v.getAttributeBuilderDescriptor]([valueFromValue v v.name]);
   [else]
     this.[v.name] = [valueFromValue v v.name];
   [/if]
@@ -2352,7 +2388,7 @@ return [type.factoryOf]([output.linesShortable][for v in type.settableAttributes
     [immutableCollectionBuild v (expressionPrefix v.name)]
   [/if]
 [else if v.isAttributeBuilder]
-  [expressionPrefix][v.name].[v.getAttributeBuilderDescriptor.getBuildMethod]()
+  [convertToValueType v.getAttributeBuilderDescriptor]([expressionPrefix][v.name])
 [else]
   [expressionPrefix][v.name]
 [/if]
@@ -3874,7 +3910,7 @@ private static [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolu
 }
 
 [atNullable v]
-private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable v] [v.getAttributeBuilderDescriptor.getQualifiedValueTypeName] value) {
+private static [v.getAttributeBuilderDescriptor.getQualifiedBuilderTypeName] [convertToBuilderType v.getAttributeBuilderDescriptor]([atNullable v] [if v.hasAttributeValue][v.attributeValueType.typeAbstract.absolute][else][v.getAttributeBuilderDescriptor.getQualifiedValueTypeName][/if] value) {
   if (value == null) return null;
   return [valueToBuilder v.getAttributeBuilderDescriptor]value[/valueToBuilder];
 }
@@ -4126,6 +4162,12 @@ private static <K extends Comparable<K>, V> java.util.[unmodifiableSortedMapInte
 [let updatableAccessModifier][accessModifier][if v.containingType.useStrictBuilder andnot toNull] final[/if][/let]
   [if v.jdkOptional and v.containingType.kind.isFactory]
 [if declare][accessModifier] [v.type] [else]this.[/if][v.name] = [optionalEmpty v];
+  [else if v.jdkOptional and v.isAttributeBuilder][-- Combine with else case at the bottom?  --]
+    [if declare]
+[accessModifier] [atNullable v][attributeBuilderBuilderType v.getAttributeBuilderDescriptor] [v.name];
+    [else]
+this.[v.name] = null;
+    [/if]
   [else if v.jdkOptional][-- Combine with else case at the bottom?  --]
     [if declare]
 [accessModifier] [atNullable v][v.wrappedElementType] [v.name];
