@@ -1412,7 +1412,8 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
           report(),
           typeAbstract().toString(),
           getSettableAttributes(),
-          accessorMapping);
+          accessorMapping,
+          constitution.protoclass().processing().getTypeUtils());
     }
     return buildFromTypes;
   }

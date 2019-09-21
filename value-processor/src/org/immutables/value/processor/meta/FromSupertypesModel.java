@@ -24,16 +24,23 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.annotation.Nullable;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Types;
+
 import org.immutables.generator.SourceTypes;
 import org.immutables.value.processor.encode.Type;
 import org.immutables.value.processor.meta.LongBits.LongPositions;
@@ -46,6 +53,7 @@ public final class FromSupertypesModel {
   public final ImmutableList<String> repeating;
   public final LongPositions positions;
   private final Reporter reporter;
+  private final Types typeUtils;
 
   public final static class FromSupertype {
     public final String type;
@@ -76,20 +84,26 @@ public final class FromSupertypesModel {
       Reporter reporter,
       String abstractTypeName,
       Collection<ValueAttribute> attributes,
-      ImmutableListMultimap<String, TypeElement> accessorMapping) {
+      ImmutableListMultimap<String, TypeElement> accessorMapping,
+      Types typeUtils) {
 
     this.reporter = reporter;
+    this.typeUtils = typeUtils;
     SetMultimap<String, String> typesByAttribute = HashMultimap.create();
 
     for (ValueAttribute a : attributes) {
       String name = a.name();
       ImmutableList<TypeElement> elements = accessorMapping.get(a.names.get);
       for (TypeElement t : elements) {
-        String type = isEligibleFromType(t, a)
-            ? t.getQualifiedName().toString()
-            : abstractTypeName;
-
-        typesByAttribute.put(name, type);
+        if (isEligibleFromType(t, a)) {
+          List<String> typeParamNames = new ArrayList<>(t.getTypeParameters().size());
+          for (TypeParameterElement typeParameterElement : t.getTypeParameters()) {
+            typeParamNames.add(typeParameterElement.toString());
+          }
+          typesByAttribute.put(name, SourceTypes.stringify(Maps.immutableEntry(t.getQualifiedName().toString(), typeParamNames)));
+        } else {
+          typesByAttribute.put(name, abstractTypeName);
+        }
       }
     }
 
@@ -129,9 +143,58 @@ public final class FromSupertypesModel {
     this.positions = new LongBits().apply(repeating);
   }
 
+  private boolean isDirectAncestor(TypeElement parent, TypeElement child) {
+    TypeMirror erasedParent = typeUtils.erasure(parent.asType());
+
+    // check for superclass
+    if (typeUtils.isSameType(erasedParent, typeUtils.erasure(child.getSuperclass()))) {
+      return true;
+    }
+
+    // check interfaces
+    for (TypeMirror interfaceType : child.getInterfaces()) {
+      if (typeUtils.isSameType(erasedParent, typeUtils.erasure(interfaceType))) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean boundsMatch(List<? extends TypeMirror> a, List<? extends TypeMirror> b) {
+    if (a.size() != b.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < a.size(); i++) {
+      if (!typeUtils.isSameType(a.get(i), b.get(i))) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   private boolean isEligibleFromType(TypeElement typeElement, ValueAttribute attr) {
     if (!typeElement.getTypeParameters().isEmpty()) {
-      return false;
+      TypeElement containingTypeElement = (TypeElement) attr.containingType.originalElement();
+
+      // bail early if types don't both have 1 parameter
+      if ((typeElement.getTypeParameters().size() != 1) || (containingTypeElement.getTypeParameters().size() != 1)) {
+        return false;
+      }
+
+      // ensure this is a direct ancestor
+      if (!isDirectAncestor(typeElement, containingTypeElement)) {
+        return false;
+      }
+
+      // confirm bounds match
+      for (int i = 0; i < typeElement.getTypeParameters().size(); i++) {
+        if (!boundsMatch(typeElement.getTypeParameters().get(i).getBounds(), containingTypeElement.getTypeParameters().get(i).getBounds())) {
+          return false;
+        }
+      }
     }
     @Nullable ExecutableElement accessor = findMethod(typeElement, attr.names.get);
     if (accessor == null) {
