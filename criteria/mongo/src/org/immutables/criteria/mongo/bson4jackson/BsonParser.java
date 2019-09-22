@@ -73,8 +73,12 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   @Override
   public String nextFieldName() throws IOException {
-    if (next() == JsonToken.FIELD_NAME) {
+    final JsonToken next = next();
+    if (next == JsonToken.FIELD_NAME) {
       return reader.readName();
+    } else if (next == JsonToken.START_OBJECT) {
+      // advance if container type (object)
+      return nextFieldName();
     }
 
     return null;
