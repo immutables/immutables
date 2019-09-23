@@ -17,10 +17,10 @@ package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
+import com.google.common.base.Preconditions;
 import org.bson.AbstractBsonReader;
 import org.bson.BsonReader;
 import org.bson.BsonType;
@@ -38,6 +38,9 @@ import java.util.Objects;
 public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private final AbstractBsonReader reader;
+
+  // cached value similar to _textBuffer to return same value on {@link getText()}
+  private String _textValue;
 
   /**
    * The ObjectCodec used to parse the Bson object(s)
@@ -72,7 +75,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public String nextFieldName() throws IOException {
+  public String nextFieldName() {
     final JsonToken next = next();
     if (next == JsonToken.FIELD_NAME) {
       return reader.readName();
@@ -85,7 +88,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public String getCurrentName() throws IOException {
+  public String getCurrentName() {
     if (state() == AbstractBsonReader.State.NAME) {
       return nextFieldName();
     } else if (state() == AbstractBsonReader.State.VALUE) {
@@ -96,73 +99,126 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public Number getNumberValue() throws IOException {
+  public Number getNumberValue() {
+    if (_numTypesValid != NR_UNKNOWN) {
+      return cachedNumberValue();
+    }
+
     final BsonType type = type();
     switch (type) {
       case DOUBLE:
-        return reader.readDouble();
+        _numberDouble = reader.readDouble();
+        _numTypesValid |= NR_DOUBLE;
+        return _numberDouble;
       case INT32:
-        return reader.readInt32();
+        _numberInt = reader.readInt32();
+        _numTypesValid |= NR_INT;
+        return _numberInt;
       case INT64:
-        return reader.readInt64();
+        _numberLong = reader.readInt64();
+        _numTypesValid |= NR_LONG;
+        return _numberLong;
       case DECIMAL128:
-        return reader.readDecimal128().bigDecimalValue();
+        _numberBigDecimal = reader.readDecimal128().bigDecimalValue();
+        _numTypesValid |= NR_BIGDECIMAL;
+        return _numberBigDecimal;
       case STRING:
-        return new BigDecimal(reader.readString());
+      case SYMBOL:
+        _numberBigDecimal = new BigDecimal(type == BsonType.STRING ? reader.readString() : reader.readSymbol());
+        _numTypesValid |= NR_BIGDECIMAL;
+        return _numberBigDecimal;
       default:
         throw new IllegalStateException(String.format("Can't convert %s to %s", type, Number.class.getName()));
     }
   }
 
-  @Override
-  public BigInteger getBigIntegerValue() throws IOException {
-    final Number value = getNumberValue();
-
-    if (value instanceof BigInteger) {
-      return (BigInteger) value;
-    } else if (value instanceof BigDecimal) {
-      return ((BigDecimal) value).toBigInteger();
+  private Number cachedNumberValue() {
+    Preconditions.checkState(_numTypesValid != NR_UNKNOWN, "Number not cached. Expected state %s != %s", _numTypesValid, NR_UNKNOWN);
+    if (currentToken() == JsonToken.VALUE_NUMBER_INT) {
+      if ((_numTypesValid & NR_INT) != 0) {
+        return _numberInt;
+      }
+      if ((_numTypesValid & NR_LONG) != 0) {
+        return _numberLong;
+      }
+      if ((_numTypesValid & NR_BIGINT) != 0) {
+        return _numberBigInt;
+      }
+      return _numberBigDecimal;
     }
 
-    return BigInteger.valueOf(value.longValue());
+    if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
+      return _numberBigDecimal;
+    }
+    return _numberDouble;
   }
 
   @Override
-  public float getFloatValue() throws IOException {
+  public BigInteger getBigIntegerValue() {
+    Number number = getNumberValue();
+    if (number == null) {
+      return null;
+    }
+
+    if (number instanceof BigInteger) {
+      return (BigInteger) number;
+    }
+
+    if (number instanceof BigDecimal) {
+      return ((BigDecimal) number).toBigInteger();
+    }
+
+    if (number instanceof Byte || number instanceof Integer || number instanceof Long || number instanceof Short) {
+      return BigInteger.valueOf(number.longValue());
+    } else if (number instanceof Double || number instanceof Float) {
+      return BigDecimal.valueOf(number.doubleValue()).toBigInteger();
+    }
+
+    return new BigInteger(number.toString());
+  }
+
+  @Override
+  public float getFloatValue() {
     return getNumberValue().floatValue();
   }
 
   @Override
-  public double getDoubleValue() throws IOException {
+  public double getDoubleValue() {
     return getNumberValue().doubleValue();
   }
 
   @Override
-  public int getIntValue() throws IOException {
+  public int getIntValue() {
     return getNumberValue().intValue();
   }
 
   @Override
-  public long getLongValue() throws IOException {
+  public long getLongValue() {
     return getNumberValue().longValue();
   }
 
   @Override
-  public BigDecimal getDecimalValue() throws IOException {
-    final BsonType type = type();
-    switch (type) {
-      case DOUBLE:
-        return BigDecimal.valueOf(getNumberValue().doubleValue());
-      case INT32:
-        return new BigDecimal(getNumberValue().intValue());
-      case INT64:
-        return BigDecimal.valueOf(getNumberValue().longValue());
-      case DECIMAL128:
-      case STRING:
-        return (BigDecimal) getNumberValue();
-      default:
-        throw new IllegalStateException(String.format("Can't convert %s to %s", type, BigDecimal.class.getName()));
+  public BigDecimal getDecimalValue() {
+    Number number = getNumberValue();
+    if (number == null) {
+      return null;
     }
+
+    if (number instanceof BigDecimal) {
+      return (BigDecimal) number;
+    }
+
+    if (number instanceof BigInteger) {
+      return new BigDecimal((BigInteger) number);
+    }
+
+    if (number instanceof Byte || number instanceof Integer ||
+            number instanceof Long || number instanceof Short) {
+      return BigDecimal.valueOf(number.longValue());
+    } else if (number instanceof Double || number instanceof Float) {
+      return BigDecimal.valueOf(number.doubleValue());
+    }
+    return new BigDecimal(number.toString());
   }
 
   private BsonType type() {
@@ -186,48 +242,14 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     }
   }
 
-
   @Override
   public JsonToken nextToken() {
     return _currToken = next();
   }
 
-  @Override
-  public boolean isExpectedStartObjectToken() {
-    // in some cases BsonReader should advance later than Jackson Parser
-    if (state() == AbstractBsonReader.State.INITIAL) {
-      nextToken();
-    }
-
-    return _currToken == JsonToken.START_OBJECT;
-  }
-
-  @Override
-  public JsonToken getCurrentToken() {
-    if (state() == AbstractBsonReader.State.INITIAL) {
-      return JsonToken.START_OBJECT;
-    }
-
-    return _currToken;
-  }
-
-  @Override
-  public JsonToken currentToken() {
-    return getCurrentToken();
-  }
-
-  @Override
-  public int currentTokenId() {
-    JsonToken token = getCurrentToken();
-    return token == null ? JsonTokenId.ID_NO_TOKEN : token.id();
-  }
-
-  @Override
-  public int getCurrentTokenId() {
-    return currentTokenId();
-  }
-
   private JsonToken next() {
+    _numTypesValid = NR_UNKNOWN; // reset number caches
+    _textValue = null;
     while (state() == AbstractBsonReader.State.TYPE) {
       reader.readBsonType();
     }
@@ -294,16 +316,31 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public String getText() throws IOException {
-    final BsonType type = type();
-    if (type == BsonType.SYMBOL) {
-      return reader.readSymbol();
-    }
-    if (type == BsonType.STRING) {
-      return reader.readString();
+  public String getText() {
+    if (_textValue != null) {
+      return _textValue;
     }
 
-    throw new IllegalStateException(String.format("Bad BSON type: %s expected String or Symbol", type));
+    final BsonType type = type();
+    if (type == BsonType.SYMBOL) {
+      _textValue = reader.readSymbol();
+      return _textValue;
+    }
+    if (type == BsonType.STRING) {
+      _textValue = reader.readString();
+      return _textValue;
+    }
+
+    final JsonToken token = currentToken();
+    if (token == JsonToken.FIELD_NAME) {
+      // return current field name
+      return reader.getCurrentName();
+    }
+    if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT) {
+      return getNumberValue().toString();
+    }
+
+    return token != null ? token.asString() : null;
   }
 
   @Override
@@ -318,7 +355,12 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   @Override
   public int getTextOffset() throws IOException {
-    throw new UnsupportedOperationException();
+    return 0;
+  }
+
+  @Override
+  public boolean hasTextCharacters() {
+    return false;
   }
 
   @Override
