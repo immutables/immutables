@@ -35,6 +35,8 @@ public final class ValueMirrors {
 
     boolean prehash() default false;
 
+    boolean lazyhash() default false;
+
     boolean builder() default true;
   }
 
