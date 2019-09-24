@@ -17,7 +17,6 @@
 package org.immutables.criteria.mongo;
 
 import com.google.common.reflect.TypeToken;
-import com.mongodb.MongoClientSettings;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonNull;
@@ -94,21 +93,20 @@ class TupleCodecProvider implements CodecProvider {
   private static class TupleCodec implements Codec<ProjectedTuple> {
     private final Query query;
     private final List<FieldDecoder> decoders;
+    private final CodecRegistry registry;
 
     private TupleCodec(CodecRegistry registry, Query query, ExpressionNaming naming) {
       this.query = query;
       if (query.projections().isEmpty()) {
         throw new IllegalArgumentException(String.format("No projections defined in query %s", query));
       }
-      Objects.requireNonNull(registry, "registry");
+      this.registry = Objects.requireNonNull(registry, "registry");
       this.decoders = query.projections().stream().map(p -> new FieldDecoder(p, naming.name(p), registry)).collect(Collectors.toList());
     }
 
     @Override
-    public ProjectedTuple decode(BsonReader reader, DecoderContext decoderContext) {
-
-//      BsonDocument doc = registry.get(BsonDocument.class).decode(reader, decoderContext);
-      BsonDocument doc = MongoClientSettings.getDefaultCodecRegistry().get(BsonDocument.class).decode(reader, decoderContext);
+    public ProjectedTuple decode(BsonReader reader, DecoderContext context) {
+      BsonDocument doc = registry.get(BsonDocument.class).decode(reader, context);
       final List<Object> values = new ArrayList<>();
       for (FieldDecoder field: decoders) {
         BsonValue bson = resolveOrNull(doc, Arrays.asList(field.mongoField.split("\\.")));
