@@ -104,7 +104,7 @@
     <!-- Shared versions -->
     <retro.version>2.5.1</retro.version>
     <mongo-java-driver.version>3.11.0</mongo-java-driver.version>
-    <mongodb-driver-reactivestreams.version>1.11.0</mongodb-driver-reactivestreams.version>
+    <mongodb-driver-reactivestreams.version>1.12.0</mongodb-driver-reactivestreams.version>
     <elasticsearch.version>7.1.0</elasticsearch.version>
     <reactive-streams.version>1.0.2</reactive-streams.version>
     <log4j2.version>2.11.2</log4j2.version>
