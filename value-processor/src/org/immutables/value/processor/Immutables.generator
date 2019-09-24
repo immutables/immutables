@@ -2475,12 +2475,12 @@ this.[n] = [valueFromValue v][invokeSuper v].[v.names.get]()[/valueFromValue];
   private [if v.generateTransientDerived]transient [/if]final [v.atNullability][immutableImplementationType v] [v.name];
   [/if]
 [/for]
-[if type.usePrehashed]
+[if type.cacheHash]
   [for anj in type.syntheticFieldsInjectedAnnotations]
   [anj]
   [/for]
   [jsonIgnore type]
-  private [if not type.serial.simple]transient [/if]final int hashCode;
+  private[if not type.serial.simple] transient[/if][if type.usePrehashed] final[/if] int hashCode;[if type.useLazyhash] // hashCode lazily computed[/if]
 [/if]
 [if type.generateOrdinalValue]
   [jsonIgnore type]
@@ -3049,7 +3049,7 @@ public boolean equals([atNullable type]Object another) {
 [/if]
 [if type.useEqualTo]
 
-[if type.equalToDefined or (type.usePrehashed or getters)]
+[if type.equalToDefined or (type.cacheHash or getters)]
 [-- nothing, it's just simpler if condition is inverse --]
 [else]
 @SuppressWarnings("MethodCanBeStatic")
@@ -3058,14 +3058,14 @@ private boolean equalTo([equalToType] another) {
   [if type.equalToDefined]
   return super.equals(another);
   [else]
-    [if type.usePrehashed]
+    [if type.cacheHash]
       [if type.annotationType]
-  if (another instanceof [type.typeImmutable.relativeRaw]
-      && (([type.typeImmutable.relativeRaw]) another).hashCode != hashCode) {
-    return false;
+  if (another instanceof [type.typeImmutable.relativeRaw]) {
+    final int anotherHashCode = (([type.typeImmutable.relativeRaw]) another).hashCode;
+    if ([if type.useLazyhash]hashCode != 0 && anotherHashCode != 0 && [/if]hashCode != anotherHashCode) return false;
   }
       [else]
-  if (hashCode != another.hashCode) return false;
+  if ([if type.useLazyhash]hashCode != 0 && another.hashCode != 0 && [/if]hashCode != another.hashCode) return false;
       [/if]
     [/if]
   return [if not getters]true[/if][for v in getters][if not for.first]
@@ -3126,8 +3126,8 @@ public int hashCode() {
 /**
 [if not getters]
  * Returns a constant hash code value.
-[else if type.usePrehashed]
- * Returns a precomputed-on-construction hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
+[else if type.cacheHash]
+ * Returns a [if type.usePrehashed]precomputed-on-construction[else]lazily computed[/if] hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [else]
  * Computes a hash code from attributes: [for a in getters][if not for.first], [/if]{@code [a.name]}[/for].
 [/if]
@@ -3137,11 +3137,21 @@ public int hashCode() {
 public int hashCode() {
   [if type.usePrehashed]
   return hashCode;
+  [else if not getters]
+  return 0;
+  [else if type.useLazyhash]
+  int h = this.hashCode;
+  if (h == 0) {
+    h = [disambiguateAccessor type 'computeHashCode']();
+    this.hashCode = h;
+  }
+  return h;
   [else]
 [computeHashCodeBody]
   [/if]
 }
-  [if type.usePrehashed]
+
+  [if type.cacheHash and getters]
 
 private int [disambiguateAccessor type 'computeHashCode']() {
 [computeHashCodeBody]

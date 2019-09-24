@@ -612,6 +612,21 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
         && !isUseSingletonOnly();
   }
 
+  /**
+   * Means object hashcode is cached at some point. Either lazily (on first access)
+   * or eagerly (during construction).
+   * @see #isUseLazyhash()
+   * @see #isUsePrehashed()
+   */
+  public boolean isCacheHash() {
+    return isUseLazyhash() || isUsePrehashed();
+  }
+
+  public boolean isUseLazyhash() {
+    // lazyhash and prehash are mutually exclusive
+    return immutableFeatures.lazyhash() && !isUsePrehashed();
+  }
+
   public boolean isUsePrehashed() {
     return immutableFeatures.prehash()
         && !isGeneratePrivateNoargConstructor()

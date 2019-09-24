@@ -93,9 +93,18 @@ public @interface Value {
      * In general, use this when {@code hashCode} computation is expensive and will be used a lot.
      * Note that if {@link Style#privateNoargConstructor()} == <code>true</code> this option will be
      * ignored.
+     * For lazy (deferred) {@code hashCode} computation use {@link #lazyhash()}
      * @return if generate hash code precomputing
      */
     boolean prehash() default false;
+
+    /**
+     * If {@code lazyhash=true} then internal {@code hashCode} will be computed (and cached) on first {@code hashCode()}
+     * method call.
+     * For eager {@code hashCode} computation (in constructor) use {@link #prehash()}.
+     * @return to lazily compute the {@code hashCode}
+     */
+    boolean lazyhash() default false;
 
     /**
      * If {@code builder=false}, disables generation of {@code builder()}. Default is

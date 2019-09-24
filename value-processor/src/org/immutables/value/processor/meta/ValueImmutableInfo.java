@@ -50,6 +50,10 @@ public abstract class ValueImmutableInfo implements ValueMirrors.Immutable {
 
   @Value.Parameter
   @Override
+  public abstract boolean lazyhash();
+
+  @Value.Parameter
+  @Override
   public abstract boolean singleton();
 
   static ImmutableValueImmutableInfo infoFrom(ImmutableMirror input) {
@@ -58,6 +62,7 @@ public abstract class ValueImmutableInfo implements ValueMirrors.Immutable {
         input.copy(),
         input.intern(),
         input.prehash(),
+        input.lazyhash(),
         input.singleton())
         .withIsDefault(input.getAnnotationMirror().getElementValues().isEmpty());
   }
