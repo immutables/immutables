@@ -16,6 +16,7 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.bson.BsonBoolean;
@@ -32,6 +33,7 @@ import org.bson.BsonTimestamp;
 import org.bson.BsonValue;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -123,6 +125,41 @@ class TypeConversionTest {
   }
 
   @Test
+  void parseExceptions() {
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonBoolean(true)).getNumberValue();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonBoolean(true)).getLongValue();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(BsonNull.VALUE).getNumberValue();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(BsonNull.VALUE).getNumberType();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonInt32(42)).getBooleanValue();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonBoolean(true)).getNumberType();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonDateTime(42)).getBooleanValue();
+    });
+
+    Assertions.assertThrows(JsonParseException.class, () -> {
+      parserFor(new BsonTimestamp(42)).getBooleanValue();
+    });
+  }
+
+  @Test
   void objectId() throws IOException {
     ObjectId id = ObjectId.get();
     check(parserFor(new BsonObjectId(id)).getText()).is(id.toHexString());
@@ -139,6 +176,7 @@ class TypeConversionTest {
     check(parserFor(new BsonBoolean(true)).getText()).is("true");
     check(parserFor(new BsonBoolean(false)).getText()).is("false");
     check(parserFor(new BsonBoolean(true)).getBooleanValue());
+
   }
 
   private static JsonParser parserFor(BsonValue value) throws IOException {

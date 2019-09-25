@@ -15,6 +15,7 @@
  */
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
@@ -75,7 +76,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public String nextFieldName() {
+  public String nextFieldName() throws JsonParseException {
     final JsonToken next = next();
     if (next == JsonToken.FIELD_NAME) {
       return reader.readName();
@@ -88,7 +89,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public String getCurrentName() {
+  public String getCurrentName() throws JsonParseException {
     if (state() == AbstractBsonReader.State.NAME) {
       return nextFieldName();
     } else if (state() == AbstractBsonReader.State.VALUE) {
@@ -99,7 +100,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public Number getNumberValue() {
+  public Number getNumberValue() throws JsonParseException {
     if (_numTypesValid != NR_UNKNOWN) {
       return cachedNumberValue();
     }
@@ -124,6 +125,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return _numberBigDecimal;
       case STRING:
       case SYMBOL:
+        // TODO should parser convert between string and numeric types ?
         _numberBigDecimal = new BigDecimal(type == BsonType.STRING ? reader.readString() : reader.readSymbol());
         _numTypesValid |= NR_BIGDECIMAL;
         return _numberBigDecimal;
@@ -136,7 +138,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         _numTypesValid |= NR_LONG;
         return _numberLong;
       default:
-        throw new IllegalStateException(String.format("Can't convert %s to %s", type, Number.class.getName()));
+        throw new JsonParseException(this, String.format("Can't convert bson type %s to %s (json type %s)", type, Number.class.getName(), currentToken()));
     }
   }
 
@@ -162,7 +164,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public BigInteger getBigIntegerValue() {
+  public BigInteger getBigIntegerValue() throws JsonParseException {
     Number number = getNumberValue();
     if (number == null) {
       return null;
@@ -186,27 +188,27 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   @Override
-  public float getFloatValue() {
+  public float getFloatValue() throws JsonParseException {
     return getNumberValue().floatValue();
   }
 
   @Override
-  public double getDoubleValue() {
+  public double getDoubleValue() throws JsonParseException {
     return getNumberValue().doubleValue();
   }
 
   @Override
-  public int getIntValue() {
+  public int getIntValue() throws JsonParseException {
     return getNumberValue().intValue();
   }
 
   @Override
-  public long getLongValue() {
+  public long getLongValue() throws JsonParseException {
     return getNumberValue().longValue();
   }
 
   @Override
-  public BigDecimal getDecimalValue() {
+  public BigDecimal getDecimalValue() throws JsonParseException {
     Number number = getNumberValue();
     if (number == null) {
       return null;
@@ -246,16 +248,16 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case DECIMAL128:
         return NumberType.BIG_DECIMAL;
       default:
-        throw new IllegalStateException(String.format("Not a number type %s", type));
+        throw new JsonParseException(this, String.format("Not a numeric type json:%s bson%s", currentToken(), type));
     }
   }
 
   @Override
-  public JsonToken nextToken() {
+  public JsonToken nextToken() throws JsonParseException {
     return _currToken = next();
   }
 
-  private JsonToken next() {
+  private JsonToken next() throws JsonParseException {
     _numTypesValid = NR_UNKNOWN; // reset number caches
     _textValue = null;
     while (state() == AbstractBsonReader.State.TYPE) {
@@ -279,11 +281,11 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case VALUE:
         return toJsonToken(type());
       default:
-        throw new IllegalStateException(String.format("Unexpected state: %s currentType: %s", state(), type()));
+        throw new JsonParseException(this, String.format("Unexpected BSON state:%s type:%s", state(), type()));
     }
   }
 
-  private JsonToken toJsonToken(BsonType type) {
+  private JsonToken toJsonToken(BsonType type) throws JsonParseException {
     switch (type) {
       case END_OF_DOCUMENT:
         reader.readEndDocument();
@@ -320,12 +322,12 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case BINARY:
         return JsonToken.VALUE_EMBEDDED_OBJECT;
       default:
-        throw new IllegalStateException(String.format("Unknown type %s", type));
+        throw new JsonParseException(this, String.format("Unknown BSON type:%s", type));
     }
   }
 
   @Override
-  public String getText() {
+  public String getText() throws JsonParseException {
     if (_textValue != null) {
       return _textValue;
     }
