@@ -78,8 +78,8 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     return this.delegate;
   }
 
-  private void advance() {
-    delegate.readBsonType();
+  private BsonType advance() {
+    return delegate.readBsonType();
   }
 
   @Override
@@ -129,7 +129,7 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case SCOPE_DOCUMENT:
     case TYPE:
       advance();
-      return toGsonToken(delegate.getCurrentBsonType());
+      return peek();
     case NAME:
       return JsonToken.NAME;
     case END_OF_DOCUMENT:
