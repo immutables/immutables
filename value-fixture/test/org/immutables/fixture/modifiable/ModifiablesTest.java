@@ -18,6 +18,8 @@ package org.immutables.fixture.modifiable;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
+
+import java.util.Collections;
 import java.util.Map;
 import org.immutables.fixture.modifiable.FromTypesModifiables.FromType;
 import org.junit.jupiter.api.Test;
@@ -311,9 +313,14 @@ public class ModifiablesTest {
   public void setOnMapSetsOptBits() {
     // test for #1055
     Map<String, String> map = ImmutableMap.of("1", "2");
-    ModifiableDefaultMap m = ModifiableDefaultMap.create()
-            .setMap(map);
-
-    check(m.getMap()).is(map);
+    ModifiableDefaultMap m1 = ModifiableDefaultMap.create().setMap(map);
+    m1.setMap(map).setMap(map); // can set multiple times
+    check(m1.getMap()).is(map);
+    check(m1.mapIsSet());
+    check(ModifiableDefaultMap.create().setMap(Collections.emptyMap()).mapIsSet());
+    check(ModifiableDefaultMap.create().setMap(Collections.singletonMap("k", "v")).mapIsSet());
+    check(ModifiableDefaultMap.create().putMap("a", "b").mapIsSet());
+    check(ModifiableDefaultMap.create().putAllMap(Collections.emptyMap()).mapIsSet());
+    check(ModifiableDefaultMap.create().putAllMap(Collections.singletonMap("a", "b")).mapIsSet());
   }
 }
