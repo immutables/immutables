@@ -214,6 +214,10 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
       return Double.toString(delegate.readDouble());
     case DECIMAL128:
       return delegate.readDecimal128().toString();
+    case REGULAR_EXPRESSION:
+      return delegate.readRegularExpression().getPattern();
+    case OBJECT_ID:
+      return delegate.readObjectId().toHexString();
     default:
       throw new IllegalStateException(
           "Unknown scalar type to be converted to string: " + delegate.getCurrentBsonType());
@@ -239,6 +243,10 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
       return delegate.readInt64();
     case DECIMAL128:
       return delegate.readDecimal128().bigDecimalValue().doubleValue();
+    case DATE_TIME:
+      return delegate.readDateTime();
+    case TIMESTAMP:
+      return delegate.readTimestamp().getValue();
     default:
       return delegate.readDouble();
     }
@@ -253,6 +261,10 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
       return delegate.readInt32();
     case DECIMAL128:
       return delegate.readDecimal128().bigDecimalValue().longValueExact();
+    case DATE_TIME:
+      return delegate.readDateTime();
+    case TIMESTAMP:
+      return delegate.readTimestamp().getValue();
     default:
       return delegate.readInt64();
     }
@@ -267,6 +279,10 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
       return (int) delegate.readInt64();
     case DECIMAL128:
       return delegate.readDecimal128().bigDecimalValue().intValueExact();
+    case DATE_TIME:
+      return (int) delegate.readDateTime();
+    case TIMESTAMP:
+      return (int) delegate.readTimestamp().getValue();
     default:
       return delegate.readInt32();
     }
