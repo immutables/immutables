@@ -127,6 +127,14 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         _numberBigDecimal = new BigDecimal(type == BsonType.STRING ? reader.readString() : reader.readSymbol());
         _numTypesValid |= NR_BIGDECIMAL;
         return _numberBigDecimal;
+      case DATE_TIME:
+        _numberLong = reader.readDateTime();
+        _numTypesValid |= NR_LONG;
+        return _numberLong;
+      case TIMESTAMP:
+        _numberLong = reader.readTimestamp().getValue();
+        _numTypesValid |= NR_LONG;
+        return _numberLong;
       default:
         throw new IllegalStateException(String.format("Can't convert %s to %s", type, Number.class.getName()));
     }
@@ -292,6 +300,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         final boolean value  = reader.readBoolean();
         return value ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
       case DATE_TIME:
+      case TIMESTAMP:
         return JsonToken.VALUE_EMBEDDED_OBJECT;
       case NULL:
         reader.readNull();
@@ -330,13 +339,25 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       _textValue = reader.readString();
       return _textValue;
     }
+    if (type == BsonType.OBJECT_ID) {
+      _textValue = reader.readObjectId().toHexString();
+      return _textValue;
+    }
+
+    if (type == BsonType.REGULAR_EXPRESSION) {
+      _textValue = reader.readRegularExpression().getPattern();
+      return _textValue;
+    }
 
     final JsonToken token = currentToken();
     if (token == JsonToken.FIELD_NAME) {
       // return current field name
       return reader.getCurrentName();
     }
-    if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT) {
+
+    // number compatible types
+    if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT ||
+            type == BsonType.DATE_TIME || type == BsonType.TIMESTAMP) {
       return getNumberValue().toString();
     }
 

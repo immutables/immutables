@@ -17,23 +17,12 @@
 package org.immutables.criteria.mongo.bson4jackson;
 
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.io.IOContext;
-import com.fasterxml.jackson.core.util.BufferRecycler;
-import com.mongodb.MongoClientSettings;
-import org.bson.BsonBinaryReader;
-import org.bson.BsonBinaryWriter;
-import org.bson.BsonDocument;
-import org.bson.codecs.EncoderContext;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.io.BasicOutputBuffer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -44,22 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class BsonParserTreeTest {
 
-  private static BsonParser createParser(String json) {
-    Objects.requireNonNull(json, "json");
-    BasicOutputBuffer buffer = new BasicOutputBuffer();
-    BsonDocument bson = BsonDocument.parse(json);
-    CodecRegistry registry = MongoClientSettings.getDefaultCodecRegistry();
-    registry.get(BsonDocument.class)
-            .encode(new BsonBinaryWriter(buffer), bson, EncoderContext.builder().build());
-
-    BsonBinaryReader reader = new BsonBinaryReader(ByteBuffer.wrap(buffer.toByteArray()));
-    IOContext ioContext = new IOContext(new BufferRecycler(), null, false);
-    return new BsonParser(ioContext, 0, reader);
-  }
-
   @Test
   void getText() throws IOException {
-    BsonParser p = createParser("{ \"a\" : true, \"b\": \"foo\" }");
+    BsonParser p = Parsers.createParser("{ \"a\" : true, \"b\": \"foo\" }");
     assertNull(p.currentToken());
     assertNull(p.getCurrentName());
     assertNull(p.getText());
@@ -99,7 +75,7 @@ class BsonParserTreeTest {
    */
   @Test
   void streamRead() throws Exception {
-    BsonParser p = createParser("{ \"a\" : 123, \"list\" : [ 12.25, null, true, { }, [ ] ] }");
+    BsonParser p = Parsers.createParser("{ \"a\" : 123, \"list\" : [ 12.25, null, true, { }, [ ] ] }");
 
     assertNull(p.currentToken());
     assertNull(p.getCurrentName());
