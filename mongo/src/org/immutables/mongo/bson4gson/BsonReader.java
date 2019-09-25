@@ -201,7 +201,8 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
    * @see com.google.gson.internal.bind.TypeAdapters#JSON_ELEMENT
    */
   private String scalarToString() {
-    switch (delegate.getCurrentBsonType()) {
+    final BsonType type = delegate.getCurrentBsonType();
+    switch (type) {
     case STRING:
       return delegate.readString();
     case SYMBOL:
@@ -219,8 +220,7 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case OBJECT_ID:
       return delegate.readObjectId().toHexString();
     default:
-      throw new IllegalStateException(
-          "Unknown scalar type to be converted to string: " + delegate.getCurrentBsonType());
+      throw new IllegalStateException("Unknown scalar type to be converted to string: " + type);
     }
   }
 
@@ -236,7 +236,10 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
 
   @Override
   public double nextDouble() throws IOException {
-    switch (delegate.getCurrentBsonType()) {
+    final BsonType type = delegate.getCurrentBsonType();
+    switch (type) {
+    case DOUBLE:
+      return delegate.readDouble();
     case INT32:
       return delegate.readInt32();
     case INT64:
@@ -248,17 +251,20 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case TIMESTAMP:
       return delegate.readTimestamp().getValue();
     default:
-      return delegate.readDouble();
+      throw new IllegalStateException(String.format("Expected numeric bson type (double) but got %s (as json:%s)", type, toGsonToken(type)));
     }
   }
 
   @Override
   public long nextLong() throws IOException {
-    switch (delegate.getCurrentBsonType()) {
-    case DOUBLE:
-      return (long) delegate.readDouble();
+    BsonType type = delegate.getCurrentBsonType();
+    switch (type) {
+    case INT64:
+      return delegate.readInt64();
     case INT32:
       return delegate.readInt32();
+    case DOUBLE:
+      return (long) delegate.readDouble();
     case DECIMAL128:
       return delegate.readDecimal128().bigDecimalValue().longValueExact();
     case DATE_TIME:
@@ -266,17 +272,20 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case TIMESTAMP:
       return delegate.readTimestamp().getValue();
     default:
-      return delegate.readInt64();
+      throw new IllegalStateException(String.format("Expected numeric bson type (long) but got %s (as json:%s)", type, toGsonToken(type)));
     }
   }
 
   @Override
   public int nextInt() throws IOException {
-    switch (delegate.getCurrentBsonType()) {
-    case DOUBLE:
-      return (int) delegate.readDouble();
+    final BsonType type = delegate.getCurrentBsonType();
+    switch (type) {
+    case INT32:
+     return delegate.readInt32();
     case INT64:
       return (int) delegate.readInt64();
+    case DOUBLE:
+      return (int) delegate.readDouble();
     case DECIMAL128:
       return delegate.readDecimal128().bigDecimalValue().intValueExact();
     case DATE_TIME:
@@ -284,7 +293,7 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case TIMESTAMP:
       return (int) delegate.readTimestamp().getValue();
     default:
-      return delegate.readInt32();
+      throw new IllegalStateException(String.format("Expected numeric bson type (int) but got %s (as json:%s)", type, toGsonToken(type)));
     }
   }
 

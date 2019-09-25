@@ -18,17 +18,20 @@ package org.immutables.mongo.bson4gson;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
+import org.bson.BsonBoolean;
 import org.bson.BsonDateTime;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentReader;
 import org.bson.BsonDouble;
 import org.bson.BsonInt32;
 import org.bson.BsonInt64;
+import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
 import org.bson.BsonValue;
 import org.bson.types.ObjectId;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -62,6 +65,22 @@ public class TypeConversionTest {
     check(readerFor(new BsonDouble(1.1)).nextLong()).is(1L);
     check(readerFor(new BsonDouble(1.1)).nextDouble()).is(1.1D);
     check(readerFor(new BsonDouble(1.1)).nextString()).is(Double.toString(1.1));
+  }
+
+  @Test
+  public void exceptions() throws IOException {
+    try {
+      readerFor(new BsonBoolean(true)).nextInt();
+      Assert.fail("didn't fail");
+    } catch (IllegalStateException ignore) {
+    }
+
+    try {
+      readerFor(BsonNull.VALUE).nextInt();
+      Assert.fail("didn't fail");
+    } catch (IllegalStateException ignore) {
+    }
+
   }
 
   @Test
