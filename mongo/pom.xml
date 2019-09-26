@@ -28,7 +28,11 @@
     Mongo java driver, Gson and Guava are required runtime dependencies,
     which are included as transitive dependencies.
   </description>
-
+  <properties>
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
   <dependencies>
     <dependency>
       <!-- required gson dependency -->
