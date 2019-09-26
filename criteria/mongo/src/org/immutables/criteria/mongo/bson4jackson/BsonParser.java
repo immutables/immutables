@@ -196,6 +196,10 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         reader.readNull();
         context.setValue(null);
         break;
+      case UNDEFINED:
+        reader.readUndefined();
+        context.setValue(null);
+        break;
       case BINARY:
         context.setValue(reader.readBinaryData().getData());
         break;
@@ -362,6 +366,10 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case DECIMAL128:
       case DOUBLE:
         return JsonToken.VALUE_NUMBER_FLOAT;
+      case UNDEFINED:
+        reader.readUndefined();
+        context.setValue(null);
+        return JsonToken.VALUE_NULL;
       case OBJECT_ID:
       case BINARY:
       case REGULAR_EXPRESSION:

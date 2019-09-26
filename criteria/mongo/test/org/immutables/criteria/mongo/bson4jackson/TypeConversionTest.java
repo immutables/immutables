@@ -30,6 +30,7 @@ import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonRegularExpression;
 import org.bson.BsonTimestamp;
+import org.bson.BsonUndefined;
 import org.bson.types.Decimal128;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Assertions;
@@ -174,6 +175,14 @@ class TypeConversionTest {
   void objectId() throws IOException {
     ObjectId id = ObjectId.get();
     check(Parsers.parserAt(new BsonObjectId(id)).getText()).is(id.toHexString());
+  }
+
+  @Test
+  void undefined() throws IOException {
+    JsonParser parser = Parsers.parserAt(new BsonUndefined());
+    check(parser.currentToken()).is(JsonToken.VALUE_NULL);
+    check(parser.getText()).is(JsonToken.VALUE_NULL.asString());
+    parser.nextToken();
   }
 
   @Test
