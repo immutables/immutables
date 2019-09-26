@@ -29,6 +29,8 @@ import org.bson.BsonInt64;
 import org.bson.BsonNull;
 import org.bson.BsonObjectId;
 import org.bson.BsonRegularExpression;
+import org.bson.BsonString;
+import org.bson.BsonSymbol;
 import org.bson.BsonTimestamp;
 import org.bson.BsonUndefined;
 import org.bson.types.Decimal128;
@@ -186,6 +188,21 @@ class TypeConversionTest {
   }
 
   @Test
+  void symbol() throws IOException {
+    JsonParser parser = Parsers.parserAt(new BsonSymbol("foo"));
+    check(parser.currentToken()).is(JsonToken.VALUE_STRING);
+    check(parser.getText()).is("foo");
+    parser.nextToken();
+  }
+
+  @Test
+  void string() throws IOException {
+    JsonParser parser = Parsers.parserAt(new BsonString("foo"));
+    check(parser.currentToken()).is(JsonToken.VALUE_STRING);
+    check(parser.getText()).is("foo");
+  }
+
+  @Test
   void nullValue() throws IOException {
     check(Parsers.parserAt(BsonNull.VALUE).getCurrentToken()).is(JsonToken.VALUE_NULL);
     check(Parsers.parserAt(BsonNull.VALUE).getText()).is(JsonToken.VALUE_NULL.asString());
@@ -193,9 +210,12 @@ class TypeConversionTest {
 
   @Test
   void booleanValue() throws IOException {
+    check(Parsers.parserAt(new BsonBoolean(true)).getCurrentToken()).is(JsonToken.VALUE_TRUE);
+    check(Parsers.parserAt(new BsonBoolean(false)).getCurrentToken()).is(JsonToken.VALUE_FALSE);
     check(Parsers.parserAt(new BsonBoolean(true)).getText()).is("true");
     check(Parsers.parserAt(new BsonBoolean(false)).getText()).is("false");
     check(Parsers.parserAt(new BsonBoolean(true)).getBooleanValue());
+    check(!Parsers.parserAt(new BsonBoolean(false)).getBooleanValue());
   }
 
 }
