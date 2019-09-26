@@ -15,6 +15,7 @@
  */
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
@@ -176,6 +177,9 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case NULL:
         reader.readNull();
         context.value = null;
+        break;
+      case BINARY:
+        context.value = reader.readBinaryData().getData();
         break;
       default:
         throw new JsonParseException(this, String.format("Unknown bson type %s (as json type %s)", type, currentToken()));
@@ -350,9 +354,8 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case OBJECT_ID:
       case BINARY:
       case REGULAR_EXPRESSION:
-        return JsonToken.VALUE_EMBEDDED_OBJECT;
       default:
-        throw new JsonParseException(this, String.format("Unknown BSON type:%s", type));
+        return JsonToken.VALUE_EMBEDDED_OBJECT;
     }
   }
 
@@ -373,6 +376,19 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     readValue();
 
     return context.valueAsString();
+  }
+
+  @Override
+  public byte[] getBinaryValue(Base64Variant variant) throws IOException {
+    if (type() != BsonType.BINARY) {
+      throw new JsonParseException(this, String.format("Expected %s got %s", BsonType.BINARY, type()));
+    }
+
+    if (context.value == null) {
+      readValue();
+    }
+
+    return (byte[]) context.value;
   }
 
   @Override

@@ -16,17 +16,22 @@
 
 package org.immutables.criteria.mongo.bson4jackson;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.io.IOContext;
 import com.fasterxml.jackson.core.util.BufferRecycler;
 import com.mongodb.MongoClientSettings;
 import org.bson.BsonBinaryReader;
 import org.bson.BsonBinaryWriter;
 import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.io.BasicOutputBuffer;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static org.immutables.check.Checkers.check;
 
 /**
  * Util and helper methods
@@ -48,5 +53,16 @@ final class Parsers {
 
   static BsonParser createParser(String json) {
     return createParser(BsonDocument.parse(json));
+  }
+
+  /**
+   * Create parser positioned at {@code value}
+   */
+  static JsonParser parserAt(BsonValue value) throws IOException {
+    JsonParser parser = createParser(new BsonDocument("value", value));
+    parser.nextToken();
+    check(parser.nextFieldName()).is("value");
+    parser.nextToken();
+    return parser;
   }
 }
