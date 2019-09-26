@@ -213,6 +213,29 @@ class BsonParserTreeTest {
     assertTrue(p.isClosed());
   }
 
+  @Test
+  void skipChildren() throws IOException {
+    BsonParser p = Parsers.createParser("{ \"a\" : {\"a\":{} }, \"b\" : [ 1 ], \"c\": [true, false] }");
+    p.nextToken();
+    assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    assertEquals("a", p.getText());
+    assertToken(JsonToken.START_OBJECT, p.nextToken());
+    assertToken(JsonToken.START_OBJECT, p.getCurrentToken());
+    p.skipChildren();
+    assertToken(JsonToken.END_OBJECT, p.currentToken());
+    assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    assertEquals("b", p.getText());
+    assertToken(JsonToken.START_ARRAY, p.nextToken());
+    p.skipChildren();
+    assertToken(JsonToken.END_ARRAY, p.currentToken());
+    assertToken(JsonToken.FIELD_NAME, p.nextToken());
+    assertEquals("c", p.getText());
+    assertToken(JsonToken.START_ARRAY, p.nextToken());
+    p.skipChildren();
+    assertToken(JsonToken.END_OBJECT, p.nextToken());
+    assertNull(p.nextToken());
+  }
+
   private static void assertToken(JsonToken expToken, JsonToken actToken) {
     if (actToken != expToken) {
       Assertions.fail("Expected token " + expToken + ", current token " + actToken);
