@@ -33,7 +33,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 /**
- * Delegates all streaming API to {@link BsonReader}
+ * Work horse of {@code bson4jackson} integration (reader).
+ *
+ * Smart conversion between {@link BsonType} and {@link JsonToken} plus caching and lazy loading of
+ * parsed values. If you need to access BSON-only types directly
+ * (like {@link org.bson.types.ObjectId} or {@link org.bson.types.Decimal128}) consider using Codecs on
+ * the top of Jackson (see {@link JacksonCodecs} for more details).
  */
 @NotThreadSafe
 public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
@@ -62,6 +67,20 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
     private String valueAsString() {
       return Objects.toString(value);
+    }
+
+    private Object setValue(Object value) {
+      this.value = value;
+      skipValue = false;
+      return value;
+    }
+
+    /**
+     * Reset state of current context
+     */
+    private void reset() {
+      value = null;
+      skipValue = true;
     }
   }
 
@@ -135,51 +154,50 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   /**
-   * Read (parse) current bson value and stored it in local {@link ParseContext}
+   * Read (parse) current bson value and stored it in local {@link ParseContext} cache.
    */
   private void readValue() throws JsonParseException {
-    context.skipValue = false;
     final BsonType type = type();
     switch (type) {
       case DOUBLE:
-        context.value = reader.readDouble();
+        context.setValue(reader.readDouble());
         break;
       case INT32:
-        context.value = reader.readInt32();
+        context.setValue(reader.readInt32());
         break;
       case INT64:
-        context.value = reader.readInt64();
+        context.setValue(reader.readInt64());
         break;
       case DECIMAL128:
-        context.value = reader.readDecimal128().bigDecimalValue();;
+        context.setValue(reader.readDecimal128().bigDecimalValue());
         break;
       case DATE_TIME:
-        context.value = reader.readDateTime();
+        context.setValue(reader.readDateTime());
         break;
       case TIMESTAMP:
-        context.value = reader.readTimestamp().getValue();
+        context.setValue(reader.readTimestamp().getValue());
         break;
       case SYMBOL:
-        context.value = reader.readSymbol();
+        context.setValue(reader.readSymbol());
         break;
       case STRING:
-        context.value = reader.readString();
+        context.setValue(reader.readString());
         break;
       case OBJECT_ID:
-        context.value = reader.readObjectId().toHexString();
+        context.setValue(reader.readObjectId().toHexString());
         break;
       case REGULAR_EXPRESSION:
-        context.value = reader.readRegularExpression().getPattern();
+        context.setValue(reader.readRegularExpression().getPattern());
         break;
       case BOOLEAN:
-        context.value = reader.readBoolean();
+        context.setValue(reader.readBoolean());
         break;
       case NULL:
         reader.readNull();
-        context.value = null;
+        context.setValue(null);
         break;
       case BINARY:
-        context.value = reader.readBinaryData().getData();
+        context.setValue(reader.readBinaryData().getData());
         break;
       default:
         throw new JsonParseException(this, String.format("Unknown bson type %s (as json type %s)", type, currentToken()));
@@ -230,9 +248,6 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   @Override
   public BigDecimal getDecimalValue() throws JsonParseException {
     Number number = getNumberValue();
-    if (number == null) {
-      return null;
-    }
 
     if (number instanceof BigDecimal) {
       return (BigDecimal) number;
@@ -284,8 +299,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       reader.skipValue();
     }
 
-    context.value = null;
-    context.skipValue = true; // should skip value on next()
+    context.reset();
 
     while (state() == AbstractBsonReader.State.TYPE) {
       reader.readBsonType();
@@ -297,7 +311,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return JsonToken.START_OBJECT;
       case NAME:
         context.fieldName = reader.readName();
-        context.skipValue = false;
+        context.skipValue = false; // next token can be VALUE don't skip
         return JsonToken.FIELD_NAME;
       case END_OF_DOCUMENT:
         reader.readEndDocument();
@@ -318,8 +332,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
    * Read next token in the stream
    */
   private JsonToken readToken() throws JsonParseException {
-    BsonType type = type();
-    switch (type) {
+    switch (type()) {
       case END_OF_DOCUMENT:
         reader.readEndDocument();
         return JsonToken.END_OBJECT;
@@ -331,16 +344,14 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         return JsonToken.START_ARRAY;
       case BOOLEAN:
         final boolean value  = reader.readBoolean();
-        context.skipValue = false;
-        context.value = value;
+        context.setValue(value);
         return value ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
       case DATE_TIME:
       case TIMESTAMP:
         return JsonToken.VALUE_EMBEDDED_OBJECT;
       case NULL:
         reader.readNull();
-        context.skipValue = false;
-        context.value = null;
+        context.setValue(null);
         return JsonToken.VALUE_NULL;
       case SYMBOL:
       case STRING:
