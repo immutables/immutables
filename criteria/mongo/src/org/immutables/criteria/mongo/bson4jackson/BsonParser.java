@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.base.ParserBase;
 import com.fasterxml.jackson.core.io.IOContext;
-import com.google.common.base.Preconditions;
 import org.bson.AbstractBsonReader;
 import org.bson.BsonReader;
 import org.bson.BsonType;
@@ -40,9 +39,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   private final AbstractBsonReader reader;
 
-  // cached value similar to _textBuffer to return same value on {@link getText()}
-  private String _textValue;
-
+  private final ParseContext context;
   /**
    * The ObjectCodec used to parse the Bson object(s)
    */
@@ -51,6 +48,20 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   BsonParser(IOContext ctxt, int jsonFeatures, AbstractBsonReader reader) {
     super(ctxt, jsonFeatures);
     this.reader = Objects.requireNonNull(reader, "reader");
+    this.context = new ParseContext();
+  }
+
+  /**
+   * Internal context to keep track of parsed values and field names
+   */
+  private static class ParseContext {
+    private String fieldName;
+    private Object value;
+    private boolean skipValue;
+
+    private String valueAsString() {
+      return Objects.toString(value);
+    }
   }
 
   @Override
@@ -79,10 +90,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   public String nextFieldName() throws JsonParseException {
     final JsonToken next = next();
     if (next == JsonToken.FIELD_NAME) {
-      return reader.readName();
-    } else if (next == JsonToken.START_OBJECT) {
-      // advance if container type (object)
-      return nextFieldName();
+      return context.fieldName;
     }
 
     return null;
@@ -93,7 +101,7 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
     if (state() == AbstractBsonReader.State.NAME) {
       return nextFieldName();
     } else if (state() == AbstractBsonReader.State.VALUE) {
-      return reader.getCurrentName();
+      return context.fieldName;
     }
 
     return null;
@@ -101,74 +109,82 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   @Override
   public Number getNumberValue() throws JsonParseException {
-    if (_numTypesValid != NR_UNKNOWN) {
-      return cachedNumberValue();
+    if (currentToken() == JsonToken.VALUE_NULL) {
+      // we know current value is null. throw exception because it can't be converted to number
+      throw new JsonParseException(this, String.format("Can't convert %s (bson:%s) to %s", currentToken(), type(), Number.class.getName()));
     }
 
+    if (context.skipValue) {
+      // lazily read the value
+      readValue();
+    }
+
+    if (context.value instanceof Number) {
+      return (Number) context.value;
+    }
+
+    if (context.value instanceof String) {
+      // should we really convert string to number ?
+      return new BigDecimal((String) context.value);
+    }
+
+    String valueType = context.value != null ? context.value.getClass().getName() : "null";
+    throw new JsonParseException(this, String.format("Can't convert %s (as %s) to %s", context.value, valueType, Number.class.getName()));
+
+  }
+
+  /**
+   * Read (parse) current bson value and stored it in local {@link ParseContext}
+   */
+  private void readValue() throws JsonParseException {
+    context.skipValue = false;
     final BsonType type = type();
     switch (type) {
       case DOUBLE:
-        _numberDouble = reader.readDouble();
-        _numTypesValid |= NR_DOUBLE;
-        return _numberDouble;
+        context.value = reader.readDouble();
+        break;
       case INT32:
-        _numberInt = reader.readInt32();
-        _numTypesValid |= NR_INT;
-        return _numberInt;
+        context.value = reader.readInt32();
+        break;
       case INT64:
-        _numberLong = reader.readInt64();
-        _numTypesValid |= NR_LONG;
-        return _numberLong;
+        context.value = reader.readInt64();
+        break;
       case DECIMAL128:
-        _numberBigDecimal = reader.readDecimal128().bigDecimalValue();
-        _numTypesValid |= NR_BIGDECIMAL;
-        return _numberBigDecimal;
-      case STRING:
-      case SYMBOL:
-        // TODO should parser convert between string and numeric types ?
-        _numberBigDecimal = new BigDecimal(type == BsonType.STRING ? reader.readString() : reader.readSymbol());
-        _numTypesValid |= NR_BIGDECIMAL;
-        return _numberBigDecimal;
+        context.value = reader.readDecimal128().bigDecimalValue();;
+        break;
       case DATE_TIME:
-        _numberLong = reader.readDateTime();
-        _numTypesValid |= NR_LONG;
-        return _numberLong;
+        context.value = reader.readDateTime();
+        break;
       case TIMESTAMP:
-        _numberLong = reader.readTimestamp().getValue();
-        _numTypesValid |= NR_LONG;
-        return _numberLong;
+        context.value = reader.readTimestamp().getValue();
+        break;
+      case SYMBOL:
+        context.value = reader.readSymbol();
+        break;
+      case STRING:
+        context.value = reader.readString();
+        break;
+      case OBJECT_ID:
+        context.value = reader.readObjectId().toHexString();
+        break;
+      case REGULAR_EXPRESSION:
+        context.value = reader.readRegularExpression().getPattern();
+        break;
+      case BOOLEAN:
+        context.value = reader.readBoolean();
+        break;
+      case NULL:
+        reader.readNull();
+        context.value = null;
+        break;
       default:
-        throw new JsonParseException(this, String.format("Can't convert bson type %s to %s (json type %s)", type, Number.class.getName(), currentToken()));
+        throw new JsonParseException(this, String.format("Unknown bson type %s (as json type %s)", type, currentToken()));
     }
-  }
-
-  private Number cachedNumberValue() {
-    Preconditions.checkState(_numTypesValid != NR_UNKNOWN, "Number not cached. Expected state %s != %s", _numTypesValid, NR_UNKNOWN);
-    if (currentToken() == JsonToken.VALUE_NUMBER_INT) {
-      if ((_numTypesValid & NR_INT) != 0) {
-        return _numberInt;
-      }
-      if ((_numTypesValid & NR_LONG) != 0) {
-        return _numberLong;
-      }
-      if ((_numTypesValid & NR_BIGINT) != 0) {
-        return _numberBigInt;
-      }
-      return _numberBigDecimal;
-    }
-
-    if ((_numTypesValid & NR_BIGDECIMAL) != 0) {
-      return _numberBigDecimal;
-    }
-    return _numberDouble;
   }
 
   @Override
   public BigInteger getBigIntegerValue() throws JsonParseException {
     Number number = getNumberValue();
-    if (number == null) {
-      return null;
-    }
 
     if (number instanceof BigInteger) {
       return (BigInteger) number;
@@ -258,8 +274,15 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
   }
 
   private JsonToken next() throws JsonParseException {
-    _numTypesValid = NR_UNKNOWN; // reset number caches
-    _textValue = null;
+
+    if (context.skipValue && state() == AbstractBsonReader.State.VALUE) {
+      // means the value was not read before and can be skipped
+      reader.skipValue();
+    }
+
+    context.value = null;
+    context.skipValue = true; // should skip value on next()
+
     while (state() == AbstractBsonReader.State.TYPE) {
       reader.readBsonType();
     }
@@ -269,6 +292,8 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
         reader.readStartDocument();
         return JsonToken.START_OBJECT;
       case NAME:
+        context.fieldName = reader.readName();
+        context.skipValue = false;
         return JsonToken.FIELD_NAME;
       case END_OF_DOCUMENT:
         reader.readEndDocument();
@@ -279,13 +304,17 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case DONE:
         return null;
       case VALUE:
-        return toJsonToken(type());
+        return readToken();
       default:
         throw new JsonParseException(this, String.format("Unexpected BSON state:%s type:%s", state(), type()));
     }
   }
 
-  private JsonToken toJsonToken(BsonType type) throws JsonParseException {
+  /**
+   * Read next token in the stream
+   */
+  private JsonToken readToken() throws JsonParseException {
+    BsonType type = type();
     switch (type) {
       case END_OF_DOCUMENT:
         reader.readEndDocument();
@@ -296,19 +325,19 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case ARRAY:
         reader.readStartArray();
         return JsonToken.START_ARRAY;
-      case OBJECT_ID:
-        return JsonToken.VALUE_EMBEDDED_OBJECT;
       case BOOLEAN:
         final boolean value  = reader.readBoolean();
+        context.skipValue = false;
+        context.value = value;
         return value ? JsonToken.VALUE_TRUE : JsonToken.VALUE_FALSE;
       case DATE_TIME:
       case TIMESTAMP:
         return JsonToken.VALUE_EMBEDDED_OBJECT;
       case NULL:
         reader.readNull();
+        context.skipValue = false;
+        context.value = null;
         return JsonToken.VALUE_NULL;
-      case REGULAR_EXPRESSION:
-        return JsonToken.VALUE_EMBEDDED_OBJECT;
       case SYMBOL:
       case STRING:
         return JsonToken.VALUE_STRING;
@@ -316,10 +345,11 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
       case INT64:
         return JsonToken.VALUE_NUMBER_INT;
       case DECIMAL128:
-        return JsonToken.VALUE_NUMBER_FLOAT;
       case DOUBLE:
         return JsonToken.VALUE_NUMBER_FLOAT;
+      case OBJECT_ID:
       case BINARY:
+      case REGULAR_EXPRESSION:
         return JsonToken.VALUE_EMBEDDED_OBJECT;
       default:
         throw new JsonParseException(this, String.format("Unknown BSON type:%s", type));
@@ -328,42 +358,21 @@ public class BsonParser extends ParserBase implements Wrapper<BsonReader> {
 
   @Override
   public String getText() throws JsonParseException {
-    if (_textValue != null) {
-      return _textValue;
-    }
-
-    final BsonType type = type();
-    if (type == BsonType.SYMBOL) {
-      _textValue = reader.readSymbol();
-      return _textValue;
-    }
-    if (type == BsonType.STRING) {
-      _textValue = reader.readString();
-      return _textValue;
-    }
-    if (type == BsonType.OBJECT_ID) {
-      _textValue = reader.readObjectId().toHexString();
-      return _textValue;
-    }
-
-    if (type == BsonType.REGULAR_EXPRESSION) {
-      _textValue = reader.readRegularExpression().getPattern();
-      return _textValue;
-    }
-
     final JsonToken token = currentToken();
-    if (token == JsonToken.FIELD_NAME) {
+    if (token == JsonToken.FIELD_NAME || type() == null) {
       // return current field name
-      return reader.getCurrentName();
+      return context.fieldName;
+    } else if (token == JsonToken.VALUE_NULL || token == JsonToken.VALUE_TRUE || token == JsonToken.VALUE_FALSE) {
+      return token.asString();
     }
 
-    // number compatible types
-    if (token == JsonToken.VALUE_NUMBER_FLOAT || token == JsonToken.VALUE_NUMBER_INT ||
-            type == BsonType.DATE_TIME || type == BsonType.TIMESTAMP) {
-      return getNumberValue().toString();
+    if (!context.skipValue) {
+      return Objects.toString(context.value);
     }
 
-    return token != null ? token.asString() : null;
+    readValue();
+
+    return context.valueAsString();
   }
 
   @Override
