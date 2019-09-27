@@ -174,6 +174,7 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
     case DECIMAL128:
       return JsonToken.NUMBER;
     case NULL:
+    case UNDEFINED:
       return JsonToken.NULL;
     default:
       // not really sure what to do with this type
@@ -231,7 +232,14 @@ public class BsonReader extends JsonReader implements Wrapper<org.bson.BsonReade
 
   @Override
   public void nextNull() throws IOException {
-    delegate.readNull();
+    BsonType type = delegate.getCurrentBsonType();
+    if (type == BsonType.NULL) {
+      delegate.readNull();
+    } else if (type == BsonType.UNDEFINED) {
+      delegate.readUndefined();
+    } else {
+      throw new IllegalStateException(String.format("Expected bson type %s or %s but got %s", BsonType.NULL, BsonType.UNDEFINED, type));
+    }
   }
 
   @Override
