@@ -23,8 +23,10 @@ import org.immutables.criteria.repository.sync.SyncFetcher;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -140,7 +142,7 @@ public abstract class PersonAggregationTest {
 
     check(repository().findAll()
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
-            .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
+            .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=4 sum=100 max=40 min=10 avg=25.00");
 
     check(repository().findAll()
@@ -154,20 +156,20 @@ public abstract class PersonAggregationTest {
 
     check(repository().findAll()
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
-            .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
+            .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=4 sum=100 max=40 min=10 avg=25.00");
 
 
     // add filter age > 10
     check(repository().find(person.age.greaterThan(10))
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
-            .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
+            .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=3 sum=90 max=40 min=20 avg=30.00");
 
     // add filter age <= 10
     check(repository().find(person.age.atMost(10))
             .select(person.id.count(), person.age.sum(), person.age.max(), person.age.min(), person.age.avg())
-            .map((count, sum, min, max, avg) -> String.format("count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
+            .map((count, sum, min, max, avg) -> String.format(Locale.ROOT, "count=%d sum=%d max=%d min=%d avg=%.2f", count, sum, min, max, avg)))
             .hasContentInAnyOrder("count=1 sum=10 max=10 min=10 avg=10.00");
   }
 
