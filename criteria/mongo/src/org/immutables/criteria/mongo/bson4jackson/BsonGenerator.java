@@ -67,7 +67,11 @@ public class BsonGenerator extends GeneratorBase implements Wrapper<BsonWriter> 
 
   @Override
   public void writeString(String text) throws IOException {
-    writer.writeString(text);
+    if (text == null) {
+      writeNull();
+    } else {
+      writer.writeString(text);
+    }
   }
 
   @Override
@@ -122,7 +126,11 @@ public class BsonGenerator extends GeneratorBase implements Wrapper<BsonWriter> 
 
   @Override
   public void writeNumber(BigInteger number) throws IOException {
-    writeNumber(new BigDecimal(number));
+    if (number == null) {
+      writeNull();
+    } else {
+      writeNumber(new BigDecimal(number));
+    }
   }
 
   @Override
@@ -137,10 +145,14 @@ public class BsonGenerator extends GeneratorBase implements Wrapper<BsonWriter> 
 
   @Override
   public void writeNumber(BigDecimal number) throws IOException {
-    try {
-      writer.writeDecimal128(new Decimal128(number));
-    } catch (NumberFormatException e) {
-      writer.writeString(number.toString());
+    if (number == null) {
+      writeNull();
+    } else {
+      try {
+        writer.writeDecimal128(new Decimal128(number));
+      } catch (NumberFormatException e) {
+        writer.writeString(number.toString());
+      }
     }
   }
 
