@@ -18,13 +18,16 @@ package org.immutables.criteria.mongo.bson4jackson;
 import com.fasterxml.jackson.core.Base64Variant;
 import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.base.GeneratorBase;
+import org.bson.BsonBinary;
 import org.bson.BsonWriter;
 import org.bson.types.Decimal128;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -110,8 +113,14 @@ public class BsonGenerator extends GeneratorBase implements Wrapper<BsonWriter> 
   }
 
   @Override
+  public boolean canWriteBinaryNatively() {
+    return true;
+  }
+
+  @Override
   public void writeBinary(Base64Variant bv, byte[] data, int offset, int len) throws IOException {
-    throw new UnsupportedOperationException();
+    BsonBinary binary = new BsonBinary(Arrays.copyOfRange(data, offset, offset + len));
+    writer.writeBinaryData(binary);
   }
 
   @Override

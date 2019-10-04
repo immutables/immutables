@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWriter;
 import org.bson.BsonNull;
+import org.bson.BsonValue;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -44,6 +45,17 @@ class BsonGeneratorTest {
 
     check(writer.getDocument().keySet()).isEmpty();
     check(writer.getDocument()).is(new BsonDocument());
+  }
+
+  @Test
+  void binary() throws IOException {
+    BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
+    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    check(generator.canWriteBinaryNatively());
+    check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {})).asBinary().getData()).isEmpty();
+    check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {1})).asBinary().getData()).isOf((byte) 1);
+    check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {1, 2})).asBinary().getData()).isOf((byte) 1, (byte) 2);
+    check(writeAndReturnValue(gen -> gen.writeBinary(new byte[] {1, 2, 3})).asBinary().getData()).isOf((byte) 1, (byte) 2, (byte) 3);
   }
 
   @Test
@@ -85,6 +97,22 @@ class BsonGeneratorTest {
     check(doc.get("string")).is(BsonNull.VALUE);
     check(doc.get("bigDecimal")).is(BsonNull.VALUE);
     check(doc.get("bigInteger")).is(BsonNull.VALUE);
+  }
+
+  private BsonValue writeAndReturnValue(IoConsumer<BsonGenerator> consumer) throws IOException {
+    BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
+    BsonGenerator generator = new BsonGenerator(0, mapper, writer);
+    generator.writeStartObject();
+    generator.writeFieldName("value");
+    consumer.accept(generator);
+    generator.writeEndObject();
+    BsonDocument doc = writer.getDocument();
+    check(doc.keySet()).has("value");
+    return doc.get("value");
+  }
+
+  private interface IoConsumer<T> {
+    void accept(T value) throws IOException;
   }
 
 
