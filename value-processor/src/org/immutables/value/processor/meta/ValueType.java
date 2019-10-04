@@ -441,9 +441,20 @@ public final class ValueType extends TypeIntrospectionBase implements HasStyleIn
     return constitution.protoclass().criteria().isPresent();
   }
 
+  /**
+   * Check if criteria repository should be generated. Usually means {@code @Criteria.Repository} annotation is present.
+   * This type of repository is different from (legacy) mongo repository identified by {@code @Mongo.Repository} (see {@link #isGenerateRepository()}.
+   */
+  public boolean isGenerateCriteriaRepository() {
+    return constitution.protoclass().criteriaRepository().isPresent();
+  }
+
+  /**
+   * Check if mongo repository should be generated (for annotation {@code @Mongo.Repository}).
+   * For criteria repository see {@link #isGenerateCriteriaRepository()}
+   */
   public boolean isGenerateRepository() {
-    return constitution.protoclass().repository().isPresent()
-            || constitution.protoclass().criteriaRepository().isPresent();
+    return constitution.protoclass().repository().isPresent();
   }
 
   public MongoMirrors.Repository getRepository() {

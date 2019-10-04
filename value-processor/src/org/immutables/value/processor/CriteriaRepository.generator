@@ -14,7 +14,7 @@
    limitations under the License.
 --]
 [template public generate]
-  [for type in values.values if type.generateRepository]
+  [for type in values.values if type.generateCriteriaRepository]
     [if type.kind.isValue andnot type.generics]
 [output.java type.package (type.name 'Repository') type.element]
 [type.sourceHeader]
