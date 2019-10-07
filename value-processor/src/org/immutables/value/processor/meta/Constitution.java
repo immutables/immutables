@@ -173,6 +173,11 @@ public abstract class Constitution {
           ? typeAbstract()
           : typeImmutable();
     }
+
+    if (protoclass().kind().isJavaBean()) {
+      return typeAbstract();
+    }
+
     if (isFactory()) {
 
       if (protoclass().kind().isConstructor()) {

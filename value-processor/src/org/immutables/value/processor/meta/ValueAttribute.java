@@ -1319,7 +1319,7 @@ public final class ValueAttribute extends TypeIntrospectionBase implements HasSt
       } else {
         Environment environment = protoclass().environment();
         for (Protoclass p : environment.protoclassesFrom(Collections.singleton(containedTypeElement))) {
-          if ((p.kind().isDefinedValue() || p.kind().isModifiable())
+          if ((p.kind().isDefinedValue() || p.kind().isModifiable() || p.kind().isJavaBean())
               && canAccessImplementation(p)
               && p.constitution().generics().isEmpty()) {
             this.attributeValueType = environment.composeValue(p);

@@ -24,6 +24,6 @@ import org.immutables.value.Value;
 @Value.Immutable
 @Criteria
 @Criteria.Repository(facets = {AsyncReadable.class, AsyncWritable.class})
-class AsyncModel {
+abstract class AsyncModel {
 
 }

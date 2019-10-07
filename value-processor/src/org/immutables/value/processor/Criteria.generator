@@ -15,7 +15,7 @@
 --]
 [template public generate]
   [for type in values.values if type.generateCriteria]
-    [if type.kind.isValue andnot type.generics]
+    [if type.kind.isValue or type.kind.isJavaBean]
 [output.java type.package (type.name 'Criteria') type.element]
 [type.sourceHeader]
 [generateCriteria type]
@@ -66,7 +66,7 @@ import java.util.Objects;
 
 [for a in type.allMarshalingAttributes]
 [if a.hasCriteria]
-import [a.unwrappedElementType]Criteria;
+import [a.criteria.rawTypeName];
 [/if]
 [/for]
 
@@ -115,7 +115,7 @@ import org.immutables.criteria.expression.Queryable;
 
 [for a in type.allMarshalingAttributes]
 [if a.hasCriteria]
-import [a.unwrappedElementType]Criteria;
+import [a.criteria.rawTypeName];
 [/if]
 [/for]
 
