@@ -520,6 +520,13 @@ public class CriteriaModel {
     return matcherDefinition;
   }
 
+  /**
+   * Return class name of matcher for this criteria
+   */
+  public String rawTypeName() {
+    return matcher().matcherType().reference.name;
+  }
+
   public static class MatcherDefinition {
     private final ValueAttribute attribute;
     private final Type.Parameterized matcherType;

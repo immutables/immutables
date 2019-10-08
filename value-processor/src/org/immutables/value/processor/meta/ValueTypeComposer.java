@@ -51,6 +51,8 @@ public final class ValueTypeComposer {
 
     if (protoclass.kind().isFactory()) {
       new FactoryMethodAttributesCollector(protoclass, type).collect();
+    } else if (protoclass.kind().isJavaBean()) {
+      new JavaBeanAttributesCollector(protoclass, type).collect();
     } else if (protoclass.kind().isValue() || protoclass.kind().isModifiable()) {
       Collection<String> violations = Lists.newArrayList();
       // This check is legacy, most such checks should have been done on a higher level?

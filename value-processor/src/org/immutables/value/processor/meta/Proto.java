@@ -1044,6 +1044,21 @@ public class Proto {
       return element().getNestingKind() == NestingKind.TOP_LEVEL;
     }
 
+    /**
+     * Checks if this element is a regular POJO (not an interface or abstract class) simple
+     * class with getters and setters
+     */
+    @Value.Derived
+    @Value.Auxiliary
+    public boolean isJavaBean() {
+      return element().getKind().isClass() &&
+             element().getKind() != ElementKind.ENUM &&
+             !element().getModifiers().contains(Modifier.PRIVATE) &&
+             !element().getModifiers().contains(Modifier.ABSTRACT) &&
+              // restrict to Criteria and Repository annotations for now
+              (CriteriaMirror.find(element()).isPresent() || CriteriaRepositoryMirror.find(element()).isPresent());
+    }
+
     public boolean isImmutable() {
       return features().isPresent();
     }
@@ -1232,7 +1247,7 @@ public class Proto {
       if (!declaringType().isPresent()) {
         return Optional.absent();
       }
-      return kind().isIncluded() || kind().isDefinedValue()
+      return kind().isIncluded() || kind().isDefinedValue() || kind().isJavaBean()
               ? declaringType().get().criteria()
               : Optional.<CriteriaMirror>absent();
     }
@@ -1252,7 +1267,7 @@ public class Proto {
       if (!declaringType().isPresent()) {
         return Optional.absent();
       }
-      return kind().isIncluded() || kind().isDefinedValue()
+      return kind().isIncluded() || kind().isDefinedValue() || kind().isJavaBean()
               ? declaringType().get().criteriaRepository()
               : Optional.<CriteriaRepositoryMirror>absent();
     }
@@ -1577,6 +1592,7 @@ public class Proto {
       DEFINED_FACTORY,
       DEFINED_CONSTRUCTOR,
       DEFINED_TYPE,
+      DEFINED_JAVABEAN,
       DEFINED_TYPE_AND_COMPANION,
       DEFINED_COMPANION,
       DEFINED_AND_ENCLOSING_TYPE,
@@ -1612,6 +1628,10 @@ public class Proto {
         default:
           return false;
         }
+      }
+
+      public boolean isJavaBean() {
+        return this == DEFINED_JAVABEAN;
       }
 
       public boolean isValue() {

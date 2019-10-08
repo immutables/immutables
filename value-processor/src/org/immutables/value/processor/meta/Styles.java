@@ -38,6 +38,10 @@ public final class Styles {
         : Depluralizer.NONE;
   }
 
+  Scheme scheme() {
+    return scheme;
+  }
+
   public ValueImmutableInfo defaults() {
     return style.defaults();
   }

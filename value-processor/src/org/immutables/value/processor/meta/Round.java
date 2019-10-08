@@ -348,6 +348,7 @@ public abstract class Round {
       }
 
       if (declaringType.isImmutable()
+          || declaringType.isJavaBean()
           || declaringType.isEnclosing()
           || declaringType.isModifiable()) {
 
@@ -368,6 +369,9 @@ public abstract class Round {
     }
 
     private Kind kindOfDefinedBy(DeclaringType declaringType) {
+      if (declaringType.isJavaBean()) {
+        return Kind.DEFINED_JAVABEAN;
+      }
       if (declaringType.isImmutable()) {
         if (declaringType.isEnclosing()) {
           return Kind.DEFINED_AND_ENCLOSING_TYPE;

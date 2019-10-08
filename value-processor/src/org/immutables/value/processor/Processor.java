@@ -18,21 +18,13 @@ package org.immutables.value.processor;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Set;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.element.Element;
-import javax.tools.FileObject;
-import javax.tools.Diagnostic.Kind;
-import javax.tools.JavaFileManager.Location;
 import org.immutables.generator.AbstractGenerator;
 import org.immutables.generator.ForwardingFiler;
 import org.immutables.generator.ForwardingProcessingEnvironment;
 import org.immutables.value.processor.encode.EncodingMirror;
 import org.immutables.value.processor.encode.Generator_Encodings;
+import org.immutables.value.processor.meta.CriteriaMirror;
+import org.immutables.value.processor.meta.CriteriaRepositoryMirror;
 import org.immutables.value.processor.meta.CustomImmutableAnnotations;
 import org.immutables.value.processor.meta.EnclosingMirror;
 import org.immutables.value.processor.meta.FConstructorMirror;
@@ -48,6 +40,17 @@ import org.immutables.value.processor.meta.UnshadeGuava;
 import org.immutables.value.processor.meta.ValueType;
 import org.immutables.value.processor.meta.ValueUmbrellaMirror;
 
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.lang.model.element.Element;
+import javax.tools.Diagnostic.Kind;
+import javax.tools.FileObject;
+import javax.tools.JavaFileManager.Location;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Set;
+
 @SupportedAnnotationTypes({
     ImmutableMirror.QUALIFIED_NAME,
     EnclosingMirror.QUALIFIED_NAME,
@@ -58,6 +61,8 @@ import org.immutables.value.processor.meta.ValueUmbrellaMirror;
     FConstructorMirror.QUALIFIED_NAME,
     FIncludeMirror.QUALIFIED_NAME,
     EncodingMirror.QUALIFIED_NAME,
+    CriteriaMirror.QUALIFIED_NAME,
+    CriteriaRepositoryMirror.QUALIFIED_NAME
 })
 public final class Processor extends AbstractGenerator {
   @Override
