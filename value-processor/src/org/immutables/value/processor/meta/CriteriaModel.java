@@ -25,6 +25,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
@@ -33,7 +34,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -250,6 +250,28 @@ public class CriteriaModel {
     return extractor.get(mirror);
   }
 
+  /**
+   * Criteria templates are always generated as top-level class (separate file).
+   * Construct criteria name from {@linkplain TypeMirror}
+   *
+   * @return fully qualified criteria (template) class name
+   */
+  private static String topLevelCriteriaClassName(TypeMirror type) {
+    DeclaredType declaredType = MoreTypes.asDeclared(type);
+    Element element = declaredType.asElement();
+    do {
+      element = element.getEnclosingElement();
+    } while (element.getKind() != ElementKind.PACKAGE);
+
+    String packagePrefix = "";
+    if (!element.getSimpleName().contentEquals("")) {
+      packagePrefix = MoreElements.asPackage(element).getQualifiedName() + ".";
+    }
+
+    // package name + type name + "CriteriaTemplate"
+    return packagePrefix + declaredType.asElement().getSimpleName().toString() + "CriteriaTemplate";
+  }
+
   private Type.Parameterized matcherType(IntrospectedType introspected) {
     final TypeMirror type = introspected.type;
     String name;
@@ -282,7 +304,7 @@ public class CriteriaModel {
         name = "org.immutables.criteria.matcher.OptionalMatcher.Template";
       }
     } else if (introspected.hasCriteria()) {
-      name = type.toString() + "CriteriaTemplate";
+      name = topLevelCriteriaClassName(type);
     } else if (introspected.isBoolean()) {
       name = "org.immutables.criteria.matcher.BooleanMatcher.Template";
     } else if (introspected.isNumber()) {
