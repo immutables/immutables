@@ -20,6 +20,8 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.Publishers;
+import org.immutables.criteria.repository.Updater;
+import org.immutables.criteria.repository.reactive.ReactiveUpdater;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
@@ -46,4 +48,10 @@ public class AsyncWritable<T> implements AsyncRepository.Writable<T> {
   public CompletionStage<WriteResult> delete(Criterion<T> criteria) {
     return Publishers.toFuture(reactive.delete(criteria));
   }
+
+  @Override
+  public Updater<T, CompletionStage<WriteResult>> update(Criterion<T> criterion) {
+    return new AsyncUpdaterDelegate<>(reactive.update(criterion));
+  }
+
 }

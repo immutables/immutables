@@ -16,13 +16,19 @@
 
 package org.immutables.criteria.backend;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
+import org.immutables.criteria.expression.Expression;
+import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Visitors;
 import org.immutables.value.Value;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Common operations which can be executed on a backend.
@@ -63,6 +69,47 @@ public final class StandardOperations {
     }
 
   }
+
+  /**
+   * Conditional update operation similar to SQL clause {@code UPDATE ... SET ... WHERE ...}.
+   */
+  @Value.Immutable
+  public interface Update extends Backend.Operation {
+
+    /**
+     * Filter for records to be updated
+     */
+    @Value.Parameter
+    Query query();
+
+    /**
+     * Values to be set. Key is usually a {@linkplain Path} and value is object to be set.
+     */
+    @Value.Parameter
+    Map<Expression, Object> values();
+
+    /**
+     * If current operation is replace, return replacement, otherwise return empty optional.
+     * Replace means override whole record / document not a subset of attributes.
+     */
+    default Optional<Object> replace() {
+      Optional<Path> found = values().keySet().stream().map(Visitors::toPath).filter(Path::isEntityPath).findAny();
+      // check that there is just a replace value. no others (like attribute set)
+      found.ifPresent(p -> {
+        if (values().size() != 1) {
+          throw new IllegalArgumentException(String.format("Expected exactly one value for replacement got %d: %s", values().size(), values().keySet()));
+        }
+      });
+      return found.map(p -> values().get(p));
+    }
+
+    static Update of(Query query, Map<Expression, Object> values) {
+      Preconditions.checkArgument(!values.isEmpty(), "no values");
+      return ImmutableUpdate.of(query, values);
+    }
+
+  }
+
 
   /**
    * Delete documents using some criteria

@@ -40,7 +40,7 @@ public class Path implements Expression {
   private final AnnotatedElement annotatedElement;
   private final Type returnType;
 
-  Path(Path parent, AnnotatedElement annotatedElement) {
+  private Path(Path parent, AnnotatedElement annotatedElement) {
     this.parent = parent;
     this.annotatedElement = Objects.requireNonNull(annotatedElement, "annotatedElement");
     this.returnType = extractReturnType(annotatedElement);
@@ -65,6 +65,13 @@ public class Path implements Expression {
 
   public AnnotatedElement annotatedElement() {
     return annotatedElement;
+  }
+
+  /**
+   * Means current path represents an entity (class) not necessarily a member like field or method.
+   */
+  public boolean isEntityPath() {
+    return annotatedElement.getClass() == Class.class;
   }
 
   /**

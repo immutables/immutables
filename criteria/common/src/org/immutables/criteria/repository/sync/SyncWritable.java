@@ -20,6 +20,7 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.Publishers;
+import org.immutables.criteria.repository.Updater;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
@@ -44,6 +45,11 @@ public class SyncWritable<T> implements SyncRepository.Writable<T> {
   @Override
   public WriteResult delete(Criterion<T> criteria) {
     return Publishers.blockingGet(writable.delete(criteria));
+  }
+
+  @Override
+  public Updater<T, WriteResult> update(Criterion<T> criterion) {
+    return new SyncUpdaterDelegate<>(writable.update(criterion));
   }
 
 }

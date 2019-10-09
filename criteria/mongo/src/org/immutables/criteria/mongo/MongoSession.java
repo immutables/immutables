@@ -38,11 +38,13 @@ import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.expression.Visitors;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,6 +93,8 @@ class MongoSession implements Backend.Session {
       return delete((StandardOperations.Delete) operation);
     } else if (operation instanceof StandardOperations.Watch) {
       return watch((StandardOperations.Watch) operation);
+    } else if (operation instanceof StandardOperations.Update) {
+      return update((StandardOperations.Update) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
@@ -143,6 +147,26 @@ class MongoSession implements Backend.Session {
 
     // post-process result with projections
     return find;
+  }
+
+  private Publisher<WriteResult> update(StandardOperations.Update operation) {
+
+    Optional<Object> replace = operation.replace();
+    if (replace.isPresent()) {
+      return Flowable.error(new UnsupportedOperationException("Replacing whole objects not yet supported by " + MongoBackend.class.getSimpleName()));
+    }
+
+    Bson filter = toBson(operation.query());
+    Document set = new Document();
+    operation.values().forEach((path, value) -> {
+      if (path.returnType() != Optional.class && Optional.empty().equals(value)) {
+        value = null; // unwrap from Optional
+      }
+      set.put(Visitors.toPath(path).toStringPath(), value);
+    });
+
+    return Flowable.fromPublisher(collection.updateMany(filter, new Document("$set", set))).map(x -> WriteResult.unknown());
+
   }
 
   private Publisher<WriteResult> delete(StandardOperations.Delete delete) {

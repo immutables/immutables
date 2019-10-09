@@ -16,10 +16,12 @@
 
 package org.immutables.criteria.repository.reactive;
 
+import org.immutables.criteria.Criterias;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.repository.Updater;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -40,6 +42,11 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
   @Override
   public Publisher<WriteResult> delete(Criterion<T> criteria) {
     return session.execute(StandardOperations.Delete.of(criteria)).publisher();
+  }
+
+  @Override
+  public ReactiveUpdater<T> update(Criterion<T> criterion) {
+    return new ReactiveUpdater<>(Criterias.toQuery(criterion), session);
   }
 
 }

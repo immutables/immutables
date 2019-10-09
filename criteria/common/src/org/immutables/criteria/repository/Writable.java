@@ -34,6 +34,18 @@ public interface Writable<T, R> extends Facet {
 
   R insert(Iterable<? extends T> docs);
 
+  /**
+   * Delete elements matching a filter
+   * @param criteria element filter
+   */
   R delete(Criterion<T> criteria);
+
+  /**
+   * Update elements matching a filter
+   *
+   * @param criterion filter to apply updates on
+   * @return update DSL
+   */
+  Updater<T, R> update(Criterion<T> criterion);
 
 }

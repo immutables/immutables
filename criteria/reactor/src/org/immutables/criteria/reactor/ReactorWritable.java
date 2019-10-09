@@ -19,6 +19,7 @@ package org.immutables.criteria.reactor;
 import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WriteResult;
+import org.immutables.criteria.repository.Updater;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 import reactor.core.publisher.Mono;
 
@@ -38,5 +39,10 @@ public class ReactorWritable<T> implements ReactorRepository.Writable<T> {
   @Override
   public Mono<WriteResult> delete(Criterion<T> criteria) {
     return Mono.from(writable.delete(criteria));
+  }
+
+  @Override
+  public Updater<T, Mono<WriteResult>> update(Criterion<T> criterion) {
+    return new ReactorUpdaterDelegate<>(writable.update(criterion));
   }
 }
