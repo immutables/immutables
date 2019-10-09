@@ -19,6 +19,10 @@ package org.immutables.criteria.nested;
 import org.immutables.criteria.Criteria;
 import org.immutables.value.Value;
 
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Criteria generation for inner classes
  */
@@ -27,8 +31,13 @@ public class Inners {
   @Value.Immutable
   @Criteria
   @Criteria.Repository
-  interface Inner1 { }
-
+  interface Inner1 {
+    // reference a different inner criteria
+    Inner2 inner2();
+    @Nullable Inner2 nullableInner2();
+    Optional<Inner2> optionalInner2();
+    List<Inner2> listInner2();
+  }
 
   @Value.Immutable
   @Criteria
