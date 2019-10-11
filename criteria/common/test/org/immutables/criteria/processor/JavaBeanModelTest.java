@@ -49,7 +49,7 @@ public class JavaBeanModelTest {
     check(attributes).hasContentInAnyOrder("set", "foo", "base", "dep", "deps", "nullableDep");
     // java.lang.Object should not be included
     check(attributes).not().hasContentInAnyOrder("equals", "hashCode", "toString", "getClass");
-    check(attributes).not().hasContentInAnyOrder("ignore");
+    check(attributes).not().hasContentInAnyOrder("ignore", "missingField");
   }
 
   @Test
@@ -69,15 +69,6 @@ public class JavaBeanModelTest {
     ValueType valueType = rule.value(Model1.class);
     Function<String, ValueAttribute> findFn = name -> valueType.attributes.stream().filter(a -> a.name().equals(name)).findAny().get();
     check(findFn.apply("nullableDep").isNullable());
-  }
-
-  @Test
-  public void criteria() {
-    Model1Criteria model1 = Model1Criteria.model1;
-    model1.base.is("aaa")
-          .foo.greaterThan(22)
-           .set.isTrue()
-           .deps.isEmpty();
   }
 
   @ProcessorRule.TestImmutable
@@ -128,6 +119,13 @@ public class JavaBeanModelTest {
     public int ignore() {
       return 0;
     }
+
+    /**
+     * Should not be in the criteria because there is no such field as {@code missingField}
+     */
+    public int getMissingField() {
+      return 0;
+    }
   }
 
   /**
@@ -142,6 +140,8 @@ public class JavaBeanModelTest {
     public Date getDate() {
       return date;
     }
+
+
   }
 
   static abstract class Base {
