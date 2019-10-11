@@ -138,21 +138,34 @@ final class JavaBeanAttributesCollector {
       return getters.keySet();
     }
 
+    /**
+     * Checks if {@code executable} follows JavaBean convention for getter methods (like {@code getFoo})
+     */
     private boolean isGetter(ExecutableElement executable) {
       if (isJavaLangObject(executable.getEnclosingElement())) {
         return false;
       }
 
       String name = executable.getSimpleName().toString();
-      boolean getterName = false;
+      boolean isGetterName = false;
       for (Naming naming: styles.scheme().get) {
         if (!naming.detect(name).isEmpty()) {
-          getterName = true;
+          isGetterName = true;
           break;
         }
       }
-      boolean noArgs = executable.getParameters().isEmpty() && executable.getReturnType().getKind() != TypeKind.VOID;
-      return getterName && noArgs;
+
+      if (!isGetterName) {
+        return false;
+      }
+
+      boolean isGetterSignature = executable.getParameters().isEmpty()
+              && executable.getReturnType().getKind() != TypeKind.VOID
+              && executable.getModifiers().contains(Modifier.PUBLIC)
+              && !executable.getModifiers().contains(Modifier.STATIC)
+              && !executable.getModifiers().contains(Modifier.ABSTRACT);
+
+      return isGetterSignature;
     }
 
     private boolean isJavaLangObject(Element element) {

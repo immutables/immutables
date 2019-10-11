@@ -71,6 +71,14 @@ public class JavaBeanModelTest {
     check(findFn.apply("nullableDep").isNullable());
   }
 
+  @Test
+  public void visibility() {
+    ValueType valueType = rule.value(VisibilityModel.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    // only public getters should be visible
+    check(names).hasContentInAnyOrder("publicField");
+  }
+
   @ProcessorRule.TestImmutable
   @Criteria
   @Criteria.Repository
@@ -141,7 +149,6 @@ public class JavaBeanModelTest {
       return date;
     }
 
-
   }
 
   static abstract class Base {
@@ -153,6 +160,41 @@ public class JavaBeanModelTest {
 
     public void setBase(String base) {
       this.base = base;
+    }
+  }
+
+  /**
+   * Model to test getter setters
+   */
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class VisibilityModel {
+    public int publicField;
+    int packageField;
+    private int privateField;
+    protected int protectedField;
+
+    static private int staticField;
+
+    // only public getter
+    public int getPublicField() {
+      return publicField;
+    }
+
+    int getPackageField() {
+      return packageField;
+    }
+
+    private int getPrivateField() {
+      return privateField;
+    }
+
+    protected int getProtectedField() {
+      return protectedField;
+    }
+
+    public static int getStaticField() {
+      return staticField;
     }
   }
 }
