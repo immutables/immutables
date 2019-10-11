@@ -20,10 +20,13 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
+import org.immutables.criteria.runtime.ClassScanner;
 
 import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
@@ -84,8 +87,12 @@ public final class CriteriaContext implements Queryable {
    *  adds an intermediate path
    */
   public <T> CriteriaContext newChild(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
-    // push
-    final Member member = Reflections.member(type, pathAsString);
+    // first look for fields then methods
+    final Member member = Stream.concat(ClassScanner.of(type).excludeMethods().stream(), ClassScanner.of(type).excludeFields().stream())
+            .filter(m -> m.getName().equals(pathAsString))
+            .findAny()
+            .orElseThrow(() -> new IllegalArgumentException(String.format("Path %s not found in %s", pathAsString, type)));
+
     final Path newPath = this.path != null ? this.path.with(member) : Path.of(member);
     return new CriteriaContext(entityClass, expression, newPath, creator, this);
   }

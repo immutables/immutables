@@ -19,11 +19,12 @@ package org.immutables.criteria.inmemory;
 import io.reactivex.Flowable;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.runtime.IdExtractor;
+import org.immutables.criteria.runtime.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Comparator;
@@ -64,8 +65,7 @@ public class InMemoryBackend implements Backend {
     private Session(Class<?> entityType, Map<Object, Object> store) {
       this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
-      this.idExtractor = IdExtractor.reflection((Class<Object>) entityType);
-
+      this.idExtractor = IdExtractor.ofMember(IdResolver.defaultResolver().resolve(entityType));
     }
 
     @Override

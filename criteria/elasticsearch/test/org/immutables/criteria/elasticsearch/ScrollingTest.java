@@ -84,7 +84,7 @@ public class ScrollingTest {
   }
 
   private ElasticsearchBackend backend(int scrollSize) {
-    return new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).resolver(ignore -> "test").scrollSize(scrollSize).build());
+    return new ElasticsearchBackend(ElasticsearchSetup.builder(restClient).objectMapper(MAPPER).indexResolver(ignore -> "test").scrollSize(scrollSize).build());
   }
 
   @Test

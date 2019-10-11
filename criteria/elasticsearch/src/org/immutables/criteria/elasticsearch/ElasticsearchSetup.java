@@ -18,6 +18,7 @@ package org.immutables.criteria.elasticsearch;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.elasticsearch.client.RestClient;
+import org.immutables.criteria.runtime.IdResolver;
 import org.immutables.value.Value;
 
 /**
@@ -36,8 +37,13 @@ public interface ElasticsearchSetup {
   }
 
   @Value.Default
-  default IndexResolver resolver() {
+  default IndexResolver indexResolver() {
     return IndexResolver.defaultResolver();
+  }
+
+  @Value.Default
+  default IdResolver idResolver() {
+    return IdResolver.defaultResolver();
   }
 
   @Value.Default

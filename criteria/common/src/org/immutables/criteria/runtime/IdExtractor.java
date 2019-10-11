@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria.runtime;
 
 import org.immutables.criteria.Criteria;
 
+import java.lang.reflect.Member;
 import java.util.function.Function;
 
 /**
- * Extracts value which represents unique ID for an instance
+ * Extracts value which represents unique ID for an instance.
  *
  * @param <T> instance type
  * @param <ID> ID attribute type
@@ -36,8 +37,14 @@ public interface IdExtractor<T, ID> {
    * @throws IllegalArgumentException if {@link Criteria.Id} annotation is not declared in any methods
    * or fields.
    */
-  static <T, ID> IdExtractor<T, ID> reflection(Class<T> entityType) {
-    return from(ReflectionExtractor.of(entityType, Criteria.Id.class));
+  @SuppressWarnings("unchecked")
+  static <T, ID> IdExtractor<T, ID> ofMember(Class<T> entityType) {
+    return from((Function<T, ID>) Reflections.extractorFor(IdResolver.defaultResolver().resolve(entityType)));
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T, ID> IdExtractor<T, ID> ofMember(Member member) {
+    return from((Function<T, ID>) Reflections.extractorFor(member));
   }
 
   static <T, ID> IdExtractor<T, ID> from(Function<T, ID> fun) {

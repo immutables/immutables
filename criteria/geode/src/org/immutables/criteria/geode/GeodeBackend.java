@@ -29,7 +29,6 @@ import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WatchEvent;
@@ -38,6 +37,8 @@ import org.immutables.criteria.expression.AggregationCall;
 import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.runtime.IdExtractor;
+import org.immutables.criteria.runtime.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.ArrayList;
@@ -61,6 +62,7 @@ public class GeodeBackend implements Backend {
   private static final Logger logger = Logger.getLogger(GeodeBackend.class.getName());
 
   private final RegionResolver resolver;
+  private final IdResolver idResolver;
 
   /**
    * Convert Geode specific {@link QueryService#UNDEFINED} value to null
@@ -71,6 +73,7 @@ public class GeodeBackend implements Backend {
   public GeodeBackend(GeodeSetup setup) {
     Objects.requireNonNull(setup, "setup");
     this.resolver = setup.regionResolver();
+    this.idResolver = setup.idResolver();
   }
 
   @Override
@@ -78,7 +81,7 @@ public class GeodeBackend implements Backend {
     Objects.requireNonNull(entityType, "context");
     @SuppressWarnings("unchecked")
     Region<Object, Object> region = (Region<Object, Object>) resolver.resolve(entityType);
-    return new Session(entityType, region);
+    return new Session(entityType, idResolver, region);
   }
 
   @SuppressWarnings("unchecked")
@@ -89,10 +92,10 @@ public class GeodeBackend implements Backend {
     private final IdExtractor<Object, Object> idExtractor;
     private final QueryService queryService;
 
-    private Session(Class<?> entityType, Region<Object, Object> region) {
+    private Session(Class<?> entityType, IdResolver idResolver, Region<Object, Object> region) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
-      this.idExtractor = IdExtractor.reflection((Class<Object>) entityType);
+      this.idExtractor = IdExtractor.ofMember(idResolver.resolve(entityType));
       this.queryService = region.getRegionService().getQueryService();
     }
 

@@ -24,12 +24,13 @@ import io.reactivex.Flowable;
 import org.elasticsearch.client.RestClient;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.DefaultResult;
-import org.immutables.criteria.backend.IdExtractor;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
+import org.immutables.criteria.runtime.IdExtractor;
+import org.immutables.criteria.runtime.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -46,20 +47,22 @@ public class ElasticsearchBackend implements Backend {
   final RestClient restClient;
   final ObjectMapper objectMapper;
   private final IndexResolver resolver;
+  private final IdResolver idResolver;
   private final int scrollSize;
 
   public ElasticsearchBackend(ElasticsearchSetup setup) {
     Objects.requireNonNull(setup, "setup");
     this.restClient = setup.restClient();
     this.objectMapper = setup.objectMapper();
-    this.resolver = setup.resolver();
+    this.resolver = setup.indexResolver();
     this.scrollSize = setup.scrollSize();
+    this.idResolver = setup.idResolver();
   }
 
   @Override
   public Backend.Session open(Class<?> entityType) {
     final String index = resolver.resolve(entityType);
-    return new Session(entityType, new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
+    return new Session(entityType, idResolver, new ElasticsearchOps(restClient, index, objectMapper, scrollSize));
   }
 
   @SuppressWarnings("unchecked")
@@ -72,7 +75,7 @@ public class ElasticsearchBackend implements Backend {
     private final boolean hasId;
 
 
-    private Session(Class<?> entityClass, ElasticsearchOps ops) {
+    private Session(Class<?> entityClass, IdResolver idResolver, ElasticsearchOps ops) {
       Objects.requireNonNull(entityClass, "entityClass");
       this.entityType = entityClass;
       this.ops = Objects.requireNonNull(ops, "ops");
@@ -80,7 +83,7 @@ public class ElasticsearchBackend implements Backend {
       IdExtractor<Object, Object> idExtractor = IdExtractor.from(x -> x);
       boolean hasId = false;
       try {
-        idExtractor = IdExtractor.reflection((Class<Object>) entityClass);
+        idExtractor = IdExtractor.ofMember(idResolver.resolve(entityType));
         hasId = true;
       } catch (IllegalArgumentException ignore) {
         // id not supported
