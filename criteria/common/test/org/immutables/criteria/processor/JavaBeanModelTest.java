@@ -79,6 +79,22 @@ public class JavaBeanModelTest {
     check(names).hasContentInAnyOrder("publicField");
   }
 
+  @Test
+  public void wierdBean1() {
+    ValueType valueType = rule.value(WeirdLegacyBean1.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    check(names).hasContentInAnyOrder("foo");
+    check(names).not().has("_foo");
+  }
+
+  @Test
+  public void wierdBean2() {
+    ValueType valueType = rule.value(WeirdLegacyBean2.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    check(names).hasContentInAnyOrder("foo", "BAR");
+    check(names).not().has("Foo");
+  }
+
   @ProcessorRule.TestImmutable
   @Criteria
   @Criteria.Repository
@@ -195,6 +211,45 @@ public class JavaBeanModelTest {
 
     public static int getStaticField() {
       return staticField;
+    }
+  }
+
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class WeirdLegacyBean1 {
+    private String _foo; // some generators have under-score
+
+    public String getFoo() {
+      return _foo;
+    }
+
+    public void setFoo(String _foo) {
+      this._foo = _foo;
+    }
+  }
+
+
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class WeirdLegacyBean2 {
+    private String Foo; // some generators don't use lower-case attributes
+
+    private String BAR;
+
+    public String getFoo() {
+      return Foo;
+    }
+
+    public void setFoo(String foo) {
+      Foo = foo;
+    }
+
+    public String getBAR() {
+      return BAR;
+    }
+
+    public void setBAR(String BAR) {
+      this.BAR = BAR;
     }
   }
 }

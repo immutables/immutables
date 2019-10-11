@@ -57,9 +57,13 @@ final class JavaBeanAttributesCollector {
   JavaBeanAttributesCollector(Proto.Protoclass protoclass, ValueType type) {
     this.type = Preconditions.checkNotNull(type, "type");
     this.protoclass = Preconditions.checkNotNull(protoclass, "protoclass");
-    this.styles = new Styles(ImmutableStyleInfo.copyOf(protoclass.styles().style()).withGet("is*", "get*"));
+    this.styles = new Styles(ImmutableStyleInfo.copyOf(protoclass.styles().style()).withGet("is*", "get*").withSet("set*"));
     this.getters = new Getters();
     this.fields = new Fields();
+  }
+
+  private static boolean isJavaLangObject(Element element) {
+    return MoreElements.isType(element) && MoreElements.asType(element).getQualifiedName().contentEquals(Object.class.getName());
   }
 
 
@@ -77,7 +81,21 @@ final class JavaBeanAttributesCollector {
       Map<String, VariableElement> map = new LinkedHashMap<>();
       for (VariableElement field: collectFields(getCachedTypeElement(), new LinkedHashSet<VariableElement>())) {
         if (!field.getModifiers().contains(Modifier.STATIC)) {
-          map.put(field.getSimpleName().toString(), field);
+          String name = field.getSimpleName().toString();
+          map.put(name, field);
+
+          // add alternative field names for legacy code-generators
+          if (Character.isUpperCase(name.charAt(0))) {
+            // private String Foo (instead of lowercase foo)
+            String altName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+            map.put(altName, field);
+          }
+
+          if (name.charAt(0) == '_' && name.length() > 1) {
+            // private String _foo
+            String altName = name.substring(1);
+            map.put(altName, field);
+          }
         }
       }
 
@@ -118,12 +136,40 @@ final class JavaBeanAttributesCollector {
       Map<String, ExecutableElement> map = new LinkedHashMap<>();
       for (ExecutableElement executable: ElementFilter.methodsIn(members)) {
         if (isGetter(executable)) {
-          String name = styles.forAccessor(executable.getSimpleName().toString()).raw;
+          String name = javaBeanAttributeName(executable.getSimpleName().toString());
           map.put(name, executable);
         }
       }
 
       this.getters = ImmutableMap.copyOf(map);
+    }
+
+    /**
+     * Handle special case when first 2 characters are upper case.
+     *
+     * <p>See 8.8 Capitalization of inferred names in
+     * <a href="https://download.oracle.com/otndocs/jcp/7224-javabeans-1.01-fr-spec-oth-JSpec/">javabean spec</a>
+     * <pre>
+     * Thus when we extract a property or event name from the middle of an existing Java name, we
+     * normally convert the first character to lower case. However to support the occasional use of all
+     * upper-case names, we check if the first two characters of the name are both upper case and if
+     * so leave it alone. So for example,
+     * "FooBah" becomes "fooBah"
+     * "Z" becomes "z"
+     * "URL" becomes "URL"
+     *</pre>
+     */
+    private String javaBeanAttributeName(String raw) {
+      Preconditions.checkArgument(raw.startsWith("get") || raw.startsWith("is"), "%s doesn't start with 'get' or 'is'", raw);
+      String name = raw.startsWith("get") ? raw.substring(3) : raw.substring(2);
+      // for Java Beans if there are more than 2 uppercase letters attribute remains unchanged
+      // "FooBah" becomes "fooBah" and "X" becomes "x", but "URL" stays as "URL"
+      boolean allUpperCase = name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1));
+      if (allUpperCase) {
+        return name;
+      } else {
+        return styles.forAccessor(raw).raw;
+      }
     }
 
     private ExecutableElement getter(String name) {
@@ -168,17 +214,13 @@ final class JavaBeanAttributesCollector {
       return isGetterSignature;
     }
 
-    private boolean isJavaLangObject(Element element) {
-      return element instanceof TypeElement && ((TypeElement) element).getQualifiedName().contentEquals(Object.class.getName());
-    }
-
   }
 
   void collect() {
     List<ValueAttribute> attributes = new ArrayList<>();
-    // filter on common fields and getters (by name)
-    for (String name: Sets.intersection(getters.names(), fields.names())) {
-      attributes.add(toAttribute(getters.getter(name)));
+    Sets.SetView<String> names = Sets.intersection(getters.names(), fields.names());
+    for (String name: names) {
+      attributes.add(toAttribute(name, getters.getter(name)));
     }
 
     type.attributes.addAll(attributes);
@@ -187,17 +229,16 @@ final class JavaBeanAttributesCollector {
   /**
    * Create attribute from JavaBean getter
    */
-  private ValueAttribute toAttribute(ExecutableElement getter) {
+  private ValueAttribute toAttribute(String name, ExecutableElement getter) {
     ValueAttribute attribute = new ValueAttribute();
     attribute.reporter = protoclass.report();
     attribute.returnType = getter.getReturnType();
-    attribute.names = styles.forAccessor(getter.getSimpleName().toString());
+    attribute.names = styles.forAccessorWithRaw(getter.getSimpleName().toString(), name);
     attribute.element = getter;
     attribute.containingType = type;
     attribute.isGenerateAbstract = true; // to be visible as marshalling attribute
     attribute.initAndValidate(null);
     return attribute;
   }
-
 
 }
