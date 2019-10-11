@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.PropertyName;
 import com.fasterxml.jackson.databind.introspect.Annotated;
 import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
+import com.google.common.reflect.TypeToken;
 import org.immutables.criteria.Criteria;
 
 import java.lang.annotation.Annotation;
@@ -36,26 +37,51 @@ import java.util.function.Predicate;
 /**
  * Allows mapping of {@code ID} property (usually declared as {@link Criteria.Id})
  * to {@code _id} attribute in mongo document.
+ *
+ * <p>Uses simple heuristics to identify ID attribute:
+ * <ul>
+ *   <li>For fields it will apply predicate directly</li>
+ *   <li>For methods, check current (or parent) class method as well interface definition of the method</li>
+ * </ul>
+ *
+ * <p>It is also possible to register custom {@code ID} annotation using {@link #fromAnnotation(Class)} </p>
  */
 public class IdAnnotationModule extends Module {
 
   private static final Class<Criteria.Id> DEFAULT_ID_ANNOTATION = Criteria.Id.class;
 
-  private final Class<? extends Annotation> annotationClass;
+  private final Predicate<? super AnnotatedElement> predicate;
 
   public IdAnnotationModule() {
-    this(DEFAULT_ID_ANNOTATION);
+    this(a -> a.isAnnotationPresent(DEFAULT_ID_ANNOTATION));
   }
 
-  // not yet ready to expose it
-  private IdAnnotationModule(Class<? extends Annotation> annotationClass) {
+  private IdAnnotationModule(Predicate<? super AnnotatedElement> predicate) {
     super();
-    this.annotationClass = Objects.requireNonNull(annotationClass, "annotationClass");
+    this.predicate = Objects.requireNonNull(predicate, "predicate");
+  }
+
+  /**
+   * Derive {@code _id} property from existing annotation. Allows using other annotations
+   * than {@link Criteria.Id}
+   */
+  public static IdAnnotationModule fromAnnotation(Class<? extends Annotation> annotation) {
+    Objects.requireNonNull(annotation, "annotation");
+    return fromPredicate(m -> m instanceof AnnotatedElement && ((AnnotatedElement) m).isAnnotationPresent(annotation));
+  }
+
+  /**
+   * Derive {@code _id} property from {@link Member} predicate.
+   */
+  public static IdAnnotationModule fromPredicate(Predicate<? super Member> predicate) {
+    Objects.requireNonNull(predicate, "predicate");
+    Predicate<AnnotatedElement> newPred = a -> a instanceof Member && predicate.test((Member) a);
+    return new IdAnnotationModule(newPred);
   }
 
   @Override
   public String getModuleName() {
-    return "Criteria Module";
+    return getClass().getSimpleName();
   }
 
   @Override
@@ -65,8 +91,7 @@ public class IdAnnotationModule extends Module {
 
   @Override
   public void setupModule(SetupContext context) {
-    IdAnnotationIntrospector introspector = new IdAnnotationIntrospector(m -> m.isAnnotationPresent(annotationClass));
-    context.insertAnnotationIntrospector(introspector);
+    context.insertAnnotationIntrospector(new IdAnnotationIntrospector(predicate));
   }
 
   /**
@@ -75,10 +100,10 @@ public class IdAnnotationModule extends Module {
    */
   private static class IdAnnotationIntrospector extends NopAnnotationIntrospector {
 
-    private final Predicate<? super AnnotatedElement> idPredicate;
+    private final Predicate<? super AnnotatedElement> predicate;
 
     IdAnnotationIntrospector(Predicate<? super AnnotatedElement> predicate) {
-      this.idPredicate = Objects.requireNonNull(predicate, "predicate");
+      this.predicate = Objects.requireNonNull(predicate, "predicate");
     }
 
     @Override
@@ -100,10 +125,13 @@ public class IdAnnotationModule extends Module {
     /**
      * Uses reflection to find original method marked with {@link Criteria.Id}.
      */
-    private Optional<Member> findOriginalMethod(AnnotatedElement annotated) {
+    private Optional<AnnotatedElement> findOriginalMethod(AnnotatedElement annotated) {
+      if (annotated != null && predicate.test(annotated)) {
+        return Optional.of(annotated);
+      }
 
       if (annotated instanceof Field) {
-        // for fields try to find corresponding method (annotated with @Id)
+        // for fields try to find corresponding method (maybe annotated with @Id)
         // usually field is defined in ImmutableFoo.Json class and implements Foo
         final Field field = (Field) annotated;
         final Optional<Method> maybe = Arrays.stream(field.getDeclaringClass().getMethods())
@@ -115,22 +143,23 @@ public class IdAnnotationModule extends Module {
       }
 
       if (!(annotated instanceof Method)) {
+        // something else. We support only Fields and Methods
         return Optional.empty();
       }
 
       final Method method = (Method) annotated;
 
-      if (idPredicate.test(method)) {
+      if (predicate.test(method)) {
         return Optional.of(method);
       }
 
       final String name = method.getName();
       final Class<?>[] params = method.getParameterTypes();
-      // check for available interfaces
-      for (Class<?> iface: method.getDeclaringClass().getInterfaces()) {
+      // check for all available interfaces
+      for (Class<?> iface: TypeToken.of(method.getDeclaringClass()).getTypes().interfaces().rawTypes()) {
         try {
           final Method maybe = iface.getMethod(name, params);
-          if (idPredicate.test(maybe)) {
+          if (predicate.test(maybe)) {
             return Optional.of(maybe);
           }
         } catch(NoSuchMethodException ignore) {

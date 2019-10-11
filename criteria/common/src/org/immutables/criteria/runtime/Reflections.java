@@ -18,7 +18,6 @@ package org.immutables.criteria.runtime;
 
 import com.google.common.base.Preconditions;
 
-import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
@@ -33,12 +32,12 @@ import java.util.function.Predicate;
  */
 public final class Reflections {
 
-  public static Optional<Member> findMember(Class<?> type, Predicate<AnnotatedElement> predicate) {
+  public static Optional<Member> findMember(Class<?> type, Predicate<Member> predicate) {
     Objects.requireNonNull(type, "type");
     Objects.requireNonNull(predicate, "predicate");
     return ClassScanner.of(type)
             .stream()
-            .filter(e -> e instanceof AnnotatedElement && predicate.test((AnnotatedElement) e))
+            .filter(predicate::test)
             .findAny();
   }
 

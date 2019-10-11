@@ -22,6 +22,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
@@ -40,11 +41,27 @@ public interface IdResolver {
    */
   Member resolve(Class<?> type);
 
-  static IdResolver defaultResolver() {
-    return resolver(a -> a.isAnnotationPresent(Criteria.Id.class));
+  /**
+   * Same resolver but as a predicate returning {@code true / false} depending
+   * if {@code member} is an {@code ID} attribute.
+   */
+  default Predicate<Member> asPredicate() {
+    return other -> {
+      Objects.requireNonNull(other, "other");
+      try {
+        Member member = resolve(other.getDeclaringClass());
+        return member.equals(other);
+      } catch (IllegalArgumentException e) {
+        return false;
+      }
+    };
   }
 
-  static IdResolver resolver(Predicate<AnnotatedElement> predicate) {
+  static IdResolver defaultResolver() {
+    return resolver(a -> a instanceof AnnotatedElement && ((AnnotatedElement) a).isAnnotationPresent(Criteria.Id.class));
+  }
+
+  static IdResolver resolver(Predicate<Member> predicate) {
     return type -> Reflections.findMember(type, predicate)
             .orElseThrow(() -> new IllegalArgumentException(String.format("Member not found in %s using a predicate", type)));
   }
