@@ -21,8 +21,11 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+
 import java.util.List;
-import static com.google.common.base.Preconditions.*;
+import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Converter-like function to apply or extract naming, derived from input.
@@ -80,6 +83,22 @@ public abstract class Naming implements Function<String, String> {
    * @return non-constant naming template or {@code this} if already non-constant
    */
   public abstract Naming requireNonConstant(Preference preference);
+
+  /**
+   * Require naming to follow JavaBeam capitalization convention.
+   *
+   * <p>See 8.8 Capitalization of inferred names
+   *
+   * <pre>
+   * Thus when we extract a property or event name from the middle of an existing Java name, we
+   * normally convert the first character to lower case. However to support the occasional use of all
+   * upper-case names, we check if the first two characters of the name are both upper case and if
+   * so leave it alone. So for example, "FooBah" becomes "fooBah", "Z" becomes "z", "URL" becomes "URL"
+   * </pre>
+   * @see  <a href="https://download.oracle.com/otndocs/jcp/7224-javabeans-1.01-fr-spec-oth-JSpec/">javabean spec</a>
+   */
+
+  public abstract Naming requireJavaBeanConvention();
 
   public enum Preference {
     PREFIX, SUFFIX
@@ -168,6 +187,11 @@ public abstract class Naming implements Function<String, String> {
     }
 
     @Override
+    public Naming requireJavaBeanConvention() {
+      return this;
+    }
+
+    @Override
     public String toString() {
       return NAME_PLACEHOLDER;
     }
@@ -212,8 +236,67 @@ public abstract class Naming implements Function<String, String> {
     }
 
     @Override
+    public Naming requireJavaBeanConvention() {
+      return new JavaBeanNaming(name);
+    }
+
+    @Override
     public String toString() {
       return name;
+    }
+  }
+
+  private static class JavaBeanNaming extends Naming {
+
+    private final String prefix;
+
+    JavaBeanNaming(String prefix) {
+      this.prefix = Objects.requireNonNull(prefix, "prefix");
+    }
+
+    @Override
+    public String apply(String input) {
+      return prefix + Usage.CAPITALIZED.apply(input);
+    }
+
+    @Override
+    public String detect(String identifier) {
+      if (!identifier.startsWith(prefix)) {
+        return NOT_DETECTED;
+      }
+
+      String name = identifier.substring(prefix.length());
+
+      if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1))) {
+        // leave name as is
+        // URL -> URL
+        return name;
+      }
+
+      return Usage.LOWERIZED.apply(name);
+    }
+
+    @Override
+    public boolean isIdentity() {
+      return false;
+    }
+
+    @Override
+    public boolean isConstant() {
+      return false;
+    }
+
+    @Override
+    public Naming requireNonConstant(Preference preference) {
+      if (preference != Preference.PREFIX) {
+        throw new IllegalArgumentException(String.format("Preference %s not supported by %s", preference, getClass().getSimpleName()));
+      }
+      return this;
+    }
+
+    @Override
+    public Naming requireJavaBeanConvention() {
+      return this;
     }
   }
 
@@ -272,6 +355,11 @@ public abstract class Naming implements Function<String, String> {
     @Override
     public Naming requireNonConstant(Preference preference) {
       return this;
+    }
+
+    @Override
+    public Naming requireJavaBeanConvention() {
+      return new JavaBeanNaming(prefix);
     }
 
     @Override

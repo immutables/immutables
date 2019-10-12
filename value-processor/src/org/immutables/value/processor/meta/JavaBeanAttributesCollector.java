@@ -160,16 +160,14 @@ final class JavaBeanAttributesCollector {
      *</pre>
      */
     private String javaBeanAttributeName(String raw) {
-      Preconditions.checkArgument(raw.startsWith("get") || raw.startsWith("is"), "%s doesn't start with 'get' or 'is'", raw);
-      String name = raw.startsWith("get") ? raw.substring(3) : raw.substring(2);
-      // for Java Beans if there are more than 2 uppercase letters attribute remains unchanged
-      // "FooBah" becomes "fooBah" and "X" becomes "x", but "URL" stays as "URL"
-      boolean allUpperCase = name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isUpperCase(name.charAt(1));
-      if (allUpperCase) {
-        return name;
-      } else {
-        return styles.forAccessor(raw).raw;
+      for (Naming naming: styles.scheme().get) {
+        String detected = naming.requireJavaBeanConvention().detect(raw);
+        if (!detected.isEmpty()) {
+          return detected;
+        }
       }
+
+      throw new IllegalArgumentException(String.format("%s it not a getter/setter", raw));
     }
 
     private ExecutableElement getter(String name) {
