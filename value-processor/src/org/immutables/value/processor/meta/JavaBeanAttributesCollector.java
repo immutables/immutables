@@ -21,21 +21,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.immutables.generator.Naming;
 
-import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
-import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import javax.lang.model.util.Elements;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,78 +44,65 @@ final class JavaBeanAttributesCollector {
   private final ValueType type;
   private final Proto.Protoclass protoclass;
   private final Getters getters;
-  private final Fields fields;
+  private final Setters setters;
   private final Styles styles;
 
   JavaBeanAttributesCollector(Proto.Protoclass protoclass, ValueType type) {
     this.type = Preconditions.checkNotNull(type, "type");
     this.protoclass = Preconditions.checkNotNull(protoclass, "protoclass");
     this.styles = new Styles(ImmutableStyleInfo.copyOf(protoclass.styles().style()).withGet("is*", "get*").withSet("set*"));
-    this.getters = new Getters();
-    this.fields = new Fields();
+    List<? extends ExecutableElement> members = ElementFilter.methodsIn(protoclass.processing().getElementUtils().getAllMembers(getCachedTypeElement()));
+    this.getters = new Getters(members);
+    this.setters = new Setters(members);
   }
 
+  /**
+   * Checks if current element is {@link Object}. Usually no processing is necessary
+   * for top-level {@code Object} class.
+   */
   private static boolean isJavaLangObject(Element element) {
     return MoreElements.isType(element) && MoreElements.asType(element).getQualifiedName().contentEquals(Object.class.getName());
   }
-
 
   private TypeElement getCachedTypeElement() {
     return CachingElements.getDelegate(MoreElements.asType(type.element));
   }
 
-  /**
-   * Collects and caches list of fields for current type
-   */
-  private class Fields {
-    private final Map<String, VariableElement> fields;
+  private class Setters {
+    private final Map<String, ExecutableElement> setters;
 
-    private Fields() {
-      Map<String, VariableElement> map = new LinkedHashMap<>();
-      for (VariableElement field: collectFields(getCachedTypeElement(), new LinkedHashSet<VariableElement>())) {
-        if (!field.getModifiers().contains(Modifier.STATIC)) {
-          String name = field.getSimpleName().toString();
-          map.put(name, field);
-
-          // add alternative field names for legacy code-generators
-          if (Character.isUpperCase(name.charAt(0))) {
-            // private String Foo (instead of lowercase foo)
-            String altName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-            map.put(altName, field);
-          }
-
-          if (name.charAt(0) == '_' && name.length() > 1) {
-            // private String _foo
-            String altName = name.substring(1);
-            map.put(altName, field);
-          }
+    private Setters(Iterable<? extends ExecutableElement> methods) {
+      Map<String, ExecutableElement> map = new LinkedHashMap<>();
+      for (ExecutableElement executable: methods) {
+        if (isSetter(executable)) {
+          String name = styles.scheme().set.requireJavaBeanConvention().detect(executable.getSimpleName().toString());
+          map.put(name, executable);
         }
       }
 
-      this.fields = ImmutableMap.copyOf(map);
+      this.setters = ImmutableMap.copyOf(map);
     }
 
-    /**
-     * For some reason {@link Elements#getAllMembers(TypeElement)} does not
-     * return fields from parent class. Collecting them manually in this method.
-     */
-    private <C extends Collection<VariableElement>> C collectFields(@Nullable Element element, C collection) {
-      if (element == null || !element.getKind().isClass() || element.getKind() == ElementKind.ENUM) {
-        return collection;
+    Set<String> names() {
+      return setters.keySet();
+    }
+
+    private boolean isSetter(ExecutableElement executable) {
+      if (isJavaLangObject(executable.getEnclosingElement())) {
+        return false;
       }
 
-      collection.addAll(ElementFilter.fieldsIn(element.getEnclosedElements()));
-      TypeMirror parent = MoreElements.asType(element).getSuperclass();
-      if (parent.getKind() != TypeKind.NONE) {
-        collectFields(MoreTypes.asDeclared(parent).asElement(), collection);
+      Naming set = styles.scheme().set;
+      boolean notASetter = set.detect(executable.getSimpleName().toString()).isEmpty();
+      if (notASetter) {
+        return false;
       }
-      return collection;
-    }
 
-    public Set<String> names() {
-      return fields.keySet();
+      return !executable.getModifiers().contains(Modifier.STATIC)
+             && executable.getModifiers().contains(Modifier.PUBLIC)
+             && executable.getParameters().size() == 1
+             && executable.getReturnType().getKind() == TypeKind.VOID;
     }
-
   }
 
   /**
@@ -131,10 +111,9 @@ final class JavaBeanAttributesCollector {
   private class Getters {
     private final Map<String, ExecutableElement> getters;
 
-    private Getters() {
-      List<? extends Element> members = protoclass.processing().getElementUtils().getAllMembers(getCachedTypeElement());
+    private Getters(Iterable<? extends ExecutableElement> methods) {
       Map<String, ExecutableElement> map = new LinkedHashMap<>();
-      for (ExecutableElement executable: ElementFilter.methodsIn(members)) {
+      for (ExecutableElement executable: methods) {
         if (isGetter(executable)) {
           String name = javaBeanAttributeName(executable.getSimpleName().toString());
           map.put(name, executable);
@@ -145,19 +124,18 @@ final class JavaBeanAttributesCollector {
     }
 
     /**
-     * Handle special case when first 2 characters are upper case.
+     * Get attribute name from java bean getter. Some examples:
+     * <pre>
+     *   getA -> a
+     *   getAB -> AB (fist 2 chars are uppercase)
+     *   getABC -> ABC (fist 2 chars are uppercase)
+     *   getAb -> ab
+     *   getAbc -> abc
+     *   getFoo -> foo
+     * </pre>
      *
      * <p>See 8.8 Capitalization of inferred names in
      * <a href="https://download.oracle.com/otndocs/jcp/7224-javabeans-1.01-fr-spec-oth-JSpec/">javabean spec</a>
-     * <pre>
-     * Thus when we extract a property or event name from the middle of an existing Java name, we
-     * normally convert the first character to lower case. However to support the occasional use of all
-     * upper-case names, we check if the first two characters of the name are both upper case and if
-     * so leave it alone. So for example,
-     * "FooBah" becomes "fooBah"
-     * "Z" becomes "z"
-     * "URL" becomes "URL"
-     *</pre>
      */
     private String javaBeanAttributeName(String raw) {
       for (Naming naming: styles.scheme().get) {
@@ -167,7 +145,7 @@ final class JavaBeanAttributesCollector {
         }
       }
 
-      throw new IllegalArgumentException(String.format("%s it not a getter/setter", raw));
+      throw new IllegalArgumentException(String.format("%s it not a getter in %s", raw, type.name()));
     }
 
     private ExecutableElement getter(String name) {
@@ -216,8 +194,7 @@ final class JavaBeanAttributesCollector {
 
   void collect() {
     List<ValueAttribute> attributes = new ArrayList<>();
-    Sets.SetView<String> names = Sets.intersection(getters.names(), fields.names());
-    for (String name: names) {
+    for (String name: Sets.intersection(getters.names(), setters.names())) {
       attributes.add(toAttribute(name, getters.getter(name)));
     }
 

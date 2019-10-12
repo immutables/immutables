@@ -92,6 +92,7 @@ public abstract class UpdateTemplate {
             .execute();
 
     repository.update(stringHolder.id.is("id2"))
+            //
             .set(stringHolder.value, "a2")
             .set(stringHolder.optional, Optional.of("b2"))
             .set(stringHolder.nullable, "c2")

@@ -91,8 +91,8 @@ public class JavaBeanModelTest {
   public void wierdBean2() {
     ValueType valueType = rule.value(WeirdLegacyBean2.class);
     List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
-    check(names).hasContentInAnyOrder("foo", "BAR");
-    check(names).not().has("Foo");
+    check(names).hasContentInAnyOrder("foo", "BAR", "a", "AB", "ABC");
+    check(names).not().hasContentInAnyOrder("Foo", "A", "Ab", "ab", "ab", "Abc");
   }
 
   @ProcessorRule.TestImmutable
@@ -149,6 +149,18 @@ public class JavaBeanModelTest {
      */
     public int getMissingField() {
       return 0;
+    }
+
+    public void setDeps(List<Dep> deps) {
+      this.deps = deps;
+    }
+
+    public void setDep(Dep dep) {
+      this.dep = dep;
+    }
+
+    public void setNullableDep(Dep nullableDep) {
+      this.nullableDep = nullableDep;
     }
   }
 
@@ -212,6 +224,23 @@ public class JavaBeanModelTest {
     public static int getStaticField() {
       return staticField;
     }
+
+    public void setPublicField(int publicField) {
+      this.publicField = publicField;
+    }
+
+    public void setPackageField(int packageField) {
+      this.packageField = packageField;
+    }
+
+    public void setPrivateField(int privateField) {
+      this.privateField = privateField;
+    }
+
+    public void setProtectedField(int protectedField) {
+      this.protectedField = protectedField;
+    }
+
   }
 
   @ProcessorRule.TestImmutable
@@ -234,6 +263,10 @@ public class JavaBeanModelTest {
   static class WeirdLegacyBean2 {
     private String Foo; // some generators don't use lower-case attributes
 
+    private int a;
+    private int AB; // See 8.8 Capitalization of inferred names
+    private int ABC; 
+
     private String BAR;
 
     public String getFoo() {
@@ -250,6 +283,30 @@ public class JavaBeanModelTest {
 
     public void setBAR(String BAR) {
       this.BAR = BAR;
+    }
+
+    public int getA() {
+      return a;
+    }
+
+    public void setA(int a) {
+      this.a = a;
+    }
+
+    public int getAB() {
+      return AB;
+    }
+
+    public void setAB(int AB) {
+      this.AB = AB;
+    }
+
+    public int getABC() {
+      return ABC;
+    }
+
+    public void setABC(int ABC) {
+      this.ABC = ABC;
     }
   }
 }
