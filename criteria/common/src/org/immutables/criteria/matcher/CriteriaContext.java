@@ -26,7 +26,6 @@ import java.lang.reflect.Member;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Link between front-end (Criteria DSL) and <a href="https://cs.lmu.edu/~ray/notes/ir/">Intermediate Representation</a>
@@ -88,7 +87,7 @@ public final class CriteriaContext implements Queryable {
    */
   public <T> CriteriaContext newChild(Class<?> type, String pathAsString, CriteriaCreator<T> creator) {
     // first look for fields then methods
-    final Member member = Stream.concat(ClassScanner.of(type).excludeMethods().stream(), ClassScanner.of(type).excludeFields().stream())
+    final Member member = Stream.concat(ClassScanner.of(type).skipMethods().stream(), ClassScanner.of(type).skipFields().stream())
             .filter(m -> m.getName().equals(pathAsString))
             .findAny()
             .orElseThrow(() -> new IllegalArgumentException(String.format("Path %s not found in %s", pathAsString, type)));

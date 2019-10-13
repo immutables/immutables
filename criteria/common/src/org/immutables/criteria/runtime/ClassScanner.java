@@ -40,34 +40,49 @@ import java.util.stream.StreamSupport;
  */
 @NotThreadSafe
 public class ClassScanner implements Iterable<Member> {
-  private final ImmutableScannerSetup setup;
+  private final ImmutableSetup setup;
 
-  private ClassScanner(ImmutableScannerSetup setup) {
+  private ClassScanner(ImmutableSetup setup) {
     this.setup = Objects.requireNonNull(setup, "setup");
   }
 
   public static ClassScanner of(Class<?> type) {
-    return new ClassScanner(ImmutableScannerSetup.of(type));
+    return new ClassScanner(ImmutableSetup.of(type));
   }
 
-  public ClassScanner excludeFields() {
-    return new ClassScanner(setup.withIncludeFields(false));
+  /**
+   * Don't include fields (default behaviour is to include fields).
+   */
+  public ClassScanner skipFields() {
+    return new ClassScanner(setup.withFields(false));
   }
 
-  public ClassScanner excludeMethods() {
-    return new ClassScanner(setup.withIncludeMethods(false));
+  /**
+   * Don't include methods (default behaviour is to include methods).
+   */
+  public ClassScanner skipMethods() {
+    return new ClassScanner(setup.withMethods(false));
   }
 
+  /**
+   * Include constructors (default behaviour is to exclude constructors)
+   */
   public ClassScanner includeConstructors() {
-    return new ClassScanner(setup.withIncludeConstructors(true));
+    return new ClassScanner(setup.withConstructors(true));
   }
 
-  public ClassScanner excludeInterfaces() {
-    return new ClassScanner(setup.withIncludeInterfaces(false));
+  /**
+   * Don't include (process) implemented interfaces (default behaviour is to include interfaces).
+   */
+  public ClassScanner skipInterfaces() {
+    return new ClassScanner(setup.withInterfaces(false));
   }
 
-  public ClassScanner excludeSuperclass() {
-    return new ClassScanner(setup.withIncludeSuperclass(false));
+  /**
+   * Don't traverse superclass (default behaviour is to process superclass).
+   */
+  public ClassScanner skipSuperclass() {
+    return new ClassScanner(setup.withSuperclass(false));
   }
 
   @Override
@@ -101,23 +116,23 @@ public class ClassScanner implements Iterable<Member> {
           continue;
         }
 
-        if (setup.includeFields()) {
+        if (setup.fields()) {
           queue.addAll(Arrays.asList(current.getDeclaredFields()));
         }
 
-        if (setup.includeMethods()) {
+        if (setup.methods()) {
           queue.addAll(Arrays.asList(current.getDeclaredMethods()));
         }
 
-        if (setup.includeConstructors()) {
+        if (setup.constructors()) {
           queue.addAll(Arrays.asList(current.getDeclaredConstructors()));
         }
 
-        if (!current.isInterface() && !visited.contains(current.getSuperclass()) && setup.includeSuperclass()) {
+        if (!current.isInterface() && !visited.contains(current.getSuperclass()) && setup.superclass()) {
           toVisit.push(current.getSuperclass());
         }
 
-        if (setup.includeInterfaces()) {
+        if (setup.interfaces()) {
           toVisit.addAll(Arrays.asList(current.getInterfaces()));
         }
       }
@@ -135,33 +150,45 @@ public class ClassScanner implements Iterable<Member> {
   }
 
   @Value.Immutable
-  interface ScannerSetup {
+  interface Setup {
 
     @Value.Parameter
     Class<?> type();
 
+    /**
+     * Include fields
+     */
     @Value.Default
-    default boolean includeFields() {
+    default boolean fields() {
       return true;
     }
 
+    /**
+     * Include methods
+     */
     @Value.Default
-    default boolean includeMethods() {
+    default boolean methods() {
       return true;
     }
 
+    /**
+     * Include constructors
+     */
     @Value.Default
-    default boolean includeConstructors() {
+    default boolean constructors() {
       return false;
     }
 
+    /**
+     * Scan superclass hierarchy
+     */
     @Value.Default
-    default boolean includeSuperclass() {
+    default boolean superclass() {
       return true;
     }
 
     @Value.Default
-    default boolean includeInterfaces() {
+    default boolean interfaces() {
       return true;
     }
   }

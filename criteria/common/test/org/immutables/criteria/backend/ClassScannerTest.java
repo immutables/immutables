@@ -31,13 +31,13 @@ class ClassScannerTest {
 
   @Test
   void fields() {
-    List<String> names = scanner.excludeMethods().stream().map(Member::getName).collect(Collectors.toList());
+    List<String> names = scanner.skipMethods().stream().map(Member::getName).collect(Collectors.toList());
     check(names).isOf("anotherField", "base");
   }
 
   @Test
   void methods() {
-    List<String> names = scanner.excludeFields().stream().map(Member::getName).collect(Collectors.toList());
+    List<String> names = scanner.skipFields().stream().map(Member::getName).collect(Collectors.toList());
     check(names).hasContentInAnyOrder("anotherMethod", "fromIface", "fromIface", "getFromBase");
   }
 
