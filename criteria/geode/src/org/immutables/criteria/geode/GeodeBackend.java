@@ -89,13 +89,13 @@ public class GeodeBackend implements Backend {
 
     private final Class<?> entityType;
     private final Region<Object, Object> region;
-    private final IdExtractor<Object, Object> idExtractor;
+    private final IdExtractor idExtractor;
     private final QueryService queryService;
 
     private Session(Class<?> entityType, IdResolver idResolver, Region<Object, Object> region) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
-      this.idExtractor = IdExtractor.ofMember(idResolver.resolve(entityType));
+      this.idExtractor = IdExtractor.fromResolver(idResolver);
       this.queryService = region.getRegionService().getQueryService();
     }
 

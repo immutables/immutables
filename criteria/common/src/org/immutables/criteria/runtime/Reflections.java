@@ -41,17 +41,20 @@ public final class Reflections {
             .findAny();
   }
 
-  public static Function<Object, Object> extractorFor(Member member) {
-    Objects.requireNonNull(member, "member");
-    if (member instanceof Field) {
-      return new FieldExtractor((Field) member);
-    } else if (member instanceof Method) {
-      return new MethodExtractor((Method) member);
+  static class ReflectionExtractor implements MemberExtractor {
+    @Override
+    public Object extract(Member member, Object instance) {
+      Objects.requireNonNull(member, "member");
+      Objects.requireNonNull(instance, "instance");
+      if (member instanceof Field) {
+        return new FieldExtractor((Field) member).apply(instance);
+      } else if (member instanceof Method) {
+        return new MethodExtractor((Method) member).apply(instance);
+      }
+
+      throw new IllegalArgumentException("Member is not a field nor a method: " + member);
     }
-
-    throw new IllegalArgumentException("Member is not a field nor a method: " + member);
   }
-
 
   /**
    * Extracts value by calling a method using reflection
@@ -100,6 +103,7 @@ public final class Reflections {
         throw new RuntimeException(e);
       }
     }
+
   }
 
   private Reflections() {}

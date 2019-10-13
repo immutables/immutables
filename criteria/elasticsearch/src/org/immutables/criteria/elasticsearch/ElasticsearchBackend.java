@@ -70,7 +70,7 @@ public class ElasticsearchBackend implements Backend {
     private final Class<?> entityType;
     private final ObjectMapper objectMapper;
     private final ElasticsearchOps ops;
-    private final IdExtractor<Object, Object> idExtractor;
+    private final IdExtractor idExtractor;
     private final JsonConverter<Object> converter;
     private final boolean hasId;
 
@@ -80,10 +80,10 @@ public class ElasticsearchBackend implements Backend {
       this.entityType = entityClass;
       this.ops = Objects.requireNonNull(ops, "ops");
       this.objectMapper = ops.mapper();
-      IdExtractor<Object, Object> idExtractor = IdExtractor.from(x -> x);
+      IdExtractor idExtractor = IdExtractor.fromFunction(x -> x);
       boolean hasId = false;
       try {
-        idExtractor = IdExtractor.ofMember(idResolver.resolve(entityType));
+        idExtractor = IdExtractor.fromResolver(idResolver);
         hasId = true;
       } catch (IllegalArgumentException ignore) {
         // id not supported

@@ -60,17 +60,17 @@ public class InMemoryBackend implements Backend {
   @Override
   public Session open(Class<?> entityType) {
     final Map<Object, Object> store = classToStore.computeIfAbsent(entityType, key -> new ConcurrentHashMap<>());
-    IdExtractor<Object, Object> extractor = IdExtractor.ofMember(idResolver.resolve(entityType));
+    IdExtractor extractor = IdExtractor.fromResolver(idResolver);
     return new Session(entityType, extractor, store);
   }
 
   private static class Session implements Backend.Session {
 
     private final Class<?> entityType;
-    private final IdExtractor<Object, Object> idExtractor;
+    private final IdExtractor idExtractor;
     private final Map<Object, Object> store;
 
-    private Session(Class<?> entityType, IdExtractor<Object, Object> extractor, Map<Object, Object> store) {
+    private Session(Class<?> entityType, IdExtractor extractor, Map<Object, Object> store) {
       this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
       this.idExtractor = extractor;

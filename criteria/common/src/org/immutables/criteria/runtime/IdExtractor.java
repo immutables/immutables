@@ -16,39 +16,33 @@
 
 package org.immutables.criteria.runtime;
 
-import org.immutables.criteria.Criteria;
-
 import java.lang.reflect.Member;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
  * Extracts value which represents unique ID for an instance.
- *
- * @param <T> instance type
- * @param <ID> ID attribute type
  */
-public interface IdExtractor<T, ID> {
+public interface IdExtractor {
 
-  ID extract(T instance);
+  Object extract(Object instance);
 
   /**
-   * Return function which extracts identifier (key) from existing instance.
-   * Identifier is defined on POJOs with {@link Criteria.Id} annotation.
-   * @throws IllegalArgumentException if {@link Criteria.Id} annotation is not declared in any methods
-   * or fields.
+   * Return function which extracts id (key) value from existing instance using reflection API.
+   * {@code ID} member (field or method) is identified using {@link IdResolver} strategy.
+   * @param resolver id resolution strategy to apply when searching for {@code ID} attribute
    */
-  @SuppressWarnings("unchecked")
-  static <T, ID> IdExtractor<T, ID> ofMember(Class<T> entityType) {
-    return from((Function<T, ID>) Reflections.extractorFor(IdResolver.defaultResolver().resolve(entityType)));
+  static IdExtractor fromResolver(IdResolver resolver) {
+    Objects.requireNonNull(resolver, "resolver");
+    MemberExtractor extractor = MemberExtractor.ofReflection();
+    return instance -> {
+      Objects.requireNonNull(instance, "instance");
+      Member member = resolver.resolve(instance.getClass());
+      return extractor.extract(member, instance);
+    };
   }
 
-  @SuppressWarnings("unchecked")
-  static <T, ID> IdExtractor<T, ID> ofMember(Member member) {
-    return from((Function<T, ID>) Reflections.extractorFor(member));
-  }
-
-  static <T, ID> IdExtractor<T, ID> from(Function<T, ID> fun) {
+  static IdExtractor fromFunction(Function<Object, Object> fun) {
     return fun::apply;
   }
-
 }
