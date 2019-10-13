@@ -45,15 +45,23 @@ public class InMemoryBackend implements Backend {
 
   /** mapping between class and its store */
   private final ConcurrentMap<Class<?>, Map<Object, Object>> classToStore;
+  private final IdResolver idResolver;
 
   public InMemoryBackend() {
+    this(InMemorySetup.of());
+  }
+
+  public InMemoryBackend(InMemorySetup setup) {
+    Objects.requireNonNull(setup, "setup");
+    this.idResolver = setup.idResolver();
     this.classToStore = new ConcurrentHashMap<>();
   }
 
   @Override
   public Session open(Class<?> entityType) {
     final Map<Object, Object> store = classToStore.computeIfAbsent(entityType, key -> new ConcurrentHashMap<>());
-    return new Session(entityType, store);
+    IdExtractor<Object, Object> extractor = IdExtractor.ofMember(idResolver.resolve(entityType));
+    return new Session(entityType, extractor, store);
   }
 
   private static class Session implements Backend.Session {
@@ -62,10 +70,10 @@ public class InMemoryBackend implements Backend {
     private final IdExtractor<Object, Object> idExtractor;
     private final Map<Object, Object> store;
 
-    private Session(Class<?> entityType, Map<Object, Object> store) {
+    private Session(Class<?> entityType, IdExtractor<Object, Object> extractor, Map<Object, Object> store) {
       this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
-      this.idExtractor = IdExtractor.ofMember(IdResolver.defaultResolver().resolve(entityType));
+      this.idExtractor = extractor;
     }
 
     @Override
