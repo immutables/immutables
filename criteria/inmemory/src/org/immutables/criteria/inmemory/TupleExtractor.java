@@ -34,18 +34,19 @@ import java.util.OptionalLong;
 class TupleExtractor  {
 
   private final Query query;
+  private final PathExtractor pathExtractor;
 
-  TupleExtractor(Query query) {
+  TupleExtractor(Query query, PathExtractor pathExtractor) {
     Preconditions.checkArgument(query.hasProjections(), "no projections defined");
     this.query = query;
+    this.pathExtractor = pathExtractor;
   }
 
   ProjectedTuple extract(Object instance) {
-    ReflectionFieldExtractor<?> extractor = new ReflectionFieldExtractor<>(instance);
     List<Object> values = new ArrayList<>();
     for(Expression expr: query.projections()) {
       Path path = (Path) expr;
-      Object value = extractor.extract(path);
+      Object value = pathExtractor.extract(path, instance);
       value = maybeWrapOptional(value, path);
       values.add(value);
     }

@@ -76,10 +76,12 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
   private static class LocalVisitor implements ExpressionVisitor<Object> {
 
-    private final ValueExtractor<Object> extractor;
+    private final PathExtractor extractor;
+    private final Object instance;
 
     private LocalVisitor(Object instance) {
-      this.extractor = new ReflectionFieldExtractor<>(instance);
+      this.instance = instance;
+      this.extractor = new ReflectionExtractor();
     }
 
     @Override
@@ -250,10 +252,8 @@ class InMemoryExpressionEvaluator<T> implements Predicate<T> {
 
     @Override
     public Object visit(Path path) {
-      final Object extracted = extractor.extract(path);
+      final Object extracted = extractor.extract(path, instance);
       return extracted == null ? UNKNOWN : extracted;
     }
   }
-
-
 }

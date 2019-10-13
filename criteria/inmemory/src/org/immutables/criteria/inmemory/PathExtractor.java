@@ -20,11 +20,11 @@ import org.immutables.criteria.expression.Path;
 
 import javax.annotation.Nullable;
 
-/**
- * Extracts values from an object (given a path).
- * @param <T>
- */
-interface ValueExtractor<T> {
+interface PathExtractor {
+
+  /**
+   * Extract a value from {@code instance} given a {@code path}.
+   */
   @Nullable
-  Object extract(Path path);
+  Object extract(Path path, Object instance);
 }

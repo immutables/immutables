@@ -17,32 +17,31 @@
 package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.runtime.MemberExtractor;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Optional;
 
-class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
-  private final T object;
+class ReflectionExtractor implements PathExtractor {
 
-  ReflectionFieldExtractor(T object) {
-    this.object = object;
+  private final MemberExtractor extractor;
+
+  ReflectionExtractor() {
+    this.extractor = MemberExtractor.ofReflection();
   }
 
-  @Nullable
   @Override
-  public Object extract(Path path) {
+  @Nullable
+  public Object extract(Path path, Object instance) {
     Objects.requireNonNull(path, "path");
 
-    Object result = object;
+    Object result = instance;
 
     for (AnnotatedElement member: path.paths()) {
-      result = extract(result, (Member) member);
+      result = extract((Member) member, result);
       result = maybeUnwrapOptional(result);
       if (result == null) {
         return null;
@@ -52,34 +51,12 @@ class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
     return result;
   }
 
-  private static Object extract(Object instance, Member member) {
+  private Object extract(Member member, Object instance) {
     if (instance == null) {
       return null;
     }
 
-    try {
-      // TODO caching
-      final Object result;
-      if (member instanceof Method) {
-        final Method method = (Method) member;
-        if (!method.isAccessible()) {
-          method.setAccessible(true);
-        }
-        result = method.invoke(instance);
-      } else if (member instanceof Field) {
-        Field field = (Field) member;
-        if (!field.isAccessible()) {
-          field.setAccessible(true);
-        }
-        result = field.get(instance);
-      } else {
-        throw new IllegalArgumentException(String.format("%s is not field or method", member));
-      }
-
-      return result;
-    } catch (IllegalAccessException | InvocationTargetException e) {
-      throw new RuntimeException(e);
-    }
+    return extractor.extract(member, instance);
   }
 
   @SuppressWarnings("unchecked")
@@ -94,6 +71,4 @@ class ReflectionFieldExtractor<T> implements ValueExtractor<T> {
 
     return maybeOptional;
   }
-
-
 }

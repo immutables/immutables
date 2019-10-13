@@ -67,6 +67,7 @@ public class InMemoryBackend implements Backend {
   private static class Session implements Backend.Session {
 
     private final Class<?> entityType;
+    private final PathExtractor pathExtractor;
     private final IdExtractor idExtractor;
     private final Map<Object, Object> store;
 
@@ -74,6 +75,7 @@ public class InMemoryBackend implements Backend {
       this.entityType  = entityType;
       this.store = Objects.requireNonNull(store, "store");
       this.idExtractor = extractor;
+      this.pathExtractor = new ReflectionExtractor();
     }
 
     @Override
@@ -113,7 +115,7 @@ public class InMemoryBackend implements Backend {
       if (!query.collations().isEmpty()) {
         Comparator<T> comparator = null;
         for (Collation collation: query.collations()) {
-          Function<T, Comparable<?>> fn = obj -> (Comparable<?>) new ReflectionFieldExtractor<>(obj).extract(collation.path());
+          Function<T, Comparable<?>> fn = obj -> (Comparable<?>) pathExtractor.extract(collation.path(), obj);
           @SuppressWarnings("unchecked")
           Comparator<T> newComparator = Comparator.<T, Comparable>comparing(fn);
           if (!collation.direction().isAscending()) {
@@ -131,7 +133,7 @@ public class InMemoryBackend implements Backend {
       }
 
       if (query.hasProjections()) {
-        final TupleExtractor extractor = new TupleExtractor(query);
+        final TupleExtractor extractor = new TupleExtractor(query, pathExtractor);
         stream = (Stream<T>) stream.map(extractor::extract);
       }
 
