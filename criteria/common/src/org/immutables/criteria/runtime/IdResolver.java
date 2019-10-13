@@ -18,6 +18,7 @@ package org.immutables.criteria.runtime;
 
 import org.immutables.criteria.Criteria;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
@@ -27,7 +28,8 @@ import java.util.function.Predicate;
 
 /**
  * Strategy to find {@code ID} attribute in a class.
- * Attribute can be either {@link Field} or {@link Method}.
+ * Attribute can be either {@link Field} or {@link Method} and is usually a top-level element
+ * in the class.
  */
 public interface IdResolver {
 
@@ -58,10 +60,21 @@ public interface IdResolver {
   }
 
   static IdResolver defaultResolver() {
-    return resolver(a -> a instanceof AnnotatedElement && ((AnnotatedElement) a).isAnnotationPresent(Criteria.Id.class));
+    return fromAnnotation(Criteria.Id.class);
   }
 
-  static IdResolver resolver(Predicate<Member> predicate) {
+  /**
+   * Find {@code ID} attribute marked with a {@code annotation}
+   */
+  static IdResolver fromAnnotation(Class<? extends Annotation> annotation) {
+    Objects.requireNonNull(annotation, "annotation");
+    return fromPredicate(a -> a instanceof AnnotatedElement && ((AnnotatedElement) a).isAnnotationPresent(annotation));
+  }
+
+  /**
+   * Find {@code ID} attribute using a predicate.
+   */
+  static IdResolver fromPredicate(Predicate<? super Member> predicate) {
     return type -> Reflections.findMember(type, predicate)
             .orElseThrow(() -> new IllegalArgumentException(String.format("Member not found in %s using a predicate", type)));
   }

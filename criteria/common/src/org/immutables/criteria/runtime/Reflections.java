@@ -32,12 +32,12 @@ import java.util.function.Predicate;
  */
 public final class Reflections {
 
-  public static Optional<Member> findMember(Class<?> type, Predicate<Member> predicate) {
+  public static Optional<Member> findMember(Class<?> type, Predicate<? super Member> predicate) {
     Objects.requireNonNull(type, "type");
     Objects.requireNonNull(predicate, "predicate");
     return ClassScanner.of(type)
             .stream()
-            .filter(predicate::test)
+            .filter(predicate)
             .findAny();
   }
 
