@@ -16,17 +16,26 @@
 
 package org.immutables.criteria.mongo;
 
+import com.mongodb.MongoException;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.reactivestreams.client.FindPublisher;
 import com.mongodb.reactivestreams.client.MongoCollection;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 import org.bson.BsonDocument;
+import org.bson.BsonDocumentWriter;
 import org.bson.Document;
+import org.bson.codecs.Codec;
+import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.conversions.Bson;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
@@ -85,19 +94,24 @@ class MongoSession implements Backend.Session {
   }
 
   private Publisher<?> executeInternal(Backend.Operation operation) {
+    Publisher<?> publisher;
     if (operation instanceof StandardOperations.Select) {
-      return query((StandardOperations.Select) operation);
+      publisher =  query((StandardOperations.Select) operation);
     } else if (operation instanceof StandardOperations.Insert) {
-      return insert((StandardOperations.Insert) operation);
+      publisher = insert((StandardOperations.Insert) operation);
     } else if (operation instanceof StandardOperations.Delete) {
-      return delete((StandardOperations.Delete) operation);
+      publisher = delete((StandardOperations.Delete) operation);
     } else if (operation instanceof StandardOperations.Watch) {
-      return watch((StandardOperations.Watch) operation);
+      publisher = watch((StandardOperations.Watch) operation);
     } else if (operation instanceof StandardOperations.UpdateByQuery) {
-      return update((StandardOperations.UpdateByQuery) operation);
+      publisher = updateByQuery((StandardOperations.UpdateByQuery) operation);
+    } else if (operation instanceof StandardOperations.Update) {
+      publisher = update((StandardOperations.Update) operation);
+    } else {
+      return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
     }
 
-    return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
+    return Flowable.fromPublisher(publisher).compose(wrapMongoException());
   }
 
   private <T> Publisher<T> query(StandardOperations.Select select) {
@@ -149,7 +163,39 @@ class MongoSession implements Backend.Session {
     return find;
   }
 
-  private Publisher<WriteResult> update(StandardOperations.UpdateByQuery operation) {
+  private static <T> FlowableTransformer<T, T> wrapMongoException() {
+    Function<Throwable, Throwable> mapFn = e -> e instanceof MongoException ? new BackendException("failed to update", e) : e;
+    return flowable -> flowable.onErrorResumeNext((Throwable e) -> Flowable.error(mapFn.apply(e)));
+  }
+
+  private BsonDocument toBsonDocument(Object value) {
+    BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
+    Codec<Object> codec = (Codec<Object>) collection.getCodecRegistry().get(value.getClass());
+    codec.encode(writer, value, EncoderContext.builder().build());
+    return writer.getDocument();
+  }
+
+  /**
+   * Uses <a href="https://docs.mongodb.com/manual/reference/method/db.collection.replaceOne/">replaceOne</a> operation
+   * with <a href="https://docs.mongodb.com/manual/reference/method/db.collection.bulkWrite/">bulkWrite</a>. Right now has to convert
+   * object to BsonDocument to extract {@code _id} attribute.
+   */
+  private <T> Publisher<WriteResult> update(StandardOperations.Update operation) {
+    ReplaceOptions options = new ReplaceOptions();
+    if (operation.upsert()) {
+      options.upsert(operation.upsert());
+    }
+
+    List<ReplaceOneModel<BsonDocument>> docs =  operation.values().stream()
+            .map(this::toBsonDocument)
+            .map(bson -> new ReplaceOneModel<>(new BsonDocument("_id", bson.get("_id")), bson, options))
+            .collect(Collectors.toList());
+
+    Publisher<BulkWriteResult> publisher = collection.withDocumentClass(BsonDocument.class).bulkWrite(docs);
+    return Flowable.fromPublisher(publisher).map(x -> WriteResult.unknown());
+  }
+
+  private Publisher<WriteResult> updateByQuery(StandardOperations.UpdateByQuery operation) {
 
     Optional<Object> replace = operation.replace();
     if (replace.isPresent()) {
@@ -165,7 +211,8 @@ class MongoSession implements Backend.Session {
       set.put(Visitors.toPath(path).toStringPath(), value);
     });
 
-    return Flowable.fromPublisher(collection.updateMany(filter, new Document("$set", set))).map(x -> WriteResult.unknown());
+    return Flowable.fromPublisher(collection.updateMany(filter, new Document("$set", set)))
+            .map(x -> WriteResult.unknown());
 
   }
 
@@ -177,7 +224,7 @@ class MongoSession implements Backend.Session {
 
   private Publisher<WriteResult> insert(StandardOperations.Insert insert) {
     final MongoCollection<Object> collection = (MongoCollection<Object>) this.collection;
-    final List<Object> values = (List<Object>) insert.values();
+    final List<Object> values = insert.values();
     return Flowable.fromPublisher(collection.insertMany(values)).map(r -> WriteResult.unknown());
   }
 
