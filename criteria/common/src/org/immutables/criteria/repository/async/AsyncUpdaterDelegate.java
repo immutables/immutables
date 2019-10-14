@@ -40,15 +40,15 @@ class AsyncUpdaterDelegate<T> implements Updater<T, CompletionStage<WriteResult>
   }
 
   @Override
-  public Executor<CompletionStage<WriteResult>> replace(T newValue) {
+  public WriteExecutor<CompletionStage<WriteResult>> replace(T newValue) {
     return new AsyncExecutor(delegate.replace(newValue));
   }
 
 
-  private static class AsyncExecutor implements Executor<CompletionStage<WriteResult>> {
-    private final Executor<Publisher<WriteResult>> delegate;
+  private static class AsyncExecutor implements WriteExecutor<CompletionStage<WriteResult>> {
+    private final WriteExecutor<Publisher<WriteResult>> delegate;
 
-    private AsyncExecutor(Executor<Publisher<WriteResult>> delegate) {
+    private AsyncExecutor(WriteExecutor<Publisher<WriteResult>> delegate) {
       this.delegate = delegate;
     }
 

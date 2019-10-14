@@ -16,32 +16,71 @@
 
 package org.immutables.criteria.repository;
 
+import com.google.common.collect.ImmutableList;
 import org.immutables.criteria.Criterion;
 
 import java.util.Arrays;
 
 /**
- * Declares repository as writable. Means objects can be inserted / updated / deleted.
+ * Declares repository as writable. Means documents can be inserted / updated / deleted.
  *
  * @param <T> entity type
  * @param <R> write-result type
  */
 public interface Writable<T, R> extends Facet {
 
-  default R insert(T... docs) {
+  default R insert(T ... docs) {
     return insertAll(Arrays.asList(docs));
   }
 
+  /**
+   * Insert list of documents. If one or more documents already exists exception will
+   * be thrown.
+   * @param docs list of documents to insert
+   * @return some wrapper around {@link org.immutables.criteria.backend.WriteResult}
+   */
   R insertAll(Iterable<? extends T> docs);
 
   /**
-   * Delete elements matching a filter
+   * Delete documents matching a filter
    * @param criteria element filter
    */
   R delete(Criterion<T> criteria);
 
   /**
-   * Update elements matching a filter
+   * Update or Insert a single document
+   */
+  default R upsert(T doc) {
+    return updateAll(ImmutableList.of(doc));
+  }
+
+  /**
+   * Update or Insert list of documents. If one of the document does not exists
+   * it will be inserted. Document is identified by {@code ID} attribute.
+   *
+   * @param docs list of documents to insert or update
+   * @return some wrapper around {@link org.immutables.criteria.backend.WriteResult}
+   */
+  R upsertAll(Iterable<? extends T> docs);
+
+  /**
+   * Update single document
+   */
+  default R update(T doc) {
+    return updateAll(ImmutableList.of(doc));
+  }
+
+  /**
+   * Update list of <strong>existing</strong> documents. Only matching (as identified by {@code ID} attribute)
+   * documents are updated. If one of the documents does not exists it will be omitted (ignored).
+   * Document is identified by {@code ID} attribute.
+   * @param docs list of documents to update.
+   * @return some wrapper around {@link org.immutables.criteria.backend.WriteResult}
+   */
+  R updateAll(Iterable<? extends T> docs);
+
+  /**
+   * Update documents matching a filter
    *
    * @param criterion filter to apply updates on
    * @return update DSL

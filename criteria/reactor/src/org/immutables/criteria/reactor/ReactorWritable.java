@@ -42,6 +42,16 @@ public class ReactorWritable<T> implements ReactorRepository.Writable<T> {
   }
 
   @Override
+  public Mono<WriteResult> upsertAll(Iterable<? extends T> docs) {
+    return Mono.from(writable.upsertAll(docs));
+  }
+
+  @Override
+  public Mono<WriteResult> updateAll(Iterable<? extends T> docs) {
+    return Mono.from(writable.updateAll(docs));
+  }
+
+  @Override
   public Updater<T, Mono<WriteResult>> update(Criterion<T> criterion) {
     return new ReactorUpdaterDelegate<>(writable.update(criterion));
   }

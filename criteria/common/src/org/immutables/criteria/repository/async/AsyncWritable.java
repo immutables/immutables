@@ -49,6 +49,16 @@ public class AsyncWritable<T> implements AsyncRepository.Writable<T> {
   }
 
   @Override
+  public CompletionStage<WriteResult> upsertAll(Iterable<? extends T> docs) {
+    return Publishers.toFuture(reactive.upsertAll(docs));
+  }
+
+  @Override
+  public CompletionStage<WriteResult> updateAll(Iterable<? extends T> docs) {
+    return Publishers.toFuture(reactive.updateAll(docs));
+  }
+
+  @Override
   public Updater<T, CompletionStage<WriteResult>> update(Criterion<T> criterion) {
     return new AsyncUpdaterDelegate<>(reactive.update(criterion));
   }

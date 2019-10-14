@@ -38,7 +38,7 @@ class ReactorUpdaterDelegate<T> implements Updater<T, Mono<WriteResult>> {
   }
 
   @Override
-  public Executor<Mono<WriteResult>> replace(T newValue) {
+  public WriteExecutor<Mono<WriteResult>> replace(T newValue) {
     return () -> Mono.from(delegate.replace(newValue).execute());
   }
 

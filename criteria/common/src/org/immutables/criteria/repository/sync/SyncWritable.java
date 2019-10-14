@@ -48,6 +48,16 @@ public class SyncWritable<T> implements SyncRepository.Writable<T> {
   }
 
   @Override
+  public WriteResult upsertAll(Iterable<? extends T> docs) {
+    return Publishers.blockingGet(writable.upsertAll(docs));
+  }
+
+  @Override
+  public WriteResult updateAll(Iterable<? extends T> docs) {
+    return Publishers.blockingGet(writable.updateAll(docs));
+  }
+
+  @Override
   public Updater<T, WriteResult> update(Criterion<T> criterion) {
     return new SyncUpdaterDelegate<>(writable.update(criterion));
   }

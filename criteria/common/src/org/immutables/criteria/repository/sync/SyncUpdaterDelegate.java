@@ -38,7 +38,7 @@ class SyncUpdaterDelegate<T> implements Updater<T, WriteResult> {
   }
 
   @Override
-  public Executor<WriteResult> replace(T newValue) {
+  public WriteExecutor<WriteResult> replace(T newValue) {
     return () -> Publishers.blockingGet(delegate.replace(newValue).execute());
   }
 

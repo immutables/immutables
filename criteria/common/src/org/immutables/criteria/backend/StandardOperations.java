@@ -53,7 +53,7 @@ public final class StandardOperations {
   }
 
   /**
-   * Insert operation for a list of objects.
+   * Operation for a list of objects to be inserted
    */
   @Value.Immutable
   public interface Insert extends Backend.Operation {
@@ -62,19 +62,42 @@ public final class StandardOperations {
      * List of values to be inserted
      */
     @Value.Parameter
-    List<?> values();
+    List<Object> values();
 
     static Insert ofValues(Iterable<?> values) {
       return ImmutableInsert.of(ImmutableList.copyOf(values));
     }
+  }
 
+  /**
+   * Operation for a list of objects to be updated
+   */
+  @Value.Immutable
+  public interface Update extends Backend.Operation {
+    List<Object> values();
+
+    @Value.Default
+    default boolean upsert() {
+      return false;
+    }
+
+    /**
+     * Wherever objects should be inserted if not present.
+     */
+    default Update withUpsert() {
+      return ImmutableUpdate.copyOf(this).withUpsert(true);
+    }
+
+    static Update ofValues(Iterable<?> values) {
+      return ImmutableUpdate.builder().addAllValues(values).build();
+    }
   }
 
   /**
    * Conditional update operation similar to SQL clause {@code UPDATE ... SET ... WHERE ...}.
    */
   @Value.Immutable
-  public interface Update extends Backend.Operation {
+  public interface UpdateByQuery extends Backend.Operation {
 
     /**
      * Filter for records to be updated
@@ -87,6 +110,18 @@ public final class StandardOperations {
      */
     @Value.Parameter
     Map<Expression, Object> values();
+
+    /**
+     * Wherever documents should be inserted if not present.
+     */
+    @Value.Default
+    default boolean upsert() {
+      return false;
+    }
+
+    default UpdateByQuery withUpsert() {
+      return ImmutableUpdateByQuery.copyOf(this).withUpsert(true);
+    }
 
     /**
      * If current operation is replace, return replacement, otherwise return empty optional.
@@ -103,9 +138,9 @@ public final class StandardOperations {
       return found.map(p -> values().get(p));
     }
 
-    static Update of(Query query, Map<Expression, Object> values) {
+    static UpdateByQuery of(Query query, Map<Expression, Object> values) {
       Preconditions.checkArgument(!values.isEmpty(), "no values");
-      return ImmutableUpdate.of(query, values);
+      return ImmutableUpdateByQuery.of(query, values);
     }
 
   }
@@ -129,6 +164,5 @@ public final class StandardOperations {
     @Value.Parameter
     Query query();
   }
-
 
 }

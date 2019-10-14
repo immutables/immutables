@@ -93,8 +93,8 @@ class MongoSession implements Backend.Session {
       return delete((StandardOperations.Delete) operation);
     } else if (operation instanceof StandardOperations.Watch) {
       return watch((StandardOperations.Watch) operation);
-    } else if (operation instanceof StandardOperations.Update) {
-      return update((StandardOperations.Update) operation);
+    } else if (operation instanceof StandardOperations.UpdateByQuery) {
+      return update((StandardOperations.UpdateByQuery) operation);
     }
 
     return Flowable.error(new UnsupportedOperationException(String.format("Operation %s not supported", operation)));
@@ -149,7 +149,7 @@ class MongoSession implements Backend.Session {
     return find;
   }
 
-  private Publisher<WriteResult> update(StandardOperations.Update operation) {
+  private Publisher<WriteResult> update(StandardOperations.UpdateByQuery operation) {
 
     Optional<Object> replace = operation.replace();
     if (replace.isPresent()) {

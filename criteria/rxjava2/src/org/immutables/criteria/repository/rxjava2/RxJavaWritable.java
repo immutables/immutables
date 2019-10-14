@@ -42,6 +42,16 @@ public class RxJavaWritable<T> implements RxJavaRepository.Writable<T> {
   }
 
   @Override
+  public Single<WriteResult> upsertAll(Iterable<? extends T> docs) {
+    return Single.fromPublisher(writable.upsertAll(docs));
+  }
+
+  @Override
+  public Single<WriteResult> updateAll(Iterable<? extends T> docs) {
+    return Single.fromPublisher(writable.updateAll(docs));
+  }
+
+  @Override
   public Updater<T, Single<WriteResult>> update(Criterion<T> criterion) {
     return new RxJavaUpdaterDelegate<>(writable.update(criterion));
   }

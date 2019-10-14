@@ -21,7 +21,6 @@ import org.immutables.criteria.Criterion;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
-import org.immutables.criteria.repository.Updater;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -42,6 +41,16 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
   @Override
   public Publisher<WriteResult> delete(Criterion<T> criteria) {
     return session.execute(StandardOperations.Delete.of(criteria)).publisher();
+  }
+
+  @Override
+  public Publisher<WriteResult> upsertAll(Iterable<? extends T> docs) {
+    return session.execute(StandardOperations.Update.ofValues(docs).withUpsert()).publisher();
+  }
+
+  @Override
+  public Publisher<WriteResult> updateAll(Iterable<? extends T> docs) {
+    return session.execute(StandardOperations.Update.ofValues(docs)).publisher();
   }
 
   @Override

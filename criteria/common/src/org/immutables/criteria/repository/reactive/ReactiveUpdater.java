@@ -48,7 +48,7 @@ public class ReactiveUpdater<T> implements Updater<T, Publisher<WriteResult>> {
   }
 
   @Override
-  public Executor<Publisher<WriteResult>> replace(T newValue) {
+  public WriteExecutor<Publisher<WriteResult>> replace(T newValue) {
     return new ReactiveSetter(ImmutableMap.of(Path.of(query.entityClass()), newValue));
   }
 
@@ -78,7 +78,7 @@ public class ReactiveUpdater<T> implements Updater<T, Publisher<WriteResult>> {
 
     @Override
     public Publisher<WriteResult> execute() {
-      return session.execute(StandardOperations.Update.of(query, values)).publisher();
+      return session.execute(StandardOperations.UpdateByQuery.of(query, values)).publisher();
     }
   }
 

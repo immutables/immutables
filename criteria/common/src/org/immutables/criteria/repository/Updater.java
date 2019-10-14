@@ -37,7 +37,7 @@ public interface Updater<T, R> {
   /**
    * Replace matching element(s) with a new value
    */
-  Executor<R> replace(T newValue);
+  WriteExecutor<R> replace(T newValue);
 
   /**
    * Allows chaining setters on different attributes.
@@ -52,7 +52,7 @@ public interface Updater<T, R> {
    * </pre>
    * @param <R> write result type usually sync/async wrapper of {@link org.immutables.criteria.backend.WriteResult}
    */
-  interface Setter<R> extends Executor<R> {
+  interface Setter<R> extends WriteExecutor<R> {
 
     /**
      * Set particular attribute to a value
@@ -61,11 +61,20 @@ public interface Updater<T, R> {
 
   }
 
-  interface Executor<R> {
+  interface OrInsert<T> {
+    T orInsert();
+  }
+
+  /**
+   * Part of repository DSL used as a <i>terminator</i> (last) command before returning
+   * the result.
+   *
+   * @param <R>
+   */
+  interface WriteExecutor<R> {
     /**
-     * Execute previously defined update
+     * Execute previously defined operation
      */
     R execute();
   }
-
 }

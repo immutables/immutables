@@ -40,7 +40,7 @@ class RxJavaUpdaterDelegate<T> implements Updater<T, Single<WriteResult >> {
   }
 
   @Override
-  public Executor<Single<WriteResult>> replace(T newValue) {
+  public WriteExecutor<Single<WriteResult>> replace(T newValue) {
     return () -> Flowable.fromPublisher(delegate.replace(newValue).execute()).singleOrError();
   }
 
