@@ -19,7 +19,7 @@ package org.immutables.criteria.mongo;
 import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;

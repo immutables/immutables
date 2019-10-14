@@ -20,7 +20,7 @@ import org.immutables.criteria.expression.Expression;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Queryable;
-import org.immutables.criteria.runtime.ClassScanner;
+import org.immutables.criteria.reflect.ClassScanner;
 
 import java.lang.reflect.Member;
 import java.util.Objects;

@@ -17,7 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.value.Value;
 
 /**

@@ -16,7 +16,7 @@
 
 package org.immutables.criteria.inmemory;
 
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.value.Value;
 
 /**

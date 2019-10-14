@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.runtime;
+package org.immutables.criteria.backend;
+
+import org.immutables.criteria.reflect.MemberExtractor;
 
 import java.lang.reflect.Member;
 import java.util.Objects;

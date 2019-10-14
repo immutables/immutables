@@ -23,8 +23,8 @@ import org.immutables.criteria.backend.StandardOperations;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.expression.Collation;
 import org.immutables.criteria.expression.Query;
-import org.immutables.criteria.runtime.IdExtractor;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Comparator;

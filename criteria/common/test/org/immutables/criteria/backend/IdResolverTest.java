@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.runtime;
+package org.immutables.criteria.backend;
 
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.javabean.JavaBean1;
 import org.immutables.criteria.personmodel.Person;
 import org.junit.jupiter.api.Test;

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.runtime;
+package org.immutables.criteria.backend;
 
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.reflect.Reflections;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;

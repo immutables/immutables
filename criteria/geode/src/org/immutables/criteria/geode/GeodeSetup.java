@@ -17,7 +17,7 @@
 package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.GemFireCache;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.value.Value;
 
 import java.util.Objects;

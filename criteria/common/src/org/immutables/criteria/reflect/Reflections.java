@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.runtime;
+package org.immutables.criteria.reflect;
 
 import com.google.common.base.Preconditions;
 

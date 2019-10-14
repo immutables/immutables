@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.backend;
+package org.immutables.criteria.reflect;
 
-import org.immutables.criteria.runtime.ClassScanner;
+import org.immutables.criteria.reflect.ClassScanner;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Member;

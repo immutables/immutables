@@ -49,8 +49,8 @@ import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
-import org.immutables.criteria.runtime.IdExtractor;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdExtractor;
+import org.immutables.criteria.backend.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;

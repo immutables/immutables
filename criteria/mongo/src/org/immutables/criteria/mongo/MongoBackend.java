@@ -18,7 +18,7 @@ package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.PathNaming;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 
 import java.util.Objects;
 

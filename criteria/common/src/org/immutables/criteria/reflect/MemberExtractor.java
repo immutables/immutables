@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.immutables.criteria.runtime;
+package org.immutables.criteria.reflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;

@@ -17,7 +17,7 @@
 package org.immutables.criteria.inmemory;
 
 import org.immutables.criteria.expression.Path;
-import org.immutables.criteria.runtime.MemberExtractor;
+import org.immutables.criteria.reflect.MemberExtractor;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.AnnotatedElement;

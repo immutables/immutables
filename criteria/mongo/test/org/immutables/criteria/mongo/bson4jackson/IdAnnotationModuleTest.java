@@ -28,7 +28,7 @@ import org.immutables.criteria.javabean.JavaBean1;
 import org.immutables.criteria.personmodel.ImmutablePerson;
 import org.immutables.criteria.personmodel.Person;
 import org.immutables.criteria.personmodel.PersonGenerator;
-import org.immutables.criteria.runtime.IdResolver;
+import org.immutables.criteria.backend.IdResolver;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
