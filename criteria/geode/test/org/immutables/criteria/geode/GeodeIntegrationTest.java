@@ -18,7 +18,6 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ContainerNaming;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.typemodel.BigDecimalTemplate;
 import org.immutables.criteria.typemodel.BooleanTemplate;
@@ -31,11 +30,10 @@ import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
+import org.immutables.criteria.typemodel.WriteTemplate;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.function.Consumer;
 
 @ExtendWith(GeodeExtension.class)
 class GeodeIntegrationTest {
@@ -162,28 +160,10 @@ class GeodeIntegrationTest {
     protected void optional() {}
   }
 
-  private static class AutocreateRegion implements Consumer<Class<?>> {
-
-    private final Cache cache;
-    private final ContainerNaming naming;
-
-    private AutocreateRegion(Cache cache) {
-      this.cache = cache;
-      this.naming = ContainerNaming.DEFAULT;
-    }
-
-    @Override
-    public void accept(Class<?> entity) {
-      String name = naming.name(entity);
-      // exists ?
-      if (cache.getRegion(name) != null) {
-        return;
-      }
-
-      // if not, create
-      cache.createRegionFactory()
-              .setValueConstraint((Class<Object>) entity)
-              .create(name);
+  @Nested
+  class Write extends WriteTemplate {
+    private Write() {
+      super(backend);
     }
   }
 

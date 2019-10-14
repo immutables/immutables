@@ -28,6 +28,7 @@ import org.apache.geode.cache.query.CqQuery;
 import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.cache.query.Struct;
 import org.immutables.criteria.backend.Backend;
+import org.immutables.criteria.backend.BackendException;
 import org.immutables.criteria.backend.DefaultResult;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.backend.StandardOperations;
@@ -106,12 +107,14 @@ public class GeodeBackend implements Backend {
 
     @Override
     public Result execute(Operation operation) {
-      return DefaultResult.of(executeInternal(operation));
+      return DefaultResult.of(Flowable.defer(() -> executeInternal(operation)));
     }
 
     private Publisher<?> executeInternal(Operation operation) {
       if (operation instanceof StandardOperations.Select) {
         return query((StandardOperations.Select) operation);
+      } else if (operation instanceof StandardOperations.Update) {
+        return update((StandardOperations.Update) operation);
       } else if (operation instanceof StandardOperations.Insert) {
         return insert((StandardOperations.Insert) operation);
       } else if (operation instanceof StandardOperations.Delete) {
@@ -153,6 +156,29 @@ public class GeodeBackend implements Backend {
       return ProjectedTuple.of(query.projections(), values);
     }
 
+    private Flowable<WriteResult> update(StandardOperations.Update op) {
+      if (op.values().isEmpty()) {
+        return Flowable.just(WriteResult.empty());
+      }
+
+      Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
+      Region<Object, Object> region = this.region;
+
+      // use putAll for upsert
+      if (op.upsert()) {
+        return Flowable.fromCallable(() -> {
+          region.putAll(toInsert);
+          return WriteResult.unknown();
+        });
+      }
+
+      // use replace for update (after extracting ids)
+      return Flowable.fromCallable(() -> {
+        toInsert.forEach(region::replace);
+        return WriteResult.unknown();
+      });
+    }
+
     private Flowable<WriteResult> insert(StandardOperations.Insert op) {
       if (op.values().isEmpty()) {
         return Flowable.just(WriteResult.empty());
@@ -160,10 +186,13 @@ public class GeodeBackend implements Backend {
 
       final Map<Object, Object> toInsert = op.values().stream().collect(Collectors.toMap(idExtractor::extract, x -> x));
       final Region<Object, Object> region = this.region;
-      return Flowable.fromCallable(() -> {
-        region.putAll(toInsert);
-        return WriteResult.unknown();
-      });
+      for (Map.Entry<Object, Object> entry: toInsert.entrySet()) {
+        Object previous = region.putIfAbsent(entry.getKey(), entry.getValue());
+        if (previous != null) {
+          return Flowable.error(new BackendException(String.format("Duplicate id %s for %s", entry.getKey(), entityType())));
+        }
+      }
+      return Flowable.just(WriteResult.unknown());
     }
 
     private <T> Flowable<WriteResult> delete(StandardOperations.Delete op) {

@@ -18,9 +18,8 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ContainerNaming;
+import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
-import org.immutables.criteria.personmodel.Person;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -30,16 +29,11 @@ import java.util.Set;
 @ExtendWith(GeodeExtension.class)
 public class GeodePersonTest extends AbstractPersonTest  {
 
-  private final GeodeBackend backend;
+  private final Backend backend;
 
   public GeodePersonTest(Cache cache) {
-    // create region
-    cache.<String, Person>createRegionFactory()
-            .setKeyConstraint(String.class)
-            .setValueConstraint(Person.class)
-            .create(ContainerNaming.DEFAULT.name(Person.class));
-
-    this.backend =  new GeodeBackend(GeodeSetup.of(cache));
+    AutocreateRegion autocreate = new AutocreateRegion(cache);
+    backend = WithSessionCallback.wrap(new GeodeBackend(GeodeSetup.of(cache)), autocreate);
   }
 
   @Override

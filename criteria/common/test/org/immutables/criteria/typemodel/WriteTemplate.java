@@ -21,6 +21,7 @@ import org.immutables.criteria.backend.BackendException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -54,6 +55,7 @@ public abstract class WriteTemplate {
 
     // different id should be successful
     repository.insert(generator.get());
+    repository.insertAll(Arrays.asList(generator.get(), generator.get()));
   }
 
   @Test

@@ -18,23 +18,18 @@ package org.immutables.criteria.geode;
 
 import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
-import org.immutables.criteria.backend.ContainerNaming;
-import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.personmodel.PersonAggregationTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(GeodeExtension.class)
 public class GeodeAggregationTest extends PersonAggregationTest {
 
-  private final GeodeBackend backend;
+  private final Backend backend;
 
   GeodeAggregationTest(Cache cache) {
-    cache.<String, Person>createRegionFactory()
-            .setKeyConstraint(String.class)
-            .setValueConstraint(Person.class)
-            .create(ContainerNaming.DEFAULT.name(Person.class));
-
-    backend = new GeodeBackend(GeodeSetup.of(cache));
+    AutocreateRegion autocreate = new AutocreateRegion(cache);
+    backend = WithSessionCallback.wrap(new GeodeBackend(GeodeSetup.of(cache)), autocreate);
   }
 
   @Override
