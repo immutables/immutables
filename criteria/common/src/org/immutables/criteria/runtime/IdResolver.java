@@ -75,8 +75,9 @@ public interface IdResolver {
    * Find {@code ID} attribute using a predicate.
    */
   static IdResolver fromPredicate(Predicate<? super Member> predicate) {
-    return type -> Reflections.findMember(type, predicate)
+    IdResolver resolver = type -> Reflections.findMember(type, predicate)
             .orElseThrow(() -> new IllegalArgumentException(String.format("Member not found in %s using a predicate", type)));
+    return CachedIdResolver.of(resolver);
   }
 
 }
