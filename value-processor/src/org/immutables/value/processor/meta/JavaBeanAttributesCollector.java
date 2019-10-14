@@ -16,19 +16,27 @@
 
 package org.immutables.value.processor.meta;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.immutables.generator.Naming;
 
+import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
+import javax.lang.model.util.Elements;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +51,7 @@ final class JavaBeanAttributesCollector {
 
   private final ValueType type;
   private final Proto.Protoclass protoclass;
+  private final Fields fields;
   private final Getters getters;
   private final Setters setters;
   private final Styles styles;
@@ -51,6 +60,7 @@ final class JavaBeanAttributesCollector {
     this.type = Preconditions.checkNotNull(type, "type");
     this.protoclass = Preconditions.checkNotNull(protoclass, "protoclass");
     this.styles = new Styles(ImmutableStyleInfo.copyOf(protoclass.styles().style()).withGet("is*", "get*").withSet("set*"));
+    this.fields = new Fields();
     List<? extends ExecutableElement> members = ElementFilter.methodsIn(protoclass.processing().getElementUtils().getAllMembers(getCachedTypeElement()));
     this.getters = new Getters(members);
     this.setters = new Setters(members);
@@ -67,6 +77,65 @@ final class JavaBeanAttributesCollector {
   private TypeElement getCachedTypeElement() {
     return CachingElements.getDelegate(MoreElements.asType(type.element));
   }
+
+  /**
+   * Collects and caches list of fields for current type
+   */
+  private class Fields {
+    private final Map<String, VariableElement> fields;
+
+    private Fields() {
+      Map<String, VariableElement> map = new LinkedHashMap<>();
+      for (VariableElement field: collectFields(getCachedTypeElement(), new LinkedHashSet<VariableElement>())) {
+        if (!field.getModifiers().contains(Modifier.STATIC)) {
+          String name = field.getSimpleName().toString();
+          map.put(name, field);
+
+          // add alternative field names for legacy code-generators
+          if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isLowerCase(name.charAt(1))) {
+            // replace Foo with foo
+            String altName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
+            map.put(altName, field);
+          }
+
+          if (name.length() > 1 && name.charAt(0) == '_') {
+            // replace _foo with foo
+            String altName = name.substring(1);
+            map.put(altName, field);
+          }
+        }
+      }
+
+      this.fields = ImmutableMap.copyOf(map);
+    }
+
+    Optional<Element> tryFind(String name) {
+      return Optional.fromNullable((Element) fields.get(name));
+    }
+
+    /**
+     * For some reason {@link Elements#getAllMembers(TypeElement)} does not
+     * return fields from parent class. Collecting them manually in this method.
+     */
+    private <C extends Collection<VariableElement>> C collectFields(@Nullable Element element, C collection) {
+      if (element == null || !element.getKind().isClass() || element.getKind() == ElementKind.ENUM) {
+        return collection;
+      }
+
+      collection.addAll(ElementFilter.fieldsIn(element.getEnclosedElements()));
+      TypeMirror parent = MoreElements.asType(element).getSuperclass();
+      if (parent.getKind() != TypeKind.NONE) {
+        collectFields(MoreTypes.asDeclared(parent).asElement(), collection);
+      }
+      return collection;
+    }
+
+    public Set<String> names() {
+      return fields.keySet();
+    }
+
+  }
+
 
   private class Setters {
     private final Map<String, ExecutableElement> setters;
@@ -209,7 +278,7 @@ final class JavaBeanAttributesCollector {
     attribute.reporter = protoclass.report();
     attribute.returnType = getter.getReturnType();
     attribute.names = styles.forAccessorWithRaw(getter.getSimpleName().toString(), name);
-    attribute.element = getter;
+    attribute.element = fields.tryFind(name).or(getter); // prefer fields first then methods
     attribute.containingType = type;
     attribute.isGenerateAbstract = true; // to be visible as marshalling attribute
     attribute.initAndValidate(null);

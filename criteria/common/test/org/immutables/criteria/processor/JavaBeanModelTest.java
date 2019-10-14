@@ -95,6 +95,18 @@ public class JavaBeanModelTest {
     check(names).not().hasContentInAnyOrder("Foo", "A", "Ab", "ab", "ab", "Abc");
   }
 
+  /**
+   * Sometimes bean accessors don't have associated fields.
+   * It is somewhat questionable wherever they should be included as attributes or not.
+   * Having a test to raise awareness about this usecase.
+   */
+  @Test
+  public void beanWithoutFields() {
+    ValueType valueType = rule.value(BeanWithoutFields.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    check(names).hasContentInAnyOrder("foo");
+  }
+
   @ProcessorRule.TestImmutable
   @Criteria
   @Criteria.Repository
@@ -106,6 +118,7 @@ public class JavaBeanModelTest {
 
     private Dep dep;
 
+    @Nullable
     private Dep nullableDep;
 
     public int getFoo() {
@@ -309,4 +322,20 @@ public class JavaBeanModelTest {
       this.ABC = ABC;
     }
   }
+
+
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class BeanWithoutFields {
+    // intentionally no foo field
+
+    public String getFoo() {
+      return toString();
+    }
+
+    public void setFoo(String foo) {
+      // nop
+    }
+  }
+
 }
