@@ -16,10 +16,10 @@
 
 package org.immutables.criteria.mongo;
 
-import org.immutables.criteria.Criteria;
 import org.immutables.criteria.backend.ExpressionNaming;
 import org.immutables.criteria.backend.PathNaming;
 import org.immutables.criteria.expression.Path;
+import org.immutables.criteria.runtime.IdResolver;
 
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Member;
@@ -29,12 +29,23 @@ import java.util.stream.Collectors;
 
 class MongoPathNaming implements PathNaming {
 
+  private final IdResolver idResolver;
+
+  MongoPathNaming() {
+    this(IdResolver.defaultResolver());
+  }
+
+  MongoPathNaming(IdResolver idResolver) {
+    this.idResolver = Objects.requireNonNull(idResolver, "idResolver");
+  }
+
   @Override
   public String name(Path path) {
     Objects.requireNonNull(path, "path");
     Function<AnnotatedElement, String> toStringFn = a -> {
       Objects.requireNonNull(a, "null element");
-      if (a.isAnnotationPresent(Criteria.Id.class)) {
+      if (a instanceof Member && idResolver.asPredicate().test((Member) a)) {
+        // id ID attribute ?
         return "_id";
       } else if (a instanceof Member) {
         return ((Member) a).getName();
@@ -44,7 +55,6 @@ class MongoPathNaming implements PathNaming {
 
       throw new IllegalArgumentException("Don't know how to name " + a);
     };
-
 
     return path.paths().stream().map(toStringFn).collect(Collectors.joining("."));
   }

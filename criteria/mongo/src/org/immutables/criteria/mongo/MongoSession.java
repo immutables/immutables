@@ -29,6 +29,7 @@ import io.reactivex.Flowable;
 import io.reactivex.FlowableTransformer;
 import org.bson.BsonDocument;
 import org.bson.BsonDocumentWriter;
+import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.codecs.Codec;
 import org.bson.codecs.EncoderContext;
@@ -48,6 +49,8 @@ import org.immutables.criteria.expression.ExpressionConverter;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Query;
 import org.immutables.criteria.expression.Visitors;
+import org.immutables.criteria.runtime.IdExtractor;
+import org.immutables.criteria.runtime.IdResolver;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
@@ -67,10 +70,12 @@ class MongoSession implements Backend.Session {
   private final ExpressionConverter<Bson> converter;
   private final MongoCollection<?> collection;
   private final PathNaming pathNaming;
+  private final IdExtractor idExtractor;
 
-  MongoSession(MongoCollection<?> collection,  PathNaming pathNaming) {
+  MongoSession(MongoCollection<?> collection, IdResolver idResolver, PathNaming pathNaming) {
     this.collection = Objects.requireNonNull(collection, "collection");
     this.converter = Mongos.converter(pathNaming);
+    this.idExtractor = IdExtractor.fromResolver(idResolver);
     this.pathNaming = pathNaming;
   }
 
@@ -168,11 +173,17 @@ class MongoSession implements Backend.Session {
     return flowable -> flowable.onErrorResumeNext((Throwable e) -> Flowable.error(mapFn.apply(e)));
   }
 
-  private BsonDocument toBsonDocument(Object value) {
+  /**
+   * Convert generic object to a BsonValue
+   */
+  private BsonValue toBsonValue(Object value) {
     BsonDocumentWriter writer = new BsonDocumentWriter(new BsonDocument());
+    writer.writeStartDocument();
+    writer.writeName("value");
     Codec<Object> codec = (Codec<Object>) collection.getCodecRegistry().get(value.getClass());
     codec.encode(writer, value, EncoderContext.builder().build());
-    return writer.getDocument();
+    writer.writeEndDocument();
+    return writer.getDocument().get("value");
   }
 
   /**
@@ -186,12 +197,11 @@ class MongoSession implements Backend.Session {
       options.upsert(operation.upsert());
     }
 
-    List<ReplaceOneModel<BsonDocument>> docs =  operation.values().stream()
-            .map(this::toBsonDocument)
-            .map(bson -> new ReplaceOneModel<>(new BsonDocument("_id", bson.get("_id")), bson, options))
+    List<ReplaceOneModel<Object>> docs =  operation.values().stream()
+            .map(value -> new ReplaceOneModel<>(new BsonDocument("_id", toBsonValue(idExtractor.extract(value))), value, options))
             .collect(Collectors.toList());
 
-    Publisher<BulkWriteResult> publisher = collection.withDocumentClass(BsonDocument.class).bulkWrite(docs);
+    Publisher<BulkWriteResult> publisher = ((MongoCollection<Object>) collection).bulkWrite(docs);
     return Flowable.fromPublisher(publisher).map(x -> WriteResult.unknown());
   }
 

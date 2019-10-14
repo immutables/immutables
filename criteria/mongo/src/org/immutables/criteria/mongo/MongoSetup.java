@@ -17,6 +17,7 @@
 package org.immutables.criteria.mongo;
 
 import com.mongodb.reactivestreams.client.MongoDatabase;
+import org.immutables.criteria.runtime.IdResolver;
 import org.immutables.value.Value;
 
 /**
@@ -28,6 +29,11 @@ public interface MongoSetup {
 
   @Value.Parameter
   CollectionResolver collectionResolver();
+
+  @Value.Default
+  default IdResolver idResolver() {
+    return IdResolver.defaultResolver();
+  }
 
   static MongoSetup of(CollectionResolver resolver) {
     return ImmutableMongoSetup.of(resolver);

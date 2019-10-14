@@ -18,6 +18,7 @@ package org.immutables.criteria.mongo;
 
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.PathNaming;
+import org.immutables.criteria.runtime.IdResolver;
 
 import java.util.Objects;
 
@@ -28,19 +29,21 @@ import java.util.Objects;
  */
 public class MongoBackend implements Backend {
 
-  private final CollectionResolver resolver;
+  private final CollectionResolver collectionResolver;
   private final PathNaming pathNaming;
+  private final IdResolver idResolver;
 
   public MongoBackend(MongoSetup setup) {
     Objects.requireNonNull(setup, "setup");
-    this.resolver = setup.collectionResolver();
-    this.pathNaming = new MongoPathNaming();
+    this.collectionResolver = setup.collectionResolver();
+    this.idResolver = setup.idResolver();
+    this.pathNaming = new MongoPathNaming(idResolver);
   }
 
   @Override
   public Session open(Class<?> entityType) {
     Objects.requireNonNull(entityType, "context");
-    return new MongoSession(resolver.resolve(entityType), pathNaming);
+    return new MongoSession(collectionResolver.resolve(entityType), idResolver, pathNaming);
   }
 
 }
