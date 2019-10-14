@@ -48,7 +48,8 @@ public interface Writable<T, R> extends Facet {
   R delete(Criterion<T> criteria);
 
   /**
-   * Update or Insert a single document
+   * Update or Insert a single document. If supported by the backend, this operation
+   * is atomic.
    */
   default R upsert(T doc) {
     return updateAll(ImmutableList.of(doc));
@@ -56,7 +57,8 @@ public interface Writable<T, R> extends Facet {
 
   /**
    * Update or Insert list of documents. If one of the document does not exists
-   * it will be inserted. Document is identified by {@code ID} attribute.
+   * it will be inserted. Document is identified by {@code ID} attribute. If supported by the
+   * backend, this operation is atomic.
    *
    * @param docs list of documents to insert or update
    * @return some wrapper around {@link org.immutables.criteria.backend.WriteResult}

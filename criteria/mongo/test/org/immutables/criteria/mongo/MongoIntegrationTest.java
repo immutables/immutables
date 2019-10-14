@@ -29,7 +29,7 @@ import org.immutables.criteria.typemodel.LocalDateTemplate;
 import org.immutables.criteria.typemodel.LocalDateTimeTemplate;
 import org.immutables.criteria.typemodel.LongTemplate;
 import org.immutables.criteria.typemodel.StringTemplate;
-import org.immutables.criteria.typemodel.UpdateTemplate;
+import org.immutables.criteria.typemodel.UpdateByQueryTemplate;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -120,8 +120,8 @@ class MongoIntegrationTest {
   }
 
   @Nested
-  class Update extends UpdateTemplate {
-    private Update() {
+  class UpdateByQuery extends UpdateByQueryTemplate {
+    private UpdateByQuery() {
       super(backend);
     }
   }

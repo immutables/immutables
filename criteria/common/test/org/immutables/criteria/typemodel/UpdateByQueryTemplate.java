@@ -27,16 +27,15 @@ import java.util.function.Supplier;
 import static org.immutables.check.Checkers.check;
 
 /**
- * Tests for update operation
+ * Tests for update operation(s) which include a filter (query).
+ * See {@link org.immutables.criteria.backend.StandardOperations.UpdateByQuery}
  */
-public abstract class UpdateTemplate {
-
-
+public abstract class UpdateByQueryTemplate {
   private final StringHolderRepository repository;
   private final Supplier<ImmutableStringHolder> generator;
   private final StringHolderCriteria stringHolder = StringHolderCriteria.stringHolder;
 
-  protected UpdateTemplate(Backend backend) {
+  protected UpdateByQueryTemplate(Backend backend) {
     Objects.requireNonNull(backend, "backend");
     this.repository = new StringHolderRepository(backend);
     this.generator = TypeHolder.StringHolder.generator();;
@@ -123,4 +122,5 @@ public abstract class UpdateTemplate {
     check(hol1.optional()).is(Optional.empty());
     check(hol1.nullable()).isNull();
   }
+
 }
