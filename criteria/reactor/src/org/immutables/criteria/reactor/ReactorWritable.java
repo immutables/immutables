@@ -32,8 +32,8 @@ public class ReactorWritable<T> implements ReactorRepository.Writable<T> {
   }
 
   @Override
-  public Mono<WriteResult> insert(Iterable<? extends T> docs) {
-    return Mono.from(writable.insert(docs));
+  public Mono<WriteResult> insertAll(Iterable<? extends T> docs) {
+    return Mono.from(writable.insertAll(docs));
   }
 
   @Override

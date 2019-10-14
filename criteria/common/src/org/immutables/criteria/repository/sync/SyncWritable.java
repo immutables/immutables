@@ -38,8 +38,8 @@ public class SyncWritable<T> implements SyncRepository.Writable<T> {
   }
 
   @Override
-  public WriteResult insert(Iterable<? extends T> docs) {
-    return Publishers.blockingGet(writable.insert(docs));
+  public WriteResult insertAll(Iterable<? extends T> docs) {
+    return Publishers.blockingGet(writable.insertAll(docs));
   }
 
   @Override

@@ -23,7 +23,6 @@ import org.immutables.criteria.repository.sync.SyncFetcher;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -178,7 +177,7 @@ public abstract class PersonAggregationTest {
   }
 
   protected void insert(Iterable<? extends Person> persons) {
-    repository().insert(persons);
+    repository().insertAll(persons);
   }
 
   private <T> IterableChecker<List<T>, T> check(SyncFetcher<T> fetcher) {

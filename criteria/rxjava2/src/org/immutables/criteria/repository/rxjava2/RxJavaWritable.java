@@ -32,8 +32,8 @@ public class RxJavaWritable<T> implements RxJavaRepository.Writable<T> {
   }
 
   @Override
-  public Single<WriteResult> insert(Iterable<? extends T> docs) {
-    return Single.fromPublisher(writable.insert(docs));
+  public Single<WriteResult> insertAll(Iterable<? extends T> docs) {
+    return Single.fromPublisher(writable.insertAll(docs));
   }
 
   @Override

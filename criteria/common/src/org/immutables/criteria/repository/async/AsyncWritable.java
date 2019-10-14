@@ -21,7 +21,6 @@ import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WriteResult;
 import org.immutables.criteria.repository.Publishers;
 import org.immutables.criteria.repository.Updater;
-import org.immutables.criteria.repository.reactive.ReactiveUpdater;
 import org.immutables.criteria.repository.reactive.ReactiveWritable;
 
 import java.util.Objects;
@@ -40,8 +39,8 @@ public class AsyncWritable<T> implements AsyncRepository.Writable<T> {
   }
 
   @Override
-  public CompletionStage<WriteResult> insert(Iterable<? extends T> docs) {
-    return Publishers.toFuture(reactive.insert(docs));
+  public CompletionStage<WriteResult> insertAll(Iterable<? extends T> docs) {
+    return Publishers.toFuture(reactive.insertAll(docs));
   }
 
   @Override

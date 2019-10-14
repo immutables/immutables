@@ -92,7 +92,7 @@ public abstract class AbstractPersonTest {
   public void limit() {
     assumeFeature(Feature.QUERY_WITH_LIMIT);
     final int size = 5;
-    repository().insert(new PersonGenerator().stream()
+    repository().insertAll(new PersonGenerator().stream()
             .limit(size).collect(Collectors.toList()));
 
     for (int i = 1; i < size * size; i++) {
@@ -650,7 +650,7 @@ public abstract class AbstractPersonTest {
   }
 
   protected void insert(Iterable<? extends Person> persons) {
-    repository().insert(persons);
+    repository().insertAll(persons);
   }
 
   protected CriteriaChecker<Person> check(Reader<?> reader) {

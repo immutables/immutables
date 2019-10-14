@@ -35,7 +35,7 @@ public class ReactiveWritable<T> implements ReactiveRepository.Writable<T> {
   }
 
   @Override
-  public Publisher<WriteResult> insert(Iterable<? extends T> docs) {
+  public Publisher<WriteResult> insertAll(Iterable<? extends T> docs) {
     return session.execute(StandardOperations.Insert.ofValues(docs)).publisher();
   }
 

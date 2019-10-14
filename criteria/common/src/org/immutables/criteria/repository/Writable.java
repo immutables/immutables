@@ -29,10 +29,10 @@ import java.util.Arrays;
 public interface Writable<T, R> extends Facet {
 
   default R insert(T... docs) {
-    return insert(Arrays.asList(docs));
+    return insertAll(Arrays.asList(docs));
   }
 
-  R insert(Iterable<? extends T> docs);
+  R insertAll(Iterable<? extends T> docs);
 
   /**
    * Delete elements matching a filter
