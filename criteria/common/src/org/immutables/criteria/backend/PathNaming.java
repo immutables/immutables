@@ -19,7 +19,7 @@ package org.immutables.criteria.backend;
 import org.immutables.criteria.expression.Path;
 
 /**
- * Strategy to name {@link Path}s (represent as String).
+ * Strategy represent {@link Path}s as String.
  *
  * @see org.immutables.criteria.Criteria.Id
  */
@@ -33,4 +33,5 @@ public interface PathNaming extends NamingStrategy<Path> {
    */
   @Override
   String name(Path path);
+
 }
