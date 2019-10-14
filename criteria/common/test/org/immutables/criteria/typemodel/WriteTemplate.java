@@ -22,8 +22,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.immutables.check.Checkers.check;
 
@@ -40,7 +42,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void insertDuplicates() {
+  void insert() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -55,7 +57,7 @@ public abstract class WriteTemplate {
   }
 
   @Test
-  void updateExisting() {
+  void update() {
     ImmutableStringHolder holder1 = generator.get();
     repository.insert(holder1);
 
@@ -69,10 +71,34 @@ public abstract class WriteTemplate {
       check(holder2.nullable()).is("v3_changed");
       // try to update something that doesn't exists
       // should not change existing record
-      repository.update(generator.get());
+      repository.updateAll(Collections.singleton(generator.get()));
     }
 
     // same number of elements
     check(repository.findAll().fetch()).hasSize(1);
+  }
+
+  @Test
+  void upsert() {
+    ImmutableStringHolder holder1 = generator.get().withId("id1");
+    repository.upsert(holder1);
+
+    check(repository.findAll().fetch()).hasSize(1);
+
+    // do upsert
+    repository.upsert(holder1.withValue("v1_changed").withOptional("v2_changed").withNullable("v3_changed"));
+
+    // still size == 1
+    check(repository.findAll().fetch()).hasSize(1);
+    TypeHolder.StringHolder holder2 = repository.findAll().one();
+    check(holder2.id()).is(holder1.id());
+    check(holder2.value()).is("v1_changed");
+    check(holder2.optional().get()).is("v2_changed");
+    check(holder2.nullable()).is("v3_changed");
+
+    repository.upsertAll(Collections.singleton(generator.get().withId("id2")));
+    List<TypeHolder.StringHolder> all = repository.findAll().fetch();
+    check(all).hasSize(2);
+    check(all.stream().map(TypeHolder.StringHolder::id).collect(Collectors.toList())).hasContentInAnyOrder("id1", "id2");
   }
 }

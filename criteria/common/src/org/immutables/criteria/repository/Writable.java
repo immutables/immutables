@@ -52,7 +52,7 @@ public interface Writable<T, R> extends Facet {
    * is atomic.
    */
   default R upsert(T doc) {
-    return updateAll(ImmutableList.of(doc));
+    return upsertAll(ImmutableList.of(doc));
   }
 
   /**
