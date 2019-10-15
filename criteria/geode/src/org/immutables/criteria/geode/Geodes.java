@@ -17,6 +17,7 @@
 package org.immutables.criteria.geode;
 
 import com.google.common.base.Preconditions;
+import org.apache.geode.cache.Region;
 import org.immutables.criteria.Criteria;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Call;
@@ -87,7 +88,7 @@ class Geodes {
 
   /**
    * Geode (currently) doesn't support delete by query syntax ({@code DELETE ... WHERE ...}) and elements have to be
-   * removed explicitly by key ({@link Map#remove(Object)} API)
+   * removed explicitly by key (using {@link Map#remove(Object)} or {@link Region#removeAll} API)
    *
    * <p>Tries to detect if current criteria is based only on keys and extract them from expression (if it is only
    * expression based on keys).

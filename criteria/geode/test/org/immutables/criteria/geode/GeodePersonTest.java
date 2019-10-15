@@ -20,7 +20,10 @@ import org.apache.geode.cache.Cache;
 import org.immutables.criteria.backend.Backend;
 import org.immutables.criteria.backend.WithSessionCallback;
 import org.immutables.criteria.personmodel.AbstractPersonTest;
+import org.immutables.criteria.personmodel.Person;
+import org.immutables.criteria.personmodel.PersonGenerator;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.EnumSet;
@@ -52,4 +55,28 @@ public class GeodePersonTest extends AbstractPersonTest  {
     // nested doesn't work yet in Geode. Need custom PDX serializer
   }
 
+  @Test
+  void deleteByKey() {
+    PersonGenerator generator = new PersonGenerator();
+    repository().insert(generator.next().withId("id1"));
+    repository().insert(generator.next().withId("id2"));
+    repository().insert(generator.next().withId("id3"));
+
+    repository().delete(person.id.in("bad1", "bad2"));
+
+    // nothing was deleted (bad ids)
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id1", "id2", "id3");
+
+    repository().delete(person.id.is("id1"));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id2", "id3");
+
+    repository().delete(person.id.in("id1", "id1"));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id2", "id3");
+
+    repository().delete(person.id.in("id2", "id2", "id1"));
+    check(repository().findAll()).toList(Person::id).hasContentInAnyOrder("id3");
+
+    repository().delete(person.id.in("id2", "id2", "id1", "id3"));
+    check(repository().findAll()).toList(Person::id).isEmpty();
+  }
 }
