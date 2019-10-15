@@ -98,13 +98,21 @@ public class JavaBeanModelTest {
   /**
    * Sometimes bean accessors don't have associated fields.
    * It is somewhat questionable wherever they should be included as attributes or not.
+   * Right now the approach is conservative and getter / setter / field are all required.
    * Having a test to raise awareness about this usecase.
    */
   @Test
   public void beanWithoutFields() {
     ValueType valueType = rule.value(BeanWithoutFields.class);
     List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
-    check(names).hasContentInAnyOrder("foo");
+    check(names).isEmpty();
+  }
+
+  @Test
+  public void beanWithUpperCaseAttributes() {
+    ValueType valueType = rule.value(BeanWithUpperCaseAttributes.class);
+    List<String> names = valueType.attributes.stream().map(ValueAttribute::name).collect(Collectors.toList());
+    check(names).hasContentInAnyOrder("a", "ab", "abc");
   }
 
   @ProcessorRule.TestImmutable
@@ -335,6 +343,38 @@ public class JavaBeanModelTest {
 
     public void setFoo(String foo) {
       // nop
+    }
+  }
+
+  @ProcessorRule.TestImmutable
+  @Criteria
+  static class BeanWithUpperCaseAttributes {
+    private String A;
+    private String Ab;
+    private String Abc;
+
+    public String getA() {
+      return A;
+    }
+
+    public void setA(String a) {
+      A = a;
+    }
+
+    public String getAb() {
+      return Ab;
+    }
+
+    public void setAb(String ab) {
+      Ab = ab;
+    }
+
+    public String getAbc() {
+      return Abc;
+    }
+
+    public void setAbc(String abc) {
+      Abc = abc;
     }
   }
 

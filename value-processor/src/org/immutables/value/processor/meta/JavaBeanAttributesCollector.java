@@ -16,7 +16,6 @@
 
 package org.immutables.value.processor.meta;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -90,18 +89,8 @@ final class JavaBeanAttributesCollector {
         if (!field.getModifiers().contains(Modifier.STATIC)) {
           String name = field.getSimpleName().toString();
           map.put(name, field);
-
-          // add alternative field names for legacy code-generators
-          if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isLowerCase(name.charAt(1))) {
-            // replace Foo with foo
-            String altName = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-            map.put(altName, field);
-          }
-
-          if (name.length() > 1 && name.charAt(0) == '_') {
-            // replace _foo with foo
-            String altName = name.substring(1);
-            map.put(altName, field);
+          for (String alt: alternativeNamesFor(field)) {
+            map.put(alt, field);
           }
         }
       }
@@ -109,8 +98,34 @@ final class JavaBeanAttributesCollector {
       this.fields = ImmutableMap.copyOf(map);
     }
 
-    Optional<Element> tryFind(String name) {
-      return Optional.fromNullable((Element) fields.get(name));
+    /**
+     * List alternative names for a field
+     */
+    private Set<String> alternativeNamesFor(VariableElement element) {
+      String name = element.getSimpleName().toString();
+      Set<String> names = new LinkedHashSet<>();
+      // add alternative field names for legacy code-generators
+      if (name.length() > 1 && Character.isUpperCase(name.charAt(0)) && Character.isLowerCase(name.charAt(1))) {
+        // replace Foo with foo
+        names.add(Character.toLowerCase(name.charAt(0)) + name.substring(1));
+      }
+
+      if (name.length() > 1 && name.charAt(0) == '_') {
+        // replace _foo with foo
+        String altName = name.substring(1);
+        names.add(altName);
+      }
+
+      if (name.length() == 1 && Character.isUpperCase(name.charAt(0))) {
+        names.add(name.toLowerCase());
+      }
+
+      return names;
+    }
+
+    VariableElement field(String name) {
+      Preconditions.checkArgument(names().contains(name), "Field by name %s not found in %s", name, type.name());
+      return fields.get(name);
     }
 
     /**
@@ -218,11 +233,8 @@ final class JavaBeanAttributesCollector {
     }
 
     private ExecutableElement getter(String name) {
-      ExecutableElement element = getters.get(name);
-      if (element == null) {
-        throw new IllegalArgumentException(String.format("Getter by name %s not found in %s", name, type.name()));
-      }
-      return element;
+      Preconditions.checkArgument(names().contains(name), "Getter by name %s not found in %s", name, type.name());
+      return getters.get(name);
     }
 
     public Set<String> names() {
@@ -250,21 +262,19 @@ final class JavaBeanAttributesCollector {
         return false;
       }
 
-      boolean isGetterSignature = executable.getParameters().isEmpty()
+      return executable.getParameters().isEmpty()
               && executable.getReturnType().getKind() != TypeKind.VOID
               && executable.getModifiers().contains(Modifier.PUBLIC)
               && !executable.getModifiers().contains(Modifier.STATIC)
               && !executable.getModifiers().contains(Modifier.ABSTRACT);
-
-      return isGetterSignature;
     }
 
   }
 
   void collect() {
     List<ValueAttribute> attributes = new ArrayList<>();
-    for (String name: Sets.intersection(getters.names(), setters.names())) {
-      attributes.add(toAttribute(name, getters.getter(name)));
+    for (String name: Sets.intersection(fields.names(), Sets.intersection(getters.names(), setters.names()))) {
+      attributes.add(toAttribute(name, fields.field(name)));
     }
 
     type.attributes.addAll(attributes);
@@ -273,12 +283,14 @@ final class JavaBeanAttributesCollector {
   /**
    * Create attribute from JavaBean getter
    */
-  private ValueAttribute toAttribute(String name, ExecutableElement getter) {
+  private ValueAttribute toAttribute(String name, Element element) {
+    // expect field or method
+    TypeMirror returnType = element.getKind().isField() ? element.asType() : MoreElements.asExecutable(element).getReturnType();
     ValueAttribute attribute = new ValueAttribute();
     attribute.reporter = protoclass.report();
-    attribute.returnType = getter.getReturnType();
-    attribute.names = styles.forAccessorWithRaw(getter.getSimpleName().toString(), name);
-    attribute.element = fields.tryFind(name).or(getter); // prefer fields first then methods
+    attribute.returnType = returnType;
+    attribute.names = styles.forAccessorWithRaw(element.getSimpleName().toString(), name);
+    attribute.element = element;
     attribute.containingType = type;
     attribute.isGenerateAbstract = true; // to be visible as marshalling attribute
     attribute.initAndValidate(null);
