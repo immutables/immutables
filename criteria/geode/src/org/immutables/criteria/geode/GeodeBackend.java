@@ -91,11 +91,13 @@ public class GeodeBackend implements Backend {
     private final Class<?> entityType;
     private final Region<Object, Object> region;
     private final IdExtractor idExtractor;
+    private final IdResolver idResolver;
     private final QueryService queryService;
 
     private Session(Class<?> entityType, IdResolver idResolver, Region<Object, Object> region) {
       this.entityType = Objects.requireNonNull(entityType, "entityType");
       this.region = Objects.requireNonNull(region, "region");
+      this.idResolver = Objects.requireNonNull(idResolver, "idResolver");
       this.idExtractor = IdExtractor.fromResolver(idResolver);
       this.queryService = region.getRegionService().getQueryService();
     }
@@ -204,7 +206,7 @@ public class GeodeBackend implements Backend {
       }
 
       final Expression filter = op.query().filter().orElseThrow(() -> new IllegalStateException("For " + op));
-      final Optional<List<?>> ids = Geodes.canDeleteByKey(filter);
+      final Optional<List<?>> ids = Geodes.canDeleteByKey(filter, idResolver);
       // list of ids is present in the expression
       if (ids.isPresent()) {
         // delete by key: map.remove(key)

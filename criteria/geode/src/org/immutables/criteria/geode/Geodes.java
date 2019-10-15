@@ -19,6 +19,7 @@ package org.immutables.criteria.geode;
 import com.google.common.base.Preconditions;
 import org.apache.geode.cache.Region;
 import org.immutables.criteria.Criteria;
+import org.immutables.criteria.backend.IdResolver;
 import org.immutables.criteria.backend.ProjectedTuple;
 import org.immutables.criteria.expression.Call;
 import org.immutables.criteria.expression.Constant;
@@ -28,6 +29,7 @@ import org.immutables.criteria.expression.Operators;
 import org.immutables.criteria.expression.Path;
 import org.immutables.criteria.expression.Visitors;
 
+import java.lang.reflect.Member;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +107,7 @@ class Geodes {
    *
    * @param expr filter applied on entries for deletion
    */
-  static Optional<List<?>> canDeleteByKey(Expression expr) {
+  static Optional<List<?>> canDeleteByKey(Expression expr, IdResolver idResolver) {
     if (!(expr instanceof Call)) {
       return Optional.empty();
     }
@@ -127,7 +129,7 @@ class Geodes {
 
     final Path path = Visitors.toPath(predicate.arguments().get(0));
 
-    if (!(path.paths().size() == 1 && path.paths().get(0).isAnnotationPresent(Criteria.Id.class))) {
+    if (!(path.paths().size() == 1 && idResolver.asPredicate().test((Member) path.annotatedElement()))) {
       return Optional.empty();
     }
 
