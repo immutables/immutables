@@ -30,18 +30,28 @@ import java.util.stream.Collectors;
  * Applies <a href="https://en.wikipedia.org/wiki/JavaBeans">JavaBean</a> naming strategy
  * to paths. JavaBean method usually start with {@code set}, {@code get} or {@code is}.
  *
- * This class derives path name {@code foo} from getter method {@code getFoo}
+ * This class derives path name {@code foo} from getter method {@code getFoo} or {@code isFoo}.
+ * Note for {@code is*} prefix, method return type has to be boolean (or boxed boolean).
  */
 public class JavaBeanNaming implements PathNaming {
 
-  static final Predicate<Method> IS_GETTER = method -> Modifier.isPublic(method.getModifiers())
+  private static final Predicate<Method> MAYBE_GETTER = method -> Modifier.isPublic(method.getModifiers())
           && !Modifier.isStatic(method.getModifiers())
           && method.getReturnType() != Void.class
-          && method.getParameterCount() == 0
-          && (method.getName().startsWith("get") && method.getName().length() > "get".length()
-              || method.getName().startsWith("is") && method.getName().length() > "is".length());
+          && method.getParameterCount() == 0;
 
-  static final Predicate<Method> IS_SETTER = method -> Modifier.isPublic(method.getModifiers())
+  private static final Predicate<Method> BOOLEAN_GETTER = method -> MAYBE_GETTER.test(method)
+          && method.getName().startsWith("is")
+          && method.getName().length() > "is".length()
+          && (method.getReturnType() == boolean.class || method.getReturnType() == Boolean.class);
+
+  private static final Predicate<Method> GENERIC_GETTER = method -> MAYBE_GETTER.test(method)
+          && method.getName().startsWith("get")
+          && method.getName().length() > "get".length();
+
+  static final Predicate<Method> IS_GETTER = GENERIC_GETTER.or(BOOLEAN_GETTER);
+
+  private static final Predicate<Method> IS_SETTER = method -> Modifier.isPublic(method.getModifiers())
           && !Modifier.isStatic(method.getModifiers())
           && method.getReturnType() == Void.class
           && method.getParameterCount() == 1
@@ -57,15 +67,16 @@ public class JavaBeanNaming implements PathNaming {
       return name;
     }
 
+    // first lowercase
     return Character.toLowerCase(name.charAt(0)) + name.substring(1);
   };
 
   @Override
   public String name(Path path) {
-    return path.paths().stream().map(p -> maybeGetterSetterName((Member) p)).collect(Collectors.joining("."));
+    return path.paths().stream().map(p -> maybeNameFromGetterSetter((Member) p)).collect(Collectors.joining("."));
   }
 
-  private String maybeGetterSetterName(Member member) {
+  private String maybeNameFromGetterSetter(Member member) {
     if (!(member instanceof Method)) {
       return member.getName();
     }

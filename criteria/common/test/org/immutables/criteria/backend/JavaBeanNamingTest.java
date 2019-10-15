@@ -35,6 +35,17 @@ class JavaBeanNamingTest {
     check(naming.name(path("getURL"))).is("URL");
     check(naming.name(path("isBool"))).is("bool");
     check(naming.name(path("isBOOLEAN"))).is("BOOLEAN");
+    check(naming.name(path("isNotBoolean"))).is("isNotBoolean");
+  }
+
+  @Test
+  void booleans() throws NoSuchMethodException {
+    check(!JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("isNotBoolean")));
+    check(JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("isBOOLEAN")));
+    check(JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("isBool")));
+    check(JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("getURL")));
+    check(!JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("notABean")));
+    check(JavaBeanNaming.IS_GETTER.test(JavaBean.class.getDeclaredMethod("getA")));
   }
 
   private Path path(String name) throws NoSuchMethodException {
@@ -68,6 +79,13 @@ class JavaBeanNamingTest {
 
     public boolean isBOOLEAN() {
       return true;
+    }
+
+    /**
+     * This is not a getter because return type is not boolean
+     */
+    public int isNotBoolean() {
+      return 0;
     }
   }
 
