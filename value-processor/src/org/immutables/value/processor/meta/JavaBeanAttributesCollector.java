@@ -42,10 +42,25 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Collects attributes by searching for getters in a class definition.
+ * Collects attributes by scanning for getters/setters/fields in a class definition.
+ *
+ * <p>Current logic is as follows:
+ * <ol>
+ *   <li>Collect getters (no-arg, non-static, non-void methods). Infer attribute names using JavaBean spec.</li>
+ *   <li>Collect setters (single-arg, non-static, void methods). Infer attribute names using JavaBean spec.</li>
+ *   <li>Collect (non-static) fields including from parent classes.
+ *   Add alternative field names using primitive heuristics like underscore '_' removal or first letter decapitalization.
+ *   </li>
+ * </ol>
+ * Intersection between getter / setter and field names is final attribute set. Created {@link ValueAttribute} will
+ * point to field element. For now we don't allow "derived" attributes and require fields to be present.
+ *
+ * <p>It is important that attributes are serialized otherwise using criteria on non-marshalable attribute(s) doesn't
+ * make sense (we may provide attribute renaming strategies in future).
  *
  * For each {@code getFoo} method (without parameters) create attribute {@code foo}.
  * @see AccessorAttributesCollector
+ * @see <a href="https://www.oracle.com/technetwork/java/javase/documentation/spec-136004.html">JavaBeans spec</a>
  */
 final class JavaBeanAttributesCollector {
 
